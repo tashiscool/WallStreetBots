@@ -48,32 +48,17 @@ class Phase3PortfolioSummary:
 class Phase3StrategyManager:
     """Phase 3 strategy manager"""
     
-    def __init__(self, config):
+    def __init__(self, config: ConfigManager):
         self.config = config
         self.logger = ProductionLogger("phase3_manager")
         
-        # Initialize data provider with real API keys
-        data_config = {
-            'iex_api_key': self.config.data_providers.iex_api_key,
-            'polygon_api_key': self.config.data_providers.polygon_api_key,
-            'fmp_api_key': self.config.data_providers.fmp_api_key,
-            'news_api_key': self.config.data_providers.news_api_key,
-            'alpha_vantage_api_key': self.config.data_providers.alpha_vantage_api_key,
-        }
-        from .data_providers import create_data_provider
-        self.data_provider = create_data_provider(data_config)
-        
-        # Initialize trading interface with real configuration
-        from .trading_interface import create_trading_interface
-        trading_config = {
-            'alpaca_api_key': self.config.broker.alpaca_api_key,
-            'alpaca_secret_key': self.config.broker.alpaca_secret_key,
-            'alpaca_base_url': self.config.broker.alpaca_base_url,
-            'account_size': self.config.risk.account_size,
-            'max_position_risk': self.config.risk.max_position_risk,
-            'default_commission': self.config.risk.default_commission
-        }
-        self.trading_interface = create_trading_interface(trading_config)
+        # Initialize data provider and trading interface
+        self.data_provider = UnifiedDataProvider(self.logger)
+        self.trading_interface = TradingInterface(
+            alpaca_api_key="mock_key",
+            alpaca_secret_key="mock_secret",
+            paper_trading=True
+        )
         
         # Initialize Phase 3 strategies
         self.earnings_protection = EarningsProtectionStrategy(

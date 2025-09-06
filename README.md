@@ -119,6 +119,48 @@ python swing_trading.py continuous --max-expiry-days 21
 python swing_trading.py scan --output json --min-strength 60
 ```
 
+### 8. SPX/SPY 0DTE Credit Spreads - Defined Risk Strategy
+Most cited "actually profitable" 0DTE strategy with high win rates:
+
+```bash
+# Scan 0DTE credit spreads (Mon/Wed/Fri)
+python spx_credit_spreads.py --dte 0 --min-credit 0.20
+
+# Scan 1DTE spreads for more options
+python spx_credit_spreads.py --dte 1 --target-delta 0.30
+
+# JSON output for programmatic use
+python spx_credit_spreads.py --output json --min-credit 0.15
+```
+
+### 9. Earnings IV Crush Protection - Avoid the #1 WSB Mistake
+IV-resistant structures to avoid getting crushed by volatility collapse:
+
+```bash
+# Scan upcoming earnings for protection strategies
+python earnings_protection.py --days-ahead 14 --max-iv-sensitivity 0.4
+
+# Focus on high IV crush risk events
+python earnings_protection.py --days-ahead 7 --max-iv-sensitivity 0.3
+
+# JSON output for analysis
+python earnings_protection.py --output json --days-ahead 10
+```
+
+### 10. Index Fund Baseline Comparison - Reality Check
+Compare all WSB strategies vs "boring" SPY/VTI to see if active trading is worth it:
+
+```bash
+# Compare all strategies vs baselines (6 months)
+python index_baseline.py --period-months 6
+
+# Analyze specific strategy
+python index_baseline.py --strategy wheel_strategy --period-months 12
+
+# JSON output for detailed analysis
+python index_baseline.py --output json --period-months 3
+```
+
 ## 📊 Strategy Overview - WSB "Actually Works" Collection
 
 Based on r/WallStreetBets community analysis of consistently profitable strategies:
@@ -183,39 +225,48 @@ Based on r/WallStreetBets community analysis of consistently profitable strategi
 6. **Wheel Strategy** - Premium selling income generation (CSPs → CCs)
 7. **Enhanced Swing Trading** - Fast breakout/momentum trades with same-day exits
 8. **Backend Trading System** - Complete Django-integrated infrastructure with 43 comprehensive tests
+9. **SPX/SPY 0DTE Credit Spreads** - Defined-risk 0DTE strategies with 25% profit targets
+10. **Earnings IV Crush Protection** - IV-resistant structures for earnings plays
+11. **Index Fund Baseline Comparison** - SPY/VTI performance benchmarking and reality checks
 
-### 🔄 **MISSING WSB "WINNERS" - TODO LIST:**
+### ✅ **ADDITIONAL WSB STRATEGIES - FULLY IMPLEMENTED:**
 
-### 9. SPX/SPY 0DTE Credit Spreads ❌ **TODO: IMPLEMENT**
+### 9. SPX/SPY 0DTE Credit Spreads ✅ **FULLY IMPLEMENTED**
 **WSB Pattern**: Most cited "actually profitable" 0DTE strategy
 **Strategy**: Sell ~30-delta defined-risk strangles/credit spreads at open
 **Exits**: Auto-close at ~25% profit target (high win rate)
 **Risk**: Occasional max-loss weeks, prefer SPX for tax/cash settlement
-**Implementation Plan**: 
-- Create `spx_credit_spreads.py` scanner
-- Focus on SPX/SPY with defined risk
-- Auto-close profit targets
-- Track win rates and max loss periods
+**Implementation**: 
+- ✅ `spx_credit_spreads.py` scanner with full functionality
+- ✅ SPX/SPY focus with defined risk calculations
+- ✅ Auto-close profit targets (25% profit target)
+- ✅ Win rate tracking and risk metrics
+- ✅ Black-Scholes pricing and delta targeting
+- ✅ Iron condor and strangle strategies
 
-### 10. Earnings IV Crush Protection ❌ **TODO: IMPLEMENT**
+### 10. Earnings IV Crush Protection ✅ **FULLY IMPLEMENTED**
 **WSB Pattern**: Avoid lotto buying, structure around IV
 **Strategy**: Deep ITM options or balanced hedges for earnings
 **Problem**: Long straddles/strangles get crushed by IV collapse
-**Implementation Plan**:
-- Create `earnings_protection.py` module  
-- Focus on IV-resistant structures
-- Deep ITM options for earnings plays
-- Calendar spreads to reduce IV risk
+**Implementation**:
+- ✅ `earnings_protection.py` module with comprehensive strategies
+- ✅ IV-resistant structures (Deep ITM, Calendar Spreads, Protective Hedges)
+- ✅ Deep ITM options for earnings plays
+- ✅ Calendar spreads to reduce IV risk
+- ✅ IV sensitivity analysis and crush risk assessment
+- ✅ Earnings event tracking and strategy recommendations
 
-### 11. Index Fund Baseline Comparison ❌ **TODO: ADD**
+### 11. Index Fund Baseline Comparison ✅ **FULLY IMPLEMENTED**
 **WSB Pattern**: "Boring baseline" that beats most WSB strategies
 **Strategy**: SPY/VTI buy-and-hold comparison
 **Purpose**: Reality check for all active strategies
-**Implementation Plan**:
-- Create `index_baseline.py` tracker
-- Compare all strategy performance vs SPY/VTI
-- Show risk-adjusted returns
-- Humble pie for overconfident traders
+**Implementation**:
+- ✅ `index_baseline.py` tracker with comprehensive analysis
+- ✅ Compare all strategy performance vs SPY/VTI/QQQ
+- ✅ Risk-adjusted returns and Sharpe ratio comparisons
+- ✅ Alpha calculations and trading cost impact analysis
+- ✅ Performance attribution and winner determination
+- ✅ Humble pie for overconfident traders with reality checks
 
 ## ⚠️ **WSB WARNINGS - What Usually Loses:**
 - ❌ Naked strangles without defined risk (tail risk wipes out gains)
@@ -232,10 +283,10 @@ Based on r/WallStreetBets community analysis of consistently profitable strategi
 ├── momentum_weeklies.py        # ✅ Intraday reversal scanner
 ├── debit_spreads.py            # ✅ Defined-risk call spreads
 ├── lotto_scanner.py            # ✅ 0DTE/earnings lottery plays
-├── spx_credit_spreads.py       # ❌ TODO: SPX 0DTE credit spreads
-├── earnings_protection.py      # ❌ TODO: IV crush protection strategies
+├── spx_credit_spreads.py       # ✅ SPX 0DTE credit spreads (fully implemented)
+├── earnings_protection.py      # ✅ IV crush protection strategies (fully implemented)
 ├── swing_trading.py            # ✅ Enhanced breakout swing trading
-├── index_baseline.py           # ❌ TODO: SPY/VTI baseline comparison
+├── index_baseline.py           # ✅ SPY/VTI baseline comparison (fully implemented)
 ├── wsb_requirements.txt        # Dependencies for all WSB bots
 ├── backend/tradingbot/         # ✅ Django-integrated trading modules (FULLY TESTED)
 │   ├── options_calculator.py   # ✅ Black-Scholes pricing engine

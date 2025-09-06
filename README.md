@@ -220,6 +220,143 @@ The system captures the exact momentum continuation pattern that produces WSB vi
 - **Market regime detection** for adaptive strategies
 - **Systematic exit planning** with profit targets
 
+## 🎯 When to Use Each Strategy
+
+### **WSB Dip Bot** - The Original Viral Strategy
+**Use When:**
+- You want to replicate the exact WSB pattern that produces viral gains
+- You're comfortable with high risk (can lose 70-100% of position)
+- You have capital you can afford to lose completely
+- You want to go "all-in" on single trades (like the original 240% gain)
+
+**Market Conditions:**
+- Mega-caps (AAPL, MSFT, GOOGL, META, NVDA, TSLA) in bull market
+- Stock has run up +10%+ over 10 days, then pulls back hard (-3%+)
+- You can monitor positions actively (1-2 day holds max)
+
+**Risk Level:** ⚠️⚠️⚠️ **EXTREME** - Can lose entire position
+
+---
+
+### **Momentum Weeklies Scanner** - Intraday Reversals
+**Use When:**
+- You want to catch intraday momentum moves
+- You prefer shorter timeframes (same/next day exits)
+- You want to trade weekly options for quick profits
+- You can monitor markets actively during trading hours
+
+**Market Conditions:**
+- High volume days with 3x+ average volume spikes
+- Intraday reversals on mega-caps
+- Strong momentum continuation patterns
+- Market volatility is elevated
+
+**Risk Level:** ⚠️⚠️⚠️ **HIGH** - Quick time decay risk
+
+---
+
+### **Debit Call Spreads** - Reduced Risk Strategy
+**Use When:**
+- You want bullish exposure with limited risk
+- You prefer defined risk over unlimited upside
+- You want to reduce theta decay and IV crush exposure
+- You're looking for more consistent, repeatable profits
+
+**Market Conditions:**
+- Bullish trend with favorable risk/reward ratios
+- Moderate volatility (not too high, not too low)
+- You want to avoid the "all-or-nothing" nature of naked calls
+- You prefer systematic, disciplined approaches
+
+**Risk Level:** ⚠️⚠️ **MEDIUM** - Limited upside but controlled risk
+
+---
+
+### **LEAPS Secular Winners** - Long-term Growth
+**Use When:**
+- You want to invest in long-term secular trends
+- You have patience for 12-24 month timeframes
+- You want to capture major thematic moves (AI, Cloud, EVs, etc.)
+- You prefer systematic profit-taking over timing exits
+
+**Market Conditions:**
+- Secular growth themes are in favor
+- You want to avoid short-term market noise
+- Quality companies with strong fundamentals
+- You can commit capital for extended periods
+
+**Risk Level:** ⚠️⚠️ **MEDIUM** - Long-term capital commitment
+
+---
+
+### **0DTE/Earnings Lotto Scanner** - High Risk/High Reward
+**Use When:**
+- You want to gamble on high-volatility events
+- You're comfortable with most trades expiring worthless
+- You want strict position sizing discipline
+- You're looking for the few big winners to pay for many losers
+
+**Market Conditions:**
+- High volatility periods (earnings, major events)
+- You want to trade 0DTE options for maximum leverage
+- You can accept that 80-90% of trades will lose money
+- You have strict risk management discipline
+
+**Risk Level:** ⚠️⚠️⚠️ **EXTREME** - Most trades expire worthless
+
+---
+
+### **Wheel Strategy** - Income Generation
+**Use When:**
+- You want consistent income generation
+- You prefer lower-risk, systematic approaches
+- You want to generate returns in sideways markets
+- You're comfortable with assignment risk
+
+**Market Conditions:**
+- Quality companies with decent volatility
+- You want income generation over capital appreciation
+- You prefer positive expected value over time
+- You want to avoid the stress of timing entries/exits
+
+**Risk Level:** ⚠️ **LOWER** - Income generation with assignment risk
+
+---
+
+## 🤔 Quick Strategy Selector
+
+**Ask yourself these questions:**
+
+1. **What's your risk tolerance?**
+   - **Extreme risk** → WSB Dip Bot or Lotto Scanner
+   - **High risk** → Momentum Weeklies
+   - **Medium risk** → Debit Spreads or LEAPS
+   - **Lower risk** → Wheel Strategy
+
+2. **What's your time horizon?**
+   - **Same/next day** → Momentum Weeklies or Lotto Scanner
+   - **1-2 days** → WSB Dip Bot
+   - **Weeks to months** → Debit Spreads
+   - **12-24 months** → LEAPS
+   - **Ongoing income** → Wheel Strategy
+
+3. **What's your trading style?**
+   - **"All-in" gambler** → WSB Dip Bot
+   - **Active day trader** → Momentum Weeklies
+   - **Systematic trader** → Debit Spreads
+   - **Long-term investor** → LEAPS
+   - **Income seeker** → Wheel Strategy
+   - **Lottery player** → Lotto Scanner
+
+4. **What's the market condition?**
+   - **Bull market with dips** → WSB Dip Bot
+   - **High volatility** → Momentum Weeklies or Lotto Scanner
+   - **Steady uptrend** → Debit Spreads
+   - **Secular themes** → LEAPS
+   - **Sideways market** → Wheel Strategy
+
+---
+
 ## 🚀 Installation & Setup
 
 ### Prerequisites

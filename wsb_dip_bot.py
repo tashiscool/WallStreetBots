@@ -52,6 +52,9 @@ import pandas as pd
 import pytz
 import yfinance as yf
 
+from utils.yfinance_hardening import safe_mid, fetch_last_and_prior_close
+from utils.error_handling import retry
+
 
 # -------------------------- Config Defaults --------------------------
 
@@ -166,6 +169,7 @@ def fetch_intraday_last_and_prior_close(ticker: str) -> Optional[Dict[str, float
     last = float(intraday["Close"].iloc[-1])
     return {"last": last, "prior_close": prior_close}
 
+@retry(tries=3, delay=1.0, exceptions=(Exception,))
 def get_option_mid_for_nearest_5pct_otm(ticker: str, expiry: str, desired_strike: float) -> Optional[Dict[str, float]]:
     tkr = yf.Ticker(ticker)
     chain = tkr.option_chain(expiry)
@@ -180,8 +184,8 @@ def get_option_mid_for_nearest_5pct_otm(ticker: str, expiry: str, desired_strike
     bid = float(row["bid"].iloc[0]) if pd.notna(row["bid"].iloc[0]) else 0.0
     ask = float(row["ask"].iloc[0]) if pd.notna(row["ask"].iloc[0]) else 0.0
     last = float(row["lastPrice"].iloc[0]) if pd.notna(row["lastPrice"].iloc[0]) else 0.0
-    mid = (bid + ask) / 2.0 if (bid > 0 and ask > 0) else last
-    return {"strike": strike, "mid": max(mid, 0.01), "bid": bid, "ask": ask, "last": last}
+    mid = safe_mid(bid, ask, last)
+    return {"strike": strike, "mid": mid, "bid": bid, "ask": ask, "last": last}
 
 
 # -------------------------- Signals & Plans --------------------------
@@ -354,11 +358,15 @@ def monitor_plan(ticker: str, expiry: str, strike: float, entry_prem: float,
             bid = float(row["bid"].iloc[0]) if pd.notna(row["bid"].iloc[0]) else 0.0
             ask = float(row["ask"].iloc[0]) if pd.notna(row["ask"].iloc[0]) else 0.0
             last = float(row["lastPrice"].iloc[0]) if pd.notna(row["lastPrice"].iloc[0]) else 0.0
-            mid_per_share = (bid + ask) / 2.0 if bid > 0 and ask > 0 else last
+            mid_per_share = safe_mid(bid, ask, last)
             mid = mid_per_share * 100.0
 
             # Spot and DTE
-            spot = float(yf.Ticker(ticker).history(period="1d", interval="1m")["Close"].iloc[-1])
+            live = fetch_last_and_prior_close(ticker)
+            if not live:
+                # handle market-closed or API hiccup
+                continue
+            spot = live["last"]
             dte_days = max((datetime.fromisoformat(expiry).date() - date.today()).days, 1)
             t = dte_days / 365.0
 

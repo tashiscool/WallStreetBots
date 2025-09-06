@@ -3,5 +3,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
+RUN pip install --no-cache-dir .
 ENV PYTHONUNBUFFERED=1
 CMD ["wsb-dip-bot", "scan-eod", "--account-size", "450000", "--risk-pct", "1.0", "--use-options-chain"]

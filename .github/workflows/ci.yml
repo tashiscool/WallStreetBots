@@ -11,4 +11,4 @@ jobs:
         with: { python-version: "3.11" }
       - run: pip install -r requirements.txt
       - run: pip install pytest
-      - run: pytest -q || true  # allow network-dependent tests to soft-fail
+      - run: pytest -q            # removed '|| true'

@@ -14,7 +14,7 @@ import os
 # Add backend to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
-from backend.tradingbot.alert_system import (
+from backend.tradingbot.  # noqa: E402alert_system import (
     Alert, AlertType, AlertPriority, AlertChannel, ChecklistItem, ExecutionChecklist,
     TradingAlertSystem, AlertHandler, DesktopAlertHandler, EmailAlertHandler,
     ExecutionChecklistManager, send_slack, send_email

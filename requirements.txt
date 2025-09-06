@@ -1,5 +1,5 @@
 pandas>=2.0.0,<3.0.0
-numpy>=1.24.0,<2.0.0
+numpy>=1.24.0,<2.3.0  # Compatible with numba and opencv
 yfinance>=0.2.52,<0.3.0
 pytz>=2024.1,<2026.0
 requests>=2.31.0,<3.0.0
@@ -21,7 +21,10 @@ psycopg2-binary>=2.9.0
 APScheduler>=3.9.0
 
 # Trading APIs
-alpaca-trade-api>=2.0.0
+alpaca-py>=0.20.0,<1.0.0  # Modern Alpaca API client (replaces alpaca-trade-api)
+aiohttp>=3.8.0,<4.0.0  # For async HTTP requests to data providers
+ccxt>=3.0.0,<4.0.0  # Multi-exchange trading library
+websockets>=13.0,<16.0  # Compatible with yfinance and modern libraries
 
 # Data visualization
 plotly>=5.0.0

@@ -14,7 +14,7 @@ import os
 # Add backend to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
-from backend.tradingbot.options_calculator import (
+from backend.tradingbot.  # noqa: E402options_calculator import (  # noqa: E402
     BlackScholesCalculator, OptionsTradeCalculator, TradeCalculation, 
     OptionsSetup, OptionsStrategySetup, validate_successful_trade
 )

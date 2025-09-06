@@ -54,7 +54,7 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         self.assertAlmostEqual(sma_5, expected_sma_5, places=2)
         self.assertGreater(sma_5, 105)  # Should be above base
         
-    @patch('leaps_tracker.yf.Ticker')
+    @patch('backend.tradingbot.strategies.leaps_tracker.yf.Ticker')
     def test_golden_cross_detection(self, mock_yf):
         """Test golden cross detection algorithm"""
         mock_ticker = Mock()
@@ -197,7 +197,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
             'Volume': np.random.randint(1000000, 5000000, 500)
         }, index=dates)
         
-    @patch('leaps_tracker.yf.Ticker')
+    @patch('backend.tradingbot.strategies.leaps_tracker.yf.Ticker')
     def test_enhanced_candidate_creation(self, mock_yf):
         """Test LEAPS candidate creation with timing signals"""
         mock_ticker = Mock()
@@ -356,7 +356,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
             self.assertGreater(len(theme.tickers), 3)  # Multiple stocks per theme
             self.assertGreater(len(theme.growth_drivers), 2)  # Multiple drivers
             
-    @patch('leaps_tracker.yf.Ticker')
+    @patch('backend.tradingbot.strategies.leaps_tracker.yf.Ticker')
     def test_sorting_by_timing_score(self, mock_yf):
         """Test sorting candidates by entry timing score"""
         # Create candidates with different timing scores

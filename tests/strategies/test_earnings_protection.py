@@ -69,7 +69,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         
     def test_earnings_move_estimation(self):
         """Test earnings move estimation from straddle pricing"""
-        with patch('earnings_protection.yf.Ticker') as mock_yf:
+        with patch('backend.tradingbot.strategies.earnings_protection.yf.Ticker') as mock_yf:
             mock_ticker = Mock()
             
             # Mock options chain
@@ -117,7 +117,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         
     def test_deep_itm_strategy_creation(self):
         """Test deep ITM call strategy creation"""
-        with patch('earnings_protection.yf.Ticker') as mock_yf:
+        with patch('backend.tradingbot.strategies.earnings_protection.yf.Ticker') as mock_yf:
             mock_ticker = Mock()
             
             # Mock options chain with ITM calls
@@ -148,7 +148,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
                 
     def test_calendar_spread_strategy_creation(self):
         """Test calendar spread strategy creation"""
-        with patch('earnings_protection.yf.Ticker') as mock_yf:
+        with patch('backend.tradingbot.strategies.earnings_protection.yf.Ticker') as mock_yf:
             mock_ticker = Mock()
             
             # Mock two different expiries
@@ -178,7 +178,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
                 
     def test_protective_hedge_strategy_creation(self):
         """Test protective hedge strategy creation"""
-        with patch('earnings_protection.yf.Ticker') as mock_yf:
+        with patch('backend.tradingbot.strategies.earnings_protection.yf.Ticker') as mock_yf:
             mock_ticker = Mock()
             
             mock_chain = Mock()
@@ -279,7 +279,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         self.assertLess(strategies[0].iv_sensitivity, strategies[1].iv_sensitivity)
         self.assertLess(strategies[1].iv_sensitivity, strategies[2].iv_sensitivity)
         
-    @patch('earnings_protection.yf.Ticker')
+    @patch('backend.tradingbot.strategies.earnings_protection.yf.Ticker')
     def test_scan_earnings_protection_integration(self, mock_yf):
         """Test the main scanning function"""
         mock_ticker = Mock()

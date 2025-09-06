@@ -64,7 +64,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         self.assertIn("wheel_strategy", self.scanner.wsb_strategies)
         self.assertIn("spx_credit_spreads", self.scanner.wsb_strategies)
         
-    @patch('index_baseline.yf.Ticker')
+    @patch('backend.tradingbot.strategies.index_baseline.yf.Ticker')
     def test_baseline_performance_tracking(self, mock_yf):
         """Test baseline performance data collection"""
         # Mock yfinance responses for each ticker
@@ -174,7 +174,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         self.assertGreater(comparison.strategy_sharpe, 1.0)  # Good Sharpe
         self.assertGreater(comparison.net_alpha_after_costs, 0)  # Positive alpha after costs
         
-    @patch('index_baseline.yf.Ticker')
+    @patch('backend.tradingbot.strategies.index_baseline.yf.Ticker')
     def test_scan_all_strategies_integration(self, mock_yf):
         """Test scanning all strategies integration"""
         # Mock baseline performance

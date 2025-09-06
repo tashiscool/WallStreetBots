@@ -41,7 +41,7 @@ class TestSwingTradingScanner(unittest.TestCase):
         self.assertIsInstance(self.scanner.swing_tickers, list)
         self.assertGreater(len(self.scanner.swing_tickers), 0)
 
-    @patch('swing_trading.yf.Ticker')
+    @patch('backend.tradingbot.strategies.swing_trading.yf.Ticker')
     def test_detect_breakout(self, mock_ticker):
         """Test breakout detection"""
         mock_stock = Mock()
@@ -57,7 +57,7 @@ class TestSwingTradingScanner(unittest.TestCase):
         self.assertIsInstance(strength, float)
         self.assertIsInstance(volume_ratio, float)
 
-    @patch('swing_trading.yf.download')
+    @patch('backend.tradingbot.strategies.swing_trading.yf.download')
     def test_detect_momentum_continuation(self, mock_download):
         """Test momentum continuation detection"""
         mock_download.return_value = self.mock_data
@@ -67,7 +67,7 @@ class TestSwingTradingScanner(unittest.TestCase):
         self.assertIsInstance(is_momentum, bool)
         self.assertIsInstance(strength, float)
 
-    @patch('swing_trading.yf.download')
+    @patch('backend.tradingbot.strategies.swing_trading.yf.download')
     def test_detect_reversal_setup(self, mock_download):
         """Test reversal setup detection"""
         mock_download.return_value = self.mock_data
@@ -107,7 +107,7 @@ class TestSwingTradingScanner(unittest.TestCase):
         # Stop loss should be less than original premium (30% loss)
         self.assertLess(stop_loss, 2.50)
 
-    @patch('swing_trading.yf.Ticker')
+    @patch('backend.tradingbot.strategies.swing_trading.yf.Ticker')
     def test_estimate_swing_premium(self, mock_ticker):
         """Test swing premium estimation"""
         mock_options = Mock()
@@ -123,7 +123,7 @@ class TestSwingTradingScanner(unittest.TestCase):
         self.assertIsInstance(premium, float)
         self.assertGreater(premium, 0)
 
-    @patch('swing_trading.yf.download')
+    @patch('backend.tradingbot.strategies.swing_trading.yf.download')
     def test_scan_swing_opportunities(self, mock_download):
         """Test scanning for swing opportunities"""
         mock_download.return_value = self.mock_data
@@ -245,7 +245,7 @@ class TestSwingTradingIntegration(unittest.TestCase):
         """Set up test fixtures"""
         self.scanner = SwingTradingScanner()
 
-    @patch('swing_trading.yf.download')
+    @patch('backend.tradingbot.strategies.swing_trading.yf.download')
     def test_error_handling_bad_ticker(self, mock_download):
         """Test error handling with bad ticker"""
         mock_download.side_effect = Exception("Ticker not found")

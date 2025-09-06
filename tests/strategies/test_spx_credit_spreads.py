@@ -64,7 +64,7 @@ class TestSPXCreditSpreadsScanner(unittest.TestCase):
             self.assertIsInstance(expiry, str)
             self.assertEqual(len(expiry), 10)  # YYYY-MM-DD format
 
-    @patch('spx_credit_spreads.yf.Ticker')
+    @patch('backend.tradingbot.strategies.spx_credit_spreads.yf.Ticker')
     def test_estimate_iv_from_expected_move(self, mock_ticker):
         """Test IV estimation from expected move"""
         mock_stock = Mock()
@@ -76,7 +76,7 @@ class TestSPXCreditSpreadsScanner(unittest.TestCase):
         self.assertIsInstance(iv, float)
         self.assertGreater(iv, 0)
 
-    @patch('spx_credit_spreads.yf.Ticker')
+    @patch('backend.tradingbot.strategies.spx_credit_spreads.yf.Ticker')
     def test_get_expected_move(self, mock_ticker):
         """Test expected move calculation"""
         mock_stock = Mock()

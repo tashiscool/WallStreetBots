@@ -78,6 +78,7 @@ class AlertChannel(Enum):
     WEBHOOK = "webhook"
     DESKTOP = "desktop"
     MOBILE_PUSH = "mobile_push"
+    SLACK = "slack"
 
 
 @dataclass
@@ -95,7 +96,15 @@ class Alert:
 
     def to_json(self) -> str:
         """Convert alert to JSON string"""
-        return json.dumps(asdict(self), default=str)
+        data = asdict(self)
+        # Convert enums to their values
+        if 'alert_type' in data and hasattr(data['alert_type'], 'value'):
+            data['alert_type'] = data['alert_type'].value
+        if 'priority' in data and hasattr(data['priority'], 'value'):
+            data['priority'] = data['priority'].value
+        if 'channel' in data and hasattr(data['channel'], 'value'):
+            data['channel'] = data['channel'].value
+        return json.dumps(data, default=str)
 
 
 @dataclass
@@ -485,6 +494,8 @@ class ExecutionChecklistManager:
         checklist = self.checklists.get(checklist_id)
         if checklist:
             checklist.complete_step(step, notes)
+            return True
+        return False
 
     def get_active_checklists(self) -> List[ExecutionChecklist]:
         """Get all incomplete checklists"""

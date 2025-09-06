@@ -26,7 +26,7 @@ from backend.tradingbot.core.production_logging import (
     ProductionLogger, ErrorHandler, CircuitBreaker, 
     HealthChecker, MetricsCollector, retry_with_backoff
 )
-from backend.tradingbot.core.production_models import Strategy, Position, Trade, Configuration
+from backend.tradingbot.core.production_models import Strategy, Position, Trade
 
 
 class TestTradingInterface(unittest.TestCase):

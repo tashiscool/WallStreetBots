@@ -12,8 +12,8 @@ from enum import Enum
 import math
 import random
 
-from .production_logging import ProductionLogger
-from .production_config import ConfigManager
+from ..core.production_logging import ProductionLogger
+from ..core.production_config import ConfigManager
 from .phase4_backtesting import BacktestEngine, BacktestConfig, BacktestResults
 
 

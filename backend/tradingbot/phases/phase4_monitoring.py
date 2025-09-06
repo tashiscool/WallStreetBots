@@ -14,8 +14,8 @@ import time
 import threading
 from collections import defaultdict, deque
 
-from .production_logging import ProductionLogger
-from .production_config import ConfigManager
+from ..core.production_logging import ProductionLogger
+from ..core.production_config import ConfigManager
 
 
 class AlertLevel(Enum):

@@ -12,8 +12,8 @@ from typing import Dict, List, Optional, Tuple, Any
 from enum import Enum
 
 from ..apimanagers import AlpacaManager
-from .risk_management import RiskManager, Position, RiskParameters
-from .alert_system import TradingAlertSystem, AlertType, AlertPriority
+from ..risk_management import RiskManager, Position, RiskParameters
+from ..alert_system import TradingAlertSystem, AlertType, AlertPriority
 
 
 class TradeStatus(Enum):

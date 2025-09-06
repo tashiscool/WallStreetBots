@@ -13,22 +13,22 @@ import os
 import math
 
 # Import Phase 2 components
-from .production_wheel_strategy import (
+from backend.tradingbot.core.production_wheel_strategy import (
     ProductionWheelStrategy, WheelPosition, WheelCandidate, WheelStage, WheelStatus
 )
-from .production_debit_spreads import (
+from backend.tradingbot.core.production_debit_spreads import (
     ProductionDebitSpreads, SpreadPosition, SpreadCandidate, SpreadType, SpreadStatus,
     QuantLibPricer
 )
-from .production_spx_spreads import (
+from backend.tradingbot.core.production_spx_spreads import (
     ProductionSPXSpreads, SPXSpreadPosition, SPXSpreadCandidate, SPXSpreadType, SPXSpreadStatus,
     CMEDataProvider
 )
-from .production_index_baseline import (
+from backend.tradingbot.core.production_index_baseline import (
     ProductionIndexBaseline, BenchmarkData, StrategyPerformance, PerformanceComparison,
     BenchmarkType, PerformanceCalculator
 )
-from .phase2_integration import Phase2StrategyManager
+from backend.tradingbot.phases.phase2_integration import Phase2StrategyManager
 
 
 class TestWheelStrategy(unittest.TestCase):
@@ -558,8 +558,8 @@ class TestPhase2Integration(unittest.TestCase):
     
     def test_phase2_components_creation(self):
         """Test Phase 2 components can be created"""
-        from .production_config import ConfigManager
-        from .production_logging import ProductionLogger
+        from backend.tradingbot.core.production_config import ConfigManager
+        from backend.tradingbot.core.production_logging import ProductionLogger
         
         # Load configuration
         config_manager = ConfigManager(self.config_file)

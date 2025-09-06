@@ -11,6 +11,7 @@ import tempfile
 import json
 from datetime import datetime, timedelta
 from enum import Enum
+from unittest.mock import Mock
 
 # Add the backend directory to the path
 sys.path.append('backend/tradingbot')
@@ -286,7 +287,7 @@ def test_phase2_integration():
         config_file = f.name
     
     try:
-        from production_config import ConfigManager
+        from backend.tradingbot.core.production_config import ConfigManager
         
         config_manager = ConfigManager(config_file)
         config = config_manager.load_config()

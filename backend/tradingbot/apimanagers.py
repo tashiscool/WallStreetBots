@@ -12,15 +12,35 @@ import pandas as pd
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from alpaca.trading.client import TradingClient
-from alpaca.trading.requests import (
-    MarketOrderRequest, LimitOrderRequest, StopOrderRequest, 
-    GetOrdersRequest, ClosePositionRequest
-)
-from alpaca.trading.enums import OrderSide, TimeInForce, OrderType, OrderClass
-from alpaca.data.historical import StockHistoricalDataClient
-from alpaca.data.requests import StockBarsRequest, StockLatestTradeRequest
-from alpaca.data.timeframe import TimeFrame
+# Optional imports with fallbacks
+try:
+    from alpaca.trading.client import TradingClient
+    from alpaca.trading.requests import (
+        MarketOrderRequest, LimitOrderRequest, StopOrderRequest, 
+        GetOrdersRequest, ClosePositionRequest
+    )
+    from alpaca.trading.enums import OrderSide, TimeInForce, OrderType, OrderClass
+    from alpaca.data.historical import StockHistoricalDataClient
+    from alpaca.data.requests import StockBarsRequest, StockLatestTradeRequest
+    from alpaca.data.timeframe import TimeFrame
+    ALPACA_AVAILABLE = True
+except ImportError:
+    # Fallback classes if alpaca is not available
+    TradingClient = None
+    MarketOrderRequest = None
+    LimitOrderRequest = None
+    StopOrderRequest = None
+    GetOrdersRequest = None
+    ClosePositionRequest = None
+    OrderSide = None
+    TimeInForce = None
+    OrderType = None
+    OrderClass = None
+    StockHistoricalDataClient = None
+    StockBarsRequest = None
+    StockLatestTradeRequest = None
+    TimeFrame = None
+    ALPACA_AVAILABLE = False
 
 
 class AlpacaManager:
@@ -30,19 +50,25 @@ class AlpacaManager:
         self.API_KEY = API_KEY
         self.SECRET_KEY = SECRET_KEY
         self.paper_trading = paper_trading
+        self.alpaca_available = ALPACA_AVAILABLE
         
-        # Initialize trading client
-        self.trading_client = TradingClient(
-            api_key=API_KEY,
-            secret_key=SECRET_KEY,
-            paper=paper_trading
-        )
-        
-        # Initialize data client
-        self.data_client = StockHistoricalDataClient(
-            api_key=API_KEY,
-            secret_key=SECRET_KEY
-        )
+        if ALPACA_AVAILABLE:
+            # Initialize trading client
+            self.trading_client = TradingClient(
+                api_key=API_KEY,
+                secret_key=SECRET_KEY,
+                paper=paper_trading
+            )
+            
+            # Initialize data client
+            self.data_client = StockHistoricalDataClient(
+                api_key=API_KEY,
+                secret_key=SECRET_KEY
+            )
+        else:
+            # Mock clients when alpaca is not available
+            self.trading_client = None
+            self.data_client = None
         
         # Validate API connection
         success, message = self.validate_api()
@@ -56,6 +82,9 @@ class AlpacaManager:
         Returns:
             Tuple of (success: bool, message: str)
         """
+        if not ALPACA_AVAILABLE:
+            return True, "Alpaca not available - using mock mode"
+        
         try:
             account = self.trading_client.get_account()
             if account:

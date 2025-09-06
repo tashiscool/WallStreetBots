@@ -13,7 +13,7 @@ import os
 # Add backend to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
-from backend.tradingbot.  # noqa: E402market_regime import (  # noqa: E402
+from backend.tradingbot.market_regime import (  # noqa: E402
     MarketRegime, SignalType, TechnicalIndicators, MarketSignal,
     TechnicalAnalysis, MarketRegimeFilter, SignalGenerator,
     create_sample_indicators

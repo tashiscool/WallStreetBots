@@ -15,7 +15,7 @@ import os
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from swing_  # noqa: E402  # noqa: E402trading import (  # noqa: E402
+from swing_trading import (  # noqa: E402
     SwingSignal, SwingTradingScanner, ActiveSwingTrade
 )
 

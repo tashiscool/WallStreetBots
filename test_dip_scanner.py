@@ -14,7 +14,7 @@ import os
 # Add backend to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
-from backend.tradingbot.  # noqa: E402dip_scanner import (
+from backend.tradingbot.dip_scanner import (  # noqa: E402
     LiveDipScanner, MarketHours
 )
 

@@ -13,7 +13,7 @@ import os
 # Add backend to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
-from backend.tradingbot.  # noqa: E402risk_management import (  # noqa: E402
+from backend.tradingbot.risk_management import (  # noqa: E402
     RiskLevel, PositionStatus, RiskParameters, Position, PortfolioRisk,
     KellyCalculator, PositionSizer, RiskManager
 )

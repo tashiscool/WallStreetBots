@@ -19,12 +19,12 @@ sys.modules['yfinance'] = MagicMock()
 sys.modules['pandas'] = MagicMock()
 sys.modules['numpy'] = MagicMock()
 
-from momentum_  # noqa: E402weeklies import MomentumWeekliesScanner, MomentumSignal
-from debit_  # noqa: E402  # noqa: E402spreads import DebitSpreadScanner, SpreadOpportunity
-from leaps_  # noqa: E402  # noqa: E402tracker import LEAPSTracker, LEAPSPosition
-from lotto_  # noqa: E402  # noqa: E402scanner import LottoScanner, LottoPlay
-from wheel_  # noqa: E402  # noqa: E402strategy import WheelStrategy, WheelPosition
-from wsb_  # noqa: E402  # noqa: E402dip_bot import DipSignal
+from momentum_weeklies import MomentumWeekliesScanner, MomentumSignal  # noqa: E402
+from debit_spreads import DebitSpreadScanner, SpreadOpportunity  # noqa: E402
+from leaps_tracker import LEAPSTracker, LEAPSPosition  # noqa: E402
+from lotto_scanner import LottoScanner, LottoPlay  # noqa: E402
+from wheel_strategy import WheelStrategy, WheelPosition  # noqa: E402
+from wsb_dip_bot import DipSignal  # noqa: E402
 
 
 class TestStrategySmokeTests(unittest.TestCase):

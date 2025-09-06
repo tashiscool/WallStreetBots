@@ -388,11 +388,11 @@ class TradingInterface:
 # Factory function for easy initialization
 def create_trading_interface(config: Dict[str, Any]) -> TradingInterface:
     """Create trading interface with default components"""
-    # Initialize broker manager
-    broker = AlpacaManager(
-        config.get('alpaca_api_key', ''),
-        config.get('alpaca_secret_key', '')
-    )
+    # Initialize broker manager with test keys if not provided
+    api_key = config.get('alpaca_api_key', 'test_key')
+    secret_key = config.get('alpaca_secret_key', 'test_secret')
+    
+    broker = AlpacaManager(api_key, secret_key)
     
     # Initialize risk manager
     risk_params = RiskParameters()

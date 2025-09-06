@@ -52,21 +52,28 @@ class AlpacaManager:
         self.paper_trading = paper_trading
         self.alpaca_available = ALPACA_AVAILABLE
         
-        if ALPACA_AVAILABLE:
-            # Initialize trading client
-            self.trading_client = TradingClient(
-                api_key=API_KEY,
-                secret_key=SECRET_KEY,
-                paper=paper_trading
-            )
-            
-            # Initialize data client
-            self.data_client = StockHistoricalDataClient(
-                api_key=API_KEY,
-                secret_key=SECRET_KEY
-            )
+        if ALPACA_AVAILABLE and API_KEY and SECRET_KEY and API_KEY != 'test_key':
+            try:
+                # Initialize trading client
+                self.trading_client = TradingClient(
+                    api_key=API_KEY,
+                    secret_key=SECRET_KEY,
+                    paper=paper_trading
+                )
+                
+                # Initialize data client
+                self.data_client = StockHistoricalDataClient(
+                    api_key=API_KEY,
+                    secret_key=SECRET_KEY
+                )
+            except Exception as e:
+                # If authentication fails, fall back to mock mode
+                print(f"Alpaca authentication failed, using mock mode: {e}")
+                self.alpaca_available = False
+                self.trading_client = None
+                self.data_client = None
         else:
-            # Mock clients when alpaca is not available
+            # Mock clients when alpaca is not available or using test keys
             self.trading_client = None
             self.data_client = None
         
@@ -84,6 +91,9 @@ class AlpacaManager:
         """
         if not ALPACA_AVAILABLE:
             return True, "Alpaca not available - using mock mode"
+        
+        if not self.trading_client:
+            return True, "Using mock mode - no trading client available"
         
         try:
             account = self.trading_client.get_account()

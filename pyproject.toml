@@ -1,38 +1,19 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "wallstreetbots"
-version = "1.0.0"
-description = "Comprehensive WSB Trading Strategies - Options trading systems implementing proven WSB-style strategies"
+version = "0.1.0"
+description = "WSB-style strategy bots (dip-after-run, momentum weeklies, spreads, leaps, wheel)"
 readme = "README.md"
-requires-python = ">=3.8"
-license = {text = "MIT"}
-authors = [
-    {name = "Tashdid Khan", email = "tkhan@econsys.com"},
-]
-keywords = ["trading", "options", "wsb", "finance", "algorithms"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Financial and Insurance Industry",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Office/Business :: Financial :: Investment",
-]
-
+requires-python = ">=3.10"
 dependencies = [
-    "pandas>=2.0.0,<3.0.0",
-    "numpy>=1.24.0,<2.0.0", 
-    "yfinance>=0.2.52,<1.0.0",
-    "pytz>=2024.1",
-    "requests>=2.26.0",
-    "python-dotenv>=0.19.1",
+  "pandas>=2.0.0,<3.0.0",
+  "numpy>=1.24.0,<2.0.0",
+  "yfinance>=0.2.52,<0.3.0",
+  "pytz>=2024.1,<2026.0",
+  "requests>=2.31.0,<3.0.0"
 ]
 
 [project.optional-dependencies]

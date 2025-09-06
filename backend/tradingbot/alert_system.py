@@ -5,16 +5,59 @@ Automated alerts and systematic execution workflow for the options playbook.
 
 from __future__ import annotations
 import json
+import os
+import smtplib
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta, date
 from typing import Dict, List, Optional, Callable, Any
 from enum import Enum
 import logging
 from abc import ABC, abstractmethod
+from email.mime.text import MIMEText
+import requests
 
 from .market_regime import MarketSignal, SignalType, TechnicalIndicators, SignalGenerator
 from .options_calculator import OptionsTradeCalculator, TradeCalculation
 from .exit_planning import ExitSignal, ScenarioResult
+
+# Environment configuration
+SLACK_WEBHOOK = os.getenv("ALERT_SLACK_WEBHOOK")
+
+def send_slack(message: str) -> bool:
+    """Send alert to Slack webhook"""
+    if not SLACK_WEBHOOK:
+        return False
+    try:
+        r = requests.post(SLACK_WEBHOOK, json={"text": message}, timeout=5)
+        return r.ok
+    except Exception:
+        return False
+
+def send_email(subject: str, body: str) -> bool:
+    """Send alert via email"""
+    host = os.getenv("ALERT_EMAIL_SMTP_HOST")
+    port = int(os.getenv("ALERT_EMAIL_SMTP_PORT", "587"))
+    sender = os.getenv("ALERT_EMAIL_FROM")
+    recipient = os.getenv("ALERT_EMAIL_TO")
+    user = os.getenv("ALERT_EMAIL_USER")
+    pwd = os.getenv("ALERT_EMAIL_PASS")
+    
+    if not all([host, sender, recipient, user, pwd]):
+        return False
+    
+    try:
+        msg = MIMEText(body)
+        msg["Subject"] = subject
+        msg["From"] = sender
+        msg["To"] = recipient
+        
+        with smtplib.SMTP(host, port, timeout=10) as s:
+            s.starttls()
+            s.login(user, pwd)
+            s.sendmail(sender, [recipient], msg.as_string())
+        return True
+    except Exception:
+        return False
 
 
 class AlertType(Enum):

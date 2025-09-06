@@ -1,29 +1,5 @@
-# Core trading dependencies
 pandas>=2.0.0,<3.0.0
 numpy>=1.24.0,<2.0.0
-yfinance>=0.2.52,<1.0.0
-pytz>=2024.1
-
-# Django backend (if using Django features)
-Django>=3.2.8,<4.0.0
-django-cors-headers>=3.10.0
-djangorestframework>=3.12.4
-psycopg2-binary>=2.9.1
-python-dotenv>=0.19.1
-asgiref>=3.4.1
-sqlparse>=0.4.2
-
-# Additional utilities
-requests>=2.26.0
-alpaca_trade_api>=1.4.1
-social-auth-app-django>=5.0
-django-admin-interface>=0.18.3
-python-jose>=3.3.0
-feedparser>=6.0.8
-celery>=5.2.3
-hmmlearn>=0.2.7
-fire>=0.4.0
-beautifulsoup4>=4.10.0
-APScheduler>=3.8.1
-plotly>=5.8.0
-dj-config-url>=0.1.1
+yfinance>=0.2.52,<0.3.0
+pytz>=2024.1,<2026.0
+requests>=2.31.0,<3.0.0

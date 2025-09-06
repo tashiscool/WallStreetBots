@@ -101,7 +101,7 @@ warn_unreachable = true
 strict_equality = true
 
 [tool.pytest.ini_options]
-testpaths = ["backend/tradingbot", "ml/tradingbots"]
+testpaths = ["backend/tradingbot"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

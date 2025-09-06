@@ -374,7 +374,8 @@ def monitor_plan(ticker: str, expiry: str, strike: float, entry_prem: float,
             iv = implied_vol_call(market_px=mid_per_share, spot=spot, strike=strike, t=t, r=0.04, q=0.0) or 0.30
             delta = bs_delta_call(spot, strike, t, r=0.04, q=0.0, iv=iv)
 
-            print(f"[{now_ny().strftime('%H:%M:%S')}] spot={spot:.2f} mid={mid:.2f} (bid={bid*100:.2f}/ask={ask*100:.2f}) IV≈{iv:.2%} Δ≈{delta:.2f}")
+            timestamp = now_ny().strftime('%H:%M:%S')
+            print(f"[{timestamp}] spot={spot:.2f} mid={mid:.2f} (bid={bid*100:.2f}/ask={ask*100:.2f}) IV≈{iv:.2%} Δ≈{delta:.2f}")
 
             if mid >= target_px:
                 print(f"[TAKE-PROFIT] Target hit: ${mid:.2f} ≥ ${target_px:.2f}")
@@ -419,7 +420,7 @@ def run_scan_eod(universe: List[str], account_size: float, risk_pct: float, use_
             if sig:
                 print(f"[EOD] {t}: dip {pct(sig.intraday_pct)} after {sig.run_lookback}d run {pct(sig.run_return)} | spot={sig.spot:.2f}")
                 plan = build_exact_plan(t, sig.spot, account_size, risk_pct, TARGET_DTE_DAYS, OTM_PCT, use_chain)
-                print(f"      Plan: {t} {plan.expiry} C{plan.strike} ~5%OTM | est prem ${plan.premium_est_per_contract:.2f} | "
+                print("      Plan: " + str(t) + " " + str(plan.expiry) + " C" + str(plan.strike) + " ~5%%OTM | est prem $" + str(plan.premium_est_per_contract) + " | "
                       f"contracts {plan.contracts} | cost ${plan.total_cost:.2f} | BE {plan.breakeven_at_expiry:.2f}")
                 hits.append(sig)
                 plans.append(plan)
@@ -446,7 +447,7 @@ def run_scan_intraday(universe: List[str], account_size: float, risk_pct: float,
                 if sig:
                     print(f"[INTRADAY] {t}: dip {pct(sig.intraday_pct)} after {sig.run_lookback}d run {pct(sig.run_return)} | spot={sig.spot:.2f}")
                     plan = build_exact_plan(t, sig.spot, account_size, risk_pct, TARGET_DTE_DAYS, OTM_PCT, use_chain)
-                    print(f"          Plan: {t} {plan.expiry} C{plan.strike} ~5%OTM | est prem ${plan.premium_est_per_contract:.2f} | "
+                    print("          Plan: " + str(t) + " " + str(plan.expiry) + " C" + str(plan.strike) + " ~5%%OTM | est prem $" + str(plan.premium_est_per_contract) + " | "
                           f"contracts {plan.contracts} | cost ${plan.total_cost:.2f} | BE {plan.breakeven_at_expiry:.2f}")
                     hits_all.append(sig)
                     plans_all.append(plan)

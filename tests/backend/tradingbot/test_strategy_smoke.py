@@ -19,12 +19,12 @@ sys.modules['yfinance'] = MagicMock()
 sys.modules['pandas'] = MagicMock()
 sys.modules['numpy'] = MagicMock()
 
-from momentum_weeklies import MomentumWeekliesScanner, MomentumSignal  # noqa: E402
-from debit_spreads import DebitSpreadScanner, SpreadOpportunity  # noqa: E402
-from leaps_tracker import LEAPSTracker, LEAPSPosition  # noqa: E402
-from lotto_scanner import LottoScanner, LottoPlay  # noqa: E402
-from wheel_strategy import WheelStrategy, WheelPosition  # noqa: E402
-from wsb_dip_bot import DipSignal  # noqa: E402
+from backend.tradingbot.strategies.momentum_weeklies import MomentumWeekliesScanner, MomentumSignal  # noqa: E402
+from backend.tradingbot.strategies.debit_spreads import DebitSpreadScanner, SpreadOpportunity  # noqa: E402
+from backend.tradingbot.strategies.leaps_tracker import LEAPSTracker, LEAPSPosition  # noqa: E402
+from backend.tradingbot.strategies.lotto_scanner import LottoScanner, LottoPlay  # noqa: E402
+from backend.tradingbot.strategies.wheel_strategy import WheelStrategy, WheelPosition  # noqa: E402
+from backend.tradingbot.strategies.wsb_dip_bot import DipSignal  # noqa: E402
 
 
 class TestStrategySmokeTests(unittest.TestCase):
@@ -215,7 +215,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
         """Test volume spike detection"""
         scanner = MomentumWeekliesScanner()
         
-        with patch('momentum_weeklies.yf.Ticker') as mock_ticker:
+        with patch('backend.tradingbot.strategies.momentum_weeklies.yf.Ticker') as mock_ticker:
             mock_stock = Mock()
             mock_stock.history.return_value = pd.DataFrame({
                 'Volume': [1000000, 1200000, 1100000, 1300000, 1000000, 2000000]
@@ -230,7 +230,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
         """Test reversal pattern detection"""
         scanner = MomentumWeekliesScanner()
         
-        with patch('momentum_weeklies.yf.Ticker') as mock_ticker:
+        with patch('backend.tradingbot.strategies.momentum_weeklies.yf.Ticker') as mock_ticker:
             mock_stock = Mock()
             mock_stock.history.return_value = pd.DataFrame({
                 'Close': [100, 98, 96, 94, 92, 90, 88, 90, 92, 94, 96, 98, 100],
@@ -246,7 +246,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
         """Test IV rank calculation"""
         scanner = DebitSpreadScanner()
         
-        with patch('debit_spreads.yf.Ticker') as mock_ticker:
+        with patch('backend.tradingbot.strategies.debit_spreads.yf.Ticker') as mock_ticker:
             mock_stock = Mock()
             mock_stock.history.return_value = pd.DataFrame({
                 'Close': [100.0, 101.0, 102.0, 103.0, 104.0, 105.0]
@@ -262,7 +262,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
         """Test trend strength assessment"""
         scanner = DebitSpreadScanner()
         
-        with patch('debit_spreads.yf.Ticker') as mock_ticker:
+        with patch('backend.tradingbot.strategies.debit_spreads.yf.Ticker') as mock_ticker:
             mock_stock = Mock()
             mock_stock.history.return_value = pd.DataFrame({
                 'Close': [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
@@ -282,7 +282,7 @@ class TestStrategyErrorHandling(unittest.TestCase):
         """Test error handling in momentum weeklies"""
         scanner = MomentumWeekliesScanner()
         
-        with patch('momentum_weeklies.yf.Ticker') as mock_ticker:
+        with patch('backend.tradingbot.strategies.momentum_weeklies.yf.Ticker') as mock_ticker:
             mock_ticker.side_effect = Exception("Network error")
             
             # Should handle gracefully without crashing
@@ -293,7 +293,7 @@ class TestStrategyErrorHandling(unittest.TestCase):
         """Test error handling in debit spreads"""
         scanner = DebitSpreadScanner()
         
-        with patch('debit_spreads.yf.Ticker') as mock_ticker:
+        with patch('backend.tradingbot.strategies.debit_spreads.yf.Ticker') as mock_ticker:
             mock_ticker.side_effect = Exception("Network error")
             
             # Should handle gracefully without crashing

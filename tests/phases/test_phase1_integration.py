@@ -11,22 +11,22 @@ import os
 import tempfile
 import json
 
-from .trading_interface import (
+from backend.tradingbot.core.trading_interface import (
     TradingInterface, TradeSignal, TradeResult, TradeStatus, 
     OrderType, OrderSide, create_trading_interface
 )
-from .data_providers import (
+from backend.tradingbot.core.data_providers import (
     UnifiedDataProvider, MarketData, OptionsData, EarningsEvent,
     create_data_provider
 )
-from .production_config import (
+from backend.tradingbot.core.production_config import (
     ProductionConfig, ConfigManager, create_config_manager
 )
-from .production_logging import (
+from backend.tradingbot.core.production_logging import (
     ProductionLogger, ErrorHandler, CircuitBreaker, 
     HealthChecker, MetricsCollector, retry_with_backoff
 )
-from .production_models import Strategy, Position, Trade, Configuration
+from backend.tradingbot.core.production_models import Strategy, Position, Trade, Configuration
 
 
 class TestTradingInterface(unittest.TestCase):

@@ -33,5 +33,13 @@ plotly>=5.0.0
 pytest>=6.2.0
 pytest-django>=4.4.0
 
+# Production dependencies
+structlog>=23.0.0  # Structured logging
+tenacity>=8.0.0  # Retry library
+prometheus-client>=0.19.0  # Metrics collection
+circuit-breaker>=1.4.0  # Circuit breaker pattern
+backoff>=2.2.0  # Backoff and retry decorators
+pydantic-settings>=2.0.0  # Settings management
+
 # Development tools  
 flake8>=4.0.0

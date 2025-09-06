@@ -12,11 +12,11 @@ import tempfile
 import json
 
 # Test the core components that don't require external dependencies
-from .production_config import (
+from backend.tradingbot.core.production_config import (
     ProductionConfig, ConfigManager, create_config_manager,
     DataProviderConfig, BrokerConfig, RiskConfig, TradingConfig
 )
-from .production_logging import (
+from backend.tradingbot.core.production_logging import (
     ProductionLogger, ErrorHandler, CircuitBreaker, 
     HealthChecker, MetricsCollector, retry_with_backoff
 )

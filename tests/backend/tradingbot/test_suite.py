@@ -7,20 +7,20 @@ import unittest
 from datetime import datetime, date, timedelta
 from typing import Dict, List
 
-from .options_calculator import (
+from backend.tradingbot.options_calculator import (
     BlackScholesCalculator, OptionsTradeCalculator, OptionsSetup, TradeCalculation,
     validate_successful_trade
 )
-from .market_regime import (
+from backend.tradingbot.market_regime import (
     MarketRegimeFilter, SignalGenerator, TechnicalIndicators, MarketRegime, SignalType,
     create_sample_indicators
 )
-from .risk_management import (
+from backend.tradingbot.risk_management import (
     PositionSizer, RiskManager, KellyCalculator, Position, PositionStatus, RiskParameters
 )
-from .exit_planning import ExitStrategy, ScenarioAnalyzer, ExitReason
-from .alert_system import TradingAlertSystem, ExecutionChecklistManager, Alert, AlertType, AlertPriority
-from .trading_system import IntegratedTradingSystem, TradingConfig
+from backend.tradingbot.exit_planning import ExitStrategy, ScenarioAnalyzer, ExitReason
+from backend.tradingbot.alert_system import TradingAlertSystem, ExecutionChecklistManager, Alert, AlertType, AlertPriority
+from backend.tradingbot.trading_system import IntegratedTradingSystem, TradingConfig
 
 
 class TestBlackScholesCalculator(unittest.TestCase):
@@ -362,7 +362,7 @@ class TestAlertSystem(unittest.TestCase):
 
     def test_alert_creation_and_routing(self):
         """Test alert creation and routing to channels"""
-        from .alert_system import DesktopAlertHandler, AlertChannel
+        from backend.tradingbot.alert_system import DesktopAlertHandler, AlertChannel
 
         # Register a handler
         handler = DesktopAlertHandler()

@@ -11,8 +11,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 import math
 
-from .production_logging import ProductionLogger
-from .production_config import ConfigManager
+from ..core.production_logging import ProductionLogger
+from ..core.production_config import ConfigManager
 
 
 class BacktestPeriod(Enum):

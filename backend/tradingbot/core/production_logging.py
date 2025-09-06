@@ -5,15 +5,48 @@ Robust error handling with retry mechanisms and structured logging
 
 import asyncio
 import logging
-import structlog
 import traceback
 from datetime import datetime
 from typing import Dict, Any, Optional, Callable, List
 from functools import wraps
-from tenacity import (
-    retry, stop_after_attempt, wait_exponential, 
-    retry_if_exception_type, before_sleep_log
-)
+
+# Optional imports with fallbacks
+try:
+    import structlog
+except ImportError:
+    structlog = None
+
+try:
+    from tenacity import (
+        retry, stop_after_attempt, wait_exponential, 
+        retry_if_exception_type, before_sleep_log
+    )
+except ImportError:
+    # Fallback decorators if tenacity is not available
+    def retry(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    
+    def stop_after_attempt(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    
+    def wait_exponential(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    
+    def retry_if_exception_type(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    
+    def before_sleep_log(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
 import json
 import os
 
@@ -23,29 +56,39 @@ class ProductionLogger:
     
     def __init__(self, name: str, log_level: str = "INFO"):
         self.name = name
-        self.logger = structlog.get_logger(name)
+        if structlog:
+            self.logger = structlog.get_logger(name)
+        else:
+            self.logger = logging.getLogger(name)
         self.setup_logging(log_level)
     
     def setup_logging(self, log_level: str):
         """Setup structured logging"""
-        # Configure structlog
-        structlog.configure(
-            processors=[
-                structlog.stdlib.filter_by_level,
-                structlog.stdlib.add_logger_name,
-                structlog.stdlib.add_log_level,
-                structlog.stdlib.PositionalArgumentsFormatter(),
-                structlog.processors.TimeStamper(fmt="iso"),
-                structlog.processors.StackInfoRenderer(),
-                structlog.processors.format_exc_info,
-                structlog.processors.UnicodeDecoder(),
-                structlog.processors.JSONRenderer()
-            ],
-            context_class=dict,
-            logger_factory=structlog.stdlib.LoggerFactory(),
-            wrapper_class=structlog.stdlib.BoundLogger,
-            cache_logger_on_first_use=True,
-        )
+        if structlog:
+            # Configure structlog
+            structlog.configure(
+                processors=[
+                    structlog.stdlib.filter_by_level,
+                    structlog.stdlib.add_logger_name,
+                    structlog.stdlib.add_log_level,
+                    structlog.stdlib.PositionalArgumentsFormatter(),
+                    structlog.processors.TimeStamper(fmt="iso"),
+                    structlog.processors.StackInfoRenderer(),
+                    structlog.processors.format_exc_info,
+                    structlog.processors.UnicodeDecoder(),
+                    structlog.processors.JSONRenderer()
+                ],
+                context_class=dict,
+                logger_factory=structlog.stdlib.LoggerFactory(),
+                wrapper_class=structlog.stdlib.BoundLogger,
+                cache_logger_on_first_use=True,
+            )
+        else:
+            # Fallback to standard logging
+            logging.basicConfig(
+                level=getattr(logging, log_level.upper()),
+                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
         
         # Setup file handler
         log_dir = "logs"
@@ -73,23 +116,58 @@ class ProductionLogger:
     
     def info(self, message: str, **kwargs):
         """Log info message with context"""
-        self.logger.info(message, **kwargs)
+        if structlog:
+            self.logger.info(message, **kwargs)
+        else:
+            if kwargs:
+                context = " ".join([f"{k}={v}" for k, v in kwargs.items()])
+                self.logger.info(f"{message} {context}")
+            else:
+                self.logger.info(message)
     
     def warning(self, message: str, **kwargs):
         """Log warning message with context"""
-        self.logger.warning(message, **kwargs)
+        if structlog:
+            self.logger.warning(message, **kwargs)
+        else:
+            if kwargs:
+                context = " ".join([f"{k}={v}" for k, v in kwargs.items()])
+                self.logger.warning(f"{message} {context}")
+            else:
+                self.logger.warning(message)
     
     def error(self, message: str, **kwargs):
         """Log error message with context"""
-        self.logger.error(message, **kwargs)
+        if structlog:
+            self.logger.error(message, **kwargs)
+        else:
+            if kwargs:
+                context = " ".join([f"{k}={v}" for k, v in kwargs.items()])
+                self.logger.error(f"{message} {context}")
+            else:
+                self.logger.error(message)
     
     def critical(self, message: str, **kwargs):
         """Log critical message with context"""
-        self.logger.critical(message, **kwargs)
+        if structlog:
+            self.logger.critical(message, **kwargs)
+        else:
+            if kwargs:
+                context = " ".join([f"{k}={v}" for k, v in kwargs.items()])
+                self.logger.critical(f"{message} {context}")
+            else:
+                self.logger.critical(message)
     
     def debug(self, message: str, **kwargs):
         """Log debug message with context"""
-        self.logger.debug(message, **kwargs)
+        if structlog:
+            self.logger.debug(message, **kwargs)
+        else:
+            if kwargs:
+                context = " ".join([f"{k}={v}" for k, v in kwargs.items()])
+                self.logger.debug(f"{message} {context}")
+            else:
+                self.logger.debug(message)
 
 
 class ErrorHandler:

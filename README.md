@@ -9,7 +9,7 @@ The **WSB Dip Bot** (`wsb_dip_bot.py`) implements the exact pattern that produce
 
 ```bash
 # Install dependencies
-pip install -r wsb_requirements.txt
+pip install -r requirements.txt
 
 # Find today's setups (after market close)
 python wsb_dip_bot.py scan-eod --account-size 450000 --risk-pct 1.0 --use-options-chain
@@ -374,7 +374,10 @@ python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install -r wsb_requirements.txt
+pip install -r requirements.txt
+
+# Optional: Install with console scripts for easier CLI usage
+pip install -e .
 
 # Test installation
 python momentum_weeklies.py --help
@@ -383,6 +386,33 @@ python leaps_tracker.py --help
 python lotto_scanner.py --help
 python wheel_strategy.py --help
 python wsb_dip_bot.py --help
+
+# Or use console scripts (if installed with -e .)
+wsb-dip-bot --help
+momentum-weeklies --help
+debit-spreads --help
+leaps-tracker --help
+lotto-scanner --help
+wheel-strategy --help
+```
+
+### Configuration
+```bash
+# Copy environment template
+cp env.example .env
+
+# Edit .env with your API keys and settings
+nano .env
+```
+
+### Docker Setup
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+
+# Or build individual container
+docker build -t wallstreetbots .
+docker run -it --env-file .env wallstreetbots
 ```
 
 ### Virtual Environment (Recommended)
@@ -395,7 +425,7 @@ source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 
 # Install dependencies
-pip install -r wsb_requirements.txt
+pip install -r requirements.txt
 
 # Run scripts using venv python
 venv/bin/python momentum_weeklies.py --output text

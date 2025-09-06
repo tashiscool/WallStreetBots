@@ -389,7 +389,6 @@ class RiskManager:
     
     def _calculate_concentrations(self) -> Dict[str, float]:
         """Calculate ticker concentration percentages"""
-        portfolio_risk = self.calculate_portfolio_risk()
         concentrations = {}
         
         for position in self.positions:
@@ -397,7 +396,12 @@ class RiskManager:
                 ticker = position.ticker
                 if ticker not in concentrations:
                     concentrations[ticker] = 0.0
-                concentrations[ticker] += position.current_value / portfolio_risk.account_value
+                concentrations[ticker] += position.current_value
+        
+        # Convert to percentages
+        total_value = sum(concentrations.values())
+        if total_value > 0:
+            concentrations = {ticker: value / total_value for ticker, value in concentrations.items()}
         
         return concentrations
     

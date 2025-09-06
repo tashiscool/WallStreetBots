@@ -1,10 +1,26 @@
-# WallStreetBots - Comprehensive WSB Trading Strategies
+# WallStreetBots - Educational WSB Trading Strategy Collection
 
-This repository contains a complete suite of options trading systems implementing proven WSB-style strategies with sophisticated risk management and systematic approaches.
+<div align="center">
 
-## 🚀 Quick Start - WSB Trading Strategies
+# 🚨 CRITICAL WARNING 🚨
 
-### 1. WSB Dip Bot - The Original Viral Strategy
+## ⚠️ DO NOT USE REAL MONEY WITH THIS CODE ⚠️
+
+### This is EDUCATIONAL/RESEARCH ONLY - NOT FOR REAL TRADING
+
+**All strategies contain HARDCODED MOCK DATA and NO REAL BROKER INTEGRATION**
+
+**Using this code for actual trading could result in significant financial losses**
+
+</div>
+
+This repository contains educational implementations of WSB-style trading strategies with **HARDCODED MOCK DATA** and **NO REAL BROKER INTEGRATION**. All strategies are for learning purposes only and contain simplified calculations that would be dangerous to use with real money.
+
+## 🚀 Quick Start - Educational WSB Trading Strategies
+
+⚠️ **WARNING: All strategies below contain HARDCODED MOCK DATA and are NOT suitable for real trading!**
+
+### 1. WSB Dip Bot - The Original Viral Strategy (EDUCATIONAL ONLY)
 The **WSB Dip Bot** (`wsb_dip_bot.py`) implements the exact pattern that produces viral WSB gains:
 
 ```bash
@@ -268,7 +284,156 @@ Based on r/WallStreetBets community analysis of consistently profitable strategi
 - ✅ Performance attribution and winner determination
 - ✅ Humble pie for overconfident traders with reality checks
 
-## ⚠️ **WSB WARNINGS - What Usually Loses:**
+## ⚠️ **CRITICAL DISCLAIMERS - NOT PRODUCTION READY:**
+
+### 🚨 **HARDCODED VALUES & PLACEHOLDERS THAT MAKE THIS UNUSABLE FOR REAL TRADING:**
+
+#### **📊 SUMMARY: 50+ HARDCODED VALUES FOUND:**
+- ❌ **Earnings dates**: Mock data in `lotto_scanner.py` and `earnings_protection.py`
+- ❌ **Strategy performance**: Simulated returns in `index_baseline.py`
+- ❌ **Account sizes**: Hardcoded $500,000 defaults throughout
+- ❌ **Risk parameters**: Hardcoded 10-15% position limits
+- ❌ **Market assumptions**: Hardcoded 4% risk-free rate, 28-30% IV
+- ❌ **Trading thresholds**: Hardcoded +10% run, -3% dip thresholds
+- ❌ **Option pricing**: Simplified Black-Scholes with hardcoded parameters
+- ❌ **Test data**: 100% mock data in all test files
+
+#### **Mock Data & Placeholders:**
+- ❌ **Earnings dates are HARDCODED** - `earnings_protection.py` uses mock earnings data
+- ❌ **Strategy performance is SIMULATED** - `index_baseline.py` uses fake 6-month returns
+- ❌ **Options chains are MOCKED** - Many strategies use simplified option pricing
+- ❌ **Market data is LIMITED** - Only basic yfinance data, no real-time feeds
+- ❌ **No actual order execution** - All strategies are "paper trading" only
+
+#### **Missing Production Components:**
+- ❌ **No real broker integration** - No TD Ameritrade, Interactive Brokers, etc.
+- ❌ **No real-time data feeds** - No live market data subscriptions
+- ❌ **No position management** - No actual trade execution or tracking
+- ❌ **No risk controls** - No real position sizing or stop losses
+- ❌ **No compliance systems** - No regulatory reporting or audit trails
+
+#### **Simplified Calculations:**
+- ❌ **Black-Scholes is BASIC** - Missing dividends, early exercise, etc.
+- ❌ **IV calculations are ESTIMATED** - Not using real implied volatility
+- ❌ **Greeks are APPROXIMATED** - Delta, gamma, theta calculations are simplified
+- ❌ **Commission costs are GUESSED** - Real trading costs much higher
+
+### 🚨 **DO NOT USE REAL MONEY WITH THIS CODE:**
+- This is **EDUCATIONAL/RESEARCH ONLY**
+- All strategies contain **HARDCODED MOCK DATA**
+- **NO REAL BROKER INTEGRATION**
+- **NO LIVE MARKET DATA**
+- **NO ACTUAL TRADE EXECUTION**
+
+### 📋 **SPECIFIC HARDCODED VALUES BY STRATEGY:**
+
+#### **`earnings_protection.py`:**
+```python
+# HARDCODED mock earnings data - NOT REAL!
+mock_earnings = [
+    {"ticker": "AAPL", "days_out": 3, "time": "AMC"},
+    {"ticker": "GOOGL", "days_out": 7, "time": "AMC"}, 
+    # ... all earnings dates are FAKE
+]
+```
+
+#### **`index_baseline.py`:**
+```python
+# HARDCODED fake strategy performance - NOT REAL!
+self.wsb_strategies = {
+    "wheel_strategy": {"return_6m": 0.18, "volatility": 0.12, ...},
+    "spx_credit_spreads": {"return_6m": 0.24, "volatility": 0.15, ...},
+    # ... all performance data is SIMULATED
+}
+```
+
+#### **`spx_credit_spreads.py`:**
+```python
+# SIMPLIFIED Black-Scholes - missing dividends, early exercise
+def black_scholes_call(self, S, K, T, r, sigma):
+    # Basic implementation - NOT production ready
+    # Missing: dividends, early exercise, bid-ask spreads
+```
+
+#### **All Strategies - Additional Hardcoded Values:**
+
+**`wsb_dip_bot.py`:**
+- **Account size**: Default 500,000 (hardcoded)
+- **Risk percentage**: Default 10% per trade
+- **Run threshold**: Hardcoded +10% over 10 days
+- **Dip threshold**: Hardcoded -3% vs prior close
+- **OTM percentage**: Hardcoded 5% out of the money
+- **Risk-free rate**: Hardcoded 4% annual
+- **Default IV**: Hardcoded 30% for Black-Scholes fallback
+
+**`lotto_scanner.py`:**
+- **Mock earnings data**: All earnings dates are FAKE
+- **Expected moves**: Hardcoded percentages (4-8%)
+- **Default volatility**: Hardcoded 5% fallback
+- **Risk percentages**: Default 1% max risk per play
+
+**`backend/tradingbot/production_scanner.py`:**
+- **Default IV**: Hardcoded 28% assumption
+- **Risk-free rate**: Hardcoded 4%
+- **Dividend yield**: Hardcoded 0%
+- **Deploy percentage**: Hardcoded 90% all-in
+- **Account size**: Default 500,000
+
+**`backend/tradingbot/risk_management.py`:**
+- **Position risk limits**: Hardcoded 10-15% per trade
+- **Max concentration**: Hardcoded 20% per ticker
+- **Kelly multiplier**: Hardcoded 25% of Kelly
+- **Stop loss**: Hardcoded 50% of premium
+- **Account value**: Hardcoded 500,000 placeholder
+
+**`backend/tradingbot/dip_scanner.py`:**
+- **Market data**: Placeholder implementation
+- **Option pricing**: Simplified estimates
+- **Alert system**: Placeholder implementations
+
+**`backend/tradingbot/trading_system.py`:**
+- **Market data**: Placeholder - "integrate with your data source"
+- **Data structures**: Placeholder implementations
+
+**Test Files (All Mock Data):**
+- **`test_production_scanner.py`**: Contains MockTicker, MockDataFrame, MockOptionsDF classes
+- **`test_strategy_smoke.py`**: Uses MagicMock for yfinance and pandas
+- **All test data**: Generated mock data, not real market data
+
+**All Strategies:**
+- **Commission costs**: Estimated at $1 per trade
+- **Bid-ask spreads**: Simplified to 2 bps
+- **Market hours**: Not validated
+- **Holiday calendars**: Not implemented
+
+### 🔧 **WHAT'S NEEDED FOR PRODUCTION USE:**
+
+#### **Real Data Integration:**
+- ✅ **Earnings API**: Alpha Vantage, FMP, or similar for real earnings dates
+- ✅ **Real-time Options Data**: CBOE, IEX, or broker APIs
+- ✅ **Live Market Data**: Bloomberg, Refinitiv, or broker feeds
+- ✅ **Historical Performance**: Real P&L tracking from actual trades
+
+#### **Broker Integration:**
+- ✅ **Order Management**: TD Ameritrade, Interactive Brokers APIs
+- ✅ **Position Tracking**: Real account balances and positions
+- ✅ **Risk Management**: Real position sizing and stop losses
+- ✅ **Compliance**: Regulatory reporting and audit trails
+
+#### **Production Features:**
+- ✅ **Error Handling**: Network failures, API limits, data gaps
+- ✅ **Logging**: Comprehensive trade and system logs
+- ✅ **Monitoring**: Alerts for system failures or unusual activity
+- ✅ **Backtesting**: Historical validation with real market data
+- ✅ **Paper Trading**: Safe testing environment before live trading
+
+#### **Cost Considerations:**
+- 💰 **Data Feeds**: $100-1000+ per month for real-time data
+- 💰 **Broker APIs**: Commission costs and platform fees
+- 💰 **Infrastructure**: Servers, monitoring, backup systems
+- 💰 **Compliance**: Legal review and regulatory requirements
+
+### ⚠️ **WSB WARNINGS - What Usually Loses:**
 - ❌ Naked strangles without defined risk (tail risk wipes out gains)
 - ❌ 0DTE OTM lotto buys without exit plan
 - ❌ Earnings lottos "for the move" (IV crush kills profits)
@@ -621,7 +786,20 @@ venv/bin/python momentum_weeklies.py --output text
 
 ## ⚖️ Legal Disclaimer
 
-This software is for educational and research purposes only. Trading options involves substantial risk of loss. Past performance does not guarantee future results. The authors are not responsible for any trading losses incurred using this software.
+🚨 **CRITICAL WARNING**: This software is for **EDUCATIONAL AND RESEARCH PURPOSES ONLY**. 
+
+**DO NOT USE REAL MONEY WITH THIS CODE** - All strategies contain hardcoded mock data, simplified calculations, and no real broker integration. Using this code for actual trading could result in significant financial losses.
+
+**Key Limitations:**
+- ❌ **NO REAL BROKER INTEGRATION** - Cannot execute actual trades
+- ❌ **HARDCODED MOCK DATA** - Earnings dates, performance data, and market conditions are simulated
+- ❌ **SIMPLIFIED CALCULATIONS** - Black-Scholes, Greeks, and risk metrics are basic approximations
+- ❌ **NO REAL-TIME DATA** - Only basic yfinance data, no live market feeds
+- ❌ **NO RISK CONTROLS** - No actual position sizing, stop losses, or risk management
+
+**Trading options involves substantial risk of loss. Past performance does not guarantee future results. The authors are not responsible for any trading losses incurred using this software.**
+
+**This is a learning tool, not a trading system.**
 
 ## 🤝 Contributing
 

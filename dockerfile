@@ -1,10 +1,8 @@
-FROM python:3.10-buster
-ENV PYTHONUNBUFFERED=1
-RUN pip install --upgrade pip
-# required for psycopg2 if using alpine base image
-# RUN apk update && apk add g++ postgresql-dev gcc python3-dev musl-dev libffi-dev jpeg-dev zlib-dev
+FROM python:3.11-slim
 WORKDIR /app
-COPY requirements.txt /app
-RUN pip install -r requirements.txt
-COPY . /app
-# RUN python manage.py migrate
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+RUN pip install --no-cache-dir .
+ENV PYTHONUNBUFFERED=1
+CMD ["wsb-dip-bot", "scan-eod", "--account-size", "450000", "--risk-pct", "1.0", "--use-options-chain"]

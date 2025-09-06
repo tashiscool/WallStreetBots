@@ -52,6 +52,9 @@ import pandas as pd
 import pytz
 import yfinance as yf
 
+from utils.yfinance_hardening import safe_mid, fetch_last_and_prior_close
+from utils.error_handling import retry
+
 
 # -------------------------- Config Defaults --------------------------
 
@@ -166,6 +169,7 @@ def fetch_intraday_last_and_prior_close(ticker: str) -> Optional[Dict[str, float
     last = float(intraday["Close"].iloc[-1])
     return {"last": last, "prior_close": prior_close}
 
+@retry(tries=3, delay=1.0, exceptions=(Exception,))
 def get_option_mid_for_nearest_5pct_otm(ticker: str, expiry: str, desired_strike: float) -> Optional[Dict[str, float]]:
     tkr = yf.Ticker(ticker)
     chain = tkr.option_chain(expiry)
@@ -180,8 +184,8 @@ def get_option_mid_for_nearest_5pct_otm(ticker: str, expiry: str, desired_strike
     bid = float(row["bid"].iloc[0]) if pd.notna(row["bid"].iloc[0]) else 0.0
     ask = float(row["ask"].iloc[0]) if pd.notna(row["ask"].iloc[0]) else 0.0
     last = float(row["lastPrice"].iloc[0]) if pd.notna(row["lastPrice"].iloc[0]) else 0.0
-    mid = (bid + ask) / 2.0 if (bid > 0 and ask > 0) else last
-    return {"strike": strike, "mid": max(mid, 0.01), "bid": bid, "ask": ask, "last": last}
+    mid = safe_mid(bid, ask, last)
+    return {"strike": strike, "mid": mid, "bid": bid, "ask": ask, "last": last}
 
 
 # -------------------------- Signals & Plans --------------------------
@@ -354,11 +358,15 @@ def monitor_plan(ticker: str, expiry: str, strike: float, entry_prem: float,
             bid = float(row["bid"].iloc[0]) if pd.notna(row["bid"].iloc[0]) else 0.0
             ask = float(row["ask"].iloc[0]) if pd.notna(row["ask"].iloc[0]) else 0.0
             last = float(row["lastPrice"].iloc[0]) if pd.notna(row["lastPrice"].iloc[0]) else 0.0
-            mid_per_share = (bid + ask) / 2.0 if bid > 0 and ask > 0 else last
+            mid_per_share = safe_mid(bid, ask, last)
             mid = mid_per_share * 100.0
 
             # Spot and DTE
-            spot = float(yf.Ticker(ticker).history(period="1d", interval="1m")["Close"].iloc[-1])
+            live = fetch_last_and_prior_close(ticker)
+            if not live:
+                # handle market-closed or API hiccup
+                continue
+            spot = live["last"]
             dte_days = max((datetime.fromisoformat(expiry).date() - date.today()).days, 1)
             t = dte_days / 365.0
 
@@ -366,7 +374,8 @@ def monitor_plan(ticker: str, expiry: str, strike: float, entry_prem: float,
             iv = implied_vol_call(market_px=mid_per_share, spot=spot, strike=strike, t=t, r=0.04, q=0.0) or 0.30
             delta = bs_delta_call(spot, strike, t, r=0.04, q=0.0, iv=iv)
 
-            print(f"[{now_ny().strftime('%H:%M:%S')}] spot={spot:.2f} mid={mid:.2f} (bid={bid*100:.2f}/ask={ask*100:.2f}) IV≈{iv:.2%} Δ≈{delta:.2f}")
+            timestamp = now_ny().strftime('%H:%M:%S')
+            print(f"[{timestamp}] spot={spot:.2f} mid={mid:.2f} (bid={bid*100:.2f}/ask={ask*100:.2f}) IV≈{iv:.2%} Δ≈{delta:.2f}")
 
             if mid >= target_px:
                 print(f"[TAKE-PROFIT] Target hit: ${mid:.2f} ≥ ${target_px:.2f}")
@@ -411,7 +420,7 @@ def run_scan_eod(universe: List[str], account_size: float, risk_pct: float, use_
             if sig:
                 print(f"[EOD] {t}: dip {pct(sig.intraday_pct)} after {sig.run_lookback}d run {pct(sig.run_return)} | spot={sig.spot:.2f}")
                 plan = build_exact_plan(t, sig.spot, account_size, risk_pct, TARGET_DTE_DAYS, OTM_PCT, use_chain)
-                print(f"      Plan: {t} {plan.expiry} C{plan.strike} ~5%OTM | est prem ${plan.premium_est_per_contract:.2f} | "
+                print("      Plan: " + str(t) + " " + str(plan.expiry) + " C" + str(plan.strike) + " ~5%%OTM | est prem $" + str(plan.premium_est_per_contract) + " | "
                       f"contracts {plan.contracts} | cost ${plan.total_cost:.2f} | BE {plan.breakeven_at_expiry:.2f}")
                 hits.append(sig)
                 plans.append(plan)
@@ -438,7 +447,7 @@ def run_scan_intraday(universe: List[str], account_size: float, risk_pct: float,
                 if sig:
                     print(f"[INTRADAY] {t}: dip {pct(sig.intraday_pct)} after {sig.run_lookback}d run {pct(sig.run_return)} | spot={sig.spot:.2f}")
                     plan = build_exact_plan(t, sig.spot, account_size, risk_pct, TARGET_DTE_DAYS, OTM_PCT, use_chain)
-                    print(f"          Plan: {t} {plan.expiry} C{plan.strike} ~5%OTM | est prem ${plan.premium_est_per_contract:.2f} | "
+                    print("          Plan: " + str(t) + " " + str(plan.expiry) + " C" + str(plan.strike) + " ~5%%OTM | est prem $" + str(plan.premium_est_per_contract) + " | "
                           f"contracts {plan.contracts} | cost ${plan.total_cost:.2f} | BE {plan.breakeven_at_expiry:.2f}")
                     hits_all.append(sig)
                     plans_all.append(plan)

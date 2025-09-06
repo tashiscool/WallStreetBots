@@ -1,4 +1,5 @@
 from alpaca_trade_api.rest import APIError
+from datetime import timedelta
 
 
 def validate_backend():
@@ -163,7 +164,6 @@ def sync_alpaca(user):  # noqa: C901
         backend_api = validate_backend()
         from alpaca_trade_api import TimeFrame
         import datetime
-        from datetime import timedelta
         start = (datetime.datetime.now(datetime.timezone.utc) - timedelta(days=5)).strftime('%Y-%m-%d')
         end = (datetime.datetime.now(datetime.timezone.utc) - timedelta(days=1)).strftime('%Y-%m-%d')
         for stock_instance in StockInstance.objects.filter(quantity=0.00, user=user, portfolio=user.portfolio):

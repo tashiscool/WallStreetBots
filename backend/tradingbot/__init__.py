@@ -17,13 +17,13 @@ risk-managed strategy suitable for consistent profitable trading.
 
 Usage:
     from backend.tradingbot import IntegratedTradingSystem, TradingConfig
-    
+
     config = TradingConfig(account_size=500000, max_position_risk_pct=0.10)
     system = IntegratedTradingSystem(config)
-    
+
     # Calculate trade for a ticker
     trade = system.calculate_trade_for_ticker("GOOGL", 207.0, 0.28)
-    
+
     # Get portfolio status
     status = system.get_portfolio_status()
 """
@@ -90,14 +90,14 @@ __all__ = [
     "IntegratedTradingSystem",
     "TradingConfig",
     "SystemState",
-    
+
     # Options pricing
     "BlackScholesCalculator",
     "OptionsTradeCalculator",
-    "OptionsSetup", 
+    "OptionsSetup",
     "TradeCalculation",
     "validate_successful_trade",
-    
+
     # Market analysis
     "MarketRegimeFilter",
     "SignalGenerator",
@@ -106,17 +106,17 @@ __all__ = [
     "MarketRegime",
     "SignalType",
     "TechnicalAnalysis",
-    
+
     # Risk management
     "RiskManager",
     "PositionSizer",
     "KellyCalculator",
     "Position",
-    "PositionStatus", 
+    "PositionStatus",
     "RiskParameters",
     "PortfolioRisk",
     "RiskLevel",
-    
+
     # Exit planning
     "ExitStrategy",
     "ScenarioAnalyzer",
@@ -124,7 +124,7 @@ __all__ = [
     "ExitReason",
     "ExitLevel",
     "ScenarioResult",
-    
+
     # Alerts and execution
     "TradingAlertSystem",
     "ExecutionChecklistManager",

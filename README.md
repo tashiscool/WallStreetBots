@@ -102,54 +102,138 @@ python wheel_strategy.py update
 python wheel_strategy.py scan --save-csv wheel_candidates.csv
 ```
 
-## 📊 Strategy Overview
+### 7. Enhanced Swing Trading - Fast Profit-Taking
+Fast breakout and momentum trades with same-day exit discipline:
 
-### WSB Dip Bot
+```bash
+# Scan for swing opportunities
+python swing_trading.py scan --min-strength 70
+
+# Monitor active trades for exit signals
+python swing_trading.py monitor
+
+# Continuous scanning with monitoring
+python swing_trading.py continuous --max-expiry-days 21
+
+# JSON output for integration
+python swing_trading.py scan --output json --min-strength 60
+```
+
+## 📊 Strategy Overview - WSB "Actually Works" Collection
+
+Based on r/WallStreetBets community analysis of consistently profitable strategies:
+
+### 1. WSB Dip Bot ✅ **IMPLEMENTED**
+**WSB Pattern**: Momentum continuation on mega-caps after sharp red days
 **Scans for**: Hard dip ≤ -3% after +10% run over 10 days on mega-caps  
 **Builds**: Exact ~5% OTM, ~30 DTE call positions  
 **Exits**: At 3x profit or Δ≥0.60 (the WSB screenshot formula)  
 **Risk**: Configurable 10-100% account deployment
+**WSB Success**: Original pattern produced 240% returns ($446K → $1.07M)
 
-### Momentum Weeklies Scanner
-**Scans for**: Intraday reversals with 3x+ volume spikes on mega-caps
-**Builds**: Weekly options 2-5% OTM based on momentum strength
-**Exits**: Quick profit-taking same/next day
-**Risk**: 1-3% account risk per play
+### 2. Wheel Strategy (Premium Selling) ✅ **FULLY IMPLEMENTED** 
+**WSB Pattern**: Most consistent WSB income strategy on liquid names & ETFs
+**Scans for**: Quality names with decent volatility and dividends
+**Builds**: Cash-secured puts (~30-45 DTE, ~0.30 delta) → covered calls cycle
+**Exits**: Assignment → call away → repeat (theta decay income)
+**Risk**: Income generation with positive expectancy
+**WSB Success**: Multi-year "theta gang" income, especially on SPY/QQQ/PLTR
 
-### Debit Call Spreads
-**Scans for**: Bullish trends with favorable risk/reward ratios
-**Builds**: Call spreads with 1.2+ risk/reward and 20%+ max profit
-**Exits**: At max profit or breakeven
-**Risk**: Reduced theta/IV exposure vs naked calls
-
-### LEAPS Secular Winners
+### 3. LEAPS Secular Winners ✅ **IMPLEMENTED** (🔄 Enhancement Needed)
+**WSB Pattern**: "Buy time on high-beta winners" with rolling rules
 **Scans for**: Secular growth themes (AI, Cloud, EVs, Fintech, etc.)
 **Builds**: 12-24 month LEAPS 10-20% OTM on quality names
 **Exits**: Systematic scale-out at 2x, 3x, 4x returns
 **Risk**: Long-term capital deployment with diversification
+**WSB Success**: Less screen-time stress, better odds than scalping
+**🔄 TODO**: Add golden/death cross timing signals for entries
 
-### 0DTE/Earnings Lotto Scanner
+### 4. Momentum Weeklies Scanner ✅ **IMPLEMENTED**
+**WSB Pattern**: Breakout swing with disciplined profit-taking
+**Scans for**: Intraday reversals with 3x+ volume spikes on mega-caps
+**Builds**: Weekly options 2-5% OTM based on momentum strength
+**Exits**: Quick profit-taking same/next day (≈1 month max expiry)
+**Risk**: 1-3% account risk per play
+**WSB Success**: Fast profit-taking keeps theta manageable
+
+### 5. Debit Call Spreads ✅ **IMPLEMENTED**
+**WSB Pattern**: Defined-risk alternative to naked calls
+**Scans for**: Bullish trends with favorable risk/reward ratios
+**Builds**: Call spreads with 1.2+ risk/reward and 20%+ max profit
+**Exits**: At max profit or breakeven
+**Risk**: Reduced theta/IV exposure vs naked calls
+**WSB Success**: More repeatable than naked options
+
+### 6. 0DTE/Earnings Lotto Scanner ✅ **IMPLEMENTED** 
+**WSB Pattern**: High-risk lottery plays with strict position sizing
 **Scans for**: High-volatility 0DTE and earnings plays
 **Builds**: Strict position sizing (0.5-1% account risk)
 **Exits**: 50% stop loss, 3-5x profit targets
 **Risk**: Extreme risk with disciplined position sizing
+**WSB Warning**: Where most accounts blow up without discipline
 
-### Wheel Strategy
-**Scans for**: Quality names with decent volatility and dividends
-**Builds**: Cash-secured puts → covered calls cycle
-**Exits**: Assignment → call away → repeat
-**Risk**: Income generation with positive expectancy
+## 🔄 **MISSING WSB "WINNERS" - TODO LIST:**
+
+### 7. SPX/SPY 0DTE Credit Spreads ❌ **TODO: IMPLEMENT**
+**WSB Pattern**: Most cited "actually profitable" 0DTE strategy
+**Strategy**: Sell ~30-delta defined-risk strangles/credit spreads at open
+**Exits**: Auto-close at ~25% profit target (high win rate)
+**Risk**: Occasional max-loss weeks, prefer SPX for tax/cash settlement
+**Implementation Plan**: 
+- Create `spx_credit_spreads.py` scanner
+- Focus on SPX/SPY with defined risk
+- Auto-close profit targets
+- Track win rates and max loss periods
+
+### 8. Earnings IV Crush Protection ❌ **TODO: IMPLEMENT**
+**WSB Pattern**: Avoid lotto buying, structure around IV
+**Strategy**: Deep ITM options or balanced hedges for earnings
+**Problem**: Long straddles/strangles get crushed by IV collapse
+**Implementation Plan**:
+- Create `earnings_protection.py` module  
+- Focus on IV-resistant structures
+- Deep ITM options for earnings plays
+- Calendar spreads to reduce IV risk
+
+### 7. Enhanced Breakout Swing Trading ✅ **IMPLEMENTED**
+**WSB Pattern**: Same-day exits on options, ≈1 month expiries max
+**Strategy**: Fast breakout/momentum trades with disciplined profit-taking
+**Scans for**: Breakouts above resistance, momentum continuation, oversold bounces
+**Builds**: Options ≤30 DTE with 1.5-2.5% OTM strikes based on signal type
+**Exits**: Systematic profit-taking at 25%/50%/100% with 30% stop loss
+**Risk**: 1-2% position sizing, same-day exits preferred
+**Implementation**: `swing_trading.py` - dedicated fast-exit swing scanner
+
+### 10. Index Fund Baseline Comparison ❌ **TODO: ADD**
+**WSB Pattern**: "Boring baseline" that beats most WSB strategies
+**Strategy**: SPY/VTI buy-and-hold comparison
+**Purpose**: Reality check for all active strategies
+**Implementation Plan**:
+- Create `index_baseline.py` tracker
+- Compare all strategy performance vs SPY/VTI
+- Show risk-adjusted returns
+- Humble pie for overconfident traders
+
+## ⚠️ **WSB WARNINGS - What Usually Loses:**
+- ❌ Naked strangles without defined risk (tail risk wipes out gains)
+- ❌ 0DTE OTM lotto buys without exit plan
+- ❌ Earnings lottos "for the move" (IV crush kills profits)
+- ❌ No position sizing or stop rules
 
 ## 🏗️ Repository Structure
 
 ```
-├── wsb_dip_bot.py              # Main WSB strategy scanner
-├── momentum_weeklies.py         # Intraday reversal scanner
-├── debit_spreads.py            # Call spread opportunity finder
-├── leaps_tracker.py            # Long-term secular winners tracker
-├── lotto_scanner.py            # 0DTE/earnings high-risk scanner
-├── wheel_strategy.py           # Covered calls/wheel income strategy
-├── wsb_requirements.txt         # Dependencies for all WSB bots
+├── wsb_dip_bot.py              # ✅ Main WSB dip-after-run strategy
+├── wheel_strategy.py           # ✅ Premium selling (CSPs → CCs)
+├── leaps_tracker.py            # ✅ Long-term secular winners (needs enhancement)
+├── momentum_weeklies.py        # ✅ Intraday reversal scanner
+├── debit_spreads.py            # ✅ Defined-risk call spreads
+├── lotto_scanner.py            # ✅ 0DTE/earnings lottery plays
+├── spx_credit_spreads.py       # ❌ TODO: SPX 0DTE credit spreads
+├── earnings_protection.py      # ❌ TODO: IV crush protection strategies
+├── swing_trading.py            # ✅ Enhanced breakout swing trading
+├── index_baseline.py           # ❌ TODO: SPY/VTI baseline comparison
+├── wsb_requirements.txt        # Dependencies for all WSB bots
 ├── backend/tradingbot/         # Django-integrated trading modules
 │   ├── options_calculator.py   # Black-Scholes pricing engine
 │   ├── market_regime.py        # Market regime detection

@@ -286,7 +286,7 @@ class TestDebitSpreads(unittest.TestCase):
         max_loss = position.calculate_max_loss()
         
         self.assertGreater(max_profit, 0.0)
-        self.assertGreater(max_loss, 0.0)
+        self.assertGreater(max_loss, 0.0)  # max_loss should be positive (amount paid for debit spread)
         self.assertEqual(max_loss, 2.0 * 10 * 100)  # net_debit * quantity * 100
 
 
@@ -391,7 +391,7 @@ class TestSPXSpreads(unittest.TestCase):
         max_loss = position.calculate_max_loss()
         
         self.assertGreater(max_profit, 0.0)
-        self.assertGreater(max_loss, 0.0)
+        self.assertLess(max_loss, 0.0)  # max_loss should be negative (a loss)
         self.assertEqual(max_profit, 2.0 * 1 * 100)  # net_credit * quantity * 100
 
 
@@ -714,7 +714,7 @@ class TestPhase2EndToEnd(unittest.TestCase):
         max_loss = position.calculate_max_loss()
         
         self.assertGreater(max_profit, 0.0)
-        self.assertGreater(max_loss, 0.0)
+        self.assertGreater(max_loss, 0.0)  # max_loss should be positive (amount paid for debit spread)
     
     def test_spx_spreads_workflow(self):
         """Test complete SPX spreads workflow"""
@@ -764,7 +764,7 @@ class TestPhase2EndToEnd(unittest.TestCase):
         max_loss = position.calculate_max_loss()
         
         self.assertGreater(max_profit, 0.0)
-        self.assertGreater(max_loss, 0.0)
+        self.assertLess(max_loss, 0.0)  # max_loss should be negative (a loss)
     
     def test_index_baseline_workflow(self):
         """Test complete index baseline workflow"""

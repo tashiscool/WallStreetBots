@@ -441,8 +441,8 @@ class TestPhase2Integration(unittest.TestCase):
     
     def test_phase2_components_creation(self):
         """Test Phase 2 components can be created"""
-        from .production_config import ConfigManager
-        from .production_logging import ProductionLogger
+        from backend.tradingbot.core.production_config import ConfigManager
+        from backend.tradingbot.core.production_logging import ProductionLogger
         
         # Load configuration
         config_manager = ConfigManager(self.config_file)

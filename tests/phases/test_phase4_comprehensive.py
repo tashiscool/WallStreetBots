@@ -469,10 +469,10 @@ class TestPhase4Integration(unittest.TestCase):
         # For now, we'll test that all components can be instantiated together
         
         # Initialize all Phase 4 components
-        from backend.tradingbot.phase4_backtesting import BacktestEngine
-        from backend.tradingbot.phase4_optimization import StrategyOptimizer
-        from backend.tradingbot.phase4_monitoring import Phase4Monitoring
-        from backend.tradingbot.phase4_deployment import Phase4Deployment
+        from backend.tradingbot.phases.phase4_backtesting import BacktestEngine
+        from backend.tradingbot.phases.phase4_optimization import StrategyOptimizer
+        from backend.tradingbot.phases.phase4_monitoring import Phase4Monitoring
+        from backend.tradingbot.phases.phase4_deployment import Phase4Deployment
         
         backtest_engine = BacktestEngine(self.config, self.logger)
         optimizer = StrategyOptimizer(backtest_engine, self.config, self.logger)

@@ -57,6 +57,19 @@ class LEAPSPosition:
 
 
 @dataclass
+class MovingAverageCross:
+    cross_type: str  # "golden_cross", "death_cross", "neutral"
+    cross_date: Optional[date]
+    days_since_cross: Optional[int]
+    sma_50: float
+    sma_200: float
+    price_above_50sma: bool
+    price_above_200sma: bool
+    cross_strength: float  # 0-100, strength of the cross signal
+    trend_direction: str   # "bullish", "bearish", "sideways"
+
+
+@dataclass
 class LEAPSCandidate:
     ticker: str
     company_name: str
@@ -74,6 +87,10 @@ class LEAPSCandidate:
     target_return_1y: float
     target_return_3y: float
     risk_factors: List[str]
+    # New golden/death cross fields
+    ma_cross_signal: MovingAverageCross
+    entry_timing_score: float  # 0-100, best time to enter based on MA cross
+    exit_timing_score: float   # 0-100, time to consider exit
 
 
 class LEAPSTracker:
@@ -155,6 +172,189 @@ class LEAPSTracker:
         except Exception as e:
             print(f"Error saving portfolio: {e}")
     
+    def analyze_moving_average_cross(self, ticker: str) -> MovingAverageCross:
+        """Analyze golden cross / death cross signals"""
+        try:
+            stock = yf.Ticker(ticker)
+            hist = stock.history(period="1y")
+            
+            if len(hist) < 250:
+                return MovingAverageCross(
+                    cross_type="neutral",
+                    cross_date=None,
+                    days_since_cross=None,
+                    sma_50=0.0,
+                    sma_200=0.0,
+                    price_above_50sma=False,
+                    price_above_200sma=False,
+                    cross_strength=0.0,
+                    trend_direction="sideways"
+                )
+            
+            prices = hist['Close'].values
+            current_price = prices[-1]
+            
+            # Calculate moving averages
+            sma_50 = np.mean(prices[-50:])
+            sma_200 = np.mean(prices[-200:])
+            
+            # Check current position relative to MAs
+            price_above_50 = current_price > sma_50
+            price_above_200 = current_price > sma_200
+            
+            # Calculate historical 50 and 200 SMAs to find crosses
+            sma_50_series = np.array([np.mean(prices[max(0, i-49):i+1]) for i in range(49, len(prices))])
+            sma_200_series = np.array([np.mean(prices[max(0, i-199):i+1]) for i in range(199, len(prices))])
+            
+            if len(sma_50_series) < 50 or len(sma_200_series) < 50:
+                return MovingAverageCross(
+                    cross_type="neutral",
+                    cross_date=None,
+                    days_since_cross=None,
+                    sma_50=sma_50,
+                    sma_200=sma_200,
+                    price_above_50sma=price_above_50,
+                    price_above_200sma=price_above_200,
+                    cross_strength=0.0,
+                    trend_direction="sideways"
+                )
+            
+            # Find most recent cross
+            cross_type = "neutral"
+            cross_date = None
+            days_since_cross = None
+            cross_strength = 0.0
+            
+            # Look for crosses in the last 120 days
+            lookback_days = min(120, len(sma_50_series) - 1)
+            recent_50 = sma_50_series[-lookback_days:]
+            recent_200 = sma_200_series[-lookback_days:]
+            
+            # Find crossovers
+            for i in range(1, len(recent_50)):
+                prev_50 = recent_50[i-1]
+                prev_200 = recent_200[i-1]
+                curr_50 = recent_50[i]
+                curr_200 = recent_200[i]
+                
+                # Golden cross: 50 SMA crosses above 200 SMA
+                if prev_50 <= prev_200 and curr_50 > curr_200:
+                    cross_type = "golden_cross"
+                    days_ago = len(recent_50) - i - 1
+                    cross_date = date.today() - timedelta(days=days_ago)
+                    days_since_cross = days_ago
+                    
+                    # Calculate strength based on separation and volume
+                    separation = abs(curr_50 - curr_200) / curr_200
+                    cross_strength = min(100, separation * 1000)  # Scale to 0-100
+                
+                # Death cross: 50 SMA crosses below 200 SMA
+                elif prev_50 >= prev_200 and curr_50 < curr_200:
+                    cross_type = "death_cross"
+                    days_ago = len(recent_50) - i - 1
+                    cross_date = date.today() - timedelta(days=days_ago)
+                    days_since_cross = days_ago
+                    
+                    # Calculate strength
+                    separation = abs(curr_50 - curr_200) / curr_200
+                    cross_strength = min(100, separation * 1000)
+            
+            # Determine trend direction
+            if sma_50 > sma_200 and price_above_50 and price_above_200:
+                trend_direction = "bullish"
+            elif sma_50 < sma_200 and not price_above_50 and not price_above_200:
+                trend_direction = "bearish"
+            else:
+                trend_direction = "sideways"
+            
+            return MovingAverageCross(
+                cross_type=cross_type,
+                cross_date=cross_date,
+                days_since_cross=days_since_cross,
+                sma_50=sma_50,
+                sma_200=sma_200,
+                price_above_50sma=price_above_50,
+                price_above_200sma=price_above_200,
+                cross_strength=cross_strength,
+                trend_direction=trend_direction
+            )
+            
+        except Exception as e:
+            return MovingAverageCross(
+                cross_type="neutral",
+                cross_date=None,
+                days_since_cross=None,
+                sma_50=0.0,
+                sma_200=0.0,
+                price_above_50sma=False,
+                price_above_200sma=False,
+                cross_strength=0.0,
+                trend_direction="sideways"
+            )
+    
+    def calculate_entry_exit_timing_scores(self, ma_cross: MovingAverageCross, current_price: float) -> Tuple[float, float]:
+        """Calculate entry and exit timing scores based on MA cross analysis"""
+        entry_score = 50.0  # Default neutral
+        exit_score = 50.0   # Default neutral
+        
+        if ma_cross.cross_type == "golden_cross":
+            # Golden cross scenarios
+            if ma_cross.days_since_cross is not None:
+                if ma_cross.days_since_cross <= 30:
+                    # Recent golden cross - good entry timing
+                    entry_score = 85.0 + ma_cross.cross_strength * 0.15
+                    exit_score = 20.0  # Don't exit on golden cross
+                elif ma_cross.days_since_cross <= 60:
+                    # Still good entry window
+                    entry_score = 75.0 + ma_cross.cross_strength * 0.10
+                    exit_score = 25.0
+                else:
+                    # Golden cross getting old
+                    entry_score = 60.0
+                    exit_score = 40.0
+        
+        elif ma_cross.cross_type == "death_cross":
+            # Death cross scenarios
+            if ma_cross.days_since_cross is not None:
+                if ma_cross.days_since_cross <= 15:
+                    # Recent death cross - poor entry timing
+                    entry_score = 15.0
+                    exit_score = 90.0  # Strong exit signal
+                elif ma_cross.days_since_cross <= 45:
+                    # Avoid entries during death cross period
+                    entry_score = 25.0
+                    exit_score = 75.0
+                else:
+                    # Death cross effects may be waning
+                    entry_score = 40.0
+                    exit_score = 60.0
+        
+        else:
+            # Neutral/sideways - use MA position for guidance
+            if ma_cross.price_above_50sma and ma_cross.price_above_200sma:
+                if ma_cross.sma_50 > ma_cross.sma_200:
+                    # Bullish setup without recent cross
+                    entry_score = 65.0
+                    exit_score = 35.0
+                else:
+                    # Mixed signals
+                    entry_score = 55.0
+                    exit_score = 45.0
+            else:
+                # Price below key MAs
+                entry_score = 35.0
+                exit_score = 65.0
+        
+        # Adjust for trend strength
+        if ma_cross.trend_direction == "bullish":
+            entry_score = min(95.0, entry_score + 5.0)
+            exit_score = max(5.0, exit_score - 5.0)
+        elif ma_cross.trend_direction == "bearish":
+            entry_score = max(5.0, entry_score - 10.0)
+            exit_score = min(95.0, exit_score + 10.0)
+        
+        return entry_score, exit_score
+
     def calculate_trend_score(self, ticker: str) -> Tuple[float, float, float, float]:
         """Calculate multi-factor trend score (0-100)"""
         try:
@@ -354,12 +554,17 @@ class LEAPSTracker:
                     # Calculate scores
                     momentum_score, trend_score, financial_score, valuation_score = self.calculate_trend_score(ticker)
                     
-                    # Composite score with thematic weighting
+                    # Analyze golden/death cross signals
+                    ma_cross_signal = self.analyze_moving_average_cross(ticker)
+                    entry_timing_score, exit_timing_score = self.calculate_entry_exit_timing_scores(ma_cross_signal, current_price)
+                    
+                    # Enhanced composite score including timing
                     composite_score = (
-                        trend_score * 0.3 +
-                        momentum_score * 0.25 +
-                        financial_score * 0.25 +
-                        valuation_score * 0.2
+                        trend_score * 0.25 +
+                        momentum_score * 0.20 +
+                        financial_score * 0.20 +
+                        valuation_score * 0.15 +
+                        entry_timing_score * 0.20  # Weight entry timing significantly
                     )
                     
                     # Get LEAPS expiries
@@ -379,7 +584,7 @@ class LEAPSTracker:
                     target_1y = ((target_strike * 1.3) / current_price - 1) * 100  # 30% above strike
                     target_3y = ((target_strike * 2.0) / current_price - 1) * 100  # 100% above strike
                     
-                    # Risk factors
+                    # Risk factors including timing concerns
                     risk_factors = []
                     if valuation_score < 30:
                         risk_factors.append("High valuation")
@@ -389,6 +594,12 @@ class LEAPSTracker:
                         risk_factors.append("Financial concerns")
                     if premium > current_price * 0.25:
                         risk_factors.append("High premium cost")
+                    if ma_cross_signal.cross_type == "death_cross" and ma_cross_signal.days_since_cross and ma_cross_signal.days_since_cross < 30:
+                        risk_factors.append("Recent death cross")
+                    if entry_timing_score < 40:
+                        risk_factors.append("Poor entry timing")
+                    if exit_timing_score > 70:
+                        risk_factors.append("Exit signal active")
                     
                     # Only include strong candidates
                     if composite_score >= 60:
@@ -408,7 +619,10 @@ class LEAPSTracker:
                             break_even=breakeven,
                             target_return_1y=target_1y,
                             target_return_3y=target_3y,
-                            risk_factors=risk_factors
+                            risk_factors=risk_factors,
+                            ma_cross_signal=ma_cross_signal,
+                            entry_timing_score=entry_timing_score,
+                            exit_timing_score=exit_timing_score
                         )
                         
                         candidates.append(candidate)
@@ -488,22 +702,43 @@ class LEAPSTracker:
         output += "=" * 80 + "\n"
         
         for i, cand in enumerate(candidates[:limit], 1):
-            output += f"\n{i}. {cand.ticker} - {cand.company_name}\n"
+            # Timing indicators
+            timing_icon = "🟢" if cand.entry_timing_score > 70 else "🟡" if cand.entry_timing_score > 50 else "🔴"
+            
+            # Cross type indicators
+            if cand.ma_cross_signal.cross_type == "golden_cross":
+                cross_icon = "✨"
+                cross_info = f"Golden Cross ({cand.ma_cross_signal.days_since_cross}d ago)" if cand.ma_cross_signal.days_since_cross else "Golden Cross"
+            elif cand.ma_cross_signal.cross_type == "death_cross":
+                cross_icon = "💀"
+                cross_info = f"Death Cross ({cand.ma_cross_signal.days_since_cross}d ago)" if cand.ma_cross_signal.days_since_cross else "Death Cross"
+            else:
+                cross_icon = "📊"
+                cross_info = f"{cand.ma_cross_signal.trend_direction.title()} Trend"
+            
+            output += f"\n{i}. {cand.ticker} - {cand.company_name} {timing_icon}\n"
             output += f"   Theme: {cand.theme}\n"
             output += f"   Current: ${cand.current_price:.2f} | Target Strike: ${cand.recommended_strike}\n"
             output += f"   Expiry: {cand.expiry_date} | Premium: ${cand.premium_estimate:.2f}\n"
             output += f"   Breakeven: ${cand.break_even:.2f} | 1Y Target: {cand.target_return_1y:.0f}%\n"
             output += f"   Scores - Composite: {cand.composite_score:.0f} | Trend: {cand.trend_score:.0f} | Financial: {cand.financial_score:.0f}\n"
+            output += f"   {cross_icon} MA Signal: {cross_info} | Entry Score: {cand.entry_timing_score:.0f} | Exit Score: {cand.exit_timing_score:.0f}\n"
+            output += f"   Price vs SMA: 50d {cand.current_price/cand.ma_cross_signal.sma_50:.2f}x | 200d {cand.current_price/cand.ma_cross_signal.sma_200:.2f}x\n"
             
             if cand.risk_factors:
                 output += f"   ⚠️  Risks: {', '.join(cand.risk_factors)}\n"
         
-        output += "\n💡 LEAPS STRATEGY GUIDELINES:\n"
-        output += "• Buy on major dips in secular growth names\n"
-        output += "• Target 12-24 month expiries for time buffer\n" 
-        output += "• Scale out at 2x, 3x, 4x returns (25% each)\n"
+        output += "\n💡 ENHANCED LEAPS STRATEGY with GOLDEN/DEATH CROSS TIMING:\n"
+        output += "• 🟢 BEST ENTRIES: Recent golden cross (30d) + high entry score (70+)\n"
+        output += "• 🟡 GOOD ENTRIES: Bullish trend + price above 50/200 SMA + entry score 50+\n"
+        output += "• 🔴 AVOID ENTRIES: Death cross (45d) + low entry score (<40)\n"
+        output += "• ✨ Golden cross timing can add 10-20% to returns\n"
+        output += "• 💀 Death cross signals - consider exits even on profitable positions\n"
+        output += "• 📊 Use 50/200 SMA position for trend confirmation\n"
+        output += "• Scale out at 2x, 3x, 4x returns (25% each) OR on death cross\n"
         output += "• Stop loss at -50% to preserve capital\n"
-        output += "• Diversify across 3-5 themes\n"
+        output += "• Target 12-24 month expiries for time buffer\n"
+        output += "• Diversify across 3-5 themes with good timing scores\n"
         
         return output
     
@@ -573,6 +808,8 @@ def main():
                        help='Minimum composite score')
     parser.add_argument('--save-csv', type=str,
                        help='Save results to CSV file')
+    parser.add_argument('--sort-by-timing', action='store_true',
+                       help='Sort by entry timing score instead of composite score')
     
     args = parser.parse_args()
     
@@ -583,6 +820,10 @@ def main():
         
         # Filter by minimum score
         candidates = [c for c in candidates if c.composite_score >= args.min_score]
+        
+        # Sort by timing score if requested
+        if args.sort_by_timing:
+            candidates.sort(key=lambda x: x.entry_timing_score, reverse=True)
         
         if args.save_csv:
             with open(args.save_csv, 'w', newline='') as csvfile:

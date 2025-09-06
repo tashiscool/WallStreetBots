@@ -84,9 +84,123 @@ class BlackScholesCalculator:
 
         return math.exp(-dividend_yield * time_to_expiry_years) * BlackScholesCalculator._norm_cdf(d1)
 
+    @staticmethod
+    def put_price(
+        spot: float,
+        strike: float,
+        time_to_expiry_years: float,
+        risk_free_rate: float,
+        dividend_yield: float,
+        implied_volatility: float
+    ) -> float:
+        """Calculate Black-Scholes put option price per share"""
+        if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
+            raise ValueError("Spot, strike, time to expiry, and IV must be positive")
+
+        d1 = (
+            math.log(spot / strike) +
+            (risk_free_rate - dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
+        ) / (implied_volatility * math.sqrt(time_to_expiry_years))
+
+        d2 = d1 - implied_volatility * math.sqrt(time_to_expiry_years)
+
+        put_value = (
+            strike * math.exp(-risk_free_rate * time_to_expiry_years) * BlackScholesCalculator._norm_cdf(-d2) -
+            spot * math.exp(-dividend_yield * time_to_expiry_years) * BlackScholesCalculator._norm_cdf(-d1)
+        )
+
+        return max(put_value, 0.0)
+
+    @staticmethod
+    def gamma(
+        spot: float,
+        strike: float,
+        time_to_expiry_years: float,
+        risk_free_rate: float,
+        dividend_yield: float,
+        implied_volatility: float
+    ) -> float:
+        """Calculate option gamma (delta sensitivity to underlying movement)"""
+        if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
+            return 0.0
+
+        d1 = (
+            math.log(spot / strike) +
+            (risk_free_rate - dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
+        ) / (implied_volatility * math.sqrt(time_to_expiry_years))
+
+        # Standard normal PDF
+        pdf_d1 = math.exp(-0.5 * d1 ** 2) / math.sqrt(2 * math.pi)
+        
+        return (
+            math.exp(-dividend_yield * time_to_expiry_years) * pdf_d1 / 
+            (spot * implied_volatility * math.sqrt(time_to_expiry_years))
+        )
+
+    @staticmethod
+    def theta(
+        spot: float,
+        strike: float,
+        time_to_expiry_years: float,
+        risk_free_rate: float,
+        dividend_yield: float,
+        implied_volatility: float
+    ) -> float:
+        """Calculate option theta (time decay)"""
+        if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
+            return 0.0
+
+        d1 = (
+            math.log(spot / strike) +
+            (risk_free_rate - dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
+        ) / (implied_volatility * math.sqrt(time_to_expiry_years))
+
+        d2 = d1 - implied_volatility * math.sqrt(time_to_expiry_years)
+        
+        # Standard normal PDF
+        pdf_d1 = math.exp(-0.5 * d1 ** 2) / math.sqrt(2 * math.pi)
+        
+        # Call theta
+        theta_value = (
+            -spot * math.exp(-dividend_yield * time_to_expiry_years) * pdf_d1 * implied_volatility / 
+            (2 * math.sqrt(time_to_expiry_years)) -
+            risk_free_rate * strike * math.exp(-risk_free_rate * time_to_expiry_years) * 
+            BlackScholesCalculator._norm_cdf(d2) +
+            dividend_yield * spot * math.exp(-dividend_yield * time_to_expiry_years) * 
+            BlackScholesCalculator._norm_cdf(d1)
+        )
+        
+        return theta_value / 365  # Convert to daily theta
+
+    @staticmethod
+    def vega(
+        spot: float,
+        strike: float,
+        time_to_expiry_years: float,
+        risk_free_rate: float,
+        dividend_yield: float,
+        implied_volatility: float
+    ) -> float:
+        """Calculate option vega (volatility sensitivity)"""
+        if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
+            return 0.0
+
+        d1 = (
+            math.log(spot / strike) +
+            (risk_free_rate - dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
+        ) / (implied_volatility * math.sqrt(time_to_expiry_years))
+        
+        # Standard normal PDF
+        pdf_d1 = math.exp(-0.5 * d1 ** 2) / math.sqrt(2 * math.pi)
+        
+        return (
+            spot * math.exp(-dividend_yield * time_to_expiry_years) * pdf_d1 * 
+            math.sqrt(time_to_expiry_years) / 100  # Convert to 1% volatility change
+        )
+
 
 @dataclass
-class OptionsSetup:
+class OptionsStrategySetup:
     """Configuration for options trade setup based on successful playbook"""
 
     # Universe filter
@@ -115,6 +229,45 @@ class OptionsSetup:
     stop_loss_pct: float = 0.45      # Stop at 45% loss
     max_hold_days: int = 5           # Time stop if no progress
     delta_exit_threshold: float = 0.60  # Exit when delta >= 0.60
+
+
+@dataclass
+class OptionsSetup:
+    """Individual options position setup"""
+    ticker: str
+    entry_date: date
+    expiry_date: date
+    strike: float
+    spot_at_entry: float
+    premium_paid: float
+    contracts: int
+    
+    @property
+    def total_cost(self) -> float:
+        """Total cost of the position"""
+        return self.contracts * self.premium_paid * 100
+    
+    @property
+    def breakeven(self) -> float:
+        """Breakeven price at expiration"""
+        return self.strike + self.premium_paid
+    
+    @property
+    def intrinsic_value(self) -> float:
+        """Current intrinsic value"""
+        return max(0.0, self.spot_at_entry - self.strike)
+    
+    def is_itm(self) -> bool:
+        """Check if option is in the money"""
+        return self.spot_at_entry > self.strike
+    
+    def is_otm(self) -> bool:
+        """Check if option is out of the money"""
+        return self.spot_at_entry < self.strike
+    
+    def calculate_pnl(self, current_spot: float, current_premium: float) -> float:
+        """Calculate current P&L"""
+        return self.contracts * (current_premium - self.premium_paid) * 100
 
 
 @dataclass
@@ -159,8 +312,8 @@ Max Loss: ${self.risk_amount:,.0f}
 class OptionsTradeCalculator:
     """Main calculator implementing the successful options playbook"""
 
-    def __init__(self, setup: OptionsSetup = None):
-        self.setup = setup or OptionsSetup()
+    def __init__(self, setup: OptionsStrategySetup = None):
+        self.setup = setup or OptionsStrategySetup()
         self.bs_calc = BlackScholesCalculator()
 
     def find_optimal_expiry(self, target_dte: int = None) -> date:

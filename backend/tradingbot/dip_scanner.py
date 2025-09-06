@@ -7,7 +7,7 @@ import asyncio
 import json
 from dataclasses import dataclass
 from datetime import datetime, time
-from typing import Dict, List, Optional
+from typing import Dict, List
 import logging
 
 from .exact_clone import DipDetector, ExactCloneSystem, DipSignal
@@ -33,8 +33,8 @@ class LiveDipScanner:
         self.scan_interval = 60  # Scan every 60 seconds
 
         # Tracking
-        self.last_scan_time: Optional[datetime] = None
-        self.last_reset_date: Optional[datetime] = None
+        self.last_scan_time: datetime | None = None
+        self.last_reset_date: datetime | None = None
         self.opportunities_found_today = 0
         self.trades_executed_today = 0
 

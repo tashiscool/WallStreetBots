@@ -7,41 +7,42 @@ name = "wallstreetbots"
 version = "0.1.0"
 description = "WSB-style strategy bots (dip-after-run, momentum weeklies, spreads, leaps, wheel)"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
-  "pandas>=2.0.0,<3.0.0",
-  "numpy>=1.24.0,<2.0.0",
-  "yfinance>=0.2.52,<0.3.0",
-  "pytz>=2024.1,<2026.0",
-  "requests>=2.31.0,<3.0.0"
+  "pandas>=2.2.0,<3.0.0",
+  "numpy>=1.26.0,<2.3.0",
+  "yfinance>=0.2.65,<0.3.0",
+  "pytz>=2025.2,<2026.0",
+  "requests>=2.32.0,<3.0.0"
 ]
 
 [project.optional-dependencies]
 django = [
-    "Django>=3.2.8,<4.0.0",
-    "django-cors-headers>=3.10.0",
-    "djangorestframework>=3.12.4",
-    "psycopg2-binary>=2.9.1",
-    "asgiref>=3.4.1",
-    "sqlparse>=0.4.2",
-    "social-auth-app-django>=5.0",
-    "django-admin-interface>=0.18.3",
+    "Django>=4.2.0,<5.0.0",
+    "django-cors-headers>=4.6.0",
+    "djangorestframework>=3.15.0",
+    "psycopg2-binary>=2.9.10",
+    "asgiref>=3.8.0",
+    "sqlparse>=0.5.0",
+    "social-auth-app-django>=5.5.0",
+    "django-admin-interface>=0.30.0",
     "python-jose>=3.3.0",
     "dj-config-url>=0.1.1",
 ]
 broker = [
-    "alpaca_trade_api>=1.4.1",
+    "alpaca-py>=0.42.0",
 ]
 ml = [
-    "hmmlearn>=0.2.7",
-    "plotly>=5.8.0",
+    "hmmlearn>=0.3.0",
+    "plotly>=6.3.0",
 ]
 dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "black>=22.0.0",
-    "flake8>=5.0.0",
-    "mypy>=1.0.0",
+    "pytest>=8.4.0",
+    "pytest-cov>=6.0.0",
+    "pytest-asyncio>=0.24.0",
+    "black>=24.0.0",
+    "flake8>=7.0.0",
+    "mypy>=1.13.0",
 ]
 
 [project.scripts]
@@ -66,7 +67,7 @@ include = ["backend*", "ml*", "scripts*"]
 
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py312']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -86,7 +87,7 @@ extend-exclude = '''
 '''
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -101,13 +102,14 @@ warn_unreachable = true
 strict_equality = true
 
 [tool.pytest.ini_options]
-testpaths = ["backend/tradingbot"]
+testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short --strict-markers"
+addopts = "-v --tb=short --strict-markers --reuse-db"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
 ]
+DJANGO_SETTINGS_MODULE = "backend.settings"

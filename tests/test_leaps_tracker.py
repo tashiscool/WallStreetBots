@@ -15,7 +15,7 @@ import os
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from leaps_tracker import (  # noqa: E402
+from backend.tradingbot.strategies.leaps_tracker import (  # noqa: E402
     MovingAverageCross, LEAPSCandidate, LEAPSPosition, SecularTrend, LEAPSTracker
 )
 

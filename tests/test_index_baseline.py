@@ -15,7 +15,7 @@ import os
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from index_baseline import (  # noqa: E402
+from backend.tradingbot.strategies.index_baseline import (  # noqa: E402
     PerformanceComparison, BaselineTracker, IndexBaselineScanner
 )
 

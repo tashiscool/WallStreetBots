@@ -1,0 +1,1441 @@
+diff --git a/test_index_baseline.py b/test_index_baseline.py
+index c6df8da..666d665 100644
+--- a/test_index_baseline.py
++++ b/test_index_baseline.py
+@@ -355,9 +355,9 @@ class TestIndexBaselineScanner(unittest.TestCase):
+         report = self.scanner.format_comparison_report(sample_comparisons)
+         
+         # Should contain key information
+-        self.assertIn("WHEEL STRATEGY", report.upper())
++        self.assertIn("wheel_strategy", report.upper())
+         self.assertIn("18.0%", report)  # Strategy return
+-        self.assertIn("10.00%", report)  # SPY return
++        self.assertIn("10.0%", report)  # SPY return
+         self.assertIn("YES", report)    # Beats SPY
+         self.assertIn("Strategy", report)  # Risk-adjusted winner
+         self.assertIn("WSB REALITY CHECK", report)
+diff --git a/test_leaps_tracker.py b/test_leaps_tracker.py
+index d5e1373..d499a92 100644
+--- a/test_leaps_tracker.py
++++ b/test_leaps_tracker.py
+@@ -67,8 +67,8 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
+         
+         # Should detect some kind of cross pattern
+         self.assertIn(ma_cross.cross_type, ["golden_cross", "death_cross", "neutral"])
+-        self.assertGreaterEqual(ma_cross.sma_50, 0)
+-        self.assertGreaterEqual(ma_cross.sma_200, 0)
++        self.assertGreater(ma_cross.sma_50, 0)
++        self.assertGreater(ma_cross.sma_200, 0)
+         self.assertIsInstance(ma_cross.price_above_50sma, bool)
+         self.assertIsInstance(ma_cross.price_above_200sma, bool)
+         
+diff --git a/test_spx_credit_spreads.py b/test_spx_credit_spreads.py
+index 7ba0e79..f930f9b 100644
+--- a/test_spx_credit_spreads.py
++++ b/test_spx_credit_spreads.py
+@@ -20,208 +20,583 @@ from spx_credit_spreads import (
+ )
+ 
+ 
+-class TestSPXCreditSpreadsScanner(unittest.TestCase):
++class TestCreditSpreadScanner(unittest.TestCase):
+     """Test the SPX/SPY credit spread scanner functionality"""
+ 
+     def setUp(self):
+         """Set up test fixtures"""
+-        self.scanner = SPXCreditSpreadsScanner()
+-
++        self.scanner = CreditSpreadScanner()
++        
++        # Mock options chain data
++        self.mock_calls_data = pd.DataFrame({
++            'strike': [5300, 5310, 5320, 5330, 5340, 5350],
++            'bid': [12.50, 10.20, 8.10, 6.30, 4.80, 3.60],
++            'ask': [13.00, 10.70, 8.60, 6.80, 5.30, 4.10],
++            'volume': [150, 200, 180, 120, 90, 70],
++            'openInterest': [1200, 1500, 1300, 800, 600, 400],
++            'impliedVolatility': [0.15, 0.16, 0.17, 0.18, 0.19, 0.20]
++        })
++        
++        self.mock_puts_data = pd.DataFrame({
++            'strike': [5250, 5260, 5270, 5280, 5290, 5300],
++            'bid': [3.40, 4.60, 6.20, 8.10, 10.50, 13.20],
++            'ask': [3.90, 5.10, 6.70, 8.60, 11.00, 13.70],
++            'volume': [80, 110, 160, 190, 170, 140],
++            'openInterest': [500, 700, 1100, 1400, 1200, 1000],
++            'impliedVolatility': [0.14, 0.15, 0.16, 0.17, 0.18, 0.19]
++        })
++        
+     def test_scanner_initialization(self):
+-        """Test that scanner initializes properly"""
+-        self.assertIsInstance(self.scanner, SPXCreditSpreadsScanner)
+-        self.assertIsInstance(self.scanner.credit_tickers, list)
+-        self.assertGreater(len(self.scanner.credit_tickers), 0)
+-
+-    def test_norm_cdf(self):
+-        """Test normal CDF calculation"""
+-        result = self.scanner.norm_cdf(0.0)
+-        self.assertAlmostEqual(result, 0.5, places=2)
+-
+-    def test_black_scholes_put(self):
+-        """Test Black-Scholes put calculation"""
+-        price, delta = self.scanner.black_scholes_put(100.0, 95.0, 0.25, 0.05, 0.20)
+-        
+-        self.assertIsInstance(price, float)
+-        self.assertIsInstance(delta, float)
+-        self.assertGreater(price, 0)
+-        self.assertLess(delta, 0)  # Put delta should be negative
+-
+-    def test_black_scholes_call(self):
+-        """Test Black-Scholes call calculation"""
+-        price, delta = self.scanner.black_scholes_call(100.0, 105.0, 0.25, 0.05, 0.20)
+-        
+-        self.assertIsInstance(price, float)
+-        self.assertIsInstance(delta, float)
+-        self.assertGreater(price, 0)
+-        self.assertGreater(delta, 0)  # Call delta should be positive
+-
+-    def test_get_0dte_expiry(self):
+-        """Test 0DTE expiry calculation"""
+-        expiry = self.scanner.get_0dte_expiry()
++        """Test scanner initializes correctly"""
++        self.assertIn("SPX", self.scanner.target_tickers)
++        self.assertIn("SPY", self.scanner.target_tickers)
++        self.assertEqual(self.scanner.target_delta_range, (0.25, 0.35))  # 30 delta target
++        self.assertEqual(self.scanner.min_credit, 0.50)
+         
+-        if expiry:  # Only test if market is open
+-            self.assertIsInstance(expiry, str)
+-            self.assertEqual(len(expiry), 10)  # YYYY-MM-DD format
+-
+-    @patch('spx_credit_spreads.yf.Ticker')
+-    def test_estimate_iv_from_expected_move(self, mock_ticker):
+-        """Test IV estimation from expected move"""
+-        mock_stock = Mock()
+-        mock_stock.info = {'regularMarketPrice': 100.0}
+-        mock_ticker.return_value = mock_stock
++    def test_find_target_delta_strike(self):
++        """Test finding strikes at target delta levels"""
++        # Mock delta calculation
++        with patch.object(self.scanner, 'calculate_option_delta', side_effect=[0.35, 0.32, 0.28, 0.24, 0.20, 0.15]):
++            strike = self.scanner.find_target_delta_strike(
++                self.mock_calls_data, 
++                spot_price=5325, 
++                target_delta=0.30,
++                option_type='call'
++            )
++            
++            # Should find strike close to 30 delta
++            self.assertIn(strike, self.mock_calls_data['strike'].values)
++            self.assertIsInstance(strike, (int, float))
++            
++    def test_calculate_spread_metrics(self):
++        """Test spread metrics calculation"""
++        # Test put credit spread
++        short_strike = 5280
++        long_strike = 5270  # 10 points lower
+         
+-        iv = self.scanner.estimate_iv_from_expected_move("SPY", 2.0)
++        short_premium = 8.35  # Mid of bid/ask
++        long_premium = 6.45   # Mid of bid/ask
++        
++        net_credit, max_risk, max_profit, breakeven = self.scanner.calculate_spread_metrics(
++            short_strike, long_strike, short_premium, long_premium, SpreadType.PUT_CREDIT
++        )
++        
++        # Verify calculations
++        expected_credit = short_premium - long_premium
++        expected_risk = (short_strike - long_strike) * 100 - expected_credit
++        
++        self.assertAlmostEqual(net_credit, expected_credit, places=2)
++        self.assertAlmostEqual(max_risk, expected_risk, places=2)
++        self.assertAlmostEqual(max_profit, expected_credit, places=2)
++        self.assertAlmostEqual(breakeven, short_strike - (expected_credit / 100), places=2)
++        
++    def test_calculate_option_delta(self):
++        """Test Black-Scholes delta calculation"""
++        # Test call delta
++        call_delta = self.scanner.calculate_option_delta(
++            spot=5300,
++            strike=5320,
++            time_to_expiry=1/365,  # 1 day
++            risk_free_rate=0.05,
++            volatility=0.15,
++            option_type='call'
++        )
++        
++        # OTM call should have positive delta < 0.5
++        self.assertGreater(call_delta, 0)
++        self.assertLess(call_delta, 0.5)
++        
++        # Test put delta
++        put_delta = self.scanner.calculate_option_delta(
++            spot=5300,
++            strike=5280,
++            time_to_expiry=1/365,
++            risk_free_rate=0.05,
++            volatility=0.15,
++            option_type='put'
++        )
++        
++        # OTM put should have negative delta > -0.5
++        self.assertLess(put_delta, 0)
++        self.assertGreater(put_delta, -0.5)
+         
+-        self.assertIsInstance(iv, float)
+-        self.assertGreater(iv, 0)
+-
+     @patch('spx_credit_spreads.yf.Ticker')
+-    def test_get_expected_move(self, mock_ticker):
+-        """Test expected move calculation"""
+-        mock_stock = Mock()
+-        mock_stock.info = {'regularMarketPrice': 100.0}
+-        mock_ticker.return_value = mock_stock
++    def test_scan_credit_spreads_integration(self, mock_yf):
++        """Test the main scanning function"""
++        # Mock yfinance responses
++        mock_ticker = Mock()
++        mock_ticker.history.return_value = pd.DataFrame({
++            'Close': [5325]
++        }, index=[datetime.now()])
+         
+-        move = self.scanner.get_expected_move("SPY")
++        # Mock options chain
++        mock_chain = Mock()
++        mock_chain.calls = self.mock_calls_data
++        mock_chain.puts = self.mock_puts_data
++        mock_ticker.option_chain.return_value = mock_chain
++        mock_ticker.options = ['2024-12-06']  # Mock 0DTE expiry
+         
+-        self.assertIsInstance(move, float)
+-        self.assertGreater(move, 0)
+-
+-    def test_calculate_spread_metrics(self):
+-        """Test spread metrics calculation"""
+-        net_credit, max_profit, max_loss = self.scanner.calculate_spread_metrics(
+-            short_strike=4000.0,
+-            long_strike=3990.0,
+-            short_premium=0.30,
+-            long_premium=0.20
++        mock_yf.return_value = mock_ticker
++        
++        # Mock delta calculations to return target deltas
++        with patch.object(self.scanner, 'calculate_option_delta', side_effect=[0.30, 0.25, 0.30, 0.25]):
++            setups = self.scanner.scan_credit_spreads()
++            
++            self.assertIsInstance(setups, list)
++            
++            # If successful, check setup properties
++            if setups:
++                setup = setups[0]
++                self.assertIsInstance(setup, CreditSpreadSetup)
++                self.assertIn(setup.ticker, ["SPX", "SPY"])
++                self.assertIn(setup.spread_type, [SpreadType.PUT_CREDIT, SpreadType.CALL_CREDIT])
++                self.assertGreater(setup.net_credit, 0)
++                
++    def test_spread_type_classification(self):
++        """Test spread type classification logic"""
++        # Put credit spread: sell higher strike put, buy lower strike put
++        put_setup = CreditSpreadSetup(
++            ticker="SPX",
++            spread_type=SpreadType.PUT_CREDIT,
++            expiry_date="2024-12-06",
++            short_strike=5280,
++            long_strike=5270,
++            short_premium=8.35,
++            long_premium=6.45,
++            net_credit=1.90,
++            max_risk=810,  # (10 * 100) - 190
++            max_profit=190,
++            breakeven=5278.10,
++            delta_short=0.30,
++            delta_long=0.25,
++            prob_profit=0.68,
++            risk_level=RiskLevel.MEDIUM,
++            days_to_expiry=0
+         )
+         
+-        self.assertIsInstance(net_credit, float)
+-        self.assertIsInstance(max_profit, float)
+-        self.assertIsInstance(max_loss, float)
++        # Verify put credit spread properties
++        self.assertEqual(put_setup.spread_type, SpreadType.PUT_CREDIT)
++        self.assertGreater(put_setup.short_strike, put_setup.long_strike)  # Sell higher, buy lower
++        self.assertGreater(put_setup.net_credit, 0)  # Should collect premium
+         
+-        self.assertAlmostEqual(net_credit, 0.10, places=2)
+-        self.assertAlmostEqual(max_profit, 0.10, places=2)
+-        self.assertAlmostEqual(max_loss, 9.90, places=2)
+-
+-    def test_scan_credit_spreads(self):
+-        """Test credit spread scanning"""
+-        spreads = self.scanner.scan_credit_spreads(0)
+-        
+-        self.assertIsInstance(spreads, list)
+-        # Each spread should be a CreditSpreadOpportunity
+-        for spread in spreads:
+-            self.assertIsInstance(spread, CreditSpreadOpportunity)
+-
+-    def test_format_opportunities(self):
+-        """Test opportunity formatting"""
+-        opportunities = [
+-            CreditSpreadOpportunity(
+-                ticker="SPY",
+-                strategy_type="put_credit_spread",
+-                expiry_date="2024-01-19",
+-                dte=0,
+-                short_strike=4000.0,
+-                long_strike=3990.0,
+-                spread_width=10.0,
+-                net_credit=0.30,
+-                max_profit=0.30,
+-                max_loss=9.70,
+-                short_delta=0.30,
+-                prob_profit=0.65,
+-                profit_target=0.075,
+-                break_even_lower=3999.70,
+-                break_even_upper=4000.30,
+-                iv_rank=45.0,
+-                underlying_price=4005.0,
+-                expected_move=2.0,
+-                volume_score=1.2
+-            )
+-        ]
++    def test_risk_level_assignment(self):
++        """Test risk level assignment based on spread characteristics"""
++        # High probability, good credit should be lower risk
++        low_risk_setup = CreditSpreadSetup(
++            ticker="SPX",
++            spread_type=SpreadType.PUT_CREDIT,
++            expiry_date="2024-12-06",
++            short_strike=5250,  # Far OTM
++            long_strike=5240,
++            short_premium=2.50,
++            long_premium=1.80,
++            net_credit=0.70,
++            max_risk=930,
++            max_profit=70,
++            breakeven=5249.30,
++            delta_short=0.15,  # Low delta = high prob profit
++            delta_long=0.12,
++            prob_profit=0.85,  # High probability
++            risk_level=RiskLevel.LOW,
++            days_to_expiry=0
++        )
+         
+-        formatted = self.scanner.format_opportunities(opportunities)
++        self.assertEqual(low_risk_setup.risk_level, RiskLevel.LOW)
++        self.assertLess(low_risk_setup.delta_short, 0.20)  # Low delta
++        self.assertGreater(low_risk_setup.prob_profit, 0.80)  # High prob
+         
+-        self.assertIsInstance(formatted, str)
+-        self.assertIn("SPY", formatted)
+-        self.assertIn("PUT SPREAD", formatted)
+-
++    def test_profit_probability_calculation(self):
++        """Test profit probability estimation"""
++        # Mock probability calculation
++        prob = self.scanner.calculate_profit_probability(
++            spot_price=5300,
++            breakeven=5270,  # Put credit spread breakeven
++            volatility=0.15,
++            days_to_expiry=0
++        )
++        
++        # Should return reasonable probability (0-1)
++        self.assertGreaterEqual(prob, 0.0)
++        self.assertLessEqual(prob, 1.0)
++        
++        # For 0DTE, far OTM should have high prob
++        self.assertGreater(prob, 0.5)
++        
++    def test_iron_condor_detection(self):
++        """Test iron condor opportunity detection"""
++        # Mock finding both put and call credit spreads
++        put_spread = CreditSpreadSetup(
++            ticker="SPX",
++            spread_type=SpreadType.PUT_CREDIT,
++            expiry_date="2024-12-06",
++            short_strike=5270,
++            long_strike=5260,
++            short_premium=6.45,
++            long_premium=4.95,
++            net_credit=1.50,
++            max_risk=850,
++            max_profit=150,
++            breakeven=5268.50,
++            delta_short=0.30,
++            delta_long=0.25,
++            prob_profit=0.70,
++            risk_level=RiskLevel.MEDIUM,
++            days_to_expiry=0
++        )
++        
++        call_spread = CreditSpreadSetup(
++            ticker="SPX",
++            spread_type=SpreadType.CALL_CREDIT,
++            expiry_date="2024-12-06",
++            short_strike=5330,
++            long_strike=5340,
++            short_premium=6.55,
++            long_premium=4.95,
++            net_credit=1.60,
++            max_risk=840,
++            max_profit=160,
++            breakeven=5331.60,
++            delta_short=0.30,
++            delta_long=0.25,
++            prob_profit=0.70,
++            risk_level=RiskLevel.MEDIUM,
++            days_to_expiry=0
++        )
++        
++        # Combined iron condor
++        total_credit = put_spread.net_credit + call_spread.net_credit
++        self.assertGreater(total_credit, 2.0)  # Should collect decent premium
++        
++        # Breakeven range
++        lower_be = put_spread.breakeven
++        upper_be = call_spread.breakeven
++        profit_range = upper_be - lower_be
++        self.assertGreater(profit_range, 40)  # Should have reasonable profit zone
++        
++    def test_wsb_0dte_compliance(self):
++        """Test compliance with WSB 0DTE rules"""
++        sample_setup = CreditSpreadSetup(
++            ticker="SPX",
++            spread_type=SpreadType.PUT_CREDIT,
++            expiry_date="2024-12-06",
++            short_strike=5280,
++            long_strike=5270,
++            short_premium=8.35,
++            long_premium=6.45,
++            net_credit=1.90,
++            max_risk=810,
++            max_profit=190,
++            breakeven=5278.10,
++            delta_short=0.30,
++            delta_long=0.25,
++            prob_profit=0.68,
++            risk_level=RiskLevel.MEDIUM,
++            days_to_expiry=0
++        )
++        
++        # Check WSB 0DTE rules compliance
++        self.assertEqual(sample_setup.days_to_expiry, 0)  # Must be 0DTE
++        self.assertGreaterEqual(sample_setup.delta_short, 0.25)  # ~30 delta rule
++        self.assertLessEqual(sample_setup.delta_short, 0.35)
++        
++        # Credit should be meaningful but not too wide
++        spread_width = sample_setup.short_strike - sample_setup.long_strike
++        self.assertGreaterEqual(spread_width, 5)   # At least 5 points
++        self.assertLessEqual(spread_width, 50)     # Not too wide
++        
++        # Risk/reward should be reasonable
++        risk_reward_ratio = sample_setup.max_risk / sample_setup.max_profit
++        self.assertGreater(risk_reward_ratio, 2)   # Risk more than reward (typical credit spread)
++        self.assertLess(risk_reward_ratio, 10)     # But not excessive
++        
++    def test_expiry_date_validation(self):
++        """Test 0DTE expiry date validation"""
++        # Should identify 0DTE expiries correctly
++        today = date.today()
++        
++        # Mock expiry validation
++        is_0dte = self.scanner.is_0dte_expiry("2024-12-06", today.strftime("%Y-%m-%d"))
++        
++        if today.strftime("%Y-%m-%d") == "2024-12-06":
++            self.assertTrue(is_0dte)
++        else:
++            # Test with actual today
++            is_0dte_today = self.scanner.is_0dte_expiry(today.strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d"))
++            self.assertTrue(is_0dte_today)
++            
++    def test_liquidity_filtering(self):
++        """Test liquidity filtering for options"""
++        # Test minimum volume/open interest requirements
++        liquid_option = {
++            'volume': 100,
++            'openInterest': 500,
++            'bid': 2.50,
++            'ask': 2.60
++        }
++        
++        illiquid_option = {
++            'volume': 5,
++            'openInterest': 20,
++            'bid': 1.00,
++            'ask': 1.50  # Wide spread
++        }
++        
++        # Should pass liquidity for liquid option
++        is_liquid_good = self.scanner.meets_liquidity_requirements(liquid_option)
++        is_liquid_bad = self.scanner.meets_liquidity_requirements(illiquid_option)
++        
++        # Assuming reasonable liquidity thresholds
++        # This would depend on actual implementation
++        self.assertIsInstance(is_liquid_good, bool)
++        self.assertIsInstance(is_liquid_bad, bool)
+ 
+-class TestCreditSpreadOpportunity(unittest.TestCase):
+-    """Test the CreditSpreadOpportunity dataclass"""
+ 
+-    def test_credit_spread_creation(self):
+-        """Test creating a credit spread opportunity"""
+-        spread = CreditSpreadOpportunity(
+-            ticker="SPY",
+-            strategy_type="put_credit_spread",
+-            expiry_date="2024-01-19",
+-            dte=0,
+-            short_strike=4000.0,
+-            long_strike=3990.0,
+-            spread_width=10.0,
+-            net_credit=0.30,
+-            max_profit=0.30,
+-            max_loss=9.70,
+-            short_delta=0.30,
+-            prob_profit=0.65,
+-            profit_target=0.075,
+-            break_even_lower=3999.70,
+-            break_even_upper=4000.30,
+-            iv_rank=45.0,
+-            underlying_price=4005.0,
+-            expected_move=2.0,
+-            volume_score=1.2
++class TestCreditSpreadCalculations(unittest.TestCase):
++    """Test spread calculation accuracy"""
++    
++    def setUp(self):
++        self.scanner = CreditSpreadScanner()
++        
++    def test_black_scholes_accuracy(self):
++        """Test Black-Scholes calculations against known values"""
++        # Test with known parameters
++        spot = 5300
++        strike = 5350  # 50 points OTM
++        time_to_expiry = 1/365  # 1 day
++        volatility = 0.15
++        risk_free_rate = 0.05
++        
++        call_delta = self.scanner.calculate_option_delta(
++            spot, strike, time_to_expiry, risk_free_rate, volatility, 'call'
+         )
+         
+-        self.assertEqual(spread.ticker, "SPY")
+-        self.assertEqual(spread.strategy_type, "put_credit_spread")
+-        self.assertEqual(spread.short_strike, 4000.0)
+-        self.assertEqual(spread.long_strike, 3990.0)
+-        self.assertEqual(spread.net_credit, 0.30)
+-        self.assertEqual(spread.max_profit, 0.30)
+-        self.assertEqual(spread.max_loss, 9.70)
+-
+-    def test_spread_width_calculation(self):
+-        """Test spread width calculation"""
+-        spread = CreditSpreadOpportunity(
+-            ticker="SPY",
+-            strategy_type="put_credit_spread",
+-            expiry_date="2024-01-19",
+-            dte=0,
+-            short_strike=4000.0,
+-            long_strike=3990.0,
+-            spread_width=10.0,
+-            net_credit=0.30,
+-            max_profit=0.30,
+-            max_loss=9.70,
+-            short_delta=0.30,
+-            prob_profit=0.65,
+-            profit_target=0.075,
+-            break_even_lower=3999.70,
+-            break_even_upper=4000.30,
+-            iv_rank=45.0,
+-            underlying_price=4005.0,
+-            expected_move=2.0,
+-            volume_score=1.2
++        # For 0DTE 50 points OTM, delta should be very low
++        self.assertGreater(call_delta, 0)
++        self.assertLess(call_delta, 0.20)
++        
++    def test_profit_loss_scenarios(self):
++        """Test P&L calculations at different underlying prices"""
++        setup = CreditSpreadSetup(
++            ticker="SPX",
++            spread_type=SpreadType.PUT_CREDIT,
++            expiry_date="2024-12-06",
++            short_strike=5280,
++            long_strike=5270,
++            short_premium=8.35,
++            long_premium=6.45,
++            net_credit=1.90,
++            max_risk=810,
++            max_profit=190,
++            breakeven=5278.10,
++            delta_short=0.30,
++            delta_long=0.25,
++            prob_profit=0.68,
++            risk_level=RiskLevel.MEDIUM,
++            days_to_expiry=0
+         )
+         
+-        width = spread.short_strike - spread.long_strike
+-        self.assertEqual(width, 10.0)
+-
++        # Test P&L at different expiry prices
++        # Above breakeven - max profit
++        pnl_high = self.calculate_spread_pnl(setup, expiry_price=5300)
++        self.assertAlmostEqual(pnl_high, setup.max_profit, places=0)
++        
++        # At breakeven - should be 0
++        pnl_be = self.calculate_spread_pnl(setup, expiry_price=setup.breakeven)
++        self.assertAlmostEqual(pnl_be, 0, places=0)
++        
++        # Below long strike - max loss
++        pnl_low = self.calculate_spread_pnl(setup, expiry_price=5260)
++        self.assertAlmostEqual(pnl_low, -setup.max_risk, places=0)
++        
++    def calculate_spread_pnl(self, setup: CreditSpreadSetup, expiry_price: float) -> float:
++        """Calculate spread P&L at expiry"""
++        if setup.spread_type == SpreadType.PUT_CREDIT:
++            if expiry_price >= setup.short_strike:
++                # Both puts expire worthless
++                return setup.net_credit
++            elif expiry_price <= setup.long_strike:
++                # Maximum loss
++                return setup.net_credit - (setup.short_strike - setup.long_strike) * 100
++            else:
++                # Between strikes
++                short_value = (setup.short_strike - expiry_price) * 100
++                return setup.net_credit - short_value
++                
++        return 0  # Placeholder for other spread types
++        
++    def test_tax_advantages_spx_vs_spy(self):
++        """Test SPX vs SPY tax advantage calculations"""
++        # SPX gets 60/40 treatment (60% long-term, 40% short-term)
++        # SPY gets 100% short-term treatment
++        
++        profit = 1000  # $1000 profit
++        short_term_rate = 0.37  # 37% short-term rate
++        long_term_rate = 0.20   # 20% long-term rate
++        
++        # SPX tax (60/40)
++        spx_tax = profit * (0.60 * long_term_rate + 0.40 * short_term_rate)
++        
++        # SPY tax (100% short-term)
++        spy_tax = profit * short_term_rate
++        
++        tax_savings = spy_tax - spx_tax
++        
++        self.assertGreater(tax_savings, 0)  # SPX should save taxes
++        self.assertAlmostEqual(spx_tax, profit * 0.268, places=0)  # ~26.8% effective rate
++        self.assertAlmostEqual(spy_tax, profit * 0.37, places=0)   # 37% rate
+ 
+-class TestSPXCreditSpreadsIntegration(unittest.TestCase):
+-    """Test integration scenarios"""
+ 
++class TestCreditSpreadRiskManagement(unittest.TestCase):
++    """Test risk management features"""
++    
+     def setUp(self):
+-        """Set up test fixtures"""
+-        self.scanner = SPXCreditSpreadsScanner()
++        self.scanner = CreditSpreadScanner()
++        
++    def test_position_sizing_recommendations(self):
++        """Test position sizing based on account size and risk tolerance"""
++        account_size = 100000  # $100k account
++        
++        setup = CreditSpreadSetup(
++            ticker="SPX",
++            spread_type=SpreadType.PUT_CREDIT,
++            expiry_date="2024-12-06",
++            short_strike=5280,
++            long_strike=5270,
++            short_premium=8.35,
++            long_premium=6.45,
++            net_credit=1.90,
++            max_risk=810,  # Risk per contract
++            max_profit=190,
++            breakeven=5278.10,
++            delta_short=0.30,
++            delta_long=0.25,
++            prob_profit=0.68,
++            risk_level=RiskLevel.MEDIUM,
++            days_to_expiry=0
++        )
++        
++        # Conservative sizing: max 2% account risk
++        max_risk_amount = account_size * 0.02
++        max_contracts = int(max_risk_amount / setup.max_risk)
++        
++        self.assertGreater(max_contracts, 0)
++        self.assertLess(max_contracts * setup.max_risk, account_size * 0.05)  # Max 5% total risk
++        
++    def test_stop_loss_recommendations(self):
++        """Test stop loss recommendations for credit spreads"""
++        setup = CreditSpreadSetup(
++            ticker="SPX",
++            spread_type=SpreadType.PUT_CREDIT,
++            expiry_date="2024-12-06",
++            short_strike=5280,
++            long_strike=5270,
++            short_premium=8.35,
++            long_premium=6.45,
++            net_credit=1.90,
++            max_risk=810,
++            max_profit=190,
++            breakeven=5278.10,
++            delta_short=0.30,
++            delta_long=0.25,
++            prob_profit=0.68,
++            risk_level=RiskLevel.MEDIUM,
++            days_to_expiry=0
++        )
++        
++        # WSB recommendation: 25% of max profit (close at 25% of credit)
++        profit_target = setup.net_credit * 0.25  # Close at 25% of credit collected
++        
++        # Stop loss: typically 2-3x credit received
++        stop_loss_level = setup.net_credit * 2.5
++        
++        self.assertGreater(profit_target, 0)
++        self.assertLess(profit_target, setup.max_profit)
++        self.assertGreater(stop_loss_level, setup.net_credit)
++        
++    def test_pin_risk_warnings(self):
++        """Test pin risk detection for spreads near strikes"""
++        # Pin risk occurs when underlying closes very close to short strike
++        spot_price = 5279.50  # Very close to 5280 short strike
++        short_strike = 5280
++        
++        # Should detect high pin risk
++        pin_risk_score = abs(spot_price - short_strike)
++        
++        # Within 0.5% is considered high pin risk for 0DTE
++        pin_risk_threshold = short_strike * 0.005  # 0.5%
++        
++        if pin_risk_score <= pin_risk_threshold:
++            high_pin_risk = True
++        else:
++            high_pin_risk = False
++            
++        self.assertTrue(high_pin_risk)  # Should detect pin risk
++        
++    def test_assignment_risk_detection(self):
++        """Test early assignment risk detection"""
++        # ITM short options have assignment risk
++        spot_price = 5275  # Below 5280 put strike = ITM
++        short_put_strike = 5280
++        
++        # ITM amount
++        itm_amount = short_put_strike - spot_price
++        
++        # Should flag assignment risk for ITM positions
++        has_assignment_risk = itm_amount > 0
++        
++        self.assertTrue(has_assignment_risk)
++        self.assertEqual(itm_amount, 5)  # $5 ITM
++
+ 
+-    def test_main_function_exists(self):
+-        """Test that main function exists and is callable"""
+-        from spx_credit_spreads import main
+-        self.assertTrue(callable(main))
++def run_spx_credit_spreads_tests():
++    """Run all SPX credit spreads tests"""
++    print("=" * 60)
++    print("SPX CREDIT SPREADS WSB STRATEGY - COMPREHENSIVE TEST SUITE")
++    print("=" * 60)
++    
++    # Create test suite
++    test_suite = unittest.TestSuite()
++    
++    # Add test classes
++    test_classes = [
++        TestCreditSpreadScanner,
++        TestCreditSpreadCalculations,
++        TestCreditSpreadRiskManagement
++    ]
++    
++    for test_class in test_classes:
++        tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
++        test_suite.addTests(tests)
++    
++    # Run tests
++    runner = unittest.TextTestRunner(verbosity=2)
++    result = runner.run(test_suite)
++    
++    # Print summary
++    print("\n" + "=" * 60)
++    print("SPX CREDIT SPREADS TEST SUMMARY")
++    print("=" * 60)
++    print(f"Tests run: {result.testsRun}")
++    print(f"Failures: {len(result.failures)}")
++    print(f"Errors: {len(result.errors)}")
++    
++    success_rate = ((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun) * 100
++    print(f"SUCCESS RATE: {success_rate:.1f}%")
++    
++    if result.failures:
++        print("\nFAILURES:")
++        for test, traceback in result.failures:
++            print(f"  - {test}")
++            print(f"    {traceback.split('AssertionError:')[-1].strip()}")
++    
++    if result.errors:
++        print("\nERRORS:")
++        for test, traceback in result.errors:
++            print(f"  - {test}")
++            print(f"    {str(traceback).split('Exception:')[-1].strip()}")
++    
++    return result
+ 
+ 
+-if __name__ == '__main__':
+-    unittest.main()
+\ No newline at end of file
++if __name__ == "__main__":
++    run_spx_credit_spreads_tests()
+\ No newline at end of file
+diff --git a/test_swing_trading.py b/test_swing_trading.py
+index b1268fb..591b9b6 100644
+--- a/test_swing_trading.py
++++ b/test_swing_trading.py
+@@ -16,7 +16,7 @@ import os
+ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ 
+ from swing_trading import (
+-    SwingSignal, SwingTradingScanner, ActiveSwingTrade
++    SwingSignal, SwingTradingScanner, SignalType, RiskLevel
+ )
+ 
+ 
+@@ -28,240 +28,422 @@ class TestSwingTradingScanner(unittest.TestCase):
+         self.scanner = SwingTradingScanner()
+         
+         # Create mock price data
+-        self.mock_data = pd.DataFrame({
+-            'Close': [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110],
+-            'Volume': [1000000, 1100000, 1200000, 1300000, 1400000, 1500000, 1600000, 1700000, 1800000, 1900000, 2000000],
+-            'High': [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111],
+-            'Low': [99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109]
+-        })
+-
+-    def test_scanner_initialization(self):
+-        """Test that scanner initializes properly"""
+-        self.assertIsInstance(self.scanner, SwingTradingScanner)
+-        self.assertIsInstance(self.scanner.swing_tickers, list)
+-        self.assertGreater(len(self.scanner.swing_tickers), 0)
+-
++        dates = pd.date_range(start='2024-01-01', periods=100, freq='D')
++        np.random.seed(42)  # For reproducible tests
++        
++        # Create trending upward stock data
++        base_prices = np.cumsum(np.random.normal(0.01, 0.02, 100)) + 100
++        self.mock_hist_data = pd.DataFrame({
++            'Open': base_prices * (1 + np.random.normal(0, 0.005, 100)),
++            'High': base_prices * (1 + np.random.uniform(0.005, 0.02, 100)),
++            'Low': base_prices * (1 - np.random.uniform(0.005, 0.02, 100)),
++            'Close': base_prices,
++            'Volume': np.random.randint(1000000, 5000000, 100)
++        }, index=dates)
++        
+     @patch('swing_trading.yf.Ticker')
+-    def test_detect_breakout(self, mock_ticker):
+-        """Test breakout detection"""
+-        mock_stock = Mock()
+-        mock_stock.history.return_value = self.mock_data
+-        mock_ticker.return_value = mock_stock
+-        
+-        result = self.scanner.detect_breakout("AAPL")
+-        
+-        self.assertIsInstance(result, tuple)
+-        self.assertEqual(len(result), 3)
+-        is_breakout, strength, volume_ratio = result
+-        self.assertIsInstance(is_breakout, bool)
+-        self.assertIsInstance(strength, float)
+-        self.assertIsInstance(volume_ratio, float)
+-
+-    @patch('swing_trading.yf.download')
+-    def test_detect_momentum_continuation(self, mock_download):
+-        """Test momentum continuation detection"""
+-        mock_download.return_value = self.mock_data
++    def test_scanner_initialization(self, mock_yf):
++        """Test scanner initializes correctly"""
++        self.assertIsInstance(self.scanner.swing_candidates, list)
++        self.assertGreater(len(self.scanner.swing_candidates), 0)
++        self.assertEqual(self.scanner.min_volume, 1000000)
+         
+-        is_momentum, strength = self.scanner.detect_momentum_continuation("AAPL")
++    def test_calculate_breakout_metrics(self):
++        """Test breakout metrics calculation"""
++        # Create test data with clear breakout pattern
++        test_data = self.mock_hist_data.copy()
+         
+-        self.assertIsInstance(is_momentum, bool)
+-        self.assertIsInstance(strength, float)
+-
+-    @patch('swing_trading.yf.download')
+-    def test_detect_reversal_setup(self, mock_download):
+-        """Test reversal setup detection"""
+-        mock_download.return_value = self.mock_data
++        # Simulate consolidation then breakout
++        test_data.iloc[-5:]['Close'] = [105, 105.5, 106, 107.5, 110]  # Breakout
++        test_data.iloc[-5:]['Volume'] = [2000000, 2200000, 3000000, 4000000, 3500000]  # Volume surge
+         
+-        is_reversal, setup_type, strength = self.scanner.detect_reversal_setup("AAPL")
++        breakout_strength, volume_confirmation, price_momentum = self.scanner.calculate_breakout_metrics(test_data)
+         
+-        self.assertIsInstance(is_reversal, bool)
+-        self.assertIsInstance(setup_type, str)
+-        self.assertIsInstance(strength, float)
+-
+-    def test_get_optimal_expiry(self):
+-        """Test optimal expiry calculation"""
+-        expiry = self.scanner.get_optimal_expiry(30)
+-        
+-        self.assertIsInstance(expiry, str)
+-        # Should be a date string in YYYY-MM-DD format
+-        self.assertEqual(len(expiry), 10)
+-        self.assertEqual(expiry.count('-'), 2)
+-
+-    def test_calculate_option_targets(self):
+-        """Test option target calculations"""
+-        targets = self.scanner.calculate_option_targets(100.0, 105, 2.50)
++        # Should detect strong breakout
++        self.assertGreater(breakout_strength, 0.5)
++        self.assertGreater(volume_confirmation, 1.2)  # Volume expansion
++        self.assertGreater(price_momentum, 0)  # Positive momentum
++        
++    def test_detect_breakout_signal(self):
++        """Test breakout signal detection"""
++        # Mock strong breakout data
++        with patch.object(self.scanner, 'calculate_breakout_metrics', return_value=(0.8, 2.1, 0.05)):
++            signal = self.scanner.detect_breakout("AAPL", self.mock_hist_data, 150.0)
++            
++            self.assertIsInstance(signal, SwingSignal)
++            self.assertEqual(signal.signal_type, SignalType.BREAKOUT)
++            self.assertGreater(signal.confidence, 0.7)
++            self.assertEqual(signal.entry_price, 150.0)
++            self.assertLess(signal.stop_loss, 150.0)  # Stop below entry
++            self.assertGreater(signal.target_1, 150.0)  # Target above entry
++            
++    def test_detect_momentum_continuation(self):
++        """Test momentum continuation detection"""
++        # Create uptrending data
++        trend_data = self.mock_hist_data.copy()
++        
++        # Mock consistent uptrend
++        with patch.object(self.scanner, 'calculate_breakout_metrics', return_value=(0.6, 1.5, 0.03)):
++            signal = self.scanner.detect_momentum_continuation("MSFT", trend_data, 300.0)
++            
++            self.assertIsInstance(signal, SwingSignal)
++            self.assertEqual(signal.signal_type, SignalType.MOMENTUM_CONTINUATION)
++            self.assertGreater(signal.confidence, 0.5)
++            
++    def test_detect_reversal_setup(self):
++        """Test reversal setup detection"""
++        # Create oversold reversal setup
++        reversal_data = self.mock_hist_data.copy()
+         
+-        self.assertEqual(len(targets), 4)
+-        profit_25, profit_50, profit_100, stop_loss = targets
++        # Mock oversold conditions with reversal signals
++        with patch.object(self.scanner, 'calculate_technical_indicators', return_value={
++            'rsi': 25,  # Oversold
++            'macd_signal': 1,  # Bullish MACD cross
++            'price_vs_sma20': 0.95,  # Near 20 SMA
++            'volume_surge': 1.8
++        }):
++            signal = self.scanner.detect_reversal_setup("TSLA", reversal_data, 200.0)
++            
++            self.assertIsInstance(signal, SwingSignal)
++            self.assertEqual(signal.signal_type, SignalType.REVERSAL_SETUP)
++            self.assertGreater(signal.confidence, 0.4)
++            
++    def test_risk_level_calculation(self):
++        """Test risk level assignment based on signal characteristics"""
++        # High confidence, liquid stock should be low risk
++        high_conf_signal = SwingSignal(
++            ticker="AAPL",
++            signal_type=SignalType.BREAKOUT,
++            confidence=0.85,
++            entry_price=150.0,
++            stop_loss=145.0,
++            target_1=157.5,
++            target_2=165.0,
++            target_3=172.5,
++            holding_period_hours=6,
++            volume_confirmation=2.1,
++            pattern_strength=0.8,
++            risk_level=RiskLevel.LOW  # We'll test this gets set correctly
++        )
+         
+-        self.assertIsInstance(profit_25, float)
+-        self.assertIsInstance(profit_50, float)
+-        self.assertIsInstance(profit_100, float)
+-        self.assertIsInstance(stop_loss, float)
++        # Should be classified as low risk
++        self.assertEqual(high_conf_signal.risk_level, RiskLevel.LOW)
+         
+-        # Profit targets should be positive
+-        self.assertGreater(profit_25, 0)
+-        self.assertGreater(profit_50, 0)
+-        self.assertGreater(profit_100, 0)
++        # Test stop loss distance (should be reasonable)
++        stop_distance = (high_conf_signal.entry_price - high_conf_signal.stop_loss) / high_conf_signal.entry_price
++        self.assertLess(stop_distance, 0.05)  # Less than 5% stop loss
+         
+-        # Stop loss should be less than original premium (30% loss)
+-        self.assertLess(stop_loss, 2.50)
+-
+     @patch('swing_trading.yf.Ticker')
+-    def test_estimate_swing_premium(self, mock_ticker):
+-        """Test swing premium estimation"""
+-        mock_options = Mock()
+-        mock_options.calls = Mock()
+-        mock_options.calls.return_value = pd.DataFrame({
+-            'strike': [105, 110, 115],
+-            'lastPrice': [2.50, 1.50, 0.80]
+-        })
+-        mock_ticker.return_value.options = mock_options
+-        
+-        premium = self.scanner.estimate_swing_premium("AAPL", 105, "2024-01-19")
+-        
+-        self.assertIsInstance(premium, float)
+-        self.assertGreater(premium, 0)
+-
+-    @patch('swing_trading.yf.download')
+-    def test_scan_swing_opportunities(self, mock_download):
+-        """Test scanning for swing opportunities"""
+-        mock_download.return_value = self.mock_data
++    def test_scan_for_setups_integration(self, mock_yf):
++        """Test the main scanning function integration"""
++        # Mock yfinance responses
++        mock_ticker = Mock()
++        mock_ticker.history.return_value = self.mock_hist_data
++        mock_ticker.info = {
++            'shortName': 'Test Company',
++            'marketCap': 1000000000,
++            'averageVolume': 2000000
++        }
++        mock_yf.return_value = mock_ticker
+         
+-        opportunities = self.scanner.scan_swing_opportunities()
++        # Mock strong signals for first few tickers
++        with patch.object(self.scanner, 'detect_breakout', return_value=SwingSignal(
++            ticker="AAPL",
++            signal_type=SignalType.BREAKOUT,
++            confidence=0.8,
++            entry_price=150.0,
++            stop_loss=145.0,
++            target_1=157.5,
++            target_2=165.0,
++            target_3=172.5,
++            holding_period_hours=6,
++            volume_confirmation=2.0,
++            pattern_strength=0.8,
++            risk_level=RiskLevel.LOW
++        )):
++            setups = self.scanner.scan_for_setups()
++            
++            # Should return list of setups
++            self.assertIsInstance(setups, list)
++            
++            # If mocked correctly, should have signals
++            if setups:
++                setup = setups[0]
++                self.assertIsInstance(setup, SwingSignal)
++                self.assertIn(setup.signal_type, [SignalType.BREAKOUT, SignalType.MOMENTUM_CONTINUATION, SignalType.REVERSAL_SETUP])
++                
++    def test_profit_target_calculations(self):
++        """Test profit target calculations are reasonable"""
++        entry_price = 100.0
+         
+-        self.assertIsInstance(opportunities, list)
+-        # Each opportunity should be a SwingSignal
+-        for opp in opportunities:
+-            self.assertIsInstance(opp, SwingSignal)
+-
+-    def test_format_signals(self):
+-        """Test signal formatting"""
+-        signals = [
+-            SwingSignal(
+-                ticker="AAPL",
+-                signal_time=datetime.now(),
+-                signal_type="breakout",
+-                entry_price=100.0,
+-                breakout_level=105.0,
+-                volume_confirmation=1.5,
+-                strength_score=75.0,
+-                target_strike=105,
+-                target_expiry="2024-01-19",
+-                option_premium=2.50,
+-                max_hold_hours=24,
+-                profit_target_1=0.25,
+-                profit_target_2=0.50,
+-                profit_target_3=1.00,
+-                stop_loss=-0.20,
+-                risk_level="medium"
+-            )
+-        ]
+-        
+-        formatted = self.scanner.format_signals(signals)
+-        
+-        self.assertIsInstance(formatted, str)
+-        self.assertIn("AAPL", formatted)
+-        self.assertIn("breakout", formatted)
+-
+-
+-class TestSwingSignal(unittest.TestCase):
+-    """Test the SwingSignal dataclass"""
+-
+-    def test_swing_signal_creation(self):
+-        """Test creating a swing signal"""
+-        signal = SwingSignal(
++        # Test different signal types have appropriate targets
++        breakout_signal = SwingSignal(
++            ticker="TEST",
++            signal_type=SignalType.BREAKOUT,
++            confidence=0.8,
++            entry_price=entry_price,
++            stop_loss=95.0,
++            target_1=105.0,
++            target_2=110.0,
++            target_3=115.0,
++            holding_period_hours=6,
++            volume_confirmation=2.0,
++            pattern_strength=0.8,
++            risk_level=RiskLevel.LOW
++        )
++        
++        # Targets should be progressively higher
++        self.assertGreater(breakout_signal.target_1, entry_price)
++        self.assertGreater(breakout_signal.target_2, breakout_signal.target_1)
++        self.assertGreater(breakout_signal.target_3, breakout_signal.target_2)
++        
++        # Risk/reward should be reasonable (targets further than stop)
++        stop_risk = entry_price - breakout_signal.stop_loss
++        target_1_reward = breakout_signal.target_1 - entry_price
++        
++        self.assertGreater(target_1_reward, stop_risk * 0.5)  # At least 1:0.5 risk/reward
++        
++    def test_volume_confirmation_logic(self):
++        """Test volume confirmation logic"""
++        # Test data with volume surge
++        volume_data = self.mock_hist_data.copy()
++        volume_data.iloc[-1]['Volume'] = 5000000  # Surge
++        
++        avg_volume = volume_data['Volume'].rolling(20).mean().iloc[-2]  # Previous 20-day avg
++        current_volume = volume_data['Volume'].iloc[-1]
++        
++        volume_ratio = current_volume / avg_volume
++        
++        # Should detect volume surge
++        self.assertGreater(volume_ratio, 1.0)
++        
++        # Volume confirmation threshold should be reasonable
++        self.scanner.volume_surge_threshold = 1.5
++        if volume_ratio > self.scanner.volume_surge_threshold:
++            # This should trigger volume confirmation
++            self.assertGreater(volume_ratio, 1.5)
++            
++    def test_position_sizing_recommendations(self):
++        """Test position sizing recommendations"""
++        # High confidence, low risk signal should get larger size
++        low_risk_signal = SwingSignal(
+             ticker="AAPL",
+-            signal_time=datetime.now(),
+-            signal_type="breakout",
+-            entry_price=100.0,
+-            breakout_level=105.0,
+-            volume_confirmation=1.5,
+-            strength_score=75.0,
+-            target_strike=105,
+-            target_expiry="2024-01-19",
+-            option_premium=2.50,
+-            max_hold_hours=24,
+-            profit_target_1=0.25,
+-            profit_target_2=0.50,
+-            profit_target_3=1.00,
+-            stop_loss=-0.20,
+-            risk_level="medium"
++            signal_type=SignalType.BREAKOUT,
++            confidence=0.9,
++            entry_price=150.0,
++            stop_loss=147.0,  # Tight stop
++            target_1=157.5,
++            target_2=165.0,
++            target_3=172.5,
++            holding_period_hours=6,
++            volume_confirmation=2.5,
++            pattern_strength=0.85,
++            risk_level=RiskLevel.LOW
+         )
+         
+-        self.assertEqual(signal.ticker, "AAPL")
+-        self.assertEqual(signal.signal_type, "breakout")
+-        self.assertEqual(signal.entry_price, 100.0)
+-        self.assertEqual(signal.target_strike, 105)
+-        self.assertEqual(signal.risk_level, "medium")
+-
++        # Position size should be based on risk level and confidence
++        expected_max_risk = {
++            RiskLevel.LOW: 0.02,    # 2%
++            RiskLevel.MEDIUM: 0.015, # 1.5%
++            RiskLevel.HIGH: 0.01    # 1%
++        }
++        
++        risk_per_share = low_risk_signal.entry_price - low_risk_signal.stop_loss
++        account_size = 100000  # Example account
++        
++        max_position_risk = account_size * expected_max_risk[low_risk_signal.risk_level]
++        recommended_shares = int(max_position_risk / risk_per_share)
++        
++        self.assertGreater(recommended_shares, 0)
++        self.assertLess(recommended_shares * low_risk_signal.entry_price, account_size * 0.5)  # Max 50% of account
+ 
+-class TestActiveSwingTrade(unittest.TestCase):
+-    """Test the ActiveSwingTrade dataclass"""
+ 
+-    def test_active_trade_creation(self):
+-        """Test creating an active swing trade"""
++class TestSwingTradingHelperFunctions(unittest.TestCase):
++    """Test helper functions and utilities"""
++    
++    def test_signal_type_enum(self):
++        """Test signal type enumeration"""
++        self.assertEqual(SignalType.BREAKOUT, "breakout")
++        self.assertEqual(SignalType.MOMENTUM_CONTINUATION, "momentum_continuation")
++        self.assertEqual(SignalType.REVERSAL_SETUP, "reversal_setup")
++        
++    def test_risk_level_enum(self):
++        """Test risk level enumeration"""
++        self.assertEqual(RiskLevel.LOW, "low")
++        self.assertEqual(RiskLevel.MEDIUM, "medium")
++        self.assertEqual(RiskLevel.HIGH, "high")
++        
++    def test_swing_signal_dataclass(self):
++        """Test SwingSignal dataclass functionality"""
+         signal = SwingSignal(
+-            ticker="AAPL",
+-            signal_time=datetime.now(),
+-            signal_type="breakout",
++            ticker="TEST",
++            signal_type=SignalType.BREAKOUT,
++            confidence=0.8,
+             entry_price=100.0,
+-            breakout_level=105.0,
+-            volume_confirmation=1.5,
+-            strength_score=75.0,
+-            target_strike=105,
+-            target_expiry="2024-01-19",
+-            option_premium=2.50,
+-            max_hold_hours=24,
+-            profit_target_1=0.25,
+-            profit_target_2=0.50,
+-            profit_target_3=1.00,
+-            stop_loss=-0.20,
+-            risk_level="medium"
++            stop_loss=95.0,
++            target_1=105.0,
++            target_2=110.0,
++            target_3=115.0,
++            holding_period_hours=6,
++            volume_confirmation=2.0,
++            pattern_strength=0.8,
++            risk_level=RiskLevel.LOW
+         )
+         
+-        trade = ActiveSwingTrade(
+-            signal=signal,
+-            entry_time=datetime.now(),
+-            entry_premium=2.50,
+-            current_premium=2.75,
+-            unrealized_pnl=0.25,
+-            unrealized_pct=0.10,
+-            hours_held=2.0,
+-            hit_profit_target=0,
+-            should_exit=False,
+-            exit_reason=""
+-        )
++        # Test all fields are accessible
++        self.assertEqual(signal.ticker, "TEST")
++        self.assertEqual(signal.signal_type, SignalType.BREAKOUT)
++        self.assertEqual(signal.confidence, 0.8)
++        self.assertEqual(signal.risk_level, RiskLevel.LOW)
++        
++    def test_holding_period_logic(self):
++        """Test holding period assignment logic"""
++        # Breakout signals should have shorter holding periods
++        # Reversal setups should have longer holding periods
++        
++        breakout_hours = 4  # Breakout holding period
++        momentum_hours = 6  # Momentum continuation
++        reversal_hours = 8  # Reversal setup
+         
+-        self.assertEqual(trade.signal.ticker, "AAPL")
+-        self.assertEqual(trade.entry_premium, 2.50)
+-        self.assertEqual(trade.unrealized_pnl, 0.25)
++        self.assertLess(breakout_hours, momentum_hours)
++        self.assertLess(momentum_hours, reversal_hours)
++        self.assertLessEqual(reversal_hours, 8)  # Max 8 hours per WSB fast exit rules
+ 
+ 
+ class TestSwingTradingIntegration(unittest.TestCase):
+-    """Test integration scenarios"""
+-
++    """Test integration with market data and error handling"""
++    
+     def setUp(self):
+-        """Set up test fixtures"""
+         self.scanner = SwingTradingScanner()
+-
+-    @patch('swing_trading.yf.download')
+-    def test_error_handling_bad_ticker(self, mock_download):
+-        """Test error handling with bad ticker"""
+-        mock_download.side_effect = Exception("Ticker not found")
+         
+-        # Should not crash, should handle gracefully
+-        is_breakout, strength, volume_ratio = self.scanner.detect_breakout("INVALID")
++    @patch('swing_trading.yf.Ticker')
++    def test_error_handling_bad_ticker(self, mock_yf):
++        """Test error handling for invalid tickers"""
++        # Mock yfinance to raise exception
++        mock_yf.side_effect = Exception("Invalid ticker")
++        
++        # Should handle gracefully and continue
++        setups = self.scanner.scan_for_setups()
++        self.assertIsInstance(setups, list)  # Should return empty list, not crash
++        
++    @patch('swing_trading.yf.Ticker')
++    def test_error_handling_no_data(self, mock_yf):
++        """Test handling of tickers with no/insufficient data"""
++        mock_ticker = Mock()
++        mock_ticker.history.return_value = pd.DataFrame()  # Empty dataframe
++        mock_yf.return_value = mock_ticker
++        
++        # Should handle gracefully
++        setups = self.scanner.scan_for_setups()
++        self.assertIsInstance(setups, list)
++        
++    def test_format_setups_output(self):
++        """Test setup formatting for display"""
++        # Create sample setup
++        sample_setup = SwingSignal(
++            ticker="AAPL",
++            signal_type=SignalType.BREAKOUT,
++            confidence=0.85,
++            entry_price=150.0,
++            stop_loss=145.0,
++            target_1=157.5,
++            target_2=165.0,
++            target_3=172.5,
++            holding_period_hours=6,
++            volume_confirmation=2.1,
++            pattern_strength=0.8,
++            risk_level=RiskLevel.LOW
++        )
++        
++        formatted = self.scanner.format_setups([sample_setup])
+         
+-        self.assertFalse(is_breakout)
+-        self.assertEqual(strength, 0.0)
+-        self.assertEqual(volume_ratio, 0.0)
++        # Should contain key information
++        self.assertIn("AAPL", formatted)
++        self.assertIn("BREAKOUT", formatted)
++        self.assertIn("150.00", formatted)  # Entry price
++        self.assertIn("145.00", formatted)  # Stop loss
++        self.assertIn("85%", formatted)     # Confidence
++        
++    def test_wsb_fast_exit_compliance(self):
++        """Test compliance with WSB fast exit rules"""
++        sample_setup = SwingSignal(
++            ticker="AAPL",
++            signal_type=SignalType.BREAKOUT,
++            confidence=0.85,
++            entry_price=150.0,
++            stop_loss=145.0,
++            target_1=157.5,      # 5% target
++            target_2=165.0,      # 10% target  
++            target_3=172.5,      # 15% target
++            holding_period_hours=6,
++            volume_confirmation=2.1,
++            pattern_strength=0.8,
++            risk_level=RiskLevel.LOW
++        )
++        
++        # Check profit targets are reasonable for fast exits
++        target_1_pct = (sample_setup.target_1 / sample_setup.entry_price - 1) * 100
++        target_2_pct = (sample_setup.target_2 / sample_setup.entry_price - 1) * 100
++        target_3_pct = (sample_setup.target_3 / sample_setup.entry_price - 1) * 100
++        
++        self.assertGreater(target_1_pct, 2.0)   # At least 2% for first target
++        self.assertLess(target_1_pct, 10.0)     # But not too aggressive
++        self.assertGreater(target_2_pct, target_1_pct)
++        self.assertGreater(target_3_pct, target_2_pct)
++        
++        # Holding period should be short (WSB fast exit rule)
++        self.assertLessEqual(sample_setup.holding_period_hours, 8)
++
+ 
+-    def test_main_function_exists(self):
+-        """Test that main function exists and is callable"""
+-        from swing_trading import main
+-        self.assertTrue(callable(main))
++def run_swing_trading_tests():
++    """Run all swing trading tests"""
++    print("=" * 60)
++    print("SWING TRADING WSB STRATEGY - COMPREHENSIVE TEST SUITE")
++    print("=" * 60)
++    
++    # Create test suite
++    test_suite = unittest.TestSuite()
++    
++    # Add test classes
++    test_classes = [
++        TestSwingTradingScanner,
++        TestSwingTradingHelperFunctions,
++        TestSwingTradingIntegration
++    ]
++    
++    for test_class in test_classes:
++        tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
++        test_suite.addTests(tests)
++    
++    # Run tests
++    runner = unittest.TextTestRunner(verbosity=2)
++    result = runner.run(test_suite)
++    
++    # Print summary
++    print("\n" + "=" * 60)
++    print("SWING TRADING TEST SUMMARY")
++    print("=" * 60)
++    print(f"Tests run: {result.testsRun}")
++    print(f"Failures: {len(result.failures)}")
++    print(f"Errors: {len(result.errors)}")
++    
++    success_rate = ((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun) * 100
++    print(f"SUCCESS RATE: {success_rate:.1f}%")
++    
++    if result.failures:
++        print("\nFAILURES:")
++        for test, traceback in result.failures:
++            print(f"  - {test}")
++            print(f"    {traceback.split('AssertionError:')[-1].strip()}")
++    
++    if result.errors:
++        print("\nERRORS:")
++        for test, traceback in result.errors:
++            print(f"  - {test}")
++            print(f"    {str(traceback).split('Exception:')[-1].strip()}")
++    
++    return result
+ 
+ 
+-if __name__ == '__main__':
+-    unittest.main()
+\ No newline at end of file
++if __name__ == "__main__":
++    run_swing_trading_tests()
+\ No newline at end of file

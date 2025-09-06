@@ -13,24 +13,24 @@ import os
 # Add the backend directory to the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
-from backend.tradingbot.phase4_backtesting import (  # noqa: E402
+from backend.tradingbot.phases.phase4_backtesting import (  # noqa: E402
     BacktestEngine, BacktestConfig, BacktestResults, BacktestAnalyzer,
     BacktestPeriod, BacktestTrade
 )
-from backend.tradingbot.phase4_optimization import (  # noqa: E402
+from backend.tradingbot.phases.phase4_optimization import (  # noqa: E402
     StrategyOptimizer, OptimizationConfig, OptimizationResult, OptimizationAnalyzer,
     OptimizationMethod, OptimizationMetric, ParameterRange
 )
-from backend.tradingbot.phase4_monitoring import (  # noqa: E402
+from backend.tradingbot.phases.phase4_monitoring import (  # noqa: E402
     Phase4Monitoring, MetricsCollector, AlertManager, SystemMonitor,
     AlertLevel, MetricType, AlertRule, Metric, Alert
 )
-from backend.tradingbot.phase4_deployment import (  # noqa: E402
+from backend.tradingbot.phases.phase4_deployment import (  # noqa: E402
     Phase4Deployment, DockerManager, KubernetesManager, CICDManager,
     DeploymentEnvironment, DeploymentStatus, DeploymentConfig
 )
-from backend.tradingbot.production_config import ConfigManager  # noqa: E402
-from backend.tradingbot.production_logging import ProductionLogger  # noqa: E402
+from backend.tradingbot.core.production_config import ConfigManager  # noqa: E402
+from backend.tradingbot.core.production_logging import ProductionLogger  # noqa: E402
 
 
 class TestPhase4Backtesting(unittest.TestCase):

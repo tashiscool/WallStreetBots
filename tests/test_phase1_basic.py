@@ -15,9 +15,9 @@ from datetime import datetime
 sys.path.append('backend/tradingbot')
 
 # Import Phase 1 components
-from production_config import ProductionConfig, ConfigManager  # noqa: E402
-from production_logging import ProductionLogger, ErrorHandler, CircuitBreaker, HealthChecker, MetricsCollector  # noqa: E402
-from data_providers import MarketData, OptionsData, EarningsEvent  # noqa: E402
+from backend.tradingbot.core.production_config import ProductionConfig, ConfigManager  # noqa: E402
+from backend.tradingbot.core.production_logging import ProductionLogger, ErrorHandler, CircuitBreaker, HealthChecker, MetricsCollector  # noqa: E402
+from backend.tradingbot.core.data_providers import MarketData, OptionsData, EarningsEvent  # noqa: E402
 
 
 def test_configuration():

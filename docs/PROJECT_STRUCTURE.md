@@ -13,7 +13,6 @@ WallStreetBots/
 │   │   ├── 📁 core/              # Production infrastructure
 │   │   ├── 📁 strategies/        # Individual trading strategies
 │   │   ├── 📁 phases/            # Phase-specific implementations
-│   │   ├── 📁 tests/             # Backend-specific tests
 │   │   └── 📄 [core files]       # Core trading components
 │   ├── 📁 home/                  # Django home app
 │   ├── 📁 auth0login/            # Authentication system
@@ -21,6 +20,7 @@ WallStreetBots/
 │   └── 📄 [Django config files]  # Django settings, URLs, etc.
 ├── 📁 docs/                      # All project documentation
 ├── 📁 tests/                     # Comprehensive test suite
+│   ├── 📁 backend/tradingbot/    # Backend-specific tests
 │   ├── 📁 strategies/            # Strategy-specific tests
 │   ├── 📁 phases/                # Phase-specific tests
 │   ├── 📁 core/                  # Core component tests
@@ -28,6 +28,8 @@ WallStreetBots/
 ├── 📁 scripts/                   # Setup and utility scripts
 ├── 📁 config/                    # Configuration files
 ├── 📁 utils/                     # Shared utilities
+├── 📁 dev-tools/                 # Development and migration tools
+├── 📁 ml/                        # Machine learning components
 ├── 📄 README.md                  # Main project documentation
 ├── 📄 requirements.txt           # Python dependencies
 ├── 📄 pyproject.toml             # Project metadata
@@ -105,6 +107,14 @@ WallStreetBots/
 
 ## 🧪 **Test Suite (`tests/`)**
 
+### Backend Trading Bot Tests (`tests/backend/tradingbot/`)
+- `test_market_regime_verification.py`
+- `test_options_calculator.py`
+- `test_production_scanner.py`
+- `test_risk_management_verification.py`
+- `test_strategy_smoke.py`
+- `test_suite.py`
+
 ### Strategy Tests (`tests/strategies/`)
 - `test_earnings_protection.py`
 - `test_index_baseline.py`
@@ -114,7 +124,13 @@ WallStreetBots/
 
 ### Phase Tests (`tests/phases/`)
 - `test_phase1_basic.py`
+- `test_phase1_integration.py`
+- `test_phase1_simple.py`
 - `test_phase2_basic.py`
+- `test_phase2_comprehensive.py`
+- `test_phase2_simple.py`
+- `test_phase2_standalone.py`
+- `test_phase2_strategies.py`
 - `test_phase3_comprehensive.py`
 - `test_phase4_comprehensive.py`
 
@@ -140,6 +156,10 @@ WallStreetBots/
 
 - `error_handling.py` - Error handling utilities
 - `yfinance_hardening.py` - yfinance hardening functions
+
+## 🛠️ **Development Tools (`dev-tools/`)**
+
+- `migrate_to_production.py` - Migration utilities for production deployment
 
 ## 🚀 **Key Benefits of This Organization**
 

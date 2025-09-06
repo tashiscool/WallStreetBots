@@ -199,7 +199,7 @@ class TestTradingAlertSystem(unittest.TestCase):
         
         alert = Alert(
             alert_type=AlertType.SETUP_DETECTED,
-            priority=AlertPriority.MEDIUM,
+            priority=AlertPriority.HIGH,
             ticker="TSLA",
             title="Setup Detected",
             message="Pullback setup detected",
@@ -367,7 +367,7 @@ class TestExecutionChecklistManager(unittest.TestCase):
 class TestAlertUtilities(unittest.TestCase):
     """Test alert utility functions"""
     
-    @patch('requests.post')
+    @patch('backend.tradingbot.alert_system.requests.post')
     def test_send_slack_success(self, mock_post):
         """Test successful Slack message sending"""
         mock_response = Mock()
@@ -435,7 +435,7 @@ class TestAlertIntegration(unittest.TestCase):
         # 1. Setup detection alert
         setup_alert = Alert(
             alert_type=AlertType.SETUP_DETECTED,
-            priority=AlertPriority.MEDIUM,
+            priority=AlertPriority.HIGH,
             ticker="AAPL",
             title="Bull Pullback Setup Detected",
             message="AAPL showing bull market pullback pattern"

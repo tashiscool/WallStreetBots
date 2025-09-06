@@ -250,6 +250,9 @@ class TestLiveDipScanner(unittest.TestCase):
     @patch('backend.tradingbot.dip_scanner.datetime')
     def test_reset_daily_stats(self, mock_datetime):
         """Test daily statistics reset"""
+        # Set up mock to return a real datetime
+        mock_datetime.now.return_value = datetime(2024, 1, 1, 12, 0, 0)
+        
         # Set some stats
         self.scanner.opportunities_found_today = 10
         self.scanner.trades_executed_today = 5
@@ -328,7 +331,7 @@ class TestLiveDipScannerIntegration(unittest.TestCase):
     
     def test_error_recovery(self):
         """Test error recovery and logging"""
-        with patch.object(self.scanner.dip_detector, 'scan_for_dips', side_effect=Exception("Test error")), \
+        with patch.object(self.scanner.system, 'scan_for_dip_opportunities', side_effect=Exception("Test error")), \
              patch.object(self.scanner.logger, 'error') as mock_logger:
             
             # Process should handle error gracefully

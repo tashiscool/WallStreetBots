@@ -24,10 +24,11 @@ from .exit_planning import ExitSignal, ScenarioResult
 SLACK_WEBHOOK = os.getenv("ALERT_SLACK_WEBHOOK")
 
 def send_slack(msg: str) -> bool:
-    if not SLACK_WEBHOOK:
+    webhook = os.getenv("ALERT_SLACK_WEBHOOK")
+    if not webhook:
         return False
     try:
-        r = requests.post(SLACK_WEBHOOK, json={"text": msg}, timeout=5)
+        r = requests.post(webhook, json={"text": msg}, timeout=5)
         return r.ok
     except Exception:
         return False
@@ -173,10 +174,13 @@ class EmailAlertHandler(AlertHandler):
         self.smtp_config = smtp_config
 
     def send_alert(self, alert: Alert) -> bool:
-        """Send email alert (placeholder implementation)"""
-        # In production, integrate with SMTP server
+        """Send email alert using send_email function"""
+        from .alert_system import send_email
+        subject = f"Trading Alert: {alert.title}"
+        body = f"{alert.message}\n\nTicker: {alert.ticker}\nTime: {alert.timestamp}"
+        result = send_email(subject, body)
         logging.info(f"EMAIL ALERT: {alert.title} - {alert.message}")
-        return True
+        return result
 
 
 class WebhookAlertHandler(AlertHandler):
@@ -196,9 +200,20 @@ class DesktopAlertHandler(AlertHandler):
     """Desktop notification handler"""
 
     def send_alert(self, alert: Alert) -> bool:
-        """Send desktop notification (placeholder implementation)"""
-        logging.info(f"DESKTOP ALERT: {alert.title} - {alert.message}")
-        return True
+        """Send desktop notification using subprocess"""
+        import subprocess
+        try:
+            # Use osascript on macOS for desktop notifications
+            message = f"{alert.title}: {alert.message}"
+            subprocess.run([
+                'osascript', '-e', 
+                f'display notification "{message}" with title "Trading Alert"'
+            ], check=True, capture_output=True)
+            logging.info(f"DESKTOP ALERT: {alert.title} - {alert.message}")
+            return True
+        except Exception as e:
+            logging.error(f"Desktop notification failed: {e}")
+            return False
 
 
 class TradingAlertSystem:
@@ -208,6 +223,7 @@ class TradingAlertSystem:
         self.handlers: Dict[AlertChannel, AlertHandler] = {}
         self.alert_history: List[Alert] = []
         self.active_alerts: List[Alert] = []
+        self.max_history: int = 100  # Default max history
         self.signal_generator = SignalGenerator()
         self.options_calculator = OptionsTradeCalculator()
 
@@ -229,6 +245,15 @@ class TradingAlertSystem:
         """Send alert through configured channels"""
         results = {}
 
+        # Filter by priority (only send HIGH and URGENT alerts by default)
+        # But allow all alerts to be stored in history
+        if alert.priority in [AlertPriority.LOW, AlertPriority.MEDIUM]:
+            # Store in history but don't send
+            self.alert_history.append(alert)
+            if len(self.alert_history) > self.max_history:
+                self.alert_history = self.alert_history[-self.max_history:]
+            return results  # Return empty results for low/medium priority
+
         # Use alert-specific channels or fall back to preferences
         channels = alert.channels or self.alert_preferences.get(alert.alert_type, [AlertChannel.DESKTOP])
 
@@ -247,6 +272,10 @@ class TradingAlertSystem:
 
         # Store alert in history
         self.alert_history.append(alert)
+        
+        # Enforce history limit
+        if len(self.alert_history) > self.max_history:
+            self.alert_history = self.alert_history[-self.max_history:]
 
         # Add to active alerts if high priority
         if alert.priority in [AlertPriority.HIGH, AlertPriority.URGENT]:

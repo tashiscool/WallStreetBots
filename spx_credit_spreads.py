@@ -38,12 +38,6 @@ class CreditSpreadOpportunity:
     max_profit: float
     max_loss: float
     
-    # For strangles/condors
-    put_short_strike: Optional[float] = None
-    put_long_strike: Optional[float] = None
-    call_short_strike: Optional[float] = None 
-    call_long_strike: Optional[float] = None
-    
     # Risk metrics
     short_delta: float  # Target ~0.30 delta
     prob_profit: float  # Probability of profit
@@ -56,6 +50,12 @@ class CreditSpreadOpportunity:
     underlying_price: float
     expected_move: float  # Expected daily move
     volume_score: float  # Options liquidity score
+    
+    # For strangles/condors (optional fields last)
+    put_short_strike: Optional[float] = None
+    put_long_strike: Optional[float] = None
+    call_short_strike: Optional[float] = None 
+    call_long_strike: Optional[float] = None
 
 
 class SPXCreditSpreadsScanner:

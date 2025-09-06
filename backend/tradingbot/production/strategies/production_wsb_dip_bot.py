@@ -18,9 +18,9 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from decimal import Decimal
 
-from .production_integration import ProductionIntegrationManager, ProductionTradeSignal
-from .production_data_integration import ProductionDataProvider
-from .core.trading_interface import OrderSide, OrderType
+from ..core.production_integration import ProductionIntegrationManager, ProductionTradeSignal
+from ..data.production_data_integration import ProductionDataProvider
+from ...core.trading_interface import OrderSide, OrderType
 
 
 @dataclass

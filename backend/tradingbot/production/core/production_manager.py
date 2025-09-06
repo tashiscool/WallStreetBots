@@ -27,8 +27,8 @@ from .production_strategy_wrapper import (
     create_production_wsb_dip_bot, create_production_momentum_weeklies,
     StrategyConfig
 )
-from .production_data_integration import ProductionDataProvider, create_production_data_provider
-from .models import Order, Portfolio, StockInstance, Company, Stock
+from ..data.production_data_integration import ProductionDataProvider, create_production_data_provider
+from ...models import Order, Portfolio, StockInstance, Company, Stock
 from django.contrib.auth.models import User
 
 

@@ -19,11 +19,11 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 import json
 
-from .apimanagers import AlpacaManager
-from .models import Order, Portfolio, StockInstance, Company, Stock
-from .risk_management import RiskManager, RiskParameters
-from .alert_system import TradingAlertSystem, AlertType, AlertPriority
-from .core.trading_interface import TradeSignal, TradeResult, TradeStatus, OrderSide, OrderType
+from ...apimanagers import AlpacaManager
+from ...models import Order, Portfolio, StockInstance, Company, Stock
+from ...risk_management import RiskManager, RiskParameters
+from ...alert_system import TradingAlertSystem, AlertType, AlertPriority
+from ...core.trading_interface import TradeSignal, TradeResult, TradeStatus, OrderSide, OrderType
 from asgiref.sync import sync_to_async
 
 

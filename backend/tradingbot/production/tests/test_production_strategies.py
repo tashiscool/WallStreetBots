@@ -19,13 +19,13 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Dict, Any
 
-from .production_strategy_manager import ProductionStrategyManager, ProductionStrategyManagerConfig, StrategyConfig
-from .production_wsb_dip_bot import ProductionWSBDipBot, DipSignal
-from .production_earnings_protection import ProductionEarningsProtection, EarningsSignal
-from .production_index_baseline import ProductionIndexBaseline, BaselineSignal
-from .production_integration import ProductionIntegrationManager, ProductionTradeSignal
-from .production_data_integration import ProductionDataProvider, EarningsEvent
-from .core.trading_interface import OrderSide, OrderType
+from ..core.production_strategy_manager import ProductionStrategyManager, ProductionStrategyManagerConfig, StrategyConfig
+from ..strategies.production_wsb_dip_bot import ProductionWSBDipBot, DipSignal
+from ..strategies.production_earnings_protection import ProductionEarningsProtection, EarningsSignal
+from ..strategies.production_index_baseline import ProductionIndexBaseline, BaselineSignal
+from ..core.production_integration import ProductionIntegrationManager, ProductionTradeSignal
+from ..data.production_data_integration import ProductionDataProvider, EarningsEvent
+from ...core.trading_interface import OrderSide, OrderType
 
 
 class TestProductionWSBDipBot:
@@ -353,8 +353,8 @@ class TestProductionStrategyManager:
     @pytest.mark.asyncio
     async def test_strategy_manager_initialization(self, strategy_manager_config):
         """Test strategy manager initialization"""
-        with patch('backend.tradingbot.production_strategy_manager.ProductionIntegrationManager', return_value=Mock()):
-            with patch('backend.tradingbot.production_strategy_manager.ProductionDataProvider', return_value=Mock()):
+        with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager', return_value=Mock()):
+            with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider', return_value=Mock()):
                 manager = ProductionStrategyManager(strategy_manager_config)
                 
                 assert len(manager.strategies) == 3
@@ -365,8 +365,8 @@ class TestProductionStrategyManager:
     @pytest.mark.asyncio
     async def test_strategy_start_stop(self, strategy_manager_config):
         """Test strategy start/stop"""
-        with patch('backend.tradingbot.production_strategy_manager.ProductionIntegrationManager', return_value=Mock()):
-            with patch('backend.tradingbot.production_strategy_manager.ProductionDataProvider', return_value=Mock()):
+        with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager', return_value=Mock()):
+            with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider', return_value=Mock()):
                 manager = ProductionStrategyManager(strategy_manager_config)
                 
                 # Mock the validation and strategy start methods
@@ -383,8 +383,8 @@ class TestProductionStrategyManager:
     
     def test_system_status(self, strategy_manager_config):
         """Test system status"""
-        with patch('backend.tradingbot.production_strategy_manager.ProductionIntegrationManager', return_value=Mock()):
-            with patch('backend.tradingbot.production_strategy_manager.ProductionDataProvider', return_value=Mock()):
+        with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager', return_value=Mock()):
+            with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider', return_value=Mock()):
                 manager = ProductionStrategyManager(strategy_manager_config)
                 manager.is_running = True
                 manager.start_time = datetime.now()
@@ -412,11 +412,11 @@ class TestProductionStrategyIntegration:
         # 5. Performance is tracked and reported
         
         # Mock all external dependencies
-        with patch('backend.tradingbot.production_strategy_manager.ProductionIntegrationManager') as mock_integration:
-            with patch('backend.tradingbot.production_strategy_manager.ProductionDataProvider') as mock_data:
-                with patch('backend.tradingbot.production_wsb_dip_bot.ProductionWSBDipBot') as mock_wsb:
-                    with patch('backend.tradingbot.production_earnings_protection.ProductionEarningsProtection') as mock_earnings:
-                        with patch('backend.tradingbot.production_index_baseline.ProductionIndexBaseline') as mock_baseline:
+        with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager') as mock_integration:
+            with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider') as mock_data:
+                with patch('backend.tradingbot.production.strategies.production_wsb_dip_bot.ProductionWSBDipBot') as mock_wsb:
+                    with patch('backend.tradingbot.production.strategies.production_earnings_protection.ProductionEarningsProtection') as mock_earnings:
+                        with patch('backend.tradingbot.production.strategies.production_index_baseline.ProductionIndexBaseline') as mock_baseline:
                             
                             # Setup mocks
                             mock_integration.return_value.alpaca_manager.validate_api.return_value = (True, "OK")

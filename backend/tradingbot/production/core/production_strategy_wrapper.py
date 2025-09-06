@@ -29,8 +29,8 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 
 from .production_integration import ProductionIntegrationManager, ProductionTradeSignal
-from .core.trading_interface import OrderSide, OrderType
-from .core.trading_interface import TradeResult, TradeStatus
+from ...core.trading_interface import OrderSide, OrderType
+from ...core.trading_interface import TradeResult, TradeStatus
 
 
 @dataclass

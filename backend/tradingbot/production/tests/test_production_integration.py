@@ -20,11 +20,11 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Dict, Any
 
-from .production_integration import ProductionIntegrationManager, ProductionTrade, ProductionPosition, ProductionTradeSignal
-from .production_strategy_wrapper import ProductionWSBDipBot, StrategyConfig
-from .production_data_integration import ProductionDataProvider, MarketData
-from .production_manager import ProductionManager, ProductionConfig
-from .core.trading_interface import OrderSide, OrderType, TradeResult, TradeStatus
+from ..core.production_integration import ProductionIntegrationManager, ProductionTrade, ProductionPosition, ProductionTradeSignal
+from ..core.production_strategy_wrapper import ProductionWSBDipBot, StrategyConfig
+from ..data.production_data_integration import ProductionDataProvider, MarketData
+from ..core.production_manager import ProductionManager, ProductionConfig
+from ...core.trading_interface import OrderSide, OrderType, TradeResult, TradeStatus
 
 
 class TestProductionIntegration:
@@ -64,9 +64,9 @@ class TestProductionIntegration:
     @pytest.fixture
     def production_integration(self, mock_alpaca_manager, mock_risk_manager, mock_alert_system):
         """Create ProductionIntegrationManager for testing"""
-        with patch('backend.tradingbot.production_integration.AlpacaManager', return_value=mock_alpaca_manager):
-            with patch('backend.tradingbot.production_integration.RiskManager', return_value=mock_risk_manager):
-                with patch('backend.tradingbot.production_integration.TradingAlertSystem', return_value=mock_alert_system):
+        with patch('backend.tradingbot.production.core.production_integration.AlpacaManager', return_value=mock_alpaca_manager):
+            with patch('backend.tradingbot.production.core.production_integration.RiskManager', return_value=mock_risk_manager):
+                with patch('backend.tradingbot.production.core.production_integration.TradingAlertSystem', return_value=mock_alert_system):
                     integration = ProductionIntegrationManager(
                         'test_api_key',
                         'test_secret_key',
@@ -97,7 +97,7 @@ class TestProductionIntegration:
         )
         
         # Mock Django model creation
-        with patch('backend.tradingbot.production_integration.Order') as mock_order:
+        with patch('backend.tradingbot.production.core.production_integration.Order') as mock_order:
             mock_order.objects.get_or_create.return_value = (Mock(id=1), True)
             mock_order.objects.create.return_value = Mock(id=1)
             
@@ -380,7 +380,7 @@ class TestProductionDataProvider:
     @pytest.fixture
     def data_provider(self, mock_alpaca_manager):
         """Create ProductionDataProvider for testing"""
-        with patch('backend.tradingbot.production_data_integration.AlpacaManager', return_value=mock_alpaca_manager):
+        with patch('backend.tradingbot.production.data.production_data_integration.AlpacaManager', return_value=mock_alpaca_manager):
             provider = ProductionDataProvider('test_api_key', 'test_secret_key')
             provider.alpaca_manager = mock_alpaca_manager
             return provider
@@ -490,8 +490,8 @@ class TestProductionManager:
     @pytest.mark.asyncio
     async def test_production_manager_initialization(self, production_config):
         """Test production manager initialization"""
-        with patch('backend.tradingbot.production_manager.create_production_integration') as mock_integration:
-            with patch('backend.tradingbot.production_manager.create_production_data_provider') as mock_data:
+        with patch('backend.tradingbot.production.core.production_manager.create_production_integration') as mock_integration:
+            with patch('backend.tradingbot.production.core.production_manager.create_production_data_provider') as mock_data:
                 mock_integration.return_value = Mock()
                 mock_data.return_value = Mock()
                 
@@ -505,8 +505,8 @@ class TestProductionManager:
     @pytest.mark.asyncio
     async def test_system_status(self, production_config):
         """Test system status"""
-        with patch('backend.tradingbot.production_manager.create_production_integration') as mock_integration:
-            with patch('backend.tradingbot.production_manager.create_production_data_provider') as mock_data:
+        with patch('backend.tradingbot.production.core.production_manager.create_production_integration') as mock_integration:
+            with patch('backend.tradingbot.production.core.production_manager.create_production_data_provider') as mock_data:
                 mock_integration.return_value = Mock()
                 mock_data.return_value = Mock()
                 
@@ -539,10 +539,10 @@ class TestProductionIntegrationFlow:
         # 6. Alerts sent
         
         # Mock all external dependencies
-        with patch('backend.tradingbot.production_integration.AlpacaManager') as mock_alpaca:
-            with patch('backend.tradingbot.production_integration.RiskManager') as mock_risk:
-                with patch('backend.tradingbot.production_integration.TradingAlertSystem') as mock_alerts:
-                    with patch('backend.tradingbot.production_integration.Order') as mock_order:
+        with patch('backend.tradingbot.production.core.production_integration.AlpacaManager') as mock_alpaca:
+            with patch('backend.tradingbot.production.core.production_integration.RiskManager') as mock_risk:
+                with patch('backend.tradingbot.production.core.production_integration.TradingAlertSystem') as mock_alerts:
+                    with patch('backend.tradingbot.production.core.production_integration.Order') as mock_order:
                         
                         # Setup mocks
                         mock_alpaca.return_value.validate_api.return_value = (True, "OK")

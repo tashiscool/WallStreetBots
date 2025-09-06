@@ -22,10 +22,10 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 
 from .production_integration import ProductionIntegrationManager
-from .production_data_integration import ProductionDataProvider
-from .production_wsb_dip_bot import ProductionWSBDipBot, create_production_wsb_dip_bot
-from .production_earnings_protection import ProductionEarningsProtection, create_production_earnings_protection
-from .production_index_baseline import ProductionIndexBaseline, create_production_index_baseline
+from ..data.production_data_integration import ProductionDataProvider
+from ..strategies.production_wsb_dip_bot import ProductionWSBDipBot, create_production_wsb_dip_bot
+from ..strategies.production_earnings_protection import ProductionEarningsProtection, create_production_earnings_protection
+from ..strategies.production_index_baseline import ProductionIndexBaseline, create_production_index_baseline
 
 
 @dataclass

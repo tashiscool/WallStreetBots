@@ -259,7 +259,7 @@ class TestSwingTradingIntegration(unittest.TestCase):
 
     def test_main_function_exists(self):
         """Test that main function exists and is callable"""
-        from swing_trading import main
+        from backend.tradingbot.strategies.swing_trading import main
         self.assertTrue(callable(main))
 
 

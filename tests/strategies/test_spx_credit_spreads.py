@@ -219,7 +219,7 @@ class TestSPXCreditSpreadsIntegration(unittest.TestCase):
 
     def test_main_function_exists(self):
         """Test that main function exists and is callable"""
-        from spx_credit_spreads import main
+        from backend.tradingbot.strategies.spx_credit_spreads import main
         self.assertTrue(callable(main))
 
 

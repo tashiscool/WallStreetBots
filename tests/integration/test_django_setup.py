@@ -59,7 +59,7 @@ def test_other_dependencies():
     
     dependencies = [
         ('apscheduler', 'APScheduler'),
-        ('alpaca_trade_api', 'Alpaca Trade API'),
+        ('alpaca', 'Alpaca-py (Modern API)'),
         ('plotly', 'Plotly'),
         ('pandas', 'Pandas'),
         ('numpy', 'NumPy'),

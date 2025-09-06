@@ -57,7 +57,7 @@ jobs:
             sleep 1
           done
       - name: Test Django setup
-        run: python test_django_setup.py
+        run: python tests/integration/test_django_setup.py
       - name: Apply Migrations
         run: python manage.py migrate
       - name: Run tests

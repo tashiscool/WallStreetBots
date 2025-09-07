@@ -10,13 +10,46 @@ from datetime import datetime, date, timedelta
 from decimal import Decimal, getcontext
 from typing import List, Optional, Dict, Any, Tuple
 from dataclasses import dataclass
-from scipy.stats import norm
-import numpy as np
+
+# Try to import scipy and numpy, but provide fallbacks
+try:
+    from scipy.stats import norm
+    import numpy as np
+    SCIPY_AVAILABLE = True
+except ImportError:
+    # Fallback normal distribution implementation
+    class NormFallback:
+        @staticmethod
+        def cdf(x):
+            """Cumulative distribution function for standard normal distribution"""
+            return 0.5 * (1 + math.erf(x / math.sqrt(2)))
+        
+        @staticmethod
+        def pdf(x):
+            """Probability density function for standard normal distribution"""
+            return math.exp(-0.5 * x * x) / math.sqrt(2 * math.pi)
+    
+    norm = NormFallback()
+    SCIPY_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("scipy/numpy not available, using fallback implementations")
 
 # Set high precision for financial calculations
 getcontext().prec = 28
 
 logger = logging.getLogger(__name__)
+if not SCIPY_AVAILABLE:
+    logger.warning("Using fallback math implementations - consider installing scipy and numpy for better performance")
+
+
+@dataclass
+class Greeks:
+    """Option Greeks calculations"""
+    delta: float  # Price sensitivity to underlying
+    gamma: float  # Delta sensitivity to underlying
+    theta: float  # Price sensitivity to time decay (per day)
+    vega: float   # Price sensitivity to volatility
+    rho: float    # Price sensitivity to interest rate
 
 
 @dataclass

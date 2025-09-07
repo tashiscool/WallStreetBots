@@ -26,6 +26,12 @@ from ..data.production_data_integration import ReliableDataProvider as Productio
 from ..strategies.production_wsb_dip_bot import ProductionWSBDipBot, create_production_wsb_dip_bot
 from ..strategies.production_earnings_protection import ProductionEarningsProtection, create_production_earnings_protection
 from ..strategies.production_index_baseline import ProductionIndexBaseline, create_production_index_baseline
+from ..strategies.production_wheel_strategy import ProductionWheelStrategy, create_production_wheel_strategy
+from ..strategies.production_momentum_weeklies import ProductionMomentumWeeklies, create_production_momentum_weeklies
+from ..strategies.production_debit_spreads import ProductionDebitSpreads, create_production_debit_spreads
+from ..strategies.production_leaps_tracker import ProductionLEAPSTracker, create_production_leaps_tracker
+from ..strategies.production_swing_trading import ProductionSwingTrading, create_production_swing_trading
+from ..strategies.production_spx_credit_spreads import ProductionSPXCreditSpreads, create_production_spx_credit_spreads
 
 
 @dataclass
@@ -146,6 +152,98 @@ class ProductionStrategyManager:
                         'rebalance_threshold': 0.05,
                         'tax_loss_threshold': -0.10
                     }
+                ),
+                'wheel_strategy': StrategyConfig(
+                    name='wheel_strategy',
+                    enabled=True,
+                    max_position_size=0.30,
+                    risk_tolerance='medium',
+                    parameters={
+                        'target_iv_rank': 50,
+                        'target_dte_range': (30, 45),
+                        'target_delta_range': (0.15, 0.30),
+                        'max_positions': 10,
+                        'min_premium_dollars': 50,
+                        'profit_target': 0.25,
+                        'max_loss_pct': 0.50,
+                        'assignment_buffer_days': 7,
+                        'watchlist': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'AMD', 'PLTR', 'F', 'BAC', 'T', 'KO', 'PFE', 'INTC', 'CCL', 'AAL']
+                    }
+                ),
+                'momentum_weeklies': StrategyConfig(
+                    name='momentum_weeklies',
+                    enabled=True,
+                    max_position_size=0.05,
+                    risk_tolerance='high',
+                    parameters={
+                        'watchlist': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'CRM', 'ADBE', 'ORCL', 'INTC', 'AMD', 'QCOM', 'TXN', 'AVGO', 'PYPL', 'DIS', 'V', 'MA', 'JPM', 'BAC', 'WMT', 'HD'],
+                        'max_positions': 3,
+                        'min_volume_spike': 3.0,
+                        'min_momentum_threshold': 0.015,
+                        'target_dte_range': (0, 4),
+                        'otm_range': (0.02, 0.05),
+                        'min_premium': 0.50,
+                        'profit_target': 0.25,
+                        'stop_loss': 0.50,
+                        'time_exit_hours': 4
+                    }
+                ),
+                'debit_spreads': StrategyConfig(
+                    name='debit_spreads',
+                    enabled=True,
+                    max_position_size=0.10,
+                    risk_tolerance='medium',
+                    parameters={
+                        'watchlist': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'CRM', 'ADBE', 'ORCL', 'AMD', 'QCOM', 'UBER', 'SNOW', 'COIN', 'PLTR', 'ROKU', 'ZM', 'SHOP', 'SQ', 'PYPL', 'TWLO'],
+                        'max_positions': 8,
+                        'min_dte': 20,
+                        'max_dte': 60,
+                        'min_risk_reward': 1.5,
+                        'min_trend_strength': 0.6,
+                        'max_iv_rank': 80,
+                        'min_volume_score': 0.3,
+                        'profit_target': 0.30,
+                        'stop_loss': 0.50,
+                        'time_exit_dte': 7
+                    }
+                ),
+                'leaps_tracker': StrategyConfig(
+                    name='leaps_tracker',
+                    enabled=True,
+                    max_position_size=0.10,
+                    risk_tolerance='low',
+                    parameters={
+                        'max_positions': 5,
+                        'max_total_allocation': 0.30,
+                        'min_dte': 365,
+                        'max_dte': 730,
+                        'min_composite_score': 60,
+                        'min_entry_timing_score': 50,
+                        'max_exit_timing_score': 70,
+                        'profit_levels': [100, 200, 300, 400],
+                        'scale_out_percentage': 25,
+                        'stop_loss': 0.50,
+                        'time_exit_dte': 90
+                    }
+                ),
+                'swing_trading': StrategyConfig(
+                    name='swing_trading',
+                    enabled=True,
+                    max_position_size=0.02,
+                    risk_tolerance='high',
+                    parameters={
+                        'watchlist': ['SPY', 'QQQ', 'IWM', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'AMD', 'NFLX', 'CRM', 'ADBE', 'PYPL', 'SQ', 'ROKU', 'ZM', 'PLTR', 'COIN', 'XLF', 'XLE', 'XLK', 'XBI', 'ARKK', 'TQQQ', 'SOXL', 'SPXL'],
+                        'max_positions': 5,
+                        'max_expiry_days': 21,
+                        'min_strength_score': 60.0,
+                        'min_volume_multiple': 2.0,
+                        'min_breakout_strength': 0.002,
+                        'min_premium': 0.25,
+                        'profit_targets': [25, 50, 100],
+                        'stop_loss_pct': 30,
+                        'max_hold_hours': 8,
+                        'end_of_day_exit_hour': 15
+                    }
                 )
             }
             
@@ -185,6 +283,36 @@ class ProductionStrategyManager:
                 )
             elif strategy_name == 'index_baseline':
                 return create_production_index_baseline(
+                    self.integration_manager,
+                    self.data_provider,
+                    config.parameters
+                )
+            elif strategy_name == 'wheel_strategy':
+                return create_production_wheel_strategy(
+                    self.integration_manager,
+                    self.data_provider,
+                    config.parameters
+                )
+            elif strategy_name == 'momentum_weeklies':
+                return create_production_momentum_weeklies(
+                    self.integration_manager,
+                    self.data_provider,
+                    config.parameters
+                )
+            elif strategy_name == 'debit_spreads':
+                return create_production_debit_spreads(
+                    self.integration_manager,
+                    self.data_provider,
+                    config.parameters
+                )
+            elif strategy_name == 'leaps_tracker':
+                return create_production_leaps_tracker(
+                    self.integration_manager,
+                    self.data_provider,
+                    config.parameters
+                )
+            elif strategy_name == 'swing_trading':
+                return create_production_swing_trading(
                     self.integration_manager,
                     self.data_provider,
                     config.parameters

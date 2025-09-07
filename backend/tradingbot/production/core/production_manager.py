@@ -267,9 +267,9 @@ class ProductionManager:
         """Sync Django portfolio with Alpaca account"""
         try:
             # Get Alpaca account info
-            account = self.integration_manager.alpaca_manager.get_account()
-            if account:
-                portfolio.cash = Decimal(str(account.get('cash', 0)))
+            cash_balance = self.integration_manager.alpaca_manager.get_balance()
+            if cash_balance:
+                portfolio.cash = Decimal(str(cash_balance))
                 portfolio.save()
                 
                 self.logger.info(f"Portfolio synced: Cash = {portfolio.cash}")

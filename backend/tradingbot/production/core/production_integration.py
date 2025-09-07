@@ -376,9 +376,9 @@ class ProductionIntegrationManager:
     async def get_portfolio_value(self) -> Decimal:
         """Get current portfolio value from Alpaca"""
         try:
-            account = self.alpaca_manager.get_account()
-            if account:
-                return Decimal(str(account.get('portfolio_value', 0)))
+            account_value = self.alpaca_manager.get_account_value()
+            if account_value:
+                return Decimal(str(account_value))
             return Decimal('0.00')
         except Exception as e:
             self.logger.error(f"Error getting portfolio value: {e}")

@@ -268,10 +268,10 @@ class EarningsCalendarProvider:
             return []
     
     async def _enhance_earnings_event(self, base_event) -> Optional[EnhancedEarningsEvent]:
-        \"\"\"Enhance basic earnings event with IV analysis and recommendations\"\"\"
+        """Enhance basic earnings event with IV analysis and recommendations"""
         try:
             # Check cache first
-            cache_key = f\"{base_event.ticker}_{base_event.earnings_date.date()}\"
+            cache_key = f"{base_event.ticker}_{base_event.earnings_date.date()}"
             if cache_key in self.earnings_cache:
                 cached_event = self.earnings_cache[cache_key]
                 if datetime.now() - cached_event.last_updated < self.cache_ttl:
@@ -280,7 +280,7 @@ class EarningsCalendarProvider:
             # Get current market data
             market_data = await self.data_provider.get_current_price(base_event.ticker)
             if not market_data:
-                self.logger.warning(f\"No market data for {base_event.ticker}\")
+                self.logger.warning(f"No market data for {base_event.ticker}")
                 return None
             
             current_price = market_data.price
@@ -324,12 +324,12 @@ class EarningsCalendarProvider:
             return enhanced_event
             
         except Exception as e:
-            self.logger.error(f\"Error enhancing earnings event: {e}\")
+            self.logger.error(f"Error enhancing earnings event: {e}")
             return None
     
     async def _calculate_real_implied_move(self, ticker: str, earnings_date: datetime, 
                                          current_price: Decimal) -> Optional[ImpliedMoveData]:
-        \"\"\"Calculate real implied move from options straddle prices\"\"\"
+        """Calculate real implied move from options straddle prices"""
         try:
             # Find the expiry closest to but after earnings
             target_date = earnings_date.date() if isinstance(earnings_date, datetime) else earnings_date
@@ -356,11 +356,11 @@ class EarningsCalendarProvider:
             
             # Get ATM straddle price
             atm_calls = [opt for opt in options_chain 
-                        if opt.option_type.lower() == 'call' and 
-                           (opt.expiry == target_expiry or opt.expiry.date() == target_expiry)]
+                         if opt.option_type.lower() == 'call' and 
+                         (opt.expiry == target_expiry or opt.expiry.date() == target_expiry)]
             atm_puts = [opt for opt in options_chain 
-                       if opt.option_type.lower() == 'put' and 
-                          (opt.expiry == target_expiry or opt.expiry.date() == target_expiry)]
+                        if opt.option_type.lower() == 'put' and 
+                        (opt.expiry == target_expiry or opt.expiry.date() == target_expiry)]
             
             if not atm_calls or not atm_puts:
                 return self._estimate_implied_move_fallback(current_price)
@@ -401,11 +401,11 @@ class EarningsCalendarProvider:
             )
             
         except Exception as e:
-            self.logger.error(f\"Error calculating implied move for {ticker}: {e}\")
+            self.logger.error(f"Error calculating implied move for {ticker}: {e}")
             return self._estimate_implied_move_fallback(current_price)
     
     def _estimate_implied_move_fallback(self, current_price: Decimal) -> ImpliedMoveData:
-        \"\"\"Fallback implied move estimation\"\"\"
+        """Fallback implied move estimation"""
         # Use historical average earnings move (~4-8% for most stocks)
         estimated_move_pct = 0.06  # 6% average
         estimated_move_dollar = current_price * Decimal(str(estimated_move_pct))
@@ -420,7 +420,7 @@ class EarningsCalendarProvider:
         )
     
     async def _analyze_iv_percentiles(self, ticker: str) -> Optional[IVPercentileData]:
-        \"\"\"Analyze IV percentiles vs historical data\"\"\"
+        """Analyze IV percentiles vs historical data"""
         try:
             # Check cache
             if ticker in self.iv_cache:
@@ -498,11 +498,11 @@ class EarningsCalendarProvider:
             return iv_analysis
             
         except Exception as e:
-            self.logger.error(f\"Error analyzing IV percentiles for {ticker}: {e}\")
+            self.logger.error(f"Error analyzing IV percentiles for {ticker}: {e}")
             return None
     
     def _get_synthetic_historical_iv(self, current_iv: float) -> List[float]:
-        \"\"\"Generate synthetic historical IV data for demonstration\"\"\"
+        """Generate synthetic historical IV data for demonstration"""
         import random
         
         # Create 90 days of synthetic IV data around current IV
@@ -523,7 +523,7 @@ class EarningsCalendarProvider:
         return historical_ivs
     
     def _calculate_percentile(self, value: float, historical_data: List[float]) -> float:
-        \"\"\"Calculate percentile rank of value in historical data\"\"\"
+        """Calculate percentile rank of value in historical data"""
         if not historical_data:
             return 50.0
         
@@ -534,7 +534,7 @@ class EarningsCalendarProvider:
         return min(100.0, max(0.0, percentile))
     
     async def _get_historical_earnings_performance(self, ticker: str) -> Tuple[List[float], Optional[float]]:
-        \"\"\"Get historical earnings reaction data\"\"\"
+        """Get historical earnings reaction data"""
         try:
             # In production, this would query actual historical earnings moves
             # For now, return synthetic data
@@ -556,13 +556,13 @@ class EarningsCalendarProvider:
             return historical_moves, beat_rate
             
         except Exception as e:
-            self.logger.error(f\"Error getting historical performance for {ticker}: {e}\")
+            self.logger.error(f"Error getting historical performance for {ticker}: {e}")
             return [], None
     
     def _classify_expected_reaction(self, implied_move: Optional[ImpliedMoveData], 
                                   iv_analysis: Optional[IVPercentileData],
                                   historical_moves: List[float]) -> EarningsReactionType:
-        \"\"\"Classify expected earnings reaction type\"\"\"
+        """Classify expected earnings reaction type"""
         try:
             # Default to unknown
             if not implied_move:
@@ -605,13 +605,13 @@ class EarningsCalendarProvider:
                 return EarningsReactionType.MODERATE_VOLATILITY
                 
         except Exception as e:
-            self.logger.error(f\"Error classifying reaction: {e}\")
+            self.logger.error(f"Error classifying reaction: {e}")
             return EarningsReactionType.UNKNOWN
     
     def _get_strategy_recommendations(self, reaction_type: EarningsReactionType,
                                     iv_analysis: Optional[IVPercentileData],
                                     implied_move: Optional[ImpliedMoveData]) -> List[str]:
-        \"\"\"Get strategy recommendations based on analysis\"\"\"
+        """Get strategy recommendations based on analysis"""
         recommendations = []
         
         try:
@@ -619,49 +619,49 @@ class EarningsCalendarProvider:
             
             if reaction_type == EarningsReactionType.HIGH_VOLATILITY:
                 if high_iv:
-                    recommendations.extend([\"sell_straddle\", \"iron_condor\", \"calendar_spread\"])
+                    recommendations.extend(["sell_straddle", "iron_condor", "calendar_spread"])
                 else:
-                    recommendations.extend([\"buy_straddle\", \"buy_strangle\", \"protective_collar\"])
+                    recommendations.extend(["buy_straddle", "buy_strangle", "protective_collar"])
             
             elif reaction_type == EarningsReactionType.MODERATE_VOLATILITY:
                 if high_iv:
-                    recommendations.extend([\"calendar_spread\", \"diagonal_spread\", \"covered_call\"])
+                    recommendations.extend(["calendar_spread", "diagonal_spread", "covered_call"])
                 else:
-                    recommendations.extend([\"buy_calls\", \"protective_put\", \"collar\"])
+                    recommendations.extend(["buy_calls", "protective_put", "collar"])
             
             elif reaction_type == EarningsReactionType.LOW_VOLATILITY:
                 if high_iv:
-                    recommendations.extend([\"sell_premium\", \"covered_call\", \"cash_secured_put\"])
+                    recommendations.extend(["sell_premium", "covered_call", "cash_secured_put"])
                 else:
-                    recommendations.extend([\"hold_shares\", \"buy_and_hold\"])
+                    recommendations.extend(["hold_shares", "buy_and_hold"])
             
             else:  # UNKNOWN
-                recommendations.extend([\"wait_and_see\", \"small_position\"])
+                recommendations.extend(["wait_and_see", "small_position"])
             
             return recommendations[:3]  # Return top 3 recommendations
             
         except Exception as e:
-            self.logger.error(f\"Error getting recommendations: {e}\")
-            return [\"wait_and_see\"]
+            self.logger.error(f"Error getting recommendations: {e}")
+            return ["wait_and_see"]
     
     def _assess_risk_level(self, reaction_type: EarningsReactionType, 
                           iv_analysis: Optional[IVPercentileData]) -> str:
-        \"\"\"Assess overall risk level\"\"\"
+        """Assess overall risk level"""
         try:
             if reaction_type == EarningsReactionType.HIGH_VOLATILITY:
-                return \"high\"
+                return "high"
             elif reaction_type == EarningsReactionType.MODERATE_VOLATILITY:
-                return \"medium\"
+                return "medium"
             elif reaction_type == EarningsReactionType.LOW_VOLATILITY:
-                return \"low\"
+                return "low"
             else:
-                return \"medium\"
+                return "medium"
                 
         except Exception:
-            return \"medium\"
+            return "medium"
     
     async def get_earnings_for_ticker(self, ticker: str) -> Optional[EnhancedEarningsEvent]:
-        \"\"\"Get enhanced earnings data for specific ticker\"\"\"
+        """Get enhanced earnings data for specific ticker"""
         try:
             calendar = await self.get_earnings_calendar(30)
             
@@ -672,11 +672,11 @@ class EarningsCalendarProvider:
             return None
             
         except Exception as e:
-            self.logger.error(f\"Error getting earnings for {ticker}: {e}\")
+            self.logger.error(f"Error getting earnings for {ticker}: {e}")
             return None
 
 
 def create_earnings_calendar_provider(data_provider=None, options_pricing=None, 
                                     polygon_api_key: str = None) -> EarningsCalendarProvider:
-    \"\"\"Factory function to create earnings calendar provider\"\"\"
+    """Factory function to create earnings calendar provider"""
     return EarningsCalendarProvider(data_provider, options_pricing, polygon_api_key)

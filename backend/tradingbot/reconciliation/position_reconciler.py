@@ -327,7 +327,8 @@ class PositionReconciler:
                     financial_impact=abs(db_pos.market_value),
                     timestamp=datetime.now(),
                     metadata={'db_quantity': db_pos.quantity, 'db_value': float(db_pos.market_value)}
-                )\n                discrepancies.append(discrepancy)\n        
+                )
+                discrepancies.append(discrepancy)        
         # Check for positions at broker but not in DB
         for symbol, broker_pos in broker_by_symbol.items():
             if symbol not in db_by_ticker:

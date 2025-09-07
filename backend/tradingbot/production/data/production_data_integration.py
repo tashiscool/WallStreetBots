@@ -819,4 +819,4 @@ def create_production_data_provider(alpaca_api_key: str, alpaca_secret_key: str)
     Returns:
         ProductionDataProvider instance
     """
-    return ProductionDataProvider(alpaca_api_key, alpaca_secret_key)
+    return ReliableDataProvider(alpaca_api_key, alpaca_secret_key)

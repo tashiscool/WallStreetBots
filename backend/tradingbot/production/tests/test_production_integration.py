@@ -426,6 +426,7 @@ class TestProductionDataProvider:
         
         # Setup mock to return historical data first, then current data
         call_count = 0
+        
         def mock_get_bars(*args, **kwargs):
             nonlocal call_count
             call_count += 1

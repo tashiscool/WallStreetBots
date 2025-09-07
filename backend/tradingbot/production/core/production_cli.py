@@ -21,10 +21,12 @@ import argparse
 import json
 import sys
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from decimal import Decimal
 
 from .production_manager import ProductionManager, ProductionConfig
+from .production_integration import ProductionTradeSignal
+from ...core.trading_interface import OrderSide, OrderType
 
 
 class ProductionCLI:

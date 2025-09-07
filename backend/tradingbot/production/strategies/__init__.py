@@ -11,6 +11,7 @@ Production-ready implementations of WSB-style trading strategies:
 - ProductionLEAPSTracker: Long-term secular growth trends with systematic profit-taking
 - ProductionSwingTrading: Fast profit-taking swing trades with same-day exit discipline
 - ProductionSPXCreditSpreads: WSB-style 0DTE/short-term credit spreads with defined risk
+- ProductionLottoScanner: Extreme high-risk 0DTE and earnings lotto plays with strict discipline
 """
 
 from .production_wsb_dip_bot import ProductionWSBDipBot
@@ -22,6 +23,7 @@ from .production_debit_spreads import ProductionDebitSpreads
 from .production_leaps_tracker import ProductionLEAPSTracker
 from .production_swing_trading import ProductionSwingTrading
 from .production_spx_credit_spreads import ProductionSPXCreditSpreads
+from .production_lotto_scanner import ProductionLottoScanner
 
 __all__ = [
     'ProductionWSBDipBot',
@@ -33,4 +35,5 @@ __all__ = [
     'ProductionLEAPSTracker',
     'ProductionSwingTrading',
     'ProductionSPXCreditSpreads',
+    'ProductionLottoScanner',
 ]

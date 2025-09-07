@@ -95,7 +95,7 @@ class ProductionWheelStrategy:
         
         # Initialize components
         self.options_selector = SmartOptionsSelector(self.data_provider)
-        self.options_engine = create_options_pricing_engine(self.data_provider)
+        self.options_engine = create_options_pricing_engine()
         self.risk_manager = RealTimeRiskManager()
         
         # Strategy parameters from config

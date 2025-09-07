@@ -32,6 +32,7 @@ from ..strategies.production_debit_spreads import ProductionDebitSpreads, create
 from ..strategies.production_leaps_tracker import ProductionLEAPSTracker, create_production_leaps_tracker
 from ..strategies.production_swing_trading import ProductionSwingTrading, create_production_swing_trading
 from ..strategies.production_spx_credit_spreads import ProductionSPXCreditSpreads, create_production_spx_credit_spreads
+from ..strategies.production_lotto_scanner import ProductionLottoScanner, create_production_lotto_scanner
 
 
 @dataclass
@@ -244,6 +245,42 @@ class ProductionStrategyManager:
                         'max_hold_hours': 8,
                         'end_of_day_exit_hour': 15
                     }
+                ),
+                'spx_credit_spreads': StrategyConfig(
+                    name='spx_credit_spreads',
+                    enabled=True,
+                    max_position_size=0.05,
+                    risk_tolerance='high',
+                    parameters={
+                        'target_short_delta': 0.30,
+                        'profit_target_pct': 0.25,
+                        'stop_loss_pct': 2.0,
+                        'max_dte': 2,
+                        'min_credit': 0.50,
+                        'max_spread_width': 50,
+                        'max_positions': 3,
+                        'risk_free_rate': 0.05,
+                        'target_iv_percentile': 30,
+                        'min_option_volume': 100,
+                        'min_option_oi': 50
+                    }
+                ),
+                'lotto_scanner': StrategyConfig(
+                    name='lotto_scanner',
+                    enabled=True,
+                    max_position_size=0.01,
+                    risk_tolerance='extreme',
+                    parameters={
+                        'max_risk_pct': 1.0,
+                        'max_concurrent_positions': 3,
+                        'profit_targets': [300, 500, 800],
+                        'stop_loss_pct': 0.50,
+                        'min_win_probability': 0.15,
+                        'max_dte': 5,
+                        'high_volume_tickers': ['SPY', 'QQQ', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META'],
+                        'meme_tickers': ['GME', 'AMC', 'PLTR', 'COIN', 'HOOD', 'RIVN', 'SOFI'],
+                        'earnings_tickers': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'CRM', 'ADBE', 'ORCL', 'AMD', 'QCOM', 'UBER', 'SNOW']
+                    }
                 )
             }
             
@@ -313,6 +350,18 @@ class ProductionStrategyManager:
                 )
             elif strategy_name == 'swing_trading':
                 return create_production_swing_trading(
+                    self.integration_manager,
+                    self.data_provider,
+                    config.parameters
+                )
+            elif strategy_name == 'spx_credit_spreads':
+                return create_production_spx_credit_spreads(
+                    self.integration_manager,
+                    self.data_provider,
+                    config.parameters
+                )
+            elif strategy_name == 'lotto_scanner':
+                return create_production_lotto_scanner(
                     self.integration_manager,
                     self.data_provider,
                     config.parameters

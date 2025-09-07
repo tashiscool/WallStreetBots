@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 
 from ..core.production_integration import ProductionIntegrationManager, ProductionTradeSignal
-from ..data.production_data_integration import ProductionDataProvider, EarningsEvent
+from ..data.production_data_integration import ReliableDataProvider as ProductionDataProvider, EarningsEvent
 from ...core.trading_interface import OrderSide, OrderType
 
 

@@ -118,8 +118,10 @@ class EarningsCalendarProvider:
                 self.logger.info("Polygon.io client initialized")
             except ImportError:
                 self.logger.warning("Polygon.io client not available - install polygon-api-client")
+                self.polygon_client = None
             except Exception as e:
                 self.logger.error(f"Failed to initialize Polygon.io client: {e}")
+                self.polygon_client = None
         
         if alpha_vantage_key:
             try:
@@ -128,8 +130,10 @@ class EarningsCalendarProvider:
                 self.logger.info("Alpha Vantage client initialized")
             except ImportError:
                 self.logger.warning("Alpha Vantage client not available - install alpha-vantage")
+                self.alpha_vantage_client = None
             except Exception as e:
                 self.logger.error(f"Failed to initialize Alpha Vantage client: {e}")
+                self.alpha_vantage_client = None
         
         # Configuration
         self.iv_lookback_days = 90  # Days to look back for IV percentiles

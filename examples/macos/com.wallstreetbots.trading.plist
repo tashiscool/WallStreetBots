@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.wallstreetbots.trading</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/admin/IdeaProjects/workspace/WallStreetBots/venv/bin/python</string>
+        <string>/Users/admin/IdeaProjects/workspace/WallStreetBots/simple_bot.py</string>
+    </array>
+    
+    <key>WorkingDirectory</key>
+    <string>/Users/admin/IdeaProjects/workspace/WallStreetBots</string>
+    
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>DJANGO_SETTINGS_MODULE</key>
+        <string>backend.settings</string>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+    
+    <key>StandardOutPath</key>
+    <string>/Users/admin/wallstreetbots_trading.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/Users/admin/wallstreetbots_error.log</string>
+    
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <key>KeepAlive</key>
+    <true/>
+    
+    <key>ProcessType</key>
+    <string>Background</string>
+    
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>25</integer>
+            <key>Weekday</key>
+            <integer>1</integer>
+        </dict>
+        <dict>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>25</integer>
+            <key>Weekday</key>
+            <integer>2</integer>
+        </dict>
+        <dict>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>25</integer>
+            <key>Weekday</key>
+            <integer>3</integer>
+        </dict>
+        <dict>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>25</integer>
+            <key>Weekday</key>
+            <integer>4</integer>
+        </dict>
+        <dict>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>25</integer>
+            <key>Weekday</key>
+            <integer>5</integer>
+        </dict>
+    </array>
+    
+    <key>ExitTimeOut</key>
+    <integer>30</integer>
+</dict>
+</plist>

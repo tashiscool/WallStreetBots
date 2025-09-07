@@ -24,7 +24,7 @@ APScheduler>=3.9.0
 alpaca-py>=0.42.0,<1.0.0  # Modern Alpaca API client (replaces alpaca-trade-api)
 aiohttp>=3.12.0,<4.0.0  # For async HTTP requests to data providers
 ccxt>=3.1.0,<4.0.0  # Multi-exchange trading library
-websockets>=15.0,<16.0  # Python 3.12 compatible
+websockets>=10.3,<15.0  # Compatible with polygon-api-client
 
 # Options pricing and mathematical libraries
 scipy>=1.14.0,<2.0.0  # For Black-Scholes calculations (norm.cdf, norm.pdf)

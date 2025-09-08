@@ -78,3 +78,4 @@ class MarketDataError(TradingError):
         self.ticker = ticker
         self.data_type = data_type
 
+

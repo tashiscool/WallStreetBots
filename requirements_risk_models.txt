@@ -61,3 +61,4 @@ flake8>=3.9.0
 # tweepy>=4.0.0      # Twitter API
 # praw>=7.4.0        # Reddit API
 # newsapi-python>=0.2.6  # News API
+

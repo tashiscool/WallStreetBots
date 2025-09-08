@@ -8,8 +8,12 @@ import pandas as pd
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 import json
+import logging
 
-class RiskDatabase:
+# Setup logging for consistent error handling
+logger = logging.getLogger(__name__)
+
+class RiskDatabaseManager:
     """SQLite database for risk management data"""
     
     def __init__(self, db_path: str = "risk_management.db"):
@@ -363,7 +367,7 @@ class RiskDatabase:
 # Example usage
 if __name__ == "__main__":
     # Initialize database
-    db = RiskDatabase("test_risk.db")
+    db = RiskDatabaseManager("test_risk.db")
     
     # Set up risk limits
     db.set_risk_limits(
@@ -420,3 +424,134 @@ if __name__ == "__main__":
     print("Current Positions:", len(positions))
     
     print("Database initialized successfully!")
+
+
+class RiskDatabaseAsync:
+    """Async manager class for risk database operations"""
+    
+    def __init__(self, db_path: str = "risk_management.db"):
+        self.db = RiskDatabaseManager(db_path)
+    
+    async def store_risk_result(self, 
+                              timestamp: datetime,
+                              portfolio_value: float,
+                              var_99: float,
+                              cvar_99: float,
+                              lvar_99: float = None,
+                              concentration_risk: float = 0.0,
+                              greeks_risk: float = 0.0,
+                              stress_score: float = 0.0,
+                              ml_risk_score: float = 0.0,
+                              within_limits: bool = True,
+                              alerts: List[str] = None):
+        """Store risk calculation result"""
+        try:
+            details = {
+                'concentration_risk': concentration_risk,
+                'greeks_risk': greeks_risk,
+                'stress_score': stress_score,
+                'ml_risk_score': ml_risk_score,
+                'alerts': alerts or []
+            }
+            
+            self.db.insert_risk_result(
+                account_id="default",
+                alpha=0.99,
+                var=var_99,
+                cvar=cvar_99,
+                lvar=lvar_99,
+                exceptions_250=0,  # Will be calculated separately
+                kupiec_lr=0.0,     # Will be calculated separately
+                details=details
+            )
+            
+        except Exception as e:
+            print(f"Error storing risk result: {e}")
+    
+    async def get_risk_history(self, days: int = 30) -> pd.DataFrame:
+        """Get risk calculation history"""
+        try:
+            return self.db.get_risk_history(account_id="default", days=days)
+        except Exception as e:
+            print(f"Error getting risk history: {e}")
+            return pd.DataFrame()
+    
+    async def get_latest_risk_metrics(self) -> Dict:
+        """Get latest risk metrics"""
+        try:
+            return self.db.get_latest_risk_result(account_id="default")
+        except Exception as e:
+            print(f"Error getting latest risk metrics: {e}")
+            return {}
+    
+    async def store_position(self, 
+                           account_id: str,
+                           symbol: str,
+                           qty: float,
+                           value: float,
+                           delta: float = 0.0,
+                           gamma: float = 0.0,
+                           vega: float = 0.0):
+        """Store position data"""
+        try:
+            positions = [{
+                'symbol': symbol,
+                'qty': qty,
+                'value': value,
+                'delta': delta,
+                'gamma': gamma,
+                'vega': vega,
+                'theta': 0.0,
+                'strategy': 'unknown'
+            }]
+            self.db.insert_positions(account_id, positions)
+        except Exception as e:
+            print(f"Error storing position: {e}")
+    
+    async def get_positions(self, account_id: str = "default") -> Dict[str, Dict]:
+        """Get current positions"""
+        try:
+            positions_list = self.db.get_positions(account_id=account_id)
+            positions_dict = {}
+            for pos in positions_list:
+                positions_dict[pos['symbol']] = {
+                    'qty': pos['qty'],
+                    'value': pos['value'],
+                    'delta': pos['delta'],
+                    'gamma': pos['gamma'],
+                    'vega': pos['vega']
+                }
+            return positions_dict
+        except Exception as e:
+            print(f"Error getting positions: {e}")
+            return {}
+    
+    async def update_risk_limits(self, 
+                               account_id: str,
+                               max_total_var: float,
+                               max_total_cvar: float,
+                               per_strategy: Dict[str, float]):
+        """Update risk limits"""
+        try:
+            self.db.set_risk_limits(
+                account_id=account_id,
+                max_total_var=max_total_var,
+                max_total_cvar=max_total_cvar,
+                per_strategy=per_strategy
+            )
+        except Exception as e:
+            print(f"Error updating risk limits: {e}")
+    
+    async def get_risk_limits(self, account_id: str = "default") -> Dict:
+        """Get current risk limits"""
+        try:
+            # This would get the actual limits from the database
+            # For now, return default limits
+            return {
+                'max_total_var': 0.05,
+                'max_total_cvar': 0.07,
+                'per_strategy': {}
+            }
+        except Exception as e:
+            print(f"Error getting risk limits: {e}")
+            return {}

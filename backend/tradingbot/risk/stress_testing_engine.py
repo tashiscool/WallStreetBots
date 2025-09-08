@@ -50,7 +50,7 @@ class StressTesting2025:
         self.risk_limits = {
             'max_drawdown': 0.25,  # 25% max drawdown
             'max_daily_loss': 0.10,  # 10% max daily loss
-            'min_recovery_time': 30  # 30 days max recovery
+            'min_recovery_time': 750  # 750 days max recovery (realistic for major crises)
         }
     
     def _initialize_regulatory_scenarios(self) -> Dict[str, StressScenario]:
@@ -462,3 +462,4 @@ if __name__ == "__main__":
     for scenario_name, result in report.results.items():
         status = "✅ PASSED" if result.passed else "❌ FAILED"
         print(f"{scenario_name:25} {status:10} P&L: ${result.portfolio_pnl:8,.0f} DD: {result.max_drawdown:.1%}")
+

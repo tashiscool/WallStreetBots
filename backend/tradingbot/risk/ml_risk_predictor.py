@@ -5,7 +5,7 @@ Machine learning models for risk prediction and regime detection
 
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Tuple, Any, Union
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import warnings
@@ -465,6 +465,31 @@ class MLRiskPredictor:
             confidence=0.75,
             recommended_actions=recommendations
         )
+    
+    def predict_volatility(self, returns_data: Union[np.ndarray, List[float]]) -> VolatilityForecast:
+        """
+        Predict volatility from portfolio returns data
+        
+        Args:
+            returns_data: Portfolio returns as numpy array or list
+            
+        Returns:
+            Volatility forecast with confidence intervals
+        """
+        # Convert to numpy array if needed
+        if isinstance(returns_data, list):
+            returns_data = np.array(returns_data)
+        
+        # Convert returns data to market data format for predict_volatility_regime
+        mock_market_data = {
+            'prices': (100 * np.cumprod(1 + returns_data)).tolist(),
+            'volumes': [1000000] * len(returns_data),  # Mock volume data
+            'sentiment': 0.0,  # Neutral sentiment
+            'rsi': 50.0  # Neutral RSI
+        }
+        
+        # Use existing predict_volatility_regime method
+        return self.predict_volatility_regime(mock_market_data, horizon_days=5)
 
 # Example usage and testing
 if __name__ == "__main__":

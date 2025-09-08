@@ -300,3 +300,4 @@ if __name__ == "__main__":
     print(f"Current Regime: {regime_info['regime']}")
     print(f"Adjustment Factor: {regime_info['adjustment_factor']:.2f}")
     print(f"Volatility Ratio: {regime_info['volatility_ratio']:.2f}")
+

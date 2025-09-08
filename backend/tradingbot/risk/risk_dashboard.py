@@ -504,3 +504,4 @@ if __name__ == "__main__":
     for limit, utilization in dashboard_data['risk_limits'].items():
         status = "⚠️" if utilization > 80 else "✅"
         print(f"{status} {limit}: {utilization:.1f}%")
+

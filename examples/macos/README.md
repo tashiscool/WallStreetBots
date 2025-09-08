@@ -95,3 +95,4 @@ launchctl unload ~/Library/LaunchAgents/com.wallstreetbots.trading.plist
 - Ensure your bot handles market closed conditions
 - Consider adding market hours detection to your bot
 
+

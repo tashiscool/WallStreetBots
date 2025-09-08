@@ -133,16 +133,22 @@ class ProductionStrategyManager:
                 'earnings_protection': StrategyConfig(
                     name='earnings_protection',
                     enabled=True,
-                    max_position_size=0.20,  # Bigger earnings bets
-                    risk_tolerance='high',  # WSB loves earnings volatility
+                    max_position_size=0.06,  # Research: smaller positions for earnings volatility
+                    risk_tolerance='high',  # Earnings plays are inherently high risk
                     parameters={
-                        'iv_percentile_threshold': 50,  # Lower threshold for more plays
-                        'min_implied_move': 0.02,  # Catch smaller expected moves
-                        'max_days_to_earnings': 14,  # Wider window for opportunities
-                        'min_days_to_earnings': 0,  # Include day-of earnings
-                        'preferred_strategies': ['long_straddle', 'long_strangle', 'protective_hedge'],  # More aggressive strategies
-                        'earnings_momentum_weight': 0.4,  # Factor in momentum
-                        'wsb_sentiment_multiplier': 1.3  # Extra weight for WSB favorites
+                        'iv_percentile_threshold': 70,  # Research: enter when IV is elevated
+                        'min_implied_move': 0.04,  # Research: need meaningful expected move
+                        'max_days_to_earnings': 30,  # Research: enter ~1 month before for low IV
+                        'min_days_to_earnings': 7,  # Research: avoid day-of IV crush
+                        'preferred_strategies': ['long_straddle', 'reverse_iron_condor'],  # Research: best for earnings
+                        'delta_range': (0.25, 0.30),  # Research: 25-30 delta for strangles
+                        'profit_target': 0.50,  # Research: take profits before IV crush
+                        'iv_crush_protection': True,  # Research: critical for earnings plays
+                        'straddle_vs_strangle': 'strangle',  # Research: strangles often better percentage returns
+                        'atm_for_low_price': True,  # Research: ATM straddles for stocks <$100
+                        'ric_for_high_price': True,  # Research: reverse iron condor for >$100 stocks
+                        'avoid_low_iv': True,  # Research: don't enter during low IV periods
+                        'exit_before_announcement': False  # Research: hold through for volatility expansion
                     }
                 ),
                 'index_baseline': StrategyConfig(
@@ -162,36 +168,44 @@ class ProductionStrategyManager:
                 'wheel_strategy': StrategyConfig(
                     name='wheel_strategy',
                     enabled=True,
-                    max_position_size=0.40,
-                    risk_tolerance='high',
+                    max_position_size=0.20,  # Research: reduce position sizes for better risk management
+                    risk_tolerance='medium',  # Research shows wheel needs risk management
                     parameters={
-                        'target_iv_rank': 30,  # Lower threshold - WSB trades in more conditions
-                        'target_dte_range': (20, 35),  # Shorter term for more premium
-                        'target_delta_range': (0.20, 0.40),  # More aggressive deltas
-                        'max_positions': 15,  # More concurrent positions
-                        'min_premium_dollars': 25,  # Lower minimum to catch more opportunities
-                        'profit_target': 0.50,  # Hold for bigger gains
-                        'max_loss_pct': 0.75,  # WSB diamond hands
-                        'assignment_buffer_days': 3,  # More aggressive timing
-                        'watchlist': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'AMD', 'PLTR', 'SPY', 'QQQ', 'IWM', 'MSTR', 'GME', 'AMC', 'BB', 'NOK']
+                        'target_iv_rank': 50,  # Research: ThetaGang uses higher IV for better premium
+                        'target_dte_range': (30, 45),  # Research: 30-45 DTE optimal for time decay
+                        'target_delta_range': (0.15, 0.30),  # Research: 15-30 delta for cash-secured puts
+                        'max_positions': 8,  # Research: diversification important
+                        'min_premium_dollars': 50,  # Research: need meaningful premium
+                        'profit_target': 0.50,  # Research: ThetaGang standard 50% profit target
+                        'roll_at_dte': 21,  # Research: roll puts at 21 DTE
+                        'assignment_acceptance': True,  # Research: wheel requires accepting assignment
+                        'covered_call_delta': 0.20,  # Research: 20 delta for covered calls
+                        'portfolio_allocation': 0.40,  # Research: ThetaGang uses 40% allocation
+                        'diversified_watchlist': ['SPY', 'QQQ', 'AAPL', 'MSFT', 'GOOGL', 'AMZN'],  # Research: focus on stable, liquid names
+                        'avoid_earnings': True,  # Research: avoid high gamma events
+                        'min_liquidity_score': 0.7,  # Research: liquidity critical for wheel
+                        'fundamental_screen': True  # Research: screen for quality companies
                     }
                 ),
                 'momentum_weeklies': StrategyConfig(
                     name='momentum_weeklies',
                     enabled=True,
-                    max_position_size=0.08,  # Bigger bets on momentum
+                    max_position_size=0.05,  # Research shows 0DTE requires smaller positions
                     risk_tolerance='high',
                     parameters={
-                        'watchlist': ['TSLA', 'NVDA', 'AMD', 'PLTR', 'GME', 'AMC', 'MSTR', 'SPY', 'QQQ', 'AAPL', 'MSFT', 'META', 'GOOGL', 'AMZN', 'NFLX', 'CRM', 'SNOW', 'COIN', 'UBER', 'ROKU'],
-                        'max_positions': 5,  # More positions for more opportunities
-                        'min_volume_spike': 2.0,  # Lower threshold to catch more moves
-                        'min_momentum_threshold': 0.01,  # Lower threshold for more signals
-                        'target_dte_range': (0, 7),  # Include 0DTE WSB style
-                        'otm_range': (0.01, 0.08),  # More aggressive OTM range
-                        'min_premium': 0.25,  # Lower minimum for more opportunities
-                        'profit_target': 0.100,  # Quick profits like WSB
-                        'stop_loss': 0.80,  # Diamond hands WSB style
-                        'time_exit_hours': 2  # Faster exits
+                        'watchlist': ['SPY', 'QQQ', 'IWM'],  # Research shows SPY=81%, QQQ=second most popular for 0DTE
+                        'max_positions': 3,  # Conservative based on research risk warnings
+                        'min_volume_spike': 1.5,  # Based on actual 0DTE volume requirements
+                        'min_momentum_threshold': 0.015,  # Research-backed intraday momentum
+                        'target_dte_range': (0, 2),  # Focus on 0DTE which has proven data
+                        'target_delta_range': (0.05, 0.15),  # Research: 5-15 delta shorts most profitable
+                        'min_premium': 1.00,  # Research shows $100-300 premium collection
+                        'profit_target': 0.50,  # Research: 50% profit target optimal
+                        'stop_loss': 2.0,  # Research: losses ~2.2x larger than wins
+                        'preferred_day': 'monday',  # Research: Monday most profitable for 0DTE
+                        'entry_time_after': '10:00',  # Research: after morning volatility
+                        'avg_hold_hours': 2,  # Research: 2 hours average hold time
+                        'wing_width': 30  # Research: 30-point wings standard
                     }
                 ),
                 'debit_spreads': StrategyConfig(
@@ -217,22 +231,24 @@ class ProductionStrategyManager:
                 'leaps_tracker': StrategyConfig(
                     name='leaps_tracker',
                     enabled=True,
-                    max_position_size=0.15,  # Bigger LEAPS YOLO bets
-                    risk_tolerance='high',  # WSB long-term YOLO mentality
+                    max_position_size=0.03,  # Research: 1-3% position sizing per LEAPS
+                    risk_tolerance='medium',  # Research shows need for risk management
                     parameters={
-                        'max_positions': 8,  # More concurrent LEAPS
-                        'max_total_allocation': 0.40,  # Higher total allocation
-                        'min_dte': 180,  # Shorter minimum for more flexibility
-                        'max_dte': 730,  # Keep max the same
-                        'min_composite_score': 40,  # Lower barrier for more opportunities
-                        'min_entry_timing_score': 30,  # More aggressive entry
-                        'max_exit_timing_score': 80,  # Hold longer
-                        'profit_levels': [50, 100, 200, 400],  # Take some profits earlier
-                        'scale_out_percentage': 20,  # Smaller scale-outs
-                        'stop_loss': 0.70,  # Diamond hands approach
-                        'time_exit_dte': 45,  # Hold closer to expiry
-                        'meme_stock_bonus': 20,  # Extra points for meme stocks
-                        'wsb_sentiment_weight': 0.3  # Factor in WSB sentiment
+                        'max_positions': 5,  # Conservative based on research
+                        'max_total_allocation': 0.15,  # Total LEAPS exposure limit
+                        'min_dte': 365,  # Research: minimum 1 year for true LEAPS
+                        'max_dte': 730,  # 2 years maximum
+                        'delta_strategy': 'mixed',  # Research: both high and low delta work
+                        'high_delta_range': (0.70, 0.80),  # Research: stock replacement deltas
+                        'low_delta_range': (0.10, 0.30),  # Research: high leverage deltas  
+                        'profit_levels': [100, 200, 300],  # Research: NVDA achieved 419% in 2024
+                        'scale_out_percentage': 25,  # Take profits systematically
+                        'stop_loss': 1.0,  # Complete loss acceptable for LEAPS
+                        'time_exit_dte': 90,  # Exit before final decay
+                        'entry_staging': True,  # Research: stage entries over time
+                        'staging_periods': 3,  # Enter over 3 periods
+                        'focus_sectors': ['technology', 'growth'],  # 2024 winners were tech-heavy
+                        'min_premium_percentage': 0.10  # Research: 10% of stock price for growth stocks
                     }
                 ),
                 'swing_trading': StrategyConfig(
@@ -259,40 +275,48 @@ class ProductionStrategyManager:
                 'spx_credit_spreads': StrategyConfig(
                     name='spx_credit_spreads',
                     enabled=True,
-                    max_position_size=0.08,  # Bigger SPX credit spread positions
-                    risk_tolerance='high',  # Keep high risk tolerance
+                    max_position_size=0.04,  # Research shows smaller positions for credit spreads
+                    risk_tolerance='medium',  # Research shows need for risk management
                     parameters={
-                        'target_short_delta': 0.20,  # More aggressive delta for higher premium
-                        'profit_target_pct': 0.40,  # Let winners run WSB style
-                        'stop_loss_pct': 2.5,  # Wider stops for volatility
-                        'max_dte': 5,  # Slightly longer for more flexibility
-                        'min_credit': 0.30,  # Lower minimum for more opportunities
-                        'max_spread_width': 75,  # Wider spreads for more premium
-                        'max_positions': 6,  # More concurrent positions
-                        'risk_free_rate': 0.05,  # Keep same
-                        'target_iv_percentile': 20,  # Lower threshold for more signals
-                        'min_option_volume': 50,  # Lower volume requirement
-                        'min_option_oi': 25,  # Lower OI requirement
-                        'gamma_squeeze_factor': 0.25,  # WSB gamma awareness
-                        'vix_momentum_weight': 0.2,  # Factor in VIX momentum
-                        'market_regime_filter': False  # Trade in all conditions WSB style
+                        'strategy_type': 'iron_condor',  # Research: iron condors had 63-70% win rate
+                        'target_short_delta': 0.15,  # Research: 5-15 delta shorts most successful
+                        'target_dte_range': (28, 35),  # Research: 28-35 DTE optimal for condors
+                        'profit_target_pct': 0.50,  # Research: 50% profit target is optimal
+                        'stop_loss_multiple': 2.2,  # Research: losses average 2.2x wins
+                        'max_dte': 45,  # Research: "Tasty standard" 45 DTE
+                        'min_credit': 1.00,  # Research: $100-300 premium target
+                        'max_spread_width': 50,  # Research: standard width for SPX
+                        'max_positions': 3,  # Conservative based on research warnings
+                        'long_delta': 0.05,  # Research: wings typically 5 delta
+                        'entry_time_preference': 'morning',  # Research: avoid late day entries
+                        'roll_at_dte': 21,  # Research: roll at 21 DTE if losing
+                        'min_option_volume': 100,  # Keep reasonable liquidity
+                        'min_option_oi': 50,  # Standard liquidity requirement
+                        'double_stop_loss_protection': True,  # Research: 2024 saw more double stops
+                        'vix_filter': 25,  # Only trade when VIX reasonable
+                        'avoid_earnings_days': True  # Research: avoid high gamma events
                     }
                 ),
                 'lotto_scanner': StrategyConfig(
                     name='lotto_scanner',
                     enabled=True,
-                    max_position_size=0.03,  # Triple the YOLO size
+                    max_position_size=0.01,  # Research: keep very small for high-risk plays
                     risk_tolerance='extreme',
                     parameters={
-                        'max_risk_pct': 2.0,  # Double the risk for WSB style
-                        'max_concurrent_positions': 8,  # More lottery tickets
-                        'profit_targets': [200, 300, 500],  # Lower targets, faster profits
-                        'stop_loss_pct': 0.80,  # Diamond hands WSB style
-                        'min_win_probability': 0.10,  # Lower threshold for more opportunities
-                        'max_dte': 3,  # Shorter term for more action
-                        'high_volume_tickers': ['SPY', 'QQQ', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META'],
-                        'meme_tickers': ['GME', 'AMC', 'PLTR', 'MSTR', 'COIN', 'HOOD', 'RIVN', 'SOFI', 'BB', 'NOK'],
-                        'earnings_tickers': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'CRM', 'AMD', 'UBER', 'SNOW']
+                        'max_risk_pct': 0.5,  # Research: limit total risk despite "lotto" nature
+                        'max_concurrent_positions': 3,  # Research: focus on best opportunities only
+                        'profit_targets': [500, 1000, 2000],  # Research: truly lottery-style returns
+                        'stop_loss_pct': 1.0,  # Research: accept complete losses on lottery plays
+                        'min_win_probability': 0.05,  # Research: very low probability, high reward
+                        'max_dte': 2,  # Research: focus on immediate catalysts
+                        'catalyst_required': True,  # Research: need news/earnings catalyst
+                        'volume_spike_min': 5.0,  # Research: need significant volume anomaly
+                        'focus_tickers': ['SPY', 'QQQ', 'TSLA', 'NVDA'],  # Research: stick to most liquid
+                        'earnings_window_only': True,  # Research: only trade around earnings
+                        'otm_threshold': 0.10,  # Research: far OTM for lottery potential
+                        'iv_spike_required': True,  # Research: need IV expansion for entry
+                        'news_catalyst_weight': 0.8,  # Research: news-driven moves essential
+                        'max_premium_cost': 2.00  # Research: keep individual costs very low
                     }
                 )
             }

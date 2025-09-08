@@ -146,13 +146,88 @@ This repository contains a **sophisticated trading strategy framework** implemen
 
 ---
 
-## 🚀 **GETTING STARTED**
+## 🚀 **QUICKSTART GUIDE** (5 Minutes!)
+
+> **🎯 Goal**: Get WallStreetBots running with paper trading in under 5 minutes, even if you're new to coding!
+
+### **Step 1: Get an Alpaca Account (30 seconds)**
+1. Go to [alpaca.markets](https://alpaca.markets) and click "Sign Up"
+2. Create your **free** account (no money required!)
+3. Navigate to "Paper Trading" → "API Keys"
+4. Copy your **API Key** and **Secret Key** (keep these safe!)
+
+### **Step 2: One-Click Setup** 
+```bash
+# Copy and paste this entire block into your terminal:
+git clone https://github.com/yourusername/WallStreetBots.git
+cd WallStreetBots
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+pip install alpaca-py>=0.42.0
+python manage.py migrate
+```
+
+### **Step 3: Configure Your API Keys**
+```bash
+# Copy the environment template
+cp .env.example .env
+
+# Edit the .env file with your API keys:
+# ALPACA_API_KEY=paste_your_api_key_here
+# ALPACA_SECRET_KEY=paste_your_secret_key_here
+```
+
+**Or edit `.env` file manually:**
+1. **Open** `.env` file in any text editor
+2. **Replace** `your_paper_api_key_here` with your actual API key
+3. **Replace** `your_paper_secret_key_here` with your actual secret key
+4. **Save** the file
+
+### **Step 4: Start Trading**
+```python
+# Save this as quickstart.py and run it:
+import os
+from backend.tradingbot.production.core.production_strategy_manager import (
+    ProductionStrategyManagerConfig, ProductionStrategyManager, StrategyProfile
+)
+
+# Load API keys from environment (.env file)
+config = ProductionStrategyManagerConfig(
+    alpaca_api_key=os.getenv('ALPACA_API_KEY'),
+    alpaca_secret_key=os.getenv('ALPACA_SECRET_KEY'),
+    paper_trading=True,  # ✅ SAFE: Using fake money!
+    profile=StrategyProfile.research_2024,  # 🛡️ Conservative settings
+)
+
+# Start the system
+manager = ProductionStrategyManager(config)
+print(f"🚀 Ready! Loaded {len(manager.strategies)}/10 strategies")
+print(f"📊 Profile: {config.profile}")
+print(f"🛡️ Max Risk: {config.max_total_risk:.0%}")
+
+# Check status
+status = manager.get_system_status()
+print(f"✅ System Status: {'Running' if status['is_running'] else 'Ready'}")
+```
+
+Then run: `python quickstart.py`
+
+### **Step 5: Upgrade to WSB Settings (Optional)**
+```python
+# For aggressive WSB-style trading, change one line in your script:
+profile=StrategyProfile.wsb_2025,  # 🔥 WSB Aggressive settings!
+# This enables: 0DTE options, meme stocks, 65% max risk, 10s refresh rate
+```
+
+---
+
+## 🚀 **FULL SETUP GUIDE**
 
 ### **Prerequisites:**
-1. **Python 3.12+**: Modern Python version
-2. **Alpaca Account**: Sign up at [alpaca.markets](https://alpaca.markets) (free paper trading)
-3. **API Keys**: Get your API key and secret key from Alpaca
-4. **Database**: PostgreSQL recommended (SQLite works for development)
+1. **Python 3.12+**: [Download here](https://python.org/downloads)
+2. **Alpaca Account**: [Sign up free](https://alpaca.markets) (no money required)
+3. **Terminal/Command Prompt**: Built into Windows/Mac/Linux
 
 ### **Installation & Setup:**
 
@@ -194,41 +269,50 @@ cp .env.example .env
 # DJANGO_SECRET_KEY=generate_a_strong_key_here
 ```
 
-#### **Step 4: Verify Installation**
+#### **Step 4: Choose Your Trading Profile**
 ```python
-# Test broker connection
-from backend.tradingbot.apimanagers import AlpacaManager
+from backend.tradingbot.production.core.production_strategy_manager import (
+    ProductionStrategyManagerConfig, StrategyProfile
+)
 
-# Test with your credentials (paper trading)
-manager = AlpacaManager('your_api_key', 'your_secret_key', paper_trading=True)
-success, message = manager.validate_api()
-print(f"Broker connection: {success} - {message}")
+# 🛡️ CONSERVATIVE (Recommended for beginners)
+config = ProductionStrategyManagerConfig(
+    alpaca_api_key='your_key',
+    alpaca_secret_key='your_secret',
+    paper_trading=True,
+    profile=StrategyProfile.research_2024,  # Safe, longer-dated options
+    max_total_risk=0.30,  # Max 30% portfolio risk
+)
+
+# 🔥 WSB-STYLE AGGRESSIVE (For experienced traders)
+config = ProductionStrategyManagerConfig(
+    alpaca_api_key='your_key',
+    alpaca_secret_key='your_secret', 
+    paper_trading=True,
+    profile=StrategyProfile.wsb_2025,  # 0DTE, meme stocks, higher risk
+    # Automatically sets: 65% max risk, 30% max position, 10s refresh
+)
 ```
 
-#### **Step 5: Run the System**
+#### **Step 5: Start the System**
 ```python
-# Start the production system
-from backend.tradingbot.production.core.production_strategy_manager import (
-    ProductionStrategyManager, ProductionStrategyManagerConfig
-)
-
-# Configuration for paper trading
-config = ProductionStrategyManagerConfig(
-    alpaca_api_key='your_api_key',
-    alpaca_secret_key='your_secret_key', 
-    paper_trading=True,  # ALWAYS start with paper trading!
-    user_id=1,
-    max_total_risk=0.30,  # 30% max portfolio risk
-    max_position_size=0.10,  # 10% max per position
-    enable_alerts=True
-)
-
-# Initialize system
+# Initialize and start
 manager = ProductionStrategyManager(config)
-print(f"Loaded {len(manager.strategies)} strategies")
+print(f"✅ Loaded {len(manager.strategies)}/10 strategies")
 
-# Start trading (async)
-# await manager.start_all_strategies()
+# For full async operation:
+import asyncio
+async def main():
+    success = await manager.start_all_strategies()
+    if success:
+        print("🚀 All strategies running!")
+        # Keep running...
+        while True:
+            await asyncio.sleep(60)
+            status = manager.get_system_status()
+            print(f"💰 Portfolio status: {status}")
+
+# asyncio.run(main())  # Uncomment to run
 ```
 
 ---

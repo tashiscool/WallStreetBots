@@ -498,3 +498,4 @@ class SystemHealthMonitor:
             'uptime_hours': uptime.total_seconds() / 3600,
             'uptime_days': uptime.days
         }
+

@@ -94,3 +94,4 @@ launchctl unload ~/Library/LaunchAgents/com.wallstreetbots.trading.plist
 - The service starts at 9:25 AM but trading depends on market hours
 - Ensure your bot handles market closed conditions
 - Consider adding market hours detection to your bot
+

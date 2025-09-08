@@ -63,3 +63,4 @@ MAX_POSITION_SIZE=50
 
 if __name__ == "__main__":
     setup_simple_bot()
+

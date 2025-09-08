@@ -50,3 +50,4 @@ if __name__ == "__main__":
     django.setup()
     
     asyncio.run(test_simple_bot())
+

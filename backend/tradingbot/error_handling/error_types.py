@@ -77,3 +77,4 @@ class MarketDataError(TradingError):
         super().__init__(message, "MARKET_DATA_ERROR", context)
         self.ticker = ticker
         self.data_type = data_type
+

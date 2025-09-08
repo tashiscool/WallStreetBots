@@ -211,6 +211,10 @@ class ReliableDataProvider:
         # If all sources fail, raise error
         raise DataProviderError(f"All data sources failed for {ticker}")
     
+    async def get_real_time_quote(self, ticker: str) -> Optional[MarketData]:
+        """Get real-time quote (alias for get_current_price for backward compatibility)"""
+        return await self.get_current_price(ticker)
+    
     async def get_historical_data(self, ticker: str, days: int = 30) -> List[MarketData]:
         """Get historical market data"""
         try:
@@ -450,13 +454,12 @@ class ReliableDataProvider:
                                 if datetime.now() <= earnings_date <= end_date:
                                     earnings_event = EarningsEvent(
                                         ticker=ticker,
+                                        company_name=ticker,
                                         earnings_date=earnings_date,
+                                        earnings_time="Unknown",
                                         estimated_eps=Decimal(str(info.get('forwardEps', 0.0))),
                                         actual_eps=None,
-                                        surprise_pct=None,
-                                        market_cap=Decimal(str(info.get('marketCap', 0))),
-                                        timestamp=datetime.now(),
-                                        metadata={'source': 'yahoo_finance'}
+                                        source='yahoo_finance'
                                     )
                                     earnings_events.append(earnings_event)
                                     
@@ -505,13 +508,12 @@ class ReliableDataProvider:
                 
                 synthetic_event = EarningsEvent(
                     ticker=ticker,
+                    company_name=ticker,
                     earnings_date=earnings_date,
+                    earnings_time="Unknown",
                     estimated_eps=Decimal('2.50'),  # Dummy EPS estimate
                     actual_eps=None,
-                    surprise_pct=None,
-                    market_cap=Decimal('1000000000'),  # 1B dummy market cap
-                    timestamp=datetime.now(),
-                    metadata={'source': 'synthetic', 'warning': 'DEVELOPMENT_ONLY'}
+                    source='synthetic'
                 )
                 synthetic_events.append(synthetic_event)
             
@@ -542,7 +544,13 @@ class ReliableDataProvider:
             # Get market status from Alpaca
             clock = self.alpaca_manager.get_clock()
             if clock:
-                return clock.get('is_open', False)
+                # Handle both dict-like and object-like clock interfaces
+                if hasattr(clock, 'is_open'):
+                    return clock.is_open
+                elif hasattr(clock, 'get'):
+                    return clock.get('is_open', False)
+                else:
+                    return False
             
             # Fallback to manual check
             now = datetime.now()
@@ -566,12 +574,28 @@ class ReliableDataProvider:
         try:
             clock = self.alpaca_manager.get_clock()
             if clock:
-                return {
-                    'is_open': clock.get('is_open', False),
-                    'next_open': clock.get('next_open'),
-                    'next_close': clock.get('next_close'),
-                    'timestamp': clock.get('timestamp')
-                }
+                # Handle both dict-like and object-like clock interfaces
+                if hasattr(clock, 'is_open'):
+                    return {
+                        'is_open': clock.is_open,
+                        'next_open': getattr(clock, 'next_open', None),
+                        'next_close': getattr(clock, 'next_close', None),
+                        'timestamp': getattr(clock, 'timestamp', datetime.now())
+                    }
+                elif hasattr(clock, 'get'):
+                    return {
+                        'is_open': clock.get('is_open', False),
+                        'next_open': clock.get('next_open'),
+                        'next_close': clock.get('next_close'),
+                        'timestamp': clock.get('timestamp')
+                    }
+                else:
+                    return {
+                        'is_open': False,
+                        'next_open': None,
+                        'next_close': None,
+                        'timestamp': datetime.now()
+                    }
             
             # Fallback information
             return {
@@ -650,6 +674,21 @@ class ReliableDataProvider:
             
         except Exception as e:
             self.logger.error(f"Error calculating volatility for {ticker}: {e}")
+            return None
+    
+    async def get_implied_volatility(self, ticker: str, strike: Optional[Decimal] = None, 
+                                   expiry: Optional[datetime] = None) -> Optional[Decimal]:
+        """Get implied volatility for options - returns historical volatility as approximation"""
+        try:
+            # For now, return historical volatility as proxy for implied volatility
+            # In production, this would query actual options IV from data provider
+            historical_vol = await self.get_volatility(ticker, days=20)
+            if historical_vol:
+                # Apply slight adjustment to approximate implied volatility
+                return historical_vol * Decimal('1.2')  # IV typically higher than historical
+            return None
+        except Exception as e:
+            self.logger.error(f"Error getting implied volatility for {ticker}: {e}")
             return None
     
     def _is_source_healthy(self, source: DataSource) -> bool:

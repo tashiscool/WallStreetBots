@@ -148,13 +148,15 @@ class ProductionStrategyManager:
                 'index_baseline': StrategyConfig(
                     name='index_baseline',
                     enabled=True,
-                    max_position_size=0.80,
-                    risk_tolerance='low',
+                    max_position_size=0.60,  # Reduce to allow other strategies room
+                    risk_tolerance='medium',  # More aggressive than before
                     parameters={
-                        'benchmarks': ['SPY', 'VTI', 'QQQ', 'IWM', 'DIA'],
-                        'target_allocation': 0.80,
-                        'rebalance_threshold': 0.05,
-                        'tax_loss_threshold': -0.10
+                        'benchmarks': ['SPY', 'QQQ', 'IWM', 'VTI', 'ARKK'],  # Add ARKK for WSB tech exposure
+                        'target_allocation': 0.60,  # Match position size
+                        'rebalance_threshold': 0.03,  # More frequent rebalancing
+                        'tax_loss_threshold': -0.05,  # More aggressive tax loss harvesting
+                        'momentum_factor': 0.2,  # Add momentum weighting
+                        'volatility_target': 0.20  # Target 20% volatility for WSB style
                     }
                 ),
                 'wheel_strategy': StrategyConfig(
@@ -195,77 +197,85 @@ class ProductionStrategyManager:
                 'debit_spreads': StrategyConfig(
                     name='debit_spreads',
                     enabled=True,
-                    max_position_size=0.10,
-                    risk_tolerance='medium',
+                    max_position_size=0.15,  # Bigger directional bets
+                    risk_tolerance='high',  # WSB loves directional plays
                     parameters={
-                        'watchlist': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'CRM', 'ADBE', 'ORCL', 'AMD', 'QCOM', 'UBER', 'SNOW', 'COIN', 'PLTR', 'ROKU', 'ZM', 'SHOP', 'SQ', 'PYPL', 'TWLO'],
-                        'max_positions': 8,
-                        'min_dte': 20,
-                        'max_dte': 60,
-                        'min_risk_reward': 1.5,
-                        'min_trend_strength': 0.6,
-                        'max_iv_rank': 80,
-                        'min_volume_score': 0.3,
-                        'profit_target': 0.30,
-                        'stop_loss': 0.50,
-                        'time_exit_dte': 7
+                        'watchlist': ['TSLA', 'NVDA', 'AMD', 'PLTR', 'GME', 'AMC', 'MSTR', 'COIN', 'AAPL', 'MSFT', 'GOOGL', 'META', 'AMZN', 'NFLX', 'SNOW', 'UBER', 'ROKU', 'SQ', 'PYPL'],  # Prioritize meme stocks
+                        'max_positions': 12,  # More concurrent bets
+                        'min_dte': 10,  # Shorter term for more action
+                        'max_dte': 35,  # Still reasonable but shorter
+                        'min_risk_reward': 1.2,  # Lower barrier for more opportunities
+                        'min_trend_strength': 0.4,  # Lower threshold to catch more moves
+                        'max_iv_rank': 90,  # Higher tolerance for volatility
+                        'min_volume_score': 0.2,  # Lower volume requirement
+                        'profit_target': 0.40,  # Let winners run WSB style
+                        'stop_loss': 0.70,  # Diamond hands approach
+                        'time_exit_dte': 3,  # More aggressive time management
+                        'momentum_multiplier': 1.5  # Extra weight for momentum
                     }
                 ),
                 'leaps_tracker': StrategyConfig(
                     name='leaps_tracker',
                     enabled=True,
-                    max_position_size=0.10,
-                    risk_tolerance='low',
+                    max_position_size=0.15,  # Bigger LEAPS YOLO bets
+                    risk_tolerance='high',  # WSB long-term YOLO mentality
                     parameters={
-                        'max_positions': 5,
-                        'max_total_allocation': 0.30,
-                        'min_dte': 365,
-                        'max_dte': 730,
-                        'min_composite_score': 60,
-                        'min_entry_timing_score': 50,
-                        'max_exit_timing_score': 70,
-                        'profit_levels': [100, 200, 300, 400],
-                        'scale_out_percentage': 25,
-                        'stop_loss': 0.50,
-                        'time_exit_dte': 90
+                        'max_positions': 8,  # More concurrent LEAPS
+                        'max_total_allocation': 0.40,  # Higher total allocation
+                        'min_dte': 180,  # Shorter minimum for more flexibility
+                        'max_dte': 730,  # Keep max the same
+                        'min_composite_score': 40,  # Lower barrier for more opportunities
+                        'min_entry_timing_score': 30,  # More aggressive entry
+                        'max_exit_timing_score': 80,  # Hold longer
+                        'profit_levels': [50, 100, 200, 400],  # Take some profits earlier
+                        'scale_out_percentage': 20,  # Smaller scale-outs
+                        'stop_loss': 0.70,  # Diamond hands approach
+                        'time_exit_dte': 45,  # Hold closer to expiry
+                        'meme_stock_bonus': 20,  # Extra points for meme stocks
+                        'wsb_sentiment_weight': 0.3  # Factor in WSB sentiment
                     }
                 ),
                 'swing_trading': StrategyConfig(
                     name='swing_trading',
                     enabled=True,
-                    max_position_size=0.02,
-                    risk_tolerance='high',
+                    max_position_size=0.05,  # More than double the swing size
+                    risk_tolerance='high',  # Keep high risk tolerance
                     parameters={
-                        'watchlist': ['SPY', 'QQQ', 'IWM', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'AMD', 'NFLX', 'CRM', 'ADBE', 'PYPL', 'SQ', 'ROKU', 'ZM', 'PLTR', 'COIN', 'XLF', 'XLE', 'XLK', 'XBI', 'ARKK', 'TQQQ', 'SOXL', 'SPXL'],
-                        'max_positions': 5,
-                        'max_expiry_days': 21,
-                        'min_strength_score': 60.0,
-                        'min_volume_multiple': 2.0,
-                        'min_breakout_strength': 0.002,
-                        'min_premium': 0.25,
-                        'profit_targets': [25, 50, 100],
-                        'stop_loss_pct': 30,
-                        'max_hold_hours': 8,
-                        'end_of_day_exit_hour': 15
+                        'watchlist': ['TSLA', 'NVDA', 'AMD', 'PLTR', 'GME', 'AMC', 'MSTR', 'COIN', 'SPY', 'QQQ', 'AAPL', 'MSFT', 'GOOGL', 'META', 'NFLX', 'ARKK', 'TQQQ', 'SOXL', 'SPXL', 'XLK'],  # Prioritize volatile/meme stocks
+                        'max_positions': 8,  # More concurrent positions
+                        'max_expiry_days': 35,  # Longer term for bigger moves
+                        'min_strength_score': 45.0,  # Lower threshold for more signals
+                        'min_volume_multiple': 1.5,  # Lower volume requirement
+                        'min_breakout_strength': 0.001,  # Catch smaller breakouts
+                        'min_premium': 0.15,  # Lower minimum premium
+                        'profit_targets': [30, 60, 150],  # Higher targets, let winners run
+                        'stop_loss_pct': 50,  # Wider stops, diamond hands
+                        'max_hold_hours': 24,  # Hold longer for bigger moves
+                        'end_of_day_exit_hour': 16,  # Hold through close
+                        'meme_stock_multiplier': 1.5,  # Extra weight for memes
+                        'wsb_momentum_factor': 0.3  # Factor in WSB sentiment
                     }
                 ),
                 'spx_credit_spreads': StrategyConfig(
                     name='spx_credit_spreads',
                     enabled=True,
-                    max_position_size=0.05,
-                    risk_tolerance='high',
+                    max_position_size=0.08,  # Bigger SPX credit spread positions
+                    risk_tolerance='high',  # Keep high risk tolerance
                     parameters={
-                        'target_short_delta': 0.30,
-                        'profit_target_pct': 0.25,
-                        'stop_loss_pct': 2.0,
-                        'max_dte': 2,
-                        'min_credit': 0.50,
-                        'max_spread_width': 50,
-                        'max_positions': 3,
-                        'risk_free_rate': 0.05,
-                        'target_iv_percentile': 30,
-                        'min_option_volume': 100,
-                        'min_option_oi': 50
+                        'target_short_delta': 0.20,  # More aggressive delta for higher premium
+                        'profit_target_pct': 0.40,  # Let winners run WSB style
+                        'stop_loss_pct': 2.5,  # Wider stops for volatility
+                        'max_dte': 5,  # Slightly longer for more flexibility
+                        'min_credit': 0.30,  # Lower minimum for more opportunities
+                        'max_spread_width': 75,  # Wider spreads for more premium
+                        'max_positions': 6,  # More concurrent positions
+                        'risk_free_rate': 0.05,  # Keep same
+                        'target_iv_percentile': 20,  # Lower threshold for more signals
+                        'min_option_volume': 50,  # Lower volume requirement
+                        'min_option_oi': 25,  # Lower OI requirement
+                        'gamma_squeeze_factor': 0.25,  # WSB gamma awareness
+                        'vix_momentum_weight': 0.2,  # Factor in VIX momentum
+                        'market_regime_filter': False  # Trade in all conditions WSB style
                     }
                 ),
                 'lotto_scanner': StrategyConfig(

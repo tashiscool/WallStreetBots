@@ -20,6 +20,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
+from enum import Enum
 
 from .production_integration import ProductionIntegrationManager
 from ..data.production_data_integration import ReliableDataProvider as ProductionDataProvider
@@ -33,6 +34,11 @@ from ..strategies.production_leaps_tracker import ProductionLEAPSTracker, create
 from ..strategies.production_swing_trading import ProductionSwingTrading, create_production_swing_trading
 from ..strategies.production_spx_credit_spreads import ProductionSPXCreditSpreads, create_production_spx_credit_spreads
 from ..strategies.production_lotto_scanner import ProductionLottoScanner, create_production_lotto_scanner
+
+
+class StrategyProfile(str, Enum):
+    research_2024 = "research_2024"
+    wsb_2025 = "wsb_2025"
 
 
 @dataclass
@@ -65,6 +71,164 @@ class ProductionStrategyManagerConfig:
     
     # Alert settings
     enable_alerts: bool = True
+    
+    # NEW: choose a preset
+    profile: StrategyProfile = StrategyProfile.research_2024
+
+
+def _preset_defaults(profile: StrategyProfile) -> Dict[str, StrategyConfig]:
+    """Return default strategy configs for a given profile."""
+    if profile == StrategyProfile.research_2024:
+        # === RESEARCH 2024 PRESET (Conservative) ===
+        return {
+            'wsb_dip_bot': StrategyConfig('wsb_dip_bot', True, 0.25, 'high', {
+                'run_lookback_days': 7, 'run_threshold': 0.08, 'dip_threshold': -0.02,
+                'target_dte_days': 21, 'otm_percentage': 0.03, 'target_multiplier': 2.5,
+                'delta_target': 0.50, 'wsb_sentiment_weight': 0.3
+            }),
+            'earnings_protection': StrategyConfig('earnings_protection', True, 0.06, 'high', {
+                'iv_percentile_threshold': 70, 'min_implied_move': 0.04,
+                'max_days_to_earnings': 30, 'min_days_to_earnings': 7,
+                'preferred_strategies': ['long_straddle','reverse_iron_condor'],
+                'delta_range': (0.25, 0.30), 'profit_target': 0.50,
+                'iv_crush_protection': True, 'straddle_vs_strangle': 'strangle',
+                'atm_for_low_price': True, 'ric_for_high_price': True,
+                'avoid_low_iv': True, 'exit_before_announcement': False
+            }),
+            'index_baseline': StrategyConfig('index_baseline', True, 0.60, 'medium', {
+                'benchmarks': ['SPY','QQQ','IWM','VTI','ARKK'],
+                'target_allocation': 0.60, 'rebalance_threshold': 0.03,
+                'tax_loss_threshold': -0.05, 'momentum_factor': 0.2, 'volatility_target': 0.20
+            }),
+            'wheel_strategy': StrategyConfig('wheel_strategy', True, 0.20, 'medium', {
+                'target_iv_rank': 50, 'target_dte_range': (30,45),
+                'target_delta_range': (0.15,0.30), 'max_positions': 8,
+                'min_premium_dollars': 50, 'profit_target': 0.50, 'roll_at_dte': 21,
+                'assignment_acceptance': True, 'covered_call_delta': 0.20,
+                'portfolio_allocation': 0.40,
+                'diversified_watchlist': ['SPY','QQQ','AAPL','MSFT','GOOGL','AMZN'],
+                'avoid_earnings': True, 'min_liquidity_score': 0.7, 'fundamental_screen': True
+            }),
+            'momentum_weeklies': StrategyConfig('momentum_weeklies', True, 0.05, 'high', {
+                'watchlist': ['SPY','QQQ','IWM'], 'max_positions': 3,
+                'min_volume_spike': 1.5, 'min_momentum_threshold': 0.015,
+                'target_dte_range': (0,2), 'target_delta_range': (0.05,0.15),
+                'min_premium': 1.00, 'profit_target': 0.50, 'stop_loss': 2.0,
+                'preferred_day': 'monday', 'entry_time_after': '10:00', 'avg_hold_hours': 2,
+                'wing_width': 30
+            }),
+            'debit_spreads': StrategyConfig('debit_spreads', True, 0.15, 'high', {
+                'watchlist': ['TSLA','NVDA','AMD','PLTR','GME','AMC','MSTR','COIN','AAPL','MSFT','GOOGL','META','AMZN','NFLX','SNOW','UBER','ROKU','SQ','PYPL'],
+                'max_positions': 12, 'min_dte': 10, 'max_dte': 35, 'min_risk_reward': 1.2,
+                'min_trend_strength': 0.4, 'max_iv_rank': 90, 'min_volume_score': 0.2,
+                'profit_target': 0.40, 'stop_loss': 0.70, 'time_exit_dte': 3, 'momentum_multiplier': 1.5
+            }),
+            'leaps_tracker': StrategyConfig('leaps_tracker', True, 0.03, 'medium', {
+                'max_positions': 5, 'max_total_allocation': 0.15,
+                'min_dte': 365, 'max_dte': 730, 'delta_strategy': 'mixed',
+                'high_delta_range': (0.70,0.80), 'low_delta_range': (0.10,0.30),
+                'profit_levels': [100,200,300], 'scale_out_percentage': 25,
+                'stop_loss': 1.0, 'time_exit_dte': 90, 'entry_staging': True, 'staging_periods': 3,
+                'focus_sectors': ['technology','growth'], 'min_premium_percentage': 0.10
+            }),
+            'swing_trading': StrategyConfig('swing_trading', True, 0.05, 'high', {
+                'watchlist': ['TSLA','NVDA','AMD','PLTR','GME','AMC','MSTR','COIN','SPY','QQQ','AAPL','MSFT','GOOGL','META','NFLX','ARKK','TQQQ','SOXL','SPXL','XLK'],
+                'max_positions': 8, 'max_expiry_days': 35, 'min_strength_score': 45.0,
+                'min_volume_multiple': 1.5, 'min_breakout_strength': 0.001,
+                'min_premium': 0.15, 'profit_targets': [30,60,150], 'stop_loss_pct': 50,
+                'max_hold_hours': 24, 'end_of_day_exit_hour': 16, 'meme_stock_multiplier': 1.5,
+                'wsb_momentum_factor': 0.3
+            }),
+            'spx_credit_spreads': StrategyConfig('spx_credit_spreads', True, 0.04, 'medium', {
+                'strategy_type': 'iron_condor', 'target_short_delta': 0.15,
+                'target_dte_range': (28,35), 'profit_target_pct': 0.50, 'stop_loss_multiple': 2.2,
+                'max_dte': 45, 'min_credit': 1.00, 'max_spread_width': 50, 'max_positions': 3,
+                'long_delta': 0.05, 'entry_time_preference': 'morning', 'roll_at_dte': 21,
+                'min_option_volume': 100, 'min_option_oi': 50, 'double_stop_loss_protection': True,
+                'vix_filter': 25, 'avoid_earnings_days': True
+            }),
+            'lotto_scanner': StrategyConfig('lotto_scanner', True, 0.01, 'extreme', {
+                'max_risk_pct': 0.5, 'max_concurrent_positions': 3,
+                'profit_targets': [500,1000,2000], 'stop_loss_pct': 1.0,
+                'min_win_probability': 0.05, 'max_dte': 2, 'catalyst_required': True,
+                'volume_spike_min': 5.0, 'focus_tickers': ['SPY','QQQ','TSLA','NVDA'],
+                'earnings_window_only': True, 'otm_threshold': 0.10, 'iv_spike_required': True,
+                'max_premium_cost': 2.00
+            })
+        }
+    
+    # === WSB 2025 PRESET (Aggressive) ===
+    meme_core = ['NVDA','TSLA','SMCI','ARM','AAPL','MSFT','GOOGL','AMZN','META','COIN','MSTR','PLTR','AMD','SPY','QQQ','IWM','GME','AMC']
+    return {
+        'wsb_dip_bot': StrategyConfig('wsb_dip_bot', True, 0.28, 'high', {
+            'run_lookback_days': 5,'run_threshold': 0.06,'dip_threshold': -0.015,
+            'target_dte_days': 14,'otm_percentage': 0.02,'target_multiplier': 3.0,
+            'delta_target': 0.55,'wsb_sentiment_weight': 0.40,'use_intraday_confirm': True,'min_option_volume': 5000
+        }),
+        'earnings_protection': StrategyConfig('earnings_protection', True, 0.22, 'high', {
+            'iv_percentile_threshold': 40,'min_implied_move': 0.025,'max_days_to_earnings': 10,'min_days_to_earnings': 0,
+            'preferred_strategies': ['long_straddle','long_strangle','calendar_spread','protective_hedge'],
+            'earnings_momentum_weight': 0.50,'wsb_sentiment_multiplier': 1.5,
+            'watchlist': [t for t in meme_core if t not in ('SPY','QQQ','IWM')]
+        }),
+        'index_baseline': StrategyConfig('index_baseline', True, 0.55, 'medium', {
+            'benchmarks': ['SPY','QQQ','IWM','VTI','ARKK','SMH','SOXX'],
+            'target_allocation': 0.55,'rebalance_threshold': 0.03,'tax_loss_threshold': -0.05,
+            'momentum_factor': 0.25,'volatility_target': 0.25
+        }),
+        'wheel_strategy': StrategyConfig('wheel_strategy', True, 0.42, 'high', {
+            'target_iv_rank': 25,'target_dte_range': (14,28),'target_delta_range': (0.25,0.45),
+            'max_positions': 20,'min_premium_dollars': 20,'profit_target': 0.50,'max_loss_pct': 0.75,
+            'assignment_buffer_days': 2,'gamma_squeeze_factor': 0.30,
+            'watchlist': [t for t in meme_core if t not in ('SPY','QQQ','IWM')]
+        }),
+        'momentum_weeklies': StrategyConfig('momentum_weeklies', True, 0.10, 'high', {
+            'watchlist': meme_core,'max_positions': 8,'min_volume_spike': 1.8,'min_momentum_threshold': 0.008,
+            'target_dte_range': (0,5),'otm_range': (0.01,0.08),'min_premium': 0.20,
+            'profit_target': 0.15,'stop_loss': 0.80,'time_exit_hours': 6,'use_0dte_priority': True
+        }),
+        'debit_spreads': StrategyConfig('debit_spreads', True, 0.18, 'high', {
+            'watchlist': [t for t in meme_core if t not in ('SPY','QQQ','IWM')],
+            'max_positions': 12,'min_dte': 7,'max_dte': 21,'min_risk_reward': 1.0,
+            'min_trend_strength': 0.35,'max_iv_rank': 92,'min_volume_score': 0.2,
+            'profit_target': 0.45,'stop_loss': 0.70,'time_exit_dte': 2,'momentum_multiplier': 1.6
+        }),
+        'leaps_tracker': StrategyConfig('leaps_tracker', True, 0.16, 'high', {
+            'max_positions': 8,'max_total_allocation': 0.40,'min_dte': 180,'max_dte': 540,
+            'min_composite_score': 40,'min_entry_timing_score': 30,'max_exit_timing_score': 85,
+            'profit_levels': [50,100,300,600],'scale_out_percentage': 20,'stop_loss': 0.70,'time_exit_dte': 45,
+            'meme_stock_bonus': 25,'wsb_sentiment_weight': 0.35,
+            'watchlist': [t for t in meme_core if t not in ('SPY','QQQ','IWM')]
+        }),
+        'swing_trading': StrategyConfig('swing_trading', True, 0.06, 'high', {
+            'watchlist': meme_core,'max_positions': 10,'max_expiry_days': 35,'min_strength_score': 42.0,
+            'min_volume_multiple': 1.4,'min_breakout_strength': 0.0008,'min_premium': 0.15,
+            'profit_targets': [30,60,150],'stop_loss_pct': 50,'max_hold_hours': 36,'end_of_day_exit_hour': 16,
+            'meme_stock_multiplier': 1.6,'wsb_momentum_factor': 0.35
+        }),
+        'spx_credit_spreads': StrategyConfig('spx_credit_spreads', True, 0.12, 'high', {
+            'use_0dte_priority': True,'target_short_delta': 0.20,'profit_target_pct': 0.50,'stop_loss_pct': 3.0,
+            'max_dte': 2,'min_credit': 0.40,'max_spread_width': 100,'max_positions': 12,'risk_free_rate': 0.05,
+            'target_iv_percentile': 18,'min_option_volume': 100,'gamma_squeeze_factor': 0.30,
+            'vix_momentum_weight': 0.25,'market_regime_filter': False,'entry_time_window_et': (10,15.5)
+        }),
+        'lotto_scanner': StrategyConfig('lotto_scanner', True, 0.04, 'extreme', {
+            '0dte_only': True,'max_risk_pct': 2.5,'max_concurrent_positions': 10,
+            'profit_targets': [150,250,400],'stop_loss_pct': 0.90,'max_dte': 1
+        })
+    }
+
+
+def _apply_profile_risk_overrides(cfg: ProductionStrategyManagerConfig):
+    """Tighten/loosen top-level risk based on profile."""
+    if cfg.profile == StrategyProfile.wsb_2025:
+        cfg.max_total_risk = 0.65
+        cfg.max_position_size = 0.30
+        cfg.data_refresh_interval = 10
+    else:
+        cfg.max_total_risk = 0.50
+        cfg.max_position_size = 0.20
+        cfg.data_refresh_interval = 30
 
 
 class ProductionStrategyManager:
@@ -81,6 +245,9 @@ class ProductionStrategyManager:
     def __init__(self, config: ProductionStrategyManagerConfig):
         self.config = config
         self.logger = logging.getLogger(__name__)
+        
+        # Apply profile-specific risk overrides
+        _apply_profile_risk_overrides(self.config)
         
         # Initialize core components
         self.integration_manager = ProductionIntegrationManager(
@@ -107,179 +274,14 @@ class ProductionStrategyManager:
         # Performance tracking
         self.performance_metrics: Dict[str, Any] = {}
         
-        self.logger.info("ProductionStrategyManager initialized")
+        self.logger.info(f"ProductionStrategyManager initialized with profile: {config.profile}")
     
     def _initialize_strategies(self):
         """Initialize all enabled strategies"""
         try:
-            # WSB-sourced configurations (2024-2025) with Reddit citations
-            meme_core = ['NVDA','TSLA','SMCI','ARM','AAPL','MSFT','GOOGL','AMZN','META','COIN','MSTR','PLTR','AMD','SPY','QQQ','IWM','GME','AMC']
+            # Get preset defaults based on configured profile
+            default_configs = _preset_defaults(self.config.profile)
             
-            default_configs = {
-                'spx_credit_spreads': StrategyConfig(
-                    name='spx_credit_spreads', 
-                    enabled=True, 
-                    max_position_size=0.12, 
-                    risk_tolerance='high',
-                    parameters={
-                        'use_0dte_priority': True,
-                        'target_short_delta': 0.20,         # WSB: ~0.2Δ short leg
-                        'profit_target_pct': 0.50,          # TP 40–50%
-                        'stop_loss_pct': 3.0,               # cap losses ~2.5–3x credit
-                        'max_dte': 2,
-                        'min_credit': 0.40,
-                        'max_spread_width': 100,
-                        'max_positions': 12,
-                        'entry_time_window_et': (10.0, 15.5) # avoid first hour; trade thru close
-                    }
-                ),
-                'momentum_weeklies': StrategyConfig(
-                    name='momentum_weeklies', 
-                    enabled=True, 
-                    max_position_size=0.10, 
-                    risk_tolerance='high',
-                    parameters={
-                        'watchlist': meme_core,
-                        'max_positions': 8,
-                        'min_volume_spike': 1.8,
-                        'min_momentum_threshold': 0.008,
-                        'target_dte_range': (0, 5),         # 0–5 DTE
-                        'otm_range': (0.01, 0.08),
-                        'min_premium': 0.20,
-                        'profit_target': 0.20,              # +20% common take-profit
-                        'stop_loss': 0.80,                  # let winners run, cut losers
-                        'time_exit_hours': 6,
-                        'use_0dte_priority': True
-                    }
-                ),
-                'wheel_strategy': StrategyConfig(
-                    name='wheel_strategy', 
-                    enabled=True, 
-                    max_position_size=0.42, 
-                    risk_tolerance='high',
-                    parameters={
-                        'target_iv_rank': 25,
-                        'target_dte_range': (14, 28),
-                        'target_delta_range': (0.10, 0.30), # CSP/CC deltas seen on WSB
-                        'max_positions': 20,
-                        'min_premium_dollars': 20,
-                        'profit_target': 0.50,
-                        'max_loss_pct': 0.75,
-                        'assignment_buffer_days': 2,
-                        'watchlist': [t for t in meme_core if t not in ('SPY','QQQ','IWM')]
-                    }
-                ),
-                'leaps_tracker': StrategyConfig(
-                    name='leaps_tracker', 
-                    enabled=True, 
-                    max_position_size=0.16, 
-                    risk_tolerance='high',
-                    parameters={
-                        'max_positions': 8,
-                        'max_total_allocation': 0.40,
-                        'min_dte': 180, 
-                        'max_dte': 540,     # 12–18 months
-                        'delta_hint': 0.40,                 # ~0.40Δ LEAPS
-                        'profit_levels': [50, 100, 300, 600],
-                        'scale_out_percentage': 20,
-                        'stop_loss': 0.70,
-                        'time_exit_dte': 45
-                    }
-                ),
-                'earnings_protection': StrategyConfig(
-                    name='earnings_protection', 
-                    enabled=True, 
-                    max_position_size=0.22, 
-                    risk_tolerance='high',
-                    parameters={
-                        'iv_percentile_threshold': 40,
-                        'min_implied_move': 0.025,
-                        'max_days_to_earnings': 10,
-                        'min_days_to_earnings': 0,
-                        'preferred_strategies': ['long_straddle','long_strangle','calendar_spread','protective_hedge']
-                    }
-                ),
-                'debit_spreads': StrategyConfig(
-                    name='debit_spreads', 
-                    enabled=True, 
-                    max_position_size=0.18, 
-                    risk_tolerance='high',
-                    parameters={
-                        'watchlist': [t for t in meme_core if t not in ('SPY','QQQ','IWM')],
-                        'max_positions': 12,
-                        'min_dte': 7, 
-                        'max_dte': 21,
-                        'min_risk_reward': 1.0,             # R:R ≥ 1.0
-                        'min_trend_strength': 0.35,
-                        'max_iv_rank': 92,
-                        'profit_target': 0.45,
-                        'stop_loss': 0.70,
-                        'time_exit_dte': 2
-                    }
-                ),
-                'swing_trading': StrategyConfig(
-                    name='swing_trading', 
-                    enabled=True, 
-                    max_position_size=0.06, 
-                    risk_tolerance='high',
-                    parameters={
-                        'watchlist': meme_core,
-                        'max_positions': 10,
-                        'max_expiry_days': 35,
-                        'min_strength_score': 42.0,
-                        'min_volume_multiple': 1.4,
-                        'min_breakout_strength': 0.0008,
-                        'min_premium': 0.15,
-                        'profit_targets': [30, 60, 150],
-                        'stop_loss_pct': 50,
-                        'skip_first_hour': True              # enforce in strategy code
-                    }
-                ),
-                'wsb_dip_bot': StrategyConfig(
-                    name='wsb_dip_bot', 
-                    enabled=True, 
-                    max_position_size=0.28, 
-                    risk_tolerance='high',
-                    parameters={
-                        'run_lookback_days': 5,
-                        'run_threshold': 0.06,
-                        'dip_threshold': -0.015,
-                        'target_dte_days': 14,
-                        'otm_percentage': 0.02,
-                        'target_multiplier': 3.0,
-                        'delta_target': 0.55,
-                        'use_intraday_confirm': True
-                    }
-                ),
-                'index_baseline': StrategyConfig(
-                    name='index_baseline', 
-                    enabled=True, 
-                    max_position_size=0.55, 
-                    risk_tolerance='medium',
-                    parameters={
-                        'benchmarks': ['SPY','QQQ','IWM','VTI','ARKK','SMH','SOXX'],
-                        'target_allocation': 0.55,
-                        'rebalance_threshold': 0.03,
-                        'tax_loss_threshold': -0.05,
-                        'momentum_factor': 0.25,
-                        'volatility_target': 0.25
-                    }
-                ),
-                'lotto_scanner': StrategyConfig(
-                    name='lotto_scanner', 
-                    enabled=True, 
-                    max_position_size=0.04, 
-                    risk_tolerance='extreme',
-                    parameters={
-                        '0dte_only': True,
-                        'max_risk_pct': 2.5,
-                        'max_concurrent_positions': 10,
-                        'profit_targets': [150, 250, 400],   # ladder sells
-                        'stop_loss_pct': 0.90,
-                        'max_dte': 1
-                    }
-                )
-            }
             
             # Merge with user configurations
             strategy_configs = {**default_configs, **self.config.strategies}

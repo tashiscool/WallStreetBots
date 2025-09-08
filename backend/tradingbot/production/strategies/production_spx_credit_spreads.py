@@ -745,6 +745,26 @@ class ProductionSPXCreditSpreads:
             return {'strategy_name': self.strategy_name, 'error': str(e)}
 
 
+    async def run_strategy(self):
+        """Main strategy execution loop"""
+        self.logger.info("Starting Production SPX Credit Spreads Strategy")
+        
+        try:
+            while True:
+                # Scan for SPX credit spread opportunities
+                signals = await self.scan_opportunities()
+                
+                # Execute trades for signals
+                if signals:
+                    await self.execute_trades(signals)
+                
+                # Wait before next scan (0DTE is very active)
+                await asyncio.sleep(30)  # 30 seconds between scans for 0DTE
+                
+        except Exception as e:
+            self.logger.error(f"Error in SPX credit spreads strategy main loop: {e}")
+
+
 def create_production_spx_credit_spreads(integration_manager, data_provider: ReliableDataProvider, 
                                         config: dict) -> ProductionSPXCreditSpreads:
     """Factory function to create ProductionSPXCreditSpreads strategy"""

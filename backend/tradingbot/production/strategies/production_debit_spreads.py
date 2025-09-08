@@ -766,6 +766,26 @@ class ProductionDebitSpreads:
             return {'strategy_name': self.strategy_name, 'error': str(e)}
 
 
+    async def run_strategy(self):
+        """Main strategy execution loop"""
+        self.logger.info("Starting Production Debit Spreads Strategy")
+        
+        try:
+            while True:
+                # Scan for debit spread opportunities
+                signals = await self.scan_opportunities()
+                
+                # Execute trades for signals
+                if signals:
+                    await self.execute_trades(signals)
+                
+                # Wait before next scan
+                await asyncio.sleep(180)  # 3 minutes between scans
+                
+        except Exception as e:
+            self.logger.error(f"Error in debit spreads strategy main loop: {e}")
+
+
 def create_production_debit_spreads(integration_manager, data_provider: ReliableDataProvider, 
                                    config: dict) -> ProductionDebitSpreads:
     """Factory function to create ProductionDebitSpreads strategy"""

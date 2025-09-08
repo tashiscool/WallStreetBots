@@ -603,6 +603,26 @@ class ProductionMomentumWeeklies:
             return {'strategy_name': self.strategy_name, 'error': str(e)}
 
 
+    async def run_strategy(self):
+        """Main strategy execution loop"""
+        self.logger.info("Starting Production Momentum Weeklies Strategy")
+        
+        try:
+            while True:
+                # Scan for momentum opportunities
+                signals = await self.scan_opportunities()
+                
+                # Execute trades for signals
+                if signals:
+                    await self.execute_trades(signals)
+                
+                # Wait before next scan (momentum runs frequently)
+                await asyncio.sleep(60)  # 1 minute between scans
+                
+        except Exception as e:
+            self.logger.error(f"Error in momentum weeklies strategy main loop: {e}")
+
+
 def create_production_momentum_weeklies(integration_manager, data_provider: ReliableDataProvider, 
                                        config: dict) -> ProductionMomentumWeeklies:
     """Factory function to create ProductionMomentumWeeklies strategy"""

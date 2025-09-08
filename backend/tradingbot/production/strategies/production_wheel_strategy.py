@@ -602,6 +602,25 @@ class ProductionWheelStrategy:
         except Exception as e:
             self.logger.error(f"Error getting wheel performance metrics: {e}")
             return {"strategy": "wheel_strategy", "error": str(e)}
+    
+    async def run_strategy(self):
+        """Main strategy execution loop"""
+        self.logger.info("Starting Production Wheel Strategy")
+        
+        try:
+            while True:
+                # Scan for wheel opportunities
+                signals = await self.scan_opportunities()
+                
+                # Execute trades for signals
+                if signals:
+                    await self.execute_trades(signals)
+                
+                # Wait before next scan (wheel strategy runs less frequently)
+                await asyncio.sleep(300)  # 5 minutes between scans
+                
+        except Exception as e:
+            self.logger.error(f"Error in wheel strategy main loop: {e}")
 
 
 def create_production_wheel_strategy(

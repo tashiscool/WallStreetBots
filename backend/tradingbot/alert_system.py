@@ -287,6 +287,88 @@ class TradingAlertSystem:
 
         return results
 
+    async def send_alert(self, alert_type_or_alert, priority=None, message=None, ticker=None) -> Dict[AlertChannel, bool]:
+        """
+        Send alert with flexible parameters - supports both Alert objects and string parameters
+        
+        Usage:
+        - send_alert(alert_object) - Original method
+        - send_alert("ENTRY_SIGNAL", "HIGH", "message", "AAPL") - Convenience method
+        """
+        # Handle both old Alert object format and new string parameters
+        if isinstance(alert_type_or_alert, Alert):
+            # Original format - Alert object
+            return self.send_alert_object(alert_type_or_alert)
+        else:
+            # New format - string parameters (for backward compatibility)
+            try:
+                # Convert string parameters to Alert object
+                if isinstance(alert_type_or_alert, str):
+                    alert_type = AlertType(alert_type_or_alert.lower())
+                else:
+                    alert_type = alert_type_or_alert
+                    
+                if isinstance(priority, str):
+                    priority_obj = AlertPriority[priority.upper()]
+                else:
+                    priority_obj = priority or AlertPriority.MEDIUM
+                
+                alert = Alert(
+                    alert_type=alert_type,
+                    priority=priority_obj,
+                    ticker=ticker or "UNKNOWN",
+                    title=alert_type_or_alert.upper() if isinstance(alert_type_or_alert, str) else str(alert_type_or_alert),
+                    message=message or "Alert triggered"
+                )
+                
+                return self.send_alert_object(alert)
+                
+            except Exception as e:
+                print(f"Error creating alert: {e}")
+                return {}
+
+    def send_alert_object(self, alert: Alert) -> Dict[AlertChannel, bool]:
+        """Original send_alert method renamed"""
+        results = {}
+        
+        # Filter by priority (only send HIGH and URGENT alerts by default)
+        # But allow all alerts to be stored in history
+        if alert.priority in [AlertPriority.LOW, AlertPriority.MEDIUM]:
+            # Store in history but don't send
+            self.alert_history.append(alert)
+            if len(self.alert_history) > self.max_history:
+                self.alert_history = self.alert_history[-self.max_history:]
+            return results  # Return empty results for low/medium priority
+        
+        # Use alert-specific channels or fall back to preferences
+        channels = alert.channels or self.alert_preferences.get(alert.alert_type, [AlertChannel.DESKTOP])
+        
+        for channel in channels:
+            handler = self.handlers.get(channel)
+            if handler:
+                try:
+                    success = handler.send_alert(alert)
+                    results[channel] = success
+                except Exception as e:
+                    logging.error(f"Failed to send alert via {channel}: {e}")
+                    results[channel] = False
+            else:
+                logging.warning(f"No handler registered for channel: {channel}")
+                results[channel] = False
+
+        # Store alert in history
+        self.alert_history.append(alert)
+        
+        # Enforce history limit
+        if len(self.alert_history) > self.max_history:
+            self.alert_history = self.alert_history[-self.max_history:]
+
+        # Add to active alerts if high priority
+        if alert.priority in [AlertPriority.HIGH, AlertPriority.URGENT]:
+            self.active_alerts.append(alert)
+
+        return results
+
     def check_market_signals(
         self,
         ticker: str,

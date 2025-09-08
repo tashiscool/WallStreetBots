@@ -729,6 +729,26 @@ class ProductionSwingTrading:
             return {'strategy_name': self.strategy_name, 'error': str(e)}
 
 
+    async def run_strategy(self):
+        """Main strategy execution loop"""
+        self.logger.info("Starting Production Swing Trading Strategy")
+        
+        try:
+            while True:
+                # Scan for swing trading opportunities
+                signals = await self.scan_opportunities()
+                
+                # Execute trades for signals
+                if signals:
+                    await self.execute_trades(signals)
+                
+                # Wait before next scan (swing trading is active)
+                await asyncio.sleep(120)  # 2 minutes between scans
+                
+        except Exception as e:
+            self.logger.error(f"Error in swing trading strategy main loop: {e}")
+
+
 def create_production_swing_trading(integration_manager, data_provider: ReliableDataProvider, 
                                    config: dict) -> ProductionSwingTrading:
     """Factory function to create ProductionSwingTrading strategy"""

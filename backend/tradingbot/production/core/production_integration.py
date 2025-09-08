@@ -236,9 +236,13 @@ class ProductionIntegrationManager:
             # Calculate position risk
             position_risk = float(signal.risk_amount) / float(portfolio_value) if portfolio_value > 0 else 0
             
-            # Check individual position limit (max 20% per ticker)
+            # Check individual position limit 
             current_position_value = await self.get_position_value(signal.ticker)
-            max_position_value = float(portfolio_value) * 0.20
+            # Allow higher limits for index ETFs (SPY, VTI, QQQ, etc.) and lower-risk strategies
+            if signal.ticker in ['SPY', 'VTI', 'QQQ', 'IWM', 'DIA', 'VOO', 'VTI', 'VTEB']:
+                max_position_value = float(portfolio_value) * 0.80  # 80% for broad market ETFs
+            else:
+                max_position_value = float(portfolio_value) * 0.20  # 20% for individual stocks
             
             if float(current_position_value) + float(signal.risk_amount) > max_position_value:
                 return {

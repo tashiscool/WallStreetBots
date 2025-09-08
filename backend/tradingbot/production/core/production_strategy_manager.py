@@ -117,29 +117,32 @@ class ProductionStrategyManager:
                 'wsb_dip_bot': StrategyConfig(
                     name='wsb_dip_bot',
                     enabled=True,
-                    max_position_size=0.20,
+                    max_position_size=0.25,  # Bigger positions on dips
                     risk_tolerance='high',
                     parameters={
-                        'run_lookback_days': 10,
-                        'run_threshold': 0.10,
-                        'dip_threshold': -0.03,
-                        'target_dte_days': 30,
-                        'otm_percentage': 0.05,
-                        'target_multiplier': 3.0,
-                        'delta_target': 0.60
+                        'run_lookback_days': 7,  # Shorter lookback for faster signals
+                        'run_threshold': 0.08,  # Lower threshold for more signals
+                        'dip_threshold': -0.02,  # Catch smaller dips
+                        'target_dte_days': 21,  # Shorter term for more premium
+                        'otm_percentage': 0.03,  # Closer to money for more action
+                        'target_multiplier': 2.5,  # More realistic targets
+                        'delta_target': 0.50,  # More aggressive delta
+                        'wsb_sentiment_weight': 0.3  # Factor in WSB sentiment
                     }
                 ),
                 'earnings_protection': StrategyConfig(
                     name='earnings_protection',
                     enabled=True,
-                    max_position_size=0.15,
-                    risk_tolerance='medium',
+                    max_position_size=0.20,  # Bigger earnings bets
+                    risk_tolerance='high',  # WSB loves earnings volatility
                     parameters={
-                        'iv_percentile_threshold': 70,
-                        'min_implied_move': 0.04,
-                        'max_days_to_earnings': 7,
-                        'min_days_to_earnings': 1,
-                        'preferred_strategies': ['deep_itm', 'calendar_spread', 'protective_hedge']
+                        'iv_percentile_threshold': 50,  # Lower threshold for more plays
+                        'min_implied_move': 0.02,  # Catch smaller expected moves
+                        'max_days_to_earnings': 14,  # Wider window for opportunities
+                        'min_days_to_earnings': 0,  # Include day-of earnings
+                        'preferred_strategies': ['long_straddle', 'long_strangle', 'protective_hedge'],  # More aggressive strategies
+                        'earnings_momentum_weight': 0.4,  # Factor in momentum
+                        'wsb_sentiment_multiplier': 1.3  # Extra weight for WSB favorites
                     }
                 ),
                 'index_baseline': StrategyConfig(
@@ -157,36 +160,36 @@ class ProductionStrategyManager:
                 'wheel_strategy': StrategyConfig(
                     name='wheel_strategy',
                     enabled=True,
-                    max_position_size=0.30,
-                    risk_tolerance='medium',
+                    max_position_size=0.40,
+                    risk_tolerance='high',
                     parameters={
-                        'target_iv_rank': 50,
-                        'target_dte_range': (30, 45),
-                        'target_delta_range': (0.15, 0.30),
-                        'max_positions': 10,
-                        'min_premium_dollars': 50,
-                        'profit_target': 0.25,
-                        'max_loss_pct': 0.50,
-                        'assignment_buffer_days': 7,
-                        'watchlist': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'AMD', 'PLTR', 'F', 'BAC', 'T', 'KO', 'PFE', 'INTC', 'CCL', 'AAL']
+                        'target_iv_rank': 30,  # Lower threshold - WSB trades in more conditions
+                        'target_dte_range': (20, 35),  # Shorter term for more premium
+                        'target_delta_range': (0.20, 0.40),  # More aggressive deltas
+                        'max_positions': 15,  # More concurrent positions
+                        'min_premium_dollars': 25,  # Lower minimum to catch more opportunities
+                        'profit_target': 0.50,  # Hold for bigger gains
+                        'max_loss_pct': 0.75,  # WSB diamond hands
+                        'assignment_buffer_days': 3,  # More aggressive timing
+                        'watchlist': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'AMD', 'PLTR', 'SPY', 'QQQ', 'IWM', 'MSTR', 'GME', 'AMC', 'BB', 'NOK']
                     }
                 ),
                 'momentum_weeklies': StrategyConfig(
                     name='momentum_weeklies',
                     enabled=True,
-                    max_position_size=0.05,
+                    max_position_size=0.08,  # Bigger bets on momentum
                     risk_tolerance='high',
                     parameters={
-                        'watchlist': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'CRM', 'ADBE', 'ORCL', 'INTC', 'AMD', 'QCOM', 'TXN', 'AVGO', 'PYPL', 'DIS', 'V', 'MA', 'JPM', 'BAC', 'WMT', 'HD'],
-                        'max_positions': 3,
-                        'min_volume_spike': 3.0,
-                        'min_momentum_threshold': 0.015,
-                        'target_dte_range': (0, 4),
-                        'otm_range': (0.02, 0.05),
-                        'min_premium': 0.50,
-                        'profit_target': 0.25,
-                        'stop_loss': 0.50,
-                        'time_exit_hours': 4
+                        'watchlist': ['TSLA', 'NVDA', 'AMD', 'PLTR', 'GME', 'AMC', 'MSTR', 'SPY', 'QQQ', 'AAPL', 'MSFT', 'META', 'GOOGL', 'AMZN', 'NFLX', 'CRM', 'SNOW', 'COIN', 'UBER', 'ROKU'],
+                        'max_positions': 5,  # More positions for more opportunities
+                        'min_volume_spike': 2.0,  # Lower threshold to catch more moves
+                        'min_momentum_threshold': 0.01,  # Lower threshold for more signals
+                        'target_dte_range': (0, 7),  # Include 0DTE WSB style
+                        'otm_range': (0.01, 0.08),  # More aggressive OTM range
+                        'min_premium': 0.25,  # Lower minimum for more opportunities
+                        'profit_target': 0.100,  # Quick profits like WSB
+                        'stop_loss': 0.80,  # Diamond hands WSB style
+                        'time_exit_hours': 2  # Faster exits
                     }
                 ),
                 'debit_spreads': StrategyConfig(
@@ -268,18 +271,18 @@ class ProductionStrategyManager:
                 'lotto_scanner': StrategyConfig(
                     name='lotto_scanner',
                     enabled=True,
-                    max_position_size=0.01,
+                    max_position_size=0.03,  # Triple the YOLO size
                     risk_tolerance='extreme',
                     parameters={
-                        'max_risk_pct': 1.0,
-                        'max_concurrent_positions': 3,
-                        'profit_targets': [300, 500, 800],
-                        'stop_loss_pct': 0.50,
-                        'min_win_probability': 0.15,
-                        'max_dte': 5,
+                        'max_risk_pct': 2.0,  # Double the risk for WSB style
+                        'max_concurrent_positions': 8,  # More lottery tickets
+                        'profit_targets': [200, 300, 500],  # Lower targets, faster profits
+                        'stop_loss_pct': 0.80,  # Diamond hands WSB style
+                        'min_win_probability': 0.10,  # Lower threshold for more opportunities
+                        'max_dte': 3,  # Shorter term for more action
                         'high_volume_tickers': ['SPY', 'QQQ', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META'],
-                        'meme_tickers': ['GME', 'AMC', 'PLTR', 'COIN', 'HOOD', 'RIVN', 'SOFI'],
-                        'earnings_tickers': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'CRM', 'ADBE', 'ORCL', 'AMD', 'QCOM', 'UBER', 'SNOW']
+                        'meme_tickers': ['GME', 'AMC', 'PLTR', 'MSTR', 'COIN', 'HOOD', 'RIVN', 'SOFI', 'BB', 'NOK'],
+                        'earnings_tickers': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'CRM', 'AMD', 'UBER', 'SNOW']
                     }
                 )
             }

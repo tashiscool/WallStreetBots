@@ -18,13 +18,14 @@ class WallStreetBotsLauncher:
         
     def get_python_executable(self):
         """Get the correct Python executable path for the platform"""
-        if self.system== "windows":python_exe = self.venv_path / "Scripts" / "python.exe"
+        if self.system == "windows":
+            python_exe = self.venv_path / "Scripts" / "python.exe"
             if not python_exe.exists():
-                python_exe=self.venv_path / "Scripts" / "python3.exe"
+                python_exe = self.venv_path / "Scripts" / "python3.exe"
         else:  # macOS/Linux
             python_exe = self.venv_path / "bin" / "python"
             if not python_exe.exists():
-                python_exe=self.venv_path / "bin" / "python3"
+                python_exe = self.venv_path / "bin" / "python3"
         
         # Fallback to system Python if venv doesn't exist
         if not python_exe.exists():
@@ -114,7 +115,8 @@ class WallStreetBotsLauncher:
             print("⚠️  WARNING: REAL MONEY MODE!")
             print("⚠️  This will trade with real money!")
             confirm=input("Type 'YES I UNDERSTAND' to continue: ")
-            if confirm != "YES I UNDERSTAND":print("❌ Cancelled for safety")
+            if confirm != "YES I UNDERSTAND":
+                print("❌ Cancelled for safety")
                 return
         
         try:
@@ -243,7 +245,8 @@ class WallStreetBotsLauncher:
             if is_interactive:
                 try:
                     response=input("Would you like to try installing dependencies? (y/n): ")
-                    if response.lower() == 'y':if not self.install_dependencies():
+                    if response.lower() == 'y':
+                        if not self.install_dependencies():
                             print("❌ Setup failed. Exiting.")
                             sys.exit(1)
                     else:
@@ -268,10 +271,14 @@ class WallStreetBotsLauncher:
             
             if len(sys.argv) > 1:
                 arg=sys.argv[1]
-                if arg == "--status":self.system_status()
-                elif arg== "--test":self.run_tests("risk")
-                elif arg== "--demo":self.run_demo_risk_models()
-                elif arg== "--help":print("\nUse the interactive launcher: python3 run_wallstreetbots.py")
+                if arg == "--status":
+                    self.system_status()
+                elif arg == "--test":
+                    self.run_tests("risk")
+                elif arg == "--demo":
+                    self.run_demo_risk_models()
+                elif arg == "--help":
+                    print("\nUse the interactive launcher: python3 run_wallstreetbots.py")
                 else:
                     print(f"Unknown argument: {arg}")
             else:
@@ -285,15 +292,24 @@ class WallStreetBotsLauncher:
                 self.show_menu()
                 choice=input("\nSelect option (1-9): ").strip()
                 
-                if choice== "1":self.run_simple_bot(real_money=False)
-                elif choice== "2":self.run_simple_bot(real_money=True)
-                elif choice== "3":self.run_tests("risk")
-                elif choice== "4":self.run_tests("advanced")
-                elif choice== "5":self.run_django_admin()
-                elif choice== "6":self.run_demo_risk_models()
-                elif choice== "7":self.install_dependencies()
-                elif choice== "8":self.system_status()
-                elif choice== "9":print("👋 Goodbye!")
+                if choice == "1":
+                    self.run_simple_bot(real_money=False)
+                elif choice == "2":
+                    self.run_simple_bot(real_money=True)
+                elif choice == "3":
+                    self.run_tests("risk")
+                elif choice == "4":
+                    self.run_tests("advanced")
+                elif choice == "5":
+                    self.run_django_admin()
+                elif choice == "6":
+                    self.run_demo_risk_models()
+                elif choice == "7":
+                    self.install_dependencies()
+                elif choice == "8":
+                    self.system_status()
+                elif choice == "9":
+                    print("👋 Goodbye!")
                     break
                 else:
                     print("❌ Invalid choice. Please select 1-9.")
@@ -317,5 +333,6 @@ class WallStreetBotsLauncher:
                 except (EOFError, KeyboardInterrupt):
                     break
 
-if __name__== "__main__":launcher = WallStreetBotsLauncher()
+if __name__ == "__main__":
+    launcher = WallStreetBotsLauncher()
     launcher.run()

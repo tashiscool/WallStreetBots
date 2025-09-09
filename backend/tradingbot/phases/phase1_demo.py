@@ -41,15 +41,15 @@ except ImportError:
 class Phase1Demo:
     """Demonstrate Phase 1 implementation"""
     
-    def __init__(self, config_file: str = "config/production.json"):
-        self.config_file = config_file
+    def __init__(self, config_file: str="config/production.json"):
+        self.config_file=config_file
         self.logger = ProductionLogger("phase1_demo")
-        self.error_handler = ErrorHandler(self.logger)
-        self.metrics_collector = MetricsCollector(self.logger)
-        self.health_checker = HealthChecker(self.logger)
+        self.error_handler=ErrorHandler(self.logger)
+        self.metrics_collector=MetricsCollector(self.logger)
+        self.health_checker=HealthChecker(self.logger)
         
         # Initialize components
-        self.config_manager = None
+        self.config_manager=None
         self.config = None
         self.data_provider = None
         self.trading_interface = None
@@ -60,19 +60,19 @@ class Phase1Demo:
         
         try:
             # 1. Load configuration
-            self.config_manager = create_config_manager(self.config_file)
-            self.config = self.config_manager.load_config()
+            self.config_manager=create_config_manager(self.config_file)
+            self.config=self.config_manager.load_config()
             
             # Validate configuration
-            errors = self.config.validate()
+            errors=self.config.validate()
             if errors:
                 self.logger.warning(f"Configuration validation errors: {errors}")
             
             # 2. Create data provider
-            self.data_provider = create_data_provider(self.config.data_providers.__dict__)
+            self.data_provider=create_data_provider(self.config.data_providers.__dict__)
             
             # 3. Create trading interface
-            self.trading_interface = create_trading_interface(self.config.to_dict())
+            self.trading_interface=create_trading_interface(self.config.to_dict())
             
             # 4. Setup health checks
             await self.setup_health_checks()
@@ -80,7 +80,7 @@ class Phase1Demo:
             self.logger.info("Phase 1 components initialized successfully")
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"component": "initialization"})
+            self.error_handler.handle_error(e, {"component":"initialization"})
             raise
     
     async def setup_health_checks(self):
@@ -89,7 +89,7 @@ class Phase1Demo:
         async def data_provider_check():
             try:
                 # Try to fetch data for a test ticker
-                data = await self.data_provider.get_market_data("AAPL")
+                data=await self.data_provider.get_market_data("AAPL")
                 return data.price > 0
             except Exception:
                 return False
@@ -98,7 +98,7 @@ class Phase1Demo:
         async def trading_interface_check():
             try:
                 # Check if broker connection is working
-                account_info = await self.trading_interface.get_account_info()
+                account_info=await self.trading_interface.get_account_info()
                 return account_info.get('equity', 0) >= 0
             except Exception:
                 return False
@@ -113,11 +113,11 @@ class Phase1Demo:
         
         try:
             # Test market data fetching
-            tickers = ["AAPL", "MSFT", "GOOGL"]
+            tickers=["AAPL", "MSFT", "GOOGL"]
             
             for ticker in tickers:
                 try:
-                    data = await self.data_provider.get_market_data(ticker)
+                    data=await self.data_provider.get_market_data(ticker)
                     self.logger.info(
                         f"Market data for {ticker}",
                         ticker=ticker,
@@ -130,15 +130,15 @@ class Phase1Demo:
                     self.metrics_collector.record_metric(
                         "market_data_price",
                         data.price,
-                        {"ticker": ticker}
+                        {"ticker":ticker}
                     )
                     
                 except Exception as e:
-                    self.error_handler.handle_error(e, {"ticker": ticker, "operation": "market_data"})
+                    self.error_handler.handle_error(e, {"ticker":ticker, "operation":"market_data"})
             
             # Test earnings data
             try:
-                earnings_events = await self.data_provider.get_earnings_data("AAPL", days_ahead=7)
+                earnings_events=await self.data_provider.get_earnings_data("AAPL", days_ahead=7)
                 self.logger.info(
                     f"Found {len(earnings_events)} upcoming earnings events",
                     count=len(earnings_events)
@@ -153,11 +153,11 @@ class Phase1Demo:
                     )
                     
             except Exception as e:
-                self.error_handler.handle_error(e, {"operation": "earnings_data"})
+                self.error_handler.handle_error(e, {"operation":"earnings_data"})
             
             # Test sentiment analysis
             try:
-                sentiment = await self.data_provider.get_sentiment_data("AAPL")
+                sentiment=await self.data_provider.get_sentiment_data("AAPL")
                 self.logger.info(
                     f"Sentiment analysis for AAPL",
                     score=sentiment.get('score', 0),
@@ -167,14 +167,14 @@ class Phase1Demo:
                 self.metrics_collector.record_metric(
                     "sentiment_score",
                     sentiment.get('score', 0),
-                    {"ticker": "AAPL"}
+                    {"ticker":"AAPL"}
                 )
                 
             except Exception as e:
-                self.error_handler.handle_error(e, {"operation": "sentiment_analysis"})
+                self.error_handler.handle_error(e, {"operation":"sentiment_analysis"})
                 
         except Exception as e:
-            self.error_handler.handle_error(e, {"component": "data_integration"})
+            self.error_handler.handle_error(e, {"component":"data_integration"})
     
     async def demonstrate_trading_interface(self):
         """Demonstrate trading interface functionality"""
@@ -182,7 +182,7 @@ class Phase1Demo:
         
         try:
             # Create a test trade signal
-            signal = TradeSignal(
+            signal=TradeSignal(
                 strategy_name="demo_strategy",
                 ticker="AAPL",
                 side=OrderSide.BUY,
@@ -201,7 +201,7 @@ class Phase1Demo:
             )
             
             # Validate signal
-            validation_result = await self.trading_interface.validate_signal(signal)
+            validation_result=await self.trading_interface.validate_signal(signal)
             self.logger.info(
                 "Signal validation result",
                 valid=validation_result['valid'],
@@ -209,7 +209,7 @@ class Phase1Demo:
             )
             
             # Check risk limits
-            risk_result = await self.trading_interface.check_risk_limits(signal)
+            risk_result=await self.trading_interface.check_risk_limits(signal)
             self.logger.info(
                 "Risk check result",
                 allowed=risk_result['allowed'],
@@ -220,13 +220,13 @@ class Phase1Demo:
             self.metrics_collector.record_metric(
                 "signal_validation",
                 1 if validation_result['valid'] else 0,
-                {"strategy": signal.strategy_name}
+                {"strategy":signal.strategy_name}
             )
             
             self.metrics_collector.record_metric(
                 "risk_check_passed",
                 1 if risk_result['allowed'] else 0,
-                {"strategy": signal.strategy_name}
+                {"strategy":signal.strategy_name}
             )
             
             # If validation and risk checks pass, demonstrate execution
@@ -234,13 +234,13 @@ class Phase1Demo:
                 self.logger.info("Signal passed validation and risk checks - would execute trade")
                 
                 # In a real implementation, this would execute the trade
-                # trade_result = await self.trading_interface.execute_trade(signal)
+                # trade_result=await self.trading_interface.execute_trade(signal)
                 
             else:
                 self.logger.warning("Signal failed validation or risk checks - trade would be rejected")
                 
         except Exception as e:
-            self.error_handler.handle_error(e, {"component": "trading_interface"})
+            self.error_handler.handle_error(e, {"component":"trading_interface"})
     
     async def demonstrate_error_handling(self):
         """Demonstrate error handling and resilience"""
@@ -248,7 +248,7 @@ class Phase1Demo:
         
         try:
             # Test circuit breaker
-            circuit_breaker = CircuitBreaker(failure_threshold=3, timeout=5.0)
+            circuit_breaker=CircuitBreaker(failure_threshold=3, timeout=5.0)
             
             def flaky_function():
                 import random
@@ -259,13 +259,13 @@ class Phase1Demo:
             # Test circuit breaker behavior
             for i in range(5):
                 try:
-                    result = circuit_breaker.call(flaky_function)
+                    result=circuit_breaker.call(flaky_function)
                     self.logger.info(f"Circuit breaker call {i+1}: {result}")
                 except Exception as e:
                     self.logger.warning(f"Circuit breaker call {i+1} failed: {e}")
             
             # Test retry mechanism
-            call_count = 0
+            call_count=0
             
             def retry_function():
                 nonlocal call_count
@@ -275,14 +275,14 @@ class Phase1Demo:
                 return "success after retries"
             
             try:
-                result = retry_function()
+                result=retry_function()
                 self.logger.info(f"Retry function result: {result}")
                 self.logger.info(f"Total attempts: {call_count}")
             except Exception as e:
                 self.logger.error(f"Retry function failed: {e}")
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"component": "error_handling"})
+            self.error_handler.handle_error(e, {"component":"error_handling"})
     
     async def demonstrate_monitoring(self):
         """Demonstrate monitoring and metrics"""
@@ -290,8 +290,8 @@ class Phase1Demo:
         
         try:
             # Run health checks
-            health_results = await self.health_checker.run_health_checks()
-            overall_health = self.health_checker.get_overall_health()
+            health_results=await self.health_checker.run_health_checks()
+            overall_health=self.health_checker.get_overall_health()
             
             self.logger.info(
                 "Health check results",
@@ -300,21 +300,21 @@ class Phase1Demo:
             )
             
             # Generate metrics summary
-            metrics_summary = {}
+            metrics_summary={}
             for metric_name in self.metrics_collector.metrics.keys():
-                summary = self.metrics_collector.get_metric_summary(metric_name)
+                summary=self.metrics_collector.get_metric_summary(metric_name)
                 if summary:
                     metrics_summary[metric_name] = summary
             
             self.logger.info("Metrics summary", summary=metrics_summary)
             
             # Export metrics
-            metrics_file = f"demo_metrics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            metrics_file=f"demo_metrics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
             self.metrics_collector.export_metrics(metrics_file)
             self.logger.info(f"Metrics exported to {metrics_file}")
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"component": "monitoring"})
+            self.error_handler.handle_error(e, {"component":"monitoring"})
     
     async def run_demo(self):
         """Run complete Phase 1 demonstration"""
@@ -333,19 +333,18 @@ class Phase1Demo:
             self.logger.info("Phase 1 demonstration completed successfully")
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"component": "demo"})
+            self.error_handler.handle_error(e, {"component":"demo"})
             self.logger.error("Phase 1 demonstration failed")
             raise
 
 
 async def main():
     """Main demo function"""
-    demo = Phase1Demo()
+    demo=Phase1Demo()
     await demo.run_demo()
 
 
-if __name__ == "__main__":
-    # Setup logging
+if __name__== "__main__":# Setup logging
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'

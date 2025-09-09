@@ -55,25 +55,25 @@ class ProductionTradingRunner:
     """Production trading system runner with safety controls"""
     
     def __init__(self, args):
-        self.args = args
+        self.args=args
         self.logger = create_production_logger("production_runner")
         
         # Load configuration
-        self.config_manager = create_config_manager()
-        self.config = self.config_manager.load_config()
+        self.config_manager=create_config_manager()
+        self.config=self.config_manager.load_config()
         
         # Validate configuration
         self._validate_config()
         
         # Create core components
-        self.data_provider = create_data_provider(self._get_data_config())
-        self.trading_interface = create_trading_interface(self.config)
+        self.data_provider=create_data_provider(self._get_data_config())
+        self.trading_interface=create_trading_interface(self.config)
         
         self.logger.info("Production trading system initialized")
     
     def _validate_config(self):
         """Validate critical configuration for real money trading"""
-        errors = []
+        errors=[]
         
         # Validate data providers
         data_errors = self.config.data_providers.validate()
@@ -81,7 +81,7 @@ class ProductionTradingRunner:
             errors.extend([f"Data: {e}" for e in data_errors])
         
         # Validate broker
-        broker_errors = self.config.broker.validate()
+        broker_errors=self.config.broker.validate()
         if broker_errors:
             errors.extend([f"Broker: {e}" for e in broker_errors])
         
@@ -104,20 +104,20 @@ class ProductionTradingRunner:
     def _get_data_config(self):
         """Get data provider configuration"""
         return {
-            'iex_api_key': self.config.data_providers.iex_api_key,
-            'polygon_api_key': self.config.data_providers.polygon_api_key,
-            'fmp_api_key': self.config.data_providers.fmp_api_key,
-            'news_api_key': self.config.data_providers.news_api_key,
-            'alpha_vantage_api_key': self.config.data_providers.alpha_vantage_api_key,
+            'iex_api_key':self.config.data_providers.iex_api_key,
+            'polygon_api_key':self.config.data_providers.polygon_api_key,
+            'fmp_api_key':self.config.data_providers.fmp_api_key,
+            'news_api_key':self.config.data_providers.news_api_key,
+            'alpha_vantage_api_key':self.config.data_providers.alpha_vantage_api_key,
         }
     
     async def run_phase(self, phase: int):
         """Run specific phase strategies"""
-        if phase == 2:
+        if phase== 2:
             await self._run_phase_2()
-        elif phase == 3:
+        elif phase== 3:
             await self._run_phase_3()
-        elif phase == 4:
+        elif phase== 4:
             await self._run_phase_4()
         else:
             raise ValueError(f"Invalid phase: {phase}")
@@ -126,10 +126,10 @@ class ProductionTradingRunner:
         """Run Phase 2 - Low-risk strategies"""
         self.logger.info("Starting Phase 2 - Low-risk strategies")
         
-        manager = Phase2StrategyManager(self.config)
+        manager=Phase2StrategyManager(self.config)
         await manager.initialize()
         
-        strategies = []
+        strategies=[]
         if 'wheel' in self.args.strategies:
             strategies.append('wheel')
         if 'debit_spreads' in self.args.strategies:
@@ -145,16 +145,16 @@ class ProductionTradingRunner:
         
         from backend.tradingbot.phase3_integration import Phase3StrategyManager
         
-        manager = Phase3StrategyManager(self.config)
+        manager=Phase3StrategyManager(self.config)
         await manager.initialize()
         
         # Run available Phase 3 strategies
-        strategies = ['earnings_protection', 'swing_trading', 'momentum_weeklies']
+        strategies=['earnings_protection', 'swing_trading', 'momentum_weeklies']
         
         # Start each strategy
         for strategy_name in strategies:
             try:
-                success = await manager.start_strategy(strategy_name)
+                success=await manager.start_strategy(strategy_name)
                 if success:
                     self.logger.info(f"Successfully started {strategy_name}")
                 else:
@@ -167,7 +167,7 @@ class ProductionTradingRunner:
         try:
             while True:
                 await asyncio.sleep(60)  # Monitor every minute
-                status = await manager.get_strategy_status()
+                status=await manager.get_strategy_status()
                 self.logger.debug(f"Phase 3 status: {status}")
         except KeyboardInterrupt:
             self.logger.info("Stopping Phase 3 strategies...")
@@ -181,7 +181,7 @@ class ProductionTradingRunner:
         from backend.tradingbot.phase4_integration import create_phase4_integration_manager
         
         # Create Phase 4 integration manager
-        phase4_manager = create_phase4_integration_manager()
+        phase4_manager=create_phase4_integration_manager()
         
         try:
             # Initialize complete system
@@ -195,7 +195,7 @@ class ProductionTradingRunner:
                 raise ValueError("Strategy validation failed - system not safe for trading")
             
             # Start production trading
-            paper_trading = self.args.paper
+            paper_trading=self.args.paper
             self.logger.info(f"Starting production trading (paper={paper_trading})...")
             if not await phase4_manager.start_production_trading(paper_trading=paper_trading):
                 raise ValueError("Failed to start production trading")
@@ -205,7 +205,7 @@ class ProductionTradingRunner:
             try:
                 while True:
                     await asyncio.sleep(60)
-                    summary = await phase4_manager.get_system_summary()
+                    summary=await phase4_manager.get_system_summary()
                     self.logger.info(f"System status: {summary['system_status']}, "
                                    f"Active strategies: {summary['health_check']['active_strategies']}, "
                                    f"Daily P&L: {summary['health_check']['daily_pnl']:.2f}")
@@ -223,8 +223,7 @@ class ProductionTradingRunner:
         for strategy_name in strategy_names:
             self.logger.info(f"Starting strategy: {strategy_name}")
             
-            if strategy_name == 'wheel':
-                strategy = create_wheel_strategy(
+            if strategy_name== 'wheel':strategy = create_wheel_strategy(
                     self.trading_interface, 
                     self.data_provider, 
                     self.config, 
@@ -232,8 +231,7 @@ class ProductionTradingRunner:
                 )
                 await strategy.run()
             
-            elif strategy_name == 'debit_spreads':
-                strategy = create_debit_spreads_strategy(
+            elif strategy_name== 'debit_spreads':strategy = create_debit_spreads_strategy(
                     self.trading_interface,
                     self.data_provider,
                     self.config,
@@ -241,8 +239,7 @@ class ProductionTradingRunner:
                 )
                 await strategy.run()
             
-            elif strategy_name == 'spx_spreads':
-                strategy = create_spx_spreads_strategy(
+            elif strategy_name== 'spx_spreads':strategy = create_spx_spreads_strategy(
                     self.trading_interface,
                     self.data_provider,
                     self.config,
@@ -250,8 +247,7 @@ class ProductionTradingRunner:
                 )
                 await strategy.run()
             
-            elif strategy_name == 'wsb_dip_bot':
-                strategy = create_wsb_dip_bot_strategy(
+            elif strategy_name== 'wsb_dip_bot':strategy = create_wsb_dip_bot_strategy(
                     self.trading_interface,
                     self.data_provider,
                     self.config,
@@ -288,7 +284,7 @@ class ProductionTradingRunner:
 
 def parse_args():
     """Parse command line arguments"""
-    parser = argparse.ArgumentParser(
+    parser=argparse.ArgumentParser(
         description="Production Trading System - Ready for Real Money",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
@@ -308,14 +304,14 @@ Examples:
     )
     
     # Trading mode
-    mode_group = parser.add_mutually_exclusive_group(required=True)
+    mode_group=parser.add_mutually_exclusive_group(required=True)
     mode_group.add_argument('--paper', action='store_true',
                            help='Run in paper trading mode (safe)')
     mode_group.add_argument('--live', action='store_true',
                            help='Run with real money (DANGEROUS)')
     
     # Strategy selection
-    strategy_group = parser.add_mutually_exclusive_group(required=True)
+    strategy_group=parser.add_mutually_exclusive_group(required=True)
     strategy_group.add_argument('--strategies', type=str,
                                help='Comma-separated list of strategies: wheel,debit_spreads,spx_spreads (wsb_dip_bot not yet in production)')
     strategy_group.add_argument('--phase', type=int, choices=[2, 3, 4],
@@ -336,18 +332,18 @@ Examples:
     parser.add_argument('--dry-run', action='store_true',
                        help='Show what would be done without executing')
     
-    args = parser.parse_args()
+    args=parser.parse_args()
     
     # Process strategy list
     if args.strategies:
-        args.strategies = [s.strip() for s in args.strategies.split(',')]
+        args.strategies=[s.strip() for s in args.strategies.split(',')]
     
     return args
 
 
 async def main():
     """Main entry point"""
-    args = parse_args()
+    args=parse_args()
     
     # Setup logging
     logging.basicConfig(
@@ -357,7 +353,7 @@ async def main():
     
     try:
         # Initialize runner
-        runner = ProductionTradingRunner(args)
+        runner=ProductionTradingRunner(args)
         
         # Show safety warning
         runner.print_safety_warning()
@@ -381,5 +377,4 @@ async def main():
         raise
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__== "__main__":asyncio.run(main())

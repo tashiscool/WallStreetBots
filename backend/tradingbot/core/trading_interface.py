@@ -17,7 +17,7 @@ from ..alert_system import TradingAlertSystem, AlertType, AlertPriority
 
 
 class TradeStatus(Enum):
-    PENDING = "pending"
+    PENDING="pending"
     SUBMITTED = "submitted"
     FILLED = "filled"
     PARTIALLY_FILLED = "partially_filled"
@@ -26,14 +26,14 @@ class TradeStatus(Enum):
 
 
 class OrderType(Enum):
-    MARKET = "market"
+    MARKET="market"
     LIMIT = "limit"
     STOP = "stop"
     STOP_LIMIT = "stop_limit"
 
 
 class OrderSide(Enum):
-    BUY = "buy"
+    BUY="buy"
     SELL = "sell"
 
 
@@ -59,7 +59,7 @@ class TradeResult:
     trade_id: str
     signal: TradeSignal
     status: TradeStatus
-    filled_quantity: int = 0
+    filled_quantity: int=0
     filled_price: Optional[float] = None
     commission: float = 0.0
     timestamp: datetime = field(default_factory=datetime.now)
@@ -75,7 +75,7 @@ class PositionUpdate:
     current_price: float
     unrealized_pnl: float
     market_value: float
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime=field(default_factory=datetime.now)
 
 
 class TradingInterface:
@@ -85,7 +85,7 @@ class TradingInterface:
     
     def __init__(self, broker_manager: AlpacaManager, risk_manager: RiskManager, 
                  alert_system: TradingAlertSystem, config: Dict[str, Any]):
-        self.broker = broker_manager
+        self.broker=broker_manager
         self.risk = risk_manager
         self.alerts = alert_system
         self.config = config
@@ -111,19 +111,19 @@ class TradingInterface:
         """
         Execute trade with comprehensive risk controls and error handling
         """
-        trade_id = f"{signal.strategy_name}_{signal.ticker}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        trade_id=f"{signal.strategy_name}_{signal.ticker}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
         try:
             self.logger.info(f"Executing trade {trade_id}", extra={
-                'trade_id': trade_id,
-                'strategy': signal.strategy_name,
-                'ticker': signal.ticker,
-                'side': signal.side.value,
-                'quantity': signal.quantity
+                'trade_id':trade_id,
+                'strategy':signal.strategy_name,
+                'ticker':signal.ticker,
+                'side':signal.side.value,
+                'quantity':signal.quantity
             })
             
             # 1. Validate signal
-            validation_result = await self.validate_signal(signal)
+            validation_result=await self.validate_signal(signal)
             if not validation_result['valid']:
                 return TradeResult(
                     trade_id=trade_id,
@@ -133,7 +133,7 @@ class TradingInterface:
                 )
             
             # 2. Check risk limits
-            risk_check = await self.check_risk_limits(signal)
+            risk_check=await self.check_risk_limits(signal)
             if not risk_check['allowed']:
                 await self.alerts.send_alert(
                     AlertType.RISK_LIMIT_EXCEEDED,
@@ -148,10 +148,10 @@ class TradingInterface:
                 )
             
             # 3. Execute via broker
-            broker_result = await self.execute_broker_order(signal)
+            broker_result=await self.execute_broker_order(signal)
             
             # 4. Create trade result
-            trade_result = TradeResult(
+            trade_result=TradeResult(
                 trade_id=trade_id,
                 signal=signal,
                 status=TradeStatus.FILLED if broker_result['success'] else TradeStatus.REJECTED,
@@ -172,17 +172,17 @@ class TradingInterface:
             )
             
             self.logger.info(f"Trade {trade_id} executed successfully", extra={
-                'trade_id': trade_id,
-                'filled_quantity': trade_result.filled_quantity,
-                'filled_price': trade_result.filled_price
+                'trade_id':trade_id,
+                'filled_quantity':trade_result.filled_quantity,
+                'filled_price':trade_result.filled_price
             })
             
             return trade_result
             
         except Exception as e:
             self.logger.error(f"Error executing trade {trade_id}: {e}", extra={
-                'trade_id': trade_id,
-                'error': str(e)
+                'trade_id':trade_id,
+                'error':str(e)
             })
             
             return TradeResult(
@@ -196,34 +196,34 @@ class TradingInterface:
         """Validate trading signal"""
         # Check required fields
         if not signal.ticker or not signal.quantity or signal.quantity <= 0:
-            return {'valid': False, 'reason': 'Invalid ticker or quantity'}
+            return {'valid':False, 'reason':'Invalid ticker or quantity'}
         
-        if signal.order_type == OrderType.LIMIT and not signal.limit_price:
-            return {'valid': False, 'reason': 'Limit price required for limit orders'}
+        if signal.order_type== OrderType.LIMIT and not signal.limit_price:
+            return {'valid':False, 'reason':'Limit price required for limit orders'}
         
-        if signal.order_type == OrderType.STOP and not signal.stop_price:
-            return {'valid': False, 'reason': 'Stop price required for stop orders'}
+        if signal.order_type== OrderType.STOP and not signal.stop_price:
+            return {'valid':False, 'reason':'Stop price required for stop orders'}
         
         # Check market hours (simplified)
         if not await self.is_market_open():
-            return {'valid': False, 'reason': 'Market is closed'}
+            return {'valid':False, 'reason':'Market is closed'}
         
-        return {'valid': True, 'reason': 'Signal validated'}
+        return {'valid':True, 'reason':'Signal validated'}
     
     async def check_risk_limits(self, signal: TradeSignal) -> Dict[str, Any]:
         """Check risk limits before execution"""
         try:
             # Get current account value
-            account = await self.get_account_info()
-            account_value = float(account.get('equity', 0))
+            account=await self.get_account_info()
+            account_value=float(account.get('equity', 0))
             
             # Calculate position risk
             if signal.limit_price:
-                position_value = signal.quantity * signal.limit_price * 100  # Options are per 100 shares
+                position_value=signal.quantity * signal.limit_price * 100  # Options are per 100 shares
             else:
                 # Use current market price as estimate
                 current_price = await self.get_current_price(signal.ticker)
-                position_value = signal.quantity * current_price * 100
+                position_value=signal.quantity * current_price * 100
             
             position_risk_pct = position_value / account_value
             
@@ -231,79 +231,79 @@ class TradingInterface:
             max_position_risk = self.config.get('max_position_risk', 0.10)
             if position_risk_pct > max_position_risk:
                 return {
-                    'allowed': False,
-                    'reason': f'Position risk {position_risk_pct:.2%} exceeds limit {max_position_risk:.2%}'
+                    'allowed':False,
+                    'reason':f'Position risk {position_risk_pct:.2%} exceeds limit {max_position_risk:.2%}'
                 }
             
             # Check total portfolio risk
-            total_risk = await self.calculate_total_portfolio_risk()
-            max_total_risk = self.config.get('max_total_risk', 0.30)
+            total_risk=await self.calculate_total_portfolio_risk()
+            max_total_risk=self.config.get('max_total_risk', 0.30)
             if total_risk > max_total_risk:
                 return {
-                    'allowed': False,
-                    'reason': f'Total portfolio risk {total_risk:.2%} exceeds limit {max_total_risk:.2%}'
+                    'allowed':False,
+                    'reason':f'Total portfolio risk {total_risk:.2%} exceeds limit {max_total_risk:.2%}'
                 }
             
-            return {'allowed': True, 'reason': 'Risk limits OK'}
+            return {'allowed':True, 'reason':'Risk limits OK'}
             
         except Exception as e:
             self.logger.error(f"Error checking risk limits: {e}")
-            return {'allowed': False, 'reason': f'Risk check failed: {e}'}
+            return {'allowed':False, 'reason':f'Risk check failed: {e}'}
     
     async def execute_broker_order(self, signal: TradeSignal) -> Dict[str, Any]:
         """Execute order via broker"""
         try:
-            if signal.side == OrderSide.BUY:
+            if signal.side== OrderSide.BUY:
                 if signal.order_type == OrderType.MARKET:
                     result = self.broker.market_buy(signal.ticker, signal.quantity)
                 else:
                     # For limit orders, we'd need to implement limit_buy
-                    result = self.broker.market_buy(signal.ticker, signal.quantity)
+                    result=self.broker.market_buy(signal.ticker, signal.quantity)
             else:  # SELL
-                if signal.order_type == OrderType.MARKET:
+                if signal.order_type== OrderType.MARKET:
                     result = self.broker.market_sell(signal.ticker, signal.quantity)
                 else:
                     # For limit orders, we'd need to implement limit_sell
-                    result = self.broker.market_sell(signal.ticker, signal.quantity)
+                    result=self.broker.market_sell(signal.ticker, signal.quantity)
             
             if result:
                 return {
-                    'success': True,
-                    'filled_quantity': signal.quantity,
-                    'filled_price': signal.limit_price or await self.get_current_price(signal.ticker),
-                    'commission': self.config.get('default_commission', 1.0)
+                    'success':True,
+                    'filled_quantity':signal.quantity,
+                    'filled_price':signal.limit_price or await self.get_current_price(signal.ticker),
+                    'commission':self.config.get('default_commission', 1.0)
                 }
             else:
                 return {
-                    'success': False,
-                    'error': 'Broker order failed'
+                    'success':False,
+                    'error':'Broker order failed'
                 }
                 
         except Exception as e:
             self.logger.error(f"Broker execution error: {e}")
             return {
-                'success': False,
-                'error': str(e)
+                'success':False,
+                'error':str(e)
             }
     
     async def get_account_info(self) -> Dict[str, Any]:
         """Get account information from broker"""
         try:
-            account = self.broker.get_account()
+            account=self.broker.get_account()
             return {
-                'equity': account.equity,
-                'buying_power': account.buying_power,
-                'cash': account.cash,
-                'portfolio_value': account.portfolio_value
+                'equity':account.equity,
+                'buying_power':account.buying_power,
+                'cash':account.cash,
+                'portfolio_value':account.portfolio_value
             }
         except Exception as e:
             self.logger.error(f"Error getting account info: {e}")
-            return {'equity': 0, 'buying_power': 0, 'cash': 0, 'portfolio_value': 0}
+            return {'equity':0, 'buying_power':0, 'cash':0, 'portfolio_value':0}
     
     async def get_current_price(self, ticker: str) -> float:
         """Get current price for ticker"""
         try:
-            success, price = self.broker.get_price(ticker)
+            success, price=self.broker.get_price(ticker)
             if success:
                 return float(price)
             else:
@@ -324,11 +324,11 @@ class TradingInterface:
     async def calculate_total_portfolio_risk(self) -> float:
         """Calculate total portfolio risk percentage"""
         try:
-            positions = self.broker.get_positions()
+            positions=self.broker.get_positions()
             if isinstance(positions, str):  # Error case
                 return 0.0
             
-            total_risk = 0.0
+            total_risk=0.0
             for position in positions:
                 # Simplified risk calculation
                 position_risk = abs(float(position.unrealized_pl)) / float(position.market_value) if position.market_value > 0 else 0
@@ -343,11 +343,11 @@ class TradingInterface:
     async def update_positions(self) -> List[PositionUpdate]:
         """Update position information from broker"""
         try:
-            positions = self.broker.get_positions()
+            positions=self.broker.get_positions()
             if isinstance(positions, str):  # Error case
                 return []
             
-            updates = []
+            updates=[]
             for position in positions:
                 update = PositionUpdate(
                     ticker=position.symbol,
@@ -366,7 +366,7 @@ class TradingInterface:
             self.logger.error(f"Error updating positions: {e}")
             return []
     
-    async def get_trade_history(self, limit: int = 100) -> List[TradeResult]:
+    async def get_trade_history(self, limit: int=100) -> List[TradeResult]:
         """Get recent trade history"""
         return list(self.active_trades.values())[-limit:]
     
@@ -374,7 +374,7 @@ class TradingInterface:
         """Cancel a pending trade"""
         try:
             if trade_id in self.active_trades:
-                trade = self.active_trades[trade_id]
+                trade=self.active_trades[trade_id]
                 if trade.status == TradeStatus.PENDING:
                     # Implement broker cancel logic here
                     trade.status = TradeStatus.CANCELLED
@@ -389,16 +389,16 @@ class TradingInterface:
 def create_trading_interface(config: Dict[str, Any]) -> TradingInterface:
     """Create trading interface with default components"""
     # Initialize broker manager with test keys if not provided
-    api_key = config.get('alpaca_api_key', 'test_key')
-    secret_key = config.get('alpaca_secret_key', 'test_secret')
+    api_key=config.get('alpaca_api_key', 'test_key')
+    secret_key=config.get('alpaca_secret_key', 'test_secret')
     
-    broker = AlpacaManager(api_key, secret_key)
+    broker=AlpacaManager(api_key, secret_key)
     
     # Initialize risk manager
-    risk_params = RiskParameters()
-    risk_manager = RiskManager(risk_params)
+    risk_params=RiskParameters()
+    risk_manager=RiskManager(risk_params)
     
     # Initialize alert system
-    alert_system = TradingAlertSystem()
+    alert_system=TradingAlertSystem()
     
     return TradingInterface(broker, risk_manager, alert_system, config)

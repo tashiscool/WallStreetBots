@@ -19,7 +19,7 @@ from .error_types import (
 
 class RecoveryAction(Enum):
     """Recovery actions that can be taken"""
-    RETRY_WITH_BACKUP = "retry_with_backup"
+    RETRY_WITH_BACKUP="retry_with_backup"
     PAUSE_AND_RETRY = "pause_and_retry"
     CONTINUE_WITH_REDUCED_SIZE = "continue_with_reduced_size"
     EMERGENCY_HALT = "emergency_halt"
@@ -40,7 +40,7 @@ class RecoveryContext:
     
     def __post_init__(self):
         if self.recovery_actions_taken is None:
-            self.recovery_actions_taken = []
+            self.recovery_actions_taken=[]
         if self.system_state is None:
             self.system_state = {}
 
@@ -58,18 +58,18 @@ class TradingErrorRecoveryManager:
     """
     
     def __init__(self, trading_system=None, alert_system=None, config: Dict[str, Any] = None):
-        self.trading_system = trading_system
+        self.trading_system=trading_system
         self.alert_system = alert_system
         self.config = config or {}
         self.logger = logging.getLogger(__name__)
         
         # Recovery configuration
-        self.max_retry_attempts = config.get('max_retry_attempts', 3)
-        self.retry_delay_seconds = config.get('retry_delay_seconds', 5)
-        self.emergency_halt_threshold = config.get('emergency_halt_threshold', 5)  # Max critical errors before halt
+        self.max_retry_attempts=config.get('max_retry_attempts', 3)
+        self.retry_delay_seconds=config.get('retry_delay_seconds', 5)
+        self.emergency_halt_threshold=config.get('emergency_halt_threshold', 5)  # Max critical errors before halt
         
         # Error tracking
-        self.error_counts = {}
+        self.error_counts={}
         self.last_error_times = {}
         self.recovery_history = []
         
@@ -88,10 +88,10 @@ class TradingErrorRecoveryManager:
         """
         try:
             # Set timestamp on error
-            error.timestamp = datetime.now()
+            error.timestamp=datetime.now()
             
             # Create recovery context
-            recovery_context = RecoveryContext(
+            recovery_context=RecoveryContext(
                 error=error,
                 timestamp=error.timestamp,
                 retry_count=self.error_counts.get(type(error).__name__, 0),
@@ -101,7 +101,7 @@ class TradingErrorRecoveryManager:
             self.logger.error(f"Handling trading error: {type(error).__name__}: {error.message}")
             
             # Determine recovery action based on error type
-            recovery_action = await self._determine_recovery_action(error, recovery_context)
+            recovery_action=await self._determine_recovery_action(error, recovery_context)
             
             # Execute recovery action
             await self._execute_recovery_action(recovery_action, recovery_context)
@@ -155,25 +155,25 @@ class TradingErrorRecoveryManager:
         """Execute the determined recovery action"""
         
         try:
-            if action == RecoveryAction.RETRY_WITH_BACKUP:
+            if action== RecoveryAction.RETRY_WITH_BACKUP:
                 await self._switch_to_backup_data_source()
                 
-            elif action == RecoveryAction.PAUSE_AND_RETRY:
+            elif action== RecoveryAction.PAUSE_AND_RETRY:
                 await self._pause_trading_temporarily(duration_minutes=5)
                 
-            elif action == RecoveryAction.CONTINUE_WITH_REDUCED_SIZE:
+            elif action== RecoveryAction.CONTINUE_WITH_REDUCED_SIZE:
                 await self._reduce_position_sizes(reduction_factor=0.5)
                 
-            elif action == RecoveryAction.EMERGENCY_HALT:
+            elif action== RecoveryAction.EMERGENCY_HALT:
                 await self._emergency_halt("Position reconciliation failed")
                 
-            elif action == RecoveryAction.SWITCH_TO_PAPER_TRADING:
+            elif action== RecoveryAction.SWITCH_TO_PAPER_TRADING:
                 await self._switch_to_paper_trading()
                 
-            elif action == RecoveryAction.REDUCE_POSITION_SIZES:
+            elif action== RecoveryAction.REDUCE_POSITION_SIZES:
                 await self._reduce_position_sizes(reduction_factor=0.25)
                 
-            elif action == RecoveryAction.LOG_AND_CONTINUE:
+            elif action== RecoveryAction.LOG_AND_CONTINUE:
                 await self._log_unknown_error(context.error, context.system_state)
             
             self.logger.info(f"Recovery action executed: {action.value}")
@@ -187,13 +187,13 @@ class TradingErrorRecoveryManager:
             await self.trading_system.data_provider.switch_to_backup()
         self.logger.info("Switched to backup data source")
     
-    async def _pause_trading_temporarily(self, duration_minutes: int = 5):
+    async def _pause_trading_temporarily(self, duration_minutes: int=5):
         """Pause trading temporarily"""
         if self.trading_system:
             await self.trading_system.pause_trading(duration_minutes)
         self.logger.info(f"Trading paused for {duration_minutes} minutes")
     
-    async def _reduce_position_sizes(self, reduction_factor: float = 0.5):
+    async def _reduce_position_sizes(self, reduction_factor: float=0.5):
         """Reduce position sizes"""
         if self.trading_system:
             await self.trading_system.reduce_position_sizes(reduction_factor)
@@ -227,7 +227,7 @@ class TradingErrorRecoveryManager:
     
     def _track_error_and_recovery(self, error: TradingError, action: RecoveryAction, context: RecoveryContext):
         """Track error occurrence and recovery actions"""
-        error_type = type(error).__name__
+        error_type=type(error).__name__
         
         # Update error counts
         self.error_counts[error_type] = self.error_counts.get(error_type, 0) + 1
@@ -235,31 +235,31 @@ class TradingErrorRecoveryManager:
         
         # Add to recovery history
         self.recovery_history.append({
-            'timestamp': context.timestamp,
-            'error_type': error_type,
-            'error_message': error.message,
-            'recovery_action': action.value,
-            'retry_count': context.retry_count
+            'timestamp':context.timestamp,
+            'error_type':error_type,
+            'error_message':error.message,
+            'recovery_action':action.value,
+            'retry_count':context.retry_count
         })
         
         # Keep only last 100 recovery actions
         if len(self.recovery_history) > 100:
-            self.recovery_history = self.recovery_history[-100:]
+            self.recovery_history=self.recovery_history[-100:]
     
     def get_error_statistics(self) -> Dict[str, Any]:
         """Get error statistics and recovery history"""
         return {
-            'error_counts': self.error_counts,
-            'last_error_times': self.last_error_times,
-            'recovery_history': self.recovery_history[-20:],  # Last 20 actions
-            'total_errors': sum(self.error_counts.values()),
-            'unique_error_types': len(self.error_counts)
+            'error_counts':self.error_counts,
+            'last_error_times':self.last_error_times,
+            'recovery_history':self.recovery_history[-20:],  # Last 20 actions
+            'total_errors':sum(self.error_counts.values()),
+            'unique_error_types':len(self.error_counts)
         }
     
     def is_system_healthy(self) -> bool:
         """Check if system is healthy based on recent error patterns"""
-        now = datetime.now()
-        recent_critical_errors = 0
+        now=datetime.now()
+        recent_critical_errors=0
         
         # Count critical errors in last hour
         for error_type, last_time in self.last_error_times.items():

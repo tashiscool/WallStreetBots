@@ -18,14 +18,14 @@ from .phase4_backtesting import BacktestEngine, BacktestConfig, BacktestResults
 
 
 class OptimizationMethod(Enum):
-    GRID_SEARCH = "grid_search"
+    GRID_SEARCH="grid_search"
     RANDOM_SEARCH = "random_search"
     GENETIC_ALGORITHM = "genetic_algorithm"
     BAYESIAN_OPTIMIZATION = "bayesian_optimization"
 
 
 class OptimizationMetric(Enum):
-    SHARPE_RATIO = "sharpe_ratio"
+    SHARPE_RATIO="sharpe_ratio"
     CALMAR_RATIO = "calmar_ratio"
     TOTAL_RETURN = "total_return"
     MAX_DRAWDOWN = "max_drawdown"
@@ -51,7 +51,7 @@ class OptimizationConfig:
     max_iterations: int
     parameter_ranges: List[ParameterRange]
     backtest_config: BacktestConfig
-    population_size: int = 50
+    population_size: int=50
     mutation_rate: float = 0.1
     crossover_rate: float = 0.8
     elite_size: int = 5
@@ -75,7 +75,7 @@ class StrategyOptimizer:
                  backtest_engine: BacktestEngine,
                  config: ConfigManager,
                  logger: ProductionLogger):
-        self.backtest_engine = backtest_engine
+        self.backtest_engine=backtest_engine
         self.config = config
         self.logger = logger
         
@@ -86,25 +86,25 @@ class StrategyOptimizer:
         try:
             self.logger.info(f"Starting optimization using {optimization_config.method.value}")
             
-            start_time = datetime.now()
-            all_results = []
+            start_time=datetime.now()
+            all_results=[]
             
             if optimization_config.method == OptimizationMethod.GRID_SEARCH:
                 all_results = await self._grid_search(strategy, optimization_config)
-            elif optimization_config.method == OptimizationMethod.RANDOM_SEARCH:
+            elif optimization_config.method== OptimizationMethod.RANDOM_SEARCH:
                 all_results = await self._random_search(strategy, optimization_config)
-            elif optimization_config.method == OptimizationMethod.GENETIC_ALGORITHM:
+            elif optimization_config.method== OptimizationMethod.GENETIC_ALGORITHM:
                 all_results = await self._genetic_algorithm(strategy, optimization_config)
             else:
                 raise ValueError(f"Unsupported optimization method: {optimization_config.method}")
             
             # Find best result
-            best_result = max(all_results, key=lambda x: x[1])
-            best_parameters, best_score, best_backtest_results = best_result
+            best_result=max(all_results, key=lambda x: x[1])
+            best_parameters, best_score, best_backtest_results=best_result
             
             optimization_time = (datetime.now() - start_time).total_seconds()
             
-            result = OptimizationResult(
+            result=OptimizationResult(
                 best_parameters=best_parameters,
                 best_score=best_score,
                 best_results=best_backtest_results,
@@ -122,14 +122,14 @@ class StrategyOptimizer:
     
     async def _grid_search(self, strategy, config: OptimizationConfig) -> List[Tuple[Dict[str, Any], float, BacktestResults]]:
         """Grid search optimization"""
-        results = []
+        results=[]
         
         # Generate all parameter combinations
         parameter_combinations = self._generate_parameter_combinations(config.parameter_ranges)
         
         # Limit combinations if too many
         if len(parameter_combinations) > config.max_iterations:
-            parameter_combinations = parameter_combinations[:config.max_iterations]
+            parameter_combinations=parameter_combinations[:config.max_iterations]
         
         for i, params in enumerate(parameter_combinations):
             try:
@@ -139,10 +139,10 @@ class StrategyOptimizer:
                 await self._update_strategy_parameters(strategy, params)
                 
                 # Run backtest
-                backtest_results = await self.backtest_engine.run_backtest(strategy, config.backtest_config)
+                backtest_results=await self.backtest_engine.run_backtest(strategy, config.backtest_config)
                 
                 # Calculate score
-                score = self._calculate_score(backtest_results, config.metric)
+                score=self._calculate_score(backtest_results, config.metric)
                 
                 results.append((params, score, backtest_results))
                 
@@ -154,23 +154,23 @@ class StrategyOptimizer:
     
     async def _random_search(self, strategy, config: OptimizationConfig) -> List[Tuple[Dict[str, Any], float, BacktestResults]]:
         """Random search optimization"""
-        results = []
+        results=[]
         
         for i in range(config.max_iterations):
             try:
                 self.logger.info(f"Random search iteration {i+1}/{config.max_iterations}")
                 
                 # Generate random parameters
-                params = self._generate_random_parameters(config.parameter_ranges)
+                params=self._generate_random_parameters(config.parameter_ranges)
                 
                 # Update strategy parameters
                 await self._update_strategy_parameters(strategy, params)
                 
                 # Run backtest
-                backtest_results = await self.backtest_engine.run_backtest(strategy, config.backtest_config)
+                backtest_results=await self.backtest_engine.run_backtest(strategy, config.backtest_config)
                 
                 # Calculate score
-                score = self._calculate_score(backtest_results, config.metric)
+                score=self._calculate_score(backtest_results, config.metric)
                 
                 results.append((params, score, backtest_results))
                 
@@ -182,7 +182,7 @@ class StrategyOptimizer:
     
     async def _genetic_algorithm(self, strategy, config: OptimizationConfig) -> List[Tuple[Dict[str, Any], float, BacktestResults]]:
         """Genetic algorithm optimization"""
-        results = []
+        results=[]
         
         # Initialize population
         population = self._initialize_population(config.parameter_ranges, config.population_size)
@@ -191,7 +191,7 @@ class StrategyOptimizer:
             try:
                 self.logger.info(f"Genetic algorithm generation {generation+1}")
                 
-                generation_results = []
+                generation_results=[]
                 
                 # Evaluate population
                 for individual in population:
@@ -201,10 +201,10 @@ class StrategyOptimizer:
                     await self._update_strategy_parameters(strategy, params)
                     
                     # Run backtest
-                    backtest_results = await self.backtest_engine.run_backtest(strategy, config.backtest_config)
+                    backtest_results=await self.backtest_engine.run_backtest(strategy, config.backtest_config)
                     
                     # Calculate score
-                    score = self._calculate_score(backtest_results, config.metric)
+                    score=self._calculate_score(backtest_results, config.metric)
                     
                     generation_results.append((individual, score, backtest_results))
                     results.append((params, score, backtest_results))
@@ -213,19 +213,19 @@ class StrategyOptimizer:
                 generation_results.sort(key=lambda x: x[1], reverse=True)
                 
                 # Select elite
-                elite = [individual for individual, score, _ in generation_results[:config.elite_size]]
+                elite=[individual for individual, score, _ in generation_results[:config.elite_size]]
                 
                 # Generate new population
-                new_population = elite.copy()
+                new_population=elite.copy()
                 
                 while len(new_population) < config.population_size:
                     # Selection
-                    parent1 = self._tournament_selection(generation_results)
-                    parent2 = self._tournament_selection(generation_results)
+                    parent1=self._tournament_selection(generation_results)
+                    parent2=self._tournament_selection(generation_results)
                     
                     # Crossover
                     if random.random() < config.crossover_rate:
-                        child1, child2 = self._crossover(parent1, parent2, config.parameter_ranges)
+                        child1, child2=self._crossover(parent1, parent2, config.parameter_ranges)
                         new_population.extend([child1, child2])
                     else:
                         new_population.extend([parent1, parent2])
@@ -235,7 +235,7 @@ class StrategyOptimizer:
                     if random.random() < config.mutation_rate:
                         new_population[i] = self._mutate(new_population[i], config.parameter_ranges)
                 
-                population = new_population[:config.population_size]
+                population=new_population[:config.population_size]
                 
             except Exception as e:
                 self.logger.error(f"Error in genetic algorithm generation {generation+1}: {e}")
@@ -245,20 +245,17 @@ class StrategyOptimizer:
     
     def _generate_parameter_combinations(self, parameter_ranges: List[ParameterRange]) -> List[Dict[str, Any]]:
         """Generate all parameter combinations for grid search"""
-        combinations = [{}]
+        combinations=[{}]
         
         for param_range in parameter_ranges:
             new_combinations = []
             
-            if param_range.param_type == "int":
-                values = range(int(param_range.min_value), int(param_range.max_value) + 1, int(param_range.step))
-            elif param_range.param_type == "float":
-                values = [param_range.min_value + i * param_range.step 
+            if param_range.param_type == "int":values = range(int(param_range.min_value), int(param_range.max_value) + 1, int(param_range.step))
+            elif param_range.param_type== "float":values = [param_range.min_value + i * param_range.step 
                          for i in range(int((param_range.max_value - param_range.min_value) / param_range.step) + 1)]
-            elif param_range.param_type == "bool":
-                values = [True, False]
+            elif param_range.param_type== "bool":values = [True, False]
             else:
-                values = [param_range.min_value]
+                values=[param_range.min_value]
             
             for combination in combinations:
                 for value in values:
@@ -266,21 +263,18 @@ class StrategyOptimizer:
                     new_combination[param_range.name] = value
                     new_combinations.append(new_combination)
             
-            combinations = new_combinations
+            combinations=new_combinations
         
         return combinations
     
     def _generate_random_parameters(self, parameter_ranges: List[ParameterRange]) -> Dict[str, Any]:
         """Generate random parameters"""
-        params = {}
+        params={}
         
         for param_range in parameter_ranges:
-            if param_range.param_type == "int":
-                params[param_range.name] = random.randint(int(param_range.min_value), int(param_range.max_value))
-            elif param_range.param_type == "float":
-                params[param_range.name] = random.uniform(param_range.min_value, param_range.max_value)
-            elif param_range.param_type == "bool":
-                params[param_range.name] = random.choice([True, False])
+            if param_range.param_type == "int":params[param_range.name] = random.randint(int(param_range.min_value), int(param_range.max_value))
+            elif param_range.param_type== "float":params[param_range.name] = random.uniform(param_range.min_value, param_range.max_value)
+            elif param_range.param_type== "bool":params[param_range.name] = random.choice([True, False])
             else:
                 params[param_range.name] = param_range.min_value
         
@@ -288,17 +282,14 @@ class StrategyOptimizer:
     
     def _initialize_population(self, parameter_ranges: List[ParameterRange], population_size: int) -> List[List[float]]:
         """Initialize population for genetic algorithm"""
-        population = []
+        population=[]
         
         for _ in range(population_size):
-            individual = []
+            individual=[]
             for param_range in parameter_ranges:
-                if param_range.param_type == "int":
-                    individual.append(random.randint(int(param_range.min_value), int(param_range.max_value)))
-                elif param_range.param_type == "float":
-                    individual.append(random.uniform(param_range.min_value, param_range.max_value))
-                elif param_range.param_type == "bool":
-                    individual.append(random.choice([0.0, 1.0]))
+                if param_range.param_type == "int":individual.append(random.randint(int(param_range.min_value), int(param_range.max_value)))
+                elif param_range.param_type== "float":individual.append(random.uniform(param_range.min_value, param_range.max_value))
+                elif param_range.param_type== "bool":individual.append(random.choice([0.0, 1.0]))
                 else:
                     individual.append(param_range.min_value)
             
@@ -308,33 +299,30 @@ class StrategyOptimizer:
     
     def _individual_to_parameters(self, individual: List[float], parameter_ranges: List[ParameterRange]) -> Dict[str, Any]:
         """Convert individual to parameters"""
-        params = {}
+        params={}
         
         for i, param_range in enumerate(parameter_ranges):
-            value = individual[i]
+            value=individual[i]
             
-            if param_range.param_type == "int":
-                params[param_range.name] = int(value)
-            elif param_range.param_type == "float":
-                params[param_range.name] = value
-            elif param_range.param_type == "bool":
-                params[param_range.name] = bool(value)
+            if param_range.param_type == "int":params[param_range.name] = int(value)
+            elif param_range.param_type== "float":params[param_range.name] = value
+            elif param_range.param_type == "bool":params[param_range.name] = bool(value)
             else:
                 params[param_range.name] = value
         
         return params
     
     def _tournament_selection(self, population_results: List[Tuple[List[float], float, BacktestResults]], 
-                            tournament_size: int = 3) -> List[float]:
+                            tournament_size: int=3) -> List[float]:
         """Tournament selection for genetic algorithm"""
-        tournament = random.sample(population_results, min(tournament_size, len(population_results)))
-        winner = max(tournament, key=lambda x: x[1])
+        tournament=random.sample(population_results, min(tournament_size, len(population_results)))
+        winner=max(tournament, key=lambda x: x[1])
         return winner[0]
     
     def _crossover(self, parent1: List[float], parent2: List[float], 
                    parameter_ranges: List[ParameterRange]) -> Tuple[List[float], List[float]]:
         """Crossover operation for genetic algorithm"""
-        child1 = []
+        child1=[]
         child2 = []
         
         for i in range(len(parent1)):
@@ -349,16 +337,13 @@ class StrategyOptimizer:
     
     def _mutate(self, individual: List[float], parameter_ranges: List[ParameterRange]) -> List[float]:
         """Mutation operation for genetic algorithm"""
-        mutated = individual.copy()
+        mutated=individual.copy()
         
         for i, param_range in enumerate(parameter_ranges):
             if random.random() < 0.1:  # 10% mutation rate per parameter
-                if param_range.param_type == "int":
-                    mutated[i] = random.randint(int(param_range.min_value), int(param_range.max_value))
-                elif param_range.param_type == "float":
-                    mutated[i] = random.uniform(param_range.min_value, param_range.max_value)
-                elif param_range.param_type == "bool":
-                    mutated[i] = random.choice([0.0, 1.0])
+                if param_range.param_type== "int":mutated[i] = random.randint(int(param_range.min_value), int(param_range.max_value))
+                elif param_range.param_type== "float":mutated[i] = random.uniform(param_range.min_value, param_range.max_value)
+                elif param_range.param_type== "bool":mutated[i] = random.choice([0.0, 1.0])
         
         return mutated
     
@@ -376,7 +361,7 @@ class StrategyOptimizer:
     def _calculate_score(self, backtest_results: BacktestResults, metric: OptimizationMetric) -> float:
         """Calculate optimization score"""
         try:
-            if metric == OptimizationMetric.SHARPE_RATIO:
+            if metric== OptimizationMetric.SHARPE_RATIO:
                 return backtest_results.sharpe_ratio
             elif metric == OptimizationMetric.CALMAR_RATIO:
                 return backtest_results.calmar_ratio
@@ -400,58 +385,58 @@ class OptimizationAnalyzer:
     """Optimization results analyzer"""
     
     def __init__(self, logger: ProductionLogger):
-        self.logger = logger
+        self.logger=logger
     
     def analyze_optimization(self, result: OptimizationResult) -> Dict[str, Any]:
         """Analyze optimization results"""
         try:
-            analysis = {
-                "optimization_summary": {
-                    "method": "optimization_completed",
-                    "iterations": result.iterations_completed,
-                    "optimization_time": f"{result.optimization_time:.2f} seconds",
-                    "best_score": f"{result.best_score:.4f}"
+            analysis={
+                "optimization_summary":{
+                    "method":"optimization_completed",
+                    "iterations":result.iterations_completed,
+                    "optimization_time":f"{result.optimization_time:.2f} seconds",
+                    "best_score":f"{result.best_score:.4f}"
                 },
-                "best_parameters": result.best_parameters,
-                "best_performance": {
-                    "total_return": f"{result.best_results.total_return:.2%}",
-                    "annualized_return": f"{result.best_results.annualized_return:.2%}",
-                    "sharpe_ratio": f"{result.best_results.sharpe_ratio:.2f}",
-                    "max_drawdown": f"{result.best_results.max_drawdown:.2%}",
-                    "win_rate": f"{result.best_results.win_rate:.2%}",
-                    "profit_factor": f"{result.best_results.profit_factor:.2f}"
+                "best_parameters":result.best_parameters,
+                "best_performance":{
+                    "total_return":f"{result.best_results.total_return:.2%}",
+                    "annualized_return":f"{result.best_results.annualized_return:.2%}",
+                    "sharpe_ratio":f"{result.best_results.sharpe_ratio:.2f}",
+                    "max_drawdown":f"{result.best_results.max_drawdown:.2%}",
+                    "win_rate":f"{result.best_results.win_rate:.2%}",
+                    "profit_factor":f"{result.best_results.profit_factor:.2f}"
                 },
-                "parameter_sensitivity": self._analyze_parameter_sensitivity(result.all_results),
-                "convergence_analysis": self._analyze_convergence(result.all_results)
+                "parameter_sensitivity":self._analyze_parameter_sensitivity(result.all_results),
+                "convergence_analysis":self._analyze_convergence(result.all_results)
             }
             
             return analysis
             
         except Exception as e:
             self.logger.error(f"Error analyzing optimization: {e}")
-            return {"error": str(e)}
+            return {"error":str(e)}
     
     def _analyze_parameter_sensitivity(self, all_results: List[Tuple[Dict[str, Any], float, BacktestResults]]) -> Dict[str, Any]:
         """Analyze parameter sensitivity"""
         try:
-            sensitivity = {}
+            sensitivity={}
             
             # Get all parameter names
             if all_results:
                 param_names = list(all_results[0][0].keys())
                 
                 for param_name in param_names:
-                    param_values = [result[0][param_name] for result in all_results]
+                    param_values=[result[0][param_name] for result in all_results]
                     scores = [result[1] for result in all_results]
                     
                     # Calculate correlation between parameter and score
                     correlation = self._calculate_correlation(param_values, scores)
                     
                     sensitivity[param_name] = {
-                        "correlation": correlation,
-                        "min_value": min(param_values),
-                        "max_value": max(param_values),
-                        "best_value": param_values[scores.index(max(scores))]
+                        "correlation":correlation,
+                        "min_value":min(param_values),
+                        "max_value":max(param_values),
+                        "best_value":param_values[scores.index(max(scores))]
                     }
             
             return sensitivity
@@ -463,14 +448,14 @@ class OptimizationAnalyzer:
     def _analyze_convergence(self, all_results: List[Tuple[Dict[str, Any], float, BacktestResults]]) -> Dict[str, Any]:
         """Analyze optimization convergence"""
         try:
-            scores = [result[1] for result in all_results]
+            scores=[result[1] for result in all_results]
             
             convergence = {
-                "initial_score": scores[0] if scores else 0,
-                "final_score": scores[-1] if scores else 0,
-                "improvement": scores[-1] - scores[0] if scores else 0,
-                "best_score": max(scores) if scores else 0,
-                "convergence_rate": self._calculate_convergence_rate(scores)
+                "initial_score":scores[0] if scores else 0,
+                "final_score":scores[-1] if scores else 0,
+                "improvement":scores[-1] - scores[0] if scores else 0,
+                "best_score":max(scores) if scores else 0,
+                "convergence_rate":self._calculate_convergence_rate(scores)
             }
             
             return convergence
@@ -485,17 +470,17 @@ class OptimizationAnalyzer:
             if len(x) != len(y) or len(x) < 2:
                 return 0.0
             
-            n = len(x)
-            sum_x = sum(x)
-            sum_y = sum(y)
-            sum_xy = sum(x[i] * y[i] for i in range(n))
-            sum_x2 = sum(x[i] ** 2 for i in range(n))
-            sum_y2 = sum(y[i] ** 2 for i in range(n))
+            n=len(x)
+            sum_x=sum(x)
+            sum_y=sum(y)
+            sum_xy=sum(x[i] * y[i] for i in range(n))
+            sum_x2=sum(x[i] ** 2 for i in range(n))
+            sum_y2=sum(y[i] ** 2 for i in range(n))
             
-            numerator = n * sum_xy - sum_x * sum_y
+            numerator=n * sum_xy - sum_x * sum_y
             denominator = math.sqrt((n * sum_x2 - sum_x ** 2) * (n * sum_y2 - sum_y ** 2))
             
-            if denominator == 0:
+            if denominator== 0:
                 return 0.0
             
             return numerator / denominator
@@ -511,9 +496,9 @@ class OptimizationAnalyzer:
                 return 0.0
             
             # Calculate improvement over iterations
-            improvements = []
+            improvements=[]
             for i in range(1, len(scores)):
-                improvement = scores[i] - scores[i-1]
+                improvement=scores[i] - scores[i-1]
                 improvements.append(improvement)
             
             # Calculate average improvement rate

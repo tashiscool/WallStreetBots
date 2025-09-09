@@ -58,7 +58,7 @@ def create_directories():
     """Create necessary directories"""
     print("\n📁 Creating directory structure...")
     
-    directories = [
+    directories=[
         "backend/tradingbot/risk",
         "data/risk_models",
         "logs/risk",
@@ -75,7 +75,7 @@ def create_config_files():
     print("\n⚙️  Creating configuration files...")
     
     # Risk configuration
-    risk_config = """
+    risk_config="""
 # Risk Management Configuration
 [RISK_LIMITS]
 max_var_1d = 0.05
@@ -87,7 +87,7 @@ min_liquidity = 0.10
 
 [STRESS_TESTING]
 scenarios = 2008_crisis,2010_flash_crash,2020_covid_pandemic,interest_rate_shock,geopolitical_crisis,ai_bubble_burst
-max_drawdown_limit = 0.25
+max_drawdown_limit=0.25
 max_recovery_time = 30
 
 [ML_MODELS]
@@ -97,7 +97,7 @@ confidence_threshold = 0.75
 ensemble_weights = 0.4,0.4,0.2
 
 [ALERTS]
-enable_alerts = true
+enable_alerts=true
 alert_email = your-email@example.com
 alert_webhook = https://hooks.slack.com/your-webhook
 """
@@ -107,7 +107,7 @@ alert_webhook = https://hooks.slack.com/your-webhook
     print("✅ Created: config/risk/risk_config.ini")
     
     # Environment variables template
-    env_template = """
+    env_template="""
 # Risk Management Environment Variables
 RISK_MANAGEMENT_ENABLED=true
 VAR_CONFIDENCE_LEVEL=0.95
@@ -138,9 +138,9 @@ def run_tests():
         print("✅ Risk modules imported successfully")
         
         # Run basic VaR test
-        engine = AdvancedVaREngine(100000)
-        test_returns = np.random.normal(0.001, 0.02, 100)
-        var_suite = engine.calculate_var_suite(test_returns)
+        engine=AdvancedVaREngine(100000)
+        test_returns=np.random.normal(0.001, 0.02, 100)
+        var_suite=engine.calculate_var_suite(test_returns)
         print("✅ VaR calculation test passed")
         
         return True
@@ -153,7 +153,7 @@ def create_documentation():
     """Create basic documentation"""
     print("\n📚 Creating documentation...")
     
-    readme_content = """
+    readme_content="""
 # Advanced Risk Models - 2025 Implementation
 
 ## Overview
@@ -171,16 +171,16 @@ python test_advanced_risk_models.py
 from tradingbot.risk import AdvancedVaREngine, RiskDashboard2025
 
 # Initialize VaR engine
-var_engine = AdvancedVaREngine(portfolio_value=100000)
+var_engine=AdvancedVaREngine(portfolio_value=100000)
 
 # Calculate VaR
 import numpy as np
-returns = np.random.normal(0.001, 0.02, 252)
-var_suite = var_engine.calculate_var_suite(returns)
+returns=np.random.normal(0.001, 0.02, 252)
+var_suite=var_engine.calculate_var_suite(returns)
 
 # Initialize risk dashboard
-dashboard = RiskDashboard2025(portfolio_value=100000)
-dashboard_data = dashboard.get_risk_dashboard_data(portfolio)
+dashboard=RiskDashboard2025(portfolio_value=100000)
+dashboard_data=dashboard.get_risk_dashboard_data(portfolio)
 ```
 
 ## Features
@@ -237,7 +237,6 @@ def main():
     print("3. Configure: config/risk/risk_config.ini")
     print("4. Start using: from tradingbot.risk import AdvancedVaREngine")
 
-if __name__ == "__main__":
-    main()
+if __name__== "__main__":main()
 
 

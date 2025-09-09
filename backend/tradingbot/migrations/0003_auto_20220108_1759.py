@@ -5,11 +5,11 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
+    dependencies=[
         ('tradingbot', '0002_alter_stockinstance_user'),
     ]
 
-    operations = [
+    operations=[
         migrations.RemoveField(
             model_name='order',
             name='price',

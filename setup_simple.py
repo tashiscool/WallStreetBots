@@ -12,8 +12,8 @@ def run_command(cmd, description):
     """Run a command and show the result"""
     print(f"🔄 {description}...")
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        if result.returncode == 0:
+        result=subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        if result.returncode== 0:
             print(f"✅ {description} - Success")
             return True
         else:
@@ -38,7 +38,7 @@ def main():
     print("=" * 40)
     print()
     
-    success_count = 0
+    success_count=0
     total_checks = 0
     
     # Check 1: Python version
@@ -79,7 +79,7 @@ def main():
     
     # Check 5: Test Django setup
     total_checks += 1
-    test_cmd = 'python -c "import django; import os; os.environ.setdefault(\\"DJANGO_SETTINGS_MODULE\\", \\"backend.settings\\"); django.setup(); print(\\"Django OK\\")"'
+    test_cmd='python -c "import django; import os; os.environ.setdefault(\\"DJANGO_SETTINGS_MODULE\\", \\"backend.settings\\"); django.setup(); print(\\"Django OK\\")"'
     if run_command(test_cmd, "Testing Django setup"):
         success_count += 1
     
@@ -88,7 +88,7 @@ def main():
     print("=" * 40)
     print(f"📊 SETUP SUMMARY: {success_count}/{total_checks} checks passed")
     
-    if success_count == total_checks:
+    if success_count== total_checks:
         print("🎉 SETUP COMPLETE!")
         print()
         print("Next steps:")
@@ -108,5 +108,4 @@ def main():
     print("   https://alpaca.markets")
     print()
 
-if __name__ == "__main__":
-    main()
+if __name__== "__main__":main()

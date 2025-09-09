@@ -11,19 +11,19 @@ import json
 import logging
 
 # Setup logging for consistent error handling
-logger = logging.getLogger(__name__)
+logger=logging.getLogger(__name__)
 
 class RiskDatabaseManager:
     """SQLite database for risk management data"""
     
-    def __init__(self, db_path: str = "risk_management.db"):
-        self.db_path = db_path
+    def __init__(self, db_path: str="risk_management.db"):
+        self.db_path=db_path
         self.init_database()
     
     def init_database(self):
         """Initialize database with required tables"""
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
+            cursor=conn.cursor()
             
             # Prices & returns
             cursor.execute("""
@@ -141,10 +141,10 @@ class RiskDatabaseManager:
                 """, (symbol, row['timestamp'], row['return']))
             conn.commit()
     
-    def get_returns_for_var(self, symbol: str, window: int = 250) -> pd.Series:
+    def get_returns_for_var(self, symbol: str, window: int=250) -> pd.Series:
         """Get returns vector for VaR calculation"""
         with sqlite3.connect(self.db_path) as conn:
-            query = """
+            query="""
                 SELECT ret FROM returns_series
                 WHERE symbol = ?
                 ORDER BY ts DESC
@@ -186,46 +186,46 @@ class RiskDatabaseManager:
     def get_latest_risk_result(self, account_id: str) -> Optional[Dict]:
         """Get latest risk result for account"""
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
+            cursor=conn.cursor()
             cursor.execute("""
                 SELECT * FROM risk_results
-                WHERE account_id = ?
+                WHERE account_id=?
                 ORDER BY ts DESC
                 LIMIT 1
             """, (account_id,))
-            row = cursor.fetchone()
+            row=cursor.fetchone()
             if row:
-                columns = [description[0] for description in cursor.description]
+                columns=[description[0] for description in cursor.description]
                 return dict(zip(columns, row))
             return None
     
     def check_risk_limits(self, account_id: str, var: float, cvar: float) -> Dict[str, bool]:
         """Check if risk metrics are within limits"""
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
+            cursor=conn.cursor()
             cursor.execute("""
                 SELECT max_total_var, max_total_cvar FROM risk_limits
-                WHERE account_id = ?
+                WHERE account_id=?
                 ORDER BY updated_at DESC
                 LIMIT 1
             """, (account_id,))
-            row = cursor.fetchone()
+            row=cursor.fetchone()
             
             if row:
-                max_var, max_cvar = row
+                max_var, max_cvar=row
                 return {
-                    "var_within_limit": var <= max_var,
-                    "cvar_within_limit": cvar <= max_cvar,
-                    "var_utilization": var / max_var if max_var > 0 else 0,
-                    "cvar_utilization": cvar / max_cvar if max_cvar > 0 else 0
+                    "var_within_limit":var <= max_var,
+                    "cvar_within_limit":cvar <= max_cvar,
+                    "var_utilization":var / max_var if max_var > 0 else 0,
+                    "cvar_utilization":cvar / max_cvar if max_cvar > 0 else 0
                 }
             else:
                 # Default limits if none set
                 return {
-                    "var_within_limit": True,
-                    "cvar_within_limit": True,
-                    "var_utilization": 0,
-                    "cvar_utilization": 0
+                    "var_within_limit":True,
+                    "cvar_within_limit":True,
+                    "var_utilization":0,
+                    "cvar_utilization":0
                 }
     
     def set_risk_limits(
@@ -247,7 +247,7 @@ class RiskDatabaseManager:
         """Insert current positions"""
         with sqlite3.connect(self.db_path) as conn:
             # Clear existing positions for this account
-            conn.execute("DELETE FROM positions WHERE account_id = ?", (account_id,))
+            conn.execute("DELETE FROM positions WHERE account_id=?", (account_id,))
             
             # Insert new positions
             for pos in positions:
@@ -271,14 +271,14 @@ class RiskDatabaseManager:
     def get_positions(self, account_id: str) -> List[Dict]:
         """Get current positions for account"""
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
+            cursor=conn.cursor()
             cursor.execute("""
                 SELECT * FROM positions
-                WHERE account_id = ?
+                WHERE account_id=?
                 ORDER BY ts DESC
             """, (account_id,))
-            rows = cursor.fetchall()
-            columns = [description[0] for description in cursor.description]
+            rows=cursor.fetchall()
+            columns=[description[0] for description in cursor.description]
             return [dict(zip(columns, row)) for row in rows]
     
     def insert_risk_alert(
@@ -286,7 +286,7 @@ class RiskDatabaseManager:
         alert_type: str,
         severity: str,
         message: str,
-        portfolio_impact: float = 0.0,
+        portfolio_impact: float=0.0,
         details: Optional[Dict] = None
     ):
         """Insert risk alert"""
@@ -308,14 +308,14 @@ class RiskDatabaseManager:
     def get_active_alerts(self) -> List[Dict]:
         """Get unacknowledged alerts"""
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
+            cursor=conn.cursor()
             cursor.execute("""
                 SELECT * FROM risk_alerts
-                WHERE acknowledged = FALSE
+                WHERE acknowledged=FALSE
                 ORDER BY ts DESC
             """)
-            rows = cursor.fetchall()
-            columns = [description[0] for description in cursor.description]
+            rows=cursor.fetchall()
+            columns=[description[0] for description in cursor.description]
             return [dict(zip(columns, row)) for row in rows]
     
     def acknowledge_alert(self, alert_id: int):
@@ -323,15 +323,15 @@ class RiskDatabaseManager:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
                 UPDATE risk_alerts
-                SET acknowledged = TRUE
+                SET acknowledged=TRUE
                 WHERE id = ?
             """, (alert_id,))
             conn.commit()
     
-    def get_risk_history(self, account_id: str, days: int = 30) -> pd.DataFrame:
+    def get_risk_history(self, account_id: str, days: int=30) -> pd.DataFrame:
         """Get risk history for account"""
         with sqlite3.connect(self.db_path) as conn:
-            query = """
+            query="""
                 SELECT * FROM risk_results
                 WHERE account_id = ? AND ts >= datetime('now', '-{} days')
                 ORDER BY ts DESC
@@ -342,9 +342,9 @@ class RiskDatabaseManager:
         """Compute log returns from price data"""
         with sqlite3.connect(self.db_path) as conn:
             # Get price data
-            prices_df = pd.read_sql_query("""
+            prices_df=pd.read_sql_query("""
                 SELECT ts, px FROM price_series
-                WHERE symbol = ?
+                WHERE symbol=?
                 ORDER BY ts
             """, conn, params=(symbol,))
             
@@ -353,7 +353,7 @@ class RiskDatabaseManager:
             
             # Compute log returns
             prices_df['return'] = np.log(prices_df['px'] / prices_df['px'].shift(1))
-            returns_df = prices_df[['ts', 'return']].dropna()
+            returns_df=prices_df[['ts', 'return']].dropna()
             
             # Insert returns
             for _, row in returns_df.iterrows():
@@ -365,8 +365,7 @@ class RiskDatabaseManager:
             conn.commit()
 
 # Example usage
-if __name__ == "__main__":
-    # Initialize database
+if __name__== "__main__":# Initialize database
     db = RiskDatabaseManager("test_risk.db")
     
     # Set up risk limits
@@ -375,31 +374,31 @@ if __name__ == "__main__":
         max_total_var=5000.0,  # $5K max VaR
         max_total_cvar=8000.0,  # $8K max CVaR
         per_strategy={
-            "wsb_dip_bot": 2000.0,
-            "index_baseline": 3000.0,
-            "momentum_weeklies": 1500.0
+            "wsb_dip_bot":2000.0,
+            "index_baseline":3000.0,
+            "momentum_weeklies":1500.0
         }
     )
     
     # Insert sample positions
-    positions = [
+    positions=[
         {
-            'symbol': 'AAPL',
-            'qty': 100,
-            'value': 15000,
-            'delta': 0.5,
-            'gamma': 0.1,
-            'vega': 0.2,
-            'strategy': 'wsb_dip_bot'
+            'symbol':'AAPL',
+            'qty':100,
+            'value':15000,
+            'delta':0.5,
+            'gamma':0.1,
+            'vega':0.2,
+            'strategy':'wsb_dip_bot'
         },
         {
-            'symbol': 'SPY',
-            'qty': 200,
-            'value': 80000,
-            'delta': 0.8,
-            'gamma': 0.05,
-            'vega': 0.15,
-            'strategy': 'index_baseline'
+            'symbol':'SPY',
+            'qty':200,
+            'value':80000,
+            'delta':0.8,
+            'gamma':0.05,
+            'vega':0.15,
+            'strategy':'index_baseline'
         }
     ]
     db.insert_positions("test_account", positions)
@@ -416,11 +415,11 @@ if __name__ == "__main__":
     )
     
     # Check limits
-    limits = db.check_risk_limits("test_account", 3500.0, 4200.0)
+    limits=db.check_risk_limits("test_account", 3500.0, 4200.0)
     print("Risk Limits Check:", limits)
     
     # Get positions
-    positions = db.get_positions("test_account")
+    positions=db.get_positions("test_account")
     print("Current Positions:", len(positions))
     
     print("Database initialized successfully!")
@@ -429,29 +428,29 @@ if __name__ == "__main__":
 class RiskDatabaseAsync:
     """Async manager class for risk database operations"""
     
-    def __init__(self, db_path: str = "risk_management.db"):
-        self.db = RiskDatabaseManager(db_path)
+    def __init__(self, db_path: str="risk_management.db"):
+        self.db=RiskDatabaseManager(db_path)
     
     async def store_risk_result(self, 
                               timestamp: datetime,
                               portfolio_value: float,
                               var_99: float,
                               cvar_99: float,
-                              lvar_99: float = None,
-                              concentration_risk: float = 0.0,
-                              greeks_risk: float = 0.0,
-                              stress_score: float = 0.0,
-                              ml_risk_score: float = 0.0,
-                              within_limits: bool = True,
+                              lvar_99: float=None,
+                              concentration_risk: float=0.0,
+                              greeks_risk: float=0.0,
+                              stress_score: float=0.0,
+                              ml_risk_score: float=0.0,
+                              within_limits: bool=True,
                               alerts: List[str] = None):
         """Store risk calculation result"""
         try:
-            details = {
-                'concentration_risk': concentration_risk,
-                'greeks_risk': greeks_risk,
-                'stress_score': stress_score,
-                'ml_risk_score': ml_risk_score,
-                'alerts': alerts or []
+            details={
+                'concentration_risk':concentration_risk,
+                'greeks_risk':greeks_risk,
+                'stress_score':stress_score,
+                'ml_risk_score':ml_risk_score,
+                'alerts':alerts or []
             }
             
             self.db.insert_risk_result(
@@ -468,7 +467,7 @@ class RiskDatabaseAsync:
         except Exception as e:
             print(f"Error storing risk result: {e}")
     
-    async def get_risk_history(self, days: int = 30) -> pd.DataFrame:
+    async def get_risk_history(self, days: int=30) -> pd.DataFrame:
         """Get risk calculation history"""
         try:
             return self.db.get_risk_history(account_id="default", days=days)
@@ -489,37 +488,37 @@ class RiskDatabaseAsync:
                            symbol: str,
                            qty: float,
                            value: float,
-                           delta: float = 0.0,
-                           gamma: float = 0.0,
-                           vega: float = 0.0):
+                           delta: float=0.0,
+                           gamma: float=0.0,
+                           vega: float=0.0):
         """Store position data"""
         try:
-            positions = [{
-                'symbol': symbol,
-                'qty': qty,
-                'value': value,
-                'delta': delta,
-                'gamma': gamma,
-                'vega': vega,
-                'theta': 0.0,
-                'strategy': 'unknown'
+            positions=[{
+                'symbol':symbol,
+                'qty':qty,
+                'value':value,
+                'delta':delta,
+                'gamma':gamma,
+                'vega':vega,
+                'theta':0.0,
+                'strategy':'unknown'
             }]
             self.db.insert_positions(account_id, positions)
         except Exception as e:
             print(f"Error storing position: {e}")
     
-    async def get_positions(self, account_id: str = "default") -> Dict[str, Dict]:
+    async def get_positions(self, account_id: str="default") -> Dict[str, Dict]:
         """Get current positions"""
         try:
-            positions_list = self.db.get_positions(account_id=account_id)
-            positions_dict = {}
+            positions_list=self.db.get_positions(account_id=account_id)
+            positions_dict={}
             for pos in positions_list:
                 positions_dict[pos['symbol']] = {
-                    'qty': pos['qty'],
-                    'value': pos['value'],
-                    'delta': pos['delta'],
-                    'gamma': pos['gamma'],
-                    'vega': pos['vega']
+                    'qty':pos['qty'],
+                    'value':pos['value'],
+                    'delta':pos['delta'],
+                    'gamma':pos['gamma'],
+                    'vega':pos['vega']
                 }
             return positions_dict
         except Exception as e:
@@ -542,15 +541,15 @@ class RiskDatabaseAsync:
         except Exception as e:
             print(f"Error updating risk limits: {e}")
     
-    async def get_risk_limits(self, account_id: str = "default") -> Dict:
+    async def get_risk_limits(self, account_id: str="default") -> Dict:
         """Get current risk limits"""
         try:
             # This would get the actual limits from the database
             # For now, return default limits
             return {
-                'max_total_var': 0.05,
-                'max_total_cvar': 0.07,
-                'per_strategy': {}
+                'max_total_var':0.05,
+                'max_total_cvar':0.07,
+                'per_strategy':{}
             }
         except Exception as e:
             print(f"Error getting risk limits: {e}")

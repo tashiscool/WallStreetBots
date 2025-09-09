@@ -41,7 +41,7 @@ class ProductionCLI:
             print("🚀 Starting Production Trading System...")
             
             # Create configuration
-            config = ProductionConfig(
+            config=ProductionConfig(
                 alpaca_api_key=args.alpaca_api_key or 'test_key',
                 alpaca_secret_key=args.alpaca_secret_key or 'test_secret',
                 paper_trading=args.paper_trading,
@@ -52,10 +52,10 @@ class ProductionCLI:
             )
             
             # Create manager
-            self.manager = ProductionManager(config)
+            self.manager=ProductionManager(config)
             
             # Start system
-            success = await self.manager.start_production_system()
+            success=await self.manager.start_production_system()
             
             if success:
                 print("✅ Production Trading System started successfully!")
@@ -87,7 +87,7 @@ class ProductionCLI:
                 print("❌ Production system not running")
                 return
             
-            status = self.manager.get_system_status()
+            status=self.manager.get_system_status()
             
             print("📊 Production Trading System Status")
             print("=" * 50)
@@ -102,7 +102,7 @@ class ProductionCLI:
                       f"{strategy_status['performance'].get('active_positions', 0)} positions")
             
             print("\n⚙️ Configuration:")
-            config = status['configuration']
+            config=status['configuration']
             print(f"  • Paper Trading: {config['paper_trading']}")
             print(f"  • Max Position Size: {config['max_position_size'] * 100}%")
             print(f"  • Max Total Risk: {config['max_total_risk'] * 100}%")
@@ -118,7 +118,7 @@ class ProductionCLI:
                 print("❌ Production system not running")
                 return
             
-            portfolio_summary = self.manager.integration_manager.get_portfolio_summary()
+            portfolio_summary=self.manager.integration_manager.get_portfolio_summary()
             
             print("💰 Portfolio Summary")
             print("=" * 50)
@@ -127,7 +127,7 @@ class ProductionCLI:
             print(f"💚 Unrealized P&L: ${portfolio_summary.get('total_unrealized_pnl', 0):.2f}")
             print(f"💵 Realized P&L: ${portfolio_summary.get('total_realized_pnl', 0):.2f}")
             
-            positions = portfolio_summary.get('active_positions', [])
+            positions=portfolio_summary.get('active_positions', [])
             if positions:
                 print("\n📋 Active Positions:")
                 for pos in positions:
@@ -148,7 +148,7 @@ class ProductionCLI:
                 return
             
             # Create trade signal
-            signal = ProductionTradeSignal(
+            signal=ProductionTradeSignal(
                 strategy_name="manual_trade",
                 ticker=args.ticker.upper(),
                 side=OrderSide.BUY if args.side.lower() == 'buy' else OrderSide.SELL,
@@ -158,16 +158,15 @@ class ProductionCLI:
                 trade_type='stock',
                 risk_amount=Decimal(str(args.quantity * args.price)),
                 expected_return=Decimal('0.00'),
-                metadata={'manual_trade': True}
+                metadata={'manual_trade':True}
             )
             
             print(f"🎯 Executing {args.side.upper()} {args.quantity} {args.ticker} @ ${args.price}")
             
             # Execute trade
-            result = await self.manager.integration_manager.execute_trade(signal)
+            result=await self.manager.integration_manager.execute_trade(signal)
             
-            if result.status.value == 'FILLED':
-                print(f"✅ Trade executed successfully!")
+            if result.status.value== 'FILLED':print(f"✅ Trade executed successfully!")
                 print(f"   Order ID: {result.trade_id}")
                 print(f"   Fill Price: ${result.fill_price}")
                 print(f"   Commission: ${result.commission}")
@@ -179,7 +178,7 @@ class ProductionCLI:
     
     async def list_strategies(self, args):
         """List available strategies"""
-        strategies = [
+        strategies=[
             'wsb_dip_bot',
             'momentum_weeklies', 
             'debit_spreads',
@@ -203,11 +202,11 @@ class ProductionCLI:
 
 def main():
     """Main CLI entry point"""
-    parser = argparse.ArgumentParser(description='Production Trading System CLI')
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    parser=argparse.ArgumentParser(description='Production Trading System CLI')
+    subparsers=parser.add_subparsers(dest='command', help='Available commands')
     
     # Start command
-    start_parser = subparsers.add_parser('start', help='Start production system')
+    start_parser=subparsers.add_parser('start', help='Start production system')
     start_parser.add_argument('--alpaca-api-key', help='Alpaca API key')
     start_parser.add_argument('--alpaca-secret-key', help='Alpaca secret key')
     start_parser.add_argument('--paper-trading', action='store_true', default=True, help='Use paper trading')
@@ -218,22 +217,22 @@ def main():
     start_parser.add_argument('--strategies', help='Comma-separated list of strategies to enable')
     
     # Status command
-    status_parser = subparsers.add_parser('status', help='Show system status')
+    status_parser=subparsers.add_parser('status', help='Show system status')
     
     # Portfolio command
-    portfolio_parser = subparsers.add_parser('portfolio', help='Show portfolio summary')
+    portfolio_parser=subparsers.add_parser('portfolio', help='Show portfolio summary')
     
     # Trade command
-    trade_parser = subparsers.add_parser('trade', help='Execute manual trade')
+    trade_parser=subparsers.add_parser('trade', help='Execute manual trade')
     trade_parser.add_argument('ticker', help='Stock ticker')
     trade_parser.add_argument('side', choices=['buy', 'sell'], help='Buy or sell')
     trade_parser.add_argument('quantity', type=int, help='Number of shares')
     trade_parser.add_argument('price', type=float, help='Price per share')
     
     # List strategies command
-    list_parser = subparsers.add_parser('list-strategies', help='List available strategies')
+    list_parser=subparsers.add_parser('list-strategies', help='List available strategies')
     
-    args = parser.parse_args()
+    args=parser.parse_args()
     
     if not args.command:
         parser.print_help()
@@ -241,25 +240,19 @@ def main():
     
     # Handle live trading flag
     if hasattr(args, 'live_trading') and args.live_trading:
-        args.paper_trading = False
+        args.paper_trading=False
     
     # Create CLI instance
     cli = ProductionCLI()
     
     # Execute command
-    if args.command == 'start':
-        asyncio.run(cli.start_system(args))
-    elif args.command == 'status':
-        asyncio.run(cli.show_status(args))
-    elif args.command == 'portfolio':
-        asyncio.run(cli.show_portfolio(args))
-    elif args.command == 'trade':
-        asyncio.run(cli.execute_trade(args))
-    elif args.command == 'list-strategies':
-        asyncio.run(cli.list_strategies(args))
+    if args.command== 'start':asyncio.run(cli.start_system(args))
+    elif args.command== 'status':asyncio.run(cli.show_status(args))
+    elif args.command== 'portfolio':asyncio.run(cli.show_portfolio(args))
+    elif args.command== 'trade':asyncio.run(cli.execute_trade(args))
+    elif args.command== 'list-strategies':asyncio.run(cli.list_strategies(args))
     else:
         parser.print_help()
 
 
-if __name__ == '__main__':
-    main()
+if __name__== '__main__':main()

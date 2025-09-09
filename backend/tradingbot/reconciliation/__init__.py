@@ -13,7 +13,7 @@ from .position_reconciler import (
     create_position_reconciler
 )
 
-__all__ = [
+__all__=[
     'PositionReconciler',
     'PositionSnapshot',
     'BrokerPosition', 

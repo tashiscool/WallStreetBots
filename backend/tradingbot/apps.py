@@ -5,9 +5,9 @@ def create_portfolio_dictionary(user):
     from .models import StockInstance
     from backend.tradingbot.synchronization import sync_alpaca
     sync_alpaca(user)
-    portfolio = user.portfolio
-    result = {'cash': float(portfolio.cash)}
-    stock_instances = StockInstance.objects.filter(portfolio=portfolio)
+    portfolio=user.portfolio
+    result = {'cash':float(portfolio.cash)}
+    stock_instances=StockInstance.objects.filter(portfolio=portfolio)
     # structure to return
     # {
     #   cash: float,
@@ -29,15 +29,15 @@ def start_pipelines():
         # from ml.tradingbots.pipelines.monte_carlo_w_ma import MonteCarloMovingAveragePipline
         from ml.tradingbots.trader import MonteCarloMASharpeRatioStrategy
         # TODO: dynamically get the right strategy
-        # rebalancing_strategies = {
-        #     "monte_carlo": MonteCarloMASharpeRatioStrategy,
-        #     "hmm": None
+        # rebalancing_strategies={
+        #     "monte_carlo":MonteCarloMASharpeRatioStrategy,
+        #     "hmm":None
         # }
-        users_to_actions = {}
+        users_to_actions={}
         for user in User.objects.all():
             if user.portfolio:
-                strat = MonteCarloMASharpeRatioStrategy("Name")
-                actions = strat.get_actions(create_portfolio_dictionary(user))
+                strat=MonteCarloMASharpeRatioStrategy("Name")
+                actions=strat.get_actions(create_portfolio_dictionary(user))
                 users_to_actions[user] = actions
         for user, actions in users_to_actions.items():
             for action in actions:
@@ -56,13 +56,13 @@ def start_pipelines():
 
 
 class TradingbotConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
+    default_auto_field='django.db.models.BigAutoField'
     name = 'backend.tradingbot'
 
     def ready(self):
         try:
             from apscheduler.schedulers.background import BackgroundScheduler
-            scheduler = BackgroundScheduler()
+            scheduler=BackgroundScheduler()
             scheduler.add_job(start_pipelines, 'interval', seconds=60*60*24)
             scheduler.start()
         except ImportError:

@@ -27,7 +27,7 @@ from pathlib import Path
 
 class RiskActionType(str, Enum):
     """Types of risk management actions"""
-    INCREASE_POSITION = "increase_position"
+    INCREASE_POSITION="increase_position"
     DECREASE_POSITION = "decrease_position"
     HEDGE_POSITION = "hedge_position"
     CLOSE_POSITION = "close_position"
@@ -87,7 +87,7 @@ class RiskEnvironment:
     
     def __init__(self, 
                  risk_limits: Dict[str, float],
-                 market_data_provider: Any = None):
+                 market_data_provider: Any=None):
         """
         Initialize risk environment
         
@@ -95,12 +95,12 @@ class RiskEnvironment:
             risk_limits: Risk limits configuration
             market_data_provider: Market data provider
         """
-        self.risk_limits = risk_limits
+        self.risk_limits=risk_limits
         self.market_data_provider = market_data_provider
         self.logger = logging.getLogger(__name__)
         
         # Environment state
-        self.current_state = None
+        self.current_state=None
         self.action_history = []
         self.reward_history = []
         self.episode_count = 0
@@ -127,27 +127,27 @@ class RiskEnvironment:
         """
         try:
             # Extract portfolio metrics
-            portfolio_var = portfolio_data.get('portfolio_var', 0.0)
-            portfolio_cvar = portfolio_data.get('portfolio_cvar', 0.0)
-            concentration_risk = portfolio_data.get('concentration_risk', 0.0)
-            greeks_risk = portfolio_data.get('greeks_risk', 0.0)
-            position_count = portfolio_data.get('position_count', 0)
-            total_exposure = portfolio_data.get('total_exposure', 0.0)
-            cash_ratio = portfolio_data.get('cash_ratio', 0.0)
+            portfolio_var=portfolio_data.get('portfolio_var', 0.0)
+            portfolio_cvar=portfolio_data.get('portfolio_cvar', 0.0)
+            concentration_risk=portfolio_data.get('concentration_risk', 0.0)
+            greeks_risk=portfolio_data.get('greeks_risk', 0.0)
+            position_count=portfolio_data.get('position_count', 0)
+            total_exposure=portfolio_data.get('total_exposure', 0.0)
+            cash_ratio=portfolio_data.get('cash_ratio', 0.0)
             
             # Extract market metrics
-            market_volatility = market_data.get('market_volatility', 0.0)
-            market_regime = market_data.get('market_regime', 'normal')
-            recent_performance = market_data.get('recent_performance', 0.0)
-            stress_test_score = market_data.get('stress_test_score', 0.0)
-            ml_risk_score = market_data.get('ml_risk_score', 0.0)
+            market_volatility=market_data.get('market_volatility', 0.0)
+            market_regime=market_data.get('market_regime', 'normal')
+            recent_performance=market_data.get('recent_performance', 0.0)
+            stress_test_score=market_data.get('stress_test_score', 0.0)
+            ml_risk_score=market_data.get('ml_risk_score', 0.0)
             
             # Time features
-            now = datetime.now()
-            time_of_day = (now.hour * 60 + now.minute) / (24 * 60)  # 0-1
-            day_of_week = now.weekday()  # 0-6
+            now=datetime.now()
+            time_of_day=(now.hour * 60 + now.minute) / (24 * 60)  # 0-1
+            day_of_week=now.weekday()  # 0-6
             
-            self.current_state = RiskState(
+            self.current_state=RiskState(
                 portfolio_var=portfolio_var,
                 portfolio_cvar=portfolio_cvar,
                 concentration_risk=concentration_risk,
@@ -195,22 +195,22 @@ class RiskEnvironment:
         """
         try:
             # Calculate risk reduction
-            risk_reduction = self._calculate_risk_reduction(action, portfolio_data)
+            risk_reduction=self._calculate_risk_reduction(action, portfolio_data)
             
             # Calculate performance impact
-            performance_impact = self._calculate_performance_impact(action, portfolio_data)
+            performance_impact=self._calculate_performance_impact(action, portfolio_data)
             
             # Calculate compliance score
-            compliance_score = self._calculate_compliance_score(action, portfolio_data)
+            compliance_score=self._calculate_compliance_score(action, portfolio_data)
             
             # Calculate total reward
-            total_reward = (
+            total_reward=(
                 0.4 * risk_reduction +
                 0.3 * performance_impact +
                 0.3 * compliance_score
             )
             
-            reward = RiskReward(
+            reward=RiskReward(
                 risk_reduction=risk_reduction,
                 performance_impact=performance_impact,
                 compliance_score=compliance_score,
@@ -238,20 +238,20 @@ class RiskEnvironment:
                                 portfolio_data: Dict[str, Any]) -> float:
         """Calculate risk reduction from action"""
         try:
-            current_var = portfolio_data.get('portfolio_var', 0.0)
-            current_cvar = portfolio_data.get('portfolio_cvar', 0.0)
+            current_var=portfolio_data.get('portfolio_var', 0.0)
+            current_cvar=portfolio_data.get('portfolio_cvar', 0.0)
             
             # Estimate risk reduction based on action type
-            if action.action_type == RiskActionType.DECREASE_POSITION:
+            if action.action_type== RiskActionType.DECREASE_POSITION:
                 risk_reduction = min(0.1, current_var * 0.5)  # Up to 10% reduction
-            elif action.action_type == RiskActionType.HEDGE_POSITION:
+            elif action.action_type== RiskActionType.HEDGE_POSITION:
                 risk_reduction = min(0.05, current_var * 0.3)  # Up to 5% reduction
-            elif action.action_type == RiskActionType.CLOSE_POSITION:
+            elif action.action_type== RiskActionType.CLOSE_POSITION:
                 risk_reduction = min(0.15, current_var * 0.7)  # Up to 15% reduction
-            elif action.action_type == RiskActionType.ADJUST_LIMITS:
+            elif action.action_type== RiskActionType.ADJUST_LIMITS:
                 risk_reduction = min(0.08, current_var * 0.4)  # Up to 8% reduction
             else:
-                risk_reduction = 0.0
+                risk_reduction=0.0
             
             return risk_reduction
             
@@ -265,15 +265,15 @@ class RiskEnvironment:
         """Calculate performance impact from action"""
         try:
             # Estimate performance impact based on action type
-            if action.action_type == RiskActionType.INCREASE_POSITION:
+            if action.action_type== RiskActionType.INCREASE_POSITION:
                 # Positive impact if market is trending up
                 market_trend = portfolio_data.get('market_trend', 0.0)
-                performance_impact = min(0.1, market_trend * 0.2)
-            elif action.action_type == RiskActionType.DECREASE_POSITION:
+                performance_impact=min(0.1, market_trend * 0.2)
+            elif action.action_type== RiskActionType.DECREASE_POSITION:
                 # Negative impact if market is trending up
                 market_trend = portfolio_data.get('market_trend', 0.0)
-                performance_impact = max(-0.1, -market_trend * 0.2)
-            elif action.action_type == RiskActionType.HEDGE_POSITION:
+                performance_impact=max(-0.1, -market_trend * 0.2)
+            elif action.action_type== RiskActionType.HEDGE_POSITION:
                 # Small negative impact due to hedging costs
                 performance_impact = -0.02
             else:
@@ -291,20 +291,20 @@ class RiskEnvironment:
         """Calculate compliance score for action"""
         try:
             # Check if action improves compliance
-            current_var = portfolio_data.get('portfolio_var', 0.0)
-            max_var = self.risk_limits.get('max_total_var', 0.05)
+            current_var=portfolio_data.get('portfolio_var', 0.0)
+            max_var=self.risk_limits.get('max_total_var', 0.05)
             
             if current_var > max_var:
                 # Actions that reduce risk improve compliance
                 if action.action_type in [RiskActionType.DECREASE_POSITION, 
                                         RiskActionType.CLOSE_POSITION,
                                         RiskActionType.HEDGE_POSITION]:
-                    compliance_score = 0.1
+                    compliance_score=0.1
                 else:
                     compliance_score = -0.1
             else:
                 # Already compliant, maintain status
-                compliance_score = 0.05
+                compliance_score=0.05
             
             return compliance_score
             
@@ -315,7 +315,7 @@ class RiskEnvironment:
     def reset_episode(self):
         """Reset environment for new episode"""
         self.episode_count += 1
-        self.action_history = []
+        self.action_history=[]
         self.reward_history = []
         self.logger.info(f"Episode {self.episode_count} reset")
 
@@ -332,12 +332,12 @@ class PPORiskAgent:
     """
     
     def __init__(self, 
-                 state_dim: int = 14,
-                 action_dim: int = 6,
-                 learning_rate: float = 3e-4,
-                 clip_ratio: float = 0.2,
-                 value_coef: float = 0.5,
-                 entropy_coef: float = 0.01):
+                 state_dim: int=14,
+                 action_dim: int=6,
+                 learning_rate: float=3e-4,
+                 clip_ratio: float=0.2,
+                 value_coef: float=0.5,
+                 entropy_coef: float=0.01):
         """
         Initialize PPO agent
         
@@ -349,7 +349,7 @@ class PPORiskAgent:
             value_coef: Value function loss coefficient
             entropy_coef: Entropy bonus coefficient
         """
-        self.state_dim = state_dim
+        self.state_dim=state_dim
         self.action_dim = action_dim
         self.learning_rate = learning_rate
         self.clip_ratio = clip_ratio
@@ -359,11 +359,11 @@ class PPORiskAgent:
         self.logger = logging.getLogger(__name__)
         
         # Initialize neural networks (simplified implementation)
-        self.policy_net = self._build_policy_network()
-        self.value_net = self._build_value_network()
+        self.policy_net=self._build_policy_network()
+        self.value_net=self._build_value_network()
         
         # Training state
-        self.episode_rewards = []
+        self.episode_rewards=[]
         self.policy_losses = []
         self.value_losses = []
         self.entropy_losses = []
@@ -373,17 +373,17 @@ class PPORiskAgent:
     def _build_policy_network(self) -> Dict[str, Any]:
         """Build policy network (simplified)"""
         return {
-            'layers': [self.state_dim, 128, 64, self.action_dim],
-            'activation': 'relu',
-            'output_activation': 'softmax'
+            'layers':[self.state_dim, 128, 64, self.action_dim],
+            'activation':'relu',
+            'output_activation':'softmax'
         }
     
     def _build_value_network(self) -> Dict[str, Any]:
         """Build value network (simplified)"""
         return {
-            'layers': [self.state_dim, 128, 64, 1],
-            'activation': 'relu',
-            'output_activation': 'linear'
+            'layers':[self.state_dim, 128, 64, 1],
+            'activation':'relu',
+            'output_activation':'linear'
         }
     
     def get_action(self, state: RiskState) -> RiskAction:
@@ -398,17 +398,17 @@ class PPORiskAgent:
         """
         try:
             # Convert state to vector
-            state_vector = self._state_to_vector(state)
+            state_vector=self._state_to_vector(state)
             
             # Get action probabilities (simplified)
-            action_probs = self._forward_policy(state_vector)
+            action_probs=self._forward_policy(state_vector)
             
             # Sample action
-            action_idx = np.random.choice(len(action_probs), p=action_probs)
-            action_type = list(RiskActionType)[action_idx]
+            action_idx=np.random.choice(len(action_probs), p=action_probs)
+            action_type=list(RiskActionType)[action_idx]
             
             # Create action
-            action = RiskAction(
+            action=RiskAction(
                 action_type=action_type,
                 symbol="PORTFOLIO",  # Portfolio-level action
                 quantity=0.1,  # Default quantity
@@ -438,9 +438,9 @@ class PPORiskAgent:
             state.concentration_risk,
             state.greeks_risk,
             state.market_volatility,
-            1.0 if state.market_regime == "normal" else 0.0,
-            1.0 if state.market_regime == "high_vol" else 0.0,
-            1.0 if state.market_regime == "crisis" else 0.0,
+            1.0 if state.market_regime== "normal" else 0.0,
+            1.0 if state.market_regime== "high_vol" else 0.0,
+            1.0 if state.market_regime== "crisis" else 0.0,
             state.time_of_day,
             state.day_of_week / 6.0,
             state.recent_performance,
@@ -455,7 +455,7 @@ class PPORiskAgent:
         # In practice, this would be a neural network
         
         # Risk-based action selection
-        portfolio_var = state_vector[0]
+        portfolio_var=state_vector[0]
         portfolio_cvar = state_vector[1]
         market_regime = state_vector[5:8]
         
@@ -479,8 +479,8 @@ class PPORiskAgent:
             action_probs[5] -= 0.3  # Decrease no action
         
         # Normalize probabilities
-        action_probs = np.maximum(action_probs, 0.01)  # Avoid zero probabilities
-        action_probs = action_probs / np.sum(action_probs)
+        action_probs=np.maximum(action_probs, 0.01)  # Avoid zero probabilities
+        action_probs=action_probs / np.sum(action_probs)
         
         return action_probs
     
@@ -500,23 +500,23 @@ class PPORiskAgent:
         """
         try:
             # Convert to arrays
-            state_vectors = np.array([self._state_to_vector(s) for s in states])
-            action_indices = np.array([list(RiskActionType).index(a.action_type) for a in actions])
-            reward_values = np.array([r.total_reward for r in rewards])
+            state_vectors=np.array([self._state_to_vector(s) for s in states])
+            action_indices=np.array([list(RiskActionType).index(a.action_type) for a in actions])
+            reward_values=np.array([r.total_reward for r in rewards])
             
             # Calculate advantages (simplified)
-            advantages = self._calculate_advantages(reward_values)
+            advantages=self._calculate_advantages(reward_values)
             
             # Calculate policy loss (simplified PPO)
-            policy_loss = self._calculate_policy_loss(
+            policy_loss=self._calculate_policy_loss(
                 state_vectors, action_indices, advantages, old_log_probs
             )
             
             # Calculate value loss
-            value_loss = self._calculate_value_loss(state_vectors, reward_values)
+            value_loss=self._calculate_value_loss(state_vectors, reward_values)
             
             # Calculate entropy loss
-            entropy_loss = self._calculate_entropy_loss(state_vectors)
+            entropy_loss=self._calculate_entropy_loss(state_vectors)
             
             # Update networks (simplified)
             self.policy_losses.append(policy_loss)
@@ -560,13 +560,13 @@ class PPORiskAgent:
     def save_model(self, filepath: str):
         """Save trained model"""
         try:
-            model_data = {
-                'policy_net': self.policy_net,
-                'value_net': self.value_net,
-                'episode_rewards': self.episode_rewards,
-                'policy_losses': self.policy_losses,
-                'value_losses': self.value_losses,
-                'entropy_losses': self.entropy_losses
+            model_data={
+                'policy_net':self.policy_net,
+                'value_net':self.value_net,
+                'episode_rewards':self.episode_rewards,
+                'policy_losses':self.policy_losses,
+                'value_losses':self.value_losses,
+                'entropy_losses':self.entropy_losses
             }
             
             with open(filepath, 'wb') as f:
@@ -581,14 +581,14 @@ class PPORiskAgent:
         """Load trained model"""
         try:
             with open(filepath, 'rb') as f:
-                model_data = pickle.load(f)
+                model_data=pickle.load(f)
             
-            self.policy_net = model_data['policy_net']
+            self.policy_net=model_data['policy_net']
             self.value_net = model_data['value_net']
             self.episode_rewards = model_data.get('episode_rewards', [])
-            self.policy_losses = model_data.get('policy_losses', [])
-            self.value_losses = model_data.get('value_losses', [])
-            self.entropy_losses = model_data.get('entropy_losses', [])
+            self.policy_losses=model_data.get('policy_losses', [])
+            self.value_losses=model_data.get('value_losses', [])
+            self.entropy_losses=model_data.get('entropy_losses', [])
             
             self.logger.info(f"Model loaded from {filepath}")
             
@@ -608,11 +608,11 @@ class DDPGRiskAgent:
     """
     
     def __init__(self, 
-                 state_dim: int = 14,
-                 action_dim: int = 1,  # Continuous risk adjustment
-                 learning_rate: float = 1e-3,
-                 tau: float = 0.005,
-                 gamma: float = 0.99):
+                 state_dim: int=14,
+                 action_dim: int=1,  # Continuous risk adjustment
+                 learning_rate: float=1e-3,
+                 tau: float=0.005,
+                 gamma: float=0.99):
         """
         Initialize DDPG agent
         
@@ -623,7 +623,7 @@ class DDPGRiskAgent:
             tau: Soft update parameter
             gamma: Discount factor
         """
-        self.state_dim = state_dim
+        self.state_dim=state_dim
         self.action_dim = action_dim
         self.learning_rate = learning_rate
         self.tau = tau
@@ -632,13 +632,13 @@ class DDPGRiskAgent:
         self.logger = logging.getLogger(__name__)
         
         # Initialize networks (simplified)
-        self.actor_net = self._build_actor_network()
-        self.critic_net = self._build_critic_network()
-        self.target_actor = self._build_actor_network()
-        self.target_critic = self._build_critic_network()
+        self.actor_net=self._build_actor_network()
+        self.critic_net=self._build_critic_network()
+        self.target_actor=self._build_actor_network()
+        self.target_critic=self._build_critic_network()
         
         # Training state
-        self.memory = []
+        self.memory=[]
         self.episode_rewards = []
         self.actor_losses = []
         self.critic_losses = []
@@ -648,20 +648,20 @@ class DDPGRiskAgent:
     def _build_actor_network(self) -> Dict[str, Any]:
         """Build actor network (simplified)"""
         return {
-            'layers': [self.state_dim, 256, 128, self.action_dim],
-            'activation': 'relu',
-            'output_activation': 'tanh'
+            'layers':[self.state_dim, 256, 128, self.action_dim],
+            'activation':'relu',
+            'output_activation':'tanh'
         }
     
     def _build_critic_network(self) -> Dict[str, Any]:
         """Build critic network (simplified)"""
         return {
-            'layers': [self.state_dim + self.action_dim, 256, 128, 1],
-            'activation': 'relu',
-            'output_activation': 'linear'
+            'layers':[self.state_dim + self.action_dim, 256, 128, 1],
+            'activation':'relu',
+            'output_activation':'linear'
         }
     
-    def get_action(self, state: RiskState, noise: float = 0.1) -> RiskAction:
+    def get_action(self, state: RiskState, noise: float=0.1) -> RiskAction:
         """
         Get continuous risk adjustment action
         
@@ -674,24 +674,24 @@ class DDPGRiskAgent:
         """
         try:
             # Convert state to vector
-            state_vector = self._state_to_vector(state)
+            state_vector=self._state_to_vector(state)
             
             # Get continuous action (risk adjustment factor)
-            action_value = self._forward_actor(state_vector)
+            action_value=self._forward_actor(state_vector)
             
             # Add exploration noise
             action_value += np.random.normal(0, noise)
-            action_value = np.clip(action_value, -1.0, 1.0)
+            action_value=np.clip(action_value, -1.0, 1.0)
             
             # Convert to risk action
             if action_value > 0.3:
-                action_type = RiskActionType.INCREASE_POSITION
+                action_type=RiskActionType.INCREASE_POSITION
                 quantity = abs(action_value) * 0.1
             elif action_value < -0.3:
-                action_type = RiskActionType.DECREASE_POSITION
+                action_type=RiskActionType.DECREASE_POSITION
                 quantity = abs(action_value) * 0.1
             else:
-                action_type = RiskActionType.NO_ACTION
+                action_type=RiskActionType.NO_ACTION
                 quantity = 0.0
             
             action = RiskAction(
@@ -724,9 +724,9 @@ class DDPGRiskAgent:
             state.concentration_risk,
             state.greeks_risk,
             state.market_volatility,
-            1.0 if state.market_regime == "normal" else 0.0,
-            1.0 if state.market_regime == "high_vol" else 0.0,
-            1.0 if state.market_regime == "crisis" else 0.0,
+            1.0 if state.market_regime== "normal" else 0.0,
+            1.0 if state.market_regime== "high_vol" else 0.0,
+            1.0 if state.market_regime== "crisis" else 0.0,
             state.time_of_day,
             state.day_of_week / 6.0,
             state.recent_performance,
@@ -741,7 +741,7 @@ class DDPGRiskAgent:
         # In practice, this would be a neural network
         
         # Risk-based continuous action
-        portfolio_var = state_vector[0]
+        portfolio_var=state_vector[0]
         portfolio_cvar = state_vector[1]
         market_regime = state_vector[5:8]
         
@@ -761,7 +761,7 @@ class DDPGRiskAgent:
             risk_adjustment -= 0.5  # Strong risk reduction
         
         # Clip to [-1, 1]
-        risk_adjustment = np.clip(risk_adjustment, -1.0, 1.0)
+        risk_adjustment=np.clip(risk_adjustment, -1.0, 1.0)
         
         return risk_adjustment
     
@@ -781,19 +781,19 @@ class DDPGRiskAgent:
         """
         try:
             # Convert to arrays
-            state_vectors = np.array([self._state_to_vector(s) for s in states])
-            action_values = np.array([a.expected_impact for a in actions])
-            reward_values = np.array([r.total_reward for r in rewards])
-            next_state_vectors = np.array([self._state_to_vector(s) for s in next_states])
+            state_vectors=np.array([self._state_to_vector(s) for s in states])
+            action_values=np.array([a.expected_impact for a in actions])
+            reward_values=np.array([r.total_reward for r in rewards])
+            next_state_vectors=np.array([self._state_to_vector(s) for s in next_states])
             
             # Calculate target Q-values
-            target_q_values = reward_values + self.gamma * self._get_target_q_values(next_state_vectors)
+            target_q_values=reward_values + self.gamma * self._get_target_q_values(next_state_vectors)
             
             # Update critic
-            critic_loss = self._update_critic(state_vectors, action_values, target_q_values)
+            critic_loss=self._update_critic(state_vectors, action_values, target_q_values)
             
             # Update actor
-            actor_loss = self._update_actor(state_vectors)
+            actor_loss=self._update_actor(state_vectors)
             
             # Soft update target networks
             self._soft_update_target_networks()
@@ -834,12 +834,12 @@ class DDPGRiskAgent:
     def save_model(self, filepath: str):
         """Save trained model"""
         try:
-            model_data = {
-                'actor_net': self.actor_net,
-                'critic_net': self.critic_net,
-                'episode_rewards': self.episode_rewards,
-                'actor_losses': self.actor_losses,
-                'critic_losses': self.critic_losses
+            model_data={
+                'actor_net':self.actor_net,
+                'critic_net':self.critic_net,
+                'episode_rewards':self.episode_rewards,
+                'actor_losses':self.actor_losses,
+                'critic_losses':self.critic_losses
             }
             
             with open(filepath, 'wb') as f:
@@ -854,13 +854,13 @@ class DDPGRiskAgent:
         """Load trained model"""
         try:
             with open(filepath, 'rb') as f:
-                model_data = pickle.load(f)
+                model_data=pickle.load(f)
             
-            self.actor_net = model_data['actor_net']
+            self.actor_net=model_data['actor_net']
             self.critic_net = model_data['critic_net']
             self.episode_rewards = model_data.get('episode_rewards', [])
-            self.actor_losses = model_data.get('actor_losses', [])
-            self.critic_losses = model_data.get('critic_losses', [])
+            self.actor_losses=model_data.get('actor_losses', [])
+            self.critic_losses=model_data.get('critic_losses', [])
             
             self.logger.info(f"DDPG model loaded from {filepath}")
             
@@ -882,9 +882,9 @@ class MultiAgentRiskCoordinator:
     
     def __init__(self, 
                  risk_limits: Dict[str, float],
-                 enable_ppo: bool = True,
-                 enable_ddpg: bool = True,
-                 enable_td3: bool = False):
+                 enable_ppo: bool=True,
+                 enable_ddpg: bool=True,
+                 enable_td3: bool=False):
         """
         Initialize multi-agent coordinator
         
@@ -894,14 +894,14 @@ class MultiAgentRiskCoordinator:
             enable_ddpg: Enable DDPG agent
             enable_td3: Enable TD3 agent
         """
-        self.risk_limits = risk_limits
+        self.risk_limits=risk_limits
         self.logger = logging.getLogger(__name__)
         
         # Initialize environment
-        self.environment = RiskEnvironment(risk_limits)
+        self.environment=RiskEnvironment(risk_limits)
         
         # Initialize agents
-        self.agents = {}
+        self.agents={}
         if enable_ppo:
             self.agents['ppo'] = PPORiskAgent()
         if enable_ddpg:
@@ -911,8 +911,8 @@ class MultiAgentRiskCoordinator:
             self.agents['td3'] = DDPGRiskAgent()  # Placeholder
         
         # Coordination state
-        self.agent_performance = {name: [] for name in self.agents.keys()}
-        self.ensemble_decisions = []
+        self.agent_performance={name: [] for name in self.agents.keys()}
+        self.ensemble_decisions=[]
         self.coordination_history = []
         
         self.logger.info(f"Multi-agent coordinator initialized with {len(self.agents)} agents")
@@ -932,29 +932,27 @@ class MultiAgentRiskCoordinator:
         """
         try:
             # Get current state
-            state = self.environment.get_state(portfolio_data, market_data)
+            state=self.environment.get_state(portfolio_data, market_data)
             
             # Get actions from all agents
-            agent_actions = {}
+            agent_actions={}
             for name, agent in self.agents.items():
-                if name == 'ppo':
-                    action = agent.get_action(state)
-                elif name == 'ddpg':
-                    action = agent.get_action(state)
+                if name== 'ppo':action = agent.get_action(state)
+                elif name== 'ddpg':action = agent.get_action(state)
                 else:
-                    action = agent.get_action(state)
+                    action=agent.get_action(state)
                 
                 agent_actions[name] = action
             
             # Ensemble decision making
-            ensemble_action = self._make_ensemble_decision(agent_actions, state)
+            ensemble_action=self._make_ensemble_decision(agent_actions, state)
             
             # Track decision
             self.ensemble_decisions.append({
-                'timestamp': datetime.now(),
-                'state': state,
-                'agent_actions': agent_actions,
-                'ensemble_action': ensemble_action
+                'timestamp':datetime.now(),
+                'state':state,
+                'agent_actions':agent_actions,
+                'ensemble_action':ensemble_action
             })
             
             return ensemble_action
@@ -985,23 +983,23 @@ class MultiAgentRiskCoordinator:
         """
         try:
             # Weighted voting based on agent performance
-            weights = self._calculate_agent_weights()
+            weights=self._calculate_agent_weights()
             
             # Count votes for each action type
-            action_votes = {}
+            action_votes={}
             for action_type in RiskActionType:
                 action_votes[action_type] = 0.0
             
             for agent_name, action in agent_actions.items():
-                weight = weights.get(agent_name, 1.0)
+                weight=weights.get(agent_name, 1.0)
                 action_votes[action.action_type] += weight * action.confidence
             
             # Select action with highest vote
-            best_action_type = max(action_votes, key=action_votes.get)
+            best_action_type=max(action_votes, key=action_votes.get)
             
             # Calculate ensemble confidence
-            total_votes = sum(action_votes.values())
-            ensemble_confidence = action_votes[best_action_type] / total_votes if total_votes > 0 else 0.0
+            total_votes=sum(action_votes.values())
+            ensemble_confidence=action_votes[best_action_type] / total_votes if total_votes > 0 else 0.0
             
             # Create ensemble action
             ensemble_action = RiskAction(
@@ -1029,19 +1027,19 @@ class MultiAgentRiskCoordinator:
     def _calculate_agent_weights(self) -> Dict[str, float]:
         """Calculate agent weights based on performance"""
         try:
-            weights = {}
+            weights={}
             for agent_name, performance_history in self.agent_performance.items():
                 if performance_history:
                     # Weight based on recent performance
-                    recent_performance = np.mean(performance_history[-10:]) if len(performance_history) >= 10 else np.mean(performance_history)
+                    recent_performance=np.mean(performance_history[-10:]) if len(performance_history) >= 10 else np.mean(performance_history)
                     weights[agent_name] = max(0.1, recent_performance)
                 else:
                     weights[agent_name] = 1.0
             
             # Normalize weights
-            total_weight = sum(weights.values())
+            total_weight=sum(weights.values())
             if total_weight > 0:
-                weights = {k: v / total_weight for k, v in weights.items()}
+                weights={k: v / total_weight for k, v in weights.items()}
             
             return weights
             
@@ -1065,15 +1063,13 @@ class MultiAgentRiskCoordinator:
         """
         try:
             # Get current state
-            state = self.environment.get_state(portfolio_data, market_data)
+            state=self.environment.get_state(portfolio_data, market_data)
             
             # Update each agent
             for agent_name, agent in self.agents.items():
-                if agent_name == 'ppo':
-                    # PPO update (simplified)
+                if agent_name== 'ppo':# PPO update (simplified)
                     agent.episode_rewards.append(reward.total_reward)
-                elif agent_name == 'ddpg':
-                    # DDPG update (simplified)
+                elif agent_name== 'ddpg':# DDPG update (simplified)
                     agent.episode_rewards.append(reward.total_reward)
                 
                 # Track performance
@@ -1087,12 +1083,12 @@ class MultiAgentRiskCoordinator:
     def get_coordination_summary(self) -> Dict[str, Any]:
         """Get coordination summary"""
         return {
-            'active_agents': list(self.agents.keys()),
-            'agent_performance': {name: np.mean(perf) if perf else 0.0 
+            'active_agents':list(self.agents.keys()),
+            'agent_performance':{name: np.mean(perf) if perf else 0.0 
                                 for name, perf in self.agent_performance.items()},
-            'ensemble_decisions_count': len(self.ensemble_decisions),
-            'coordination_history_count': len(self.coordination_history),
-            'environment_episodes': self.environment.episode_count
+            'ensemble_decisions_count':len(self.ensemble_decisions),
+            'coordination_history_count':len(self.coordination_history),
+            'environment_episodes':self.environment.episode_count
         }
     
     def save_all_models(self, directory: str):
@@ -1101,7 +1097,7 @@ class MultiAgentRiskCoordinator:
             Path(directory).mkdir(parents=True, exist_ok=True)
             
             for agent_name, agent in self.agents.items():
-                filepath = f"{directory}/{agent_name}_model.pkl"
+                filepath=f"{directory}/{agent_name}_model.pkl"
                 agent.save_model(filepath)
             
             self.logger.info(f"All models saved to {directory}")
@@ -1113,7 +1109,7 @@ class MultiAgentRiskCoordinator:
         """Load all agent models"""
         try:
             for agent_name, agent in self.agents.items():
-                filepath = f"{directory}/{agent_name}_model.pkl"
+                filepath=f"{directory}/{agent_name}_model.pkl"
                 if Path(filepath).exists():
                     agent.load_model(filepath)
             
@@ -1124,49 +1120,48 @@ class MultiAgentRiskCoordinator:
 
 
 # Example usage and testing
-if __name__ == "__main__":
-    # Initialize multi-agent coordinator
+if __name__== "__main__":# Initialize multi-agent coordinator
     risk_limits = {
-        'max_total_var': 0.05,
-        'max_total_cvar': 0.07,
-        'max_concentration': 0.30
+        'max_total_var':0.05,
+        'max_total_cvar':0.07,
+        'max_concentration':0.30
     }
     
-    coordinator = MultiAgentRiskCoordinator(
+    coordinator=MultiAgentRiskCoordinator(
         risk_limits=risk_limits,
         enable_ppo=True,
         enable_ddpg=True
     )
     
     # Simulate portfolio data
-    portfolio_data = {
-        'portfolio_var': 0.06,
-        'portfolio_cvar': 0.08,
-        'concentration_risk': 0.25,
-        'greeks_risk': 0.05,
-        'position_count': 5,
-        'total_exposure': 80000,
-        'cash_ratio': 0.2
+    portfolio_data={
+        'portfolio_var':0.06,
+        'portfolio_cvar':0.08,
+        'concentration_risk':0.25,
+        'greeks_risk':0.05,
+        'position_count':5,
+        'total_exposure':80000,
+        'cash_ratio':0.2
     }
     
     # Simulate market data
-    market_data = {
-        'market_volatility': 0.25,
-        'market_regime': 'high_vol',
-        'recent_performance': 0.02,
-        'stress_test_score': 0.08,
-        'ml_risk_score': 0.7
+    market_data={
+        'market_volatility':0.25,
+        'market_regime':'high_vol',
+        'recent_performance':0.02,
+        'stress_test_score':0.08,
+        'ml_risk_score':0.7
     }
     
     # Get ensemble action
     async def test_coordinator():
-        action = await coordinator.get_ensemble_action(portfolio_data, market_data)
+        action=await coordinator.get_ensemble_action(portfolio_data, market_data)
         print(f"Ensemble Action: {action.action_type}")
         print(f"Confidence: {action.confidence:.3f}")
         print(f"Reasoning: {action.reasoning}")
         
         # Get summary
-        summary = coordinator.get_coordination_summary()
+        summary=coordinator.get_coordination_summary()
         print(f"Coordination Summary: {summary}")
     
     asyncio.run(test_coordinator())

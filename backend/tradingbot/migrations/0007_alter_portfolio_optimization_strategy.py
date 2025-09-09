@@ -5,11 +5,11 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
+    dependencies=[
         ('tradingbot', '0006_auto_20220110_2318'),
     ]
 
-    operations = [
+    operations=[
         migrations.AlterField(
             model_name='portfolio',
             name='optimization_strategy',

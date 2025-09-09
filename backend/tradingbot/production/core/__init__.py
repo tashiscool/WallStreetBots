@@ -11,7 +11,7 @@ Core components for production trading system:
 from .production_integration import ProductionIntegrationManager
 from .production_strategy_manager import ProductionStrategyManager, ProductionStrategyManagerConfig
 
-__all__ = [
+__all__=[
     'ProductionIntegrationManager',
     'ProductionStrategyManager',
     'ProductionStrategyManagerConfig',

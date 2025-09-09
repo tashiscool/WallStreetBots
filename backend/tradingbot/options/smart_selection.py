@@ -11,16 +11,16 @@ from dataclasses import dataclass, field
 from enum import Enum
 import asyncio
 
-logger = logging.getLogger(__name__)
+logger=logging.getLogger(__name__)
 
 
 class LiquidityRating(Enum):
     """Options liquidity ratings"""
-    EXCELLENT = "excellent"  # Very liquid, tight spreads
-    GOOD = "good"           # Good liquidity, reasonable spreads  
-    FAIR = "fair"           # Moderate liquidity, wider spreads
-    POOR = "poor"           # Low liquidity, very wide spreads
-    ILLIQUID = "illiquid"   # Essentially no liquidity
+    EXCELLENT="excellent"  # Very liquid, tight spreads
+    GOOD="good"           # Good liquidity, reasonable spreads  
+    FAIR="fair"           # Moderate liquidity, wider spreads
+    POOR="poor"           # Low liquidity, very wide spreads
+    ILLIQUID="illiquid"   # Essentially no liquidity
 
 
 @dataclass
@@ -70,7 +70,7 @@ class OptionsAnalysis:
 @dataclass
 class SelectionCriteria:
     """Options selection criteria"""
-    target_dte_min: int = 21          # Minimum days to expiry
+    target_dte_min: int=21          # Minimum days to expiry
     target_dte_max: int = 45          # Maximum days to expiry
     target_otm_min: float = 0.02      # Minimum 2% OTM
     target_otm_max: float = 0.10      # Maximum 10% OTM
@@ -96,25 +96,25 @@ class SmartOptionsSelector:
     """
     
     def __init__(self, data_provider=None, pricing_engine=None):
-        self.data_provider = data_provider
+        self.data_provider=data_provider
         self.pricing_engine = pricing_engine
         self.logger = logging.getLogger(__name__)
         
         # Default selection criteria (can be overridden)
-        self.default_criteria = SelectionCriteria()
+        self.default_criteria=SelectionCriteria()
         
         # Liquidity thresholds
-        self.liquidity_thresholds = {
-            'excellent': {'min_volume': 1000, 'min_oi': 5000, 'max_spread': 0.05},
-            'good': {'min_volume': 500, 'min_oi': 2000, 'max_spread': 0.08},
-            'fair': {'min_volume': 100, 'min_oi': 500, 'max_spread': 0.15},
-            'poor': {'min_volume': 25, 'min_oi': 100, 'max_spread': 0.25},
+        self.liquidity_thresholds={
+            'excellent':{'min_volume':1000, 'min_oi':5000, 'max_spread':0.05},
+            'good':{'min_volume':500, 'min_oi':2000, 'max_spread':0.08},
+            'fair':{'min_volume':100, 'min_oi':500, 'max_spread':0.15},
+            'poor':{'min_volume':25, 'min_oi':100, 'max_spread':0.25},
         }
         
         self.logger.info("SmartOptionsSelector initialized")
     
     async def select_optimal_call_option(self, ticker: str, spot_price: Decimal, 
-                                       signal_strength: int = 5,
+                                       signal_strength: int=5,
                                        custom_criteria: Optional[SelectionCriteria] = None) -> Optional[OptionsAnalysis]:
         """
         Select optimal call option for WSB dip bot strategy
@@ -130,22 +130,22 @@ class SmartOptionsSelector:
         """
         try:
             # Use custom criteria or defaults
-            criteria = custom_criteria or self._get_dynamic_criteria(signal_strength)
+            criteria=custom_criteria or self._get_dynamic_criteria(signal_strength)
             
             self.logger.info(f"Selecting optimal call option for {ticker} at ${spot_price} (signal strength: {signal_strength})")
             
             # Get available expiry dates
-            expiry_dates = await self._get_available_expiries(ticker, criteria)
+            expiry_dates=await self._get_available_expiries(ticker, criteria)
             
             if not expiry_dates:
                 self.logger.warning(f"No suitable expiry dates found for {ticker}")
                 return None
             
             # Get options chains for each expiry
-            all_options = []
+            all_options=[]
             for expiry_date in expiry_dates:
                 options_chain = await self.data_provider.get_options_chain(ticker, expiry_date)
-                calls = [opt for opt in options_chain if opt.option_type.lower() == 'call']
+                calls=[opt for opt in options_chain if opt.option_type.lower() == 'call']
                 all_options.extend(calls)
             
             if not all_options:
@@ -153,7 +153,7 @@ class SmartOptionsSelector:
                 return None
             
             # Analyze all options
-            analyzed_options = []
+            analyzed_options=[]
             for option in all_options:
                 analysis = await self._analyze_option(option, spot_price, criteria)
                 if analysis and self._meets_criteria(analysis, criteria):
@@ -165,7 +165,7 @@ class SmartOptionsSelector:
             
             # Sort by overall score and return best option
             analyzed_options.sort(key=lambda x: x.overall_score, reverse=True)
-            best_option = analyzed_options[0]
+            best_option=analyzed_options[0]
             
             self.logger.info(
                 f"Selected optimal call for {ticker}: ${best_option.strike} strike, "
@@ -181,11 +181,11 @@ class SmartOptionsSelector:
     
     def _get_dynamic_criteria(self, signal_strength: int) -> SelectionCriteria:
         """Get dynamic selection criteria based on signal strength"""
-        criteria = SelectionCriteria()
+        criteria=SelectionCriteria()
         
         # Adjust criteria based on signal strength
         if signal_strength >= 8:  # Very strong signal
-            criteria.target_otm_min = 0.01  # 1% OTM
+            criteria.target_otm_min=0.01  # 1% OTM
             criteria.target_otm_max = 0.05  # 5% OTM
             criteria.target_dte_min = 25    # Slightly more time
             criteria.target_dte_max = 40
@@ -215,30 +215,30 @@ class SmartOptionsSelector:
         """Get available expiry dates within criteria"""
         try:
             # Get options chain with first available expiry to see all expiry dates
-            options_chain = await self.data_provider.get_options_chain(ticker)
+            options_chain=await self.data_provider.get_options_chain(ticker)
             
             if not options_chain:
                 return []
             
             # Extract unique expiry dates
-            expiry_dates = list(set([opt.expiry for opt in options_chain]))
+            expiry_dates=list(set([opt.expiry for opt in options_chain]))
             expiry_dates.sort()
             
             # Filter by DTE criteria
-            now = datetime.now()
-            suitable_expiries = []
+            now=datetime.now()
+            suitable_expiries=[]
             
             for expiry in expiry_dates:
                 if isinstance(expiry, date):
-                    expiry = datetime.combine(expiry, datetime.min.time())
+                    expiry=datetime.combine(expiry, datetime.min.time())
                 
-                days_to_expiry = (expiry - now).days
+                days_to_expiry=(expiry - now).days
                 
                 if criteria.target_dte_min <= days_to_expiry <= criteria.target_dte_max:
                     suitable_expiries.append(expiry)
             
             # Prefer Friday expiries (standard for WSB)
-            friday_expiries = [exp for exp in suitable_expiries if exp.weekday() == 4]
+            friday_expiries=[exp for exp in suitable_expiries if exp.weekday() == 4]
             
             return friday_expiries if friday_expiries else suitable_expiries[:3]  # Top 3 if no Fridays
             
@@ -250,43 +250,43 @@ class SmartOptionsSelector:
         """Perform comprehensive analysis of options contract"""
         try:
             # Calculate basic metrics
-            mid_price = (option.bid + option.ask) / 2 if option.bid > 0 and option.ask > 0 else option.last_price
-            bid_ask_spread = option.ask - option.bid if option.bid > 0 and option.ask > 0 else Decimal('0')
-            spread_percentage = float(bid_ask_spread / mid_price) if mid_price > 0 else 1.0
+            mid_price=(option.bid + option.ask) / 2 if option.bid > 0 and option.ask > 0 else option.last_price
+            bid_ask_spread=option.ask - option.bid if option.bid > 0 and option.ask > 0 else Decimal('0')
+            spread_percentage=float(bid_ask_spread / mid_price) if mid_price > 0 else 1.0
             
             # Calculate moneyness and days to expiry
-            moneyness = float(option.strike / spot_price)
+            moneyness=float(option.strike / spot_price)
             
-            expiry_date = option.expiry
+            expiry_date=option.expiry
             if isinstance(expiry_date, datetime):
-                expiry_date = expiry_date.date()
+                expiry_date=expiry_date.date()
             
-            days_to_expiry = (expiry_date - date.today()).days
+            days_to_expiry=(expiry_date - date.today()).days
             
             # Calculate premium to stock ratio
-            premium_to_stock_ratio = float(mid_price / spot_price) if spot_price > 0 else 0
+            premium_to_stock_ratio=float(mid_price / spot_price) if spot_price > 0 else 0
             
             # Calculate break-even
-            break_even_price = option.strike + mid_price
+            break_even_price=option.strike + mid_price
             
             # Assess liquidity
             liquidity_rating = self._assess_liquidity(option.volume, option.open_interest, spread_percentage)
             
             # Calculate scores
-            wsb_suitability_score = self._calculate_wsb_suitability_score(
+            wsb_suitability_score=self._calculate_wsb_suitability_score(
                 moneyness, days_to_expiry, premium_to_stock_ratio, option.delta, spread_percentage
             )
             
-            liquidity_score = self._calculate_liquidity_score(
+            liquidity_score=self._calculate_liquidity_score(
                 option.volume, option.open_interest, spread_percentage, liquidity_rating
             )
             
-            value_score = self._calculate_value_score(
+            value_score=self._calculate_value_score(
                 option.implied_volatility, spread_percentage, premium_to_stock_ratio, option.delta
             )
             
             # Overall score (weighted combination)
-            overall_score = (
+            overall_score=(
                 wsb_suitability_score * 0.4 +  # 40% WSB fit
                 liquidity_score * 0.35 +       # 35% liquidity
                 value_score * 0.25             # 25% value
@@ -345,7 +345,7 @@ class SmartOptionsSelector:
                                        delta: Decimal, spread_pct: float) -> float:
         """Calculate how suitable this option is for WSB-style trading"""
         try:
-            score = 0.0
+            score=0.0
             
             # OTM preference (WSB likes ~5% OTM)
             if 1.02 <= moneyness <= 1.08:  # 2-8% OTM sweet spot
@@ -372,7 +372,7 @@ class SmartOptionsSelector:
                 score += 1.0
             
             # Delta preference (moderate leverage)
-            delta_val = float(delta) if delta else 0
+            delta_val=float(delta) if delta else 0
             if 0.20 <= delta_val <= 0.40:  # Sweet spot for leverage
                 score += 2.0
             elif 0.15 <= delta_val <= 0.50:  # Acceptable range
@@ -399,7 +399,7 @@ class SmartOptionsSelector:
                                  spread_pct: float, liquidity_rating: LiquidityRating) -> float:
         """Calculate liquidity score"""
         try:
-            score = 0.0
+            score=0.0
             
             # Volume scoring
             if volume >= 1000:
@@ -462,10 +462,10 @@ class SmartOptionsSelector:
                              premium_ratio: float, delta: Decimal) -> float:
         """Calculate value score based on various metrics"""
         try:
-            score = 5.0  # Start with neutral score
+            score=5.0  # Start with neutral score
             
             # IV scoring (prefer reasonable IV, not too high or low)
-            iv_val = float(iv) if iv else 0.25
+            iv_val=float(iv) if iv else 0.25
             if 0.20 <= iv_val <= 0.40:  # Reasonable IV range
                 score += 1.0
             elif 0.15 <= iv_val <= 0.50:  # Acceptable range
@@ -477,7 +477,7 @@ class SmartOptionsSelector:
             
             # Premium efficiency (delta per dollar spent)
             if delta and premium_ratio > 0:
-                efficiency = float(delta) / premium_ratio
+                efficiency=float(delta) / premium_ratio
                 if efficiency >= 15:  # High efficiency
                     score += 1.5
                 elif efficiency >= 10:  # Good efficiency
@@ -488,7 +488,7 @@ class SmartOptionsSelector:
                     score -= 1.0
             
             # Spread impact on value
-            if spread_pct <= 0.05:  # Low spread = better value
+            if spread_pct <= 0.05:  # Low spread=better value
                 score += 0.5
             elif spread_pct >= 0.20:  # High spread = worse value
                 score -= 1.0
@@ -512,7 +512,7 @@ class SmartOptionsSelector:
                 return False
             
             # Liquidity rating requirement
-            rating_values = {
+            rating_values={
                 LiquidityRating.EXCELLENT: 5,
                 LiquidityRating.GOOD: 4,
                 LiquidityRating.FAIR: 3,
@@ -528,12 +528,12 @@ class SmartOptionsSelector:
                 return False
             
             # OTM requirements
-            otm_percentage = analysis.moneyness - 1.0
+            otm_percentage=analysis.moneyness - 1.0
             if not (criteria.target_otm_min <= otm_percentage <= criteria.target_otm_max):
                 return False
             
             # Delta requirements
-            delta_val = float(analysis.delta) if analysis.delta else 0
+            delta_val=float(analysis.delta) if analysis.delta else 0
             if not (criteria.target_delta_min <= delta_val <= criteria.target_delta_max):
                 return False
             
@@ -548,22 +548,22 @@ class SmartOptionsSelector:
             return False
     
     async def get_selection_summary(self, ticker: str, spot_price: Decimal, 
-                                  signal_strength: int = 5) -> Dict[str, Any]:
+                                  signal_strength: int=5) -> Dict[str, Any]:
         """Get comprehensive summary of available options"""
         try:
-            criteria = self._get_dynamic_criteria(signal_strength)
+            criteria=self._get_dynamic_criteria(signal_strength)
             
             # Get all available options
-            expiry_dates = await self._get_available_expiries(ticker, criteria)
-            all_options = []
+            expiry_dates=await self._get_available_expiries(ticker, criteria)
+            all_options=[]
             
             for expiry_date in expiry_dates:
                 options_chain = await self.data_provider.get_options_chain(ticker, expiry_date)
-                calls = [opt for opt in options_chain if opt.option_type.lower() == 'call']
+                calls=[opt for opt in options_chain if opt.option_type.lower() == 'call']
                 all_options.extend(calls)
             
             # Analyze all options
-            analyzed_options = []
+            analyzed_options=[]
             meeting_criteria = []
             
             for option in all_options:
@@ -578,38 +578,38 @@ class SmartOptionsSelector:
             meeting_criteria.sort(key=lambda x: x.overall_score, reverse=True)
             
             return {
-                'ticker': ticker,
-                'spot_price': float(spot_price),
-                'signal_strength': signal_strength,
-                'criteria': {
-                    'dte_range': f"{criteria.target_dte_min}-{criteria.target_dte_max}",
-                    'otm_range': f"{criteria.target_otm_min:.1%}-{criteria.target_otm_max:.1%}",
-                    'min_volume': criteria.min_volume,
-                    'min_open_interest': criteria.min_open_interest
+                'ticker':ticker,
+                'spot_price':float(spot_price),
+                'signal_strength':signal_strength,
+                'criteria':{
+                    'dte_range':f"{criteria.target_dte_min}-{criteria.target_dte_max}",
+                    'otm_range':f"{criteria.target_otm_min:.1%}-{criteria.target_otm_max:.1%}",
+                    'min_volume':criteria.min_volume,
+                    'min_open_interest':criteria.min_open_interest
                 },
-                'total_options_analyzed': len(analyzed_options),
-                'options_meeting_criteria': len(meeting_criteria),
-                'best_option': {
-                    'strike': float(meeting_criteria[0].strike),
-                    'expiry': meeting_criteria[0].expiry.isoformat(),
-                    'score': meeting_criteria[0].overall_score,
-                    'liquidity_rating': meeting_criteria[0].liquidity_rating.value
+                'total_options_analyzed':len(analyzed_options),
+                'options_meeting_criteria':len(meeting_criteria),
+                'best_option':{
+                    'strike':float(meeting_criteria[0].strike),
+                    'expiry':meeting_criteria[0].expiry.isoformat(),
+                    'score':meeting_criteria[0].overall_score,
+                    'liquidity_rating':meeting_criteria[0].liquidity_rating.value
                 } if meeting_criteria else None,
-                'top_5_options': [
+                'top_5_options':[
                     {
-                        'strike': float(opt.strike),
-                        'expiry': opt.expiry.isoformat(),
-                        'score': opt.overall_score,
-                        'liquidity_rating': opt.liquidity_rating.value,
-                        'volume': opt.volume,
-                        'spread_pct': opt.spread_percentage
+                        'strike':float(opt.strike),
+                        'expiry':opt.expiry.isoformat(),
+                        'score':opt.overall_score,
+                        'liquidity_rating':opt.liquidity_rating.value,
+                        'volume':opt.volume,
+                        'spread_pct':opt.spread_percentage
                     } for opt in meeting_criteria[:5]
                 ]
             }
             
         except Exception as e:
             self.logger.error(f"Error getting selection summary: {e}")
-            return {'error': str(e)}
+            return {'error':str(e)}
 
 
 def create_smart_options_selector(data_provider=None, pricing_engine=None) -> SmartOptionsSelector:

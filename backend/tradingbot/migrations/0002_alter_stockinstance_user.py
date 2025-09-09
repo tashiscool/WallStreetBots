@@ -7,12 +7,12 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
+    dependencies=[
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('tradingbot', '0001_initial'),
     ]
 
-    operations = [
+    operations=[
         migrations.AlterField(
             model_name='stockinstance',
             name='user',

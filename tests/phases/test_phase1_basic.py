@@ -25,27 +25,27 @@ def test_configuration():
     print("🔧 Testing Configuration Management...")
     
     # Test config creation
-    config = ProductionConfig()
+    config=ProductionConfig()
     print(f"✅ Created production config with account size: ${config.risk.account_size:,.0f}")
     
     # Test config validation
-    errors = config.validate()
+    errors=config.validate()
     print(f"✅ Config validation found {len(errors)} errors (expected for empty config)")
     
     # Test config loading from file
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-        test_config = {
-            "risk": {
-                "max_position_risk": 0.15,
-                "account_size": 75000.0
+        test_config={
+            "risk":{
+                "max_position_risk":0.15,
+                "account_size":75000.0
             }
         }
         json.dump(test_config, f)
-        config_file = f.name
+        config_file=f.name
     
     try:
         config_manager = ConfigManager(config_file)
-        loaded_config = config_manager.load_config()
+        loaded_config=config_manager.load_config()
         print(f"✅ Loaded config with account size: ${loaded_config.risk.account_size:,.0f}")
         print(f"✅ Max position risk: {loaded_config.risk.max_position_risk:.1%}")
     finally:
@@ -59,27 +59,27 @@ def test_logging():
     print("📝 Testing Production Logging...")
     
     # Test logger creation
-    logger = ProductionLogger("test_logger")
+    logger=ProductionLogger("test_logger")
     logger.info("Test info message", test_param="value")
     logger.warning("Test warning message", test_param="value")
     logger.error("Test error message", test_param="value")
     print("✅ Logging system working correctly")
     
     # Test error handling
-    error_handler = ErrorHandler(logger)
-    error = ValueError("Test error")
-    context = {"ticker": "AAPL", "strategy": "test"}
+    error_handler=ErrorHandler(logger)
+    error=ValueError("Test error")
+    context={"ticker":"AAPL", "strategy":"test"}
     
-    result = error_handler.handle_error(error, context)
+    result=error_handler.handle_error(error, context)
     print(f"✅ Error handling working: {result['error_type']} - {result['error_message']}")
     
     # Test circuit breaker
-    circuit_breaker = CircuitBreaker(failure_threshold=2, timeout=1.0)
+    circuit_breaker=CircuitBreaker(failure_threshold=2, timeout=1.0)
     
     def success_func():
         return "success"
     
-    result = circuit_breaker.call(success_func)
+    result=circuit_breaker.call(success_func)
     print(f"✅ Circuit breaker working: {result}")
     
     print("✅ Production logging working correctly\n")
@@ -90,8 +90,8 @@ def test_monitoring():
     print("📊 Testing Monitoring Components...")
     
     # Test health checker
-    logger = ProductionLogger("test_monitoring")
-    health_checker = HealthChecker(logger)
+    logger=ProductionLogger("test_monitoring")
+    health_checker=HealthChecker(logger)
     
     def healthy_check():
         return True
@@ -103,20 +103,20 @@ def test_monitoring():
     health_checker.register_check("unhealthy", unhealthy_check)
     
     # Run health checks
-    results = asyncio.run(health_checker.run_health_checks())
-    overall_health = health_checker.get_overall_health()
+    results=asyncio.run(health_checker.run_health_checks())
+    overall_health=health_checker.get_overall_health()
     
     print(f"✅ Health checker working: {overall_health} overall health")
     print(f"✅ Health checks: {len(results)} checks registered")
     
     # Test metrics collector
-    metrics_collector = MetricsCollector(logger)
+    metrics_collector=MetricsCollector(logger)
     
     # Record some metrics
     for i in range(5):
-        metrics_collector.record_metric("test_metric", float(i * 10), {"iteration": i})
+        metrics_collector.record_metric("test_metric", float(i * 10), {"iteration":i})
     
-    summary = metrics_collector.get_metric_summary("test_metric")
+    summary=metrics_collector.get_metric_summary("test_metric")
     print(f"✅ Metrics collector working: {summary['count']} metrics recorded")
     print(f"✅ Average value: {summary['avg']:.1f}")
     
@@ -128,7 +128,7 @@ def test_data_structures():
     print("📈 Testing Data Structures...")
     
     # Test market data
-    market_data = MarketData(
+    market_data=MarketData(
         ticker="AAPL",
         price=150.0,
         change=2.5,
@@ -143,7 +143,7 @@ def test_data_structures():
     print(f"✅ Market data: {market_data.ticker} @ ${market_data.price:.2f} ({market_data.change_percent:+.2%})")
     
     # Test options data
-    options_data = OptionsData(
+    options_data=OptionsData(
         ticker="AAPL",
         expiry_date="2024-01-19",
         strike=150.0,
@@ -162,7 +162,7 @@ def test_data_structures():
     print(f"✅ Options data: {options_data.ticker} {options_data.strike} {options_data.option_type} @ ${options_data.last_price:.2f}")
     
     # Test earnings event
-    earnings_event = EarningsEvent(
+    earnings_event=EarningsEvent(
         ticker="AAPL",
         earnings_date=datetime(2024, 1, 15),
         time="AMC",
@@ -184,13 +184,13 @@ def test_trading_interface():
     from enum import Enum
     
     class OrderType(Enum):
-        MARKET = "market"
+        MARKET="market"
         LIMIT = "limit"
         STOP = "stop"
         STOP_LIMIT = "stop_limit"
     
     class OrderSide(Enum):
-        BUY = "buy"
+        BUY="buy"
         SELL = "sell"
     
     from dataclasses import dataclass
@@ -208,9 +208,9 @@ def test_trading_interface():
         
         def __post_init__(self):
             if self.timestamp is None:
-                self.timestamp = datetime.now()
+                self.timestamp=datetime.now()
     
-    signal = TradeSignal(
+    signal=TradeSignal(
         strategy_name="test_strategy",
         ticker="AAPL",
         side=OrderSide.BUY,
@@ -224,7 +224,7 @@ def test_trading_interface():
     
     # Test trade result
     class TradeStatus(Enum):
-        FILLED = "filled"
+        FILLED="filled"
         PENDING = "pending"
         REJECTED = "rejected"
     
@@ -240,9 +240,9 @@ def test_trading_interface():
         
         def __post_init__(self):
             if self.timestamp is None:
-                self.timestamp = datetime.now()
+                self.timestamp=datetime.now()
     
-    result = TradeResult(
+    result=TradeResult(
         trade_id="test_123",
         signal=signal,
         status=TradeStatus.FILLED,
@@ -291,5 +291,4 @@ def main():
     return 0
 
 
-if __name__ == "__main__":
-    exit(main())
+if __name__== "__main__":exit(main())

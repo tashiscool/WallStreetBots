@@ -20,7 +20,7 @@ from .production_models import Strategy, Position, Trade, RiskLimit, Performance
 
 class BenchmarkType(Enum):
     """Benchmark types"""
-    SPY = "spy"  # S&P 500
+    SPY="spy"  # S&P 500
     VTI = "vti"  # Total Stock Market
     QQQ = "qqq"  # NASDAQ 100
     IWM = "iwm"  # Russell 2000
@@ -73,7 +73,7 @@ class StrategyPerformance:
     profit_factor: float
     
     # Metadata
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -98,47 +98,47 @@ class PerformanceComparison:
     benchmark_sharpe: float
     
     # Metadata
-    comparison_date: datetime = field(default_factory=datetime.now)
+    comparison_date: datetime=field(default_factory=datetime.now)
 
 
 class PerformanceCalculator:
     """Performance calculation utilities"""
     
     def __init__(self, logger: ProductionLogger):
-        self.logger = logger
+        self.logger=logger
     
     def calculate_returns(self, prices: List[float]) -> Dict[str, float]:
         """Calculate various return metrics"""
         if len(prices) < 2:
             return {
-                'daily_return': 0.0,
-                'weekly_return': 0.0,
-                'monthly_return': 0.0,
-                'ytd_return': 0.0,
-                'annual_return': 0.0
+                'daily_return':0.0,
+                'weekly_return':0.0,
+                'monthly_return':0.0,
+                'ytd_return':0.0,
+                'annual_return':0.0
             }
         
         # Daily return
-        daily_return = (prices[-1] - prices[-2]) / prices[-2] if len(prices) >= 2 else 0.0
+        daily_return=(prices[-1] - prices[-2]) / prices[-2] if len(prices) >= 2 else 0.0
         
         # Weekly return (5 trading days)
-        weekly_return = (prices[-1] - prices[-6]) / prices[-6] if len(prices) >= 6 else 0.0
+        weekly_return=(prices[-1] - prices[-6]) / prices[-6] if len(prices) >= 6 else 0.0
         
         # Monthly return (20 trading days)
-        monthly_return = (prices[-1] - prices[-21]) / prices[-21] if len(prices) >= 21 else 0.0
+        monthly_return=(prices[-1] - prices[-21]) / prices[-21] if len(prices) >= 21 else 0.0
         
         # YTD return (simplified)
-        ytd_return = (prices[-1] - prices[0]) / prices[0] if len(prices) > 0 else 0.0
+        ytd_return=(prices[-1] - prices[0]) / prices[0] if len(prices) > 0 else 0.0
         
         # Annual return (simplified)
-        annual_return = ytd_return * (252 / len(prices)) if len(prices) > 0 else 0.0
+        annual_return=ytd_return * (252 / len(prices)) if len(prices) > 0 else 0.0
         
         return {
-            'daily_return': daily_return,
-            'weekly_return': weekly_return,
-            'monthly_return': monthly_return,
-            'ytd_return': ytd_return,
-            'annual_return': annual_return
+            'daily_return':daily_return,
+            'weekly_return':weekly_return,
+            'monthly_return':monthly_return,
+            'ytd_return':ytd_return,
+            'annual_return':annual_return
         }
     
     def calculate_volatility(self, returns: List[float]) -> float:
@@ -146,19 +146,19 @@ class PerformanceCalculator:
         if len(returns) < 2:
             return 0.0
         
-        mean_return = sum(returns) / len(returns)
-        variance = sum((r - mean_return) ** 2 for r in returns) / (len(returns) - 1)
+        mean_return=sum(returns) / len(returns)
+        variance=sum((r - mean_return) ** 2 for r in returns) / (len(returns) - 1)
         return math.sqrt(variance)
     
-    def calculate_sharpe_ratio(self, returns: List[float], risk_free_rate: float = 0.02) -> float:
+    def calculate_sharpe_ratio(self, returns: List[float], risk_free_rate: float=0.02) -> float:
         """Calculate Sharpe ratio"""
         if len(returns) < 2:
             return 0.0
         
-        mean_return = sum(returns) / len(returns)
-        volatility = self.calculate_volatility(returns)
+        mean_return=sum(returns) / len(returns)
+        volatility=self.calculate_volatility(returns)
         
-        if volatility == 0:
+        if volatility== 0:
             return 0.0
         
         return (mean_return - risk_free_rate) / volatility
@@ -168,7 +168,7 @@ class PerformanceCalculator:
         if len(prices) < 2:
             return 0.0
         
-        peak = prices[0]
+        peak=prices[0]
         max_dd = 0.0
         
         for price in prices:
@@ -176,7 +176,7 @@ class PerformanceCalculator:
                 peak = price
             else:
                 drawdown = (peak - price) / peak
-                max_dd = max(max_dd, drawdown)
+                max_dd=max(max_dd, drawdown)
         
         return max_dd
     
@@ -187,18 +187,18 @@ class PerformanceCalculator:
             return 0.0, 1.0
         
         # Calculate covariance and variance
-        strategy_mean = sum(strategy_returns) / len(strategy_returns)
-        benchmark_mean = sum(benchmark_returns) / len(benchmark_returns)
+        strategy_mean=sum(strategy_returns) / len(strategy_returns)
+        benchmark_mean=sum(benchmark_returns) / len(benchmark_returns)
         
-        covariance = sum((s - strategy_mean) * (b - benchmark_mean) 
+        covariance=sum((s - strategy_mean) * (b - benchmark_mean) 
                         for s, b in zip(strategy_returns, benchmark_returns)) / len(strategy_returns)
         
-        benchmark_variance = sum((b - benchmark_mean) ** 2 for b in benchmark_returns) / len(benchmark_returns)
+        benchmark_variance=sum((b - benchmark_mean) ** 2 for b in benchmark_returns) / len(benchmark_returns)
         
-        if benchmark_variance == 0:
+        if benchmark_variance== 0:
             return 0.0, 1.0
         
-        beta = covariance / benchmark_variance
+        beta=covariance / benchmark_variance
         alpha = strategy_mean - beta * benchmark_mean
         
         return alpha, beta
@@ -212,13 +212,13 @@ class ProductionIndexBaseline:
                  data_provider: UnifiedDataProvider,
                  config: ProductionConfig,
                  logger: ProductionLogger):
-        self.trading = trading_interface
+        self.trading=trading_interface
         self.data = data_provider
         self.config = config
         self.logger = logger
         self.error_handler = ErrorHandler(logger)
-        self.metrics = MetricsCollector(logger)
-        self.calculator = PerformanceCalculator(logger)
+        self.metrics=MetricsCollector(logger)
+        self.calculator=PerformanceCalculator(logger)
         
         # Benchmark tracking
         self.benchmarks: Dict[str, BenchmarkData] = {}
@@ -231,7 +231,7 @@ class ProductionIndexBaseline:
         
         # Strategy state
         self.last_update_time: Optional[datetime] = None
-        self.update_interval = timedelta(hours=1)
+        self.update_interval=timedelta(hours=1)
         
         self.logger.info("Index Baseline Strategy initialized")
     
@@ -239,26 +239,26 @@ class ProductionIndexBaseline:
         """Initialize benchmark tracking"""
         self.logger.info("Initializing benchmark tracking")
         
-        benchmark_tickers = ["SPY", "VTI", "QQQ", "IWM"]
+        benchmark_tickers=["SPY", "VTI", "QQQ", "IWM"]
         
         for ticker in benchmark_tickers:
             try:
                 await self._initialize_benchmark(ticker)
             except Exception as e:
-                self.error_handler.handle_error(e, {"ticker": ticker, "operation": "initialize_benchmark"})
+                self.error_handler.handle_error(e, {"ticker":ticker, "operation":"initialize_benchmark"})
     
     async def _initialize_benchmark(self, ticker: str):
         """Initialize individual benchmark"""
         try:
             # Get current market data
-            market_data = await self.data.get_market_data(ticker)
+            market_data=await self.data.get_market_data(ticker)
             
             if market_data.price <= 0:
                 self.logger.warning(f"No price data for {ticker}")
                 return
             
             # Initialize benchmark data
-            benchmark_type = BenchmarkType.SPY if ticker == "SPY" else \
+            benchmark_type=BenchmarkType.SPY if ticker == "SPY" else \
                 BenchmarkType.VTI if ticker == "VTI" else \
                 BenchmarkType.QQQ if ticker == "QQQ" else \
                 BenchmarkType.IWM
@@ -286,7 +286,7 @@ class ProductionIndexBaseline:
             self.logger.info(f"Initialized benchmark: {ticker} @ ${market_data.price:.2f}")
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"ticker": ticker, "operation": "initialize_benchmark"})
+            self.error_handler.handle_error(e, {"ticker":ticker, "operation":"initialize_benchmark"})
     
     async def update_benchmarks(self):
         """Update benchmark performance data"""
@@ -296,13 +296,13 @@ class ProductionIndexBaseline:
             try:
                 await self._update_benchmark(ticker, benchmark)
             except Exception as e:
-                self.error_handler.handle_error(e, {"ticker": ticker, "operation": "update_benchmark"})
+                self.error_handler.handle_error(e, {"ticker":ticker, "operation":"update_benchmark"})
     
     async def _update_benchmark(self, ticker: str, benchmark: BenchmarkData):
         """Update individual benchmark"""
         try:
             # Get current market data
-            market_data = await self.data.get_market_data(ticker)
+            market_data=await self.data.get_market_data(ticker)
             
             if market_data.price <= 0:
                 return
@@ -315,10 +315,10 @@ class ProductionIndexBaseline:
                 self.price_history[ticker] = self.price_history[ticker][-252:]
             
             # Calculate returns
-            returns = self.calculator.calculate_returns(self.price_history[ticker])
+            returns=self.calculator.calculate_returns(self.price_history[ticker])
             
             # Update benchmark data
-            benchmark.current_price = market_data.price
+            benchmark.current_price=market_data.price
             benchmark.daily_return = market_data.change_percent
             benchmark.weekly_return = returns['weekly_return']
             benchmark.monthly_return = returns['monthly_return']
@@ -327,15 +327,15 @@ class ProductionIndexBaseline:
             
             # Calculate risk metrics
             if len(self.price_history[ticker]) > 1:
-                price_returns = [(self.price_history[ticker][i] - self.price_history[ticker][i-1]) / 
+                price_returns=[(self.price_history[ticker][i] - self.price_history[ticker][i-1]) / 
                                self.price_history[ticker][i-1] 
                                for i in range(1, len(self.price_history[ticker]))]
                 
-                benchmark.volatility = self.calculator.calculate_volatility(price_returns)
-                benchmark.sharpe_ratio = self.calculator.calculate_sharpe_ratio(price_returns)
-                benchmark.max_drawdown = self.calculator.calculate_max_drawdown(self.price_history[ticker])
+                benchmark.volatility=self.calculator.calculate_volatility(price_returns)
+                benchmark.sharpe_ratio=self.calculator.calculate_sharpe_ratio(price_returns)
+                benchmark.max_drawdown=self.calculator.calculate_max_drawdown(self.price_history[ticker])
             
-            benchmark.last_update = datetime.now()
+            benchmark.last_update=datetime.now()
             
             self.logger.info(f"Updated benchmark: {ticker}",
                            price=benchmark.current_price,
@@ -343,7 +343,7 @@ class ProductionIndexBaseline:
                            volatility=benchmark.volatility)
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"ticker": ticker, "operation": "update_benchmark"})
+            self.error_handler.handle_error(e, {"ticker":ticker, "operation":"update_benchmark"})
     
     async def track_strategy_performance(self, strategy_name: str, trades: List[Trade]):
         """Track strategy performance"""
@@ -351,13 +351,13 @@ class ProductionIndexBaseline:
             self.logger.info(f"Tracking performance for {strategy_name}")
             
             # Calculate strategy metrics
-            total_return = self._calculate_strategy_return(trades)
-            win_rate = self._calculate_win_rate(trades)
-            avg_win, avg_loss = self._calculate_avg_win_loss(trades)
-            profit_factor = self._calculate_profit_factor(trades)
+            total_return=self._calculate_strategy_return(trades)
+            win_rate=self._calculate_win_rate(trades)
+            avg_win, avg_loss=self._calculate_avg_win_loss(trades)
+            profit_factor=self._calculate_profit_factor(trades)
             
             # Calculate risk metrics (simplified)
-            volatility = 0.15  # Default volatility
+            volatility=0.15  # Default volatility
             sharpe_ratio = total_return / volatility if volatility > 0 else 0.0
             max_drawdown = 0.10  # Default max drawdown
             
@@ -389,15 +389,15 @@ class ProductionIndexBaseline:
                            total_trades=len(trades))
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"strategy": strategy_name, "operation": "track_performance"})
+            self.error_handler.handle_error(e, {"strategy":strategy_name, "operation":"track_performance"})
     
     def _calculate_strategy_return(self, trades: List[Trade]) -> float:
         """Calculate total strategy return"""
         if not trades:
             return 0.0
         
-        total_pnl = sum(self._calculate_trade_pnl(trade) for trade in trades)
-        total_invested = sum(trade.filled_price * trade.filled_quantity * 100 for trade in trades)
+        total_pnl=sum(self._calculate_trade_pnl(trade) for trade in trades)
+        total_invested=sum(trade.filled_price * trade.filled_quantity * 100 for trade in trades)
         
         return total_pnl / total_invested if total_invested > 0 else 0.0
     
@@ -412,7 +412,7 @@ class ProductionIndexBaseline:
         if not trades:
             return 0.0
         
-        winning_trades = sum(1 for trade in trades if self._is_winning_trade(trade))
+        winning_trades=sum(1 for trade in trades if self._is_winning_trade(trade))
         return winning_trades / len(trades)
     
     def _is_winning_trade(self, trade: Trade) -> bool:
@@ -425,11 +425,11 @@ class ProductionIndexBaseline:
         if not trades:
             return 0.0, 0.0
         
-        wins = [self._calculate_trade_pnl(trade) for trade in trades if self._is_winning_trade(trade)]
-        losses = [self._calculate_trade_pnl(trade) for trade in trades if not self._is_winning_trade(trade)]
+        wins=[self._calculate_trade_pnl(trade) for trade in trades if self._is_winning_trade(trade)]
+        losses=[self._calculate_trade_pnl(trade) for trade in trades if not self._is_winning_trade(trade)]
         
-        avg_win = sum(wins) / len(wins) if wins else 0.0
-        avg_loss = sum(losses) / len(losses) if losses else 0.0
+        avg_win=sum(wins) / len(wins) if wins else 0.0
+        avg_loss=sum(losses) / len(losses) if losses else 0.0
         
         return avg_win, avg_loss
     
@@ -438,17 +438,17 @@ class ProductionIndexBaseline:
         if not trades:
             return 0.0
         
-        wins = [self._calculate_trade_pnl(trade) for trade in trades if self._is_winning_trade(trade)]
-        losses = [abs(self._calculate_trade_pnl(trade)) for trade in trades if not self._is_winning_trade(trade)]
+        wins=[self._calculate_trade_pnl(trade) for trade in trades if self._is_winning_trade(trade)]
+        losses=[abs(self._calculate_trade_pnl(trade)) for trade in trades if not self._is_winning_trade(trade)]
         
-        total_wins = sum(wins)
-        total_losses = sum(losses)
+        total_wins=sum(wins)
+        total_losses=sum(losses)
         
         return total_wins / total_losses if total_losses > 0 else 0.0
     
     async def generate_performance_comparison(self, strategy_name: str) -> List[PerformanceComparison]:
         """Generate performance comparison against benchmarks"""
-        comparisons = []
+        comparisons=[]
         
         if strategy_name not in self.strategy_performance:
             return comparisons
@@ -458,7 +458,7 @@ class ProductionIndexBaseline:
         for ticker, benchmark in self.benchmarks.items():
             try:
                 # Calculate alpha and beta (simplified)
-                alpha = strategy_perf.total_return - benchmark.annual_return
+                alpha=strategy_perf.total_return - benchmark.annual_return
                 beta = 1.0  # Simplified beta calculation
                 
                 # Calculate information ratio
@@ -486,68 +486,68 @@ class ProductionIndexBaseline:
                                benchmark_return=benchmark.annual_return)
                 
             except Exception as e:
-                self.error_handler.handle_error(e, {"strategy": strategy_name, "benchmark": ticker})
+                self.error_handler.handle_error(e, {"strategy":strategy_name, "benchmark":ticker})
         
         return comparisons
     
     async def get_performance_report(self) -> Dict[str, Any]:
         """Generate comprehensive performance report"""
-        report = {
-            "report_date": datetime.now().isoformat(),
-            "benchmarks": {},
-            "strategies": {},
-            "comparisons": []
+        report={
+            "report_date":datetime.now().isoformat(),
+            "benchmarks":{},
+            "strategies":{},
+            "comparisons":[]
         }
         
         # Add benchmark data
         for ticker, benchmark in self.benchmarks.items():
             report["benchmarks"][ticker] = {
-                "current_price": benchmark.current_price,
-                "daily_return": benchmark.daily_return,
-                "weekly_return": benchmark.weekly_return,
-                "monthly_return": benchmark.monthly_return,
-                "ytd_return": benchmark.ytd_return,
-                "annual_return": benchmark.annual_return,
-                "volatility": benchmark.volatility,
-                "sharpe_ratio": benchmark.sharpe_ratio,
-                "max_drawdown": benchmark.max_drawdown
+                "current_price":benchmark.current_price,
+                "daily_return":benchmark.daily_return,
+                "weekly_return":benchmark.weekly_return,
+                "monthly_return":benchmark.monthly_return,
+                "ytd_return":benchmark.ytd_return,
+                "annual_return":benchmark.annual_return,
+                "volatility":benchmark.volatility,
+                "sharpe_ratio":benchmark.sharpe_ratio,
+                "max_drawdown":benchmark.max_drawdown
             }
         
         # Add strategy data
         for strategy_name, performance in self.strategy_performance.items():
             report["strategies"][strategy_name] = {
-                "total_return": performance.total_return,
-                "daily_return": performance.daily_return,
-                "weekly_return": performance.weekly_return,
-                "monthly_return": performance.monthly_return,
-                "ytd_return": performance.ytd_return,
-                "annual_return": performance.annual_return,
-                "volatility": performance.volatility,
-                "sharpe_ratio": performance.sharpe_ratio,
-                "max_drawdown": performance.max_drawdown,
-                "win_rate": performance.win_rate,
-                "total_trades": performance.total_trades,
-                "winning_trades": performance.winning_trades,
-                "losing_trades": performance.losing_trades,
-                "avg_win": performance.avg_win,
-                "avg_loss": performance.avg_loss,
-                "profit_factor": performance.profit_factor
+                "total_return":performance.total_return,
+                "daily_return":performance.daily_return,
+                "weekly_return":performance.weekly_return,
+                "monthly_return":performance.monthly_return,
+                "ytd_return":performance.ytd_return,
+                "annual_return":performance.annual_return,
+                "volatility":performance.volatility,
+                "sharpe_ratio":performance.sharpe_ratio,
+                "max_drawdown":performance.max_drawdown,
+                "win_rate":performance.win_rate,
+                "total_trades":performance.total_trades,
+                "winning_trades":performance.winning_trades,
+                "losing_trades":performance.losing_trades,
+                "avg_win":performance.avg_win,
+                "avg_loss":performance.avg_loss,
+                "profit_factor":performance.profit_factor
             }
         
         # Add comparisons
         for strategy_name in self.strategy_performance.keys():
-            comparisons = await self.generate_performance_comparison(strategy_name)
+            comparisons=await self.generate_performance_comparison(strategy_name)
             report["comparisons"].extend([
                 {
-                    "strategy_name": comp.strategy_name,
-                    "benchmark_ticker": comp.benchmark_ticker,
-                    "strategy_return": comp.strategy_return,
-                    "benchmark_return": comp.benchmark_return,
-                    "alpha": comp.alpha,
-                    "beta": comp.beta,
-                    "information_ratio": comp.information_ratio,
-                    "strategy_sharpe": comp.strategy_sharpe,
-                    "benchmark_sharpe": comp.benchmark_sharpe
+                    "strategy_name":comp.strategy_name,
+                    "benchmark_ticker":comp.benchmark_ticker,
+                    "strategy_return":comp.strategy_return,
+                    "benchmark_return":comp.benchmark_return,
+                    "alpha":comp.alpha,
+                    "beta":comp.beta,
+                    "information_ratio":comp.information_ratio,
+                    "strategy_sharpe":comp.strategy_sharpe,
+                    "benchmark_sharpe":comp.benchmark_sharpe
                 }
                 for comp in comparisons
             ])
@@ -567,7 +567,7 @@ class ProductionIndexBaseline:
                 await self.update_benchmarks()
                 
                 # Generate performance report
-                report = await self.get_performance_report()
+                report=await self.get_performance_report()
                 
                 # Log summary
                 self.logger.info("Baseline tracking summary",
@@ -582,7 +582,7 @@ class ProductionIndexBaseline:
                 await asyncio.sleep(self.update_interval.total_seconds())
                 
             except Exception as e:
-                self.error_handler.handle_error(e, {"operation": "run_baseline_tracking"})
+                self.error_handler.handle_error(e, {"operation":"run_baseline_tracking"})
                 await asyncio.sleep(300)  # Wait 5 minutes on error
 
 

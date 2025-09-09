@@ -7,6 +7,6 @@ Live data providers and integration components:
 
 from .production_data_integration import ReliableDataProvider as ProductionDataProvider
 
-__all__ = [
+__all__=[
     'ProductionDataProvider',
 ]

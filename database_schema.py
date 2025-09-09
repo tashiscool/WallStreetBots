@@ -16,14 +16,14 @@ Features:
 Usage:
     from database_schema import RiskDatabase
     
-    db = RiskDatabase()
+    db=RiskDatabase()
     db.setup()
     
     # Save risk calculation
     db.save_risk_metrics('PORTFOLIO', var_95=0.025, cvar_95=0.035)
     
     # Query risk history
-    history = db.get_risk_history(days=30)
+    history=db.get_risk_history(days=30)
 """
 
 import sqlite3
@@ -55,14 +55,14 @@ class RiskDatabase:
     enterprise PostgreSQL systems.
     """
     
-    def __init__(self, db_path: str = 'wallstreetbots_risk.db'):
-        self.db_path = db_path
+    def __init__(self, db_path: str='wallstreetbots_risk.db'):
+        self.db_path=db_path
         self.connection = None
         
     def connect(self) -> sqlite3.Connection:
         """Get database connection with proper configuration"""
         if self.connection is None:
-            self.connection = sqlite3.connect(
+            self.connection=sqlite3.connect(
                 self.db_path, 
                 check_same_thread=False,
                 timeout=30.0
@@ -85,8 +85,8 @@ class RiskDatabase:
         - Factor attribution analysis
         - Regulatory compliance logging
         """
-        conn = self.connect()
-        cursor = conn.cursor()
+        conn=self.connect()
+        cursor=conn.cursor()
         
         print("🔧 Setting up comprehensive risk management database...")
         
@@ -374,7 +374,7 @@ class RiskDatabase:
         conn.commit()
         print("✅ Database schema setup complete!")
         
-    def save_risk_metrics(self, symbol: str, portfolio_id: str = 'DEFAULT', **metrics) -> int:
+    def save_risk_metrics(self, symbol: str, portfolio_id: str='DEFAULT', **metrics) -> int:
         """
         Save comprehensive risk metrics to database
         
@@ -386,15 +386,15 @@ class RiskDatabase:
         Returns:
             Record ID of saved metrics
         """
-        conn = self.connect()
-        cursor = conn.cursor()
+        conn=self.connect()
+        cursor=conn.cursor()
         
         # Build INSERT statement dynamically based on provided metrics
-        columns = ['symbol', 'portfolio_id'] + list(metrics.keys())
-        placeholders = ', '.join(['?'] * len(columns))
-        values = [symbol, portfolio_id] + list(metrics.values())
+        columns=['symbol', 'portfolio_id'] + list(metrics.keys())
+        placeholders=', '.join(['?'] * len(columns))
+        values=[symbol, portfolio_id] + list(metrics.values())
         
-        query = f"""
+        query=f"""
         INSERT INTO risk_metrics ({', '.join(columns)})
         VALUES ({placeholders})
         """
@@ -407,17 +407,17 @@ class RiskDatabase:
     def log_var_exception(self, date: str, symbol: str, actual_return: float,
                          var_95: float, var_99: float, context: Dict[str, Any] = None) -> None:
         """Log VaR exception for backtesting validation"""
-        conn = self.connect()
-        cursor = conn.cursor()
+        conn=self.connect()
+        cursor=conn.cursor()
         
-        exception_95 = actual_return < -var_95
+        exception_95=actual_return < -var_95
         exception_99 = actual_return < -var_99
         
         # Calculate exception magnitude
         if exception_95:
             magnitude = abs(actual_return) - var_95
         else:
-            magnitude = 0.0
+            magnitude=0.0
             
         cursor.execute("""
         INSERT OR REPLACE INTO var_exceptions (
@@ -433,10 +433,10 @@ class RiskDatabase:
                          metric_name: str, current_value: float, 
                          threshold_value: float, message: str) -> int:
         """Create new risk alert"""
-        conn = self.connect()
-        cursor = conn.cursor()
+        conn=self.connect()
+        cursor=conn.cursor()
         
-        breach_pct = ((current_value - threshold_value) / threshold_value * 100 
+        breach_pct=((current_value - threshold_value) / threshold_value * 100 
                      if threshold_value != 0 else 0)
         
         cursor.execute("""
@@ -450,27 +450,27 @@ class RiskDatabase:
         conn.commit()
         return cursor.lastrowid
         
-    def get_risk_history(self, symbol: str = None, days: int = 30) -> pd.DataFrame:
+    def get_risk_history(self, symbol: str=None, days: int=30) -> pd.DataFrame:
         """Get historical risk metrics"""
-        conn = self.connect()
+        conn=self.connect()
         
-        base_query = """
+        base_query="""
         SELECT * FROM risk_metrics 
         WHERE timestamp >= date('now', '-{} days')
         """.format(days)
         
         if symbol:
-            base_query += f" AND symbol = '{symbol}'"
+            base_query += f" AND symbol='{symbol}'"
             
         base_query += " ORDER BY timestamp DESC"
         
         return pd.read_sql_query(base_query, conn)
         
-    def get_active_alerts(self, severity: str = None) -> pd.DataFrame:
+    def get_active_alerts(self, severity: str=None) -> pd.DataFrame:
         """Get active risk alerts"""
-        conn = self.connect()
+        conn=self.connect()
         
-        query = "SELECT * FROM risk_alerts WHERE status = 'ACTIVE'"
+        query="SELECT * FROM risk_alerts WHERE status = 'ACTIVE'"
         
         if severity:
             query += f" AND severity = '{severity}'"
@@ -479,11 +479,11 @@ class RiskDatabase:
         
         return pd.read_sql_query(query, conn)
         
-    def get_var_exceptions_summary(self, symbol: str = None, days: int = 252) -> Dict[str, Any]:
+    def get_var_exceptions_summary(self, symbol: str=None, days: int=252) -> Dict[str, Any]:
         """Get VaR exceptions summary for backtesting validation"""
-        conn = self.connect()
+        conn=self.connect()
         
-        base_query = """
+        base_query="""
         SELECT 
             COUNT(*) as total_days,
             SUM(exception_95) as exceptions_95,
@@ -495,40 +495,40 @@ class RiskDatabase:
         """.format(days)
         
         if symbol:
-            base_query += f" AND symbol = '{symbol}'"
+            base_query += f" AND symbol='{symbol}'"
             
         result = conn.execute(base_query).fetchone()
         
         if result and result[0] > 0:
-            total_days, exc_95, exc_99, avg_mag, max_mag = result
+            total_days, exc_95, exc_99, avg_mag, max_mag=result
             return {
-                'total_days': total_days,
-                'exceptions_95': exc_95,
-                'exceptions_99': exc_99,
-                'exception_rate_95': exc_95 / total_days,
-                'exception_rate_99': exc_99 / total_days,
-                'expected_rate_95': 0.05,
-                'expected_rate_99': 0.01,
-                'avg_exception_magnitude': avg_mag or 0,
-                'max_exception_magnitude': max_mag or 0,
-                'model_valid_95': abs((exc_95/total_days) - 0.05) < 0.02,  # Within 2%
-                'model_valid_99': abs((exc_99/total_days) - 0.01) < 0.005   # Within 0.5%
+                'total_days':total_days,
+                'exceptions_95':exc_95,
+                'exceptions_99':exc_99,
+                'exception_rate_95':exc_95 / total_days,
+                'exception_rate_99':exc_99 / total_days,
+                'expected_rate_95':0.05,
+                'expected_rate_99':0.01,
+                'avg_exception_magnitude':avg_mag or 0,
+                'max_exception_magnitude':max_mag or 0,
+                'model_valid_95':abs((exc_95/total_days) - 0.05) < 0.02,  # Within 2%
+                'model_valid_99':abs((exc_99/total_days) - 0.01) < 0.005   # Within 0.5%
             }
         else:
-            return {'error': 'No data available'}
+            return {'error':'No data available'}
             
     def update_greeks_exposure(self, portfolio_delta: float, portfolio_gamma: float,
                               portfolio_vega: float, limits: Dict[str, float]) -> None:
         """Update current Greeks exposure and check limits"""
-        conn = self.connect()
-        cursor = conn.cursor()
+        conn=self.connect()
+        cursor=conn.cursor()
         
         # Calculate utilization and breaches
-        delta_util = abs(portfolio_delta) / limits.get('max_delta', 1000)
-        gamma_util = abs(portfolio_gamma) / limits.get('max_gamma', 500)  
-        vega_util = abs(portfolio_vega) / limits.get('max_vega', 10000)
+        delta_util=abs(portfolio_delta) / limits.get('max_delta', 1000)
+        gamma_util=abs(portfolio_gamma) / limits.get('max_gamma', 500)  
+        vega_util=abs(portfolio_vega) / limits.get('max_vega', 10000)
         
-        delta_breach = delta_util > 1.0
+        delta_breach=delta_util > 1.0
         gamma_breach = gamma_util > 1.0
         vega_breach = vega_util > 1.0
         
@@ -561,10 +561,10 @@ class RiskDatabase:
     def compliance_check(self, regulation: str, check_type: str, entity: str,
                         metric: str, current_value: float, limit: float) -> bool:
         """Log regulatory compliance check"""
-        conn = self.connect()
-        cursor = conn.cursor()
+        conn=self.connect()
+        cursor=conn.cursor()
         
-        check_result = 'PASS' if current_value <= limit else 'FAIL'
+        check_result='PASS' if current_value <= limit else 'FAIL'
         requires_action = check_result == 'FAIL'
         
         cursor.execute("""
@@ -577,13 +577,13 @@ class RiskDatabase:
               
         conn.commit()
         
-        return check_result == 'PASS'
+        return check_result== 'PASS'
         
     def close(self) -> None:
         """Close database connection"""
         if self.connection:
             self.connection.close()
-            self.connection = None
+            self.connection=None
 
 
 def demo_risk_database():
@@ -596,14 +596,14 @@ def demo_risk_database():
     print("=" * 50)
     
     # Setup database
-    db = RiskDatabase('demo_risk.db')
+    db=RiskDatabase('demo_risk.db')
     db.setup()
     
     print("📊 Database setup complete!")
     
     # 1. Save risk metrics
     print("\n💾 Saving risk metrics...")
-    risk_id = db.save_risk_metrics(
+    risk_id=db.save_risk_metrics(
         'PORTFOLIO',
         var_95_historical=0.025,
         cvar_95=0.035,
@@ -627,7 +627,7 @@ def demo_risk_database():
     
     # 3. Create risk alert
     print("\n🚨 Creating risk alert...")
-    alert_id = db.create_risk_alert(
+    alert_id=db.create_risk_alert(
         alert_type='VAR_BREACH',
         severity='HIGH',
         symbol='PORTFOLIO',
@@ -644,13 +644,13 @@ def demo_risk_database():
         portfolio_delta=1200,   # Over limit
         portfolio_gamma=300,    # Under limit  
         portfolio_vega=8000,    # Under limit
-        limits={'max_delta': 1000, 'max_gamma': 500, 'max_vega': 10000}
+        limits={'max_delta':1000, 'max_gamma':500, 'max_vega':10000}
     )
     print("✅ Greeks exposure updated")
     
     # 5. Compliance check
     print("\n⚖️ Running compliance check...")
-    compliant = db.compliance_check(
+    compliant=db.compliance_check(
         regulation='FCA',
         check_type='POSITION_LIMIT',
         entity='PORTFOLIO',
@@ -664,15 +664,15 @@ def demo_risk_database():
     print("\n📊 Querying database results...")
     
     # Get risk history
-    risk_history = db.get_risk_history(days=7)
+    risk_history=db.get_risk_history(days=7)
     print(f"📈 Risk history: {len(risk_history)} records")
     
     # Get active alerts
-    alerts = db.get_active_alerts()
+    alerts=db.get_active_alerts()
     print(f"🚨 Active alerts: {len(alerts)} alerts")
     
     # Get VaR exceptions summary
-    exceptions = db.get_var_exceptions_summary(days=30)
+    exceptions=db.get_var_exceptions_summary(days=30)
     print(f"📊 VaR exceptions: {exceptions}")
     
     db.close()
@@ -685,6 +685,5 @@ def demo_risk_database():
     print("   ✅ Risk alerts and monitoring working")
 
 
-if __name__ == "__main__":
-    # Run the demonstration
+if __name__== "__main__":# Run the demonstration
     demo_risk_database()

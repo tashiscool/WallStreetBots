@@ -7,13 +7,13 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    initial = True
+    initial=True
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
-    operations = [
+    operations=[
         migrations.CreateModel(
             name='Company',
             fields=[
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('ticker', models.CharField(max_length=255, primary_key=True, serialize=False)),
             ],
             options={
-                'ordering': ['ticker'],
+                'ordering':['ticker'],
             },
         ),
         migrations.CreateModel(
@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
                 ('date', models.DateField()),
             ],
             options={
-                'ordering': ['date'],
+                'ordering':['date'],
             },
         ),
         migrations.CreateModel(
@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                 ('user', models.OneToOneField(help_text='Associated user', on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'ordering': ['user'],
+                'ordering':['user'],
             },
         ),
         migrations.CreateModel(
@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
                 ('company', models.OneToOneField(help_text='Company', on_delete=django.db.models.deletion.CASCADE, to='tradingbot.company')),
             ],
             options={
-                'ordering': ['company'],
+                'ordering':['company'],
             },
         ),
         migrations.CreateModel(
@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
                 ('date', models.DateField()),
             ],
             options={
-                'ordering': ['date'],
+                'ordering':['date'],
             },
         ),
         migrations.CreateModel(
@@ -90,7 +90,7 @@ class Migration(migrations.Migration):
                 ('user', models.OneToOneField(help_text='Associated user', on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'ordering': ['user', 'portfolio'],
+                'ordering':['user', 'portfolio'],
             },
         ),
         migrations.CreateModel(
@@ -102,7 +102,7 @@ class Migration(migrations.Migration):
                 ('stock', models.ForeignKey(help_text='Associated stock', on_delete=django.db.models.deletion.CASCADE, to='tradingbot.stock')),
             ],
             options={
-                'ordering': ['date'],
+                'ordering':['date'],
             },
         ),
         migrations.CreateModel(
@@ -118,7 +118,7 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(help_text='associated user', on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'ordering': ['user', 'timestamp', 'order_type'],
+                'ordering':['user', 'timestamp', 'order_type'],
             },
         ),
         migrations.AddField(

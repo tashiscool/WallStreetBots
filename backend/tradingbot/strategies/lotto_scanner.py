@@ -58,12 +58,12 @@ class EarningsEvent:
 
 
 class LottoScanner:
-    def __init__(self, max_risk_pct: float = 1.0):
+    def __init__(self, max_risk_pct: float=1.0):
         """
         Initialize with strict risk limits
         max_risk_pct: Maximum % of account to risk per play (default 1%)
         """
-        self.max_risk_pct = max_risk_pct / 100
+        self.max_risk_pct=max_risk_pct / 100
         
         # High-volatility tickers suitable for lotto plays
         self.lotto_tickers = [
@@ -83,16 +83,16 @@ class LottoScanner:
     
     def get_0dte_expiry(self) -> Optional[str]:
         """Get 0DTE expiry if available (usually Monday/Wednesday/Friday)"""
-        today = date.today()
+        today=date.today()
         
         # Check if today has 0DTE options (Mon/Wed/Fri for SPY, daily for others)
-        weekday = today.weekday()  # 0=Monday, 4=Friday
+        weekday=today.weekday()  # 0=Monday, 4=Friday
         
         if weekday in [0, 2, 4]:  # Mon, Wed, Fri
             return today.strftime("%Y-%m-%d")
         
         # Find next available 0DTE date
-        days_ahead = 1
+        days_ahead=1
         while days_ahead <= 7:
             next_date = today + timedelta(days=days_ahead)
             if next_date.weekday() in [0, 2, 4]:
@@ -103,9 +103,9 @@ class LottoScanner:
     
     def get_weekly_expiry(self) -> str:
         """Get next weekly expiry (Friday)"""
-        today = date.today()
-        days_until_friday = (4 - today.weekday()) % 7
-        if days_until_friday == 0:  # If today is Friday
+        today=date.today()
+        days_until_friday=(4 - today.weekday()) % 7
+        if days_until_friday== 0:  # If today is Friday
             days_until_friday = 7
         
         friday = today + timedelta(days=days_until_friday)
@@ -114,34 +114,34 @@ class LottoScanner:
     def estimate_expected_move(self, ticker: str, expiry: str) -> float:
         """Estimate expected move from implied volatility"""
         try:
-            stock = yf.Ticker(ticker)
-            spot = stock.history(period="1d")['Close'].iloc[-1]
+            stock=yf.Ticker(ticker)
+            spot=stock.history(period="1d")['Close'].iloc[-1]
             
             # Get options chain to estimate IV
-            chain = stock.option_chain(expiry)
+            chain=stock.option_chain(expiry)
             if chain.calls.empty:
                 return 0.05  # Default 5%
             
             # Find ATM options to estimate IV
-            calls = chain.calls
+            calls=chain.calls
             atm_call = calls.iloc[(calls['strike'] - spot).abs().argsort()[:1]]
             
             if not atm_call.empty:
-                mid_price = (atm_call['bid'].iloc[0] + atm_call['ask'].iloc[0]) / 2
+                mid_price=(atm_call['bid'].iloc[0] + atm_call['ask'].iloc[0]) / 2
                 
                 # Very rough IV estimation from option price
-                days_to_exp = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
+                days_to_exp=(datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
                 if days_to_exp <= 0:
-                    days_to_exp = 1
+                    days_to_exp=1
                 
                 # Rough straddle approximation for expected move
                 # Expected move ≈ (ATM call + ATM put) price
-                puts = chain.puts
+                puts=chain.puts
                 atm_put = puts.iloc[(puts['strike'] - spot).abs().argsort()[:1]]
                 
                 if not atm_put.empty:
-                    put_mid = (atm_put['bid'].iloc[0] + atm_put['ask'].iloc[0]) / 2
-                    straddle_price = mid_price + put_mid
+                    put_mid=(atm_put['bid'].iloc[0] + atm_put['ask'].iloc[0]) / 2
+                    straddle_price=mid_price + put_mid
                     expected_move_pct = straddle_price / spot
                 else:
                     expected_move_pct = (mid_price * 2) / spot  # Rough approximation
@@ -153,48 +153,48 @@ class LottoScanner:
         
         # Fallback based on historical volatility
         try:
-            stock = yf.Ticker(ticker)
-            hist = stock.history(period="30d")
+            stock=yf.Ticker(ticker)
+            hist=stock.history(period="30d")
             if len(hist) >= 20:
-                returns = hist['Close'].pct_change().dropna()
-                daily_vol = returns.std()
+                returns=hist['Close'].pct_change().dropna()
+                daily_vol=returns.std()
                 
-                days_to_exp = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
-                expected_move = daily_vol * math.sqrt(max(1, days_to_exp))
+                days_to_exp=(datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
+                expected_move=daily_vol * math.sqrt(max(1, days_to_exp))
                 return min(0.3, max(0.02, expected_move))
         except:
             pass
         
         return 0.05  # Default fallback
     
-    def get_earnings_calendar(self, weeks_ahead: int = 2) -> List[EarningsEvent]:
+    def get_earnings_calendar(self, weeks_ahead: int=2) -> List[EarningsEvent]:
         """Get upcoming earnings events (simplified - would use real earnings API)"""
         # This is a simplified version - in practice, use Alpha Vantage, FMP, or similar API
         
         # Mock earnings data for demonstration
-        mock_earnings = [
-            {"ticker": "AAPL", "days_out": 7, "time": "AMC", "expected_move": 0.04},
-            {"ticker": "GOOGL", "days_out": 3, "time": "AMC", "expected_move": 0.05},
-            {"ticker": "MSFT", "days_out": 10, "time": "AMC", "expected_move": 0.03},
-            {"ticker": "TSLA", "days_out": 5, "time": "AMC", "expected_move": 0.08},
-            {"ticker": "NVDA", "days_out": 14, "time": "AMC", "expected_move": 0.06},
-            {"ticker": "META", "days_out": 8, "time": "AMC", "expected_move": 0.07},
+        mock_earnings=[
+            {"ticker":"AAPL", "days_out":7, "time":"AMC", "expected_move":0.04},
+            {"ticker":"GOOGL", "days_out":3, "time":"AMC", "expected_move":0.05},
+            {"ticker":"MSFT", "days_out":10, "time":"AMC", "expected_move":0.03},
+            {"ticker":"TSLA", "days_out":5, "time":"AMC", "expected_move":0.08},
+            {"ticker":"NVDA", "days_out":14, "time":"AMC", "expected_move":0.06},
+            {"ticker":"META", "days_out":8, "time":"AMC", "expected_move":0.07},
         ]
         
-        events = []
+        events=[]
         today = date.today()
         
         for earning in mock_earnings:
             if earning["days_out"] <= weeks_ahead * 7:
-                earnings_date = today + timedelta(days=earning["days_out"])
+                earnings_date=today + timedelta(days=earning["days_out"])
                 
                 try:
-                    stock = yf.Ticker(earning["ticker"])
-                    info = stock.info
+                    stock=yf.Ticker(earning["ticker"])
+                    info=stock.info
                     company_name = info.get('shortName', earning["ticker"])
-                    sector = info.get('sector', 'Unknown')
+                    sector=info.get('sector', 'Unknown')
                 except:
-                    company_name = earning["ticker"]
+                    company_name=earning["ticker"]
                     sector = 'Unknown'
                 
                 event = EarningsEvent(
@@ -214,7 +214,7 @@ class LottoScanner:
     
     def scan_0dte_opportunities(self, account_size: float) -> List[LottoPlay]:
         """Scan for 0DTE opportunities"""
-        opportunities = []
+        opportunities=[]
         expiry = self.get_0dte_expiry()
         
         if not expiry:
@@ -223,16 +223,16 @@ class LottoScanner:
         print(f"🎰 Scanning for 0DTE opportunities ({expiry})...")
         
         # Focus on most liquid names for 0DTE
-        liquid_tickers = ["SPY", "QQQ", "AAPL", "TSLA", "NVDA", "MSFT", "GOOGL", "AMZN"]
+        liquid_tickers=["SPY", "QQQ", "AAPL", "TSLA", "NVDA", "MSFT", "GOOGL", "AMZN"]
         
         for ticker in liquid_tickers:
             try:
-                stock = yf.Ticker(ticker)
-                spot = stock.history(period="1d")['Close'].iloc[-1]
+                stock=yf.Ticker(ticker)
+                spot=stock.history(period="1d")['Close'].iloc[-1]
                 
                 # Check if ticker has options on this expiry
                 try:
-                    available_expiries = stock.options
+                    available_expiries=stock.options
                     if expiry not in available_expiries:
                         continue
                 except:
@@ -242,10 +242,10 @@ class LottoScanner:
                 if chain.calls.empty and chain.puts.empty:
                     continue
                 
-                expected_move = self.estimate_expected_move(ticker, expiry)
+                expected_move=self.estimate_expected_move(ticker, expiry)
                 
                 # Look for liquid strikes around expected move
-                targets = [
+                targets=[
                     ("call", spot * (1 + expected_move * 0.5)),  # Half expected move up
                     ("call", spot * (1 + expected_move)),       # Full expected move up  
                     ("put", spot * (1 - expected_move * 0.5)),  # Half expected move down
@@ -253,7 +253,7 @@ class LottoScanner:
                 ]
                 
                 for option_type, target_price in targets:
-                    if option_type == "call" and not chain.calls.empty:
+                    if option_type== "call" and not chain.calls.empty:
                         options_df = chain.calls
                     elif option_type == "put" and not chain.puts.empty:
                         options_df = chain.puts
@@ -266,7 +266,7 @@ class LottoScanner:
                     if best_strike.empty:
                         continue
                     
-                    strike = best_strike['strike'].iloc[0]
+                    strike=best_strike['strike'].iloc[0]
                     bid = best_strike['bid'].iloc[0]
                     ask = best_strike['ask'].iloc[0]
                     volume = best_strike.get('volume', [0]).iloc[0]
@@ -275,19 +275,18 @@ class LottoScanner:
                     if bid <= 0.05 or ask <= 0.05 or volume < 100:
                         continue
                     
-                    mid_price = (bid + ask) / 2
+                    mid_price=(bid + ask) / 2
                     
                     # Calculate position sizing with strict limits
-                    max_dollar_risk = account_size * self.max_risk_pct
+                    max_dollar_risk=account_size * self.max_risk_pct
                     max_contracts = int(max_dollar_risk / (mid_price * 100))
-                    max_contracts = min(max_contracts, 10)  # Hard cap at 10 contracts
+                    max_contracts=min(max_contracts, 10)  # Hard cap at 10 contracts
                     
                     if max_contracts <= 0:
                         continue
                     
                     # Calculate metrics
-                    if option_type == "call":
-                        breakeven = strike + mid_price
+                    if option_type== "call":breakeven = strike + mid_price
                         profit_target = breakeven * 1.5  # 50% beyond breakeven
                     else:  # put
                         breakeven = strike - mid_price
@@ -296,18 +295,17 @@ class LottoScanner:
                     stop_loss = mid_price * 0.5  # 50% stop loss
                     
                     # Rough win probability (very rough estimate)
-                    if option_type == "call":
-                        distance_to_breakeven = (breakeven - spot) / spot
-                        win_prob = max(0.05, 0.4 - distance_to_breakeven * 10)
+                    if option_type== "call":distance_to_breakeven = (breakeven - spot) / spot
+                        win_prob=max(0.05, 0.4 - distance_to_breakeven * 10)
                     else:
-                        distance_to_breakeven = (spot - breakeven) / spot  
-                        win_prob = max(0.05, 0.4 - distance_to_breakeven * 10)
+                        distance_to_breakeven=(spot - breakeven) / spot  
+                        win_prob=max(0.05, 0.4 - distance_to_breakeven * 10)
                     
                     # Potential return if hit profit target
-                    target_premium = mid_price * 3  # 3x return target
+                    target_premium=mid_price * 3  # 3x return target
                     potential_return = (target_premium - mid_price) / mid_price
                     
-                    lotto_play = LottoPlay(
+                    lotto_play=LottoPlay(
                         ticker=ticker,
                         play_type="0dte",
                         expiry_date=expiry,
@@ -344,28 +342,28 @@ class LottoScanner:
     
     def scan_earnings_lottos(self, account_size: float) -> List[LottoPlay]:
         """Scan for earnings lotto plays"""
-        opportunities = []
+        opportunities=[]
         earnings_events = self.get_earnings_calendar()
         
         print("🎰 Scanning earnings lotto opportunities...")
         
         for event in earnings_events:
             try:
-                stock = yf.Ticker(event.ticker)
-                spot = stock.history(period="1d")['Close'].iloc[-1]
+                stock=yf.Ticker(event.ticker)
+                spot=stock.history(period="1d")['Close'].iloc[-1]
                 
                 # Find expiry closest to earnings (weekly or monthly)
-                target_date = event.earnings_date
+                target_date=event.earnings_date
                 best_expiry = None
                 min_diff = float('inf')
                 
                 try:
-                    available_expiries = stock.options
+                    available_expiries=stock.options
                     for exp_str in available_expiries:
                         exp_date = datetime.strptime(exp_str, "%Y-%m-%d").date()
-                        diff = abs((exp_date - target_date).days)
+                        diff=abs((exp_date - target_date).days)
                         if diff < min_diff and exp_date >= target_date:
-                            min_diff = diff
+                            min_diff=diff
                             best_expiry = exp_str
                 except:
                     continue
@@ -374,16 +372,16 @@ class LottoScanner:
                     continue
                 
                 days_to_expiry = (datetime.strptime(best_expiry, "%Y-%m-%d").date() - date.today()).days
-                chain = stock.option_chain(best_expiry)
+                chain=stock.option_chain(best_expiry)
                 
                 if chain.calls.empty and chain.puts.empty:
                     continue
                 
                 # Create straddle/strangle plays around expected move
-                expected_up = spot * (1 + event.expected_move)
-                expected_down = spot * (1 - event.expected_move)
+                expected_up=spot * (1 + event.expected_move)
+                expected_down=spot * (1 - event.expected_move)
                 
-                plays_to_check = [
+                plays_to_check=[
                     ("call", expected_up, "Bullish earnings beat"),
                     ("put", expected_down, "Bearish earnings miss"),
                     ("call", spot * 1.02, "Minor upside surprise"),  # 2% OTM calls
@@ -391,7 +389,7 @@ class LottoScanner:
                 ]
                 
                 for option_type, target_strike, catalyst in plays_to_check:
-                    if option_type == "call" and not chain.calls.empty:
+                    if option_type== "call" and not chain.calls.empty:
                         options_df = chain.calls
                     elif option_type == "put" and not chain.puts.empty:
                         options_df = chain.puts
@@ -404,7 +402,7 @@ class LottoScanner:
                     if best_option.empty:
                         continue
                     
-                    strike = best_option['strike'].iloc[0]
+                    strike=best_option['strike'].iloc[0]
                     bid = best_option['bid'].iloc[0] 
                     ask = best_option['ask'].iloc[0]
                     volume = best_option.get('volume', [0]).iloc[0]
@@ -412,19 +410,18 @@ class LottoScanner:
                     if bid <= 0.10 or ask <= 0.10:
                         continue
                     
-                    mid_price = (bid + ask) / 2
+                    mid_price=(bid + ask) / 2
                     
                     # Position sizing
-                    max_dollar_risk = account_size * self.max_risk_pct
+                    max_dollar_risk=account_size * self.max_risk_pct
                     max_contracts = int(max_dollar_risk / (mid_price * 100))
-                    max_contracts = min(max_contracts, 5)  # Even stricter for earnings
+                    max_contracts=min(max_contracts, 5)  # Even stricter for earnings
                     
                     if max_contracts <= 0:
                         continue
                     
                     # Calculate metrics
-                    if option_type == "call":
-                        breakeven = strike + mid_price
+                    if option_type== "call":breakeven = strike + mid_price
                         win_prob = 0.3 if strike < expected_up else 0.2
                     else:
                         breakeven = strike - mid_price
@@ -475,16 +472,16 @@ class LottoScanner:
         if not plays:
             return "🎰 No suitable lotto plays found."
         
-        output = f"\n🎰 LOTTO PLAYS ({len(plays)} found)\n"
+        output=f"\n🎰 LOTTO PLAYS ({len(plays)} found)\n"
         output += "=" * 70 + "\n"
         output += "⚠️  EXTREME RISK - USE ONLY 0.5-1% OF ACCOUNT PER PLAY\n"
         output += "=" * 70 + "\n"
         
         for i, play in enumerate(plays, 1):
-            risk_emoji = {
-                "extreme": "💀",
-                "very_high": "🔥", 
-                "high": "⚠️"
+            risk_emoji={
+                "extreme":"💀",
+                "very_high":"🔥", 
+                "high":"⚠️"
             }.get(play.risk_level, "⚠️")
             
             output += f"\n{i}. {play.ticker} {risk_emoji} {play.play_type.upper()}\n"
@@ -511,7 +508,7 @@ class LottoScanner:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="0DTE/Earnings Lotto Scanner")
+    parser=argparse.ArgumentParser(description="0DTE/Earnings Lotto Scanner")
     parser.add_argument('command', choices=['0dte', 'earnings', 'both'],
                        help='Type of lotto scan')
     parser.add_argument('--account-size', type=float, required=True,
@@ -521,7 +518,7 @@ def main():
     parser.add_argument('--output', choices=['json', 'text'], default='text',
                        help='Output format')
     
-    args = parser.parse_args()
+    args=parser.parse_args()
     
     if args.account_size < 10000:
         print("⚠️  WARNING: Account size too small for safe lotto plays")
@@ -529,24 +526,22 @@ def main():
         print("   Consider paper trading first")
         return
     
-    scanner = LottoScanner(args.max_risk_pct)
+    scanner=LottoScanner(args.max_risk_pct)
     
-    all_plays = []
+    all_plays=[]
     
     if args.command in ['0dte', 'both']:
-        plays_0dte = scanner.scan_0dte_opportunities(args.account_size)
+        plays_0dte=scanner.scan_0dte_opportunities(args.account_size)
         all_plays.extend(plays_0dte)
     
     if args.command in ['earnings', 'both']:
-        earnings_plays = scanner.scan_earnings_lottos(args.account_size)
+        earnings_plays=scanner.scan_earnings_lottos(args.account_size)
         all_plays.extend(earnings_plays)
     
-    if args.output == 'json':
-        print(json.dumps([asdict(play) for play in all_plays], 
+    if args.output== 'json':print(json.dumps([asdict(play) for play in all_plays], 
                         indent=2, default=str))
     else:
         print(scanner.format_lotto_plays(all_plays))
 
 
-if __name__ == "__main__":
-    main()
+if __name__== "__main__":main()

@@ -17,7 +17,7 @@ if not settings.configured:
 def setup_django_mail():
     """Setup Django mail outbox for tests"""
     # Clear the outbox before each test
-    mail.outbox = []
+    mail.outbox=[]
     yield
     # Clear the outbox after each test
     mail.outbox = []

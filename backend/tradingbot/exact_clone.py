@@ -26,10 +26,10 @@ except ImportError:
             if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
                 raise ValueError("Invalid parameters")
 
-            d1 = (math.log(spot/strike) + (risk_free_rate - dividend_yield + 0.5*implied_volatility*implied_volatility)*time_to_expiry_years) / (implied_volatility*math.sqrt(time_to_expiry_years))
-            d2 = d1 - implied_volatility*math.sqrt(time_to_expiry_years)
+            d1=(math.log(spot/strike) + (risk_free_rate - dividend_yield + 0.5*implied_volatility*implied_volatility)*time_to_expiry_years) / (implied_volatility*math.sqrt(time_to_expiry_years))
+            d2=d1 - implied_volatility*math.sqrt(time_to_expiry_years)
 
-            call_value = (
+            call_value=(
                 spot*math.exp(-dividend_yield*time_to_expiry_years)*BlackScholesCalculator._norm_cdf(d1) -
                 strike*math.exp(-risk_free_rate*time_to_expiry_years)*BlackScholesCalculator._norm_cdf(d2)
             )
@@ -39,7 +39,7 @@ except ImportError:
 
 class DipType(Enum):
     """Types of dip days for entry"""
-    GAP_DOWN = "gap_down"           # Opened significantly lower
+    GAP_DOWN="gap_down"           # Opened significantly lower
     INTRADAY_SELLOFF = "sellof"    # Selling pressure during session
     RED_DAY = "red_day"             # Simply down from previous close
     HARD_DIP = "hard_dip"           # Down >2% intraday
@@ -82,7 +82,7 @@ class ExactTradeSetup:
     ruin_risk_pct: float          # Percentage of total account at risk
 
     # Optional fields with defaults
-    delta_exit_threshold: float = 0.60
+    delta_exit_threshold: float=0.60
     max_hold_days: int = 2
 
 
@@ -91,13 +91,13 @@ class DipDetector:
 
     def __init__(self):
         # Mega-cap universe with tight spreads & huge OI
-        self.universe = [
+        self.universe=[
             'GOOGL', 'GOOG', 'AAPL', 'MSFT', 'NVDA', 'META',
             'AMD', 'TSLA', 'AVGO', 'AMZN'
         ]
 
         # Dip thresholds (no moving average filters)
-        self.min_dip_pct = 0.015       # 1.5% minimum dip
+        self.min_dip_pct=0.015       # 1.5% minimum dip
         self.hard_dip_pct = 0.025      # 2.5% = "hard dip"
         self.volume_threshold = 1.2     # 20% above average volume
 
@@ -119,16 +119,16 @@ class DipDetector:
             return None
 
         # Calculate dip metrics
-        gap_down_pct = (current_price - previous_close) / previous_close
-        intraday_dip_pct = (current_price - high_of_day) / high_of_day
-        volume_ratio = current_volume / avg_volume if avg_volume > 0 else 1.0
+        gap_down_pct=(current_price - previous_close) / previous_close
+        intraday_dip_pct=(current_price - high_of_day) / high_of_day
+        volume_ratio=current_volume / avg_volume if avg_volume > 0 else 1.0
 
         # dip_signals = []  # Unused variable
 
         # Gap down detection
         if gap_down_pct < -self.min_dip_pct:
             dip_magnitude = abs(gap_down_pct)
-            dip_type = DipType.GAP_DOWN if dip_magnitude > 0.02 else DipType.RED_DAY
+            dip_type=DipType.GAP_DOWN if dip_magnitude > 0.02 else DipType.RED_DAY
 
             confidence = min(dip_magnitude * 20, 1.0)  # More confidence on bigger dips
             if volume_ratio > self.volume_threshold:
@@ -146,8 +146,8 @@ class DipDetector:
 
         # Intraday selloff detection
         if intraday_dip_pct < -self.min_dip_pct:
-            dip_magnitude = abs(intraday_dip_pct)
-            dip_type = DipType.INTRADAY_SELLOFF if dip_magnitude > 0.02 else DipType.RED_DAY
+            dip_magnitude=abs(intraday_dip_pct)
+            dip_type=DipType.INTRADAY_SELLOFF if dip_magnitude > 0.02 else DipType.RED_DAY
 
             confidence = min(dip_magnitude * 15, 0.8)  # Slightly lower confidence than gap down
             if volume_ratio > self.volume_threshold:
@@ -164,7 +164,7 @@ class DipDetector:
             )
 
         # Hard dip (either gap or intraday)
-        max_dip = max(abs(gap_down_pct), abs(intraday_dip_pct))
+        max_dip=max(abs(gap_down_pct), abs(intraday_dip_pct))
         if max_dip > self.hard_dip_pct:
             return DipSignal(
                 ticker=ticker,
@@ -183,17 +183,17 @@ class ExactCloneCalculator:
     """Calculate the exact trade setup he used"""
 
     def __init__(self):
-        self.bs_calc = BlackScholesCalculator()
+        self.bs_calc=BlackScholesCalculator()
 
     def calculate_exact_setup(
         self,
         ticker: str,
         spot_price: float,
         available_capital: float,
-        deploy_percentage: float = 0.90,  # 90% all-in default
-        otm_percentage: float = 0.05,     # 5% OTM
-        target_dte: int = 30,
-        current_iv: float = 0.28,
+        deploy_percentage: float=0.90,  # 90% all-in default
+        otm_percentage: float=0.05,     # 5% OTM
+        target_dte: int=30,
+        current_iv: float=0.28,
         entry_premium: Optional[float] = None
     ) -> ExactTradeSetup:
         """
@@ -204,7 +204,7 @@ class ExactCloneCalculator:
             spot_price: Current stock price
             available_capital: Total cash available to deploy
             deploy_percentage: What % to actually deploy (0.70 to 1.0)
-            otm_percentage: How far OTM (0.05 = 5%)
+            otm_percentage: How far OTM (0.05=5%)
             target_dte: Target days to expiry
             current_iv: Current implied volatility
             entry_premium: Market premium if known, else estimate
@@ -213,16 +213,16 @@ class ExactCloneCalculator:
             Complete exact trade setup
         """
         # Calculate strike (rounded to whole dollar)
-        raw_strike = spot_price * (1 + otm_percentage)
-        strike = round(raw_strike)
+        raw_strike=spot_price * (1 + otm_percentage)
+        strike=round(raw_strike)
 
         # Find target expiry (next Friday ~30 DTE)
-        target_expiry = self._find_target_friday(target_dte)
-        actual_dte = (target_expiry - date.today()).days
+        target_expiry=self._find_target_friday(target_dte)
+        actual_dte=(target_expiry - date.today()).days
 
         # Estimate premium if not provided
         if entry_premium is None:
-            time_to_expiry = actual_dte / 365.0
+            time_to_expiry=actual_dte / 365.0
             try:
                 premium_per_share = self.bs_calc.call_price(
                     spot=spot_price,
@@ -232,15 +232,15 @@ class ExactCloneCalculator:
                     dividend_yield=0.0,
                     implied_volatility=current_iv
                 )
-                entry_premium = premium_per_share * 100
+                entry_premium=premium_per_share * 100
             except Exception:
                 # Fallback estimate
                 entry_premium = max(0.5, (spot_price - strike) + spot_price * 0.02)
 
         # Calculate all-in position sizing
-        deploy_capital = available_capital * deploy_percentage
+        deploy_capital=available_capital * deploy_percentage
         contracts = int(deploy_capital / (entry_premium * 100))
-        total_cost = contracts * entry_premium * 100
+        total_cost=contracts * entry_premium * 100
 
         # Calculate exit targets
         exit_3x = entry_premium * 3.0
@@ -248,7 +248,7 @@ class ExactCloneCalculator:
 
         # Risk metrics
         breakeven = strike + (entry_premium / 100)
-        notional_exposure = contracts * 100 * spot_price
+        notional_exposure=contracts * 100 * spot_price
         effective_leverage = notional_exposure / total_cost if total_cost > 0 else 0
         ruin_risk_pct = (total_cost / available_capital) * 100
 
@@ -271,11 +271,11 @@ class ExactCloneCalculator:
 
     def _find_target_friday(self, target_dte: int) -> date:
         """Find the Friday closest to target DTE"""
-        base_date = date.today() + timedelta(days=target_dte)
+        base_date=date.today() + timedelta(days=target_dte)
 
         # Find next Friday (weekday 4)
-        days_to_friday = (4 - base_date.weekday()) % 7
-        if days_to_friday == 0:  # Already Friday
+        days_to_friday=(4 - base_date.weekday()) % 7
+        if days_to_friday== 0:  # Already Friday
             days_to_friday = 7
 
         friday = base_date + timedelta(days=days_to_friday)
@@ -287,7 +287,7 @@ class ExactCycleManager:
 
     def __init__(self):
         self.trade_history: List[Dict] = []
-        self.current_capital: float = 0.0
+        self.current_capital: float=0.0
         self.wins: int = 0
         self.losses: int = 0
 
@@ -299,22 +299,22 @@ class ExactCycleManager:
         hold_days: int
     ):
         """Log the result of a trade"""
-        pnl_per_contract = exit_premium - setup.entry_premium
+        pnl_per_contract=exit_premium - setup.entry_premium
         total_pnl = pnl_per_contract * setup.contracts
         roi = (pnl_per_contract / setup.entry_premium) if setup.entry_premium > 0 else 0
 
-        trade_record = {
-            'timestamp': datetime.now(),
-            'ticker': setup.ticker,
-            'entry_premium': setup.entry_premium,
-            'exit_premium': exit_premium,
-            'contracts': setup.contracts,
-            'pnl_per_contract': pnl_per_contract,
-            'total_pnl': total_pnl,
-            'roi': roi,
-            'hold_days': hold_days,
-            'exit_reason': exit_reason,
-            'capital_deployed': setup.total_cost
+        trade_record={
+            'timestamp':datetime.now(),
+            'ticker':setup.ticker,
+            'entry_premium':setup.entry_premium,
+            'exit_premium':exit_premium,
+            'contracts':setup.contracts,
+            'pnl_per_contract':pnl_per_contract,
+            'total_pnl':total_pnl,
+            'roi':roi,
+            'hold_days':hold_days,
+            'exit_reason':exit_reason,
+            'capital_deployed':setup.total_cost
         }
 
         self.trade_history.append(trade_record)
@@ -330,8 +330,8 @@ class ExactCycleManager:
     def calculate_next_position_size(
         self,
         base_capital: float,
-        win_streak: int = 0,
-        aggressive_scaling: bool = True
+        win_streak: int=0,
+        aggressive_scaling: bool=True
     ) -> float:
         """
         Calculate next position size - he often increased after wins
@@ -348,14 +348,14 @@ class ExactCycleManager:
             return base_capital * 0.90  # 90% deployment
 
         # Scale up after wins (dangerous but what he did)
-        scaling_factor = 0.90  # Base 90% deployment
+        scaling_factor=0.90  # Base 90% deployment
 
         if win_streak >= 1:
             scaling_factor = min(0.95, scaling_factor + (win_streak * 0.02))
 
         # After big win, sometimes go even bigger
         if len(self.trade_history) > 0:
-            last_trade = self.trade_history[-1]
+            last_trade=self.trade_history[-1]
             if last_trade['roi'] > 2.0:  # 200%+ gain
                 scaling_factor = min(0.98, scaling_factor + 0.05)
 
@@ -364,42 +364,42 @@ class ExactCycleManager:
     def get_performance_summary(self) -> Dict:
         """Get performance summary"""
         if not self.trade_history:
-            return {"total_trades": 0}
+            return {"total_trades":0}
 
-        total_pnl = sum(trade['total_pnl'] for trade in self.trade_history)
-        total_deployed = sum(trade['capital_deployed'] for trade in self.trade_history)
-        win_rate = self.wins / len(self.trade_history) if self.trade_history else 0
+        total_pnl=sum(trade['total_pnl'] for trade in self.trade_history)
+        total_deployed=sum(trade['capital_deployed'] for trade in self.trade_history)
+        win_rate=self.wins / len(self.trade_history) if self.trade_history else 0
 
-        avg_win = 0
+        avg_win=0
         avg_loss = 0
 
         wins = [t['roi'] for t in self.trade_history if t['total_pnl'] > 0]
         losses = [abs(t['roi']) for t in self.trade_history if t['total_pnl'] <= 0]
 
         if wins:
-            avg_win = sum(wins) / len(wins)
+            avg_win=sum(wins) / len(wins)
         if losses:
-            avg_loss = sum(losses) / len(losses)
+            avg_loss=sum(losses) / len(losses)
 
         return {
-            "total_trades": len(self.trade_history),
-            "wins": self.wins,
-            "losses": self.losses,
-            "win_rate": win_rate,
-            "total_pnl": total_pnl,
-            "avg_win": avg_win,
-            "avg_loss": avg_loss,
-            "total_roi": total_pnl / total_deployed if total_deployed > 0 else 0
+            "total_trades":len(self.trade_history),
+            "wins":self.wins,
+            "losses":self.losses,
+            "win_rate":win_rate,
+            "total_pnl":total_pnl,
+            "avg_win":avg_win,
+            "avg_loss":avg_loss,
+            "total_roi":total_pnl / total_deployed if total_deployed > 0 else 0
         }
 
 
 def clone_trade_plan(
     spot: float,
     acct_cash: float,
-    otm: float = 0.05,
-    dte_days: int = 30,
-    entry_prem: float = None,
-    deploy_pct: float = 0.90
+    otm: float=0.05,
+    dte_days: int=30,
+    entry_prem: float=None,
+    deploy_pct: float=0.90
 ) -> Dict:
     """
     Exact clone helper function (as specified)
@@ -410,25 +410,25 @@ def clone_trade_plan(
         otm: percent OTM (0.05 ~ 5%)
         dte_days: target DTE (~30)
         entry_prem: option price you see ($ per contract, e.g., 4.70)
-        deploy_pct: what percentage to actually deploy (0.90 = 90%)
+        deploy_pct: what percentage to actually deploy (0.90=90%)
 
     Returns:
         Dict with exact trade plan
     """
     # Strike rounded to whole dollar
-    strike = round(spot * (1 + otm))
+    strike=round(spot * (1 + otm))
 
     # If no entry premium provided, rough estimate
     if entry_prem is None:
         # Simple estimate: intrinsic + time value
-        intrinsic = max(0, spot - strike)
-        time_value = spot * 0.02  # Rough 2% time value
+        intrinsic=max(0, spot - strike)
+        time_value=spot * 0.02  # Rough 2% time value
         entry_prem = intrinsic + time_value
 
     # Calculate position size
     deploy_capital = acct_cash * deploy_pct
     contracts = int(deploy_capital // (entry_prem * 100))
-    actual_cost = contracts * entry_prem * 100
+    actual_cost=contracts * entry_prem * 100
 
     # Exit targets
     tp_3x = 3 * entry_prem
@@ -438,16 +438,16 @@ def clone_trade_plan(
     breakeven_at_expiry = strike + (entry_prem / 100.0)
 
     return {
-        "strike": strike,
-        "target_expiry_dte": dte_days,
-        "contracts": contracts,
-        "cost_$": round(actual_cost, 2),
-        "deploy_percentage": f"{(actual_cost / acct_cash) * 100:.1f}%",
-        "breakeven_at_expiry": round(breakeven_at_expiry, 2),
-        "take_profit_levels_$": [round(tp_3x, 2), round(tp_4x, 2)],
-        "sell_when": "ITM or delta ≥ 0.60 or TP hits; 1–2 day max hold",
-        "ruin_risk": f"{(actual_cost / acct_cash) * 100:.1f}% of total capital",
-        "effective_leverage": f"~{((contracts * 100 * spot) / actual_cost):.1f}x"
+        "strike":strike,
+        "target_expiry_dte":dte_days,
+        "contracts":contracts,
+        "cost_$":round(actual_cost, 2),
+        "deploy_percentage":f"{(actual_cost / acct_cash) * 100:.1f}%",
+        "breakeven_at_expiry":round(breakeven_at_expiry, 2),
+        "take_profit_levels_$":[round(tp_3x, 2), round(tp_4x, 2)],
+        "sell_when":"ITM or delta ≥ 0.60 or TP hits; 1–2 day max hold",
+        "ruin_risk":f"{(actual_cost / acct_cash) * 100:.1f}% of total capital",
+        "effective_leverage":f"~{((contracts * 100 * spot) / actual_cost):.1f}x"
     }
 
 
@@ -455,10 +455,10 @@ class ExactCloneSystem:
     """The complete exact clone system"""
 
     def __init__(self, initial_capital: float):
-        self.dip_detector = DipDetector()
-        self.calculator = ExactCloneCalculator()
-        self.cycle_manager = ExactCycleManager()
-        self.initial_capital = initial_capital
+        self.dip_detector=DipDetector()
+        self.calculator=ExactCloneCalculator()
+        self.cycle_manager=ExactCycleManager()
+        self.initial_capital=initial_capital
         self.current_capital = initial_capital
 
         # Trading state
@@ -466,11 +466,11 @@ class ExactCloneSystem:
         self.position_entry_date: Optional[datetime] = None
 
         logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
 
     def scan_for_dip_opportunities(self, market_data: Dict[str, Dict]) -> List[DipSignal]:
         """Scan for dip opportunities across the universe"""
-        opportunities = []
+        opportunities=[]
 
         for ticker in self.dip_detector.universe:
             if ticker not in market_data:
@@ -502,20 +502,20 @@ class ExactCloneSystem:
     def execute_dip_trade(
         self,
         signal: DipSignal,
-        current_iv: float = 0.28,
-        deploy_pct: float = 0.90
+        current_iv: float=0.28,
+        deploy_pct: float=0.90
     ) -> ExactTradeSetup:
         """Execute the all-in dip trade"""
 
         # Calculate available capital (including gains from previous trades)
-        available_capital = self.current_capital
+        available_capital=self.current_capital
 
         # Scale up after wins if enabled
         win_streak = self._calculate_win_streak()
-        deploy_capital = self.cycle_manager.calculate_next_position_size(
+        deploy_capital=self.cycle_manager.calculate_next_position_size(
             available_capital, win_streak, aggressive_scaling=True
         )
-        deploy_pct = deploy_capital / available_capital
+        deploy_pct=deploy_capital / available_capital
 
         # Calculate exact setup
         setup = self.calculator.calculate_exact_setup(
@@ -527,7 +527,7 @@ class ExactCloneSystem:
         )
 
         # Log the entry
-        self.active_position = setup
+        self.active_position=setup
         self.position_entry_date = datetime.now()
         self.current_capital -= setup.total_cost  # Reduce available capital
 
@@ -542,7 +542,7 @@ class ExactCloneSystem:
     def check_exit_conditions(
         self,
         current_premium: float,
-        current_delta: float = None
+        current_delta: float=None
     ) -> Optional[Tuple[str, float]]:
         """
         Check if position should be exited
@@ -553,7 +553,7 @@ class ExactCloneSystem:
         if not self.active_position:
             return None
 
-        setup = self.active_position
+        setup=self.active_position
         hold_days = (datetime.now() - self.position_entry_date).days
 
         # Max hold period (1-2 days)
@@ -581,11 +581,11 @@ class ExactCloneSystem:
         if not self.active_position:
             return
 
-        setup = self.active_position
+        setup=self.active_position
         hold_days = (datetime.now() - self.position_entry_date).days
 
         # Calculate P&L
-        pnl_per_contract = exit_premium - setup.entry_premium
+        pnl_per_contract=exit_premium - setup.entry_premium
         total_pnl = pnl_per_contract * setup.contracts
 
         # Update capital
@@ -602,7 +602,7 @@ class ExactCloneSystem:
         self.logger.info(f"   ROI: {(pnl_per_contract / setup.entry_premium):+.1%}")
 
         # Clear active position
-        self.active_position = None
+        self.active_position=None
         self.position_entry_date = None
 
     def _calculate_win_streak(self) -> int:
@@ -610,7 +610,7 @@ class ExactCloneSystem:
         if not self.cycle_manager.trade_history:
             return 0
 
-        streak = 0
+        streak=0
         for trade in reversed(self.cycle_manager.trade_history):
             if trade['total_pnl'] > 0:
                 streak += 1
@@ -621,35 +621,34 @@ class ExactCloneSystem:
 
     def get_system_status(self) -> Dict:
         """Get current system status"""
-        performance = self.cycle_manager.get_performance_summary()
+        performance=self.cycle_manager.get_performance_summary()
 
-        status = {
-            "current_capital": self.current_capital,
-            "initial_capital": self.initial_capital,
-            "total_return": ((self.current_capital - self.initial_capital) / self.initial_capital) * 100,
-            "active_position": self.active_position is not None,
-            "performance": performance
+        status={
+            "current_capital":self.current_capital,
+            "initial_capital":self.initial_capital,
+            "total_return":((self.current_capital - self.initial_capital) / self.initial_capital) * 100,
+            "active_position":self.active_position is not None,
+            "performance":performance
         }
 
         if self.active_position:
-            hold_days = (datetime.now() - self.position_entry_date).days
+            hold_days=(datetime.now() - self.position_entry_date).days
             status["active_position_details"] = {
-                "ticker": self.active_position.ticker,
-                "contracts": self.active_position.contracts,
-                "cost": self.active_position.total_cost,
-                "hold_days": hold_days,
-                "max_hold_days": self.active_position.max_hold_days
+                "ticker":self.active_position.ticker,
+                "contracts":self.active_position.contracts,
+                "cost":self.active_position.total_cost,
+                "hold_days":hold_days,
+                "max_hold_days":self.active_position.max_hold_days
             }
 
         return status
 
 
-if __name__ == "__main__":
-    # Test the exact clone helper
+if __name__== "__main__":# Test the exact clone helper
     print("=== EXACT CLONE TRADE PLAN ===")
 
     # Example matching his GOOGL trade
-    plan = clone_trade_plan(
+    plan=clone_trade_plan(
         spot=207.0,
         acct_cash=450000,
         otm=0.05,
@@ -664,22 +663,22 @@ if __name__ == "__main__":
     # Test the full system
     print("\n=== EXACT CLONE SYSTEM TEST ===")
 
-    system = ExactCloneSystem(initial_capital=500000)
+    system=ExactCloneSystem(initial_capital=500000)
 
     # Sample market data for dip detection
-    market_data = {
-        'GOOGL': {
-            'current_price': 203.0,    # Down from 207
-            'open_price': 206.5,
-            'high_of_day': 207.2,
-            'previous_close': 207.0,
-            'volume': 2500000,
-            'avg_volume': 2000000
+    market_data={
+        'GOOGL':{
+            'current_price':203.0,    # Down from 207
+            'open_price':206.5,
+            'high_of_day':207.2,
+            'previous_close':207.0,
+            'volume':2500000,
+            'avg_volume':2000000
         }
     }
 
     # Scan for opportunities
-    opportunities = system.scan_for_dip_opportunities(market_data)
+    opportunities=system.scan_for_dip_opportunities(market_data)
 
     if opportunities:
         print(f"Found {len(opportunities)} dip opportunities:")
@@ -687,7 +686,7 @@ if __name__ == "__main__":
             print(f"  {opp.ticker}: {opp.dip_type.value} - {opp.reasoning}")
 
         # Execute on best opportunity
-        best_signal = opportunities[0]
+        best_signal=opportunities[0]
         setup = system.execute_dip_trade(best_signal)
 
         print("\nExecuted trade setup:")
@@ -697,15 +696,15 @@ if __name__ == "__main__":
         print(f"  Ruin Risk: {setup.ruin_risk_pct:.1f}%")
 
         # Test exit condition check
-        exit_check = system.check_exit_conditions(current_premium=14.10)  # 3x gain
+        exit_check=system.check_exit_conditions(current_premium=14.10)  # 3x gain
         if exit_check:
-            reason, premium = exit_check
+            reason, premium=exit_check
             print(f"\nExit signal: {reason} at ${premium}")
     else:
         print("No dip opportunities detected")
 
     # System status
-    status = system.get_system_status()
+    status=system.get_system_status()
     print("\nSystem Status:")
     print(f"  Current Capital: ${status['current_capital']:,.0f}")
     print(f"  Active Position: {status['active_position']}")

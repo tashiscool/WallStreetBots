@@ -25,7 +25,7 @@ class SimpleBotDemo:
         print("=" * 60)
         
         # Same configuration as simple_bot.py but with demo keys
-        self.config = ProductionStrategyManagerConfig(
+        self.config=ProductionStrategyManagerConfig(
             alpaca_api_key='demo_paper_api_key',
             alpaca_secret_key='demo_paper_secret_key',
             paper_trading=True,  # ALWAYS True for safety
@@ -35,7 +35,7 @@ class SimpleBotDemo:
             enable_alerts=False      # Keep it simple
         )
         
-        self.manager = None
+        self.manager=None
         print(f"✅ Configuration: Paper Trading Enabled")
         print(f"📊 Risk Limits: 10% max total, 3% max per position")
         
@@ -46,14 +46,14 @@ class SimpleBotDemo:
         
         try:
             # Initialize the manager (same as simple_bot.py)
-            self.manager = ProductionStrategyManager(self.config)
+            self.manager=ProductionStrategyManager(self.config)
             print(f"✅ Strategy Manager: Initialized")
             print(f"📈 Loaded Strategies: {len(self.manager.strategies)}")
             
             # List all strategies that would be running
             print(f"\n📋 ACTIVE STRATEGIES:")
             for strategy_id, strategy in self.manager.strategies.items():
-                strategy_name = strategy.__class__.__name__
+                strategy_name=strategy.__class__.__name__
                 print(f"   • {strategy_id}: {strategy_name}")
             
             # Simulate portfolio check
@@ -81,7 +81,7 @@ class SimpleBotDemo:
         
         for i in range(3):  # Show 3 demo cycles
             await asyncio.sleep(1)  # Quick demo
-            now = datetime.now()
+            now=datetime.now()
             
             print(f"[{now.strftime('%H:%M:%S')}] Portfolio: $10,000 | "
                   f"Strategies: {len(self.manager.strategies)} | "
@@ -104,7 +104,7 @@ class SimpleBotDemo:
         """Run the complete demo"""
         try:
             # Initialize (same as simple_bot.py would do)
-            success = await self.demo_initialization()
+            success=await self.demo_initialization()
             
             if not success:
                 return
@@ -133,8 +133,7 @@ class SimpleBotDemo:
 
 async def main():
     """Main demo function"""
-    demo = SimpleBotDemo()
+    demo=SimpleBotDemo()
     await demo.run_demo()
 
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__== "__main__":asyncio.run(main())

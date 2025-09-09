@@ -37,7 +37,7 @@ class ProductionConfig:
     """Production configuration"""
     alpaca_api_key: str
     alpaca_secret_key: str
-    paper_trading: bool = True
+    paper_trading: bool=True
     user_id: int = 1
     
     # Risk management
@@ -54,7 +54,7 @@ class ProductionConfig:
     ])
     
     # Data settings
-    data_refresh_interval: int = 30  # seconds
+    data_refresh_interval: int=30  # seconds
     position_monitor_interval: int = 60  # seconds
     
     # Alert settings
@@ -77,18 +77,18 @@ class ProductionManager:
     """
     
     def __init__(self, config: ProductionConfig):
-        self.config = config
+        self.config=config
         self.logger = logging.getLogger(__name__)
         
         # Initialize core components
-        self.integration_manager = create_production_integration(
+        self.integration_manager=create_production_integration(
             config.alpaca_api_key,
             config.alpaca_secret_key,
             config.paper_trading,
             config.user_id
         )
         
-        self.data_provider = create_production_data_provider(
+        self.data_provider=create_production_data_provider(
             config.alpaca_api_key,
             config.alpaca_secret_key
         )
@@ -98,7 +98,7 @@ class ProductionManager:
         self._initialize_strategies()
         
         # System state
-        self.is_running = False
+        self.is_running=False
         self.start_time: Optional[datetime] = None
         self.last_heartbeat: Optional[datetime] = None
         
@@ -124,7 +124,7 @@ class ProductionManager:
     def _initialize_strategies(self):
         """Initialize all enabled strategies"""
         try:
-            strategy_config = StrategyConfig(
+            strategy_config=StrategyConfig(
                 name="default",
                 enabled=True,
                 max_position_size=self.config.max_position_size,
@@ -168,13 +168,13 @@ class ProductionManager:
             
             # Start all strategies
             for strategy_name, strategy in self.strategies.items():
-                success = await strategy.start_strategy()
+                success=await strategy.start_strategy()
                 if not success:
                     self.logger.error(f"Failed to start strategy: {strategy_name}")
                     return False
             
             # Start monitoring tasks
-            self.is_running = True
+            self.is_running=True
             self.start_time = datetime.now()
             
             # Start background tasks
@@ -194,7 +194,7 @@ class ProductionManager:
         try:
             self.logger.info("🛑 Stopping Production Trading System")
             
-            self.is_running = False
+            self.is_running=False
             
             # Stop all strategies
             for strategy_name, strategy in self.strategies.items():
@@ -215,19 +215,19 @@ class ProductionManager:
         """Validate production configuration"""
         try:
             # Validate Alpaca connection
-            success, message = self.integration_manager.alpaca_manager.validate_api()
+            success, message=self.integration_manager.alpaca_manager.validate_api()
             if not success:
                 self.logger.error(f"Alpaca validation failed: {message}")
                 return False
             
             # Validate account size
-            portfolio_value = await self.integration_manager.get_portfolio_value()
+            portfolio_value=await self.integration_manager.get_portfolio_value()
             if portfolio_value < Decimal('1000'):  # Minimum $1000
                 self.logger.error(f"Account size {portfolio_value} below minimum")
                 return False
             
             # Validate market hours
-            market_open = await self.data_provider.is_market_open()
+            market_open=await self.data_provider.is_market_open()
             if not market_open:
                 self.logger.warning("Market is closed - system will wait for market open")
             
@@ -242,15 +242,15 @@ class ProductionManager:
         """Initialize database connections and models"""
         try:
             # Ensure user exists
-            user, created = User.objects.get_or_create(
+            user, created=User.objects.get_or_create(
                 id=self.config.user_id,
-                defaults={'username': f'production_user_{self.config.user_id}'}
+                defaults={'username':f'production_user_{self.config.user_id}'}
             )
             
             # Ensure portfolio exists
-            portfolio, created = Portfolio.objects.get_or_create(
+            portfolio, created=Portfolio.objects.get_or_create(
                 user=user,
-                defaults={'name': 'Production Portfolio', 'cash': Decimal('0.00')}
+                defaults={'name':'Production Portfolio', 'cash':Decimal('0.00')}
             )
             
             # Sync portfolio with Alpaca
@@ -267,12 +267,12 @@ class ProductionManager:
         """Sync Django portfolio with Alpaca account"""
         try:
             # Get Alpaca account info
-            cash_balance = self.integration_manager.alpaca_manager.get_balance()
+            cash_balance=self.integration_manager.alpaca_manager.get_balance()
             if cash_balance:
-                portfolio.cash = Decimal(str(cash_balance))
+                portfolio.cash=Decimal(str(cash_balance))
                 portfolio.save()
                 
-                self.logger.info(f"Portfolio synced: Cash = {portfolio.cash}")
+                self.logger.info(f"Portfolio synced: Cash={portfolio.cash}")
             
         except Exception as e:
             self.logger.error(f"Portfolio sync error: {e}")
@@ -301,7 +301,7 @@ class ProductionManager:
         """Heartbeat loop for system monitoring"""
         while self.is_running:
             try:
-                self.last_heartbeat = datetime.now()
+                self.last_heartbeat=datetime.now()
                 
                 # Send heartbeat alert
                 if self.config.enable_alerts:
@@ -345,7 +345,7 @@ class ProductionManager:
         """System health check"""
         try:
             # Check Alpaca connection
-            success, message = self.integration_manager.alpaca_manager.validate_api()
+            success, message=self.integration_manager.alpaca_manager.validate_api()
             if not success:
                 await self.integration_manager.alert_system.send_alert(
                     "SYSTEM_ERROR",
@@ -369,20 +369,20 @@ class ProductionManager:
         """Update performance metrics"""
         try:
             # Get portfolio summary
-            portfolio_summary = self.integration_manager.get_portfolio_summary()
+            portfolio_summary=self.integration_manager.get_portfolio_summary()
             
             # Get strategy performance
-            strategy_performance = {}
+            strategy_performance={}
             for strategy_name, strategy in self.strategies.items():
                 strategy_performance[strategy_name] = strategy.get_strategy_status()
             
             # Update metrics
-            self.performance_metrics = {
-                'timestamp': datetime.now().isoformat(),
-                'system_uptime': (datetime.now() - self.start_time).total_seconds() if self.start_time else 0,
-                'portfolio': portfolio_summary,
-                'strategies': strategy_performance,
-                'data_cache_stats': self.data_provider.get_cache_stats()
+            self.performance_metrics={
+                'timestamp':datetime.now().isoformat(),
+                'system_uptime':(datetime.now() - self.start_time).total_seconds() if self.start_time else 0,
+                'portfolio':portfolio_summary,
+                'strategies':strategy_performance,
+                'data_cache_stats':self.data_provider.get_cache_stats()
             }
             
         except Exception as e:
@@ -404,12 +404,12 @@ class ProductionManager:
     async def _generate_final_report(self):
         """Generate final performance report"""
         try:
-            report = {
-                'session_start': self.start_time.isoformat() if self.start_time else None,
-                'session_end': datetime.now().isoformat(),
-                'total_runtime': (datetime.now() - self.start_time).total_seconds() if self.start_time else 0,
-                'performance_metrics': self.performance_metrics,
-                'final_portfolio': self.integration_manager.get_portfolio_summary()
+            report={
+                'session_start':self.start_time.isoformat() if self.start_time else None,
+                'session_end':datetime.now().isoformat(),
+                'total_runtime':(datetime.now() - self.start_time).total_seconds() if self.start_time else 0,
+                'performance_metrics':self.performance_metrics,
+                'final_portfolio':self.integration_manager.get_portfolio_summary()
             }
             
             # Save report
@@ -424,20 +424,20 @@ class ProductionManager:
     def get_system_status(self) -> Dict[str, Any]:
         """Get current system status"""
         return {
-            'is_running': self.is_running,
-            'start_time': self.start_time.isoformat() if self.start_time else None,
-            'last_heartbeat': self.last_heartbeat.isoformat() if self.last_heartbeat else None,
-            'active_strategies': len(self.strategies),
-            'strategy_status': {
+            'is_running':self.is_running,
+            'start_time':self.start_time.isoformat() if self.start_time else None,
+            'last_heartbeat':self.last_heartbeat.isoformat() if self.last_heartbeat else None,
+            'active_strategies':len(self.strategies),
+            'strategy_status':{
                 name: strategy.get_strategy_status() 
                 for name, strategy in self.strategies.items()
             },
-            'performance_metrics': self.performance_metrics,
-            'configuration': {
-                'paper_trading': self.config.paper_trading,
-                'max_position_size': self.config.max_position_size,
-                'max_total_risk': self.config.max_total_risk,
-                'enabled_strategies': self.config.enabled_strategies
+            'performance_metrics':self.performance_metrics,
+            'configuration':{
+                'paper_trading':self.config.paper_trading,
+                'max_position_size':self.config.max_position_size,
+                'max_total_risk':self.config.max_total_risk,
+                'enabled_strategies':self.config.enabled_strategies
             }
         }
 

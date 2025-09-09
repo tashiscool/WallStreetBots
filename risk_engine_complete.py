@@ -15,11 +15,11 @@ Features:
 Usage:
     from risk_engine_complete import RiskEngine
     
-    risk = RiskEngine()
+    risk=RiskEngine()
     risk.load_portfolio(['AAPL', 'GOOGL', 'TSLA'])
     
     # Get comprehensive risk metrics
-    results = risk.comprehensive_risk_report()
+    results=risk.comprehensive_risk_report()
     print(f"VaR 95%: ${results['var_95']:,.2f}")
     print(f"LVaR 95%: ${results['lvar_95']:,.2f}")
     
@@ -71,8 +71,8 @@ class RiskEngine:
     Zero complexity - just create instance and use!
     """
     
-    def __init__(self, db_path: str = 'risk_database.db'):
-        self.db_path = db_path
+    def __init__(self, db_path: str='risk_database.db'):
+        self.db_path=db_path
         self.portfolio_data = {}
         self.risk_history = []
         self.options_positions = {}
@@ -80,8 +80,8 @@ class RiskEngine:
         
     def _init_database(self):
         """Initialize SQLite database with risk tables"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        conn=sqlite3.connect(self.db_path)
+        cursor=conn.cursor()
         
         # Risk results table
         cursor.execute("""
@@ -138,7 +138,7 @@ class RiskEngine:
         conn.close()
         
     def load_portfolio(self, symbols: List[str], weights: Optional[List[float]] = None, 
-                      lookback_days: int = 252) -> None:
+                      lookback_days: int=252) -> None:
         """
         Load portfolio data for risk analysis
         
@@ -148,34 +148,34 @@ class RiskEngine:
             lookback_days: Historical data period
         """
         if weights is None:
-            weights = [1.0/len(symbols)] * len(symbols)
+            weights=[1.0/len(symbols)] * len(symbols)
             
         print(f"📊 Loading portfolio data for {len(symbols)} symbols...")
         
         for symbol, weight in zip(symbols, weights):
             try:
                 # Download historical data
-                hist = yf.download(symbol, period=f"{lookback_days}d", interval="1d")
+                hist=yf.download(symbol, period=f"{lookback_days}d", interval="1d")
                 
                 # Get current bid-ask spread for liquidity adjustment
-                ticker = yf.Ticker(symbol)
+                ticker=yf.Ticker(symbol)
                 try:
-                    info = ticker.info
+                    info=ticker.info
                     bid = info.get('bid', 0)
-                    ask = info.get('ask', 0)
+                    ask=info.get('ask', 0)
                 except:
-                    bid = ask = 0
+                    bid=ask = 0
                 
                 if bid > 0 and ask > 0:
                     spread = (ask - bid) / ((ask + bid) / 2)  # Relative spread
                 else:
-                    spread = 0.01  # 1% default spread
+                    spread=0.01  # 1% default spread
                 
                 self.portfolio_data[symbol] = {
-                    'data': hist,
-                    'weight': weight,
-                    'bid_ask_spread': spread,
-                    'returns': hist['Close'].pct_change().dropna()
+                    'data':hist,
+                    'weight':weight,
+                    'bid_ask_spread':spread,
+                    'returns':hist['Close'].pct_change().dropna()
                 }
                 
                 print(f"  ✅ {symbol}: {len(hist)} days, spread: {spread:.3f}")
@@ -183,7 +183,7 @@ class RiskEngine:
             except Exception as e:
                 print(f"  ❌ {symbol}: Error loading data - {e}")
                 
-    def calculate_var_methods(self, confidence: float = 0.95) -> Dict[str, float]:
+    def calculate_var_methods(self, confidence: float=0.95) -> Dict[str, float]:
         """
         Calculate VaR using multiple methods:
         1. Historical Simulation
@@ -195,54 +195,54 @@ class RiskEngine:
             raise ValueError("No portfolio data loaded. Call load_portfolio() first.")
             
         # Combine portfolio returns
-        returns_data = []
+        returns_data=[]
         for symbol, data in self.portfolio_data.items():
-            weighted_returns = data['returns'] * data['weight']
+            weighted_returns=data['returns'] * data['weight']
             returns_data.append(weighted_returns)
             
-        portfolio_returns = pd.concat(returns_data, axis=1).sum(axis=1).dropna()
+        portfolio_returns=pd.concat(returns_data, axis=1).sum(axis=1).dropna()
         
         # 1. Historical VaR
-        var_historical = np.percentile(portfolio_returns, (1-confidence)*100)
+        var_historical=np.percentile(portfolio_returns, (1-confidence)*100)
         
         # 2. Parametric Normal VaR  
-        mu = portfolio_returns.mean()
-        sigma = portfolio_returns.std()
-        var_parametric_normal = stats.norm.ppf(1-confidence, mu, sigma)
+        mu=portfolio_returns.mean()
+        sigma=portfolio_returns.std()
+        var_parametric_normal=stats.norm.ppf(1-confidence, mu, sigma)
         
         # 3. Parametric Student-t VaR (better for fat tails)
-        df = len(portfolio_returns) - 1
-        var_parametric_t = stats.t.ppf(1-confidence, df, mu, sigma)
+        df=len(portfolio_returns) - 1
+        var_parametric_t=stats.t.ppf(1-confidence, df, mu, sigma)
         
         # 4. Monte Carlo VaR (10,000 simulations)
         np.random.seed(42)  # Reproducible results
-        simulated_returns = np.random.normal(mu, sigma, 10000)
-        var_monte_carlo = np.percentile(simulated_returns, (1-confidence)*100)
+        simulated_returns=np.random.normal(mu, sigma, 10000)
+        var_monte_carlo=np.percentile(simulated_returns, (1-confidence)*100)
         
         return {
-            'historical': abs(var_historical),
-            'parametric_normal': abs(var_parametric_normal), 
-            'parametric_t': abs(var_parametric_t),
-            'monte_carlo': abs(var_monte_carlo),
-            'portfolio_returns': portfolio_returns
+            'historical':abs(var_historical),
+            'parametric_normal':abs(var_parametric_normal), 
+            'parametric_t':abs(var_parametric_t),
+            'monte_carlo':abs(var_monte_carlo),
+            'portfolio_returns':portfolio_returns
         }
         
-    def calculate_lvar(self, confidence: float = 0.95) -> float:
+    def calculate_lvar(self, confidence: float=0.95) -> float:
         """
         Calculate Liquidity-Adjusted VaR (LVaR)
         
         LVaR accounts for bid-ask spreads and potential slippage
         when liquidating positions in stressed markets.
         """
-        var_results = self.calculate_var_methods(confidence)
-        base_var = var_results['historical']  # Use historical as base
+        var_results=self.calculate_var_methods(confidence)
+        base_var=var_results['historical']  # Use historical as base
         
         # Calculate liquidity adjustment
         total_liquidity_adjustment = 0
         total_weight = 0
         
         for symbol, data in self.portfolio_data.items():
-            spread_adjustment = data['bid_ask_spread'] * data['weight']
+            spread_adjustment=data['bid_ask_spread'] * data['weight']
             total_liquidity_adjustment += spread_adjustment
             total_weight += data['weight']
             
@@ -254,28 +254,28 @@ class RiskEngine:
         
         return lvar
         
-    def calculate_cvar(self, confidence: float = 0.95) -> float:
+    def calculate_cvar(self, confidence: float=0.95) -> float:
         """
         Calculate Conditional VaR (Expected Shortfall)
         
         CVaR is the expected loss given that the loss exceeds VaR
         """
-        var_results = self.calculate_var_methods(confidence)
-        returns = var_results['portfolio_returns']
+        var_results=self.calculate_var_methods(confidence)
+        returns=var_results['portfolio_returns']
         var_threshold = -var_results['historical']  # Negative for losses
         
         # Find returns worse than VaR
         tail_losses = returns[returns <= var_threshold]
         
         if len(tail_losses) > 0:
-            cvar = abs(tail_losses.mean())
+            cvar=abs(tail_losses.mean())
         else:
-            cvar = abs(var_threshold)
+            cvar=abs(var_threshold)
             
         return cvar
         
     def kupiec_pof_test(self, var_series: pd.Series, returns_series: pd.Series, 
-                       confidence: float = 0.95) -> Dict[str, Any]:
+                       confidence: float=0.95) -> Dict[str, Any]:
         """
         Kupiec Proportion of Failures (POF) Test for VaR Backtesting
         
@@ -283,14 +283,14 @@ class RiskEngine:
         with the expected number based on confidence level.
         """
         # Count VaR exceptions (actual losses > predicted VaR)
-        exceptions = (returns_series < -var_series).sum()
-        total_observations = len(returns_series)
+        exceptions=(returns_series < -var_series).sum()
+        total_observations=len(returns_series)
         
         # Expected number of exceptions
-        expected_exceptions = total_observations * (1 - confidence)
+        expected_exceptions=total_observations * (1 - confidence)
         
         # Kupiec likelihood ratio test statistic
-        if exceptions == 0:
+        if exceptions== 0:
             lr_statistic = 0
         else:
             p_observed = exceptions / total_observations
@@ -302,20 +302,20 @@ class RiskEngine:
             )
             
         # Critical value for 95% confidence (chi-squared with 1 df)
-        critical_value = 3.841
+        critical_value=3.841
         test_passed = lr_statistic < critical_value
         
         return {
-            'exceptions': exceptions,
-            'expected_exceptions': expected_exceptions,
-            'exception_rate': exceptions / total_observations,
-            'expected_rate': 1 - confidence,
-            'lr_statistic': lr_statistic,
-            'critical_value': critical_value,
-            'test_passed': test_passed
+            'exceptions':exceptions,
+            'expected_exceptions':expected_exceptions,
+            'exception_rate':exceptions / total_observations,
+            'expected_rate':1 - confidence,
+            'lr_statistic':lr_statistic,
+            'critical_value':critical_value,
+            'test_passed':test_passed
         }
         
-    def rolling_var_exceptions(self, window_days: int = 250) -> pd.DataFrame:
+    def rolling_var_exceptions(self, window_days: int=250) -> pd.DataFrame:
         """
         Calculate rolling VaR exceptions for ongoing model validation
         """
@@ -323,35 +323,35 @@ class RiskEngine:
             return pd.DataFrame()
             
         # Get portfolio returns
-        returns_data = []
+        returns_data=[]
         for symbol, data in self.portfolio_data.items():
-            weighted_returns = data['returns'] * data['weight']
+            weighted_returns=data['returns'] * data['weight']
             returns_data.append(weighted_returns)
             
-        portfolio_returns = pd.concat(returns_data, axis=1).sum(axis=1).dropna()
+        portfolio_returns=pd.concat(returns_data, axis=1).sum(axis=1).dropna()
         
         # Calculate rolling VaR and exceptions
-        rolling_stats = []
+        rolling_stats=[]
         
         for i in range(window_days, len(portfolio_returns)):
-            window_returns = portfolio_returns.iloc[i-window_days:i]
+            window_returns=portfolio_returns.iloc[i-window_days:i]
             var_95 = np.percentile(window_returns, 5)  # 95% VaR
             
             # Check if next day is an exception
-            next_return = portfolio_returns.iloc[i] if i < len(portfolio_returns) else 0
-            exception = next_return < var_95
+            next_return=portfolio_returns.iloc[i] if i < len(portfolio_returns) else 0
+            exception=next_return < var_95
             
             rolling_stats.append({
-                'date': portfolio_returns.index[i],
-                'var_95': abs(var_95),
-                'actual_return': next_return,
-                'exception': exception
+                'date':portfolio_returns.index[i],
+                'var_95':abs(var_95),
+                'actual_return':next_return,
+                'exception':exception
             })
             
         return pd.DataFrame(rolling_stats)
         
-    def options_greeks_risk_check(self, max_delta: float = 1000, 
-                                max_gamma: float = 500) -> Dict[str, Any]:
+    def options_greeks_risk_check(self, max_delta: float=1000, 
+                                max_gamma: float=500) -> Dict[str, Any]:
         """
         Calculate options Greeks exposure and check against risk limits
         
@@ -359,32 +359,32 @@ class RiskEngine:
         real options positions and live Greeks calculations.
         """
         # Simulate options positions for demonstration
-        positions = {
-            'SPY_CALL_430': {'delta': 0.65, 'gamma': 0.02, 'contracts': 10},
-            'QQQ_PUT_350': {'delta': -0.35, 'gamma': 0.015, 'contracts': 5},
-            'AAPL_CALL_180': {'delta': 0.45, 'gamma': 0.025, 'contracts': 8}
+        positions={
+            'SPY_CALL_430':{'delta':0.65, 'gamma':0.02, 'contracts':10},
+            'QQQ_PUT_350':{'delta':-0.35, 'gamma':0.015, 'contracts':5},
+            'AAPL_CALL_180':{'delta':0.45, 'gamma':0.025, 'contracts':8}
         }
         
-        total_delta = sum(pos['delta'] * pos['contracts'] * 100 for pos in positions.values())
-        total_gamma = sum(pos['gamma'] * pos['contracts'] * 100 for pos in positions.values())
+        total_delta=sum(pos['delta'] * pos['contracts'] * 100 for pos in positions.values())
+        total_gamma=sum(pos['gamma'] * pos['contracts'] * 100 for pos in positions.values())
         
-        delta_breach = abs(total_delta) > max_delta
-        gamma_breach = abs(total_gamma) > max_gamma
+        delta_breach=abs(total_delta) > max_delta
+        gamma_breach=abs(total_gamma) > max_gamma
         
         return {
-            'total_delta_exposure': total_delta,
-            'total_gamma_exposure': total_gamma,
-            'max_delta_limit': max_delta,
-            'max_gamma_limit': max_gamma,
-            'delta_cap_breach': delta_breach,
-            'gamma_cap_breach': gamma_breach,
-            'positions': positions
+            'total_delta_exposure':total_delta,
+            'total_gamma_exposure':total_gamma,
+            'max_delta_limit':max_delta,
+            'max_gamma_limit':max_gamma,
+            'delta_cap_breach':delta_breach,
+            'gamma_cap_breach':gamma_breach,
+            'positions':positions
         }
         
-    def save_risk_results(self, metrics: RiskMetrics, symbol: str = 'PORTFOLIO') -> None:
+    def save_risk_results(self, metrics: RiskMetrics, symbol: str='PORTFOLIO') -> None:
         """Save risk calculation results to database"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        conn=sqlite3.connect(self.db_path)
+        cursor=conn.cursor()
         
         cursor.execute("""
         INSERT INTO risk_results (
@@ -413,49 +413,49 @@ class RiskEngine:
         print("🔍 Calculating comprehensive risk metrics...")
         
         # Portfolio returns for analysis
-        returns_data = []
+        returns_data=[]
         for symbol, data in self.portfolio_data.items():
-            weighted_returns = data['returns'] * data['weight']
+            weighted_returns=data['returns'] * data['weight']
             returns_data.append(weighted_returns)
             
-        portfolio_returns = pd.concat(returns_data, axis=1).sum(axis=1).dropna()
+        portfolio_returns=pd.concat(returns_data, axis=1).sum(axis=1).dropna()
         
         # 1. Multi-method VaR calculation
-        var_methods = self.calculate_var_methods(0.95)
-        var_95 = var_methods['historical']
+        var_methods=self.calculate_var_methods(0.95)
+        var_95=var_methods['historical']
         var_99 = self.calculate_var_methods(0.99)['historical']
         
         # 2. Conditional VaR (Expected Shortfall)
-        cvar_95 = self.calculate_cvar(0.95)
-        cvar_99 = self.calculate_cvar(0.99)
+        cvar_95=self.calculate_cvar(0.95)
+        cvar_99=self.calculate_cvar(0.99)
         
         # 3. Liquidity-Adjusted VaR
-        lvar_95 = self.calculate_lvar(0.95)
-        lvar_99 = self.calculate_lvar(0.99)
+        lvar_95=self.calculate_lvar(0.95)
+        lvar_99=self.calculate_lvar(0.99)
         
         # 4. Additional risk metrics
-        volatility = portfolio_returns.std() * np.sqrt(252)  # Annualized
-        skewness = portfolio_returns.skew()
-        kurtosis = portfolio_returns.kurtosis()
+        volatility=portfolio_returns.std() * np.sqrt(252)  # Annualized
+        skewness=portfolio_returns.skew()
+        kurtosis=portfolio_returns.kurtosis()
         
         # 5. Maximum drawdown
-        cumulative_returns = (1 + portfolio_returns).cumprod()
-        running_max = cumulative_returns.expanding().max()
-        drawdown = (cumulative_returns - running_max) / running_max
-        max_drawdown = drawdown.min()
+        cumulative_returns=(1 + portfolio_returns).cumprod()
+        running_max=cumulative_returns.expanding().max()
+        drawdown=(cumulative_returns - running_max) / running_max
+        max_drawdown=drawdown.min()
         
         # 6. Sharpe ratio (assuming 0% risk-free rate)
-        sharpe_ratio = portfolio_returns.mean() / portfolio_returns.std() * np.sqrt(252)
+        sharpe_ratio=portfolio_returns.mean() / portfolio_returns.std() * np.sqrt(252)
         
         # 7. Backtesting validation
-        rolling_exceptions = self.rolling_var_exceptions()
+        rolling_exceptions=self.rolling_var_exceptions()
         if len(rolling_exceptions) > 0:
-            var_exceptions = rolling_exceptions['exception'].sum()
+            var_exceptions=rolling_exceptions['exception'].sum()
             
             # Create VaR series for backtesting
-            var_series = pd.Series([var_95] * len(portfolio_returns), index=portfolio_returns.index)
-            kupiec_results = self.kupiec_pof_test(var_series, portfolio_returns, 0.95)
-            kupiec_passed = kupiec_results['test_passed']
+            var_series=pd.Series([var_95] * len(portfolio_returns), index=portfolio_returns.index)
+            kupiec_results=self.kupiec_pof_test(var_series, portfolio_returns, 0.95)
+            kupiec_passed=kupiec_results['test_passed']
         else:
             var_exceptions = 0
             kupiec_passed = True
@@ -490,20 +490,20 @@ class RiskEngine:
         In production this would connect to live market data feeds
         """
         if not self.portfolio_data:
-            return {"error": "No portfolio data loaded"}
+            return {"error":"No portfolio data loaded"}
             
         # Get current risk metrics
-        metrics = self.comprehensive_risk_report()
+        metrics=self.comprehensive_risk_report()
         
         # Options Greeks check
-        greeks_check = self.options_greeks_risk_check()
+        greeks_check=self.options_greeks_risk_check()
         
         # Risk utilization (assuming $100k portfolio)
-        portfolio_value = 100000
+        portfolio_value=100000
         var_utilization = (metrics.var_95 * portfolio_value) / portfolio_value
         
         # Risk alerts
-        alerts = []
+        alerts=[]
         if var_utilization > 0.05:  # 5% VaR limit
             alerts.append("⚠️ VaR exceeds 5% limit")
         if greeks_check['delta_cap_breach']:
@@ -514,13 +514,13 @@ class RiskEngine:
             alerts.append("📊 VaR model failed backtesting")
             
         return {
-            'timestamp': datetime.now().isoformat(),
-            'risk_metrics': metrics,
-            'greeks_exposure': greeks_check,
-            'portfolio_value': portfolio_value,
-            'var_utilization': var_utilization,
-            'alerts': alerts,
-            'system_status': '🟢 Operational' if len(alerts) == 0 else '🟡 Alerts Active'
+            'timestamp':datetime.now().isoformat(),
+            'risk_metrics':metrics,
+            'greeks_exposure':greeks_check,
+            'portfolio_value':portfolio_value,
+            'var_utilization':var_utilization,
+            'alerts':alerts,
+            'system_status':'🟢 Operational' if len(alerts) == 0 else '🟡 Alerts Active'
         }
 
 def demo_complete_risk_engine():
@@ -533,18 +533,18 @@ def demo_complete_risk_engine():
     print("=" * 50)
     
     # Initialize risk engine
-    risk_engine = RiskEngine()
+    risk_engine=RiskEngine()
     
     # Load a diversified portfolio
-    portfolio = ['AAPL', 'GOOGL', 'TSLA', 'SPY', 'QQQ']
-    weights = [0.2, 0.2, 0.15, 0.25, 0.2]  # Custom weights
+    portfolio=['AAPL', 'GOOGL', 'TSLA', 'SPY', 'QQQ']
+    weights=[0.2, 0.2, 0.15, 0.25, 0.2]  # Custom weights
     
     print(f"📊 Loading portfolio: {portfolio}")
     risk_engine.load_portfolio(portfolio, weights)
     
     # Get comprehensive risk report  
     print("\n🔍 Generating comprehensive risk report...")
-    metrics = risk_engine.comprehensive_risk_report()
+    metrics=risk_engine.comprehensive_risk_report()
     
     # Display results
     print("\n📈 RISK METRICS SUMMARY")
@@ -565,7 +565,7 @@ def demo_complete_risk_engine():
     # Real-time dashboard
     print("\n📊 REAL-TIME RISK DASHBOARD")
     print("-" * 30)
-    dashboard = risk_engine.real_time_risk_dashboard()
+    dashboard=risk_engine.real_time_risk_dashboard()
     print(f"System Status: {dashboard['system_status']}")
     print(f"VaR Utilization: {dashboard['var_utilization']:.2%}")
     
@@ -579,7 +579,7 @@ def demo_complete_risk_engine():
     # Options Greeks check
     print("\n🎭 OPTIONS GREEKS EXPOSURE")
     print("-" * 30)
-    greeks = dashboard['greeks_exposure']
+    greeks=dashboard['greeks_exposure']
     print(f"Total Delta:    {greeks['total_delta_exposure']:,.0f}")
     print(f"Total Gamma:    {greeks['total_gamma_exposure']:,.0f}")
     print(f"Delta Breach:   {'❌ YES' if greeks['delta_cap_breach'] else '✅ NO'}")
@@ -593,6 +593,5 @@ def demo_complete_risk_engine():
     print("   ✅ Options Greeks integration working")
     print("   ✅ Backtesting validation complete")
 
-if __name__ == "__main__":
-    # Run the complete demonstration
+if __name__== "__main__":# Run the complete demonstration
     demo_complete_risk_engine()

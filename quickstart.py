@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-WallStreetBots - Quick Start Script
-==================================
+WallStreetBots - Quick Start Script==================================
 
 🎯 Goal: Get up and running with paper trading in under 5 minutes!
 
@@ -39,12 +38,12 @@ def main():
     # ===========================================
     
     # 📋 API Keys loaded from .env file
-    ALPACA_API_KEY = os.getenv('ALPACA_API_KEY')
-    ALPACA_SECRET_KEY = os.getenv('ALPACA_SECRET_KEY')
+    ALPACA_API_KEY=os.getenv('ALPACA_API_KEY')
+    ALPACA_SECRET_KEY=os.getenv('ALPACA_SECRET_KEY')
     
     # 📋 Step 2: Choose your trading profile
-    TRADING_PROFILE = StrategyProfile.research_2024  # 🛡️ Conservative (recommended)
-    # TRADING_PROFILE = StrategyProfile.wsb_2025     # 🔥 WSB Aggressive (advanced)
+    TRADING_PROFILE=StrategyProfile.research_2024  # 🛡️ Conservative (recommended)
+    # TRADING_PROFILE=StrategyProfile.wsb_2025     # 🔥 WSB Aggressive (advanced)
     
     # ===========================================
     # ⚠️ SAFETY CHECK
@@ -66,7 +65,7 @@ def main():
     
     try:
         # Create configuration
-        config = ProductionStrategyManagerConfig(
+        config=ProductionStrategyManagerConfig(
             alpaca_api_key=ALPACA_API_KEY,
             alpaca_secret_key=ALPACA_SECRET_KEY,
             paper_trading=True,  # ✅ SAFE: Using fake money only!
@@ -77,7 +76,7 @@ def main():
         
         # Initialize the system
         print(f"🔧 Initializing with {config.profile} profile...")
-        manager = ProductionStrategyManager(config)
+        manager=ProductionStrategyManager(config)
         
         # Show startup info
         print(f"✅ Success! Loaded {len(manager.strategies)}/10 strategies")
@@ -93,7 +92,7 @@ def main():
             print(f"   {i:2d}. {strategy_name}")
         
         # Get system status
-        status = manager.get_system_status()
+        status=manager.get_system_status()
         print(f"\n🎯 System Status: {'🟢 Ready' if not status['is_running'] else '🔵 Running'}")
         
         print("\n" + "=" * 50)
@@ -121,7 +120,7 @@ async def run_live_demo():
     Optional: Run a live demo with all strategies active.
     ⚠️ Only call this after testing thoroughly!
     """
-    manager = main()
+    manager=main()
     if not manager:
         return
     
@@ -130,7 +129,7 @@ async def run_live_demo():
     
     try:
         # Start all strategies
-        success = await manager.start_all_strategies()
+        success=await manager.start_all_strategies()
         
         if success:
             print("✅ All strategies are now running!")
@@ -139,12 +138,12 @@ async def run_live_demo():
             while True:
                 await asyncio.sleep(30)  # Check every 30 seconds
                 
-                status = manager.get_system_status()
+                status=manager.get_system_status()
                 print(f"📊 Status: {len(status['strategy_status'])} strategies active")
                 
                 # Show brief performance summary
                 if status.get('performance_metrics'):
-                    metrics = status['performance_metrics']
+                    metrics=status['performance_metrics']
                     print(f"⏱️  Uptime: {metrics.get('system_uptime', 0)/3600:.1f}h")
         else:
             print("❌ Failed to start strategies")
@@ -156,11 +155,10 @@ async def run_live_demo():
     except Exception as e:
         print(f"❌ Runtime error: {e}")
 
-if __name__ == "__main__":
-    print(__doc__)
+if __name__== "__main__":print(__doc__)
     
     # For beginners: just show setup and configuration
-    manager = main()
+    manager=main()
     
     # Uncomment the line below to run live demo (advanced users only)
     # asyncio.run(run_live_demo())

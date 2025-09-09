@@ -25,7 +25,7 @@ def demo_paper_trading_readiness():
         )
         
         # Test configuration (same as simple_bot.py uses)
-        config = ProductionStrategyManagerConfig(
+        config=ProductionStrategyManagerConfig(
             alpaca_api_key='test_key_for_validation',
             alpaca_secret_key='test_secret_for_validation',
             paper_trading=True,
@@ -36,16 +36,16 @@ def demo_paper_trading_readiness():
         )
         
         # This tests strategy loading without API connection
-        manager = ProductionStrategyManager(config)
+        manager=ProductionStrategyManager(config)
         
         print(f"✅ Strategy Manager: Initialized")
         print(f"✅ Total Strategies: {len(manager.strategies)}/10")
         
         # List strategies
         print(f"\n📈 AVAILABLE STRATEGIES:")
-        strategy_list = []
+        strategy_list=[]
         for strategy_id, strategy in manager.strategies.items():
-            strategy_name = strategy.__class__.__name__
+            strategy_name=strategy.__class__.__name__
             strategy_list.append(f"   • {strategy_id}: {strategy_name}")
             
         for strategy in strategy_list:
@@ -61,7 +61,7 @@ def demo_paper_trading_readiness():
         from backend.tradingbot.apimanagers import AlpacaManager
         
         # Test that API manager can be initialized
-        manager = AlpacaManager(
+        manager=AlpacaManager(
             API_KEY='test_key',
             SECRET_KEY='test_secret',
             paper_trading=True
@@ -77,7 +77,7 @@ def demo_paper_trading_readiness():
     
     # Test 3: Dependencies  
     print(f"\n📦 TESTING DEPENDENCIES...")
-    dependencies = []
+    dependencies=[]
     
     try:
         import alpaca.trading.client
@@ -105,7 +105,7 @@ def demo_paper_trading_readiness():
     if os.path.exists('simple_bot.py'):
         print(f"✅ simple_bot.py: Available")
         with open('simple_bot.py', 'r') as f:
-            content = f.read()
+            content=f.read()
             if 'paper_trading=True' in content:
                 print(f"✅ Paper Trading: Enabled by default")
             else:
@@ -138,5 +138,4 @@ def demo_paper_trading_readiness():
     
     return True
 
-if __name__ == "__main__":
-    demo_paper_trading_readiness()
+if __name__== "__main__":demo_paper_trading_readiness()

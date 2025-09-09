@@ -44,9 +44,8 @@ This setup will configure WallStreetBots for REAL MONEY TRADING.
 
 Do you want to continue? (y/N): """, end="")
     
-    response = input().strip().lower()
-    if response != 'y':
-        print("Setup cancelled. Good choice to be cautious! 🛡️")
+    response=input().strip().lower()
+    if response != 'y':print("Setup cancelled. Good choice to be cautious! 🛡️")
         sys.exit(0)
 
 
@@ -73,7 +72,7 @@ def install_dependencies():
             print("✅ Virtual environment created")
         
         # Determine pip path
-        if os.name == 'nt':  # Windows
+        if os.name== 'nt':# Windows
             pip_path = 'venv\\Scripts\\pip'
             python_path = 'venv\\Scripts\\python'
         else:  # Unix/Linux/Mac
@@ -99,8 +98,8 @@ def create_env_file():
     """Create .env file from example"""
     print_header("⚙️ Creating Environment Configuration")
     
-    env_example = Path('backend/.env.example')
-    env_file = Path('backend/.env')
+    env_example=Path('backend/.env.example')
+    env_file=Path('backend/.env')
     
     if not env_example.exists():
         print("❌ backend/.env.example not found!")
@@ -108,14 +107,13 @@ def create_env_file():
     
     if env_file.exists():
         print("📄 .env file already exists")
-        overwrite = input("Overwrite existing .env file? (y/N): ").strip().lower()
-        if overwrite != 'y':
-            print("Keeping existing .env file")
+        overwrite=input("Overwrite existing .env file? (y/N): ").strip().lower()
+        if overwrite != 'y':print("Keeping existing .env file")
             return
     
     # Copy example to .env
     with open(env_example) as f:
-        content = f.read()
+        content=f.read()
     
     with open(env_file, 'w') as f:
         f.write(content)
@@ -130,18 +128,18 @@ def run_tests():
     
     try:
         # Determine python path
-        if os.name == 'nt':  # Windows
+        if os.name== 'nt':# Windows
             python_path = 'venv\\Scripts\\python'
         else:  # Unix/Linux/Mac
             python_path = 'venv/bin/python'
         
         print("Running all tests...")
-        result = subprocess.run([
+        result=subprocess.run([
             python_path, '-m', 'pytest', 
             'backend/tradingbot/', '-v', '--tb=short'
         ], capture_output=True, text=True)
         
-        if result.returncode == 0:
+        if result.returncode== 0:
             print("✅ All tests passed!")
             print(f"📊 Test output:\n{result.stdout}")
         else:
@@ -157,7 +155,7 @@ def print_api_key_instructions():
     """Print detailed API key setup instructions"""
     print_header("🔑 API Key Setup Instructions")
     
-    instructions = """
+    instructions="""
 📋 STEP-BY-STEP API KEY SETUP:
 
 1. 🏦 ALPACA (Stock/Options Broker) - REQUIRED
@@ -229,7 +227,7 @@ def print_usage_instructions():
     """Print detailed usage instructions"""
     print_header("🚀 Usage Instructions")
     
-    usage = """
+    usage="""
 🎯 HOW TO START TRADING:
 
 1. 📋 SETUP CHECKLIST:
@@ -324,5 +322,4 @@ Good luck, and may your trades be profitable! 📈
     """)
 
 
-if __name__ == "__main__":
-    main()
+if __name__== "__main__":main()

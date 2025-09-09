@@ -20,7 +20,7 @@ from .production_models import Strategy, Position, Trade, RiskLimit
 
 class SpreadType(Enum):
     """Debit spread types"""
-    BULL_CALL_SPREAD = "bull_call_spread"
+    BULL_CALL_SPREAD="bull_call_spread"
     BEAR_PUT_SPREAD = "bear_put_spread"
     CALENDAR_SPREAD = "calendar_spread"
     DIAGONAL_SPREAD = "diagonal_spread"
@@ -28,7 +28,7 @@ class SpreadType(Enum):
 
 class SpreadStatus(Enum):
     """Spread position status"""
-    ACTIVE = "active"
+    ACTIVE="active"
     EXPIRED = "expired"
     CLOSED = "closed"
     ROLLED = "rolled"
@@ -54,17 +54,17 @@ class SpreadPosition:
     short_option: Dict[str, Any]  # Short option details
     
     # Pricing
-    current_value: float = 0.0
+    current_value: float=0.0
     unrealized_pnl: float = 0.0
     profit_pct: float = 0.0
     
     # Timing
     entry_date: datetime = field(default_factory=datetime.now)
-    expiry_date: datetime = field(default_factory=lambda: datetime.now() + timedelta(days=30))
-    last_update: datetime = field(default_factory=datetime.now)
+    expiry_date: datetime=field(default_factory=lambda: datetime.now() + timedelta(days=30))
+    last_update: datetime=field(default_factory=datetime.now)
     
     # Greeks
-    net_delta: float = 0.0
+    net_delta: float=0.0
     net_gamma: float = 0.0
     net_theta: float = 0.0
     net_vega: float = 0.0
@@ -72,26 +72,26 @@ class SpreadPosition:
     def update_pricing(self, long_option_data: OptionsData, short_option_data: OptionsData):
         """Update spread pricing with current option data"""
         # Calculate current spread value
-        long_value = long_option_data.bid
+        long_value=long_option_data.bid
         short_value = short_option_data.ask
         
         self.current_value = (long_value - short_value) * self.quantity * 100
         
         # Calculate P&L
-        self.unrealized_pnl = self.current_value - (self.net_debit * self.quantity * 100)
-        self.profit_pct = self.unrealized_pnl / (self.net_debit * self.quantity * 100)
+        self.unrealized_pnl=self.current_value - (self.net_debit * self.quantity * 100)
+        self.profit_pct=self.unrealized_pnl / (self.net_debit * self.quantity * 100)
         
         # Update Greeks
-        self.net_delta = (long_option_data.delta - short_option_data.delta) * self.quantity * 100
-        self.net_gamma = (long_option_data.gamma - short_option_data.gamma) * self.quantity * 100
-        self.net_theta = (long_option_data.theta - short_option_data.theta) * self.quantity * 100
-        self.net_vega = (long_option_data.vega - short_option_data.vega) * self.quantity * 100
+        self.net_delta=(long_option_data.delta - short_option_data.delta) * self.quantity * 100
+        self.net_gamma=(long_option_data.gamma - short_option_data.gamma) * self.quantity * 100
+        self.net_theta=(long_option_data.theta - short_option_data.theta) * self.quantity * 100
+        self.net_vega=(long_option_data.vega - short_option_data.vega) * self.quantity * 100
         
-        self.last_update = datetime.now()
+        self.last_update=datetime.now()
     
     def calculate_max_profit(self) -> float:
         """Calculate maximum profit potential"""
-        if self.spread_type == SpreadType.BULL_CALL_SPREAD:
+        if self.spread_type== SpreadType.BULL_CALL_SPREAD:
             return (self.short_strike - self.long_strike) * self.quantity * 100 - self.net_debit * self.quantity * 100
         return 0.0
     
@@ -101,7 +101,7 @@ class SpreadPosition:
     
     def calculate_days_to_expiry(self) -> int:
         """Calculate days to expiry"""
-        delta = self.expiry_date - datetime.now()
+        delta=self.expiry_date - datetime.now()
         return max(0, delta.days)
 
 
@@ -130,33 +130,33 @@ class SpreadCandidate:
     net_vega: float
     
     # Scoring
-    spread_score: float = 0.0
+    spread_score: float=0.0
     risk_score: float = 0.0
     
     def calculate_spread_score(self) -> float:
         """Calculate spread strategy score"""
-        score = 0.0
+        score=0.0
         
         # Profit/Loss ratio (higher is better)
         score += min(self.profit_loss_ratio, 3.0) * 0.3
         
         # Net delta (positive for bullish spreads)
-        if self.spread_type == SpreadType.BULL_CALL_SPREAD:
+        if self.spread_type== SpreadType.BULL_CALL_SPREAD:
             score += max(0, self.net_delta) * 0.2
         
         # Net theta (negative is better for debit spreads)
         score += max(0, -self.net_theta) * 0.2
         
         # Net debit as % of stock price (lower is better)
-        debit_pct = self.net_debit / self.current_price
+        debit_pct=self.net_debit / self.current_price
         score += max(0, 0.05 - debit_pct) * 20
         
         # Strike width (reasonable width)
-        strike_width = abs(self.short_strike - self.long_strike)
+        strike_width=abs(self.short_strike - self.long_strike)
         if 2 <= strike_width <= 10:
             score += 0.1
         
-        self.spread_score = max(0.0, min(1.0, score))
+        self.spread_score=max(0.0, min(1.0, score))
         return self.spread_score
 
 
@@ -164,7 +164,7 @@ class QuantLibPricer:
     """QuantLib-based options pricing"""
     
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
     
     def calculate_black_scholes(self, 
                               spot_price: float,
@@ -179,41 +179,40 @@ class QuantLibPricer:
             # In production, would use QuantLib
             
             # Calculate d1 and d2
-            d1 = (math.log(spot_price / strike_price) + 
+            d1=(math.log(spot_price / strike_price) + 
                   (risk_free_rate + 0.5 * volatility**2) * time_to_expiry) / (volatility * math.sqrt(time_to_expiry))
-            d2 = d1 - volatility * math.sqrt(time_to_expiry)
+            d2=d1 - volatility * math.sqrt(time_to_expiry)
             
             # Calculate option price
-            if option_type.lower() == 'call':
-                price = (spot_price * self._normal_cdf(d1) - 
+            if option_type.lower() == 'call':price=(spot_price * self._normal_cdf(d1) - 
                         strike_price * math.exp(-risk_free_rate * time_to_expiry) * self._normal_cdf(d2))
             else:  # put
-                price = (strike_price * math.exp(-risk_free_rate * time_to_expiry) * self._normal_cdf(-d2) - 
+                price=(strike_price * math.exp(-risk_free_rate * time_to_expiry) * self._normal_cdf(-d2) - 
                         spot_price * self._normal_cdf(-d1))
             
             # Calculate Greeks
-            delta = self._normal_cdf(d1) if option_type.lower() == 'call' else self._normal_cdf(d1) - 1
-            gamma = self._normal_pdf(d1) / (spot_price * volatility * math.sqrt(time_to_expiry))
-            theta = (-spot_price * self._normal_pdf(d1) * volatility / (2 * math.sqrt(time_to_expiry)) - 
+            delta=self._normal_cdf(d1) if option_type.lower() == 'call' else self._normal_cdf(d1) - 1
+            gamma=self._normal_pdf(d1) / (spot_price * volatility * math.sqrt(time_to_expiry))
+            theta=(-spot_price * self._normal_pdf(d1) * volatility / (2 * math.sqrt(time_to_expiry)) - 
                     risk_free_rate * strike_price * math.exp(-risk_free_rate * time_to_expiry) * self._normal_cdf(d2))
-            vega = spot_price * self._normal_pdf(d1) * math.sqrt(time_to_expiry)
+            vega=spot_price * self._normal_pdf(d1) * math.sqrt(time_to_expiry)
             
             return {
-                'price': price,
-                'delta': delta,
-                'gamma': gamma,
-                'theta': theta,
-                'vega': vega
+                'price':price,
+                'delta':delta,
+                'gamma':gamma,
+                'theta':theta,
+                'vega':vega
             }
             
         except Exception as e:
             self.logger.error(f"Black-Scholes calculation error: {e}")
             return {
-                'price': 0.0,
-                'delta': 0.0,
-                'gamma': 0.0,
-                'theta': 0.0,
-                'vega': 0.0
+                'price':0.0,
+                'delta':0.0,
+                'gamma':0.0,
+                'theta':0.0,
+                'vega':0.0
             }
     
     def _normal_cdf(self, x: float) -> float:
@@ -233,16 +232,16 @@ class ProductionDebitSpreads:
                  data_provider: UnifiedDataProvider,
                  config: ProductionConfig,
                  logger: ProductionLogger):
-        self.trading = trading_interface
+        self.trading=trading_interface
         self.data = data_provider
         self.config = config
         self.logger = logger
         self.error_handler = ErrorHandler(logger)
-        self.metrics = MetricsCollector(logger)
-        self.pricer = QuantLibPricer()
+        self.metrics=MetricsCollector(logger)
+        self.pricer=QuantLibPricer()
         
         # Strategy parameters
-        self.max_positions = config.trading.max_concurrent_trades
+        self.max_positions=config.trading.max_concurrent_trades
         self.max_position_size = config.risk.max_position_risk
         self.profit_target = 0.50  # Close at 50% profit
         self.stop_loss = 0.25  # Close at 25% loss
@@ -254,7 +253,7 @@ class ProductionDebitSpreads:
         
         # Strategy state
         self.last_scan_time: Optional[datetime] = None
-        self.scan_interval = timedelta(minutes=15)
+        self.scan_interval=timedelta(minutes=15)
         
         self.logger.info("Debit Spreads Strategy initialized",
                         max_positions=self.max_positions,
@@ -265,7 +264,7 @@ class ProductionDebitSpreads:
         self.logger.info("Scanning for debit spread opportunities")
         
         try:
-            candidates = []
+            candidates=[]
             
             # Get universe of stocks
             universe = self.config.trading.universe
@@ -276,13 +275,13 @@ class ProductionDebitSpreads:
                     candidates.extend(spread_candidates)
                 
                 except Exception as e:
-                    self.error_handler.handle_error(e, {"ticker": ticker, "operation": "scan"})
+                    self.error_handler.handle_error(e, {"ticker":ticker, "operation":"scan"})
                     continue
             
             # Sort by spread score
             candidates.sort(key=lambda x: x.spread_score, reverse=True)
             
-            self.candidates = candidates[:10]  # Top 10 candidates
+            self.candidates=candidates[:10]  # Top 10 candidates
             
             self.logger.info(f"Found {len(self.candidates)} debit spread candidates")
             self.metrics.record_metric("debit_spread_candidates_found", len(self.candidates))
@@ -290,28 +289,28 @@ class ProductionDebitSpreads:
             return self.candidates
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"operation": "scan_opportunities"})
+            self.error_handler.handle_error(e, {"operation":"scan_opportunities"})
             return []
     
     async def _analyze_ticker_for_spreads(self, ticker: str) -> List[SpreadCandidate]:
         """Analyze ticker for debit spread opportunities"""
         try:
             # Get market data
-            market_data = await self.data.get_market_data(ticker)
+            market_data=await self.data.get_market_data(ticker)
             if market_data.price <= 0:
                 return []
             
             # Get options data
-            options_data = await self.data.get_options_data(ticker)
+            options_data=await self.data.get_options_data(ticker)
             if not options_data:
                 return []
             
-            candidates = []
+            candidates=[]
             
             # Look for bull call spreads
             bull_spreads = self._find_bull_call_spreads(options_data, market_data.price)
             for spread in bull_spreads:
-                candidate = SpreadCandidate(
+                candidate=SpreadCandidate(
                     ticker=ticker,
                     current_price=market_data.price,
                     spread_type=SpreadType.BULL_CALL_SPREAD,
@@ -336,12 +335,12 @@ class ProductionDebitSpreads:
             return candidates
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"ticker": ticker, "operation": "analyze_spreads"})
+            self.error_handler.handle_error(e, {"ticker":ticker, "operation":"analyze_spreads"})
             return []
     
     def _find_bull_call_spreads(self, options_data: List[OptionsData], current_price: float) -> List[Dict[str, Any]]:
         """Find bull call spread opportunities"""
-        spreads = []
+        spreads=[]
         
         # Filter call options
         call_options = [opt for opt in options_data if opt.option_type == 'call']
@@ -364,7 +363,7 @@ class ProductionDebitSpreads:
                     continue
                 
                 max_profit = (short_option.strike - long_option.strike) * 100 - net_debit * 100
-                max_loss = net_debit * 100
+                max_loss=net_debit * 100
                 profit_loss_ratio = max_profit / max_loss if max_loss > 0 else 0
                 
                 # Filter by minimum profit/loss ratio
@@ -377,19 +376,19 @@ class ProductionDebitSpreads:
                 net_vega = long_option.vega - short_option.vega
                 
                 spreads.append({
-                    'long_strike': long_option.strike,
-                    'short_strike': short_option.strike,
-                    'long_premium': long_option.ask,
-                    'short_premium': short_option.bid,
-                    'net_debit': net_debit,
-                    'max_profit': max_profit,
-                    'max_loss': max_loss,
-                    'profit_loss_ratio': profit_loss_ratio,
-                    'net_delta': net_delta,
-                    'net_theta': net_theta,
-                    'net_vega': net_vega,
-                    'long_option': long_option,
-                    'short_option': short_option
+                    'long_strike':long_option.strike,
+                    'short_strike':short_option.strike,
+                    'long_premium':long_option.ask,
+                    'short_premium':short_option.bid,
+                    'net_debit':net_debit,
+                    'max_profit':max_profit,
+                    'max_loss':max_loss,
+                    'profit_loss_ratio':profit_loss_ratio,
+                    'net_delta':net_delta,
+                    'net_theta':net_theta,
+                    'net_vega':net_vega,
+                    'long_option':long_option,
+                    'short_option':short_option
                 })
         
         # Sort by profit/loss ratio
@@ -403,7 +402,7 @@ class ProductionDebitSpreads:
             self.logger.info(f"Executing debit spread for {candidate.ticker}")
             
             # Check if we already have a position
-            position_key = f"{candidate.ticker}_{candidate.long_strike}_{candidate.short_strike}"
+            position_key=f"{candidate.ticker}_{candidate.long_strike}_{candidate.short_strike}"
             if position_key in self.positions:
                 self.logger.warning(f"Already have position: {position_key}")
                 return False
@@ -414,13 +413,13 @@ class ProductionDebitSpreads:
                 return False
             
             # Calculate position size
-            position_size = self._calculate_position_size(candidate)
+            position_size=self._calculate_position_size(candidate)
             if position_size <= 0:
                 self.logger.error(f"Invalid position size for {candidate.ticker}")
                 return False
             
             # Execute long option trade
-            long_signal = TradeSignal(
+            long_signal=TradeSignal(
                 strategy_name="Debit Spreads",
                 ticker=candidate.ticker,
                 side=OrderSide.BUY,  # Buy long option
@@ -431,14 +430,13 @@ class ProductionDebitSpreads:
                 confidence=candidate.spread_score
             )
             
-            long_result = await self.trading.execute_trade(long_signal)
+            long_result=await self.trading.execute_trade(long_signal)
             
-            if long_result.status.value != "filled":
-                self.logger.error(f"Long option trade failed: {long_result.error_message}")
+            if long_result.status.value != "filled":self.logger.error(f"Long option trade failed: {long_result.error_message}")
                 return False
             
             # Execute short option trade
-            short_signal = TradeSignal(
+            short_signal=TradeSignal(
                 strategy_name="Debit Spreads",
                 ticker=candidate.ticker,
                 side=OrderSide.SELL,  # Sell short option
@@ -449,16 +447,15 @@ class ProductionDebitSpreads:
                 confidence=candidate.spread_score
             )
             
-            short_result = await self.trading.execute_trade(short_signal)
+            short_result=await self.trading.execute_trade(short_signal)
             
-            if short_result.status.value != "filled":
-                self.logger.error(f"Short option trade failed: {short_result.error_message}")
+            if short_result.status.value != "filled":self.logger.error(f"Short option trade failed: {short_result.error_message}")
                 # Try to close the long position
                 await self._close_long_position(long_signal, long_result)
                 return False
             
             # Create spread position
-            position = SpreadPosition(
+            position=SpreadPosition(
                 ticker=candidate.ticker,
                 spread_type=candidate.spread_type,
                 status=SpreadStatus.ACTIVE,
@@ -469,18 +466,18 @@ class ProductionDebitSpreads:
                 max_profit=candidate.max_profit,
                 max_loss=candidate.max_loss,
                 long_option={
-                    'strike': candidate.long_strike,
-                    'premium': long_result.filled_price,
-                    'delta': 0.0,  # Would get from option data
-                    'theta': 0.0,
-                    'vega': 0.0
+                    'strike':candidate.long_strike,
+                    'premium':long_result.filled_price,
+                    'delta':0.0,  # Would get from option data
+                    'theta':0.0,
+                    'vega':0.0
                 },
                 short_option={
-                    'strike': candidate.short_strike,
-                    'premium': short_result.filled_price,
-                    'delta': 0.0,  # Would get from option data
-                    'theta': 0.0,
-                    'vega': 0.0
+                    'strike':candidate.short_strike,
+                    'premium':short_result.filled_price,
+                    'delta':0.0,  # Would get from option data
+                    'theta':0.0,
+                    'vega':0.0
                 }
             )
             
@@ -492,18 +489,18 @@ class ProductionDebitSpreads:
                            net_debit=candidate.net_debit,
                            max_profit=candidate.max_profit)
             
-            self.metrics.record_metric("debit_spreads_executed", 1, {"ticker": candidate.ticker})
+            self.metrics.record_metric("debit_spreads_executed", 1, {"ticker":candidate.ticker})
             
             return True
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"ticker": candidate.ticker, "operation": "execute_spread"})
+            self.error_handler.handle_error(e, {"ticker":candidate.ticker, "operation":"execute_spread"})
             return False
     
     async def _close_long_position(self, signal: TradeSignal, result):
         """Close long position if short trade fails"""
         try:
-            close_signal = TradeSignal(
+            close_signal=TradeSignal(
                 strategy_name="Debit Spreads",
                 ticker=signal.ticker,
                 side=OrderSide.SELL,  # Sell to close
@@ -515,27 +512,27 @@ class ProductionDebitSpreads:
             await self.trading.execute_trade(close_signal)
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"operation": "close_long_position"})
+            self.error_handler.handle_error(e, {"operation":"close_long_position"})
     
     def _calculate_position_size(self, candidate: SpreadCandidate) -> int:
         """Calculate position size for debit spread"""
         try:
             # Get account value
-            account_value = self.config.risk.account_size
+            account_value=self.config.risk.account_size
             
             # Calculate max position value (2% of account for spreads)
-            max_position_value = account_value * 0.02
+            max_position_value=account_value * 0.02
             
             # Calculate max contracts
             max_contracts = int(max_position_value / candidate.max_loss)
             
             # Limit to reasonable size
-            max_contracts = min(max_contracts, 5)
+            max_contracts=min(max_contracts, 5)
             
             return max(1, max_contracts)
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"ticker": candidate.ticker, "operation": "position_sizing"})
+            self.error_handler.handle_error(e, {"ticker":candidate.ticker, "operation":"position_sizing"})
             return 1
     
     async def manage_positions(self):
@@ -546,27 +543,27 @@ class ProductionDebitSpreads:
             try:
                 await self._manage_position(position)
             except Exception as e:
-                self.error_handler.handle_error(e, {"position": position_key, "operation": "manage_position"})
+                self.error_handler.handle_error(e, {"position":position_key, "operation":"manage_position"})
     
     async def _manage_position(self, position: SpreadPosition):
         """Manage individual debit spread position"""
         # Get current options data
-        options_data = await self.data.get_options_data(position.ticker)
+        options_data=await self.data.get_options_data(position.ticker)
         
         if not options_data:
             return
         
         # Find current option prices
-        long_option_data = None
+        long_option_data=None
         short_option_data = None
         
         for option in options_data:
             if (option.strike == position.long_strike and 
                 option.option_type == 'call'):
-                long_option_data = option
+                long_option_data=option
             elif (option.strike == position.short_strike and 
                   option.option_type == 'call'):
-                short_option_data = option
+                short_option_data=option
         
         if not long_option_data or not short_option_data:
             return
@@ -595,7 +592,7 @@ class ProductionDebitSpreads:
         """Close debit spread position"""
         try:
             # Close long position
-            long_close_signal = TradeSignal(
+            long_close_signal=TradeSignal(
                 strategy_name="Debit Spreads",
                 ticker=position.ticker,
                 side=OrderSide.SELL,  # Sell to close
@@ -604,10 +601,10 @@ class ProductionDebitSpreads:
                 reason=f"Close debit spread long - {reason}"
             )
             
-            long_result = await self.trading.execute_trade(long_close_signal)
+            long_result=await self.trading.execute_trade(long_close_signal)
             
             # Close short position
-            short_close_signal = TradeSignal(
+            short_close_signal=TradeSignal(
                 strategy_name="Debit Spreads",
                 ticker=position.ticker,
                 side=OrderSide.BUY,  # Buy to close
@@ -616,52 +613,52 @@ class ProductionDebitSpreads:
                 reason=f"Close debit spread short - {reason}"
             )
             
-            short_result = await self.trading.execute_trade(short_close_signal)
+            short_result=await self.trading.execute_trade(short_close_signal)
             
-            if (long_result.status.value == "filled" and 
+            if (long_result.status.value== "filled" and 
                 short_result.status.value == "filled"):
                 
                 # Update position
-                position.status = SpreadStatus.CLOSED
+                position.status=SpreadStatus.CLOSED
                 
                 self.logger.info(f"Debit spread closed: {position.ticker}",
                                reason=reason,
                                pnl=position.unrealized_pnl,
                                profit_pct=position.profit_pct)
                 
-                self.metrics.record_metric("debit_spreads_closed", 1, {"ticker": position.ticker})
+                self.metrics.record_metric("debit_spreads_closed", 1, {"ticker":position.ticker})
                 
                 # Remove from active positions
-                position_key = f"{position.ticker}_{position.long_strike}_{position.short_strike}"
+                position_key=f"{position.ticker}_{position.long_strike}_{position.short_strike}"
                 if position_key in self.positions:
                     del self.positions[position_key]
             
         except Exception as e:
-            self.error_handler.handle_error(e, {"ticker": position.ticker, "operation": "close_position"})
+            self.error_handler.handle_error(e, {"ticker":position.ticker, "operation":"close_position"})
     
     async def get_portfolio_summary(self) -> Dict[str, Any]:
         """Get debit spreads portfolio summary"""
-        total_pnl = sum(pos.unrealized_pnl for pos in self.positions.values())
-        total_debit = sum(pos.net_debit * pos.quantity * 100 for pos in self.positions.values())
+        total_pnl=sum(pos.unrealized_pnl for pos in self.positions.values())
+        total_debit=sum(pos.net_debit * pos.quantity * 100 for pos in self.positions.values())
         
-        summary = {
-            "total_positions": len(self.positions),
-            "total_pnl": total_pnl,
-            "total_debit_at_risk": total_debit,
-            "positions": []
+        summary={
+            "total_positions":len(self.positions),
+            "total_pnl":total_pnl,
+            "total_debit_at_risk":total_debit,
+            "positions":[]
         }
         
         for position_key, position in self.positions.items():
             summary["positions"].append({
-                "ticker": position.ticker,
-                "spread_type": position.spread_type.value,
-                "long_strike": position.long_strike,
-                "short_strike": position.short_strike,
-                "quantity": position.quantity,
-                "net_debit": position.net_debit,
-                "unrealized_pnl": position.unrealized_pnl,
-                "profit_pct": position.profit_pct,
-                "days_to_expiry": position.calculate_days_to_expiry()
+                "ticker":position.ticker,
+                "spread_type":position.spread_type.value,
+                "long_strike":position.long_strike,
+                "short_strike":position.short_strike,
+                "quantity":position.quantity,
+                "net_debit":position.net_debit,
+                "unrealized_pnl":position.unrealized_pnl,
+                "profit_pct":position.profit_pct,
+                "days_to_expiry":position.calculate_days_to_expiry()
             })
         
         return summary
@@ -673,7 +670,7 @@ class ProductionDebitSpreads:
         while True:
             try:
                 # Scan for opportunities
-                candidates = await self.scan_for_opportunities()
+                candidates=await self.scan_for_opportunities()
                 
                 # Execute new trades
                 for candidate in candidates[:2]:  # Top 2 candidates
@@ -684,7 +681,7 @@ class ProductionDebitSpreads:
                 await self.manage_positions()
                 
                 # Log portfolio summary
-                summary = await self.get_portfolio_summary()
+                summary=await self.get_portfolio_summary()
                 self.logger.info("Debit spreads portfolio summary", **summary)
                 
                 # Record metrics
@@ -695,7 +692,7 @@ class ProductionDebitSpreads:
                 await asyncio.sleep(self.scan_interval.total_seconds())
                 
             except Exception as e:
-                self.error_handler.handle_error(e, {"operation": "run_strategy"})
+                self.error_handler.handle_error(e, {"operation":"run_strategy"})
                 await asyncio.sleep(60)  # Wait 1 minute on error
 
 

@@ -3,7 +3,7 @@ from ml.tradingbots.trader import Action
 
 class Pipeline:
     def __init__(self, name, portfolio):
-        self.name = name
+        self.name=name
         self.portfolio = portfolio
         self.portfolio_cash = portfolio["cash"]
         self.portfolio_stocks = portfolio["stocks"]
@@ -29,7 +29,7 @@ class Pipeline:
         """
 
         # run the pipline and get the portfolio before and after
-        PreP, PostP = self.portfolio_stocks, self.pipeline()
+        PreP, PostP=self.portfolio_stocks, self.pipeline()
 
         def get_transaction_type(qty):
             if qty < 0:
@@ -39,9 +39,9 @@ class Pipeline:
             return False
 
         def get_action(key):
-            qty1 = PreP[key] if key in PreP.keys() else 0
-            qty2 = PostP[key] if key in PostP.keys() else 0
-            qty = qty2 - qty1
+            qty1=PreP[key] if key in PreP.keys() else 0
+            qty2=PostP[key] if key in PostP.keys() else 0
+            qty=qty2 - qty1
             if get_transaction_type(qty):
                 return Action(
                     order_type=order_type,
@@ -52,7 +52,7 @@ class Pipeline:
             else:
                 return False
 
-        tickers = set().union(*[PreP, PostP])  # get all tickers
+        tickers=set().union(*[PreP, PostP])  # get all tickers
         return [get_action(key) for key in tickers]
 
     def rebalance(self, order_type='M'):

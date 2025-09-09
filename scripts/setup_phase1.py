@@ -15,7 +15,7 @@ def run_command(command: str, description: str):
     """Run a command and handle errors"""
     print(f"🔄 {description}...")
     try:
-        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+        result=subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
         print(f"✅ {description} completed")
         return result.stdout
     except subprocess.CalledProcessError as e:
@@ -26,7 +26,7 @@ def run_command(command: str, description: str):
 
 def create_directories():
     """Create necessary directories"""
-    directories = [
+    directories=[
         "config",
         "logs",
         "data",
@@ -43,56 +43,56 @@ def create_config_files():
     """Create configuration files"""
     
     # Create production configuration template
-    config_template = {
-        "data_providers": {
-            "iex_api_key": "",
-            "polygon_api_key": "",
-            "fmp_api_key": "",
-            "news_api_key": "",
-            "alpha_vantage_api_key": ""
+    config_template={
+        "data_providers":{
+            "iex_api_key":"",
+            "polygon_api_key":"",
+            "fmp_api_key":"",
+            "news_api_key":"",
+            "alpha_vantage_api_key":""
         },
-        "broker": {
-            "alpaca_api_key": "",
-            "alpaca_secret_key": "",
-            "alpaca_base_url": "https://paper-api.alpaca.markets",
-            "ibkr_host": "",
-            "ibkr_port": 7497,
-            "ibkr_client_id": 1
+        "broker":{
+            "alpaca_api_key":"",
+            "alpaca_secret_key":"",
+            "alpaca_base_url":"https://paper-api.alpaca.markets",
+            "ibkr_host":"",
+            "ibkr_port":7497,
+            "ibkr_client_id":1
         },
-        "risk": {
-            "max_position_risk": 0.10,
-            "max_total_risk": 0.30,
-            "max_drawdown": 0.20,
-            "max_correlation": 0.25,
-            "account_size": 100000.0,
-            "default_commission": 1.0,
-            "default_slippage": 0.002
+        "risk":{
+            "max_position_risk":0.10,
+            "max_total_risk":0.30,
+            "max_drawdown":0.20,
+            "max_correlation":0.25,
+            "account_size":100000.0,
+            "default_commission":1.0,
+            "default_slippage":0.002
         },
-        "trading": {
-            "universe": ["AAPL", "MSFT", "GOOGL", "GOOG", "META", "NVDA", "AVGO", "AMD", "TSLA"],
-            "scan_interval": 300,
-            "max_concurrent_trades": 10,
-            "enable_paper_trading": True,
-            "enable_live_trading": False
+        "trading":{
+            "universe":["AAPL", "MSFT", "GOOGL", "GOOG", "META", "NVDA", "AVGO", "AMD", "TSLA"],
+            "scan_interval":300,
+            "max_concurrent_trades":10,
+            "enable_paper_trading":True,
+            "enable_live_trading":False
         },
-        "alerts": {
-            "enable_slack": False,
-            "slack_webhook_url": "",
-            "enable_email": False,
-            "email_smtp_server": "",
-            "email_smtp_port": 587,
-            "email_username": "",
-            "email_password": "",
-            "email_recipients": []
+        "alerts":{
+            "enable_slack":False,
+            "slack_webhook_url":"",
+            "enable_email":False,
+            "email_smtp_server":"",
+            "email_smtp_port":587,
+            "email_username":"",
+            "email_password":"",
+            "email_recipients":[]
         },
-        "database": {
-            "engine": "postgresql",
-            "host": "localhost",
-            "port": 5432,
-            "name": "wallstreetbots",
-            "username": "postgres",
-            "password": "",
-            "ssl_mode": "prefer"
+        "database":{
+            "engine":"postgresql",
+            "host":"localhost",
+            "port":5432,
+            "name":"wallstreetbots",
+            "username":"postgres",
+            "password":"",
+            "ssl_mode":"prefer"
         }
     }
     
@@ -101,7 +101,7 @@ def create_config_files():
     print("📄 Created config/production.json")
     
     # Create environment template
-    env_template = """# WallStreetBots Phase 1 Configuration
+    env_template="""# WallStreetBots Phase 1 Configuration
 # Copy this file to .env and fill in your actual values
 
 # Data Provider API Keys
@@ -157,17 +157,17 @@ DB_SSL_MODE=prefer
     print("📄 Created .env.template")
     
     # Create Django settings
-    django_settings = """# Django settings for Phase 1
+    django_settings="""# Django settings for Phase 1
 import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'your-secret-key-here'
+SECRET_KEY='your-secret-key-here'
 DEBUG = False
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
-INSTALLED_APPS = [
+INSTALLED_APPS=[
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -177,7 +177,7 @@ INSTALLED_APPS = [
     'backend.tradingbot',
 ]
 
-MIDDLEWARE = [
+MIDDLEWARE=[
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -187,15 +187,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'backend.urls'
+ROOT_URLCONF='backend.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
+        'BACKEND':'django.template.backends.django.DjangoTemplates',
+        'DIRS':[],
+        'APP_DIRS':True,
+        'OPTIONS':{
+            'context_processors':[
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -205,18 +205,18 @@ TEMPLATES = [
     },
 ]
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'wallstreetbots'),
-        'USER': os.getenv('DB_USERNAME', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+DATABASES={
+    'default':{
+        'ENGINE':'django.db.backends.postgresql',
+        'NAME':os.getenv('DB_NAME', 'wallstreetbots'),
+        'USER':os.getenv('DB_USERNAME', 'postgres'),
+        'PASSWORD':os.getenv('DB_PASSWORD', ''),
+        'HOST':os.getenv('DB_HOST', 'localhost'),
+        'PORT':os.getenv('DB_PORT', '5432'),
     }
 }
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE='en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
@@ -226,30 +226,30 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Logging configuration
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
+    'version':1,
+    'disable_existing_loggers':False,
+    'formatters':{
+        'verbose':{
+            'format':'{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style':'{',
         },
     },
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': 'logs/django.log',
-            'formatter': 'verbose',
+    'handlers':{
+        'file':{
+            'level':'INFO',
+            'class':'logging.FileHandler',
+            'filename':'logs/django.log',
+            'formatter':'verbose',
         },
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+        'console':{
+            'level':'INFO',
+            'class':'logging.StreamHandler',
+            'formatter':'verbose',
         },
     },
-    'root': {
-        'handlers': ['console', 'file'],
-        'level': 'INFO',
+    'root':{
+        'handlers':['console', 'file'],
+        'level':'INFO',
     },
 }
 """
@@ -264,7 +264,7 @@ def install_dependencies():
     print("📦 Installing Phase 1 dependencies...")
     
     # Install requirements
-    result = run_command(
+    result=run_command(
         "pip install -r requirements_phase1.txt",
         "Installing Python dependencies"
     )
@@ -281,7 +281,7 @@ def setup_database():
     print("🗄️ Setting up database...")
     
     # Create database migrations
-    result = run_command(
+    result=run_command(
         "python manage.py makemigrations tradingbot",
         "Creating database migrations"
     )
@@ -291,7 +291,7 @@ def setup_database():
         return False
     
     # Apply migrations
-    result = run_command(
+    result=run_command(
         "python manage.py migrate",
         "Applying database migrations"
     )
@@ -307,7 +307,7 @@ def run_tests():
     """Run Phase 1 tests"""
     print("🧪 Running Phase 1 tests...")
     
-    result = run_command(
+    result=run_command(
         "python -m pytest backend/tradingbot/test_phase1_integration.py -v",
         "Running integration tests"
     )
@@ -322,7 +322,7 @@ def run_tests():
 
 def create_startup_script():
     """Create startup script"""
-    startup_script = """#!/bin/bash
+    startup_script="""#!/bin/bash
 # WallStreetBots Phase 1 Startup Script
 
 echo "🚀 Starting WallStreetBots Phase 1..."
@@ -410,5 +410,4 @@ def main():
     print("   Do not use real money with this implementation.")
 
 
-if __name__ == "__main__":
-    main()
+if __name__== "__main__":main()

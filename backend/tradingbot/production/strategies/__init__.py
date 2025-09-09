@@ -25,7 +25,7 @@ from .production_swing_trading import ProductionSwingTrading
 from .production_spx_credit_spreads import ProductionSPXCreditSpreads
 from .production_lotto_scanner import ProductionLottoScanner
 
-__all__ = [
+__all__=[
     'ProductionWSBDipBot',
     'ProductionEarningsProtection',
     'ProductionIndexBaseline',

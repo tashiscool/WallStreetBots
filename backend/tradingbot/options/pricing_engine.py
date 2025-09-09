@@ -15,7 +15,7 @@ from dataclasses import dataclass
 try:
     from scipy.stats import norm
     import numpy as np
-    SCIPY_AVAILABLE = True
+    SCIPY_AVAILABLE=True
 except ImportError:
     # Fallback normal distribution implementation
     class NormFallback:
@@ -29,13 +29,13 @@ except ImportError:
             """Probability density function for standard normal distribution"""
             return math.exp(-0.5 * x * x) / math.sqrt(2 * math.pi)
     
-    norm = NormFallback()
-    SCIPY_AVAILABLE = False
+    norm=NormFallback()
+    SCIPY_AVAILABLE=False
     logger = logging.getLogger(__name__)
     logger.warning("scipy/numpy not available, using fallback implementations")
 
 # Set high precision for financial calculations
-getcontext().prec = 28
+getcontext().prec=28
 
 logger = logging.getLogger(__name__)
 if not SCIPY_AVAILABLE:
@@ -96,7 +96,7 @@ class BlackScholesEngine:
     """Accurate Black-Scholes options pricing engine"""
     
     def __init__(self):
-        self.risk_free_rate_cache = {}
+        self.risk_free_rate_cache={}
         self.dividend_yield_cache = {}
     
     async def get_risk_free_rate(self) -> Decimal:
@@ -108,7 +108,7 @@ class BlackScholesEngine:
             # - Federal Reserve Economic Data (FRED)
             # - Yahoo Finance Treasury rates
             # - Bloomberg API
-            current_rate = Decimal('0.045')  # Approximate 4.5%
+            current_rate=Decimal('0.045')  # Approximate 4.5%
             return current_rate
         except Exception as e:
             logger.warning(f"Failed to get risk-free rate: {e}")
@@ -127,17 +127,17 @@ class BlackScholesEngine:
             # - IEX Cloud
             
             # Common dividend yields (approximate)
-            dividend_yields = {
-                'AAPL': Decimal('0.005'),
-                'MSFT': Decimal('0.007'),
-                'AMZN': Decimal('0.000'),
-                'GOOGL': Decimal('0.000'),
-                'TSLA': Decimal('0.000'),
-                'SPY': Decimal('0.013'),
-                'QQQ': Decimal('0.006'),
+            dividend_yields={
+                'AAPL':Decimal('0.005'),
+                'MSFT':Decimal('0.007'),
+                'AMZN':Decimal('0.000'),
+                'GOOGL':Decimal('0.000'),
+                'TSLA':Decimal('0.000'),
+                'SPY':Decimal('0.013'),
+                'QQQ':Decimal('0.006'),
             }
             
-            dividend_yield = dividend_yields.get(ticker, Decimal('0.015'))  # Default 1.5%
+            dividend_yield=dividend_yields.get(ticker, Decimal('0.015'))  # Default 1.5%
             self.dividend_yield_cache[ticker] = dividend_yield
             return dividend_yield
             
@@ -162,12 +162,12 @@ class BlackScholesEngine:
                                volatility: Decimal) -> Decimal:
         """Calculate call option price using Black-Scholes"""
         try:
-            S = float(spot)
-            K = float(strike)
-            T = time_to_expiry
+            S=float(spot)
+            K=float(strike)
+            T=time_to_expiry
             r = float(risk_free_rate)
-            q = float(dividend_yield)
-            sigma = float(volatility)
+            q=float(dividend_yield)
+            sigma=float(volatility)
             
             if T <= 0:
                 return Decimal(str(max(0, S - K)))  # Intrinsic value only
@@ -176,10 +176,10 @@ class BlackScholesEngine:
                 logger.warning("Zero volatility, using intrinsic value")
                 return Decimal(str(max(0, S - K)))
             
-            d1 = self._d1(S, K, T, r, q, sigma)
-            d2 = self._d2(d1, sigma, T)
+            d1=self._d1(S, K, T, r, q, sigma)
+            d2=self._d2(d1, sigma, T)
             
-            call_price = (S * math.exp(-q * T) * norm.cdf(d1) - 
+            call_price=(S * math.exp(-q * T) * norm.cdf(d1) - 
                          K * math.exp(-r * T) * norm.cdf(d2))
             
             return Decimal(str(max(0.01, call_price)))  # Minimum $0.01
@@ -194,12 +194,12 @@ class BlackScholesEngine:
                               volatility: Decimal) -> Decimal:
         """Calculate put option price using Black-Scholes"""
         try:
-            S = float(spot)
-            K = float(strike)
-            T = time_to_expiry
+            S=float(spot)
+            K=float(strike)
+            T=time_to_expiry
             r = float(risk_free_rate)
-            q = float(dividend_yield)
-            sigma = float(volatility)
+            q=float(dividend_yield)
+            sigma=float(volatility)
             
             if T <= 0:
                 return Decimal(str(max(0, K - S)))  # Intrinsic value only
@@ -208,10 +208,10 @@ class BlackScholesEngine:
                 logger.warning("Zero volatility, using intrinsic value")
                 return Decimal(str(max(0, K - S)))
             
-            d1 = self._d1(S, K, T, r, q, sigma)
-            d2 = self._d2(d1, sigma, T)
+            d1=self._d1(S, K, T, r, q, sigma)
+            d2=self._d2(d1, sigma, T)
             
-            put_price = (K * math.exp(-r * T) * norm.cdf(-d2) - 
+            put_price=(K * math.exp(-r * T) * norm.cdf(-d2) - 
                         S * math.exp(-q * T) * norm.cdf(-d1))
             
             return Decimal(str(max(0.01, put_price)))  # Minimum $0.01
@@ -226,61 +226,59 @@ class BlackScholesEngine:
                              volatility: Decimal, option_type: str) -> Dict[str, Decimal]:
         """Calculate option Greeks"""
         try:
-            S = float(spot)
-            K = float(strike)
-            T = time_to_expiry
+            S=float(spot)
+            K=float(strike)
+            T=time_to_expiry
             r = float(risk_free_rate)
-            q = float(dividend_yield)
-            sigma = float(volatility)
+            q=float(dividend_yield)
+            sigma=float(volatility)
             
             if T <= 0:
                 return {
-                    'delta': Decimal('1.00' if option_type == 'call' and S > K else '0.00'),
-                    'gamma': Decimal('0.00'),
-                    'theta': Decimal('0.00'),
-                    'vega': Decimal('0.00')
+                    'delta':Decimal('1.00' if option_type== 'call' and S > K else '0.00'),
+                    'gamma':Decimal('0.00'),
+                    'theta':Decimal('0.00'),
+                    'vega':Decimal('0.00')
                 }
             
-            d1 = self._d1(S, K, T, r, q, sigma)
-            d2 = self._d2(d1, sigma, T)
+            d1=self._d1(S, K, T, r, q, sigma)
+            d2=self._d2(d1, sigma, T)
             
             # Delta
-            if option_type.lower() == 'call':
-                delta = math.exp(-q * T) * norm.cdf(d1)
+            if option_type.lower() == 'call':delta=math.exp(-q * T) * norm.cdf(d1)
             else:
-                delta = -math.exp(-q * T) * norm.cdf(-d1)
+                delta=-math.exp(-q * T) * norm.cdf(-d1)
             
             # Gamma (same for calls and puts)
-            gamma = (math.exp(-q * T) * norm.pdf(d1)) / (S * sigma * math.sqrt(T))
+            gamma=(math.exp(-q * T) * norm.pdf(d1)) / (S * sigma * math.sqrt(T))
             
             # Theta
-            first_term = -(S * norm.pdf(d1) * sigma * math.exp(-q * T)) / (2 * math.sqrt(T))
-            if option_type.lower() == 'call':
-                second_term = r * K * math.exp(-r * T) * norm.cdf(d2)
-                third_term = -q * S * math.exp(-q * T) * norm.cdf(d1)
+            first_term=-(S * norm.pdf(d1) * sigma * math.exp(-q * T)) / (2 * math.sqrt(T))
+            if option_type.lower() == 'call':second_term=r * K * math.exp(-r * T) * norm.cdf(d2)
+                third_term=-q * S * math.exp(-q * T) * norm.cdf(d1)
             else:
-                second_term = -r * K * math.exp(-r * T) * norm.cdf(-d2)
-                third_term = q * S * math.exp(-q * T) * norm.cdf(-d1)
+                second_term=-r * K * math.exp(-r * T) * norm.cdf(-d2)
+                third_term=q * S * math.exp(-q * T) * norm.cdf(-d1)
             
-            theta = (first_term - second_term + third_term) / 365  # Per day
+            theta=(first_term - second_term + third_term) / 365  # Per day
             
             # Vega (same for calls and puts)
-            vega = S * math.exp(-q * T) * norm.pdf(d1) * math.sqrt(T) / 100  # Per 1% vol change
+            vega=S * math.exp(-q * T) * norm.pdf(d1) * math.sqrt(T) / 100  # Per 1% vol change
             
             return {
-                'delta': Decimal(str(round(delta, 4))),
-                'gamma': Decimal(str(round(gamma, 6))),
-                'theta': Decimal(str(round(theta, 4))),
-                'vega': Decimal(str(round(vega, 4)))
+                'delta':Decimal(str(round(delta, 4))),
+                'gamma':Decimal(str(round(gamma, 6))),
+                'theta':Decimal(str(round(theta, 4))),
+                'vega':Decimal(str(round(vega, 4)))
             }
             
         except Exception as e:
             logger.error(f"Error calculating Greeks: {e}")
             return {
-                'delta': Decimal('0.00'),
-                'gamma': Decimal('0.00'),
-                'theta': Decimal('0.00'),
-                'vega': Decimal('0.00')
+                'delta':Decimal('0.00'),
+                'gamma':Decimal('0.00'),
+                'theta':Decimal('0.00'),
+                'vega':Decimal('0.00')
             }
 
 
@@ -288,17 +286,17 @@ class RealOptionsPricingEngine:
     """Production options pricing engine with real market data"""
     
     def __init__(self):
-        self.bs_engine = BlackScholesEngine()
-        self.volatility_cache = {}
+        self.bs_engine=BlackScholesEngine()
+        self.volatility_cache={}
         self.options_chain_cache = {}
         self.cache_expiry = 300  # 5 minutes
     
-    async def get_implied_volatility(self, ticker: str, days_back: int = 30) -> Decimal:
+    async def get_implied_volatility(self, ticker: str, days_back: int=30) -> Decimal:
         """Calculate implied volatility from historical prices"""
-        cache_key = f"{ticker}_{days_back}"
+        cache_key=f"{ticker}_{days_back}"
         
         if cache_key in self.volatility_cache:
-            cached_time, cached_iv = self.volatility_cache[cache_key]
+            cached_time, cached_iv=self.volatility_cache[cache_key]
             if (datetime.now() - cached_time).seconds < self.cache_expiry:
                 return cached_iv
         
@@ -309,20 +307,20 @@ class RealOptionsPricingEngine:
             # 3. Options market implied volatility
             
             # Approximate volatilities for common stocks
-            volatilities = {
-                'AAPL': Decimal('0.25'),
-                'MSFT': Decimal('0.22'),
-                'AMZN': Decimal('0.30'),
-                'GOOGL': Decimal('0.25'),
-                'TSLA': Decimal('0.45'),
-                'GME': Decimal('0.80'),
-                'AMC': Decimal('0.70'),
-                'SPY': Decimal('0.18'),
-                'QQQ': Decimal('0.22'),
+            volatilities={
+                'AAPL':Decimal('0.25'),
+                'MSFT':Decimal('0.22'),
+                'AMZN':Decimal('0.30'),
+                'GOOGL':Decimal('0.25'),
+                'TSLA':Decimal('0.45'),
+                'GME':Decimal('0.80'),
+                'AMC':Decimal('0.70'),
+                'SPY':Decimal('0.18'),
+                'QQQ':Decimal('0.22'),
             }
             
             # Get base volatility
-            base_vol = volatilities.get(ticker, Decimal('0.30'))
+            base_vol=volatilities.get(ticker, Decimal('0.30'))
             
             # Add some market regime adjustment
             # In production, this would consider:
@@ -330,7 +328,7 @@ class RealOptionsPricingEngine:
             # - Market stress indicators
             # - Recent realized volatility
             
-            current_iv = base_vol
+            current_iv=base_vol
             
             # Cache the result
             self.volatility_cache[cache_key] = (datetime.now(), current_iv)
@@ -347,28 +345,26 @@ class RealOptionsPricingEngine:
         """Calculate theoretical option price using real market parameters"""
         try:
             # Calculate time to expiry
-            time_to_expiry = (expiry_date - date.today()).days / 365.0
+            time_to_expiry=(expiry_date - date.today()).days / 365.0
             
             if time_to_expiry <= 0:
                 # Expired option
-                if option_type.lower() == 'call':
-                    return Decimal(str(max(0, float(current_price - strike))))
+                if option_type.lower() == 'call':return Decimal(str(max(0, float(current_price - strike))))
                 else:
                     return Decimal(str(max(0, float(strike - current_price))))
             
             # Get market parameters
-            risk_free_rate = await self.bs_engine.get_risk_free_rate()
-            dividend_yield = await self.bs_engine.get_dividend_yield(ticker)
-            implied_vol = await self.get_implied_volatility(ticker)
+            risk_free_rate=await self.bs_engine.get_risk_free_rate()
+            dividend_yield=await self.bs_engine.get_dividend_yield(ticker)
+            implied_vol=await self.get_implied_volatility(ticker)
             
             # Calculate theoretical price
-            if option_type.lower() == 'call':
-                theoretical_price = await self.bs_engine.black_scholes_call(
+            if option_type.lower() == 'call':theoretical_price=await self.bs_engine.black_scholes_call(
                     current_price, strike, time_to_expiry, risk_free_rate, 
                     dividend_yield, implied_vol
                 )
             else:
-                theoretical_price = await self.bs_engine.black_scholes_put(
+                theoretical_price=await self.bs_engine.black_scholes_put(
                     current_price, strike, time_to_expiry, risk_free_rate, 
                     dividend_yield, implied_vol
                 )
@@ -378,8 +374,7 @@ class RealOptionsPricingEngine:
         except Exception as e:
             logger.error(f"Error calculating theoretical price for {ticker} {strike} {option_type}: {e}")
             # Fallback to simple intrinsic value
-            if option_type.lower() == 'call':
-                return Decimal(str(max(0.01, float(current_price - strike))))
+            if option_type.lower() == 'call':return Decimal(str(max(0.01, float(current_price - strike))))
             else:
                 return Decimal(str(max(0.01, float(strike - current_price))))
     
@@ -388,16 +383,16 @@ class RealOptionsPricingEngine:
         try:
             import yfinance as yf
             
-            stock = yf.Ticker(ticker)
-            expiry_str = expiry_date.strftime('%Y-%m-%d')
+            stock=yf.Ticker(ticker)
+            expiry_str=expiry_date.strftime('%Y-%m-%d')
             
             # Get options chain
-            options_chain = stock.option_chain(expiry_str)
-            contracts = []
+            options_chain=stock.option_chain(expiry_str)
+            contracts=[]
             
             # Process calls
             for _, row in options_chain.calls.iterrows():
-                contract = OptionsContract(
+                contract=OptionsContract(
                     ticker=ticker,
                     strike=Decimal(str(row['strike'])),
                     expiry_date=expiry_date,
@@ -413,7 +408,7 @@ class RealOptionsPricingEngine:
             
             # Process puts
             for _, row in options_chain.puts.iterrows():
-                contract = OptionsContract(
+                contract=OptionsContract(
                     ticker=ticker,
                     strike=Decimal(str(row['strike'])),
                     expiry_date=expiry_date,
@@ -435,25 +430,25 @@ class RealOptionsPricingEngine:
     
     async def find_optimal_option(self, ticker: str, current_price: Decimal,
                                 target_delta: Optional[float] = None,
-                                min_dte: int = 20, max_dte: int = 45,
-                                option_type: str = "call") -> Optional[OptionsContract]:
+                                min_dte: int=20, max_dte: int=45,
+                                option_type: str="call") -> Optional[OptionsContract]:
         """Find optimal options contract based on criteria"""
         try:
             # Find suitable expiry dates
-            suitable_expiries = []
+            suitable_expiries=[]
             for days_out in range(min_dte, max_dte + 1):
-                expiry = date.today() + timedelta(days=days_out)
+                expiry=date.today() + timedelta(days=days_out)
                 # Skip weekends (options expire on Fridays)
                 if expiry.weekday() == 4:  # Friday
                     suitable_expiries.append(expiry)
             
-            best_contract = None
+            best_contract=None
             best_score = float('-inf')
             
             for expiry in suitable_expiries:
                 try:
                     # Get options chain for this expiry
-                    chain = await self.get_options_chain_yahoo(ticker, expiry)
+                    chain=await self.get_options_chain_yahoo(ticker, expiry)
                     
                     for contract in chain:
                         if contract.option_type != option_type.lower():
@@ -466,28 +461,27 @@ class RealOptionsPricingEngine:
                             continue
                         
                         # Calculate score based on multiple factors
-                        score = 0
+                        score=0
                         
                         # Volume score (higher is better)
-                        volume_score = min(10, contract.volume / 10)
+                        volume_score=min(10, contract.volume / 10)
                         score += volume_score
                         
                         # Bid-ask spread score (tighter is better)
                         if contract.bid and contract.ask:
-                            spread_pct = float(contract.bid_ask_spread / contract.mid_price)
-                            spread_score = max(0, 5 - spread_pct * 100)  # Penalize wide spreads
+                            spread_pct=float(contract.bid_ask_spread / contract.mid_price)
+                            spread_score=max(0, 5 - spread_pct * 100)  # Penalize wide spreads
                             score += spread_score
                         
                         # For WSB dip bot, prefer slightly OTM calls
-                        if option_type.lower() == 'call':
-                            moneyness = float(contract.strike / current_price)
+                        if option_type.lower() == 'call':moneyness=float(contract.strike / current_price)
                             if 1.03 <= moneyness <= 1.08:  # 3-8% OTM
                                 score += 3
                             elif 1.00 <= moneyness <= 1.10:  # ATM to 10% OTM
                                 score += 1
                         
                         if score > best_score:
-                            best_score = score
+                            best_score=score
                             best_contract = contract
                 
                 except Exception as e:

@@ -27,13 +27,13 @@ class ProductionMigration:
     """Production database migration"""
     
     def __init__(self, config: ProductionConfig):
-        self.config = config
+        self.config=config
         self.logger = ProductionLogger("migration")
-        self.migration_stats = {
-            'strategies_created': 0,
-            'positions_migrated': 0,
-            'trades_migrated': 0,
-            'errors': 0
+        self.migration_stats={
+            'strategies_created':0,
+            'positions_migrated':0,
+            'trades_migrated':0,
+            'errors':0
         }
     
     async def run_full_migration(self):
@@ -64,92 +64,92 @@ class ProductionMigration:
     
     async def create_strategies(self):
         """Create strategy records"""
-        strategies_data = [
+        strategies_data=[
             {
-                'name': 'WSB Dip Bot',
-                'description': 'High-risk momentum continuation strategy',
-                'risk_level': 'high',
-                'status': 'testing',
-                'max_position_risk': 0.10,
-                'max_total_risk': 0.30
+                'name':'WSB Dip Bot',
+                'description':'High-risk momentum continuation strategy',
+                'risk_level':'high',
+                'status':'testing',
+                'max_position_risk':0.10,
+                'max_total_risk':0.30
             },
             {
-                'name': 'Momentum Weeklies',
-                'description': 'High-risk intraday reversal scanner',
-                'risk_level': 'high',
-                'status': 'testing',
-                'max_position_risk': 0.05,
-                'max_total_risk': 0.20
+                'name':'Momentum Weeklies',
+                'description':'High-risk intraday reversal scanner',
+                'risk_level':'high',
+                'status':'testing',
+                'max_position_risk':0.05,
+                'max_total_risk':0.20
             },
             {
-                'name': 'Debit Call Spreads',
-                'description': 'Medium-risk defined-risk bulls',
-                'risk_level': 'medium',
-                'status': 'active',
-                'max_position_risk': 0.10,
-                'max_total_risk': 0.25
+                'name':'Debit Call Spreads',
+                'description':'Medium-risk defined-risk bulls',
+                'risk_level':'medium',
+                'status':'active',
+                'max_position_risk':0.10,
+                'max_total_risk':0.25
             },
             {
-                'name': 'LEAPS Tracker',
-                'description': 'Medium-risk long-term growth positions',
-                'risk_level': 'medium',
-                'status': 'active',
-                'max_position_risk': 0.15,
-                'max_total_risk': 0.30
+                'name':'LEAPS Tracker',
+                'description':'Medium-risk long-term growth positions',
+                'risk_level':'medium',
+                'status':'active',
+                'max_position_risk':0.15,
+                'max_total_risk':0.30
             },
             {
-                'name': 'Lotto Scanner',
-                'description': 'Extreme-risk lottery plays',
-                'risk_level': 'extreme',
-                'status': 'testing',
-                'max_position_risk': 0.01,
-                'max_total_risk': 0.05
+                'name':'Lotto Scanner',
+                'description':'Extreme-risk lottery plays',
+                'risk_level':'extreme',
+                'status':'testing',
+                'max_position_risk':0.01,
+                'max_total_risk':0.05
             },
             {
-                'name': 'Wheel Strategy',
-                'description': 'Lower-risk income generation',
-                'risk_level': 'low',
-                'status': 'active',
-                'max_position_risk': 0.20,
-                'max_total_risk': 0.40
+                'name':'Wheel Strategy',
+                'description':'Lower-risk income generation',
+                'risk_level':'low',
+                'status':'active',
+                'max_position_risk':0.20,
+                'max_total_risk':0.40
             },
             {
-                'name': 'Swing Trading',
-                'description': 'High-risk breakout trades',
-                'risk_level': 'high',
-                'status': 'testing',
-                'max_position_risk': 0.08,
-                'max_total_risk': 0.25
+                'name':'Swing Trading',
+                'description':'High-risk breakout trades',
+                'risk_level':'high',
+                'status':'testing',
+                'max_position_risk':0.08,
+                'max_total_risk':0.25
             },
             {
-                'name': 'SPX Credit Spreads',
-                'description': 'Medium-risk defined-risk spreads',
-                'risk_level': 'medium',
-                'status': 'active',
-                'max_position_risk': 0.12,
-                'max_total_risk': 0.30
+                'name':'SPX Credit Spreads',
+                'description':'Medium-risk defined-risk spreads',
+                'risk_level':'medium',
+                'status':'active',
+                'max_position_risk':0.12,
+                'max_total_risk':0.30
             },
             {
-                'name': 'Earnings Protection',
-                'description': 'Medium-risk IV-resistant strategies',
-                'risk_level': 'medium',
-                'status': 'active',
-                'max_position_risk': 0.10,
-                'max_total_risk': 0.25
+                'name':'Earnings Protection',
+                'description':'Medium-risk IV-resistant strategies',
+                'risk_level':'medium',
+                'status':'active',
+                'max_position_risk':0.10,
+                'max_total_risk':0.25
             },
             {
-                'name': 'Index Baseline',
-                'description': 'Low-risk benchmarking',
-                'risk_level': 'low',
-                'status': 'active',
-                'max_position_risk': 0.05,
-                'max_total_risk': 0.15
+                'name':'Index Baseline',
+                'description':'Low-risk benchmarking',
+                'risk_level':'low',
+                'status':'active',
+                'max_position_risk':0.05,
+                'max_total_risk':0.15
             }
         ]
         
         for strategy_data in strategies_data:
             try:
-                strategy, created = Strategy.objects.get_or_create(
+                strategy, created=Strategy.objects.get_or_create(
                     name=strategy_data['name'],
                     defaults=strategy_data
                 )
@@ -167,7 +167,7 @@ class ProductionMigration:
     async def migrate_portfolios(self):
         """Migrate portfolio data from JSON files"""
         # Migrate LEAPS portfolio
-        leaps_file = "leaps_portfolio.json"
+        leaps_file="leaps_portfolio.json"
         if os.path.exists(leaps_file):
             try:
                 DatabaseMigration.migrate_leaps_portfolio(leaps_file)
@@ -177,7 +177,7 @@ class ProductionMigration:
                 self.logger.error(f"Error migrating LEAPS portfolio: {e}")
         
         # Migrate Wheel portfolio
-        wheel_file = "wheel_portfolio.json"
+        wheel_file="wheel_portfolio.json"
         if os.path.exists(wheel_file):
             try:
                 DatabaseMigration.migrate_wheel_portfolio(wheel_file)
@@ -191,17 +191,17 @@ class ProductionMigration:
     
     async def create_risk_limits(self):
         """Create risk limits for each strategy"""
-        strategies = Strategy.objects.all()
+        strategies=Strategy.objects.all()
         
         for strategy in strategies:
             try:
-                risk_limit, created = RiskLimit.objects.get_or_create(
+                risk_limit, created=RiskLimit.objects.get_or_create(
                     strategy=strategy,
                     defaults={
-                        'max_position_risk': strategy.max_position_risk,
-                        'max_total_risk': strategy.max_total_risk,
-                        'max_drawdown': 0.20,
-                        'max_correlation': 0.25
+                        'max_position_risk':strategy.max_position_risk,
+                        'max_total_risk':strategy.max_total_risk,
+                        'max_drawdown':0.20,
+                        'max_correlation':0.25
                     }
                 )
                 
@@ -214,72 +214,72 @@ class ProductionMigration:
     
     async def create_default_configurations(self):
         """Create default system configurations"""
-        default_configs = [
+        default_configs=[
             {
-                'key': 'system_version',
-                'value': '1.0.0',
-                'description': 'Current system version',
-                'data_type': 'string'
+                'key':'system_version',
+                'value':'1.0.0',
+                'description':'Current system version',
+                'data_type':'string'
             },
             {
-                'key': 'migration_date',
-                'value': datetime.now().isoformat(),
-                'description': 'Date of migration to production',
-                'data_type': 'string'
+                'key':'migration_date',
+                'value':datetime.now().isoformat(),
+                'description':'Date of migration to production',
+                'data_type':'string'
             },
             {
-                'key': 'default_account_size',
-                'value': str(self.config.risk.account_size),
-                'description': 'Default account size',
-                'data_type': 'float'
+                'key':'default_account_size',
+                'value':str(self.config.risk.account_size),
+                'description':'Default account size',
+                'data_type':'float'
             },
             {
-                'key': 'max_position_risk',
-                'value': str(self.config.risk.max_position_risk),
-                'description': 'Maximum position risk',
-                'data_type': 'float'
+                'key':'max_position_risk',
+                'value':str(self.config.risk.max_position_risk),
+                'description':'Maximum position risk',
+                'data_type':'float'
             },
             {
-                'key': 'max_total_risk',
-                'value': str(self.config.risk.max_total_risk),
-                'description': 'Maximum total portfolio risk',
-                'data_type': 'float'
+                'key':'max_total_risk',
+                'value':str(self.config.risk.max_total_risk),
+                'description':'Maximum total portfolio risk',
+                'data_type':'float'
             },
             {
-                'key': 'enable_paper_trading',
-                'value': str(self.config.trading.enable_paper_trading).lower(),
-                'description': 'Enable paper trading mode',
-                'data_type': 'boolean'
+                'key':'enable_paper_trading',
+                'value':str(self.config.trading.enable_paper_trading).lower(),
+                'description':'Enable paper trading mode',
+                'data_type':'boolean'
             },
             {
-                'key': 'enable_live_trading',
-                'value': str(self.config.trading.enable_live_trading).lower(),
-                'description': 'Enable live trading mode',
-                'data_type': 'boolean'
+                'key':'enable_live_trading',
+                'value':str(self.config.trading.enable_live_trading).lower(),
+                'description':'Enable live trading mode',
+                'data_type':'boolean'
             },
             {
-                'key': 'trading_universe',
-                'value': ','.join(self.config.trading.universe),
-                'description': 'Trading universe tickers',
-                'data_type': 'string'
+                'key':'trading_universe',
+                'value':','.join(self.config.trading.universe),
+                'description':'Trading universe tickers',
+                'data_type':'string'
             },
             {
-                'key': 'scan_interval',
-                'value': str(self.config.trading.scan_interval),
-                'description': 'Scan interval in seconds',
-                'data_type': 'integer'
+                'key':'scan_interval',
+                'value':str(self.config.trading.scan_interval),
+                'description':'Scan interval in seconds',
+                'data_type':'integer'
             },
             {
-                'key': 'max_concurrent_trades',
-                'value': str(self.config.trading.max_concurrent_trades),
-                'description': 'Maximum concurrent trades',
-                'data_type': 'integer'
+                'key':'max_concurrent_trades',
+                'value':str(self.config.trading.max_concurrent_trades),
+                'description':'Maximum concurrent trades',
+                'data_type':'integer'
             }
         ]
         
         for config_data in default_configs:
             try:
-                config, created = Configuration.objects.get_or_create(
+                config, created=Configuration.objects.get_or_create(
                     key=config_data['key'],
                     defaults=config_data
                 )
@@ -293,18 +293,18 @@ class ProductionMigration:
     
     async def generate_migration_report(self):
         """Generate migration report"""
-        report = {
-            'migration_date': datetime.now().isoformat(),
-            'statistics': self.migration_stats,
-            'strategies': list(Strategy.objects.values('name', 'risk_level', 'status')),
-            'positions_count': Position.objects.count(),
-            'trades_count': Trade.objects.count(),
-            'configurations_count': Configuration.objects.count(),
-            'risk_limits_count': RiskLimit.objects.count()
+        report={
+            'migration_date':datetime.now().isoformat(),
+            'statistics':self.migration_stats,
+            'strategies':list(Strategy.objects.values('name', 'risk_level', 'status')),
+            'positions_count':Position.objects.count(),
+            'trades_count':Trade.objects.count(),
+            'configurations_count':Configuration.objects.count(),
+            'risk_limits_count':RiskLimit.objects.count()
         }
         
         # Save report to file
-        report_file = f"migration_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        report_file=f"migration_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2)
         
@@ -316,7 +316,7 @@ class ProductionMigration:
 
 class Command(BaseCommand):
     """Django management command for migration"""
-    help = 'Migrate from JSON files to production database'
+    help='Migrate from JSON files to production database'
     
     def add_arguments(self, parser):
         parser.add_argument(
@@ -334,11 +334,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """Handle migration command"""
         # Load configuration
-        config_manager = ConfigManager(options['config_file'])
-        config = config_manager.load_config()
+        config_manager=ConfigManager(options['config_file'])
+        config=config_manager.load_config()
         
         # Validate configuration
-        errors = config.validate()
+        errors=config.validate()
         if errors:
             self.stdout.write(
                 self.style.ERROR(f"Configuration errors: {', '.join(errors)}")
@@ -352,7 +352,7 @@ class Command(BaseCommand):
             return
         
         # Run migration
-        migration = ProductionMigration(config)
+        migration=ProductionMigration(config)
         
         try:
             asyncio.run(migration.run_full_migration())
@@ -378,9 +378,9 @@ async def main():
     if not settings.configured:
         settings.configure(
             DATABASES={
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': 'db.sqlite3',
+                'default':{
+                    'ENGINE':'django.db.backends.sqlite3',
+                    'NAME':'db.sqlite3',
                 }
             },
             INSTALLED_APPS=[
@@ -392,13 +392,12 @@ async def main():
         django.setup()
     
     # Load configuration
-    config_manager = ConfigManager()
-    config = config_manager.load_config()
+    config_manager=ConfigManager()
+    config=config_manager.load_config()
     
     # Run migration
-    migration = ProductionMigration(config)
+    migration=ProductionMigration(config)
     await migration.run_full_migration()
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__== "__main__":asyncio.run(main())

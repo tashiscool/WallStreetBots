@@ -12,12 +12,12 @@ from dataclasses import dataclass, field
 from enum import Enum
 import json
 
-logger = logging.getLogger(__name__)
+logger=logging.getLogger(__name__)
 
 
 class DiscrepancyType(Enum):
     """Types of position discrepancies"""
-    MISSING_AT_BROKER = "missing_at_broker"
+    MISSING_AT_BROKER="missing_at_broker"
     MISSING_IN_DB = "missing_in_db"
     QUANTITY_MISMATCH = "quantity_mismatch"
     PRICE_MISMATCH = "price_mismatch"
@@ -27,7 +27,7 @@ class DiscrepancyType(Enum):
 
 class DiscrepancySeverity(Enum):
     """Severity levels for discrepancies"""
-    LOW = "low"
+    LOW="low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
@@ -97,7 +97,7 @@ class ReconciliationReport:
     @property
     def is_clean(self) -> bool:
         """Check if reconciliation is clean"""
-        return self.total_discrepancies == 0
+        return self.total_discrepancies== 0
     
     @property
     def requires_intervention(self) -> bool:
@@ -122,20 +122,20 @@ class PositionReconciler:
     """
     
     def __init__(self, alpaca_manager=None, database_manager=None):
-        self.alpaca_manager = alpaca_manager
+        self.alpaca_manager=alpaca_manager
         self.database_manager = database_manager
         self.logger = logging.getLogger(__name__)
         
         # Reconciliation settings
-        self.quantity_tolerance = 0  # Zero tolerance for quantity differences
+        self.quantity_tolerance=0  # Zero tolerance for quantity differences
         self.price_tolerance = Decimal('0.01')  # $0.01 tolerance for price differences
-        self.value_tolerance = Decimal('1.00')  # $1.00 tolerance for market value
-        self.stale_position_hours = 24  # Consider positions stale after 24 hours
+        self.value_tolerance=Decimal('1.00')  # $1.00 tolerance for market value
+        self.stale_position_hours=24  # Consider positions stale after 24 hours
         
         # Emergency thresholds
         self.max_critical_discrepancies = 1  # Halt if any critical discrepancy
         self.max_total_financial_impact = Decimal('1000')  # Halt if impact > $1000
-        self.max_missing_positions = 3  # Halt if more than 3 positions missing
+        self.max_missing_positions=3  # Halt if more than 3 positions missing
         
         # Reconciliation history
         self.reconciliation_history: List[ReconciliationReport] = []
@@ -148,7 +148,7 @@ class PositionReconciler:
         
         self.logger.info("PositionReconciler initialized")
     
-    async def reconcile_all_positions(self, auto_halt: bool = True) -> ReconciliationReport:
+    async def reconcile_all_positions(self, auto_halt: bool=True) -> ReconciliationReport:
         """
         Perform comprehensive position reconciliation
         
@@ -160,27 +160,27 @@ class PositionReconciler:
         """
         try:
             self.logger.info("Starting comprehensive position reconciliation")
-            start_time = datetime.now()
+            start_time=datetime.now()
             
             # Get positions from both sources
-            db_positions = await self._get_database_positions()
-            broker_positions = await self._get_broker_positions()
+            db_positions=await self._get_database_positions()
+            broker_positions=await self._get_broker_positions()
             
             self.logger.info(f"Retrieved {len(db_positions)} DB positions, {len(broker_positions)} broker positions")
             
             # Perform reconciliation analysis
-            discrepancies = await self._analyze_positions(db_positions, broker_positions)
+            discrepancies=await self._analyze_positions(db_positions, broker_positions)
             
             # Calculate financial impact
-            total_financial_impact = sum(d.financial_impact for d in discrepancies)
+            total_financial_impact=sum(d.financial_impact for d in discrepancies)
             
             # Classify severity
-            critical_count = sum(1 for d in discrepancies if d.severity == DiscrepancySeverity.CRITICAL)
-            high_count = sum(1 for d in discrepancies if d.severity == DiscrepancySeverity.HIGH)
+            critical_count=sum(1 for d in discrepancies if d.severity == DiscrepancySeverity.CRITICAL)
+            high_count=sum(1 for d in discrepancies if d.severity == DiscrepancySeverity.HIGH)
             
             # Determine overall status
             if critical_count > 0:
-                status = "CRITICAL"
+                status="CRITICAL"
             elif high_count > 0:
                 status = "WARNINGS" 
             else:
@@ -199,18 +199,18 @@ class PositionReconciler:
                 reconciliation_status=status,
                 next_reconciliation=start_time + timedelta(minutes=15),  # Schedule next reconciliation
                 metadata={
-                    'reconciliation_duration': (datetime.now() - start_time).total_seconds(),
-                    'auto_halt_enabled': auto_halt
+                    'reconciliation_duration':(datetime.now() - start_time).total_seconds(),
+                    'auto_halt_enabled':auto_halt
                 }
             )
             
             # Store in history
             self.reconciliation_history.append(report)
-            self.last_reconciliation = start_time
+            self.last_reconciliation=start_time
             
             # Keep only last 100 reconciliation reports
             if len(self.reconciliation_history) > 100:
-                self.reconciliation_history = self.reconciliation_history[-100:]
+                self.reconciliation_history=self.reconciliation_history[-100:]
             
             # Log results
             self._log_reconciliation_results(report)
@@ -219,7 +219,7 @@ class PositionReconciler:
             if auto_halt and self._should_emergency_halt(report):
                 await self._trigger_emergency_halt(report)
             
-            self.consecutive_failures = 0  # Reset failure count on success
+            self.consecutive_failures=0  # Reset failure count on success
             
             return report
             
@@ -228,7 +228,7 @@ class PositionReconciler:
             self.logger.error(f"Position reconciliation failed: {e}")
             
             # Create error report
-            error_report = ReconciliationReport(
+            error_report=ReconciliationReport(
                 timestamp=datetime.now(),
                 total_positions_db=0,
                 total_positions_broker=0,
@@ -239,7 +239,7 @@ class PositionReconciler:
                 total_financial_impact=Decimal('0'),
                 reconciliation_status="ERROR",
                 next_reconciliation=datetime.now() + timedelta(minutes=30),
-                metadata={'error': str(e), 'consecutive_failures': self.consecutive_failures}
+                metadata={'error':str(e), 'consecutive_failures':self.consecutive_failures}
             )
             
             # Emergency halt on repeated failures
@@ -259,10 +259,10 @@ class PositionReconciler:
                 return []
             
             # Mock implementation - replace with actual database query
-            positions = []
+            positions=[]
             
             # In a real implementation, this would be something like:
-            # positions_data = await self.database_manager.get_open_positions()
+            # positions_data=await self.database_manager.get_open_positions()
             # for pos_data in positions_data:
             #     positions.append(PositionSnapshot(...))
             
@@ -280,8 +280,8 @@ class PositionReconciler:
                 return []
             
             # Get positions from Alpaca
-            alpaca_positions = await self.alpaca_manager.get_positions()
-            broker_positions = []
+            alpaca_positions=await self.alpaca_manager.get_positions()
+            broker_positions=[]
             
             for pos in alpaca_positions:
                 broker_position = BrokerPosition(
@@ -294,7 +294,7 @@ class PositionReconciler:
                     side='long' if int(pos.qty) > 0 else 'short',
                     asset_class=pos.asset_class,
                     last_updated=datetime.now(),
-                    metadata={'position_id': pos.asset_id}
+                    metadata={'position_id':pos.asset_id}
                 )
                 broker_positions.append(broker_position)
             
@@ -307,7 +307,7 @@ class PositionReconciler:
     async def _analyze_positions(self, db_positions: List[PositionSnapshot], 
                                broker_positions: List[BrokerPosition]) -> List[PositionDiscrepancy]:
         """Analyze positions for discrepancies"""
-        discrepancies = []
+        discrepancies=[]
         
         # Create lookup dictionaries
         db_by_ticker = {pos.ticker: pos for pos in db_positions}
@@ -316,7 +316,7 @@ class PositionReconciler:
         # Check for positions in DB but not at broker
         for ticker, db_pos in db_by_ticker.items():
             if ticker not in broker_by_symbol:
-                discrepancy = PositionDiscrepancy(
+                discrepancy=PositionDiscrepancy(
                     discrepancy_type=DiscrepancyType.MISSING_AT_BROKER,
                     severity=DiscrepancySeverity.CRITICAL,
                     ticker=ticker,
@@ -326,13 +326,13 @@ class PositionReconciler:
                     suggested_action="Investigate database record, may need to close position manually",
                     financial_impact=abs(db_pos.market_value),
                     timestamp=datetime.now(),
-                    metadata={'db_quantity': db_pos.quantity, 'db_value': float(db_pos.market_value)}
+                    metadata={'db_quantity':db_pos.quantity, 'db_value':float(db_pos.market_value)}
                 )
                 discrepancies.append(discrepancy)        
         # Check for positions at broker but not in DB
         for symbol, broker_pos in broker_by_symbol.items():
             if symbol not in db_by_ticker:
-                discrepancy = PositionDiscrepancy(
+                discrepancy=PositionDiscrepancy(
                     discrepancy_type=DiscrepancyType.MISSING_IN_DB,
                     severity=DiscrepancySeverity.HIGH,
                     ticker=symbol,
@@ -342,20 +342,20 @@ class PositionReconciler:
                     suggested_action="Add position to database or investigate unauthorized trade",
                     financial_impact=abs(broker_pos.market_value),
                     timestamp=datetime.now(),
-                    metadata={'broker_quantity': broker_pos.quantity, 'broker_value': float(broker_pos.market_value)}
+                    metadata={'broker_quantity':broker_pos.quantity, 'broker_value':float(broker_pos.market_value)}
                 )
                 discrepancies.append(discrepancy)
         
         # Check for quantity/value mismatches on matching positions
         for ticker in set(db_by_ticker.keys()) & set(broker_by_symbol.keys()):
-            db_pos = db_by_ticker[ticker]
+            db_pos=db_by_ticker[ticker]
             broker_pos = broker_by_symbol[ticker]
             
             # Quantity mismatch
             if abs(db_pos.quantity - broker_pos.quantity) > self.quantity_tolerance:
-                severity = DiscrepancySeverity.CRITICAL if abs(db_pos.quantity - broker_pos.quantity) > 10 else DiscrepancySeverity.HIGH
+                severity=DiscrepancySeverity.CRITICAL if abs(db_pos.quantity - broker_pos.quantity) > 10 else DiscrepancySeverity.HIGH
                 
-                discrepancy = PositionDiscrepancy(
+                discrepancy=PositionDiscrepancy(
                     discrepancy_type=DiscrepancyType.QUANTITY_MISMATCH,
                     severity=severity,
                     ticker=ticker,
@@ -366,16 +366,16 @@ class PositionReconciler:
                     financial_impact=abs((db_pos.quantity - broker_pos.quantity) * db_pos.current_price),
                     timestamp=datetime.now(),
                     metadata={
-                        'quantity_difference': db_pos.quantity - broker_pos.quantity,
-                        'db_quantity': db_pos.quantity,
-                        'broker_quantity': broker_pos.quantity
+                        'quantity_difference':db_pos.quantity - broker_pos.quantity,
+                        'db_quantity':db_pos.quantity,
+                        'broker_quantity':broker_pos.quantity
                     }
                 )
                 discrepancies.append(discrepancy)
             
             # Price/value mismatch (if quantities match)
             elif abs(db_pos.market_value - broker_pos.market_value) > self.value_tolerance:
-                discrepancy = PositionDiscrepancy(
+                discrepancy=PositionDiscrepancy(
                     discrepancy_type=DiscrepancyType.PRICE_MISMATCH,
                     severity=DiscrepancySeverity.MEDIUM,
                     ticker=ticker,
@@ -386,16 +386,16 @@ class PositionReconciler:
                     financial_impact=abs(db_pos.market_value - broker_pos.market_value),
                     timestamp=datetime.now(),
                     metadata={
-                        'value_difference': float(db_pos.market_value - broker_pos.market_value),
-                        'db_value': float(db_pos.market_value),
-                        'broker_value': float(broker_pos.market_value)
+                        'value_difference':float(db_pos.market_value - broker_pos.market_value),
+                        'db_value':float(db_pos.market_value),
+                        'broker_value':float(broker_pos.market_value)
                     }
                 )
                 discrepancies.append(discrepancy)
             
             # Check for stale positions
             if datetime.now() - db_pos.last_updated > timedelta(hours=self.stale_position_hours):
-                discrepancy = PositionDiscrepancy(
+                discrepancy=PositionDiscrepancy(
                     discrepancy_type=DiscrepancyType.STALE_POSITION,
                     severity=DiscrepancySeverity.LOW,
                     ticker=ticker,
@@ -405,7 +405,7 @@ class PositionReconciler:
                     suggested_action="Refresh position data from market feeds",
                     financial_impact=Decimal('0'),
                     timestamp=datetime.now(),
-                    metadata={'hours_stale': (datetime.now() - db_pos.last_updated).total_seconds() / 3600}
+                    metadata={'hours_stale':(datetime.now() - db_pos.last_updated).total_seconds() / 3600}
                 )
                 discrepancies.append(discrepancy)
         
@@ -418,7 +418,7 @@ class PositionReconciler:
             return True
         
         # Too many missing positions
-        missing_positions = sum(1 for d in report.discrepancies 
+        missing_positions=sum(1 for d in report.discrepancies 
                                if d.discrepancy_type in [DiscrepancyType.MISSING_AT_BROKER, DiscrepancyType.MISSING_IN_DB])
         if missing_positions >= self.max_missing_positions:
             return True
@@ -429,10 +429,10 @@ class PositionReconciler:
         
         return False
     
-    async def _trigger_emergency_halt(self, report: ReconciliationReport, custom_reason: str = None):
+    async def _trigger_emergency_halt(self, report: ReconciliationReport, custom_reason: str=None):
         """Trigger emergency halt of trading system"""
         try:
-            halt_reason = custom_reason or f"Position reconciliation found {report.critical_discrepancies} critical discrepancies"
+            halt_reason=custom_reason or f"Position reconciliation found {report.critical_discrepancies} critical discrepancies"
             
             self.is_emergency_halted = True
             self.halt_reason = halt_reason
@@ -440,19 +440,19 @@ class PositionReconciler:
             self.logger.critical(f"EMERGENCY HALT TRIGGERED: {halt_reason}")
             
             # Log detailed halt information
-            halt_details = {
-                'timestamp': datetime.now().isoformat(),
-                'reason': halt_reason,
-                'total_discrepancies': report.total_discrepancies,
-                'critical_discrepancies': report.critical_discrepancies,
-                'financial_impact': float(report.total_financial_impact),
-                'discrepancy_summary': [
+            halt_details={
+                'timestamp':datetime.now().isoformat(),
+                'reason':halt_reason,
+                'total_discrepancies':report.total_discrepancies,
+                'critical_discrepancies':report.critical_discrepancies,
+                'financial_impact':float(report.total_financial_impact),
+                'discrepancy_summary':[
                     {
-                        'type': d.discrepancy_type.value,
-                        'ticker': d.ticker,
-                        'severity': d.severity.value,
-                        'impact': float(d.financial_impact)
-                    } for d in report.discrepancies if d.severity == DiscrepancySeverity.CRITICAL
+                        'type':d.discrepancy_type.value,
+                        'ticker':d.ticker,
+                        'severity':d.severity.value,
+                        'impact':float(d.financial_impact)
+                    } for d in report.discrepancies if d.severity== DiscrepancySeverity.CRITICAL
                 ]
             }
             
@@ -478,7 +478,7 @@ class PositionReconciler:
             
             # Log each critical discrepancy
             for discrepancy in report.discrepancies:
-                if discrepancy.severity == DiscrepancySeverity.CRITICAL:
+                if discrepancy.severity== DiscrepancySeverity.CRITICAL:
                     self.logger.error(f"CRITICAL DISCREPANCY: {discrepancy.description} "
                                     f"(Impact: ${discrepancy.financial_impact})")
     
@@ -487,39 +487,39 @@ class PositionReconciler:
         try:
             if not self.reconciliation_history:
                 return {
-                    'status': 'NO_DATA',
-                    'message': 'No reconciliation performed yet',
-                    'last_reconciliation': None
+                    'status':'NO_DATA',
+                    'message':'No reconciliation performed yet',
+                    'last_reconciliation':None
                 }
             
-            latest_report = self.reconciliation_history[-1]
+            latest_report=self.reconciliation_history[-1]
             
             return {
-                'status': latest_report.reconciliation_status,
-                'last_reconciliation': latest_report.timestamp.isoformat(),
-                'total_positions': latest_report.total_positions_broker,
-                'discrepancies': latest_report.total_discrepancies,
-                'critical_discrepancies': latest_report.critical_discrepancies,
-                'financial_impact': float(latest_report.total_financial_impact),
-                'is_emergency_halted': self.is_emergency_halted,
-                'halt_reason': self.halt_reason,
-                'consecutive_failures': self.consecutive_failures,
-                'next_reconciliation': latest_report.next_reconciliation.isoformat() if latest_report.next_reconciliation else None
+                'status':latest_report.reconciliation_status,
+                'last_reconciliation':latest_report.timestamp.isoformat(),
+                'total_positions':latest_report.total_positions_broker,
+                'discrepancies':latest_report.total_discrepancies,
+                'critical_discrepancies':latest_report.critical_discrepancies,
+                'financial_impact':float(latest_report.total_financial_impact),
+                'is_emergency_halted':self.is_emergency_halted,
+                'halt_reason':self.halt_reason,
+                'consecutive_failures':self.consecutive_failures,
+                'next_reconciliation':latest_report.next_reconciliation.isoformat() if latest_report.next_reconciliation else None
             }
             
         except Exception as e:
             self.logger.error(f"Failed to get reconciliation summary: {e}")
-            return {'status': 'ERROR', 'error': str(e)}
+            return {'status':'ERROR', 'error':str(e)}
     
     async def force_reconciliation(self) -> ReconciliationReport:
         """Force immediate reconciliation (bypassing schedule)"""
         self.logger.info("Forcing immediate position reconciliation")
         return await self.reconcile_all_positions(auto_halt=True)
     
-    async def clear_emergency_halt(self, reason: str = "Manual override"):
+    async def clear_emergency_halt(self, reason: str="Manual override"):
         """Clear emergency halt status"""
         if self.is_emergency_halted:
-            self.is_emergency_halted = False
+            self.is_emergency_halted=False
             old_reason = self.halt_reason
             self.halt_reason = None
             
@@ -530,33 +530,33 @@ class PositionReconciler:
     async def get_position_details(self, ticker: str) -> Dict[str, Any]:
         """Get detailed reconciliation info for specific position"""
         try:
-            db_positions = await self._get_database_positions()
-            broker_positions = await self._get_broker_positions()
+            db_positions=await self._get_database_positions()
+            broker_positions=await self._get_broker_positions()
             
-            db_pos = next((p for p in db_positions if p.ticker == ticker), None)
-            broker_pos = next((p for p in broker_positions if p.symbol == ticker), None)
+            db_pos=next((p for p in db_positions if p.ticker == ticker), None)
+            broker_pos=next((p for p in broker_positions if p.symbol == ticker), None)
             
             return {
-                'ticker': ticker,
-                'database_position': {
-                    'exists': db_pos is not None,
-                    'quantity': db_pos.quantity if db_pos else 0,
-                    'market_value': float(db_pos.market_value) if db_pos else 0,
-                    'last_updated': db_pos.last_updated.isoformat() if db_pos else None
-                } if db_pos else {'exists': False},
-                'broker_position': {
-                    'exists': broker_pos is not None,
-                    'quantity': broker_pos.quantity if broker_pos else 0,
-                    'market_value': float(broker_pos.market_value) if broker_pos else 0,
-                    'last_updated': broker_pos.last_updated.isoformat() if broker_pos else None
-                } if broker_pos else {'exists': False},
-                'reconciled': db_pos is not None and broker_pos is not None and 
+                'ticker':ticker,
+                'database_position':{
+                    'exists':db_pos is not None,
+                    'quantity':db_pos.quantity if db_pos else 0,
+                    'market_value':float(db_pos.market_value) if db_pos else 0,
+                    'last_updated':db_pos.last_updated.isoformat() if db_pos else None
+                } if db_pos else {'exists':False},
+                'broker_position':{
+                    'exists':broker_pos is not None,
+                    'quantity':broker_pos.quantity if broker_pos else 0,
+                    'market_value':float(broker_pos.market_value) if broker_pos else 0,
+                    'last_updated':broker_pos.last_updated.isoformat() if broker_pos else None
+                } if broker_pos else {'exists':False},
+                'reconciled':db_pos is not None and broker_pos is not None and 
                             abs(db_pos.quantity - broker_pos.quantity) <= self.quantity_tolerance
             }
             
         except Exception as e:
             self.logger.error(f"Failed to get position details for {ticker}: {e}")
-            return {'ticker': ticker, 'error': str(e)}
+            return {'ticker':ticker, 'error':str(e)}
 
 
 def create_position_reconciler(alpaca_manager=None, database_manager=None) -> PositionReconciler:

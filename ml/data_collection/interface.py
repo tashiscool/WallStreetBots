@@ -4,7 +4,7 @@ import pandas as pd
 
 
 class NewsSourceInterface(abc.ABC):
-    ticker: str = None
+    ticker: str=None
 
     def get_ticker(self) -> str:
         return self.ticker

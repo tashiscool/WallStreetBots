@@ -24,18 +24,16 @@ def test_paper_trading_connection():
     print("=" * 50)
     
     # Get API credentials from environment
-    api_key = os.getenv('ALPACA_API_KEY')
-    secret_key = os.getenv('ALPACA_SECRET_KEY')
+    api_key=os.getenv('ALPACA_API_KEY')
+    secret_key=os.getenv('ALPACA_SECRET_KEY')
     
-    if not api_key or api_key == 'your_paper_api_key_here':
-        print("❌ ERROR: Please set your Alpaca paper trading API keys in .env file")
+    if not api_key or api_key== 'your_paper_api_key_here':print("❌ ERROR: Please set your Alpaca paper trading API keys in .env file")
         print("   ALPACA_API_KEY=your_paper_api_key_here")
         print("   ALPACA_SECRET_KEY=your_paper_secret_key_here")
         print("\n📝 Get paper trading keys from: https://app.alpaca.markets/paper/dashboard/overview")
         return False
         
-    if not secret_key or secret_key == 'your_paper_secret_key_here':
-        print("❌ ERROR: Please set your Alpaca paper trading secret key in .env file")
+    if not secret_key or secret_key== 'your_paper_secret_key_here':print("❌ ERROR: Please set your Alpaca paper trading secret key in .env file")
         return False
     
     try:
@@ -43,14 +41,14 @@ def test_paper_trading_connection():
         print(f"🔑 API Key: {api_key[:8]}...")
         print(f"📊 Paper Trading: True")
         
-        manager = AlpacaManager(
+        manager=AlpacaManager(
             API_KEY=api_key,
             SECRET_KEY=secret_key,
             paper_trading=True  # Ensure paper trading
         )
         
         # Test API validation
-        success, message = manager.validate_api()
+        success, message=manager.validate_api()
         
         if success:
             print(f"✅ Paper Trading Connection: SUCCESS")
@@ -58,13 +56,13 @@ def test_paper_trading_connection():
             
             # Get account info
             try:
-                account = manager.trading_client.get_account()
+                account=manager.trading_client.get_account()
                 print(f"\n💰 Paper Trading Account Info:")
                 print(f"   Account ID: {account.id}")
                 print(f"   Buying Power: ${float(account.buying_power):,.2f}")
                 print(f"   Cash: ${float(account.cash):,.2f}")
                 print(f"   Portfolio Value: ${float(account.portfolio_value):,.2f}")
-                print(f"   Paper Trading: {account.account_blocked == False}")  # Paper accounts aren't blocked
+                print(f"   Paper Trading: {account.account_blocked== False}")  # Paper accounts aren't blocked
                 
             except Exception as e:
                 print(f"⚠️ Account info error: {e}")
@@ -82,8 +80,7 @@ def test_paper_trading_connection():
         print(f"❌ Connection test failed: {e}")
         return False
 
-if __name__ == "__main__":
-    success = test_paper_trading_connection()
+if __name__== "__main__":success = test_paper_trading_connection()
     
     if success:
         print(f"\n🚀 NEXT STEPS:")

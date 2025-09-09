@@ -79,12 +79,12 @@ class EarningsEvent:
     revenue_estimate: Optional[Decimal] = None
     revenue_actual: Optional[Decimal] = None
     implied_move: Optional[Decimal] = None
-    source: str = ""
+    source: str=""
 
 
 class DataSource(Enum):
     """Available data sources"""
-    ALPACA = "alpaca"
+    ALPACA="alpaca"
     POLYGON = "polygon"
     YAHOO = "yahoo"
     IEX = "iex"
@@ -110,9 +110,9 @@ class DataSourceHealth:
 
 class DataProviderError(Exception):
     """Custom exception for data provider errors"""
-    def __init__(self, message: str, source: DataSource = None):
+    def __init__(self, message: str, source: DataSource=None):
         super().__init__(message)
-        self.source = source
+        self.source=source
 
 
 class ReliableDataProvider:
@@ -135,12 +135,12 @@ class ReliableDataProvider:
     """
     
     def __init__(self, alpaca_api_key: str, alpaca_secret_key: str, 
-                 polygon_api_key: str = None, alpha_vantage_key: str = None):
-        self.logger = logging.getLogger(__name__)
+                 polygon_api_key: str=None, alpha_vantage_key: str=None):
+        self.logger=logging.getLogger(__name__)
         
         # Initialize data sources
-        self.alpaca_manager = AlpacaManager(alpaca_api_key, alpaca_secret_key)
-        self.polygon_api_key = polygon_api_key
+        self.alpaca_manager=AlpacaManager(alpaca_api_key, alpaca_secret_key)
+        self.polygon_api_key=polygon_api_key
         self.alpha_vantage_key = alpha_vantage_key
         
         # Data source health monitoring
@@ -154,9 +154,9 @@ class ReliableDataProvider:
         }
         
         # Data source preferences (ordered by reliability)
-        self.price_source_order = [DataSource.ALPACA, DataSource.POLYGON, DataSource.YAHOO, DataSource.IEX]
-        self.options_source_order = [DataSource.POLYGON, DataSource.YAHOO, DataSource.SYNTHETIC]
-        self.earnings_source_order = [DataSource.ALPHA_VANTAGE, DataSource.POLYGON, DataSource.YAHOO, DataSource.SYNTHETIC]
+        self.price_source_order=[DataSource.ALPACA, DataSource.POLYGON, DataSource.YAHOO, DataSource.IEX]
+        self.options_source_order=[DataSource.POLYGON, DataSource.YAHOO, DataSource.SYNTHETIC]
+        self.earnings_source_order=[DataSource.ALPHA_VANTAGE, DataSource.POLYGON, DataSource.YAHOO, DataSource.SYNTHETIC]
         
         # Data cache
         self.price_cache: Dict[str, MarketData] = {}
@@ -164,7 +164,7 @@ class ReliableDataProvider:
         self.earnings_cache: Dict[str, List[EarningsEvent]] = {}
         
         # Cache TTL
-        self.price_cache_ttl = 5  # 5 seconds
+        self.price_cache_ttl=5  # 5 seconds
         self.options_cache_ttl = 30  # 30 seconds  
         self.earnings_cache_ttl = 3600  # 1 hour
         
@@ -179,7 +179,7 @@ class ReliableDataProvider:
         """Get current market data with automatic failover"""
         # Check cache first
         if ticker in self.price_cache:
-            cached_data = self.price_cache[ticker]
+            cached_data=self.price_cache[ticker]
             if datetime.now() - cached_data.timestamp < timedelta(seconds=self.price_cache_ttl):
                 return cached_data
         
@@ -189,9 +189,9 @@ class ReliableDataProvider:
                 continue
             
             try:
-                start_time = time_module.time()
-                market_data = await self._get_price_from_source(ticker, source)
-                response_time = time_module.time() - start_time
+                start_time=time_module.time()
+                market_data=await self._get_price_from_source(ticker, source)
+                response_time=time_module.time() - start_time
                 
                 if market_data and self._validate_price_data(ticker, market_data):
                     # Update source health on success
@@ -215,13 +215,13 @@ class ReliableDataProvider:
         """Get real-time quote (alias for get_current_price for backward compatibility)"""
         return await self.get_current_price(ticker)
     
-    async def get_historical_data(self, ticker: str, days: int = 30) -> List[MarketData]:
+    async def get_historical_data(self, ticker: str, days: int=30) -> List[MarketData]:
         """Get historical market data"""
         try:
-            end_date = datetime.now()
-            start_date = end_date - timedelta(days=days)
+            end_date=datetime.now()
+            start_date=end_date - timedelta(days=days)
             
-            bars = self.alpaca_manager.get_bars(
+            bars=self.alpaca_manager.get_bars(
                 symbol=ticker,
                 start=start_date,
                 end=end_date,
@@ -231,7 +231,7 @@ class ReliableDataProvider:
             if not bars:
                 return []
             
-            historical_data = []
+            historical_data=[]
             for bar in bars:
                 market_data = MarketData(
                     ticker=ticker,
@@ -255,30 +255,30 @@ class ReliableDataProvider:
         """Get real options chain data with Yahoo Finance fallback"""
         try:
             # Check cache first
-            cache_key = f"{ticker}_{expiry_date.date() if expiry_date else 'all'}"
+            cache_key=f"{ticker}_{expiry_date.date() if expiry_date else 'all'}"
             if cache_key in self.options_cache:
-                cached_data = self.options_cache[cache_key]
+                cached_data=self.options_cache[cache_key]
                 if cached_data and datetime.now() - cached_data[0].timestamp < timedelta(seconds=self.options_cache_ttl):
                     return cached_data
             
-            options_data = []
+            options_data=[]
             
             # Try to get from Yahoo Finance (free but limited)
             try:
                 import yfinance as yf
                 import pandas as pd
                 
-                stock = yf.Ticker(ticker)
+                stock=yf.Ticker(ticker)
                 
                 # If expiry_date is specified, get that specific chain
                 if expiry_date:
-                    expiry_str = expiry_date.strftime('%Y-%m-%d')
+                    expiry_str=expiry_date.strftime('%Y-%m-%d')
                     if expiry_str in stock.options:
-                        chain = stock.option_chain(expiry_str)
+                        chain=stock.option_chain(expiry_str)
                         
                         # Process calls
                         for _, row in chain.calls.iterrows():
-                            option_data = OptionsData(
+                            option_data=OptionsData(
                                 ticker=ticker,
                                 strike=Decimal(str(row['strike'])),
                                 expiry_date=expiry_date,
@@ -295,7 +295,7 @@ class ReliableDataProvider:
                         
                         # Process puts
                         for _, row in chain.puts.iterrows():
-                            option_data = OptionsData(
+                            option_data=OptionsData(
                                 ticker=ticker,
                                 strike=Decimal(str(row['strike'])),
                                 expiry_date=expiry_date,
@@ -313,7 +313,7 @@ class ReliableDataProvider:
                 else:
                     # Get first available expiry if no specific date requested
                     if stock.options:
-                        first_expiry = stock.options[0]
+                        first_expiry=stock.options[0]
                         expiry_date = datetime.strptime(first_expiry, '%Y-%m-%d')
                         return await self.get_options_chain(ticker, expiry_date)
                 
@@ -329,14 +329,14 @@ class ReliableDataProvider:
             # If Yahoo Finance fails, try to generate synthetic options data for testing
             # This is still better than empty data for development/testing
             if not options_data and expiry_date:
-                current_price = await self.get_current_price(ticker)
+                current_price=await self.get_current_price(ticker)
                 if current_price and current_price > 0:
-                    synthetic_options = await self._generate_synthetic_options_data(
+                    synthetic_options=await self._generate_synthetic_options_data(
                         ticker, current_price, expiry_date
                     )
                     if synthetic_options:
                         self.logger.warning(f"Using synthetic options data for {ticker} - implement real data provider!")
-                        options_data = synthetic_options
+                        options_data=synthetic_options
             
             # Cache results (even if empty)
             self.options_cache[cache_key] = options_data
@@ -350,7 +350,7 @@ class ReliableDataProvider:
                                              expiry_date: datetime) -> List[OptionsData]:
         """Generate synthetic options data for testing (DEVELOPMENT ONLY)"""
         try:
-            synthetic_options = []
+            synthetic_options=[]
             
             # Generate strikes around current price
             strikes = []
@@ -358,15 +358,15 @@ class ReliableDataProvider:
             
             # Generate strikes from 20% below to 20% above current price
             for i in range(-10, 11):
-                strike = base_price * (1 + i * 0.02)  # 2% intervals
+                strike=base_price * (1 + i * 0.02)  # 2% intervals
                 strikes.append(Decimal(str(round(strike, 2))))
             
             # Simple implied volatility estimate
-            vol_estimate = Decimal('0.25')  # 25% default
+            vol_estimate=Decimal('0.25')  # 25% default
             
             for strike in strikes:
                 # Generate call option
-                call_option = OptionsData(
+                call_option=OptionsData(
                     ticker=ticker,
                     expiry=expiry_date,
                     strike=strike,
@@ -386,7 +386,7 @@ class ReliableDataProvider:
                 synthetic_options.append(call_option)
                 
                 # Generate put option
-                put_option = OptionsData(
+                put_option=OptionsData(
                     ticker=ticker,
                     expiry=expiry_date,
                     strike=strike,
@@ -411,48 +411,48 @@ class ReliableDataProvider:
             self.logger.error(f"Error generating synthetic options data: {e}")
             return []
     
-    async def get_earnings_calendar(self, days_ahead: int = 30) -> List[EarningsEvent]:
+    async def get_earnings_calendar(self, days_ahead: int=30) -> List[EarningsEvent]:
         """Get real earnings calendar with Yahoo Finance fallback"""
         try:
             # Check cache first
-            cache_key = f"earnings_{days_ahead}"
+            cache_key=f"earnings_{days_ahead}"
             if cache_key in self.earnings_cache:
                 cached_data = self.earnings_cache[cache_key]
                 if cached_data and len(cached_data) > 0:
                     # Check if cached data is still fresh (24 hours)
-                    cache_age = (datetime.now() - cached_data[0].timestamp).total_seconds()
+                    cache_age=(datetime.now() - cached_data[0].timestamp).total_seconds()
                     if cache_age < 86400:  # 24 hours
                         return cached_data
             
-            earnings_events = []
+            earnings_events=[]
             
             # Try to get earnings from Yahoo Finance (limited but free)
             try:
                 import yfinance as yf
                 
                 # Major tickers to check for earnings
-                major_tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX', 
+                major_tickers=['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX', 
                                'SPY', 'QQQ', 'AMD', 'CRM', 'ORCL', 'IBM', 'INTC']
                 
-                end_date = datetime.now() + timedelta(days=days_ahead)
+                end_date=datetime.now() + timedelta(days=days_ahead)
                 
                 for ticker in major_tickers:
                     try:
-                        stock = yf.Ticker(ticker)
-                        info = stock.info
+                        stock=yf.Ticker(ticker)
+                        info=stock.info
                         
                         # Check for upcoming earnings date
                         if 'earningsDate' in info and info['earningsDate']:
                             earnings_timestamp = info['earningsDate']
                             if isinstance(earnings_timestamp, list):
-                                earnings_timestamp = earnings_timestamp[0] if earnings_timestamp else None
+                                earnings_timestamp=earnings_timestamp[0] if earnings_timestamp else None
                             
                             if earnings_timestamp:
                                 earnings_date = datetime.fromtimestamp(earnings_timestamp)
                                 
                                 # Only include if within our date range
                                 if datetime.now() <= earnings_date <= end_date:
-                                    earnings_event = EarningsEvent(
+                                    earnings_event=EarningsEvent(
                                         ticker=ticker,
                                         company_name=ticker,
                                         earnings_date=earnings_date,
@@ -475,9 +475,9 @@ class ReliableDataProvider:
             
             # If no real data available, generate some synthetic earnings for development/testing
             if not earnings_events:
-                synthetic_earnings = self._generate_synthetic_earnings_calendar(days_ahead)
+                synthetic_earnings=self._generate_synthetic_earnings_calendar(days_ahead)
                 if synthetic_earnings:
-                    earnings_events = synthetic_earnings
+                    earnings_events=synthetic_earnings
                     self.logger.warning("Using synthetic earnings calendar - implement real data provider!")
             
             # Cache the results
@@ -492,21 +492,21 @@ class ReliableDataProvider:
     def _generate_synthetic_earnings_calendar(self, days_ahead: int) -> List[EarningsEvent]:
         """Generate synthetic earnings events for testing (DEVELOPMENT ONLY)"""
         try:
-            synthetic_events = []
+            synthetic_events=[]
             
             # Generate some fake earnings for major stocks over the next period
             tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA']
             
             for i, ticker in enumerate(tickers):
                 # Spread earnings events over the period
-                days_offset = int((days_ahead / len(tickers)) * i) + 1
-                earnings_date = datetime.now() + timedelta(days=days_offset)
+                days_offset=int((days_ahead / len(tickers)) * i) + 1
+                earnings_date=datetime.now() + timedelta(days=days_offset)
                 
                 # Skip weekends
                 while earnings_date.weekday() >= 5:
                     earnings_date += timedelta(days=1)
                 
-                synthetic_event = EarningsEvent(
+                synthetic_event=EarningsEvent(
                     ticker=ticker,
                     company_name=ticker,
                     earnings_date=earnings_date,
@@ -526,7 +526,7 @@ class ReliableDataProvider:
     async def get_earnings_for_ticker(self, ticker: str) -> Optional[EarningsEvent]:
         """Get next earnings event for specific ticker"""
         try:
-            earnings_calendar = await self.get_earnings_calendar()
+            earnings_calendar=await self.get_earnings_calendar()
             
             for event in earnings_calendar:
                 if event.ticker.upper() == ticker.upper():
@@ -542,7 +542,7 @@ class ReliableDataProvider:
         """Check if market is currently open"""
         try:
             # Get market status from Alpaca
-            clock = self.alpaca_manager.get_clock()
+            clock=self.alpaca_manager.get_clock()
             if clock:
                 # Handle both dict-like and object-like clock interfaces
                 if hasattr(clock, 'is_open'):
@@ -553,15 +553,15 @@ class ReliableDataProvider:
                     return False
             
             # Fallback to manual check
-            now = datetime.now()
+            now=datetime.now()
             
             # Check if it's a weekday
-            if now.weekday() >= 5:  # Saturday = 5, Sunday = 6
+            if now.weekday() >= 5:  # Saturday=5, Sunday=6
                 return False
             
             # Check market hours (9:30 AM - 4:00 PM ET)
-            market_open = now.replace(hour=9, minute=30, second=0, microsecond=0)
-            market_close = now.replace(hour=16, minute=0, second=0, microsecond=0)
+            market_open=now.replace(hour=9, minute=30, second=0, microsecond=0)
+            market_close=now.replace(hour=16, minute=0, second=0, microsecond=0)
             
             return market_open <= now <= market_close
             
@@ -572,57 +572,57 @@ class ReliableDataProvider:
     async def get_market_hours(self) -> Dict[str, Any]:
         """Get market hours information"""
         try:
-            clock = self.alpaca_manager.get_clock()
+            clock=self.alpaca_manager.get_clock()
             if clock:
                 # Handle both dict-like and object-like clock interfaces
                 if hasattr(clock, 'is_open'):
                     return {
-                        'is_open': clock.is_open,
-                        'next_open': getattr(clock, 'next_open', None),
-                        'next_close': getattr(clock, 'next_close', None),
-                        'timestamp': getattr(clock, 'timestamp', datetime.now())
+                        'is_open':clock.is_open,
+                        'next_open':getattr(clock, 'next_open', None),
+                        'next_close':getattr(clock, 'next_close', None),
+                        'timestamp':getattr(clock, 'timestamp', datetime.now())
                     }
                 elif hasattr(clock, 'get'):
                     return {
-                        'is_open': clock.get('is_open', False),
-                        'next_open': clock.get('next_open'),
-                        'next_close': clock.get('next_close'),
-                        'timestamp': clock.get('timestamp')
+                        'is_open':clock.get('is_open', False),
+                        'next_open':clock.get('next_open'),
+                        'next_close':clock.get('next_close'),
+                        'timestamp':clock.get('timestamp')
                     }
                 else:
                     return {
-                        'is_open': False,
-                        'next_open': None,
-                        'next_close': None,
-                        'timestamp': datetime.now()
+                        'is_open':False,
+                        'next_open':None,
+                        'next_close':None,
+                        'timestamp':datetime.now()
                     }
             
             # Fallback information
             return {
-                'is_open': await self.is_market_open(),
-                'next_open': None,
-                'next_close': None,
-                'timestamp': datetime.now().isoformat()
+                'is_open':await self.is_market_open(),
+                'next_open':None,
+                'next_close':None,
+                'timestamp':datetime.now().isoformat()
             }
             
         except Exception as e:
             self.logger.error(f"Error getting market hours: {e}")
-            return {'is_open': False}
+            return {'is_open':False}
     
-    async def get_volume_spike(self, ticker: str, multiplier: float = 3.0) -> bool:
+    async def get_volume_spike(self, ticker: str, multiplier: float=3.0) -> bool:
         """Check if ticker has volume spike"""
         try:
             # Get current volume
-            current_data = await self.get_current_price(ticker)
+            current_data=await self.get_current_price(ticker)
             if not current_data:
                 return False
             
             # Get average volume over last 20 days
-            historical_data = await self.get_historical_data(ticker, 20)
+            historical_data=await self.get_historical_data(ticker, 20)
             if len(historical_data) < 10:
                 return False
             
-            avg_volume = sum(data.volume for data in historical_data) / len(historical_data)
+            avg_volume=sum(data.volume for data in historical_data) / len(historical_data)
             
             # Check if current volume is above threshold
             return current_data.volume >= (avg_volume * multiplier)
@@ -634,11 +634,11 @@ class ReliableDataProvider:
     async def calculate_returns(self, ticker: str, days: int) -> Optional[Decimal]:
         """Calculate returns over specified days"""
         try:
-            historical_data = await self.get_historical_data(ticker, days + 5)
+            historical_data=await self.get_historical_data(ticker, days + 5)
             if len(historical_data) < days:
                 return None
             
-            start_price = historical_data[-days].price
+            start_price=historical_data[-days].price
             end_price = historical_data[-1].price
             
             return (end_price - start_price) / start_price
@@ -647,17 +647,17 @@ class ReliableDataProvider:
             self.logger.error(f"Error calculating returns for {ticker}: {e}")
             return None
     
-    async def get_volatility(self, ticker: str, days: int = 20) -> Optional[Decimal]:
+    async def get_volatility(self, ticker: str, days: int=20) -> Optional[Decimal]:
         """Calculate historical volatility"""
         try:
-            historical_data = await self.get_historical_data(ticker, days + 5)
+            historical_data=await self.get_historical_data(ticker, days + 5)
             if len(historical_data) < days:
                 return None
             
             # Calculate daily returns
-            returns = []
+            returns=[]
             for i in range(1, len(historical_data)):
-                daily_return = (historical_data[i].price - historical_data[i-1].price) / historical_data[i-1].price
+                daily_return=(historical_data[i].price - historical_data[i-1].price) / historical_data[i-1].price
                 returns.append(float(daily_return))
             
             if not returns:
@@ -665,10 +665,10 @@ class ReliableDataProvider:
             
             # Calculate standard deviation
             import statistics
-            volatility = statistics.stdev(returns)
+            volatility=statistics.stdev(returns)
             
             # Annualize (assuming 252 trading days)
-            annualized_volatility = volatility * (252 ** 0.5)
+            annualized_volatility=volatility * (252 ** 0.5)
             
             return Decimal(str(annualized_volatility))
             
@@ -682,7 +682,7 @@ class ReliableDataProvider:
         try:
             # For now, return historical volatility as proxy for implied volatility
             # In production, this would query actual options IV from data provider
-            historical_vol = await self.get_volatility(ticker, days=20)
+            historical_vol=await self.get_volatility(ticker, days=20)
             if historical_vol:
                 # Apply slight adjustment to approximate implied volatility
                 return historical_vol * Decimal('1.2')  # IV typically higher than historical
@@ -696,7 +696,7 @@ class ReliableDataProvider:
         if source not in self.source_health:
             return False
         
-        health = self.source_health[source]
+        health=self.source_health[source]
         
         # Check if source has too many recent failures
         recent_failures = sum(1 for failure_time in health.recent_failures 
@@ -715,12 +715,12 @@ class ReliableDataProvider:
     async def _get_price_from_source(self, ticker: str, source: DataSource) -> Optional[MarketData]:
         """Get price data from a specific source"""
         try:
-            if source == DataSource.ALPACA:
+            if source== DataSource.ALPACA:
                 # Use Alpaca for real-time data
                 if self.alpaca_manager:
                     bars = self.alpaca_manager.get_bars(ticker, limit=1)
                     if bars and len(bars) > 0:
-                        bar = bars[0]
+                        bar=bars[0]
                         return MarketData(
                             ticker=ticker,
                             price=Decimal(str(bar['close'])),
@@ -733,19 +733,19 @@ class ReliableDataProvider:
                         )
                 return None
                 
-            elif source == DataSource.POLYGON:
+            elif source== DataSource.POLYGON:
                 # Use Polygon.io (would need API key)
                 # For now, return None to indicate not available
                 return None
                 
-            elif source == DataSource.YAHOO:
+            elif source== DataSource.YAHOO:
                 # Use yfinance as fallback
                 try:
                     import yfinance as yf
                     stock = yf.Ticker(ticker)
-                    hist = stock.history(period="1d", interval="1m")
+                    hist=stock.history(period="1d", interval="1m")
                     if not hist.empty:
-                        latest = hist.iloc[-1]
+                        latest=hist.iloc[-1]
                         return MarketData(
                             ticker=ticker,
                             price=Decimal(str(latest['Close'])),
@@ -760,7 +760,7 @@ class ReliableDataProvider:
                     pass
                 return None
                 
-            elif source == DataSource.IEX:
+            elif source== DataSource.IEX:
                 # Use IEX Cloud (would need API key)
                 return None
                 
@@ -785,20 +785,20 @@ class ReliableDataProvider:
             return False
         
         # Check timestamp is recent (within last 24 hours)
-        now = datetime.now()
+        now=datetime.now()
         if market_data.timestamp.tzinfo is not None:
-            now = now.replace(tzinfo=market_data.timestamp.tzinfo)
+            now=now.replace(tzinfo=market_data.timestamp.tzinfo)
         if (now - market_data.timestamp).total_seconds() > 86400:
             return False
         
         return True
     
-    async def _update_source_health(self, source: DataSource, success: bool, response_time: float = None):
+    async def _update_source_health(self, source: DataSource, success: bool, response_time: float=None):
         """Update source health based on operation result"""
         if source not in self.source_health:
             return
         
-        health = self.source_health[source]
+        health=self.source_health[source]
         
         if success:
             # Update success metrics
@@ -806,7 +806,7 @@ class ReliableDataProvider:
             health.last_success = datetime.now()
             
             if response_time:
-                health.avg_response_time = (
+                health.avg_response_time=(
                     (health.avg_response_time * (health.success_count - 1) + response_time) 
                     / health.success_count
                 )
@@ -816,8 +816,8 @@ class ReliableDataProvider:
             health.recent_failures.append(datetime.now())
             
             # Keep only recent failures (last hour)
-            cutoff_time = datetime.now() - timedelta(hours=1)
-            health.recent_failures = [f for f in health.recent_failures if f > cutoff_time]
+            cutoff_time=datetime.now() - timedelta(hours=1)
+            health.recent_failures=[f for f in health.recent_failures if f > cutoff_time]
             
             # Disable source if failure rate is too high
             total_attempts = health.success_count + health.failure_count
@@ -835,13 +835,13 @@ class ReliableDataProvider:
     def get_cache_stats(self) -> Dict[str, Any]:
         """Get cache statistics"""
         return {
-            'price_cache_size': len(self.price_cache),
-            'options_cache_size': len(self.options_cache),
-            'earnings_cache_size': len(self.earnings_cache),
-            'cache_ttl': {
-                'price': self.price_cache_ttl,
-                'options': self.options_cache_ttl,
-                'earnings': self.earnings_cache_ttl
+            'price_cache_size':len(self.price_cache),
+            'options_cache_size':len(self.options_cache),
+            'earnings_cache_size':len(self.earnings_cache),
+            'cache_ttl':{
+                'price':self.price_cache_ttl,
+                'options':self.options_cache_ttl,
+                'earnings':self.earnings_cache_ttl
             }
         }
 

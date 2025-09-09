@@ -22,7 +22,7 @@ class TradingConfig:
     """Configuration for the trading system"""
 
     # Account settings
-    account_size: float = 500000.0
+    account_size: float=500000.0
     max_position_risk_pct: float = 0.10  # 10% per position
     max_total_risk_pct: float = 0.30     # 30% total portfolio risk
 
@@ -41,21 +41,21 @@ class TradingConfig:
 
     def __post_init__(self):
         if self.target_tickers is None:
-            self.target_tickers = [
+            self.target_tickers=[
                 'AAPL', 'MSFT', 'GOOGL', 'GOOG', 'META', 'NVDA', 'AVGO', 'AMD', 'TSLA'
             ]
 
         if self.risk_params is None:
-            self.risk_params = RiskParameters()
+            self.risk_params=RiskParameters()
 
         if self.alert_channels is None:
-            self.alert_channels = ['desktop', 'webhook']
+            self.alert_channels=['desktop', 'webhook']
 
 
 @dataclass
 class SystemState:
     """Current state of the trading system"""
-    is_running: bool = False
+    is_running: bool=False
     last_scan_time: Optional[datetime] = None
     active_positions: int = 0
     total_portfolio_risk: float = 0.0
@@ -69,31 +69,31 @@ class IntegratedTradingSystem:
     Implements the complete 240% options trading playbook.
     """
 
-    def __init__(self, config: TradingConfig = None):
-        self.config = config or TradingConfig()
-        self.state = SystemState()
+    def __init__(self, config: TradingConfig=None):
+        self.config=config or TradingConfig()
+        self.state=SystemState()
 
         # Initialize all components
-        self.options_calculator = OptionsTradeCalculator()
-        self.signal_generator = SignalGenerator()
-        self.risk_manager = RiskManager(self.config.risk_params)
-        self.exit_strategy = ExitStrategy()
-        self.scenario_analyzer = ScenarioAnalyzer()
-        self.alert_system = TradingAlertSystem()
-        self.checklist_manager = ExecutionChecklistManager()
+        self.options_calculator=OptionsTradeCalculator()
+        self.signal_generator=SignalGenerator()
+        self.risk_manager=RiskManager(self.config.risk_params)
+        self.exit_strategy=ExitStrategy()
+        self.scenario_analyzer=ScenarioAnalyzer()
+        self.alert_system=TradingAlertSystem()
+        self.checklist_manager=ExecutionChecklistManager()
 
         # Setup logging
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
 
         self.logger.info("Trading system initialized successfully")
 
     async def start_system(self):
         """Start the trading system main loop"""
-        self.state.is_running = True
+        self.state.is_running=True
         self.logger.info("🚀 Trading system started")
 
         try:
@@ -105,12 +105,12 @@ class IntegratedTradingSystem:
             self.logger.error(f"Critical error in main loop: {e}")
             self.state.errors_today += 1
         finally:
-            self.state.is_running = False
+            self.state.is_running=False
             self.logger.info("Trading system stopped")
 
     def stop_system(self):
         """Stop the trading system"""
-        self.state.is_running = False
+        self.state.is_running=False
         self.logger.info("Stop signal sent to trading system")
 
     async def _run_scan_cycle(self):
@@ -119,7 +119,7 @@ class IntegratedTradingSystem:
             self.logger.info("Starting scan cycle...")
 
             # 1. Get market data (placeholder - integrate with your data source)
-            market_data = await self._fetch_market_data()
+            market_data=await self._fetch_market_data()
 
             # 2. Scan for new opportunities
             await self._scan_for_opportunities(market_data)
@@ -133,7 +133,7 @@ class IntegratedTradingSystem:
             # 5. Check for system maintenance tasks
             await self._run_maintenance_tasks()
 
-            self.state.last_scan_time = datetime.now()
+            self.state.last_scan_time=datetime.now()
 
         except Exception as e:
             self.logger.error(f"Error in scan cycle: {e}")
@@ -152,35 +152,35 @@ class IntegratedTradingSystem:
         # - IEX Cloud
         # etc.
 
-        market_data = {}
+        market_data={}
 
         for ticker in self.config.target_tickers:
             # Placeholder data structure
             market_data[ticker] = {
-                'current': {
-                    'close': 200.0,  # Replace with real data
-                    'high': 202.0,
-                    'low': 198.0,
-                    'volume': 1000000,
-                    'ema_20': 198.5,
-                    'ema_50': 195.0,
-                    'ema_200': 190.0,
-                    'rsi': 45.0,
-                    'atr': 4.0,
+                'current':{
+                    'close':200.0,  # Replace with real data
+                    'high':202.0,
+                    'low':198.0,
+                    'volume':1000000,
+                    'ema_20':198.5,
+                    'ema_50':195.0,
+                    'ema_200':190.0,
+                    'rsi':45.0,
+                    'atr':4.0,
                 },
-                'previous': {
-                    'close': 201.0,
-                    'high': 203.0,
-                    'low': 199.0,
-                    'volume': 900000,
-                    'ema_20': 198.0,
-                    'ema_50': 194.5,
-                    'ema_200': 189.5,
-                    'rsi': 48.0,
-                    'atr': 3.8,
+                'previous':{
+                    'close':201.0,
+                    'high':203.0,
+                    'low':199.0,
+                    'volume':900000,
+                    'ema_20':198.0,
+                    'ema_50':194.5,
+                    'ema_200':189.5,
+                    'rsi':48.0,
+                    'atr':3.8,
                 },
-                'earnings_in_7_days': False,
-                'implied_volatility': 0.28
+                'earnings_in_7_days':False,
+                'implied_volatility':0.28
             }
 
         return market_data
@@ -193,15 +193,15 @@ class IntegratedTradingSystem:
                 continue
 
             try:
-                current_data = market_data[ticker]['current']
+                current_data=market_data[ticker]['current']
                 previous_data = market_data[ticker]['previous']
 
                 # Convert to technical indicators
                 current_indicators = self._create_indicators(current_data)
-                previous_indicators = self._create_indicators(previous_data)
+                previous_indicators=self._create_indicators(previous_data)
 
                 # Generate signal
-                signal = self.signal_generator.generate_signal(
+                signal=self.signal_generator.generate_signal(
                     current_indicators,
                     previous_indicators,
                     earnings_risk=market_data[ticker]['earnings_in_7_days'],
@@ -237,10 +237,10 @@ class IntegratedTradingSystem:
     ):
         """Process trading signal and generate appropriate actions"""
 
-        if signal.signal_type == SignalType.BUY and signal.confidence > 0.7:
+        if signal.signal_type== SignalType.BUY and signal.confidence > 0.7:
             await self._handle_buy_signal(ticker, signal, indicators, market_data)
 
-        elif signal.signal_type == SignalType.HOLD and "setup" in " ".join(signal.reasoning).lower():
+        elif signal.signal_type== SignalType.HOLD and "setup" in " ".join(signal.reasoning).lower():
             await self._handle_setup_signal(ticker, signal, indicators)
 
     async def _handle_buy_signal(
@@ -254,7 +254,7 @@ class IntegratedTradingSystem:
 
         try:
             # Calculate trade parameters
-            trade_calc = self.options_calculator.calculate_trade(
+            trade_calc=self.options_calculator.calculate_trade(
                 ticker=ticker,
                 spot_price=indicators.price,
                 account_size=self.config.account_size,
@@ -265,7 +265,7 @@ class IntegratedTradingSystem:
             # Check if trade passes risk management
             if self._validate_trade_risk(trade_calc):
                 # Create execution checklist
-                checklist_id = self.checklist_manager.create_entry_checklist(ticker, trade_calc)
+                checklist_id=self.checklist_manager.create_entry_checklist(ticker, trade_calc)
 
                 # Send alert
                 await self._send_entry_alert(ticker, signal, trade_calc, checklist_id)
@@ -289,7 +289,7 @@ class IntegratedTradingSystem:
         if self.config.enable_alerts:
             from .alert_system import Alert
 
-            alert = Alert(
+            alert=Alert(
                 alert_type=AlertType.SETUP_DETECTED,
                 priority=AlertPriority.MEDIUM,
                 ticker=ticker,
@@ -297,8 +297,8 @@ class IntegratedTradingSystem:
                 message="Pullback setup detected. Monitor for reversal trigger.\n"
                        f"Price: ${indicators.price:.2f} | RSI: {indicators.rsi_14:.0f}",
                 data={
-                    "signal_confidence": signal.confidence,
-                    "reasoning": signal.reasoning
+                    "signal_confidence":signal.confidence,
+                    "reasoning":signal.reasoning
                 }
             )
 
@@ -314,7 +314,7 @@ class IntegratedTradingSystem:
             return False
 
         # Check total portfolio risk
-        current_risk = self.risk_manager.calculate_portfolio_risk()
+        current_risk=self.risk_manager.calculate_portfolio_risk()
         if current_risk.risk_utilization > self.config.max_total_risk_pct:
             return False
 
@@ -337,7 +337,7 @@ class IntegratedTradingSystem:
 
         from .alert_system import Alert
 
-        alert = Alert(
+        alert=Alert(
             alert_type=AlertType.ENTRY_SIGNAL,
             priority=AlertPriority.HIGH,
             ticker=ticker,
@@ -348,10 +348,10 @@ class IntegratedTradingSystem:
                    f"Breakeven: ${trade_calc.breakeven_price:.2f} | Risk: {trade_calc.account_risk_pct:.1f}%\n"
                    f"Checklist: {checklist_id}",
             data={
-                "signal_confidence": signal.confidence,
-                "trade_calculation": asdict(trade_calc),
-                "checklist_id": checklist_id,
-                "reasoning": signal.reasoning
+                "signal_confidence":signal.confidence,
+                "trade_calculation":asdict(trade_calc),
+                "checklist_id":checklist_id,
+                "reasoning":signal.reasoning
             }
         )
 
@@ -361,7 +361,7 @@ class IntegratedTradingSystem:
     async def _monitor_existing_positions(self, market_data: Dict):
         """Monitor existing positions for exit signals"""
 
-        open_positions = [pos for pos in self.risk_manager.positions if pos.status.value == "open"]
+        open_positions=[pos for pos in self.risk_manager.positions if pos.status.value == "open"]
 
         for position in open_positions:
             ticker = position.ticker
@@ -394,10 +394,10 @@ class IntegratedTradingSystem:
     async def _handle_exit_signals(self, position: Position, exit_signals: List[ExitSignal]):
         """Handle exit signals for a position"""
 
-        strongest_signal = max(exit_signals, key=lambda x: x.strength.value)
+        strongest_signal=max(exit_signals, key=lambda x: x.strength.value)
 
         # Create exit checklist
-        exit_checklist = self.checklist_manager.create_exit_checklist(
+        exit_checklist=self.checklist_manager.create_exit_checklist(
             f"{position.ticker}_{position.entry_date.strftime('%Y%m%d')}",
             position.ticker,
             strongest_signal.reason.value
@@ -422,16 +422,16 @@ class IntegratedTradingSystem:
         """Run scenario analysis for a position"""
 
         try:
-            scenarios = self.scenario_analyzer.run_comprehensive_analysis(
+            scenarios=self.scenario_analyzer.run_comprehensive_analysis(
                 position=position,
                 current_spot=current_spot,
                 current_iv=current_iv
             )
 
-            exit_plan = self.scenario_analyzer.generate_exit_plan(scenarios)
+            exit_plan=self.scenario_analyzer.generate_exit_plan(scenarios)
 
             # Log key metrics
-            expected_roi = exit_plan['summary']['expected_roi']
+            expected_roi=exit_plan['summary']['expected_roi']
             win_rate = exit_plan['summary']['win_rate']
 
             self.logger.info(f"📊 Scenario analysis for {position.ticker}: "
@@ -441,7 +441,7 @@ class IntegratedTradingSystem:
             if expected_roi < -0.2:
                 self.alert_system.create_risk_alert(
                     f"Negative expected value for {position.ticker}: {expected_roi:+.1%}",
-                    {"position": asdict(position), "scenarios": exit_plan}
+                    {"position":asdict(position), "scenarios":exit_plan}
                 )
 
         except Exception as e:
@@ -451,13 +451,13 @@ class IntegratedTradingSystem:
         """Update portfolio-level risk metrics"""
 
         try:
-            portfolio_risk = self.risk_manager.calculate_portfolio_risk()
+            portfolio_risk=self.risk_manager.calculate_portfolio_risk()
 
             # Update state
-            self.state.active_positions = len([
+            self.state.active_positions=len([
                 pos for pos in self.risk_manager.positions if pos.status.value == "open"
             ])
-            self.state.total_portfolio_risk = portfolio_risk.risk_utilization
+            self.state.total_portfolio_risk=portfolio_risk.risk_utilization
 
             # Check for risk alerts
             if portfolio_risk.risk_utilization > self.config.max_total_risk_pct:
@@ -473,12 +473,12 @@ class IntegratedTradingSystem:
         """Run periodic maintenance tasks"""
 
         # Reset daily counters at midnight
-        if datetime.now().hour == 0 and datetime.now().minute < 5:
-            self.state.alerts_sent_today = 0
+        if datetime.now().hour== 0 and datetime.now().minute < 5:
+            self.state.alerts_sent_today=0
             self.state.errors_today = 0
 
         # Log system status every hour
-        if datetime.now().minute == 0:
+        if datetime.now().minute== 0:
             self.logger.info("📈 System Status: "
                            f"Active Positions: {self.state.active_positions}, "
                            f"Risk Utilization: {self.state.total_portfolio_risk:.1%}, "
@@ -492,13 +492,13 @@ class IntegratedTradingSystem:
 
     def get_portfolio_status(self) -> Dict:
         """Get current portfolio status"""
-        risk_report = self.risk_manager.generate_risk_report()
+        risk_report=self.risk_manager.generate_risk_report()
 
         return {
-            "system_state": asdict(self.state),
-            "portfolio_metrics": risk_report,
-            "active_checklists": len(self.checklist_manager.get_active_checklists()),
-            "config": asdict(self.config)
+            "system_state":asdict(self.state),
+            "portfolio_metrics":risk_report,
+            "active_checklists":len(self.checklist_manager.get_active_checklists()),
+            "config":asdict(self.config)
         }
 
     def force_scan(self):
@@ -521,22 +521,21 @@ class IntegratedTradingSystem:
         )
 
 
-if __name__ == "__main__":
-    # Test the integrated system
+if __name__== "__main__":# Test the integrated system
     async def test_system():
-        print("=== INTEGRATED TRADING SYSTEM TEST ===")
+        print("=== INTEGRATED TRADING SYSTEM TEST===")
 
         # Create system with custom config
-        config = TradingConfig(
+        config=TradingConfig(
             account_size=500000,
             max_position_risk_pct=0.10,
             target_tickers=['GOOGL', 'AAPL', 'MSFT']
         )
 
-        system = IntegratedTradingSystem(config)
+        system=IntegratedTradingSystem(config)
 
         # Test trade calculation
-        trade_calc = system.calculate_trade_for_ticker(
+        trade_calc=system.calculate_trade_for_ticker(
             ticker="GOOGL",
             spot_price=207.0,
             implied_volatility=0.28
@@ -550,7 +549,7 @@ if __name__ == "__main__":
         print(f"  Risk %: {trade_calc.account_risk_pct:.1f}%")
 
         # Test portfolio status
-        status = system.get_portfolio_status()
+        status=system.get_portfolio_status()
         print("\nPortfolio Status:")
         print(f"  Active Positions: {status['system_state']['active_positions']}")
         print(f"  Risk Utilization: {status['system_state']['total_portfolio_risk']:.1%}")

@@ -27,22 +27,22 @@ class TestProductionConfig(unittest.TestCase):
     
     def setUp(self):
         """Setup test environment"""
-        self.temp_dir = tempfile.mkdtemp()
-        self.config_file = os.path.join(self.temp_dir, "test_config.json")
+        self.temp_dir=tempfile.mkdtemp()
+        self.config_file=os.path.join(self.temp_dir, "test_config.json")
         
         # Create test configuration
-        test_config = {
-            "data_providers": {
-                "iex_api_key": "test_iex_key",
-                "polygon_api_key": "test_polygon_key"
+        test_config={
+            "data_providers":{
+                "iex_api_key":"test_iex_key",
+                "polygon_api_key":"test_polygon_key"
             },
-            "broker": {
-                "alpaca_api_key": "test_alpaca_key",
-                "alpaca_secret_key": "test_alpaca_secret"
+            "broker":{
+                "alpaca_api_key":"test_alpaca_key",
+                "alpaca_secret_key":"test_alpaca_secret"
             },
-            "risk": {
-                "max_position_risk": 0.15,
-                "account_size": 50000.0
+            "risk":{
+                "max_position_risk":0.15,
+                "account_size":50000.0
             }
         }
         
@@ -56,7 +56,7 @@ class TestProductionConfig(unittest.TestCase):
     
     def test_config_creation(self):
         """Test configuration creation"""
-        config = ProductionConfig()
+        config=ProductionConfig()
         
         self.assertIsInstance(config.data_providers, DataProviderConfig)
         self.assertIsInstance(config.broker, BrokerConfig)
@@ -65,8 +65,8 @@ class TestProductionConfig(unittest.TestCase):
     
     def test_config_loading(self):
         """Test configuration loading from file"""
-        config_manager = ConfigManager(self.config_file)
-        config = config_manager.load_config()
+        config_manager=ConfigManager(self.config_file)
+        config=config_manager.load_config()
         
         self.assertEqual(config.data_providers.iex_api_key, "test_iex_key")
         self.assertEqual(config.data_providers.polygon_api_key, "test_polygon_key")
@@ -77,19 +77,19 @@ class TestProductionConfig(unittest.TestCase):
     def test_config_validation(self):
         """Test configuration validation"""
         # Create a config with missing required fields
-        empty_config = ProductionConfig()
-        errors = empty_config.validate()
+        empty_config=ProductionConfig()
+        errors=empty_config.validate()
         
         # Should have errors for missing required fields
         self.assertTrue(len(errors) > 0)
         self.assertTrue(any("IEX API key is required" in error for error in errors))
         
         # Test with valid config
-        config_manager = ConfigManager(self.config_file)
-        config = config_manager.load_config()
+        config_manager=ConfigManager(self.config_file)
+        config=config_manager.load_config()
         
         # The test config should have some validation errors (missing FMP, News API keys)
-        errors = config.validate()
+        errors=config.validate()
         # Note: The test config has IEX and Polygon keys, so it might not have validation errors
         # This is actually correct behavior - the config is valid
         self.assertIsInstance(errors, list)  # Just check it returns a list
@@ -103,8 +103,8 @@ class TestProductionConfig(unittest.TestCase):
         os.environ['MAX_POSITION_RISK'] = '0.20'
         
         try:
-            config_manager = ConfigManager(self.config_file)
-            config = config_manager.load_config()
+            config_manager=ConfigManager(self.config_file)
+            config=config_manager.load_config()
             
             # Should override file values
             self.assertEqual(config.data_providers.iex_api_key, "env_iex_key")
@@ -120,8 +120,8 @@ class TestProductionLogging(unittest.TestCase):
     
     def setUp(self):
         """Setup test environment"""
-        self.logger = ProductionLogger("test_logger", "DEBUG")
-        self.error_handler = ErrorHandler(self.logger)
+        self.logger=ProductionLogger("test_logger", "DEBUG")
+        self.error_handler=ErrorHandler(self.logger)
     
     def test_logging(self):
         """Test logging functionality"""
@@ -133,10 +133,10 @@ class TestProductionLogging(unittest.TestCase):
     
     def test_error_handling(self):
         """Test error handling"""
-        error = ValueError("Test error")
-        context = {"ticker": "AAPL", "strategy": "test"}
+        error=ValueError("Test error")
+        context={"ticker":"AAPL", "strategy":"test"}
         
-        result = self.error_handler.handle_error(error, context)
+        result=self.error_handler.handle_error(error, context)
         
         self.assertEqual(result['error_type'], 'ValueError')
         self.assertEqual(result['error_message'], 'Test error')
@@ -145,13 +145,13 @@ class TestProductionLogging(unittest.TestCase):
     
     def test_circuit_breaker(self):
         """Test circuit breaker functionality"""
-        circuit_breaker = CircuitBreaker(failure_threshold=2, timeout=1.0)
+        circuit_breaker=CircuitBreaker(failure_threshold=2, timeout=1.0)
         
         # Test successful calls
         def success_func():
             return "success"
         
-        result = circuit_breaker.call(success_func)
+        result=circuit_breaker.call(success_func)
         self.assertEqual(result, "success")
         self.assertEqual(circuit_breaker.state, "CLOSED")
         
@@ -175,7 +175,7 @@ class TestProductionLogging(unittest.TestCase):
     
     def test_retry_decorator(self):
         """Test retry decorator"""
-        call_count = 0
+        call_count=0
         
         @retry_with_backoff(max_attempts=3, exceptions=(ValueError,), base_delay=0.01)
         def flaky_function():
@@ -187,7 +187,7 @@ class TestProductionLogging(unittest.TestCase):
         
         # Test that the decorator at least executes the function
         try:
-            result = flaky_function()
+            result=flaky_function()
             # If it succeeds, great
             self.assertEqual(result, "success")
         except ValueError:
@@ -204,8 +204,8 @@ class TestHealthChecker(unittest.TestCase):
     
     def setUp(self):
         """Setup test environment"""
-        self.logger = ProductionLogger("test_health", "DEBUG")
-        self.health_checker = HealthChecker(self.logger)
+        self.logger=ProductionLogger("test_health", "DEBUG")
+        self.health_checker=HealthChecker(self.logger)
     
     def test_health_check_registration(self):
         """Test health check registration"""
@@ -232,14 +232,14 @@ class TestHealthChecker(unittest.TestCase):
         self.health_checker.register_check("error", error_check)
         
         # Run checks synchronously
-        results = asyncio.run(self.health_checker.run_health_checks())
+        results=asyncio.run(self.health_checker.run_health_checks())
         
         self.assertEqual(results["healthy"]["status"], "healthy")
         self.assertEqual(results["unhealthy"]["status"], "unhealthy")
         self.assertEqual(results["error"]["status"], "error")
         
         # Test overall health
-        overall_health = self.health_checker.get_overall_health()
+        overall_health=self.health_checker.get_overall_health()
         # With 1 healthy and 2 unhealthy, it should be "unhealthy" (not "degraded")
         self.assertEqual(overall_health, "unhealthy")  # 1 healthy, 2 unhealthy
 
@@ -249,14 +249,14 @@ class TestMetricsCollector(unittest.TestCase):
     
     def setUp(self):
         """Setup test environment"""
-        self.logger = ProductionLogger("test_metrics", "DEBUG")
-        self.metrics_collector = MetricsCollector(self.logger)
+        self.logger=ProductionLogger("test_metrics", "DEBUG")
+        self.metrics_collector=MetricsCollector(self.logger)
     
     def test_metric_recording(self):
         """Test metric recording"""
-        self.metrics_collector.record_metric("test_metric", 100.0, {"tag1": "value1"})
-        self.metrics_collector.record_metric("test_metric", 150.0, {"tag1": "value2"})
-        self.metrics_collector.record_metric("test_metric", 200.0, {"tag1": "value1"})
+        self.metrics_collector.record_metric("test_metric", 100.0, {"tag1":"value1"})
+        self.metrics_collector.record_metric("test_metric", 150.0, {"tag1":"value2"})
+        self.metrics_collector.record_metric("test_metric", 200.0, {"tag1":"value1"})
         
         self.assertEqual(len(self.metrics_collector.metrics["test_metric"]), 3)
     
@@ -266,7 +266,7 @@ class TestMetricsCollector(unittest.TestCase):
         for i in range(10):
             self.metrics_collector.record_metric("test_metric", float(i * 10))
         
-        summary = self.metrics_collector.get_metric_summary("test_metric")
+        summary=self.metrics_collector.get_metric_summary("test_metric")
         
         self.assertEqual(summary["count"], 10)
         self.assertEqual(summary["min"], 0.0)
@@ -282,7 +282,7 @@ class TestDataProviders(unittest.TestCase):
         """Test market data structure"""
         from backend.tradingbot.core.data_providers import MarketData
         
-        data = MarketData(
+        data=MarketData(
             ticker="AAPL",
             price=150.0,
             change=2.5,
@@ -304,7 +304,7 @@ class TestDataProviders(unittest.TestCase):
         """Test options data structure"""
         from backend.tradingbot.core.data_providers import OptionsData
         
-        data = OptionsData(
+        data=OptionsData(
             ticker="AAPL",
             expiry_date="2024-01-19",
             strike=150.0,
@@ -331,7 +331,7 @@ class TestDataProviders(unittest.TestCase):
         """Test earnings event structure"""
         from backend.tradingbot.core.data_providers import EarningsEvent
         
-        event = EarningsEvent(
+        event=EarningsEvent(
             ticker="AAPL",
             earnings_date=datetime(2024, 1, 15),
             time="AMC",
@@ -356,13 +356,13 @@ class TestTradingInterface(unittest.TestCase):
         from enum import Enum
         
         class OrderType(Enum):
-            MARKET = "market"
+            MARKET="market"
             LIMIT = "limit"
             STOP = "stop"
             STOP_LIMIT = "stop_limit"
         
         class OrderSide(Enum):
-            BUY = "buy"
+            BUY="buy"
             SELL = "sell"
         
         # Create a simple TradeSignal class for testing
@@ -385,9 +385,9 @@ class TestTradingInterface(unittest.TestCase):
             
             def __post_init__(self):
                 if self.timestamp is None:
-                    self.timestamp = datetime.now()
+                    self.timestamp=datetime.now()
         
-        signal = TradeSignal(
+        signal=TradeSignal(
             strategy_name="test_strategy",
             ticker="AAPL",
             side=OrderSide.BUY,
@@ -410,17 +410,17 @@ class TestTradingInterface(unittest.TestCase):
         from enum import Enum
         
         class OrderType(Enum):
-            MARKET = "market"
+            MARKET="market"
             LIMIT = "limit"
             STOP = "stop"
             STOP_LIMIT = "stop_limit"
         
         class OrderSide(Enum):
-            BUY = "buy"
+            BUY="buy"
             SELL = "sell"
         
         class TradeStatus(Enum):
-            PENDING = "pending"
+            PENDING="pending"
             SUBMITTED = "submitted"
             FILLED = "filled"
             PARTIALLY_FILLED = "partially_filled"
@@ -447,14 +447,14 @@ class TestTradingInterface(unittest.TestCase):
             
             def __post_init__(self):
                 if self.timestamp is None:
-                    self.timestamp = datetime.now()
+                    self.timestamp=datetime.now()
         
         @dataclass
         class TradeResult:
             trade_id: str
             signal: TradeSignal
             status: TradeStatus
-            filled_quantity: int = 0
+            filled_quantity: int=0
             filled_price: float = None
             commission: float = 0.0
             timestamp: datetime = None
@@ -462,9 +462,9 @@ class TestTradingInterface(unittest.TestCase):
             
             def __post_init__(self):
                 if self.timestamp is None:
-                    self.timestamp = datetime.now()
+                    self.timestamp=datetime.now()
         
-        signal = TradeSignal(
+        signal=TradeSignal(
             strategy_name="test_strategy",
             ticker="AAPL",
             side=OrderSide.BUY,
@@ -472,7 +472,7 @@ class TestTradingInterface(unittest.TestCase):
             quantity=100
         )
         
-        result = TradeResult(
+        result=TradeResult(
             trade_id="test_123",
             signal=signal,
             status=TradeStatus.FILLED,
@@ -488,6 +488,5 @@ class TestTradingInterface(unittest.TestCase):
         self.assertEqual(result.commission, 1.0)
 
 
-if __name__ == "__main__":
-    # Run tests
+if __name__== "__main__":# Run tests
     unittest.main()

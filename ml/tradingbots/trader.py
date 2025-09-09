@@ -2,23 +2,23 @@ class Action:
     """
     data class returned by Strategy class
 
-    ORDERTYPES = [
+    ORDERTYPES=[
         ('M', 'Market'),
         ('L', 'Limit'),
         ('S', 'Stop'),
         ('ST', 'Stop Limit'),
         ('T', 'Trailing Stop'),
     ]
-    TRANSACTIONTYPES = [
+    TRANSACTIONTYPES=[
         ('B', 'Buy'),
         ('S', 'Sell'),
     ]
     """
-    ORDERTYPES = ['M', 'L', 'S', 'ST', 'T', ]
-    TRANSACTIONTYPES = ['B', 'S', ]
+    ORDERTYPES=['M', 'L', 'S', 'ST', 'T', ]
+    TRANSACTIONTYPES=['B', 'S', ]
 
     def __init__(self, order_type, transaction_type, ticker, quantity):
-        self.order_type = order_type
+        self.order_type=order_type
         assert order_type in Action.ORDERTYPES
         self.transaction_type = transaction_type
         assert transaction_type in Action.TRANSACTIONTYPES
@@ -26,16 +26,16 @@ class Action:
         self.quantity = quantity
 
     def __dict__(self):
-        return {'order_type': self.order_type,
-                'transaction_type': self.transaction_type,
-                'ticker': self.ticker,
-                'quantity': self.quantity
+        return {'order_type':self.order_type,
+                'transaction_type':self.transaction_type,
+                'ticker':self.ticker,
+                'quantity':self.quantity
                 }
 
 
 class Strategy:
     def __init__(self, name):
-        self.name = name
+        self.name=name
 
     def get_actions(self, portfolio):
         return []
@@ -51,8 +51,8 @@ class MonteCarloMASharpeRatioStrategy(Strategy):
             actions:    list of action objects
         """
         from .pipelines.monte_carlo_w_ma import MonteCarloMovingAveragePipline
-        pipeline = MonteCarloMovingAveragePipline(name=self.name, portfolio=portfolio)
-        actions = pipeline.rebalance(order_type='M')
+        pipeline=MonteCarloMovingAveragePipline(name=self.name, portfolio=portfolio)
+        actions=pipeline.rebalance(order_type='M')
         return actions
 
 
@@ -66,6 +66,6 @@ class HMMNaiveStrategy(Strategy):
             actions:    list of action objects
         """
         from .pipelines.hiddenmarkov_pipeline import HMMPipline
-        pipeline = HMMPipline(name=self.name, portfolio=portfolio)
-        actions = pipeline.rebalance(order_type='M')
+        pipeline=HMMPipline(name=self.name, portfolio=portfolio)
+        actions=pipeline.rebalance(order_type='M')
         return actions

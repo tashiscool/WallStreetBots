@@ -63,13 +63,13 @@ class WheelCandidate:
 
 
 class WheelStrategy:
-    def __init__(self, portfolio_file: str = "wheel_portfolio.json"):
-        self.portfolio_file = portfolio_file
+    def __init__(self, portfolio_file: str="wheel_portfolio.json"):
+        self.portfolio_file=portfolio_file
         self.positions: List[WheelPosition] = []
         self.load_portfolio()
         
         # Good wheel candidates - stable companies with decent volatility
-        self.wheel_candidates = [
+        self.wheel_candidates=[
             # Blue chips with decent volatility
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX",
             
@@ -94,22 +94,22 @@ class WheelStrategy:
         if os.path.exists(self.portfolio_file):
             try:
                 with open(self.portfolio_file, 'r') as f:
-                    data = json.load(f)
-                    self.positions = [
+                    data=json.load(f)
+                    self.positions=[
                         WheelPosition(**pos) for pos in data.get('positions', [])
                     ]
             except Exception as e:
                 print(f"Error loading portfolio: {e}")
-                self.positions = []
+                self.positions=[]
         else:
             self.positions = []
     
     def save_portfolio(self):
         """Save wheel portfolio"""
         try:
-            data = {
-                'last_updated': datetime.now().isoformat(),
-                'positions': [asdict(pos) for pos in self.positions]
+            data={
+                'last_updated':datetime.now().isoformat(),
+                'positions':[asdict(pos) for pos in self.positions]
             }
             with open(self.portfolio_file, 'w') as f:
                 json.dump(data, f, indent=2, default=str)
@@ -125,35 +125,35 @@ class WheelStrategy:
         if T <= 0 or sigma <= 0:
             return max(K - S, 0), -1.0 if S < K else 0.0
             
-        d1 = (math.log(S/K) + (r + 0.5*sigma*sigma)*T) / (sigma*math.sqrt(T))
-        d2 = d1 - sigma*math.sqrt(T)
+        d1=(math.log(S/K) + (r + 0.5*sigma*sigma)*T) / (sigma*math.sqrt(T))
+        d2=d1 - sigma*math.sqrt(T)
         
-        put_price = K * math.exp(-r*T) * self.norm_cdf(-d2) - S * self.norm_cdf(-d1)
-        delta = -self.norm_cdf(-d1)
+        put_price=K * math.exp(-r*T) * self.norm_cdf(-d2) - S * self.norm_cdf(-d1)
+        delta=-self.norm_cdf(-d1)
         
         return max(put_price, 0), delta
     
     def calculate_iv_rank(self, ticker: str) -> float:
         """Calculate IV rank based on historical volatility"""
         try:
-            stock = yf.Ticker(ticker)
-            hist = stock.history(period="1y")
+            stock=yf.Ticker(ticker)
+            hist=stock.history(period="1y")
             
             if len(hist) < 252:
                 return 50.0
             
             # Calculate rolling 20-day realized volatility
-            returns = hist['Close'].pct_change().dropna()
-            rolling_vol = returns.rolling(20).std() * math.sqrt(252)
+            returns=hist['Close'].pct_change().dropna()
+            rolling_vol=returns.rolling(20).std() * math.sqrt(252)
             
             if rolling_vol.empty:
                 return 50.0
             
-            current_vol = rolling_vol.iloc[-1]
+            current_vol=rolling_vol.iloc[-1]
             min_vol = rolling_vol.min()
-            max_vol = rolling_vol.max()
+            max_vol=rolling_vol.max()
             
-            if max_vol == min_vol:
+            if max_vol== min_vol:
                 return 50.0
             
             rank = (current_vol - min_vol) / (max_vol - min_vol) * 100
@@ -165,13 +165,13 @@ class WheelStrategy:
     def get_quality_score(self, ticker: str) -> float:
         """Assess fundamental quality (0-100)"""
         try:
-            stock = yf.Ticker(ticker)
-            info = stock.info
+            stock=yf.Ticker(ticker)
+            info=stock.info
             
             factors = []
             
             # Market cap (prefer large caps for wheel)
-            market_cap = info.get('marketCap', 0)
+            market_cap=info.get('marketCap', 0)
             if market_cap > 100e9:  # > $100B
                 factors.append(90)
             elif market_cap > 10e9:  # > $10B
@@ -182,23 +182,23 @@ class WheelStrategy:
                 factors.append(20)
             
             # Profitability
-            profit_margin = info.get('profitMargins', 0)
+            profit_margin=info.get('profitMargins', 0)
             if profit_margin:
                 factors.append(min(100, max(0, 50 + profit_margin * 200)))
             
             # Debt levels
-            debt_to_equity = info.get('debtToEquity', 50)
+            debt_to_equity=info.get('debtToEquity', 50)
             if debt_to_equity:
-                debt_score = max(0, 100 - debt_to_equity * 2)
+                debt_score=max(0, 100 - debt_to_equity * 2)
                 factors.append(debt_score)
             
             # Revenue growth
-            rev_growth = info.get('revenueGrowth', 0)
+            rev_growth=info.get('revenueGrowth', 0)
             if rev_growth:
                 factors.append(min(100, max(0, 50 + rev_growth * 100)))
             
             # Beta (prefer moderate beta for wheel)
-            beta = info.get('beta', 1.0)
+            beta=info.get('beta', 1.0)
             if 0.7 <= beta <= 1.3:
                 factors.append(80)  # Good beta for wheel
             elif 0.5 <= beta <= 1.5:
@@ -214,8 +214,8 @@ class WheelStrategy:
     def get_dividend_yield(self, ticker: str) -> float:
         """Get dividend yield"""
         try:
-            stock = yf.Ticker(ticker)
-            info = stock.info
+            stock=yf.Ticker(ticker)
+            info=stock.info
             return info.get('dividendYield', 0.0) * 100  # Convert to percentage
         except:
             return 0.0
@@ -223,18 +223,18 @@ class WheelStrategy:
     def calculate_liquidity_score(self, ticker: str) -> float:
         """Calculate options liquidity score (0-100)"""
         try:
-            stock = yf.Ticker(ticker)
+            stock=yf.Ticker(ticker)
             
             # Check recent volume
-            hist = stock.history(period="5d")
+            hist=stock.history(period="5d")
             if hist.empty:
                 return 20.0
             
-            avg_volume = hist['Volume'].mean()
+            avg_volume=hist['Volume'].mean()
             
             # Volume tiers
             if avg_volume > 10e6:      # > 10M
-                volume_score = 95
+                volume_score=95
             elif avg_volume > 5e6:     # > 5M 
                 volume_score = 85
             elif avg_volume > 1e6:     # > 1M
@@ -248,9 +248,9 @@ class WheelStrategy:
             try:
                 expiries = stock.options
                 if len(expiries) >= 8:  # Good options coverage
-                    options_score = 100
+                    options_score=100
                 elif len(expiries) >= 4:
-                    options_score = 70
+                    options_score=70
                 else:
                     options_score = 40
             except:
@@ -265,42 +265,42 @@ class WheelStrategy:
                            expiry: str) -> Tuple[Optional[int], Optional[int], float, float, float, float]:
         """Find optimal put and call strikes for wheel strategy"""
         try:
-            stock = yf.Ticker(ticker)
-            chain = stock.option_chain(expiry)
+            stock=yf.Ticker(ticker)
+            chain=stock.option_chain(expiry)
             
             if chain.puts.empty or chain.calls.empty:
                 return None, None, 0.0, 0.0, 0.0, 0.0
             
             # Target put strike: 5-10% OTM (below current price)
-            target_put_strike = current_price * 0.92  # 8% OTM
+            target_put_strike=current_price * 0.92  # 8% OTM
             
             # Find closest put strike
             puts = chain.puts[chain.puts['bid'] > 0.05]  # Minimum bid
             if puts.empty:
                 return None, None, 0.0, 0.0, 0.0, 0.0
             
-            best_put = puts.iloc[(puts['strike'] - target_put_strike).abs().argsort()[:1]]
+            best_put=puts.iloc[(puts['strike'] - target_put_strike).abs().argsort()[:1]]
             if best_put.empty:
                 return None, None, 0.0, 0.0, 0.0, 0.0
             
-            put_strike = int(best_put['strike'].iloc[0])
-            put_premium = (best_put['bid'].iloc[0] + best_put['ask'].iloc[0]) / 2
-            put_delta = abs(best_put.get('delta', [0.3]).iloc[0]) if 'delta' in best_put.columns else 0.3
+            put_strike=int(best_put['strike'].iloc[0])
+            put_premium=(best_put['bid'].iloc[0] + best_put['ask'].iloc[0]) / 2
+            put_delta=abs(best_put.get('delta', [0.3]).iloc[0]) if 'delta' in best_put.columns else 0.3
             
             # Target call strike: 5-10% OTM (above current price) 
-            target_call_strike = current_price * 1.08  # 8% OTM
+            target_call_strike=current_price * 1.08  # 8% OTM
             
             calls = chain.calls[chain.calls['bid'] > 0.05]
             if calls.empty:
                 return put_strike, None, put_premium, put_delta, 0.0, 0.0
             
-            best_call = calls.iloc[(calls['strike'] - target_call_strike).abs().argsort()[:1]]
+            best_call=calls.iloc[(calls['strike'] - target_call_strike).abs().argsort()[:1]]
             if best_call.empty:
                 return put_strike, None, put_premium, put_delta, 0.0, 0.0
             
-            call_strike = int(best_call['strike'].iloc[0])
-            call_premium = (best_call['bid'].iloc[0] + best_call['ask'].iloc[0]) / 2
-            call_delta = best_call.get('delta', [0.3]).iloc[0] if 'delta' in best_call.columns else 0.3
+            call_strike=int(best_call['strike'].iloc[0])
+            call_premium=(best_call['bid'].iloc[0] + best_call['ask'].iloc[0]) / 2
+            call_delta=best_call.get('delta', [0.3]).iloc[0] if 'delta' in best_call.columns else 0.3
             
             return put_strike, call_strike, put_premium, put_delta, call_premium, call_delta
             
@@ -309,58 +309,58 @@ class WheelStrategy:
     
     def get_monthly_expiry(self) -> str:
         """Get next monthly expiry (3rd Friday)"""
-        today = date.today()
+        today=date.today()
         
         # Find 3rd Friday of current month
-        year = today.year
+        year=today.year
         month = today.month
         
         # Find first day of month and its weekday
         first_day = date(year, month, 1)
-        first_friday = first_day + timedelta(days=(4 - first_day.weekday()) % 7)
-        third_friday = first_friday + timedelta(days=14)  # Add 2 weeks
+        first_friday=first_day + timedelta(days=(4 - first_day.weekday()) % 7)
+        third_friday=first_friday + timedelta(days=14)  # Add 2 weeks
         
         if third_friday <= today:
             # Move to next month
-            if month == 12:
+            if month== 12:
                 year += 1
                 month = 1
             else:
                 month += 1
             
             first_day = date(year, month, 1)
-            first_friday = first_day + timedelta(days=(4 - first_day.weekday()) % 7)
-            third_friday = first_friday + timedelta(days=14)
+            first_friday=first_day + timedelta(days=(4 - first_day.weekday()) % 7)
+            third_friday=first_friday + timedelta(days=14)
         
         return third_friday.strftime("%Y-%m-%d")
     
     def scan_wheel_candidates(self) -> List[WheelCandidate]:
         """Scan for good wheel candidates"""
-        candidates = []
+        candidates=[]
         expiry = self.get_monthly_expiry()
         
         print(f"🎡 Scanning wheel candidates for {expiry}...")
         
         for ticker in self.wheel_candidates:
             try:
-                stock = yf.Ticker(ticker)
-                hist = stock.history(period="1d")
+                stock=yf.Ticker(ticker)
+                hist=stock.history(period="1d")
                 
                 if hist.empty:
                     continue
                     
-                current_price = hist['Close'].iloc[-1]
+                current_price=hist['Close'].iloc[-1]
                 
                 try:
                     company_name = stock.info.get('shortName', ticker)
                 except:
-                    company_name = ticker
+                    company_name=ticker
                 
                 # Calculate scores
                 iv_rank = self.calculate_iv_rank(ticker)
-                quality_score = self.get_quality_score(ticker)
-                liquidity_score = self.calculate_liquidity_score(ticker)
-                dividend_yield = self.get_dividend_yield(ticker)
+                quality_score=self.get_quality_score(ticker)
+                liquidity_score=self.calculate_liquidity_score(ticker)
+                dividend_yield=self.get_dividend_yield(ticker)
                 
                 # Need decent IV for premium collection
                 if iv_rank < 30:
@@ -371,42 +371,42 @@ class WheelStrategy:
                     continue
                 
                 # Find optimal strikes
-                put_strike, call_strike, put_premium, put_delta, call_premium, call_delta = \
+                put_strike, call_strike, put_premium, put_delta, call_premium, call_delta=\
                     self.find_optimal_strikes(ticker, current_price, expiry)
                 
                 if not put_strike or put_premium < 0.20:  # Minimum premium threshold
                     continue
                 
                 if not call_strike:
-                    call_strike = int(current_price * 1.08)
-                    call_premium = 1.0  # Estimate
+                    call_strike=int(current_price * 1.08)
+                    call_premium=1.0  # Estimate
                     call_delta = 0.3
                 
                 # Calculate estimated wheel returns
                 days_to_expiry = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
                 
                 # Annualized put premium return
-                put_annual_return = (put_premium / put_strike) * (365 / days_to_expiry) * 100
+                put_annual_return=(put_premium / put_strike) * (365 / days_to_expiry) * 100
                 
                 # If assigned, annualized call premium return
-                call_annual_return = (call_premium / current_price) * (365 / days_to_expiry) * 100
+                call_annual_return=(call_premium / current_price) * (365 / days_to_expiry) * 100
                 
                 # Conservative wheel return estimate (weighted by assignment probability)
-                assignment_prob = abs(put_delta)  # Rough approximation
-                wheel_annual_return = (
+                assignment_prob=abs(put_delta)  # Rough approximation
+                wheel_annual_return=(
                     put_annual_return * (1 - assignment_prob) +
                     (put_annual_return + call_annual_return + dividend_yield) * assignment_prob
                 )
                 
-                volatility_score = min(100, iv_rank + 20)  # IV rank + buffer
+                volatility_score=min(100, iv_rank + 20)  # IV rank + buffer
                 
                 # Risk factors
-                risk_factors = []
+                risk_factors=[]
                 if quality_score < 40:
                     risk_factors.append("Low quality score")
                 if iv_rank > 80:
                     risk_factors.append("Very high IV - crash risk")
-                if dividend_yield == 0 and assignment_prob > 0.5:
+                if dividend_yield== 0 and assignment_prob > 0.5:
                     risk_factors.append("No dividend buffer if assigned")
                 if liquidity_score < 70:
                     risk_factors.append("Lower liquidity")
@@ -416,7 +416,7 @@ class WheelStrategy:
                 # Only include candidates with reasonable returns
                 if wheel_annual_return >= 8.0:  # Minimum 8% annual return
                     
-                    candidate = WheelCandidate(
+                    candidate=WheelCandidate(
                         ticker=ticker,
                         company_name=company_name,
                         current_price=current_price,
@@ -457,46 +457,43 @@ class WheelStrategy:
         
         for pos in self.positions:
             try:
-                stock = yf.Ticker(pos.ticker)
-                current_price = stock.history(period="1d")['Close'].iloc[-1]
-                pos.current_price = current_price
+                stock=yf.Ticker(pos.ticker)
+                current_price=stock.history(period="1d")['Close'].iloc[-1]
+                pos.current_price=current_price
                 
-                if pos.position_type == "assigned_shares":
-                    # Calculate unrealized P&L on shares
+                if pos.position_type == "assigned_shares":# Calculate unrealized P&L on shares
                     pos.unrealized_pnl = (current_price - pos.avg_cost) * pos.shares
                 
                 elif pos.strike and pos.expiry:
                     # Update days to expiry
-                    pos.days_to_expiry = (datetime.strptime(pos.expiry, "%Y-%m-%d").date() - date.today()).days
+                    pos.days_to_expiry=(datetime.strptime(pos.expiry, "%Y-%m-%d").date() - date.today()).days
                     
                     # Estimate assignment risk
-                    if pos.position_type == "cash_secured_put":
-                        pos.assignment_risk = max(0, (pos.strike - current_price) / current_price)
+                    if pos.position_type== "cash_secured_put":pos.assignment_risk = max(0, (pos.strike - current_price) / current_price)
                     else:  # covered call
-                        pos.assignment_risk = max(0, (current_price - pos.strike) / pos.strike)
+                        pos.assignment_risk=max(0, (current_price - pos.strike) / pos.strike)
                 
                 # Calculate annualized return
                 if pos.days_to_expiry and pos.days_to_expiry > 0:
-                    if pos.position_type == "cash_secured_put":
-                        pos.annualized_return = (pos.premium_collected / pos.strike) * (365 / (30 - pos.days_to_expiry)) * 100
+                    if pos.position_type== "cash_secured_put":pos.annualized_return = (pos.premium_collected / pos.strike) * (365 / (30 - pos.days_to_expiry)) * 100
                     else:
-                        pos.annualized_return = (pos.total_premium_collected / (pos.avg_cost * pos.shares)) * 100
+                        pos.annualized_return=(pos.total_premium_collected / (pos.avg_cost * pos.shares)) * 100
                 
             except Exception as e:
                 print(f"Error updating {pos.ticker}: {e}")
         
         self.save_portfolio()
     
-    def format_candidates(self, candidates: List[WheelCandidate], limit: int = 15) -> str:
+    def format_candidates(self, candidates: List[WheelCandidate], limit: int=15) -> str:
         """Format wheel candidates for display"""
         if not candidates:
             return "🔍 No suitable wheel candidates found."
         
-        output = f"\n🎡 TOP WHEEL CANDIDATES ({min(limit, len(candidates))} shown)\n"
+        output=f"\n🎡 TOP WHEEL CANDIDATES ({min(limit, len(candidates))} shown)\n"
         output += "=" * 80 + "\n"
         
         for i, cand in enumerate(candidates[:limit], 1):
-            assignment_risk = f"{abs(cand.put_delta):.0%}"
+            assignment_risk=f"{abs(cand.put_delta):.0%}"
             
             output += f"\n{i}. {cand.ticker} - {cand.company_name}\n"
             output += f"   Current: ${cand.current_price:.2f} | IV Rank: {cand.iv_rank:.0f}\n"
@@ -532,7 +529,7 @@ class WheelStrategy:
         self.update_positions()
         
         # Separate by position type
-        puts = [p for p in self.positions if p.position_type == "cash_secured_put"]
+        puts=[p for p in self.positions if p.position_type == "cash_secured_put"]
         calls = [p for p in self.positions if p.position_type == "covered_call"]  
         shares = [p for p in self.positions if p.position_type == "assigned_shares"]
         
@@ -540,7 +537,7 @@ class WheelStrategy:
         output += "=" * 60 + "\n"
         
         total_premium = sum(p.total_premium_collected for p in self.positions)
-        total_unrealized = sum(p.unrealized_pnl for p in self.positions)
+        total_unrealized=sum(p.unrealized_pnl for p in self.positions)
         
         output += f"Total Premium Collected: ${total_premium:,.0f}\n"
         output += f"Unrealized P&L: ${total_unrealized:,.0f}\n"
@@ -550,7 +547,7 @@ class WheelStrategy:
             output += "CASH-SECURED PUTS:\n"
             output += "-" * 40 + "\n"
             for put in puts:
-                days_left = put.days_to_expiry or 0
+                days_left=put.days_to_expiry or 0
                 risk_indicator = "🟥" if put.assignment_risk > 0.3 else "🟨" if put.assignment_risk > 0.1 else "🟩"
                 
                 output += f"{put.ticker} ${put.strike} PUT exp {put.expiry} {risk_indicator}\n"
@@ -582,7 +579,7 @@ class WheelStrategy:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Wheel Strategy Scanner")
+    parser=argparse.ArgumentParser(description="Wheel Strategy Scanner")
     parser.add_argument('command', choices=['scan', 'portfolio', 'update'],
                        help='Command to execute')
     parser.add_argument('--output', choices=['json', 'text'], default='text',
@@ -594,39 +591,34 @@ def main():
     parser.add_argument('--save-csv', type=str,
                        help='Save results to CSV file')
     
-    args = parser.parse_args()
+    args=parser.parse_args()
     
-    wheel = WheelStrategy()
+    wheel=WheelStrategy()
     
-    if args.command == 'scan':
-        candidates = wheel.scan_wheel_candidates()
+    if args.command== 'scan':candidates = wheel.scan_wheel_candidates()
         
         # Filter by minimum return
-        candidates = [c for c in candidates if c.wheel_annual_return >= args.min_return]
+        candidates=[c for c in candidates if c.wheel_annual_return >= args.min_return]
         
         if args.save_csv:
             with open(args.save_csv, 'w', newline='') as csvfile:
                 if candidates:
-                    fieldnames = candidates[0].__dict__.keys()
-                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    fieldnames=candidates[0].__dict__.keys()
+                    writer=csv.DictWriter(csvfile, fieldnames=fieldnames)
                     writer.writeheader()
                     for cand in candidates:
                         writer.writerow(asdict(cand))
             print(f"💾 Saved {len(candidates)} candidates to {args.save_csv}")
         
-        if args.output == 'json':
-            print(json.dumps([asdict(c) for c in candidates[:args.limit]], 
+        if args.output== 'json':print(json.dumps([asdict(c) for c in candidates[:args.limit]], 
                             indent=2, default=str))
         else:
             print(wheel.format_candidates(candidates, args.limit))
             
-    elif args.command == 'portfolio':
-        print(wheel.format_portfolio())
+    elif args.command== 'portfolio':print(wheel.format_portfolio())
         
-    elif args.command == 'update':
-        wheel.update_positions()
+    elif args.command== 'update':wheel.update_positions()
         print("✅ Wheel portfolio updated successfully")
 
 
-if __name__ == "__main__":
-    main()
+if __name__== "__main__":main()

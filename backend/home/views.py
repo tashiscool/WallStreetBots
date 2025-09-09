@@ -7,7 +7,7 @@ def index(request):
 
 
 def get_time(request):
-    cursor = connection.cursor()
+    cursor=connection.cursor()
     cursor.execute('''select date_trunc('minute', now())''')
-    current_datetime = cursor.fetchone()[0]
+    current_datetime=cursor.fetchone()[0]
     return HttpResponse(f"{current_datetime.strftime('%Y-%m-%d %H:%M:%S')}")

@@ -63,16 +63,16 @@ class ProductionIndexBaseline:
     
     def __init__(self, integration_manager: ProductionIntegrationManager, 
                  data_provider: ProductionDataProvider, config: Dict[str, Any]):
-        self.integration = integration_manager
+        self.integration=integration_manager
         self.data_provider = data_provider
         self.config = config
         self.logger = logging.getLogger(__name__)
         
         # Strategy parameters
-        self.benchmarks = config.get('benchmarks', ['SPY', 'VTI', 'QQQ', 'IWM', 'DIA'])
-        self.target_allocation = config.get('target_allocation', 0.80)  # 80% in baseline
-        self.rebalance_threshold = config.get('rebalance_threshold', 0.05)  # 5% drift
-        self.tax_loss_threshold = config.get('tax_loss_threshold', -0.10)  # -10% loss
+        self.benchmarks=config.get('benchmarks', ['SPY', 'VTI', 'QQQ', 'IWM', 'DIA'])
+        self.target_allocation=config.get('target_allocation', 0.80)  # 80% in baseline
+        self.rebalance_threshold=config.get('rebalance_threshold', 0.05)  # 5% drift
+        self.tax_loss_threshold=config.get('tax_loss_threshold', -0.10)  # -10% loss
         
         # Performance tracking
         self.performance_history: Dict[str, List[BaselineComparison]] = {}
@@ -83,9 +83,9 @@ class ProductionIndexBaseline:
         
         self.logger.info("ProductionIndexBaseline initialized")
     
-    async def calculate_baseline_performance(self, period_days: int = 180) -> Dict[str, BaselineComparison]:
+    async def calculate_baseline_performance(self, period_days: int=180) -> Dict[str, BaselineComparison]:
         """Calculate baseline performance vs benchmarks"""
-        comparisons = {}
+        comparisons={}
         
         try:
             for benchmark in self.benchmarks:
@@ -111,33 +111,33 @@ class ProductionIndexBaseline:
         """Calculate performance comparison for a benchmark"""
         try:
             # Get historical data
-            historical_data = await self.data_provider.get_historical_data(benchmark, period_days + 30)
+            historical_data=await self.data_provider.get_historical_data(benchmark, period_days + 30)
             
             if len(historical_data) < period_days:
                 return None
             
             # Calculate benchmark return
-            start_price = historical_data[-period_days].price
+            start_price=historical_data[-period_days].price
             end_price = historical_data[-1].price
             benchmark_return = float((end_price - start_price) / start_price)
             
             # Calculate strategy return (simplified - would use actual strategy performance)
-            strategy_return = await self._calculate_strategy_return(benchmark, period_days)
+            strategy_return=await self._calculate_strategy_return(benchmark, period_days)
             
             # Calculate alpha
-            alpha = strategy_return - benchmark_return
+            alpha=strategy_return - benchmark_return
             
             # Calculate Sharpe ratio (simplified)
-            sharpe_ratio = await self._calculate_sharpe_ratio(benchmark, period_days)
+            sharpe_ratio=await self._calculate_sharpe_ratio(benchmark, period_days)
             
             # Calculate max drawdown
-            max_drawdown = await self._calculate_max_drawdown(historical_data)
+            max_drawdown=await self._calculate_max_drawdown(historical_data)
             
             # Calculate volatility
-            volatility = await self._calculate_volatility(historical_data)
+            volatility=await self._calculate_volatility(historical_data)
             
             # Calculate win rate and trades (simplified)
-            win_rate, total_trades = await self._calculate_trade_metrics(benchmark, period_days)
+            win_rate, total_trades=await self._calculate_trade_metrics(benchmark, period_days)
             
             return BaselineComparison(
                 ticker=benchmark,
@@ -164,17 +164,17 @@ class ProductionIndexBaseline:
             # For now, use a simplified model based on benchmark performance
             
             # Get benchmark data
-            historical_data = await self.data_provider.get_historical_data(benchmark, period_days)
+            historical_data=await self.data_provider.get_historical_data(benchmark, period_days)
             if len(historical_data) < period_days:
                 return 0.0
             
-            start_price = historical_data[-period_days].price
+            start_price=historical_data[-period_days].price
             end_price = historical_data[-1].price
             benchmark_return = float((end_price - start_price) / start_price)
             
             # Simplified strategy return (would be actual strategy performance in production)
             # Assume strategy slightly underperforms benchmark due to trading costs
-            strategy_return = benchmark_return * 0.95  # 5% underperformance
+            strategy_return=benchmark_return * 0.95  # 5% underperformance
             
             return strategy_return
             
@@ -186,14 +186,14 @@ class ProductionIndexBaseline:
         """Calculate Sharpe ratio"""
         try:
             # Get historical data
-            historical_data = await self.data_provider.get_historical_data(benchmark, period_days)
+            historical_data=await self.data_provider.get_historical_data(benchmark, period_days)
             if len(historical_data) < 30:
                 return 0.0
             
             # Calculate daily returns
-            returns = []
+            returns=[]
             for i in range(1, len(historical_data)):
-                daily_return = float((historical_data[i].price - historical_data[i-1].price) / historical_data[i-1].price)
+                daily_return=float((historical_data[i].price - historical_data[i-1].price) / historical_data[i-1].price)
                 returns.append(daily_return)
             
             if not returns:
@@ -201,10 +201,10 @@ class ProductionIndexBaseline:
             
             # Calculate Sharpe ratio
             import statistics
-            mean_return = statistics.mean(returns)
-            std_return = statistics.stdev(returns)
+            mean_return=statistics.mean(returns)
+            std_return=statistics.stdev(returns)
             
-            if std_return == 0:
+            if std_return== 0:
                 return 0.0
             
             # Annualized Sharpe ratio
@@ -222,16 +222,16 @@ class ProductionIndexBaseline:
             if len(historical_data) < 2:
                 return 0.0
             
-            peak = float(historical_data[0].price)
-            max_drawdown = 0.0
+            peak=float(historical_data[0].price)
+            max_drawdown=0.0
             
             for data_point in historical_data:
                 current_price = float(data_point.price)
                 if current_price > peak:
-                    peak = current_price
+                    peak=current_price
                 else:
                     drawdown = (peak - current_price) / peak
-                    max_drawdown = max(max_drawdown, drawdown)
+                    max_drawdown=max(max_drawdown, drawdown)
             
             return max_drawdown
             
@@ -246,9 +246,9 @@ class ProductionIndexBaseline:
                 return 0.0
             
             # Calculate daily returns
-            returns = []
+            returns=[]
             for i in range(1, len(historical_data)):
-                daily_return = float((historical_data[i].price - historical_data[i-1].price) / historical_data[i-1].price)
+                daily_return=float((historical_data[i].price - historical_data[i-1].price) / historical_data[i-1].price)
                 returns.append(daily_return)
             
             if not returns:
@@ -256,7 +256,7 @@ class ProductionIndexBaseline:
             
             # Calculate annualized volatility
             import statistics
-            volatility = statistics.stdev(returns) * (252 ** 0.5)
+            volatility=statistics.stdev(returns) * (252 ** 0.5)
             
             return volatility
             
@@ -271,7 +271,7 @@ class ProductionIndexBaseline:
             # In production, would use actual trade history
             
             # Assume 80% win rate and 1 trade per week
-            win_rate = 0.80
+            win_rate=0.80
             total_trades = period_days // 7  # 1 trade per week
             
             return win_rate, total_trades
@@ -282,23 +282,23 @@ class ProductionIndexBaseline:
     
     async def generate_baseline_signals(self) -> List[BaselineSignal]:
         """Generate baseline strategy signals"""
-        signals = []
+        signals=[]
         
         try:
             # Check current portfolio allocation
             portfolio_value = await self.integration.get_portfolio_value()
             
             # Calculate current allocation to baseline assets
-            current_allocation = await self._calculate_current_allocation()
+            current_allocation=await self._calculate_current_allocation()
             
             # Check if rebalancing is needed
             if abs(current_allocation - self.target_allocation) > self.rebalance_threshold:
-                signal = await self._create_rebalance_signal(current_allocation)
+                signal=await self._create_rebalance_signal(current_allocation)
                 if signal:
                     signals.append(signal)
             
             # Check for tax loss harvesting opportunities
-            tax_loss_signals = await self._check_tax_loss_harvesting()
+            tax_loss_signals=await self._check_tax_loss_harvesting()
             signals.extend(tax_loss_signals)
             
             return signals
@@ -310,12 +310,12 @@ class ProductionIndexBaseline:
     async def _calculate_current_allocation(self) -> float:
         """Calculate current allocation to baseline assets"""
         try:
-            portfolio_value = await self.integration.get_portfolio_value()
-            baseline_value = Decimal('0.00')
+            portfolio_value=await self.integration.get_portfolio_value()
+            baseline_value=Decimal('0.00')
             
             # Calculate value in baseline assets
             for benchmark in self.benchmarks:
-                position_value = await self.integration.get_position_value(benchmark)
+                position_value=await self.integration.get_position_value(benchmark)
                 baseline_value += position_value
             
             if portfolio_value > 0:
@@ -331,27 +331,27 @@ class ProductionIndexBaseline:
         """Create rebalancing signal"""
         try:
             # Determine which benchmark to buy/sell
-            target_benchmark = self.benchmarks[0]  # Default to SPY
+            target_benchmark=self.benchmarks[0]  # Default to SPY
             
             # Calculate required trade
             portfolio_value = await self.integration.get_portfolio_value()
-            target_value = portfolio_value * Decimal(str(self.target_allocation))
-            current_value = await self.integration.get_position_value(target_benchmark)
+            target_value=portfolio_value * Decimal(str(self.target_allocation))
+            current_value=await self.integration.get_position_value(target_benchmark)
             
-            trade_amount = target_value - current_value
+            trade_amount=target_value - current_value
             
             if abs(trade_amount) < portfolio_value * Decimal('0.01'):  # Less than 1%
                 return None
             
             # Get current price
-            current_data = await self.data_provider.get_current_price(target_benchmark)
+            current_data=await self.data_provider.get_current_price(target_benchmark)
             if not current_data:
                 return None
             
             # Create signal
-            signal_type = 'buy_and_hold' if trade_amount > 0 else 'rebalance'
+            signal_type='buy_and_hold' if trade_amount > 0 else 'rebalance'
             risk_amount = abs(trade_amount)
-            confidence = min(1.0, abs(current_allocation - self.target_allocation) * 10)
+            confidence=min(1.0, abs(current_allocation - self.target_allocation) * 10)
             
             return BaselineSignal(
                 ticker=target_benchmark,
@@ -361,10 +361,10 @@ class ProductionIndexBaseline:
                 risk_amount=risk_amount,
                 confidence=confidence,
                 metadata={
-                    'current_allocation': current_allocation,
-                    'target_allocation': self.target_allocation,
-                    'trade_amount': float(trade_amount),
-                    'rebalance_threshold': self.rebalance_threshold
+                    'current_allocation':current_allocation,
+                    'target_allocation':self.target_allocation,
+                    'trade_amount':float(trade_amount),
+                    'rebalance_threshold':self.rebalance_threshold
                 }
             )
             
@@ -374,7 +374,7 @@ class ProductionIndexBaseline:
     
     async def _check_tax_loss_harvesting(self) -> List[BaselineSignal]:
         """Check for tax loss harvesting opportunities"""
-        signals = []
+        signals=[]
         
         try:
             for benchmark in self.benchmarks:
@@ -384,12 +384,12 @@ class ProductionIndexBaseline:
                     continue
                 
                 # Get current price and calculate loss
-                current_data = await self.data_provider.get_current_price(benchmark)
+                current_data=await self.data_provider.get_current_price(benchmark)
                 if not current_data:
                     continue
                 
                 # Simplified loss calculation (would use actual cost basis in production)
-                loss_percentage = -0.05  # Simplified - would calculate actual loss
+                loss_percentage=-0.05  # Simplified - would calculate actual loss
                 
                 if loss_percentage <= self.tax_loss_threshold:
                     signal = BaselineSignal(
@@ -400,8 +400,8 @@ class ProductionIndexBaseline:
                         risk_amount=position_value,
                         confidence=0.8,
                         metadata={
-                            'loss_percentage': loss_percentage,
-                            'tax_loss_threshold': self.tax_loss_threshold
+                            'loss_percentage':loss_percentage,
+                            'tax_loss_threshold':self.tax_loss_threshold
                         }
                     )
                     signals.append(signal)
@@ -416,17 +416,17 @@ class ProductionIndexBaseline:
         """Execute baseline trade"""
         try:
             # Calculate quantity
-            quantity = int(float(signal.risk_amount) / float(signal.current_price))
+            quantity=int(float(signal.risk_amount) / float(signal.current_price))
             
             if quantity <= 0:
                 self.logger.warning(f"Quantity too small for {signal.ticker}")
                 return False
             
             # Determine order side
-            side = OrderSide.BUY if signal.signal_type in ['buy_and_hold', 'rebalance'] else OrderSide.SELL
+            side=OrderSide.BUY if signal.signal_type in ['buy_and_hold', 'rebalance'] else OrderSide.SELL
             
             # Create trade signal
-            trade_signal = ProductionTradeSignal(
+            trade_signal=ProductionTradeSignal(
                 strategy_name="index_baseline",
                 ticker=signal.ticker,
                 side=side,
@@ -437,18 +437,17 @@ class ProductionIndexBaseline:
                 risk_amount=signal.risk_amount,
                 expected_return=signal.risk_amount * Decimal('0.1'),  # Conservative 10% target
                 metadata={
-                    'signal_type': signal.signal_type,
-                    'target_allocation': signal.target_allocation,
-                    'confidence': signal.confidence,
-                    'strategy_params': signal.metadata
+                    'signal_type':signal.signal_type,
+                    'target_allocation':signal.target_allocation,
+                    'confidence':signal.confidence,
+                    'strategy_params':signal.metadata
                 }
             )
             
             # Execute trade
-            result = await self.integration.execute_trade(trade_signal)
+            result=await self.integration.execute_trade(trade_signal)
             
-            if result.status.value == 'FILLED':
-                # Store active signal
+            if result.status.value== 'FILLED':# Store active signal
                 self.active_signals[signal.ticker] = signal
                 
                 # Send alert
@@ -478,10 +477,10 @@ class ProductionIndexBaseline:
         try:
             while True:
                 # Calculate baseline performance
-                performance = await self.calculate_baseline_performance()
+                performance=await self.calculate_baseline_performance()
                 
                 # Generate signals
-                signals = await self.generate_baseline_signals()
+                signals=await self.generate_baseline_signals()
                 
                 # Execute trades
                 for signal in signals:
@@ -496,26 +495,26 @@ class ProductionIndexBaseline:
     def get_strategy_status(self) -> Dict[str, Any]:
         """Get current strategy status"""
         return {
-            'strategy_name': 'index_baseline',
-            'active_signals': len(self.active_signals),
-            'benchmarks': self.benchmarks,
-            'target_allocation': self.target_allocation,
-            'current_allocation': 0.0,  # Would calculate actual allocation
-            'signals': [
+            'strategy_name':'index_baseline',
+            'active_signals':len(self.active_signals),
+            'benchmarks':self.benchmarks,
+            'target_allocation':self.target_allocation,
+            'current_allocation':0.0,  # Would calculate actual allocation
+            'signals':[
                 {
-                    'ticker': signal.ticker,
-                    'signal_type': signal.signal_type,
-                    'target_allocation': signal.target_allocation,
-                    'risk_amount': float(signal.risk_amount),
-                    'confidence': signal.confidence
+                    'ticker':signal.ticker,
+                    'signal_type':signal.signal_type,
+                    'target_allocation':signal.target_allocation,
+                    'risk_amount':float(signal.risk_amount),
+                    'confidence':signal.confidence
                 }
                 for signal in self.active_signals.values()
             ],
-            'parameters': {
-                'target_allocation': self.target_allocation,
-                'rebalance_threshold': self.rebalance_threshold,
-                'tax_loss_threshold': self.tax_loss_threshold,
-                'benchmarks': self.benchmarks
+            'parameters':{
+                'target_allocation':self.target_allocation,
+                'rebalance_threshold':self.rebalance_threshold,
+                'tax_loss_threshold':self.tax_loss_threshold,
+                'benchmarks':self.benchmarks
             }
         }
 

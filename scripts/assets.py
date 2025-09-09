@@ -6,7 +6,7 @@ import numpy as np
 
 class Account:
     def __init__(self, acc_dict):
-        self.acc_dict = acc_dict
+        self.acc_dict=acc_dict
 
 
 class Stock:
@@ -21,9 +21,9 @@ class Stock:
         closing_t: time object, closing time of the latest price in bar_list
         '''
 
-        self.symbol = symbol
+        self.symbol=symbol
         self.past_price = self.past_price_from_bars(bar_list)  # past closing prices ranges from latest to oldest
-        self.timeframe = timeframe
+        self.timeframe=timeframe
         self.cur_price = cur_price
         self.time = t
         self.closing_t = closing_t
@@ -51,13 +51,13 @@ class Stock:
         '''
         # print("------")
         # print(bar, bar_t)
-        self.cur_price = cur_price
+        self.cur_price=cur_price
         self.time = t
         if bar == [] or bar_t == []:
             return
         if self.closing_t < bar_t[-1]:
             self.past_price = np.insert(self.past_price, 0, bar[-1])
-            self.closing_t = bar_t[-1]
+            self.closing_t=bar_t[-1]
             self.update(cur_price, bar[:-1], bar_t[:-1], t)
         elif self.closing_t >= bar_t[-1]:
             self.update(cur_price, bar[:-1], bar_t[:-1], t)
@@ -66,16 +66,16 @@ class Stock:
         return self.EMA(12, cur, arr) - self.EMA(26, cur, arr)
 
     def EMA(self, N, cur, arr):
-        k = 2 / (N + 1)
-        EMA = arr[N - 1]
+        k=2 / (N + 1)
+        EMA=arr[N - 1]
         # a vectorized version would be better
         for i in range(N - 2, -1, -1):
-            EMA = arr[i] * k + EMA * (1 - k)
-        EMA = cur * k + EMA * (1 - k)
+            EMA=arr[i] * k + EMA * (1 - k)
+        EMA=cur * k + EMA * (1 - k)
         return EMA
 
     def ccvol(self, start, days, arr):
-        sum_vol = 0
+        sum_vol=0
         var_days = []
         var = 0
         for i in range(days):
@@ -89,18 +89,18 @@ class Stock:
 
     def plot_price(self, past_pts=15):
 
-        #  ma_prices10 = [self.moving_average(i) for i in range(0, past_pts)][::-1]
-        ema_prices12 = [self.EMA(12, price, self.past_price[i + 1:]) for i, price in
+        #  ma_prices10=[self.moving_average(i) for i in range(0, past_pts)][::-1]
+        ema_prices12=[self.EMA(12, price, self.past_price[i + 1:]) for i, price in
                         enumerate(np.insert(self.past_price, 0, self.cur_price)[:past_pts])][::-1]
-        #  ma_prices5 = [self.moving_average(i, 5) for i in range(0, past_pts)][::-1]
-        ema_prices26 = [self.EMA(26, price, self.past_price[i + 1:]) for i, price in
+        #  ma_prices5=[self.moving_average(i, 5) for i in range(0, past_pts)][::-1]
+        ema_prices26=[self.EMA(26, price, self.past_price[i + 1:]) for i, price in
                         enumerate(np.insert(self.past_price, 0, self.cur_price)[:past_pts])][::-1]
         plt.clf()
-        prices = self.past_price[::-1]
+        prices=self.past_price[::-1]
         prices = np.append(prices, self.cur_price)
         plt.plot(range(past_pts), prices[-past_pts:], label="prices")
-        # plt.plot(range(past_pts), ma_prices5, label = "5 pts moving average")
-        # plt.plot(range(past_pts), ma_prices10, label = "10 pts moving average")
+        # plt.plot(range(past_pts), ma_prices5, label="5 pts moving average")
+        # plt.plot(range(past_pts), ma_prices10, label="10 pts moving average")
         plt.plot(range(past_pts), ema_prices12, label="12 pts exponential moving average")
         plt.plot(range(past_pts), ema_prices26, label="26 pts exponential moving average")
         plt.title(self.symbol + " Prices")

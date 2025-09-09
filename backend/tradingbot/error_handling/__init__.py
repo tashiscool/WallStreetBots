@@ -10,7 +10,7 @@ from .error_types import (
     InsufficientFundsError, PositionReconciliationError
 )
 
-__all__ = [
+__all__=[
     'TradingErrorRecoveryManager',
     'RecoveryAction',
     'TradingError',

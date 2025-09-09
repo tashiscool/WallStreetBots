@@ -69,40 +69,40 @@ class ProductionSPXCreditSpreads:
     """
     
     def __init__(self, integration_manager, data_provider: ReliableDataProvider, config: dict):
-        self.strategy_name = "spx_credit_spreads"
+        self.strategy_name="spx_credit_spreads"
         self.integration_manager = integration_manager
         self.data_provider = data_provider
         self.config = config
         self.logger = logging.getLogger(__name__)
         
         # Core components
-        self.options_selector = SmartOptionsSelector(data_provider)
-        self.risk_manager = RealTimeRiskManager()
-        self.bs_engine = BlackScholesEngine()
+        self.options_selector=SmartOptionsSelector(data_provider)
+        self.risk_manager=RealTimeRiskManager()
+        self.bs_engine=BlackScholesEngine()
         
         # Strategy configuration
-        self.credit_tickers = config.get('watchlist', [
+        self.credit_tickers=config.get('watchlist', [
             "SPY",   # SPDR S&P 500 ETF (preferred for production)
             "QQQ",   # Invesco QQQ ETF
             "IWM",   # Russell 2000 ETF
         ])
         
         # Risk parameters
-        self.max_positions = config.get('max_positions', 3)
-        self.max_position_size = config.get('max_position_size', 0.05)  # 5% per spread
-        self.target_short_delta = config.get('target_short_delta', 0.30)
-        self.max_dte = config.get('max_dte', 3)  # Maximum 3 DTE
+        self.max_positions=config.get('max_positions', 3)
+        self.max_position_size=config.get('max_position_size', 0.05)  # 5% per spread
+        self.target_short_delta=config.get('target_short_delta', 0.30)
+        self.max_dte=config.get('max_dte', 3)  # Maximum 3 DTE
         
         # Credit spread parameters
-        self.min_net_credit = config.get('min_net_credit', 0.10)
-        self.min_spread_width = config.get('min_spread_width', 5.0)
-        self.max_spread_width = config.get('max_spread_width', 20.0)
-        self.min_prob_profit = config.get('min_prob_profit', 60.0)  # 60% min
+        self.min_net_credit=config.get('min_net_credit', 0.10)
+        self.min_spread_width=config.get('min_spread_width', 5.0)
+        self.max_spread_width=config.get('max_spread_width', 20.0)
+        self.min_prob_profit=config.get('min_prob_profit', 60.0)  # 60% min
         
         # Exit criteria
-        self.profit_target_pct = config.get('profit_target_pct', 0.25)  # 25%
-        self.stop_loss_pct = config.get('stop_loss_pct', 0.75)  # 75% of credit lost
-        self.time_exit_minutes = config.get('time_exit_minutes', 60)  # 1 hour before expiry
+        self.profit_target_pct=config.get('profit_target_pct', 0.25)  # 25%
+        self.stop_loss_pct=config.get('stop_loss_pct', 0.75)  # 75% of credit lost
+        self.time_exit_minutes=config.get('time_exit_minutes', 60)  # 1 hour before expiry
         
         # Active positions tracking
         self.active_positions: List[Dict[str, Any]] = []
@@ -118,11 +118,11 @@ class ProductionSPXCreditSpreads:
         if T <= 0 or sigma <= 0:
             return max(K - S, 0), -1.0 if S < K else 0.0
             
-        d1 = (math.log(S/K) + (r + 0.5*sigma*sigma)*T) / (sigma*math.sqrt(T))
-        d2 = d1 - sigma*math.sqrt(T)
+        d1=(math.log(S/K) + (r + 0.5*sigma*sigma)*T) / (sigma*math.sqrt(T))
+        d2=d1 - sigma*math.sqrt(T)
         
-        put_price = K * math.exp(-r*T) * self.norm_cdf(-d2) - S * self.norm_cdf(-d1)
-        delta = -self.norm_cdf(-d1)
+        put_price=K * math.exp(-r*T) * self.norm_cdf(-d2) - S * self.norm_cdf(-d1)
+        delta=-self.norm_cdf(-d1)
         
         return max(put_price, 0), delta
     
@@ -131,28 +131,28 @@ class ProductionSPXCreditSpreads:
         if T <= 0 or sigma <= 0:
             return max(S - K, 0), 1.0 if S > K else 0.0
             
-        d1 = (math.log(S/K) + (r + 0.5*sigma*sigma)*T) / (sigma*math.sqrt(T))
-        d2 = d1 - sigma*math.sqrt(T)
+        d1=(math.log(S/K) + (r + 0.5*sigma*sigma)*T) / (sigma*math.sqrt(T))
+        d2=d1 - sigma*math.sqrt(T)
         
-        call_price = S * self.norm_cdf(d1) - K * math.exp(-r*T) * self.norm_cdf(d2)
-        delta = self.norm_cdf(d1)
+        call_price=S * self.norm_cdf(d1) - K * math.exp(-r*T) * self.norm_cdf(d2)
+        delta=self.norm_cdf(d1)
         
         return max(call_price, 0), delta
     
     async def get_available_expiries(self, ticker: str) -> List[Tuple[str, int]]:
         """Get available expiries with DTE"""
         try:
-            expiries = await self.data_provider.get_option_expiries(ticker)
+            expiries=await self.data_provider.get_option_expiries(ticker)
             if not expiries:
                 return []
             
-            valid_expiries = []
+            valid_expiries=[]
             today = date.today()
             
             for exp_str in expiries:
                 try:
-                    exp_date = datetime.strptime(exp_str, "%Y-%m-%d").date()
-                    dte = (exp_date - today).days
+                    exp_date=datetime.strptime(exp_str, "%Y-%m-%d").date()
+                    dte=(exp_date - today).days
                     
                     # Focus on short-term expiries (0-3 DTE)
                     if 0 <= dte <= self.max_dte:
@@ -171,13 +171,13 @@ class ProductionSPXCreditSpreads:
         """Calculate expected daily move from recent volatility"""
         try:
             # Get 20 days of historical data
-            hist_data = await self.data_provider.get_historical_data(ticker, "20d")
+            hist_data=await self.data_provider.get_historical_data(ticker, "20d")
             if hist_data.empty or len(hist_data) < 10:
                 return 0.015  # Default 1.5%
             
             # Calculate daily returns
-            returns = hist_data['close'].pct_change().dropna()
-            daily_vol = returns.std()
+            returns=hist_data['close'].pct_change().dropna()
+            daily_vol=returns.std()
             
             # Expected move is approximately 1 standard deviation
             return min(0.05, max(0.01, daily_vol))
@@ -191,25 +191,24 @@ class ProductionSPXCreditSpreads:
         """Find strike closest to target delta"""
         try:
             # Get options chain
-            options_data = await self.data_provider.get_options_chain(ticker, expiry)
+            options_data=await self.data_provider.get_options_chain(ticker, expiry)
             if not options_data:
                 return None, 0.0, 0.0
             
-            if option_type == "put":
-                options_list = options_data.get('puts', [])
+            if option_type== "put":options_list = options_data.get('puts', [])
             else:
-                options_list = options_data.get('calls', [])
+                options_list=options_data.get('calls', [])
             
             if not options_list:
                 return None, 0.0, 0.0
             
             # Filter for liquid options
-            liquid_options = []
+            liquid_options=[]
             for option in options_list:
                 volume = option.get('volume', 0)
-                open_interest = option.get('open_interest', 0)
-                bid = option.get('bid', 0)
-                ask = option.get('ask', 0)
+                open_interest=option.get('open_interest', 0)
+                bid=option.get('bid', 0)
+                ask=option.get('ask', 0)
                 
                 if (bid > 0.05 and ask > 0.05 and 
                     (volume >= 10 or open_interest >= 50)):
@@ -219,40 +218,39 @@ class ProductionSPXCreditSpreads:
                 return None, 0.0, 0.0
             
             # Find strike closest to target delta
-            best_option = None
+            best_option=None
             best_delta_diff = float('inf')
             
             # Estimate time to expiry
-            exp_date = datetime.strptime(expiry, "%Y-%m-%d").date()
-            dte = (exp_date - date.today()).days
-            time_to_exp = max(0.001, dte / 365.0)  # Minimum time value
+            exp_date=datetime.strptime(expiry, "%Y-%m-%d").date()
+            dte=(exp_date - date.today()).days
+            time_to_exp=max(0.001, dte / 365.0)  # Minimum time value
             
             for option in liquid_options:
-                strike = option['strike']
+                strike=option['strike']
                 
                 # Use actual delta if available, otherwise estimate
                 if 'delta' in option and option['delta'] is not None:
-                    actual_delta = abs(option['delta'])
+                    actual_delta=abs(option['delta'])
                 else:
                     # Estimate using Black-Scholes
-                    iv_estimate = 0.20  # Default IV
-                    if option_type == "put":
-                        _, delta = self.black_scholes_put(spot_price, strike, time_to_exp, 0.04, iv_estimate)
-                        actual_delta = abs(delta)
+                    iv_estimate=0.20  # Default IV
+                    if option_type == "put":_, delta=self.black_scholes_put(spot_price, strike, time_to_exp, 0.04, iv_estimate)
+                        actual_delta=abs(delta)
                     else:
-                        _, delta = self.black_scholes_call(spot_price, strike, time_to_exp, 0.04, iv_estimate)
-                        actual_delta = abs(delta)
+                        _, delta=self.black_scholes_call(spot_price, strike, time_to_exp, 0.04, iv_estimate)
+                        actual_delta=abs(delta)
                 
-                delta_diff = abs(actual_delta - target_delta)
+                delta_diff=abs(actual_delta - target_delta)
                 
                 if delta_diff < best_delta_diff:
-                    best_delta_diff = delta_diff
+                    best_delta_diff=delta_diff
                     best_option = option
             
             if best_option:
                 strike = best_option['strike']
                 premium = (best_option['bid'] + best_option['ask']) / 2
-                delta = abs(best_option.get('delta', target_delta))
+                delta=abs(best_option.get('delta', target_delta))
                 
                 return strike, delta, premium
             
@@ -265,8 +263,8 @@ class ProductionSPXCreditSpreads:
     def calculate_spread_metrics(self, short_strike: float, long_strike: float,
                                short_premium: float, long_premium: float) -> Tuple[float, float, float]:
         """Calculate spread financial metrics"""
-        spread_width = abs(short_strike - long_strike)
-        net_credit = short_premium - long_premium
+        spread_width=abs(short_strike - long_strike)
+        net_credit=short_premium - long_premium
         max_profit = net_credit
         max_loss = spread_width - net_credit
         
@@ -274,7 +272,7 @@ class ProductionSPXCreditSpreads:
     
     async def scan_credit_spread_opportunities(self) -> List[CreditSpreadOpportunity]:
         """Scan for credit spread opportunities"""
-        opportunities = []
+        opportunities=[]
         
         self.logger.info("Scanning for credit spread opportunities")
         
@@ -285,15 +283,15 @@ class ProductionSPXCreditSpreads:
                     continue
                 
                 # Get current price
-                current_price = await self.data_provider.get_current_price(ticker)
+                current_price=await self.data_provider.get_current_price(ticker)
                 if not current_price:
                     continue
                 
                 # Get expected move
-                expected_move = await self.get_expected_move(ticker)
+                expected_move=await self.get_expected_move(ticker)
                 
                 # Get available expiries
-                expiries = await self.get_available_expiries(ticker)
+                expiries=await self.get_available_expiries(ticker)
                 if not expiries:
                     continue
                 
@@ -303,30 +301,30 @@ class ProductionSPXCreditSpreads:
                 for expiry, dte in expiries[:2]:  # Limit to 2 nearest expiries
                     
                     # PUT CREDIT SPREADS (bullish/neutral bias)
-                    put_short_strike, put_short_delta, put_short_premium = \
+                    put_short_strike, put_short_delta, put_short_premium=\
                         await self.find_target_delta_strike(ticker, expiry, "put", self.target_short_delta, current_price)
                     
                     if put_short_strike and put_short_premium > 0:
                         # Calculate spread width (2-5% of underlying)
-                        spread_width = min(self.max_spread_width, 
+                        spread_width=min(self.max_spread_width, 
                                          max(self.min_spread_width, current_price * 0.03))
-                        put_long_strike = put_short_strike - spread_width
+                        put_long_strike=put_short_strike - spread_width
                         
                         # Get long put premium
-                        _, _, put_long_premium = await self.find_target_delta_strike(
+                        _, _, put_long_premium=await self.find_target_delta_strike(
                             ticker, expiry, "put", 0.15, current_price
                         )
                         
                         if put_long_premium > 0:
-                            net_credit, max_profit, max_loss = self.calculate_spread_metrics(
+                            net_credit, max_profit, max_loss=self.calculate_spread_metrics(
                                 put_short_strike, put_long_strike, put_short_premium, put_long_premium
                             )
                             
                             if net_credit >= self.min_net_credit:
-                                prob_profit = (1 - put_short_delta) * 100
+                                prob_profit=(1 - put_short_delta) * 100
                                 
                                 if prob_profit >= self.min_prob_profit:
-                                    opportunity = CreditSpreadOpportunity(
+                                    opportunity=CreditSpreadOpportunity(
                                         ticker=ticker,
                                         strategy_type="put_credit_spread",
                                         expiry_date=expiry,
@@ -350,28 +348,28 @@ class ProductionSPXCreditSpreads:
                                     opportunities.append(opportunity)
                     
                     # CALL CREDIT SPREADS (bearish/neutral bias)
-                    call_short_strike, call_short_delta, call_short_premium = \
+                    call_short_strike, call_short_delta, call_short_premium=\
                         await self.find_target_delta_strike(ticker, expiry, "call", self.target_short_delta, current_price)
                     
                     if call_short_strike and call_short_premium > 0:
-                        spread_width = min(self.max_spread_width,
+                        spread_width=min(self.max_spread_width,
                                          max(self.min_spread_width, current_price * 0.03))
-                        call_long_strike = call_short_strike + spread_width
+                        call_long_strike=call_short_strike + spread_width
                         
-                        _, _, call_long_premium = await self.find_target_delta_strike(
+                        _, _, call_long_premium=await self.find_target_delta_strike(
                             ticker, expiry, "call", 0.15, current_price
                         )
                         
                         if call_long_premium > 0:
-                            net_credit, max_profit, max_loss = self.calculate_spread_metrics(
+                            net_credit, max_profit, max_loss=self.calculate_spread_metrics(
                                 call_short_strike, call_long_strike, call_short_premium, call_long_premium
                             )
                             
                             if net_credit >= self.min_net_credit:
-                                prob_profit = (1 - call_short_delta) * 100
+                                prob_profit=(1 - call_short_delta) * 100
                                 
                                 if prob_profit >= self.min_prob_profit:
-                                    opportunity = CreditSpreadOpportunity(
+                                    opportunity=CreditSpreadOpportunity(
                                         ticker=ticker,
                                         strategy_type="call_credit_spread",
                                         expiry_date=expiry,
@@ -415,15 +413,15 @@ class ProductionSPXCreditSpreads:
                 return False
             
             # Calculate position size based on max loss
-            portfolio_value = await self.integration_manager.get_portfolio_value()
-            max_risk = portfolio_value * self.max_position_size
+            portfolio_value=await self.integration_manager.get_portfolio_value()
+            max_risk=portfolio_value * self.max_position_size
             
             # Size based on maximum loss of the spread
             contracts = max(1, int(max_risk / (opportunity.max_loss * 100)))
-            contracts = min(contracts, 5)  # Max 5 contracts for credit spreads
+            contracts=min(contracts, 5)  # Max 5 contracts for credit spreads
             
             # Create trade signals for both legs
-            short_signal = ProductionTradeSignal(
+            short_signal=ProductionTradeSignal(
                 symbol=opportunity.ticker,
                 action="SELL",  # Sell short leg
                 quantity=contracts,
@@ -435,19 +433,19 @@ class ProductionSPXCreditSpreads:
                 strategy_name=self.strategy_name,
                 signal_strength=min(1.0, opportunity.prob_profit / 100.0),
                 metadata={
-                    'spread_type': opportunity.strategy_type,
-                    'leg': 'short',
-                    'spread_id': f"{opportunity.ticker}_{opportunity.expiry_date}_{opportunity.short_strike}_{opportunity.long_strike}",
-                    'long_strike': opportunity.long_strike,
-                    'net_credit': opportunity.net_credit,
-                    'max_profit': opportunity.max_profit,
-                    'max_loss': opportunity.max_loss,
-                    'prob_profit': opportunity.prob_profit,
-                    'dte': opportunity.dte
+                    'spread_type':opportunity.strategy_type,
+                    'leg':'short',
+                    'spread_id':f"{opportunity.ticker}_{opportunity.expiry_date}_{opportunity.short_strike}_{opportunity.long_strike}",
+                    'long_strike':opportunity.long_strike,
+                    'net_credit':opportunity.net_credit,
+                    'max_profit':opportunity.max_profit,
+                    'max_loss':opportunity.max_loss,
+                    'prob_profit':opportunity.prob_profit,
+                    'dte':opportunity.dte
                 }
             )
             
-            long_signal = ProductionTradeSignal(
+            long_signal=ProductionTradeSignal(
                 symbol=opportunity.ticker,
                 action="BUY",  # Buy long leg for protection
                 quantity=contracts,
@@ -459,40 +457,40 @@ class ProductionSPXCreditSpreads:
                 strategy_name=self.strategy_name,
                 signal_strength=min(1.0, opportunity.prob_profit / 100.0),
                 metadata={
-                    'spread_type': opportunity.strategy_type,
-                    'leg': 'long',
-                    'spread_id': f"{opportunity.ticker}_{opportunity.expiry_date}_{opportunity.short_strike}_{opportunity.long_strike}",
-                    'short_strike': opportunity.short_strike,
-                    'net_credit': opportunity.net_credit,
-                    'max_profit': opportunity.max_profit,
-                    'max_loss': opportunity.max_loss,
-                    'prob_profit': opportunity.prob_profit,
-                    'dte': opportunity.dte
+                    'spread_type':opportunity.strategy_type,
+                    'leg':'long',
+                    'spread_id':f"{opportunity.ticker}_{opportunity.expiry_date}_{opportunity.short_strike}_{opportunity.long_strike}",
+                    'short_strike':opportunity.short_strike,
+                    'net_credit':opportunity.net_credit,
+                    'max_profit':opportunity.max_profit,
+                    'max_loss':opportunity.max_loss,
+                    'prob_profit':opportunity.prob_profit,
+                    'dte':opportunity.dte
                 }
             )
             
             # Execute both legs
-            short_success = await self.integration_manager.execute_trade_signal(short_signal)
-            long_success = await self.integration_manager.execute_trade_signal(long_signal)
+            short_success=await self.integration_manager.execute_trade_signal(short_signal)
+            long_success=await self.integration_manager.execute_trade_signal(long_signal)
             
             if short_success and long_success:
                 # Track position
-                position = {
-                    'ticker': opportunity.ticker,
-                    'strategy_type': opportunity.strategy_type,
-                    'spread_id': f"{opportunity.ticker}_{opportunity.expiry_date}_{opportunity.short_strike}_{opportunity.long_strike}",
-                    'short_signal': short_signal,
-                    'long_signal': long_signal,
-                    'entry_time': datetime.now(),
-                    'contracts': contracts,
-                    'net_credit': opportunity.net_credit,
-                    'max_profit': opportunity.max_profit,
-                    'max_loss': opportunity.max_loss,
-                    'profit_target': opportunity.profit_target,
-                    'cost_basis': -opportunity.net_credit * contracts * 100,  # Negative for credit received
-                    'expiry_date': datetime.strptime(opportunity.expiry_date, "%Y-%m-%d").date(),
-                    'dte': opportunity.dte,
-                    'prob_profit': opportunity.prob_profit
+                position={
+                    'ticker':opportunity.ticker,
+                    'strategy_type':opportunity.strategy_type,
+                    'spread_id':f"{opportunity.ticker}_{opportunity.expiry_date}_{opportunity.short_strike}_{opportunity.long_strike}",
+                    'short_signal':short_signal,
+                    'long_signal':long_signal,
+                    'entry_time':datetime.now(),
+                    'contracts':contracts,
+                    'net_credit':opportunity.net_credit,
+                    'max_profit':opportunity.max_profit,
+                    'max_loss':opportunity.max_loss,
+                    'profit_target':opportunity.profit_target,
+                    'cost_basis':-opportunity.net_credit * contracts * 100,  # Negative for credit received
+                    'expiry_date':datetime.strptime(opportunity.expiry_date, "%Y-%m-%d").date(),
+                    'dte':opportunity.dte,
+                    'prob_profit':opportunity.prob_profit
                 }
                 
                 self.active_positions.append(position)
@@ -517,28 +515,28 @@ class ProductionSPXCreditSpreads:
     
     async def manage_positions(self):
         """Manage existing credit spread positions"""
-        positions_to_remove = []
+        positions_to_remove=[]
         current_time = datetime.now()
         
         for i, position in enumerate(self.active_positions):
             try:
-                ticker = position['ticker']
+                ticker=position['ticker']
                 contracts = position['contracts']
                 net_credit = position['net_credit']
                 
                 # Calculate time to expiry
                 time_to_expiry = datetime.combine(position['expiry_date'], datetime.min.time()) - current_time
-                minutes_to_expiry = time_to_expiry.total_seconds() / 60
+                minutes_to_expiry=time_to_expiry.total_seconds() / 60
                 
                 # Get current spread value by checking both legs
-                short_price = await self.data_provider.get_option_price(
+                short_price=await self.data_provider.get_option_price(
                     ticker,
                     position['short_signal'].strike_price,
                     position['short_signal'].expiration_date,
                     position['short_signal'].option_type.lower()
                 )
                 
-                long_price = await self.data_provider.get_option_price(
+                long_price=await self.data_provider.get_option_price(
                     ticker,
                     position['long_signal'].strike_price,
                     position['long_signal'].expiration_date,
@@ -549,35 +547,35 @@ class ProductionSPXCreditSpreads:
                     continue
                 
                 # Current spread value (what we'd pay to close)
-                current_spread_value = short_price - long_price
+                current_spread_value=short_price - long_price
                 
                 # P&L calculation (we received credit initially)
-                pnl_per_contract = net_credit - current_spread_value
+                pnl_per_contract=net_credit - current_spread_value
                 total_pnl = pnl_per_contract * contracts * 100
                 pnl_pct = (pnl_per_contract / net_credit) * 100 if net_credit > 0 else 0
                 
                 # Check exit conditions
-                should_exit = False
+                should_exit=False
                 exit_reason = ""
                 
                 # 1. Profit target (25% of credit received)
                 if pnl_per_contract >= position['profit_target']:
-                    should_exit = True
+                    should_exit=True
                     exit_reason = "PROFIT_TARGET"
                 
                 # 2. Stop loss (lost 75% of credit received)
                 elif pnl_per_contract <= -net_credit * self.stop_loss_pct:
-                    should_exit = True
+                    should_exit=True
                     exit_reason = "STOP_LOSS"
                 
                 # 3. Time-based exit (1 hour before expiry)
                 elif minutes_to_expiry <= self.time_exit_minutes:
-                    should_exit = True
+                    should_exit=True
                     exit_reason = "TIME_EXIT"
                 
                 # 4. Same day expiry exit (for 0DTE trades)
                 elif position['dte'] == 0 and current_time.hour >= 15:  # 3pm ET
-                    should_exit = True
+                    should_exit=True
                     exit_reason = "0DTE_EOD_EXIT"
                 
                 if should_exit:
@@ -592,16 +590,16 @@ class ProductionSPXCreditSpreads:
                         premium=Decimal(str(short_price)),
                         strategy_name=self.strategy_name,
                         metadata={
-                            'spread_action': 'close_short',
-                            'exit_reason': exit_reason,
-                            'pnl_per_contract': pnl_per_contract,
-                            'total_pnl': total_pnl,
-                            'pnl_pct': pnl_pct,
-                            'spread_id': position['spread_id']
+                            'spread_action':'close_short',
+                            'exit_reason':exit_reason,
+                            'pnl_per_contract':pnl_per_contract,
+                            'total_pnl':total_pnl,
+                            'pnl_pct':pnl_pct,
+                            'spread_id':position['spread_id']
                         }
                     )
                     
-                    long_exit = ProductionTradeSignal(
+                    long_exit=ProductionTradeSignal(
                         symbol=ticker,
                         action="SELL",  # Sell back long leg
                         quantity=contracts,
@@ -611,18 +609,18 @@ class ProductionSPXCreditSpreads:
                         premium=Decimal(str(long_price)),
                         strategy_name=self.strategy_name,
                         metadata={
-                            'spread_action': 'close_long',
-                            'exit_reason': exit_reason,
-                            'pnl_per_contract': pnl_per_contract,
-                            'total_pnl': total_pnl,
-                            'pnl_pct': pnl_pct,
-                            'spread_id': position['spread_id']
+                            'spread_action':'close_long',
+                            'exit_reason':exit_reason,
+                            'pnl_per_contract':pnl_per_contract,
+                            'total_pnl':total_pnl,
+                            'pnl_pct':pnl_pct,
+                            'spread_id':position['spread_id']
                         }
                     )
                     
                     # Execute exits
-                    short_exit_success = await self.integration_manager.execute_trade_signal(short_exit)
-                    long_exit_success = await self.integration_manager.execute_trade_signal(long_exit)
+                    short_exit_success=await self.integration_manager.execute_trade_signal(short_exit)
+                    long_exit_success=await self.integration_manager.execute_trade_signal(long_exit)
                     
                     if short_exit_success and long_exit_success:
                         await self.integration_manager.alert_system.send_alert(
@@ -658,22 +656,22 @@ class ProductionSPXCreditSpreads:
                 return []
             
             # Don't initiate new spreads too close to market close
-            current_hour = datetime.now().hour
+            current_hour=datetime.now().hour
             if current_hour >= 15:  # After 3pm ET
                 return []
             
             # Scan for credit spread opportunities
-            opportunities = await self.scan_credit_spread_opportunities()
+            opportunities=await self.scan_credit_spread_opportunities()
             
             # Execute top opportunities
-            trade_signals = []
+            trade_signals=[]
             max_new_positions = self.max_positions - len(self.active_positions)
             
             for opportunity in opportunities[:max_new_positions]:
-                success = await self.execute_credit_spread(opportunity)
+                success=await self.execute_credit_spread(opportunity)
                 if success:
                     # Return the short leg signal for tracking
-                    trade_signal = ProductionTradeSignal(
+                    trade_signal=ProductionTradeSignal(
                         symbol=opportunity.ticker,
                         action="SELL",
                         quantity=1,  # Will be recalculated in execute_trade
@@ -696,53 +694,53 @@ class ProductionSPXCreditSpreads:
     def get_strategy_status(self) -> Dict[str, Any]:
         """Get current strategy status"""
         try:
-            total_credit_received = sum(-pos['cost_basis'] for pos in self.active_positions)
-            position_details = []
+            total_credit_received=sum(-pos['cost_basis'] for pos in self.active_positions)
+            position_details=[]
             
             for position in self.active_positions:
                 time_to_expiry = datetime.combine(position['expiry_date'], datetime.min.time()) - datetime.now()
-                hours_to_expiry = time_to_expiry.total_seconds() / 3600
+                hours_to_expiry=time_to_expiry.total_seconds() / 3600
                 
                 position_details.append({
-                    'ticker': position['ticker'],
-                    'strategy_type': position['strategy_type'],
-                    'short_strike': float(position['short_signal'].strike_price),
-                    'long_strike': float(position['long_signal'].strike_price),
-                    'expiry': position['expiry_date'].isoformat(),
-                    'contracts': position['contracts'],
-                    'net_credit': position['net_credit'],
-                    'max_profit': position['max_profit'],
-                    'max_loss': position['max_loss'],
-                    'profit_target': position['profit_target'],
-                    'prob_profit': position['prob_profit'],
-                    'dte': position['dte'],
-                    'hours_to_expiry': round(hours_to_expiry, 1),
-                    'entry_time': position['entry_time'].isoformat()
+                    'ticker':position['ticker'],
+                    'strategy_type':position['strategy_type'],
+                    'short_strike':float(position['short_signal'].strike_price),
+                    'long_strike':float(position['long_signal'].strike_price),
+                    'expiry':position['expiry_date'].isoformat(),
+                    'contracts':position['contracts'],
+                    'net_credit':position['net_credit'],
+                    'max_profit':position['max_profit'],
+                    'max_loss':position['max_loss'],
+                    'profit_target':position['profit_target'],
+                    'prob_profit':position['prob_profit'],
+                    'dte':position['dte'],
+                    'hours_to_expiry':round(hours_to_expiry, 1),
+                    'entry_time':position['entry_time'].isoformat()
                 })
             
             return {
-                'strategy_name': self.strategy_name,
-                'is_active': True,
-                'active_positions': len(self.active_positions),
-                'max_positions': self.max_positions,
-                'total_credit_received': total_credit_received,
-                'position_details': position_details,
-                'last_scan': datetime.now().isoformat(),
-                'config': {
-                    'max_positions': self.max_positions,
-                    'max_position_size': self.max_position_size,
-                    'target_short_delta': self.target_short_delta,
-                    'max_dte': self.max_dte,
-                    'profit_target_pct': self.profit_target_pct,
-                    'stop_loss_pct': self.stop_loss_pct,
-                    'min_net_credit': self.min_net_credit,
-                    'min_prob_profit': self.min_prob_profit
+                'strategy_name':self.strategy_name,
+                'is_active':True,
+                'active_positions':len(self.active_positions),
+                'max_positions':self.max_positions,
+                'total_credit_received':total_credit_received,
+                'position_details':position_details,
+                'last_scan':datetime.now().isoformat(),
+                'config':{
+                    'max_positions':self.max_positions,
+                    'max_position_size':self.max_position_size,
+                    'target_short_delta':self.target_short_delta,
+                    'max_dte':self.max_dte,
+                    'profit_target_pct':self.profit_target_pct,
+                    'stop_loss_pct':self.stop_loss_pct,
+                    'min_net_credit':self.min_net_credit,
+                    'min_prob_profit':self.min_prob_profit
                 }
             }
             
         except Exception as e:
             self.logger.error(f"Error getting credit spreads status: {e}")
-            return {'strategy_name': self.strategy_name, 'error': str(e)}
+            return {'strategy_name':self.strategy_name, 'error':str(e)}
 
 
     async def run_strategy(self):
@@ -752,7 +750,7 @@ class ProductionSPXCreditSpreads:
         try:
             while True:
                 # Scan for SPX credit spread opportunities
-                signals = await self.scan_opportunities()
+                signals=await self.scan_opportunities()
                 
                 # Execute trades for signals
                 if signals:

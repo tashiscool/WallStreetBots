@@ -57,7 +57,7 @@ def test_other_dependencies():
     """Test other required dependencies"""
     print("\nTesting other dependencies...")
     
-    dependencies = [
+    dependencies=[
         ('apscheduler', 'APScheduler'),
         ('alpaca', 'Alpaca-py (Modern API)'),
         ('plotly', 'Plotly'),
@@ -68,14 +68,14 @@ def test_other_dependencies():
         ('requests', 'requests')
     ]
     
-    all_good = True
+    all_good=True
     for module_name, display_name in dependencies:
         try:
             __import__(module_name)
             print(f"✅ {display_name} imported successfully")
         except ImportError as e:
             print(f"❌ {display_name} import failed: {e}")
-            all_good = False
+            all_good=False
     
     return all_good
 
@@ -95,7 +95,7 @@ def test_django_setup():
         
         # Test that we can access the database configuration
         from django.conf import settings
-        db_config = settings.DATABASES['default']
+        db_config=settings.DATABASES['default']
         print(f"✅ Database configuration loaded: {db_config['ENGINE']}")
         
         return True
@@ -111,7 +111,7 @@ def main():
     print("🧪 TESTING DJANGO SETUP FOR GITHUB ACTIONS")
     print("=" * 60)
     
-    tests_passed = 0
+    tests_passed=0
     total_tests = 3
     
     # Test 1: Django imports
@@ -129,12 +129,11 @@ def main():
     print("\n" + "=" * 60)
     print(f"RESULTS: {tests_passed}/{total_tests} tests passed")
     
-    if tests_passed == total_tests:
+    if tests_passed== total_tests:
         print("✅ ALL TESTS PASSED - Django migrations should work!")
         return 0
     else:
         print("❌ SOME TESTS FAILED - Fix dependencies before running migrations")
         return 1
 
-if __name__ == "__main__":
-    sys.exit(main())
+if __name__== "__main__":sys.exit(main())

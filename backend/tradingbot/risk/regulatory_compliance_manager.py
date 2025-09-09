@@ -38,7 +38,7 @@ def serialize_datetime(obj):
 
 class RegulatoryAuthority(str, Enum):
     """Regulatory authorities"""
-    FCA = "FCA"  # UK Financial Conduct Authority
+    FCA="FCA"  # UK Financial Conduct Authority
     CFTC = "CFTC"  # US Commodity Futures Trading Commission
     SEC = "SEC"  # US Securities and Exchange Commission
     ESMA = "ESMA"  # European Securities and Markets Authority
@@ -47,7 +47,7 @@ class RegulatoryAuthority(str, Enum):
 
 class ComplianceRule(str, Enum):
     """Compliance rules"""
-    POSITION_LIMITS = "position_limits"
+    POSITION_LIMITS="position_limits"
     RISK_LIMITS = "risk_limits"
     REPORTING_REQUIREMENTS = "reporting_requirements"
     CAPITAL_REQUIREMENTS = "capital_requirements"
@@ -59,7 +59,7 @@ class ComplianceRule(str, Enum):
 
 class ComplianceStatus(str, Enum):
     """Compliance status"""
-    COMPLIANT = "compliant"
+    COMPLIANT="compliant"
     NON_COMPLIANT = "non_compliant"
     WARNING = "warning"
     CRITICAL = "critical"
@@ -76,9 +76,9 @@ class ComplianceRuleDefinition:
     threshold: float
     measurement_period: int  # days
     severity: str  # "low", "medium", "high", "critical"
-    is_active: bool = True
+    is_active: bool=True
     created_date: datetime = field(default_factory=datetime.now)
-    last_updated: datetime = field(default_factory=datetime.now)
+    last_updated: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -127,9 +127,9 @@ class RegulatoryComplianceManager:
     """
     
     def __init__(self, 
-                 primary_authority: RegulatoryAuthority = RegulatoryAuthority.FCA,
-                 enable_audit_trail: bool = True,
-                 compliance_db_path: str = "compliance.db"):
+                 primary_authority: RegulatoryAuthority=RegulatoryAuthority.FCA,
+                 enable_audit_trail: bool=True,
+                 compliance_db_path: str="compliance.db"):
         """
         Initialize regulatory compliance manager
         
@@ -138,7 +138,7 @@ class RegulatoryComplianceManager:
             enable_audit_trail: Enable audit trail logging
             compliance_db_path: Path to compliance database
         """
-        self.primary_authority = primary_authority
+        self.primary_authority=primary_authority
         self.enable_audit_trail = enable_audit_trail
         self.compliance_db_path = compliance_db_path
         
@@ -150,7 +150,7 @@ class RegulatoryComplianceManager:
         self.audit_trail: List[AuditTrail] = []
         
         # Performance tracking
-        self.check_count = 0
+        self.check_count=0
         self.violation_count = 0
         self.last_compliance_check = None
         
@@ -167,7 +167,7 @@ class RegulatoryComplianceManager:
         """Initialize compliance database"""
         try:
             with sqlite3.connect(self.compliance_db_path) as conn:
-                cursor = conn.cursor()
+                cursor=conn.cursor()
                 
                 # Compliance rules table
                 cursor.execute("""
@@ -247,11 +247,11 @@ class RegulatoryComplianceManager:
         """Load default compliance rules"""
         try:
             # FCA compliance rules
-            if self.primary_authority == RegulatoryAuthority.FCA:
+            if self.primary_authority== RegulatoryAuthority.FCA:
                 self._load_fca_rules()
             
             # CFTC compliance rules
-            elif self.primary_authority == RegulatoryAuthority.CFTC:
+            elif self.primary_authority== RegulatoryAuthority.CFTC:
                 self._load_cftc_rules()
             
             # Generic compliance rules
@@ -265,7 +265,7 @@ class RegulatoryComplianceManager:
     
     def _load_fca_rules(self):
         """Load FCA-specific compliance rules"""
-        fca_rules = [
+        fca_rules=[
             ComplianceRuleDefinition(
                 rule_id="FCA_POSITION_LIMIT_001",
                 authority=RegulatoryAuthority.FCA,
@@ -309,7 +309,7 @@ class RegulatoryComplianceManager:
     
     def _load_cftc_rules(self):
         """Load CFTC-specific compliance rules"""
-        cftc_rules = [
+        cftc_rules=[
             ComplianceRuleDefinition(
                 rule_id="CFTC_POSITION_LIMIT_001",
                 authority=RegulatoryAuthority.CFTC,
@@ -344,7 +344,7 @@ class RegulatoryComplianceManager:
     
     def _load_generic_rules(self):
         """Load generic compliance rules"""
-        generic_rules = [
+        generic_rules=[
             ComplianceRuleDefinition(
                 rule_id="GEN_POSITION_LIMIT_001",
                 authority=self.primary_authority,
@@ -382,11 +382,11 @@ class RegulatoryComplianceManager:
             List[ComplianceCheck]: Compliance check results
         """
         try:
-            checks = []
+            checks=[]
             
             for rule_id, rule in self.compliance_rules.items():
                 if rule.is_active:
-                    check = await self._run_compliance_check(rule, portfolio_data, risk_metrics)
+                    check=await self._run_compliance_check(rule, portfolio_data, risk_metrics)
                     if check:
                         checks.append(check)
                         self.compliance_checks.append(check)
@@ -394,7 +394,7 @@ class RegulatoryComplianceManager:
             # Update tracking
             self.check_count += len(checks)
             self.violation_count += len([c for c in checks if c.status != ComplianceStatus.COMPLIANT])
-            self.last_compliance_check = datetime.now()
+            self.last_compliance_check=datetime.now()
             
             # Log audit trail
             if self.enable_audit_trail:
@@ -404,7 +404,7 @@ class RegulatoryComplianceManager:
                     entity_type="portfolio",
                     entity_id="main",
                     old_values={},
-                    new_values={"checks_run": len(checks), "violations": self.violation_count},
+                    new_values={"checks_run":len(checks), "violations":self.violation_count},
                     reason="Scheduled compliance check"
                 )
             
@@ -423,13 +423,13 @@ class RegulatoryComplianceManager:
         """Run individual compliance check"""
         try:
             # Get current value based on rule type
-            current_value = await self._get_current_value(rule, portfolio_data, risk_metrics)
+            current_value=await self._get_current_value(rule, portfolio_data, risk_metrics)
             
             if current_value is None:
                 return None
             
             # Check compliance
-            if rule.rule_type == ComplianceRule.POSITION_LIMITS:
+            if rule.rule_type== ComplianceRule.POSITION_LIMITS:
                 is_compliant = current_value <= rule.threshold
             elif rule.rule_type == ComplianceRule.RISK_LIMITS:
                 is_compliant = current_value <= rule.threshold
@@ -442,10 +442,8 @@ class RegulatoryComplianceManager:
             if is_compliant:
                 status = ComplianceStatus.COMPLIANT
             else:
-                if rule.severity == "critical":
-                    status = ComplianceStatus.CRITICAL
-                elif rule.severity == "high":
-                    status = ComplianceStatus.NON_COMPLIANT
+                if rule.severity == "critical":status = ComplianceStatus.CRITICAL
+                elif rule.severity == "high":status = ComplianceStatus.NON_COMPLIANT
                 else:
                     status = ComplianceStatus.WARNING
             
@@ -456,7 +454,7 @@ class RegulatoryComplianceManager:
             remediation_actions = await self._generate_remediation_actions(rule, current_value, deviation)
             
             # Create check result
-            check = ComplianceCheck(
+            check=ComplianceCheck(
                 check_id=f"{rule.rule_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
                 rule_id=rule.rule_id,
                 timestamp=datetime.now(),
@@ -466,9 +464,9 @@ class RegulatoryComplianceManager:
                 deviation=deviation,
                 severity=rule.severity,
                 details={
-                    "rule_description": rule.description,
-                    "measurement_period": rule.measurement_period,
-                    "authority": rule.authority.value
+                    "rule_description":rule.description,
+                    "measurement_period":rule.measurement_period,
+                    "authority":rule.authority.value
                 },
                 remediation_actions=remediation_actions
             )
@@ -485,28 +483,28 @@ class RegulatoryComplianceManager:
                                risk_metrics: Dict[str, Any]) -> Optional[float]:
         """Get current value for compliance check"""
         try:
-            if rule.rule_type == ComplianceRule.POSITION_LIMITS:
+            if rule.rule_type== ComplianceRule.POSITION_LIMITS:
                 # Get maximum position size
                 positions = portfolio_data.get('positions', {})
                 if not positions:
                     return 0.0
                 
-                total_value = sum(pos.get('value', 0) for pos in positions.values())
-                if total_value == 0:
+                total_value=sum(pos.get('value', 0) for pos in positions.values())
+                if total_value== 0:
                     return 0.0
                 
                 max_position = max(pos.get('value', 0) for pos in positions.values())
                 return max_position / total_value
             
-            elif rule.rule_type == ComplianceRule.RISK_LIMITS:
+            elif rule.rule_type== ComplianceRule.RISK_LIMITS:
                 # Get VaR
                 return risk_metrics.get('portfolio_var', 0.0)
             
-            elif rule.rule_type == ComplianceRule.CAPITAL_REQUIREMENTS:
+            elif rule.rule_type== ComplianceRule.CAPITAL_REQUIREMENTS:
                 # Get capital ratio
                 return portfolio_data.get('capital_ratio', 0.0)
             
-            elif rule.rule_type == ComplianceRule.REPORTING_REQUIREMENTS:
+            elif rule.rule_type== ComplianceRule.REPORTING_REQUIREMENTS:
                 # Get risk level for reporting
                 return risk_metrics.get('portfolio_var', 0.0)
             
@@ -523,7 +521,7 @@ class RegulatoryComplianceManager:
                                           deviation: float) -> List[str]:
         """Generate remediation actions for compliance violations"""
         try:
-            actions = []
+            actions=[]
             
             if rule.rule_type == ComplianceRule.POSITION_LIMITS:
                 if deviation > 0:
@@ -531,21 +529,20 @@ class RegulatoryComplianceManager:
                     actions.append("Consider portfolio rebalancing")
                     actions.append("Review position sizing methodology")
             
-            elif rule.rule_type == ComplianceRule.RISK_LIMITS:
+            elif rule.rule_type== ComplianceRule.RISK_LIMITS:
                 if deviation > 0:
                     actions.append(f"Reduce portfolio risk by {deviation:.2%}")
                     actions.append("Implement additional hedging")
                     actions.append("Review risk management policies")
             
-            elif rule.rule_type == ComplianceRule.CAPITAL_REQUIREMENTS:
+            elif rule.rule_type== ComplianceRule.CAPITAL_REQUIREMENTS:
                 if deviation < 0:
                     actions.append(f"Increase capital by {abs(deviation):.2%}")
                     actions.append("Review capital allocation")
                     actions.append("Consider capital injection")
             
             # Generic actions
-            if rule.severity == "critical":
-                actions.append("Immediate management notification required")
+            if rule.severity== "critical":actions.append("Immediate management notification required")
                 actions.append("Suspend trading until compliance restored")
             
             return actions
@@ -562,14 +559,14 @@ class RegulatoryComplianceManager:
                              old_values: Dict[str, Any],
                              new_values: Dict[str, Any],
                              reason: str,
-                             ip_address: str = None,
-                             session_id: str = None):
+                             ip_address: str=None,
+                             session_id: str=None):
         """Log audit trail entry"""
         try:
             if not self.enable_audit_trail:
                 return
             
-            entry = AuditTrail(
+            entry=AuditTrail(
                 entry_id=f"audit_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}",
                 timestamp=datetime.now(),
                 user_id=user_id,
@@ -628,17 +625,17 @@ class RegulatoryComplianceManager:
             str: Report ID
         """
         try:
-            report_id = f"report_{report_type}_{period_start.strftime('%Y%m%d')}_{period_end.strftime('%Y%m%d')}"
+            report_id=f"report_{report_type}_{period_start.strftime('%Y%m%d')}_{period_end.strftime('%Y%m%d')}"
             
             # Generate report data
-            report_data = {
-                "report_id": report_id,
-                "authority": self.primary_authority.value,
-                "report_type": report_type,
-                "period_start": period_start.isoformat(),
-                "period_end": period_end.isoformat(),
-                "generated_date": datetime.now().isoformat(),
-                "data": serialize_datetime(data)  # Serialize any datetime objects in data
+            report_data={
+                "report_id":report_id,
+                "authority":self.primary_authority.value,
+                "report_type":report_type,
+                "period_start":period_start.isoformat(),
+                "period_end":period_end.isoformat(),
+                "generated_date":datetime.now().isoformat(),
+                "data":serialize_datetime(data)  # Serialize any datetime objects in data
             }
             
             # Store in database
@@ -667,7 +664,7 @@ class RegulatoryComplianceManager:
                 entity_type="report",
                 entity_id=report_id,
                 old_values={},
-                new_values={"report_type": report_type, "period": f"{period_start} to {period_end}"},
+                new_values={"report_type":report_type, "period":f"{period_start} to {period_end}"},
                 reason=f"Generated {report_type} regulatory report"
             )
             
@@ -683,39 +680,38 @@ class RegulatoryComplianceManager:
         """Get compliance summary"""
         try:
             # Get recent checks
-            recent_checks = [c for c in self.compliance_checks 
+            recent_checks=[c for c in self.compliance_checks 
                            if c.timestamp >= datetime.now() - timedelta(days=7)]
             
             # Count by status
-            status_counts = {}
+            status_counts={}
             for status in ComplianceStatus:
                 status_counts[status.value] = len([c for c in recent_checks if c.status == status])
             
             # Get critical violations
-            critical_violations = [c for c in recent_checks 
+            critical_violations=[c for c in recent_checks 
                                  if c.status == ComplianceStatus.CRITICAL]
             
             summary = {
-                "authority": self.primary_authority.value,
-                "total_rules": len(self.compliance_rules),
-                "active_rules": len([r for r in self.compliance_rules.values() if r.is_active]),
-                "checks_run": self.check_count,
-                "violations": self.violation_count,
-                "last_check": self.last_compliance_check.isoformat() if self.last_compliance_check else None,
-                "recent_checks": len(recent_checks),
-                "status_counts": status_counts,
-                "critical_violations": len(critical_violations),
-                "audit_trail_entries": len(self.audit_trail)
+                "authority":self.primary_authority.value,
+                "total_rules":len(self.compliance_rules),
+                "active_rules":len([r for r in self.compliance_rules.values() if r.is_active]),
+                "checks_run":self.check_count,
+                "violations":self.violation_count,
+                "last_check":self.last_compliance_check.isoformat() if self.last_compliance_check else None,
+                "recent_checks":len(recent_checks),
+                "status_counts":status_counts,
+                "critical_violations":len(critical_violations),
+                "audit_trail_entries":len(self.audit_trail)
             }
             
             return summary
             
         except Exception as e:
             self.logger.error(f"Error getting compliance summary: {e}")
-            return {"error": str(e)}
+            return {"error":str(e)}
     
-    def check_position_compliance(self, positions: Dict[str, Any]) -> 'ComplianceCheck':
-        """
+    def check_position_compliance(self, positions: Dict[str, Any]) -> 'ComplianceCheck':"""
         Check position compliance against rules
         
         Args:
@@ -726,19 +722,19 @@ class RegulatoryComplianceManager:
         """
         try:
             # Calculate portfolio metrics
-            total_value = sum(pos.get('value', 0) for pos in positions.values())
-            max_position = max(pos.get('value', 0) for pos in positions.values()) if positions else 0
-            concentration_risk = max_position / total_value if total_value > 0 else 0
+            total_value=sum(pos.get('value', 0) for pos in positions.values())
+            max_position=max(pos.get('value', 0) for pos in positions.values()) if positions else 0
+            concentration_risk=max_position / total_value if total_value > 0 else 0
             
             # Check against position limit rules
             violations = []
             for rule_id, rule in self.compliance_rules.items():
-                if rule.rule_type == ComplianceRule.POSITION_LIMITS:
+                if rule.rule_type== ComplianceRule.POSITION_LIMITS:
                     if concentration_risk > rule.threshold:
                         violations.append(f"Position concentration {concentration_risk:.2%} exceeds limit {rule.threshold:.2%}")
             
             # Determine compliance status
-            status = ComplianceStatus.NON_COMPLIANT if violations else ComplianceStatus.COMPLIANT
+            status=ComplianceStatus.NON_COMPLIANT if violations else ComplianceStatus.COMPLIANT
             
             # Generate remediation actions if needed
             remediation_actions = []
@@ -757,7 +753,7 @@ class RegulatoryComplianceManager:
                 threshold_value=0.2,  # Default position limit
                 deviation=max(0, concentration_risk - 0.2),
                 severity="high" if violations else "low",
-                details={"violations": violations, "concentration_risk": concentration_risk},
+                details={"violations":violations, "concentration_risk":concentration_risk},
                 remediation_actions=remediation_actions
             )
             
@@ -772,7 +768,7 @@ class RegulatoryComplianceManager:
                 threshold_value=0.2,
                 deviation=0.0,
                 severity="critical",
-                details={"error": str(e)},
+                details={"error":str(e)},
                 remediation_actions=["Review system configuration", "Check data integrity"]
             )
     
@@ -788,7 +784,7 @@ class RegulatoryComplianceManager:
                 entity_type="compliance_rule",
                 entity_id=rule.rule_id,
                 old_values={},
-                new_values={"rule_id": rule.rule_id, "description": rule.description},
+                new_values={"rule_id":rule.rule_id, "description":rule.description},
                 reason="Added new compliance rule"
             ))
             
@@ -803,14 +799,14 @@ class RegulatoryComplianceManager:
             if rule_id not in self.compliance_rules:
                 raise ValueError(f"Rule {rule_id} not found")
             
-            old_rule = self.compliance_rules[rule_id]
+            old_rule=self.compliance_rules[rule_id]
             
             # Update rule
             for key, value in updates.items():
                 if hasattr(old_rule, key):
                     setattr(old_rule, key, value)
             
-            old_rule.last_updated = datetime.now()
+            old_rule.last_updated=datetime.now()
             
             # Log audit trail
             asyncio.create_task(self._log_audit_trail(
@@ -818,7 +814,7 @@ class RegulatoryComplianceManager:
                 action="update_rule",
                 entity_type="compliance_rule",
                 entity_id=rule_id,
-                old_values={"threshold": old_rule.threshold, "severity": old_rule.severity},
+                old_values={"threshold":old_rule.threshold, "severity":old_rule.severity},
                 new_values=updates,
                 reason="Updated compliance rule"
             ))
@@ -830,33 +826,32 @@ class RegulatoryComplianceManager:
 
 
 # Example usage and testing
-if __name__ == "__main__":
-    async def test_regulatory_compliance():
+if __name__== "__main__":async def test_regulatory_compliance():
         # Initialize compliance manager
-        compliance_manager = RegulatoryComplianceManager(
+        compliance_manager=RegulatoryComplianceManager(
             primary_authority=RegulatoryAuthority.FCA,
             enable_audit_trail=True
         )
         
         # Simulate portfolio data
-        portfolio_data = {
-            "positions": {
-                "AAPL": {"value": 15000, "quantity": 100},
-                "SPY": {"value": 25000, "quantity": 50},
-                "TSLA": {"value": 10000, "quantity": 25}
+        portfolio_data={
+            "positions":{
+                "AAPL":{"value":15000, "quantity":100},
+                "SPY":{"value":25000, "quantity":50},
+                "TSLA":{"value":10000, "quantity":25}
             },
-            "capital_ratio": 0.12
+            "capital_ratio":0.12
         }
         
         # Simulate risk metrics
-        risk_metrics = {
-            "portfolio_var": 0.06,  # 6% VaR
-            "portfolio_cvar": 0.08,
-            "concentration_risk": 0.35
+        risk_metrics={
+            "portfolio_var":0.06,  # 6% VaR
+            "portfolio_cvar":0.08,
+            "concentration_risk":0.35
         }
         
         # Run compliance checks
-        checks = await compliance_manager.run_compliance_checks(portfolio_data, risk_metrics)
+        checks=await compliance_manager.run_compliance_checks(portfolio_data, risk_metrics)
         
         print(f"Ran {len(checks)} compliance checks")
         for check in checks:
@@ -864,17 +859,17 @@ if __name__ == "__main__":
                   f"(Current: {check.current_value:.2%}, Threshold: {check.threshold_value:.2%})")
         
         # Generate regulatory report
-        report_id = await compliance_manager.generate_regulatory_report(
+        report_id=await compliance_manager.generate_regulatory_report(
             "daily_risk_report",
             datetime.now() - timedelta(days=1),
             datetime.now(),
-            {"risk_metrics": risk_metrics, "portfolio_data": portfolio_data}
+            {"risk_metrics":risk_metrics, "portfolio_data":portfolio_data}
         )
         
         print(f"Generated report: {report_id}")
         
         # Get compliance summary
-        summary = await compliance_manager.get_compliance_summary()
+        summary=await compliance_manager.get_compliance_summary()
         print(f"Compliance Summary: {summary}")
     
     asyncio.run(test_regulatory_compliance())

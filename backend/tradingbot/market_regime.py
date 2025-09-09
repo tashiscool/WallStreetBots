@@ -13,7 +13,7 @@ from enum import Enum
 
 class MarketRegime(Enum):
     """Market regime classification"""
-    BULL = "bull"
+    BULL="bull"
     BEAR = "bear"
     SIDEWAYS = "sideways"
     UNDEFINED = "undefined"
@@ -21,7 +21,7 @@ class MarketRegime(Enum):
 
 class SignalType(Enum):
     """Trading signal types"""
-    BUY = "buy"
+    BUY="buy"
     SELL = "sell"
     HOLD = "hold"
     NO_SIGNAL = "no_signal"
@@ -48,8 +48,8 @@ class TechnicalIndicators:
 
     def __post_init__(self):
         """Calculate derived indicators"""
-        self.distance_from_20ema = (self.price - self.ema_20) / self.price if self.price > 0 else 0
-        self.distance_from_50ema = (self.price - self.ema_50) / self.price if self.price > 0 else 0
+        self.distance_from_20ema=(self.price - self.ema_20) / self.price if self.price > 0 else 0
+        self.distance_from_50ema=(self.price - self.ema_50) / self.price if self.price > 0 else 0
 
 
 @dataclass
@@ -61,11 +61,11 @@ class MarketSignal:
     price_target: Optional[float] = None
     stop_loss: Optional[float] = None
     reasoning: List[str] = None
-    timestamp: datetime = None
+    timestamp: datetime=None
 
     def __post_init__(self):
         if self.reasoning is None:
-            self.reasoning = []
+            self.reasoning=[]
         if self.timestamp is None:
             self.timestamp = datetime.now()
 
@@ -79,8 +79,8 @@ class TechnicalAnalysis:
         if len(prices) < period:
             return [np.nan] * len(prices)
 
-        alpha = 2.0 / (period + 1)
-        ema = [prices[0]]  # Start with first price
+        alpha=2.0 / (period + 1)
+        ema=[prices[0]]  # Start with first price
 
         for price in prices[1:]:
             ema.append(alpha * price + (1 - alpha) * ema[-1])
@@ -88,52 +88,52 @@ class TechnicalAnalysis:
         return ema
 
     @staticmethod
-    def calculate_rsi(prices: List[float], period: int = 14) -> List[float]:
+    def calculate_rsi(prices: List[float], period: int=14) -> List[float]:
         """Calculate Relative Strength Index"""
         if len(prices) < period + 1:
             return [np.nan] * len(prices)
 
-        deltas = [prices[i] - prices[i-1] for i in range(1, len(prices))]
-        gains = [max(0, delta) for delta in deltas]
-        losses = [-min(0, delta) for delta in deltas]
+        deltas=[prices[i] - prices[i-1] for i in range(1, len(prices))]
+        gains=[max(0, delta) for delta in deltas]
+        losses=[-min(0, delta) for delta in deltas]
 
         # Calculate initial averages
-        avg_gain = sum(gains[:period]) / period
-        avg_loss = sum(losses[:period]) / period
+        avg_gain=sum(gains[:period]) / period
+        avg_loss=sum(losses[:period]) / period
 
-        rsi_values = [np.nan] * (period)  # First 'period' values are NaN
+        rsi_values=[np.nan] * (period)  # First 'period' values are NaN
 
-        if avg_loss == 0:
+        if avg_loss== 0:
             rsi_values.append(100.0)
         else:
-            rs = avg_gain / avg_loss
+            rs=avg_gain / avg_loss
             rsi_values.append(100 - (100 / (1 + rs)))
 
         # Calculate subsequent RSI values
         for i in range(period, len(deltas)):
-            gain = gains[i]
+            gain=gains[i]
             loss = losses[i]
 
             avg_gain = (avg_gain * (period - 1) + gain) / period
-            avg_loss = (avg_loss * (period - 1) + loss) / period
+            avg_loss=(avg_loss * (period - 1) + loss) / period
 
-            if avg_loss == 0:
+            if avg_loss== 0:
                 rsi_values.append(100.0)
             else:
-                rs = avg_gain / avg_loss
+                rs=avg_gain / avg_loss
                 rsi_values.append(100 - (100 / (1 + rs)))
 
         return rsi_values
 
     @staticmethod
-    def calculate_atr(highs: List[float], lows: List[float], closes: List[float], period: int = 14) -> List[float]:
+    def calculate_atr(highs: List[float], lows: List[float], closes: List[float], period: int=14) -> List[float]:
         """Calculate Average True Range"""
         if len(highs) < period or len(lows) < period or len(closes) < period:
             return [np.nan] * len(closes)
 
-        true_ranges = []
+        true_ranges=[]
         for i in range(1, len(closes)):
-            tr = max(
+            tr=max(
                 highs[i] - lows[i],
                 abs(highs[i] - closes[i-1]),
                 abs(lows[i] - closes[i-1])
@@ -141,38 +141,38 @@ class TechnicalAnalysis:
             true_ranges.append(tr)
 
         # Calculate ATR using simple moving average initially
-        atr_values = [np.nan]  # First value is NaN
+        atr_values=[np.nan]  # First value is NaN
 
         if len(true_ranges) >= period:
             # Initial ATR
-            initial_atr = sum(true_ranges[:period]) / period
+            initial_atr=sum(true_ranges[:period]) / period
             atr_values.extend([np.nan] * (period - 1))
             atr_values.append(initial_atr)
 
             # Subsequent ATR values using Wilder's smoothing
             for i in range(period, len(true_ranges)):
-                atr = (atr_values[-1] * (period - 1) + true_ranges[i]) / period
+                atr=(atr_values[-1] * (period - 1) + true_ranges[i]) / period
                 atr_values.append(atr)
 
         return atr_values
 
     @staticmethod
-    def calculate_slope(values: List[float], period: int = 5) -> float:
+    def calculate_slope(values: List[float], period: int=5) -> float:
         """Calculate slope of recent values using linear regression"""
         if len(values) < period:
             return 0.0
 
-        recent_values = values[-period:]
+        recent_values=values[-period:]
         x = np.arange(len(recent_values))
 
         # Linear regression slope
-        n = len(recent_values)
-        sum_x = sum(x)
-        sum_y = sum(recent_values)
-        sum_xy = sum(x[i] * recent_values[i] for i in range(n))
-        sum_x2 = sum(xi ** 2 for xi in x)
+        n=len(recent_values)
+        sum_x=sum(x)
+        sum_y=sum(recent_values)
+        sum_xy=sum(x[i] * recent_values[i] for i in range(n))
+        sum_x2=sum(xi ** 2 for xi in x)
 
-        slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x ** 2)
+        slope=(n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x ** 2)
         return slope
 
 
@@ -184,10 +184,10 @@ class MarketRegimeFilter:
     """
 
     def __init__(self):
-        self.ta = TechnicalAnalysis()
+        self.ta=TechnicalAnalysis()
 
         # Regime parameters from playbook
-        self.min_trend_slope = 0.001  # Minimum positive slope for 20-EMA
+        self.min_trend_slope=0.001  # Minimum positive slope for 20-EMA
         self.rsi_pullback_min = 35
         self.rsi_pullback_max = 50
         self.max_distance_from_20ema = 0.01  # 1% maximum distance for pullback
@@ -202,7 +202,7 @@ class MarketRegimeFilter:
         3. 20-EMA slope positive
         """
         # Bull regime checks
-        above_50ema = indicators.price > indicators.ema_50
+        above_50ema=indicators.price > indicators.ema_50
         ema_alignment = indicators.ema_50 > indicators.ema_200
         positive_trend = indicators.ema_20_slope > self.min_trend_slope
 
@@ -210,7 +210,7 @@ class MarketRegimeFilter:
             return MarketRegime.BULL
 
         # Bear regime (inverse conditions)
-        below_50ema = indicators.price < indicators.ema_50
+        below_50ema=indicators.price < indicators.ema_50
         ema_bearish = indicators.ema_50 < indicators.ema_200
         negative_trend = indicators.ema_20_slope < -self.min_trend_slope
 
@@ -234,19 +234,19 @@ class MarketRegimeFilter:
         4. Still above 50-EMA (regime intact)
         """
         # Previous day was red (approximated by significant decline)
-        prev_day_red = indicators.price < prev_indicators.price * 0.998  # At least 0.2% decline
+        prev_day_red=indicators.price < prev_indicators.price * 0.998  # At least 0.2% decline
 
         # Near 20-EMA (within 1% or touching)
-        near_20ema = (
+        near_20ema=(
             abs(indicators.distance_from_20ema) <= self.max_distance_from_20ema or
             indicators.low_24h <= indicators.ema_20
         )
 
         # RSI in pullback range
-        rsi_in_range = self.rsi_pullback_min <= indicators.rsi_14 <= self.rsi_pullback_max
+        rsi_in_range=self.rsi_pullback_min <= indicators.rsi_14 <= self.rsi_pullback_max
 
         # Still above 50-EMA (trend intact)
-        above_50ema = indicators.price > indicators.ema_50
+        above_50ema=indicators.price > indicators.ema_50
 
         return prev_day_red and near_20ema and rsi_in_range and above_50ema
 
@@ -260,13 +260,13 @@ class MarketRegimeFilter:
         3. Volume expansion (if available)
         """
         # Recovery above 20-EMA
-        above_20ema = indicators.price > indicators.ema_20
+        above_20ema=indicators.price > indicators.ema_20
 
         # Above previous high (momentum)
-        above_prev_high = indicators.price > prev_indicators.high_24h
+        above_prev_high=indicators.price > prev_indicators.high_24h
 
         # Volume confirmation (if volume significantly higher)
-        volume_expansion = indicators.volume > prev_indicators.volume * 1.2
+        volume_expansion=indicators.volume > prev_indicators.volume * 1.2
 
         return above_20ema and above_prev_high and volume_expansion
 
@@ -275,14 +275,14 @@ class SignalGenerator:
     """Generate trading signals based on regime and technical setup"""
 
     def __init__(self):
-        self.regime_filter = MarketRegimeFilter()
+        self.regime_filter=MarketRegimeFilter()
 
     def generate_signal(
         self,
         current_indicators: TechnicalIndicators,
         previous_indicators: TechnicalIndicators,
-        earnings_risk: bool = False,
-        macro_risk: bool = False
+        earnings_risk: bool=False,
+        macro_risk: bool=False
     ) -> MarketSignal:
         """
         Generate trading signal based on regime and setup
@@ -296,8 +296,8 @@ class SignalGenerator:
         Returns:
             MarketSignal with recommendation
         """
-        regime = self.regime_filter.determine_regime(current_indicators)
-        reasoning = []
+        regime=self.regime_filter.determine_regime(current_indicators)
+        reasoning=[]
 
         # Risk filters first
         if earnings_risk:
@@ -314,7 +314,7 @@ class SignalGenerator:
             return MarketSignal(SignalType.NO_SIGNAL, 0.0, regime, reasoning=reasoning)
 
         # Check for pullback setup
-        has_pullback_setup = self.regime_filter.detect_pullback_setup(
+        has_pullback_setup=self.regime_filter.detect_pullback_setup(
             current_indicators, previous_indicators
         )
 
@@ -322,7 +322,7 @@ class SignalGenerator:
             reasoning.append("Pullback setup detected: red day into 20-EMA support with RSI 35-50")
 
             # Check for reversal trigger
-            has_reversal_trigger = self.regime_filter.detect_reversal_trigger(
+            has_reversal_trigger=self.regime_filter.detect_reversal_trigger(
                 current_indicators, previous_indicators
             )
 
@@ -333,7 +333,7 @@ class SignalGenerator:
                 ])
 
                 # Calculate confidence based on signal strength
-                confidence = self._calculate_signal_confidence(current_indicators, previous_indicators)
+                confidence=self._calculate_signal_confidence(current_indicators, previous_indicators)
 
                 return MarketSignal(
                     SignalType.BUY,
@@ -355,7 +355,7 @@ class SignalGenerator:
         previous: TechnicalIndicators
     ) -> float:
         """Calculate signal confidence based on multiple factors"""
-        confidence = 0.0
+        confidence=0.0
 
         # Base confidence for bull regime
         confidence += 0.3
@@ -371,7 +371,7 @@ class SignalGenerator:
             confidence += 0.1
 
         # Volume confirmation
-        volume_ratio = current.volume / previous.volume if previous.volume > 0 else 1.0
+        volume_ratio=current.volume / previous.volume if previous.volume > 0 else 1.0
         if volume_ratio > 1.5:  # Strong volume
             confidence += 0.2
         elif volume_ratio > 1.2:  # Moderate volume
@@ -391,9 +391,9 @@ def create_sample_indicators(
     ema_50: float,
     ema_200: float,
     rsi: float,
-    volume: int = 1000000,
-    high: float = None,
-    low: float = None
+    volume: int=1000000,
+    high: float=None,
+    low: float=None
 ) -> TechnicalIndicators:
     """Helper function to create sample indicators for testing"""
     return TechnicalIndicators(
@@ -409,15 +409,14 @@ def create_sample_indicators(
     )
 
 
-if __name__ == "__main__":
-    # Test the regime filter and signal generator
+if __name__== "__main__":# Test the regime filter and signal generator
     signal_gen = SignalGenerator()
 
     # Test case 1: Bull regime pullback setup
-    print("=== TEST CASE 1: BULL REGIME PULLBACK ===")
+    print("=== TEST CASE 1: BULL REGIME PULLBACK===")
 
     # Previous day (red day)
-    prev_indicators = create_sample_indicators(
+    prev_indicators=create_sample_indicators(
         price=210.0,
         ema_20=208.0,
         ema_50=205.0,
@@ -427,7 +426,7 @@ if __name__ == "__main__":
     )
 
     # Current day (pullback to 20-EMA with reversal)
-    current_indicators = create_sample_indicators(
+    current_indicators=create_sample_indicators(
         price=208.5,
         ema_20=208.0,
         ema_50=205.0,
@@ -438,7 +437,7 @@ if __name__ == "__main__":
         low=207.0
     )
 
-    signal = signal_gen.generate_signal(current_indicators, prev_indicators)
+    signal=signal_gen.generate_signal(current_indicators, prev_indicators)
     print(f"Signal: {signal.signal_type.value}")
     print(f"Confidence: {signal.confidence:.2f}")
     print(f"Regime: {signal.regime.value}")
@@ -449,7 +448,7 @@ if __name__ == "__main__":
     # Test case 2: Bear regime
     print("\n=== TEST CASE 2: BEAR REGIME ===")
 
-    bear_indicators = create_sample_indicators(
+    bear_indicators=create_sample_indicators(
         price=195.0,
         ema_20=198.0,
         ema_50=202.0,
@@ -458,7 +457,7 @@ if __name__ == "__main__":
         volume=1000000
     )
 
-    signal = signal_gen.generate_signal(bear_indicators, bear_indicators)
+    signal=signal_gen.generate_signal(bear_indicators, bear_indicators)
     print(f"Signal: {signal.signal_type.value}")
     print(f"Confidence: {signal.confidence:.2f}")
     print(f"Regime: {signal.regime.value}")

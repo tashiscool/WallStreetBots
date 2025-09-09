@@ -15,7 +15,7 @@ def setup_simple_bot():
     # Check if .env exists
     if not os.path.exists('.env'):
         print("📝 Creating .env file...")
-        env_content = """# Alpaca API Configuration
+        env_content="""# Alpaca API Configuration
 ALPACA_API_KEY=your_paper_trading_key_here
 ALPACA_SECRET_KEY=your_paper_trading_secret_here
 
@@ -61,8 +61,7 @@ MAX_POSITION_SIZE=50
     
     return True
 
-if __name__ == "__main__":
-    setup_simple_bot()
+if __name__== "__main__":setup_simple_bot()
 
 
 

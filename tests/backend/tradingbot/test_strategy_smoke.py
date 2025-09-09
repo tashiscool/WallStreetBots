@@ -32,21 +32,21 @@ class TestStrategySmokeTests(unittest.TestCase):
     
     def test_momentum_weeklies_initialization(self):
         """Test momentum weeklies scanner initializes"""
-        scanner = MomentumWeekliesScanner()
+        scanner=MomentumWeekliesScanner()
         self.assertIsInstance(scanner, MomentumWeekliesScanner)
         self.assertIsInstance(scanner.mega_caps, list)
         self.assertGreater(len(scanner.mega_caps), 0)
         
     def test_momentum_weeklies_expiry_calculation(self):
         """Test weekly expiry calculation"""
-        scanner = MomentumWeekliesScanner()
-        expiry = scanner.get_next_weekly_expiry()
+        scanner=MomentumWeekliesScanner()
+        expiry=scanner.get_next_weekly_expiry()
         self.assertIsInstance(expiry, str)
         self.assertEqual(len(expiry), 10)  # YYYY-MM-DD format
         
     def test_momentum_signal_creation(self):
         """Test MomentumSignal dataclass"""
-        signal = MomentumSignal(
+        signal=MomentumSignal(
             ticker="AAPL",
             signal_time=datetime.now(),
             current_price=150.0,
@@ -65,13 +65,13 @@ class TestStrategySmokeTests(unittest.TestCase):
         
     def test_debit_spreads_initialization(self):
         """Test debit spreads scanner initializes"""
-        scanner = DebitSpreadScanner()
+        scanner=DebitSpreadScanner()
         self.assertIsInstance(scanner, DebitSpreadScanner)
         
     def test_debit_spreads_black_scholes(self):
         """Test Black-Scholes calculation"""
-        scanner = DebitSpreadScanner()
-        price, delta = scanner.black_scholes_call(100.0, 105.0, 0.25, 0.05, 0.20)
+        scanner=DebitSpreadScanner()
+        price, delta=scanner.black_scholes_call(100.0, 105.0, 0.25, 0.05, 0.20)
         self.assertIsInstance(price, float)
         self.assertIsInstance(delta, float)
         self.assertGreater(price, 0)
@@ -80,7 +80,7 @@ class TestStrategySmokeTests(unittest.TestCase):
     def test_spread_opportunity_creation(self):
         """Test SpreadOpportunity dataclass"""
         from datetime import date
-        opportunity = SpreadOpportunity(
+        opportunity=SpreadOpportunity(
             ticker="SPY",
             scan_date=date.today(),
             spot_price=400.0,
@@ -106,12 +106,12 @@ class TestStrategySmokeTests(unittest.TestCase):
         
     def test_leaps_tracker_initialization(self):
         """Test LEAPS tracker initializes"""
-        tracker = LEAPSTracker()
+        tracker=LEAPSTracker()
         self.assertIsInstance(tracker, LEAPSTracker)
         
     def test_leaps_position_creation(self):
         """Test LEAPSPosition dataclass"""
-        position = LEAPSPosition(
+        position=LEAPSPosition(
             ticker="AAPL",
             theme="AI Revolution",
             entry_date=date(2024, 1, 15),
@@ -138,12 +138,12 @@ class TestStrategySmokeTests(unittest.TestCase):
         
     def test_lotto_scanner_initialization(self):
         """Test lotto scanner initializes"""
-        scanner = LottoScanner()
+        scanner=LottoScanner()
         self.assertIsInstance(scanner, LottoScanner)
         
     def test_lotto_play_creation(self):
         """Test LottoPlay dataclass"""
-        play = LottoPlay(
+        play=LottoPlay(
             ticker="TSLA",
             play_type="0dte",
             expiry_date="2024-01-19",
@@ -168,12 +168,12 @@ class TestStrategySmokeTests(unittest.TestCase):
         
     def test_wheel_strategy_initialization(self):
         """Test wheel strategy initializes"""
-        strategy = WheelStrategy()
+        strategy=WheelStrategy()
         self.assertIsInstance(strategy, WheelStrategy)
         
     def test_wheel_position_creation(self):
         """Test WheelPosition dataclass"""
-        position = WheelPosition(
+        position=WheelPosition(
             ticker="AAPL",
             position_type="cash_secured_put",
             shares=0,
@@ -195,7 +195,7 @@ class TestStrategySmokeTests(unittest.TestCase):
     def test_dip_signal_creation(self):
         """Test DipSignal class"""
         # Use the correct DipSignal fields from wsb_dip_bot.py
-        signal = DipSignal(
+        signal=DipSignal(
             ticker="AAPL",
             ts_ny="2024-01-19 15:30:00",
             spot=150.0,
@@ -213,14 +213,14 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
     
     def test_momentum_weeklies_volume_detection(self):
         """Test volume spike detection"""
-        scanner = MomentumWeekliesScanner()
+        scanner=MomentumWeekliesScanner()
         
         with patch('backend.tradingbot.strategies.momentum_weeklies.yf.Ticker') as mock_ticker:
-            mock_stock = Mock()
-            mock_stock.history.return_value = pd.DataFrame({
-                'Volume': [1000000, 1200000, 1100000, 1300000, 1000000, 2000000]
+            mock_stock=Mock()
+            mock_stock.history.return_value=pd.DataFrame({
+                'Volume':[1000000, 1200000, 1100000, 1300000, 1000000, 2000000]
             })
-            mock_ticker.return_value = mock_stock
+            mock_ticker.return_value=mock_stock
             
             result = scanner.detect_volume_spike("AAPL")
             self.assertIsInstance(result, tuple)
@@ -228,15 +228,15 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
             
     def test_momentum_weeklies_reversal_detection(self):
         """Test reversal pattern detection"""
-        scanner = MomentumWeekliesScanner()
+        scanner=MomentumWeekliesScanner()
         
         with patch('backend.tradingbot.strategies.momentum_weeklies.yf.Ticker') as mock_ticker:
-            mock_stock = Mock()
-            mock_stock.history.return_value = pd.DataFrame({
-                'Close': [100, 98, 96, 94, 92, 90, 88, 90, 92, 94, 96, 98, 100],
-                'Volume': [1000000] * 13
+            mock_stock=Mock()
+            mock_stock.history.return_value=pd.DataFrame({
+                'Close':[100, 98, 96, 94, 92, 90, 88, 90, 92, 94, 96, 98, 100],
+                'Volume':[1000000] * 13
             })
-            mock_ticker.return_value = mock_stock
+            mock_ticker.return_value=mock_stock
             
             result = scanner.detect_reversal_pattern("AAPL")
             self.assertIsInstance(result, tuple)
@@ -244,14 +244,14 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
             
     def test_debit_spreads_iv_calculation(self):
         """Test IV rank calculation"""
-        scanner = DebitSpreadScanner()
+        scanner=DebitSpreadScanner()
         
         with patch('backend.tradingbot.strategies.debit_spreads.yf.Ticker') as mock_ticker:
-            mock_stock = Mock()
-            mock_stock.history.return_value = pd.DataFrame({
-                'Close': [100.0, 101.0, 102.0, 103.0, 104.0, 105.0]
+            mock_stock=Mock()
+            mock_stock.history.return_value=pd.DataFrame({
+                'Close':[100.0, 101.0, 102.0, 103.0, 104.0, 105.0]
             })
-            mock_ticker.return_value = mock_stock
+            mock_ticker.return_value=mock_stock
             
             iv_rank = scanner.calculate_iv_rank("SPY", 0.20)
             self.assertIsInstance(iv_rank, (int, float))
@@ -260,14 +260,14 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
             
     def test_debit_spreads_trend_assessment(self):
         """Test trend strength assessment"""
-        scanner = DebitSpreadScanner()
+        scanner=DebitSpreadScanner()
         
         with patch('backend.tradingbot.strategies.debit_spreads.yf.Ticker') as mock_ticker:
-            mock_stock = Mock()
-            mock_stock.history.return_value = pd.DataFrame({
-                'Close': [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
+            mock_stock=Mock()
+            mock_stock.history.return_value=pd.DataFrame({
+                'Close':[100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
             })
-            mock_ticker.return_value = mock_stock
+            mock_ticker.return_value=mock_stock
             
             trend_strength = scanner.assess_trend_strength("SPY")
             self.assertIsInstance(trend_strength, float)
@@ -280,24 +280,24 @@ class TestStrategyErrorHandling(unittest.TestCase):
     
     def test_momentum_weeklies_error_handling(self):
         """Test error handling in momentum weeklies"""
-        scanner = MomentumWeekliesScanner()
+        scanner=MomentumWeekliesScanner()
         
         with patch('backend.tradingbot.strategies.momentum_weeklies.yf.Ticker') as mock_ticker:
-            mock_ticker.side_effect = Exception("Network error")
+            mock_ticker.side_effect=Exception("Network error")
             
             # Should handle gracefully without crashing
-            result = scanner.detect_volume_spike("INVALID")
+            result=scanner.detect_volume_spike("INVALID")
             self.assertIsInstance(result, tuple)
             
     def test_debit_spreads_error_handling(self):
         """Test error handling in debit spreads"""
-        scanner = DebitSpreadScanner()
+        scanner=DebitSpreadScanner()
         
         with patch('backend.tradingbot.strategies.debit_spreads.yf.Ticker') as mock_ticker:
-            mock_ticker.side_effect = Exception("Network error")
+            mock_ticker.side_effect=Exception("Network error")
             
             # Should handle gracefully without crashing
-            result = scanner.calculate_iv_rank("INVALID", 0.20)
+            result=scanner.calculate_iv_rank("INVALID", 0.20)
             self.assertIsInstance(result, float)
 
 
@@ -308,22 +308,22 @@ def run_smoke_tests():
     print("=" * 60)
     
     # Create test suite
-    test_suite = unittest.TestSuite()
+    test_suite=unittest.TestSuite()
     
     # Add test classes
-    test_classes = [
+    test_classes=[
         TestStrategySmokeTests,
         TestStrategyBasicFunctionality,
         TestStrategyErrorHandling
     ]
     
     for test_class in test_classes:
-        tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
+        tests=unittest.TestLoader().loadTestsFromTestCase(test_class)
         test_suite.addTests(tests)
     
     # Run tests
-    runner = unittest.TextTestRunner(verbosity=2)
-    result = runner.run(test_suite)
+    runner=unittest.TextTestRunner(verbosity=2)
+    result=runner.run(test_suite)
     
     # Print summary
     print("\n" + "=" * 60)
@@ -333,7 +333,7 @@ def run_smoke_tests():
     print(f"Failures: {len(result.failures)}")
     print(f"Errors: {len(result.errors)}")
     
-    success_rate = ((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun) * 100
+    success_rate=((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun) * 100
     print(f"SUCCESS RATE: {success_rate:.1f}%")
     
     if result.failures:
@@ -351,5 +351,4 @@ def run_smoke_tests():
     return result
 
 
-if __name__ == "__main__":
-    run_smoke_tests()
+if __name__== "__main__":run_smoke_tests()

@@ -28,39 +28,37 @@ from backend.tradingbot.risk.integrated_advanced_risk_manager import (
 def generate_test_data():
     """Generate realistic test data for comprehensive testing"""
     # Create 1 year of market data
-    dates = pd.date_range('2023-01-01', '2024-01-01', freq='D')
+    dates=pd.date_range('2023-01-01', '2024-01-01', freq='D')
     np.random.seed(42)
     
-    symbols = ['AAPL', 'GOOGL', 'TSLA', 'SPY', 'BTC', 'EURUSD', 'GOLD']
-    market_data = {}
+    symbols=['AAPL', 'GOOGL', 'TSLA', 'SPY', 'BTC', 'EURUSD', 'GOLD']
+    market_data={}
     
     for symbol in symbols:
         # Generate realistic price movements
-        if symbol == 'BTC':
-            returns = np.random.normal(0.001, 0.05, len(dates))  # High volatility crypto
-        elif symbol == 'EURUSD':
-            returns = np.random.normal(0.0002, 0.008, len(dates))  # Lower vol forex
+        if symbol == 'BTC':returns = np.random.normal(0.001, 0.05, len(dates))  # High volatility crypto
+        elif symbol== 'EURUSD':returns = np.random.normal(0.0002, 0.008, len(dates))  # Lower vol forex
         else:
-            returns = np.random.normal(0.0008, 0.02, len(dates))  # Equity volatility
+            returns=np.random.normal(0.0008, 0.02, len(dates))  # Equity volatility
             
-        prices = 100 * np.cumprod(1 + returns)
+        prices=100 * np.cumprod(1 + returns)
         
         market_data[symbol] = pd.DataFrame({
-            'Open': prices,
-            'High': prices * 1.02,
-            'Low': prices * 0.98,
-            'Close': prices,
-            'Volume': np.random.randint(1000000, 10000000, len(dates))
+            'Open':prices,
+            'High':prices * 1.02,
+            'Low':prices * 0.98,
+            'Close':prices,
+            'Volume':np.random.randint(1000000, 10000000, len(dates))
         }, index=dates)
     
     # Create test positions
-    positions = {
-        'AAPL': {'qty': 100, 'value': 15000, 'delta': 100, 'gamma': 0, 'vega': 0},
-        'GOOGL': {'qty': 50, 'value': 20000, 'delta': 50, 'gamma': 0, 'vega': 0},
-        'TSLA': {'qty': 75, 'value': 18000, 'delta': 75, 'gamma': 0, 'vega': 0},
-        'SPY': {'qty': 200, 'value': 25000, 'delta': 200, 'gamma': 0, 'vega': 0},
-        'BTC': {'qty': 1, 'value': 15000, 'delta': 1, 'gamma': 0, 'vega': 0},
-        'GOLD': {'qty': 100, 'value': 7000, 'delta': 100, 'gamma': 0, 'vega': 0}
+    positions={
+        'AAPL':{'qty':100, 'value':15000, 'delta':100, 'gamma':0, 'vega':0},
+        'GOOGL':{'qty':50, 'value':20000, 'delta':50, 'gamma':0, 'vega':0},
+        'TSLA':{'qty':75, 'value':18000, 'delta':75, 'gamma':0, 'vega':0},
+        'SPY':{'qty':200, 'value':25000, 'delta':200, 'gamma':0, 'vega':0},
+        'BTC':{'qty':1, 'value':15000, 'delta':1, 'gamma':0, 'vega':0},
+        'GOLD':{'qty':100, 'value':7000, 'delta':100, 'gamma':0, 'vega':0}
     }
     
     return market_data, positions
@@ -72,7 +70,7 @@ async def test_basic_integration():
     
     try:
         # Create integrated risk system
-        risk_system = await create_integrated_risk_system(
+        risk_system=await create_integrated_risk_system(
             portfolio_value=100000,
             regulatory_authority="FCA"
         )
@@ -80,7 +78,7 @@ async def test_basic_integration():
         print("✅ Integrated risk system created successfully")
         
         # Check system status
-        status = risk_system.get_system_status()
+        status=risk_system.get_system_status()
         print(f"   System Status: {status['status']}")
         print(f"   Advanced Features: {status['advanced_features_available']}")
         print(f"   ML Agents: {status['config']['ml_agents_enabled']}")
@@ -100,11 +98,11 @@ async def test_comprehensive_risk_assessment():
     
     try:
         # Setup
-        risk_system = await create_integrated_risk_system(portfolio_value=100000)
-        market_data, positions = generate_test_data()
+        risk_system=await create_integrated_risk_system(portfolio_value=100000)
+        market_data, positions=generate_test_data()
         
         # Run comprehensive assessment
-        results = await risk_system.comprehensive_risk_assessment(positions, market_data)
+        results=await risk_system.comprehensive_risk_assessment(positions, market_data)
         
         print("✅ Comprehensive risk assessment completed")
         print(f"   Timestamp: {results.get('timestamp')}")
@@ -112,7 +110,7 @@ async def test_comprehensive_risk_assessment():
         
         # Check VaR analysis
         if 'var_analysis' in results:
-            var_data = results['var_analysis']
+            var_data=results['var_analysis']
             print("   VaR Analysis:")
             for method, data in var_data.items():
                 if isinstance(data, dict) and 'var_value' in data:
@@ -120,33 +118,33 @@ async def test_comprehensive_risk_assessment():
         
         # Check stress testing
         if 'stress_testing' in results:
-            stress = results['stress_testing']
+            stress=results['stress_testing']
             print(f"   Stress Testing: {stress['scenarios_passed']}/{stress['total_scenarios']} passed")
             print(f"   Compliance Status: {stress['compliance_status']}")
         
         # Check ML prediction
         if 'ml_prediction' in results:
-            ml = results['ml_prediction']
+            ml=results['ml_prediction']
             print(f"   ML Prediction: {ml['predicted_volatility']:.2%} volatility")
         
         # Check ML agents
         if 'ml_agents' in results:
-            agents = results['ml_agents']
+            agents=results['ml_agents']
             print(f"   ML Agents: {agents['recommended_action']} (confidence: {agents['confidence']:.3f})")
         
         # Check multi-asset
         if 'multi_asset' in results:
-            multi = results['multi_asset']
+            multi=results['multi_asset']
             print(f"   Multi-Asset VaR: {multi['total_var']:.2%}")
         
         # Check compliance
         if 'compliance' in results:
-            comp = results['compliance']
+            comp=results['compliance']
             print(f"   Compliance: {comp['status']} ({comp['checks_passed']}/{comp['total_checks']} checks)")
         
         # Check portfolio risk
         if 'portfolio_risk' in results:
-            portfolio = results['portfolio_risk']
+            portfolio=results['portfolio_risk']
             print(f"   Portfolio Risk: {portfolio['total_var']:.4f} VaR")
             print(f"   Within Limits: {portfolio['within_limits']}")
             print(f"   Active Alerts: {portfolio['active_alerts']}")
@@ -164,14 +162,14 @@ async def test_continuous_monitoring():
     
     try:
         # Setup
-        risk_system = await create_integrated_risk_system(portfolio_value=100000)
-        market_data, positions = generate_test_data()
+        risk_system=await create_integrated_risk_system(portfolio_value=100000)
+        market_data, positions=generate_test_data()
         
         # Start monitoring for a short period
         print("   Starting monitoring for 10 seconds...")
         
         # Run monitoring in background
-        monitoring_task = asyncio.create_task(
+        monitoring_task=asyncio.create_task(
             risk_system.start_continuous_monitoring(positions, market_data)
         )
         
@@ -183,7 +181,7 @@ async def test_continuous_monitoring():
         monitoring_task.cancel()
         
         # Check results
-        status = risk_system.get_system_status()
+        status=risk_system.get_system_status()
         print(f"✅ Continuous monitoring tested")
         print(f"   Risk History Count: {status['risk_history_count']}")
         print(f"   Last Assessment: {status['last_assessment']}")
@@ -213,41 +211,41 @@ async def test_system_compatibility():
         print("✅ All imports work correctly")
         
         # Test component instantiation
-        var_engine = AdvancedVaREngine(portfolio_value=100000)
-        integration_manager = RiskIntegrationManager()
+        var_engine=AdvancedVaREngine(portfolio_value=100000)
+        integration_manager=RiskIntegrationManager()
         
         if MultiAgentRiskCoordinator:
             # Provide required risk_limits parameter
-            ml_risk_limits = {
-                'max_var': 0.05,
-                'max_concentration': 0.3,
-                'max_drawdown': 0.15,
-                'max_leverage': 2.0
+            ml_risk_limits={
+                'max_var':0.05,
+                'max_concentration':0.3,
+                'max_drawdown':0.15,
+                'max_leverage':2.0
             }
-            ml_coordinator = MultiAgentRiskCoordinator(risk_limits=ml_risk_limits)
+            ml_coordinator=MultiAgentRiskCoordinator(risk_limits=ml_risk_limits)
             print("✅ Advanced ML components available")
         
         if MultiAssetRiskManager:
-            multi_asset = MultiAssetRiskManager()
+            multi_asset=MultiAssetRiskManager()
             print("✅ Multi-asset components available")
         
         if RegulatoryComplianceManager:
-            compliance = RegulatoryComplianceManager()
+            compliance=RegulatoryComplianceManager()
             print("✅ Compliance components available")
         
         # Test integrated system with existing components
-        risk_system = await create_integrated_risk_system()
-        market_data, positions = generate_test_data()
+        risk_system=await create_integrated_risk_system()
+        market_data, positions=generate_test_data()
         
         # Test individual components still work
         np.random.seed(42)
-        test_returns = np.random.normal(0.001, 0.02, 252)
-        var_results = var_engine.calculate_var_suite(test_returns)
+        test_returns=np.random.normal(0.001, 0.02, 252)
+        var_results=var_engine.calculate_var_suite(test_returns)
         
         print(f"✅ VaR Engine: {len(var_results.results)} methods calculated")
         
         # Test integration with new system
-        integrated_results = await risk_system.comprehensive_risk_assessment(positions, market_data)
+        integrated_results=await risk_system.comprehensive_risk_assessment(positions, market_data)
         
         print("✅ Integration with existing components successful")
         
@@ -263,15 +261,15 @@ async def test_performance_benchmarks():
     print("\n⚡ Testing Performance Benchmarks...")
     
     try:
-        risk_system = await create_integrated_risk_system(portfolio_value=500000)
-        market_data, positions = generate_test_data()
+        risk_system=await create_integrated_risk_system(portfolio_value=500000)
+        market_data, positions=generate_test_data()
         
         # Time comprehensive assessment
-        start_time = datetime.now()
-        results = await risk_system.comprehensive_risk_assessment(positions, market_data)
-        end_time = datetime.now()
+        start_time=datetime.now()
+        results=await risk_system.comprehensive_risk_assessment(positions, market_data)
+        end_time=datetime.now()
         
-        duration = (end_time - start_time).total_seconds()
+        duration=(end_time - start_time).total_seconds()
         
         print(f"✅ Performance benchmark completed")
         print(f"   Assessment Duration: {duration:.2f} seconds")
@@ -299,32 +297,32 @@ async def run_comprehensive_integration_test():
     print("Testing complete integration of Month 1-6 risk management features")
     print("=" * 70)
     
-    test_results = {}
+    test_results={}
     
     try:
         # 1. Basic Integration
         print("\n🔧 PHASE 1: Basic System Integration")
-        risk_system = await test_basic_integration()
+        risk_system=await test_basic_integration()
         test_results['basic_integration'] = True
         
         # 2. Comprehensive Assessment
         print("\n📊 PHASE 2: Comprehensive Risk Assessment")
-        assessment_results = await test_comprehensive_risk_assessment()
+        assessment_results=await test_comprehensive_risk_assessment()
         test_results['comprehensive_assessment'] = True
         
         # 3. Continuous Monitoring
         print("\n🔄 PHASE 3: Continuous Risk Monitoring")
-        monitoring_success = await test_continuous_monitoring()
+        monitoring_success=await test_continuous_monitoring()
         test_results['continuous_monitoring'] = monitoring_success
         
         # 4. System Compatibility
         print("\n🔗 PHASE 4: System Compatibility")
-        compatibility_success = await test_system_compatibility()
+        compatibility_success=await test_system_compatibility()
         test_results['compatibility'] = compatibility_success
         
         # 5. Performance Benchmarks
         print("\n⚡ PHASE 5: Performance Benchmarks")
-        performance_duration = await test_performance_benchmarks()
+        performance_duration=await test_performance_benchmarks()
         test_results['performance'] = performance_duration is not None
         
         # Summary
@@ -332,16 +330,16 @@ async def run_comprehensive_integration_test():
         print("🎯 INTEGRATION TEST SUMMARY")
         print("=" * 70)
         
-        passed_tests = sum(test_results.values())
-        total_tests = len(test_results)
+        passed_tests=sum(test_results.values())
+        total_tests=len(test_results)
         
         for test_name, passed in test_results.items():
-            status = "✅ PASSED" if passed else "❌ FAILED"
+            status="✅ PASSED" if passed else "❌ FAILED"
             print(f"{test_name.replace('_', ' ').title()}: {status}")
         
         print(f"\nOverall Results: {passed_tests}/{total_tests} tests passed")
         
-        if passed_tests == total_tests:
+        if passed_tests== total_tests:
             print("\n🎉 ALL INTEGRATION TESTS PASSED!")
             print("✅ Integrated Advanced Risk System is fully operational")
             print("✅ All Month 1-6 features working together seamlessly")
@@ -360,6 +358,5 @@ async def run_comprehensive_integration_test():
         return {}
 
 
-if __name__ == "__main__":
-    # Run the comprehensive integration test
+if __name__== "__main__":# Run the comprehensive integration test
     asyncio.run(run_comprehensive_integration_test())

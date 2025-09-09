@@ -5,11 +5,11 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
+    dependencies=[
         ('tradingbot', '0004_alter_order_status'),
     ]
 
-    operations = [
+    operations=[
         migrations.AddField(
             model_name='order',
             name='client_order_id',

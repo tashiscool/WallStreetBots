@@ -21,7 +21,7 @@ def create_windows_executable():
     print("Creating Windows executable...")
     
     # PyInstaller command
-    cmd = [
+    cmd=[
         "pyinstaller",
         "--onefile",
         "--noconsole",
@@ -30,7 +30,7 @@ def create_windows_executable():
         "run_wallstreetbots.py"
     ]
     
-    cmd = [c for c in cmd if c]  # Remove empty strings
+    cmd=[c for c in cmd if c]  # Remove empty strings
     
     os.system(" ".join(cmd))
     print("✅ Windows executable created in dist/ folder")
@@ -46,25 +46,25 @@ def create_macos_app():
     print("Creating macOS .app bundle...")
     
     # Create setup.py for py2app
-    setup_py = '''
+    setup_py='''
 from setuptools import setup
 
 APP = ['run_wallstreetbots.py']
 DATA_FILES = []
 OPTIONS = {
-    'argv_emulation': True,
-    'plist': {
-        'CFBundleName': 'WallStreetBots',
-        'CFBundleShortVersionString': '1.0.0',
-        'CFBundleVersion': '1.0.0',
-        'CFBundleIdentifier': 'com.wallstreetbots.launcher',
+    'argv_emulation':True,
+    'plist':{
+        'CFBundleName':'WallStreetBots',
+        'CFBundleShortVersionString':'1.0.0',
+        'CFBundleVersion':'1.0.0',
+        'CFBundleIdentifier':'com.wallstreetbots.launcher',
     }
 }
 
 setup(
     app=APP,
     data_files=DATA_FILES,
-    options={'py2app': OPTIONS},
+    options={'py2app':OPTIONS},
     setup_requires=['py2app'],
 )
 '''
@@ -77,21 +77,20 @@ setup(
 
 def create_desktop_shortcut():
     """Create desktop shortcut"""
-    system = platform.system().lower()
+    system=platform.system().lower()
     
-    if system == "windows":
-        # Windows .lnk shortcut
+    if system== "windows":# Windows .lnk shortcut
         try:
             import win32com.client
             
             desktop = Path.home() / "Desktop"
-            shortcut_path = desktop / "WallStreetBots.lnk"
+            shortcut_path=desktop / "WallStreetBots.lnk"
             
             shell = win32com.client.Dispatch("WScript.Shell")
-            shortcut = shell.CreateShortCut(str(shortcut_path))
-            shortcut.Targetpath = str(Path.cwd() / "run_wallstreetbots.bat")
-            shortcut.WorkingDirectory = str(Path.cwd())
-            shortcut.Description = "WallStreetBots Trading System"
+            shortcut=shell.CreateShortCut(str(shortcut_path))
+            shortcut.Targetpath=str(Path.cwd() / "run_wallstreetbots.bat")
+            shortcut.WorkingDirectory=str(Path.cwd())
+            shortcut.Description="WallStreetBots Trading System"
             shortcut.save()
             
             print(f"✅ Desktop shortcut created: {shortcut_path}")
@@ -100,9 +99,9 @@ def create_desktop_shortcut():
             print("⚠️ Could not create Windows shortcut (pywin32 not available)")
             print("   You can manually create a shortcut to run_wallstreetbots.bat")
     
-    elif system == "darwin":  # macOS
+    elif system== "darwin":# macOS
         desktop = Path.home() / "Desktop"
-        shortcut_path = desktop / "WallStreetBots.command"
+        shortcut_path=desktop / "WallStreetBots.command"
         
         script_content = f'''#!/bin/bash
 cd "{Path.cwd()}"
@@ -116,8 +115,8 @@ cd "{Path.cwd()}"
         print(f"✅ Desktop shortcut created: {shortcut_path}")
     
     else:  # Linux
-        desktop = Path.home() / "Desktop"
-        shortcut_path = desktop / "WallStreetBots.desktop"
+        desktop=Path.home() / "Desktop"
+        shortcut_path=desktop / "WallStreetBots.desktop"
         
         desktop_entry = f'''[Desktop Entry]
 Version=1.0
@@ -142,7 +141,7 @@ def main():
     print("🔧 WallStreetBots Executable Creator")
     print("="*40)
     
-    system = platform.system().lower()
+    system=platform.system().lower()
     
     print("What would you like to create?")
     print("1. Desktop shortcut (recommended)")
@@ -150,28 +149,22 @@ def main():
     print("3. Both")
     print("4. Exit")
     
-    choice = input("\nSelect option (1-4): ").strip()
+    choice=input("\nSelect option (1-4): ").strip()
     
-    if choice == "1" or choice == "3":
-        create_desktop_shortcut()
+    if choice== "1" or choice == "3":create_desktop_shortcut()
     
-    if choice == "2" or choice == "3":
-        if system == "windows":
-            create_windows_executable()
-        elif system == "darwin":
-            create_macos_app()
+    if choice== "2" or choice == "3":if system == "windows":create_windows_executable()
+        elif system== "darwin":create_macos_app()
         else:
             print("⚠️ Standalone executables not supported on Linux")
             print("   Use the desktop shortcut or run ./run_wallstreetbots.sh directly")
     
-    elif choice == "4":
-        print("👋 Goodbye!")
+    elif choice== "4":print("👋 Goodbye!")
         return
     
     print("\n✅ Done!")
     print("\nYou can now launch WallStreetBots using:")
-    if system == "windows":
-        print("  • Double-click the desktop shortcut")
+    if system== "windows":print("  • Double-click the desktop shortcut")
         print("  • Double-click run_wallstreetbots.bat")
         print("  • Run 'python run_wallstreetbots.py' in terminal")
     else:
@@ -179,5 +172,4 @@ def main():
         print("  • Run './run_wallstreetbots.sh' in terminal")
         print("  • Run 'python3 run_wallstreetbots.py' in terminal")
 
-if __name__ == "__main__":
-    main()
+if __name__== "__main__":main()

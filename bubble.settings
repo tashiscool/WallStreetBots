@@ -1,0 +1,424 @@
+diff --git a/backend/tradingbot/production/core/production_strategy_manager.py b/backend/tradingbot/production/core/production_strategy_manager.py
+index 43058a0..5816043 100644
+--- a/backend/tradingbot/production/core/production_strategy_manager.py
++++ b/backend/tradingbot/production/core/production_strategy_manager.py
+@@ -39,6 +39,8 @@ from ..strategies.production_lotto_scanner import ProductionLottoScanner, create
+ class StrategyProfile(str, Enum):
+     research_2024 = "research_2024"
+     wsb_2025 = "wsb_2025"
++    trump_2025 = "trump_2025"
++    bubble_aware_2025 = "bubble_aware_2025"
+ 
+ 
+ @dataclass
+@@ -157,6 +159,321 @@ def _preset_defaults(profile: StrategyProfile) -> Dict[str, StrategyConfig]:
+             })
+         }
+     
++    elif profile == StrategyProfile.bubble_aware_2025:
++        # === BUBBLE-AWARE 2025 PRESET (Enhanced with M&A Scanner) ===
++        # Based on validated market data: PLTR P/S >100, OpenAI $300B/$14B loss projection,
++        # 64% US VC to AI, $364B Big Tech capex, MIT ROI study, M&A deregulation
++        
++        # AI Infrastructure (beneficiaries of $364B Big Tech capex)
++        ai_infra_core = ['SPY','QQQ','SMH','SOXX','NVDA','AVGO','AMAT','LRCX','INTC','MU']
++        # M&A targets with high $/employee potential (Ferguson FTC, competition EO revoked)
++        ma_targets = ['XLF','KRE','IBB','JETS','XLE','XLU','XLRE']  
++        # Israeli tech (13.4B exits, $300M median, 45% premiums)
++        israeli_tech = ['CYBR','S','CHKP','NICE','MNDY','WIX','FROG']
++        # Bubble candidates (P/S >35 threshold, overvaluation indicators)
++        bubble_watch = ['PLTR','SMCI','ARM','COIN','MSTR']  # PLTR P/S >100 validated
++        
++        return {
++            'wsb_dip_bot': StrategyConfig('wsb_dip_bot', True, 0.20, 'high', {
++                'run_lookback_days': 5,
++                'run_threshold': 0.07,
++                'dip_threshold': -0.018,
++                'target_dte_days': 14,
++                'otm_percentage': 0.02,
++                'target_multiplier': 2.2,                    # Reduced from 3.0 due to bubble risk
++                'delta_target': 0.45,
++                'wsb_sentiment_weight': 0.25,
++                # Bubble-aware controls
++                'ai_exposure_limit': 0.15,                   # Cap AI exposure at 15%
++                'avoid_post_gap_hours': 2,                   # Skip euphoric gaps
++                'news_resolution_required': True,            # Wait for policy clarity
++                'overvaluation_filter': True,                # Skip P/S >35 names
++                'bubble_watch_list': bubble_watch
++            }),
++            'earnings_protection': StrategyConfig('earnings_protection', True, 0.05, 'high', {
++                'iv_percentile_threshold': 70,               # Be choosy with rich vol
++                'min_implied_move': 0.04,
++                'max_days_to_earnings': 30,
++                'min_days_to_earnings': 5,                   # Avoid pure day-of IV crush
++                'preferred_strategies': ['reverse_iron_condor','long_strangle'],
++                'delta_range': (0.25, 0.30),
++                'profit_target': 0.50,
++                'iv_crush_protection': True,
++                'straddle_vs_strangle': 'strangle',
++                'atm_for_low_price': True,
++                'ric_for_high_price': True,
++                'avoid_low_iv': True,
++                'exit_before_announcement': True,            # Take IV run when extreme
++                # Bubble hedging
++                'ai_bubble_hedge': True,
++                'overvaluation_threshold': 35,               # P/S ratio trigger  
++                'bubble_indicators': ['insider_selling', 'margin_debt', 'options_skew']
++            }),
++            'index_baseline': StrategyConfig('index_baseline', True, 0.55, 'medium', {
++                'benchmarks': ['SPY','QQQ','IWM','VTI','ARKK'],
++                'target_allocation': 0.55,
++                'rebalance_threshold': 0.03,
++                'tax_loss_threshold': -0.05,
++                'momentum_factor': 0.20,
++                'volatility_target': 0.18,                  # Lower for AI dispersion
++                # Sector bias for policy environment
++                'trump_sector_bias': {
++                    'financials': 1.4,      # Ferguson FTC, competition EO revoked
++                    'energy': 1.3,          # Deregulation focus
++                    'defense': 1.2,         # Geopolitical tensions  
++                    'ai_stocks': 0.7        # Reduce overvalued exposure
++                }
++            }),
++            'wheel_strategy': StrategyConfig('wheel_strategy', True, 0.18, 'medium', {
++                'target_iv_rank': 50,
++                'target_dte_range': (30,45),
++                'target_delta_range': (0.15,0.25),
++                'max_positions': 8,
++                'min_premium_dollars': 50,
++                'profit_target': 0.50,
++                'roll_at_dte': 21,
++                'assignment_acceptance': True,
++                'covered_call_delta': 0.20,
++                'portfolio_allocation': 0.35,
++                'diversified_watchlist': ai_infra_core + ['AAPL','MSFT','GOOGL'],
++                'avoid_earnings': True,
++                'min_liquidity_score': 0.7,
++                'fundamental_screen': True,
++                # Avoid bubble names for wheel
++                'exclude_overvalued': bubble_watch
++            }),
++            'momentum_weeklies': StrategyConfig('momentum_weeklies', True, 0.04, 'high', {
++                'watchlist': ai_infra_core,                  # AI infra momentum from $364B capex
++                'max_positions': 3,
++                'min_volume_spike': 1.5,
++                'min_momentum_threshold': 0.015,
++                'target_dte_range': (0,2),                   # 0DTE focus (62% of SPX volume)
++                'target_delta_range': (0.05,0.15),
++                'min_premium': 1.00,
++                'profit_target': 0.50,                      # 50% per tasty research
++                'stop_loss': 2.0,                           # ~2x stop
++                'preferred_day': 'monday',
++                'entry_time_after': '10:00',                # After policy announcements
++                'avg_hold_hours': 2,
++                'wing_width': 30,
++                # M&A speculation scanner
++                'ma_scanner_enabled': True,
++                'price_per_employee_threshold': 5000000,    # $5M+ per employee filter
++                'ma_premium_target': 0.25                   # 25% typical premium
++            }),
++            'debit_spreads': StrategyConfig('debit_spreads', True, 0.12, 'high', {
++                'watchlist': ai_infra_core + ma_targets,     # Infra focus, avoid pure AI apps
++                'max_positions': 10,
++                'min_dte': 10,
++                'max_dte': 35,
++                'min_risk_reward': 1.2,
++                'min_trend_strength': 0.45,                 # Higher confirmation threshold
++                'max_iv_rank': 90,
++                'min_volume_score': 0.3,
++                'profit_target': 0.40,
++                'stop_loss': 0.70,
++                'time_exit_dte': 3,
++                'momentum_multiplier': 1.4,
++                # Policy tailwinds
++                'policy_tailwind_filter': True,
++                'avoid_bubble_names': bubble_watch
++            }),
++            'leaps_tracker': StrategyConfig('leaps_tracker', True, 0.03, 'medium', {
++                'max_positions': 5,
++                'max_total_allocation': 0.12,               # Tighter allocation
++                'min_dte': 365,
++                'max_dte': 730,
++                'delta_strategy': 'mixed',
++                'high_delta_range': (0.70,0.80),
++                'low_delta_range': (0.10,0.30),
++                'profit_levels': [100,200,300],
++                'scale_out_percentage': 25,
++                'stop_loss': 1.0,
++                'time_exit_dte': 90,
++                'entry_staging': True,                      # Stagger entries
++                'staging_periods': 3,
++                # Focus on infra over pure AI apps
++                'focus_sectors': ['semicap','power','datacenters'],
++                'min_premium_percentage': 0.10,
++                'avoid_ai_apps': True                       # Skip app-layer names
++            }),
++            'swing_trading': StrategyConfig('swing_trading', True, 0.04, 'high', {
++                'watchlist': ai_infra_core + israeli_tech,   # AI infra + Israeli M&A targets
++                'max_positions': 6,
++                'max_expiry_days': 25,
++                'min_strength_score': 48.0,
++                'min_volume_multiple': 1.7,                 # Higher volume requirement
++                'min_breakout_strength': 0.001,
++                'min_premium': 0.20,
++                'profit_targets': [30,60,120],              # Quicker profit taking
++                'stop_loss_pct': 45,
++                'max_hold_hours': 24,                       # Overnight headline risk
++                'end_of_day_exit_hour': 16,
++                'meme_stock_multiplier': 1.3,
++                'wsb_momentum_factor': 0.25,
++                # Policy momentum
++                'trump_policy_momentum': 1.4,
++                'israeli_tech_premium_scanner': True        # M&A speculation
++            }),
++            'spx_credit_spreads': StrategyConfig('spx_credit_spreads', True, 0.04, 'medium', {
++                'strategy_type': 'iron_condor',
++                'target_short_delta': 0.12,                 # 10-15 delta sweet spot
++                'target_dte_range': (28,35),                # 28-35 DTE per research
++                'profit_target_pct': 0.50,                  # 50% take profit
++                'stop_loss_multiple': 2.2,                  # 2.2x stop loss
++                'min_credit': 1.00,
++                'max_spread_width': 50,
++                'max_positions': 3,
++                'long_delta': 0.05,
++                'entry_time_preference': 'morning',         # AM entries avoid policy risk
++                'roll_at_dte': 21,
++                'min_option_volume': 100,
++                'min_option_oi': 50,
++                'double_stop_loss_protection': True,
++                'vix_filter': 25,                           # Skip regime-shift days
++                'avoid_earnings_days': True,
++                # Volatility harvesting overlay
++                'trump_volatility_mode': True,
++                'policy_uncertainty_multiplier': 1.8,
++                'tariff_announcement_hedge': True
++            }),
++            'lotto_scanner': StrategyConfig('lotto_scanner', True, 0.01, 'extreme', {
++                'max_risk_pct': 0.5,                        # Tiny position sizes
++                'max_concurrent_positions': 3,
++                'profit_targets': [500,1000,2000],
++                'stop_loss_pct': 1.0,
++                'min_win_probability': 0.05,
++                'max_dte': 2,
++                'catalyst_required': True,
++                'volume_spike_min': 5.0,
++                'focus_tickers': ['SPY','QQQ','TSLA','NVDA'],
++                'earnings_window_only': True,
++                'otm_threshold': 0.10,
++                'iv_spike_required': True,
++                'news_catalyst_weight': 0.8,
++                'max_premium_cost': 2.00,
++                # M&A speculation overlay
++                'ma_rumor_scanner': True,
++                'israeli_tech_focus': israeli_tech
++            })
++        }
++        ma_targets = ['XLF','KRE','IBB','JETS','XLE','XLU','XLRE']  # Financials, biotech, energy, utilities, REITs
++        # Israeli tech scanner (high-value M&A activity)
++        israeli_tech = ['CYBR','S','CHKP','NICE','MNDY','WIX','FROG']
++        
++        return {
++            'spx_credit_spreads': StrategyConfig('spx_credit_spreads', True, 0.15, 'medium', {
++                'strategy_type': 'iron_condor',
++                'target_short_delta': 0.12,           # 10-15 delta per analysis
++                'target_dte_range': (28,35),          # Longer DTE for policy volatility
++                'profit_target_pct': 0.50,            # 50% take profit
++                'stop_loss_multiple': 2.2,            # 2.2x stop per source
++                'vix_filter': 25,                     # Skip regime-shift days
++                'entry_time_preference': 'morning',    # Morning entries preferred
++                'roll_at_dte': 21,
++                'max_positions': 8,                   # Reduced from WSB profile
++                'avoid_policy_announcement_days': True
++            }),
++            'momentum_weeklies': StrategyConfig('momentum_weeklies', True, 0.12, 'high', {
++                'watchlist': ai_infra_core,           # AI-infra focus per analysis
++                'entry_time_after': '10:00',         # After 10:00 ET per source
++                'target_dte_range': (0,2),           # 0-2 DTE only
++                'min_volume_spike': 1.5,
++                'profit_target': 0.50,               # 50% profit target
++                'stop_loss': 2.0,                    # ~2x stop
++                'max_positions': 6,
++                'news_catalyst_required': True,
++                'policy_momentum_weight': 1.4
++            }),
++            'wheel_strategy': StrategyConfig('wheel_strategy', True, 0.30, 'medium', {
++                'target_dte_range': (30,45),         # 30-45 DTE per analysis
++                'target_delta_range': (0.15,0.25),   # 15-25 delta per source
++                'avoid_earnings': True,
++                'diversified_watchlist': ai_infra_core + ma_targets[:4],  # AI infra + megacaps
++                'profit_target': 0.50,
++                'max_positions': 12,
++                'avoid_tariff_decision_weeks': True,
++                'policy_beneficiary_weight': 1.3
++            }),
++            'earnings_protection': StrategyConfig('earnings_protection', True, 0.08, 'medium', {
++                'iv_percentile_threshold': 60,        # Higher threshold - be choosy
++                'min_implied_move': 0.035,
++                'max_days_to_earnings': 14,
++                'min_days_to_earnings': 2,
++                'preferred_strategies': ['reverse_iron_condor','tight_strangle'],  # Tight RICs when IV high
++                'prefer_strangle_when_iv_high': True,
++                'exit_before_announcement': True,     # Take profits pre-announce if IV extreme
++                'guidance_risk_filter': True,         # Only on material guidance risk
++                'supply_chain_exposure_weight': 1.5   # Focus on supply-chain/policy exposure
++            }),
++            'debit_spreads': StrategyConfig('debit_spreads', True, 0.15, 'high', {
++                'watchlist': ai_infra_core + ma_targets,  # Infra/equipment focus, avoid pure AI apps
++                'max_positions': 10,
++                'min_dte': 14, 'max_dte': 35,
++                'min_risk_reward': 1.2,
++                'min_trend_strength': 0.40,           # Require trend confirmation
++                'profit_target': 0.40,               # ~40% gains
++                'stop_loss': 0.70,
++                'momentum_multiplier': 1.3,
++                'policy_tailwind_filter': True       # Favor policy winners
++            }),
++            'leaps_tracker': StrategyConfig('leaps_tracker', True, 0.08, 'medium', {  # Reduced allocation
++                'max_positions': 4,                  # Constrained per analysis
++                'max_total_allocation': 0.20,        # Cap allocation tightly
++                'min_dte': 365, 'max_dte': 730,
++                'focus_sectors': ['us_fab','data_center','infrastructure'],  # US-fab and infra only
++                'profit_levels': [50,100,200,400],
++                'scale_out_percentage': 25,
++                'stop_loss': 0.75,
++                'entry_staging': True,               # Stagger entries
++                'staging_periods': 4,
++                'avoid_pure_ai_apps': True           # Avoid app-layer names
++            }),
++            'swing_trading': StrategyConfig('swing_trading', True, 0.05, 'high', {
++                'watchlist': ai_infra_core + israeli_tech,
++                'max_positions': 6,
++                'max_expiry_days': 1,                # Day-only or sub-24h holds
++                'min_strength_score': 50.0,
++                'min_volume_multiple': 2.0,          # Higher volume requirement
++                'min_breakout_strength': 0.001,
++                'profit_targets': [25,50,100],       # Quicker profit taking
++                'stop_loss_pct': 60,                 # Wider stops with tiny size
++                'max_hold_hours': 18,                # Sub-24h holds
++                'news_catalyst_required': True,      # Require volume + catalyst
++                'overnight_headline_risk_filter': True
++            }),
++            'wsb_dip_bot': StrategyConfig('wsb_dip_bot', True, 0.15, 'medium', {  # Reduced from WSB
++                'run_lookbook_days': 6,              # 5-7d lookback per analysis  
++                'run_threshold': 0.07,
++                'dip_threshold': -0.018,
++                'target_dte_days': 18,
++                'otm_percentage': 0.025,             # Smaller OTM
++                'target_multiplier': 2.5,
++                'delta_target': 0.50,
++                'wsb_sentiment_weight': 0.30,
++                'news_resolved_state_required': True, # Wait for details to clarify
++                'policy_headline_filter': True,     # Filter out policy shock days
++                'index_heavyweights_only': True     # Most liquid leaders only
++            }),
++            'index_baseline': StrategyConfig('index_baseline', True, 0.45, 'medium', {
++                'benchmarks': ['SPY','QQQ','IWM','VTI','SMH','SOXX','XLF','XLE'],  # Add AI-infra adjacency
++                'target_allocation': 0.45,
++                'rebalance_threshold': 0.03,
++                'tax_loss_threshold': -0.05,
++                'momentum_factor': 0.20,
++                'volatility_target': 0.22,
++                'ai_infrastructure_tilt': 0.15      # Modest tilt to AI infra
++            }),
++            'lotto_scanner': StrategyConfig('lotto_scanner', False, 0.01, 'extreme', {  # DISABLED per analysis
++                'max_risk_pct': 1.0,                # Max 1% per trade if enabled
++                'max_concurrent_positions': 2,
++                'profit_targets': [200,400,800],
++                'stop_loss_pct': 1.0,               # Accept full loss profile  
++                'catalyst_required': True,          # News-catalyst required
++                'policy_shock_filter': True        # Bimodal outcomes hard to handicap
++            })
++        }
++    
+     # === WSB 2025 PRESET (Aggressive) ===
+     meme_core = ['NVDA','TSLA','SMCI','ARM','AAPL','MSFT','GOOGL','AMZN','META','COIN','MSTR','PLTR','AMD','SPY','QQQ','IWM','GME','AMC']
+     return {
+@@ -225,6 +542,14 @@ def _apply_profile_risk_overrides(cfg: ProductionStrategyManagerConfig):
+         cfg.max_total_risk = 0.65
+         cfg.max_position_size = 0.30
+         cfg.data_refresh_interval = 10
++    elif cfg.profile == StrategyProfile.trump_2025:
++        cfg.max_total_risk = 0.55      # Moderate risk for policy volatility
++        cfg.max_position_size = 0.25   # Slightly higher than research
++        cfg.data_refresh_interval = 20  # Between WSB and research
++    elif cfg.profile == StrategyProfile.bubble_aware_2025:
++        cfg.max_total_risk = 0.45      # Conservative due to bubble risk
++        cfg.max_position_size = 0.20   # Keep position sizes controlled
++        cfg.data_refresh_interval = 30  # Standard refresh rate
+     else:
+         cfg.max_total_risk = 0.50
+         cfg.max_position_size = 0.20
+@@ -274,6 +599,22 @@ class ProductionStrategyManager:
+         # Performance tracking
+         self.performance_metrics: Dict[str, Any] = {}
+         
++        # Bubble-aware and M&A overlays (optional for strategies to read)
++        self.bubble_aware_adjustments = {
++            'ai_exposure_limit': 0.15,
++            'overvaluation_short_bias': 0.05,
++            'ma_speculation_boost': 1.3,
++            'volatility_harvest_mode': True
++        }
++        
++        self.ma_speculation = {
++            'regulatory_relaxation_weight': 1.5,
++            'antitrust_probability': 0.30,
++            'deal_premium_target': 0.25,
++            'sectors': ['fintech', 'biotech', 'israel_tech'],
++            'price_per_employee_threshold': 5000000  # $5M+ per employee
++        }
++        
+         self.logger.info(f"ProductionStrategyManager initialized with profile: {config.profile}")
+     
+     def _initialize_strategies(self):
+@@ -290,7 +631,15 @@ class ProductionStrategyManager:
+             for strategy_name, strategy_config in strategy_configs.items():
+                 if strategy_config.enabled:
+                     try:
+-                        strategy = self._create_strategy(strategy_name, strategy_config)
++                        # Sanitize parameters to prevent runtime issues
++                        sanitized_config = StrategyConfig(
++                            name=strategy_config.name,
++                            enabled=strategy_config.enabled,
++                            max_position_size=strategy_config.max_position_size,
++                            risk_tolerance=strategy_config.risk_tolerance,
++                            parameters=self._sanitize_parameters(strategy_config.parameters)
++                        )
++                        strategy = self._create_strategy(strategy_name, sanitized_config)
+                         if strategy:
+                             self.strategies[strategy_name] = strategy
+                             self.logger.info(f"Initialized strategy: {strategy_name}")
+@@ -373,6 +722,33 @@ class ProductionStrategyManager:
+             self.logger.error(f"Error creating strategy {strategy_name}: {e}")
+             return None
+     
++    def _validate_range(self, name: str, val: float, lo: float, hi: float) -> float:
++        """Validate parameter ranges with clamping and logging."""
++        if not isinstance(val, (int, float)) or not (lo <= float(val) <= hi):
++            self.logger.warning(f"Parameter {name} out of range [{lo},{hi}]: {val}. Clamping.")
++            return max(lo, min(hi, float(val))) if isinstance(val, (int, float)) else lo
++        return float(val)
++    
++    def _sanitize_parameters(self, params: Dict[str, Any]) -> Dict[str, Any]:
++        """Sanitize strategy parameters to avoid runtime blowups."""
++        out = dict(params)
++        # Explicit bounds for critical parameters
++        if 'target_short_delta' in out:
++            out['target_short_delta'] = self._validate_range('target_short_delta', out['target_short_delta'], 0.03, 0.30)
++        if 'profit_target_pct' in out:
++            out['profit_target_pct'] = self._validate_range('profit_target_pct', out['profit_target_pct'], 0.10, 0.80)
++        if 'stop_loss_multiple' in out:
++            out['stop_loss_multiple'] = self._validate_range('stop_loss_multiple', out['stop_loss_multiple'], 1.0, 5.0)
++        if 'vix_filter' in out:
++            out['vix_filter'] = self._validate_range('vix_filter', out['vix_filter'], 10, 60)
++        if 'ai_exposure_limit' in out:
++            out['ai_exposure_limit'] = self._validate_range('ai_exposure_limit', out['ai_exposure_limit'], 0.0, 0.50)
++        if 'overvaluation_threshold' in out:
++            out['overvaluation_threshold'] = self._validate_range('overvaluation_threshold', out['overvaluation_threshold'], 5, 200)
++        if 'price_per_employee_threshold' in out:
++            out['price_per_employee_threshold'] = self._validate_range('price_per_employee_threshold', out['price_per_employee_threshold'], 100000, 50000000)
++        return out
++    
+     async def start_all_strategies(self) -> bool:
+         """Start all enabled strategies"""
+         try:

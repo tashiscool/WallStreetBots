@@ -505,3 +505,4 @@ if __name__ == "__main__":
         status = "⚠️" if utilization > 80 else "✅"
         print(f"{status} {limit}: {utilization:.1f}%")
 
+

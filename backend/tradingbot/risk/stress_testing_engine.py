@@ -463,3 +463,4 @@ if __name__ == "__main__":
         status = "✅ PASSED" if result.passed else "❌ FAILED"
         print(f"{scenario_name:25} {status:10} P&L: ${result.portfolio_pnl:8,.0f} DD: {result.max_drawdown:.1%}")
 
+

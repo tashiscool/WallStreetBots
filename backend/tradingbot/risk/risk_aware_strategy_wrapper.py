@@ -511,3 +511,4 @@ def create_risk_aware_strategy(strategy_instance: Any,
         # Generic risk-aware wrapper for other strategies
         return RiskAwareStrategy(strategy_instance, risk_manager, strategy_name)
 
+

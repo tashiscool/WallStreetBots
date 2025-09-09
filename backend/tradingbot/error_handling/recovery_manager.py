@@ -270,3 +270,4 @@ class TradingErrorRecoveryManager:
         return recent_critical_errors < self.emergency_halt_threshold
 
 
+

@@ -96,3 +96,4 @@ launchctl unload ~/Library/LaunchAgents/com.wallstreetbots.trading.plist
 - Consider adding market hours detection to your bot
 
 
+

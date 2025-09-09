@@ -258,7 +258,17 @@ cp .env.example .env
 3. **Replace** `your_paper_secret_key_here` with your actual secret key
 4. **Save** the file
 
-### **Step 4: Start Trading**
+### **Step 4: Start Trading (Easy Method)**
+```bash
+# Use the built-in launcher (RECOMMENDED):
+python3 run_wallstreetbots.py
+
+# Or double-click:
+# Windows: run_wallstreetbots.bat
+# macOS/Linux: run_wallstreetbots.sh
+```
+
+**Alternative - Manual Method:**
 ```python
 # Save this as quickstart.py and run it:
 import os
@@ -308,6 +318,76 @@ python test_integrated_advanced_risk_system.py
 # For aggressive WSB-style trading, change one line in your script:
 profile=StrategyProfile.wsb_2025,  # 🔥 WSB Aggressive settings!
 # This enables: 0DTE options, meme stocks, 65% max risk, 10s refresh rate
+```
+
+---
+
+## 🎯 **EASY LAUNCHER - ONE-CLICK EXECUTION**
+
+WallStreetBots now includes **executable-style launchers** that work like .exe/.bat files for easy system access:
+
+### **🚀 Quick Launch Options:**
+
+**Windows Users:**
+```cmd
+# Double-click this file or run in command prompt:
+run_wallstreetbots.bat
+```
+
+**macOS/Linux Users:**
+```bash
+# Double-click this file or run in terminal:
+./run_wallstreetbots.sh
+```
+
+**Any Platform:**
+```bash
+# Cross-platform Python launcher:
+python3 run_wallstreetbots.py
+```
+
+### **🎛️ Interactive Menu System:**
+
+The launcher provides a user-friendly menu with these options:
+1. **🚀 Start Simple Trading Bot (Paper Trading)** - Safe trading with fake money
+2. **💰 Start Simple Trading Bot (Real Money) [DANGER]** - Live trading with real money
+3. **🧪 Run Risk Model Tests** - Test the risk management system
+4. **📊 Run Advanced Feature Tests** - Test Month 5-6 advanced features
+5. **🔧 Django Admin Panel** - Web interface for system management
+6. **📈 Demo Risk Models** - Interactive risk model demonstration
+7. **🛠️ Setup/Install Dependencies** - Automatic dependency installation
+8. **🔍 System Status Check** - Detailed system health check
+9. **❌ Exit** - Quit the launcher
+
+### **🔧 Create Desktop Shortcuts:**
+
+Run this to create desktop shortcuts for one-click access:
+```bash
+python3 create_executable.py
+```
+
+This creates platform-specific shortcuts:
+- **Windows**: Desktop shortcut (.lnk)
+- **macOS**: Command file (.command)  
+- **Linux**: Desktop entry (.desktop)
+
+### **💡 Launcher Features:**
+
+- **✅ Environment Validation** - Checks Python, dependencies, and configuration
+- **✅ Safety First** - Defaults to paper trading mode
+- **✅ Real Money Protection** - Requires explicit confirmation for live trading
+- **✅ Automatic Setup** - Can install dependencies automatically
+- **✅ Cross-Platform** - Works on Windows, macOS, and Linux
+- **✅ Non-Interactive Mode** - Supports command-line arguments for automation
+
+### **📋 Non-Interactive Usage:**
+
+For automation and scripting:
+```bash
+python3 run_wallstreetbots.py --status    # Show system status
+python3 run_wallstreetbots.py --test      # Run risk tests
+python3 run_wallstreetbots.py --demo      # Run demo
+python3 run_wallstreetbots.py --help      # Show help
 ```
 
 ---
@@ -485,6 +565,8 @@ print('✅ All 10 production strategies import successfully')
 - **Strategy Orchestration**: Manage multiple strategies simultaneously
 - **Configuration System**: Flexible parameter management
 - **Testing Framework**: Comprehensive unit test coverage
+- **Easy Launcher System**: Cross-platform executable-style launchers (.bat/.sh/.py)
+- **Interactive Menu**: User-friendly interface with automatic setup and safety features
 
 ### **⚠️ REQUIRES SETUP:**
 - **Broker Connection**: Install alpaca-py and configure API keys

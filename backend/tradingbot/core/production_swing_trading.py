@@ -292,8 +292,8 @@ class TechnicalAnalyzer:
         recent_closes = close_prices[-period:]
 
         typical_prices = [
-            (h + l + c) / 3
-            for h, l, c in zip(recent_highs, recent_lows, recent_closes, strict=False)
+            (h + low + c) / 3
+            for h, low, c in zip(recent_highs, recent_lows, recent_closes, strict=False)
         ]
         sma_tp = sum(typical_prices) / period
 

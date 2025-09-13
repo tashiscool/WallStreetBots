@@ -355,17 +355,17 @@ class TestProductionLogging(unittest.TestCase):
             raise Exception("Test failure")
 
         # First failure
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception):  # noqa: B017
             circuit_breaker.call(failure_func)
         self.assertEqual(circuit_breaker.state, "CLOSED")
 
         # Second failure-should open circuit
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception):  # noqa: B017
             circuit_breaker.call(failure_func)
         self.assertEqual(circuit_breaker.state, "OPEN")
 
         # Third call should be blocked
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception):  # noqa: B017
             circuit_breaker.call(success_func)
 
     def test_retry_decorator(self):

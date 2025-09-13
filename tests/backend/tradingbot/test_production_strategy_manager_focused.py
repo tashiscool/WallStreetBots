@@ -5,7 +5,7 @@ Tests the core functionality we just implemented.
 
 # Test constants
 TEST_API_KEY = "test_key"
-TEST_SECRET_KEY = "test_secret"
+TEST_SECRET_KEY = "test_secret"  # noqa: S105
 
 import asyncio
 import os

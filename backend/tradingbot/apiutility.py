@@ -113,7 +113,7 @@ def place_general_order(
     except Exception as e:
         # 4. delete order if not valid.
         order.delete()
-        raise ValidationError(e)
+        raise ValidationError(e) from e
 
     return True
 

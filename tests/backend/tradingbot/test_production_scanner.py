@@ -181,8 +181,8 @@ class MockOptionsDF:
                     return 0
                 min_idx = 0
                 min_val = self.data[0].get(self.key, float("inf"))
-                for i, item in enumerate(self.data):
-                    val = item.get(self.key, float("inf"))
+                for i, data_item in enumerate(self.data):
+                    val = data_item.get(self.key, float("inf"))
                     if val < min_val:
                         min_val = val
                         min_idx = i

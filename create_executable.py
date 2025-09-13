@@ -14,7 +14,7 @@ def create_windows_executable():
         import PyInstaller
     except ImportError:
         print("Installing PyInstaller...")
-        os.system("pip install pyinstaller")
+        os.system("pip install pyinstaller")  # noqa: S605
 
     print("Creating Windows executable...")
 
@@ -30,7 +30,7 @@ def create_windows_executable():
 
     cmd = [c for c in cmd if c]  # Remove empty strings
 
-    os.system(" ".join(cmd))
+    os.system(" ".join(cmd))  # noqa: S605
     print("✅ Windows executable created in dist/ folder")
 
 
@@ -40,7 +40,7 @@ def create_macos_app():
         import py2app
     except ImportError:
         print("Installing py2app...")
-        os.system("pip install py2app")
+        os.system("pip install py2app")  # noqa: S605
 
     print("Creating macOS .app bundle...")
 
@@ -71,7 +71,7 @@ setup(
     with open("setup_py2app.py", "w") as f:
         f.write(setup_py)
 
-    os.system("python setup_py2app.py py2app")
+    os.system("python setup_py2app.py py2app")  # noqa: S605
     print("✅ macOS .app created in dist/ folder")
 
 

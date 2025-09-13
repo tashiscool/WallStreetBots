@@ -49,9 +49,9 @@ class WallStreetBotsLauncher:
         # Check Python
         python_exe = self.get_python_executable()
         try:
-            result = subprocess.run(
-                [python_exe, "--version"], check=False, capture_output=True, text=True, timeout=10
-            , shell=False)
+            result = subprocess.run(  # noqa: S603
+                [python_exe, "--version"], check=False, capture_output=True, text=True, timeout=10, shell=False
+            )
             if result.returncode == 0:
                 print(f"✅ Python: {result.stdout.strip()}")
             else:
@@ -79,7 +79,7 @@ class WallStreetBotsLauncher:
 
         try:
             # Upgrade pip first
-            subprocess.run(
+            subprocess.run(  # noqa: S603
                 [python_exe, "-m", "pip", "install", "--upgrade", "pip"],
                 check=True,
                 cwd=self.base_dir,
@@ -87,7 +87,7 @@ class WallStreetBotsLauncher:
             )
 
             # Install requirements
-            subprocess.run(
+            subprocess.run(  # noqa: S603
                 [python_exe, "-m", "pip", "install", "-r", "requirements.txt"],
                 check=True,
                 cwd=self.base_dir,
@@ -137,7 +137,7 @@ class WallStreetBotsLauncher:
                 env["WALLSTREETBOTS_REAL_MONEY"] = "true"
 
             print(f"🚀 Starting {'Real Money' if real_money else 'Paper'} Trading Bot...")
-            subprocess.run([python_exe, "simple_bot.py"], check=False, cwd=self.base_dir, env=env, shell=False)
+            subprocess.run([python_exe, "simple_bot.py"], check=False, cwd=self.base_dir, env=env, shell=False)  # noqa: S603
 
         except KeyboardInterrupt:
             print("\n🛑 Bot stopped by user")
@@ -161,7 +161,7 @@ class WallStreetBotsLauncher:
             env["DJANGO_SETTINGS_MODULE"] = "backend.settings"
 
             print(f"🧪 Running {test_type} tests...")
-            subprocess.run([python_exe, test_file], check=False, cwd=self.base_dir, env=env, shell=False)
+            subprocess.run([python_exe, test_file], check=False, cwd=self.base_dir, env=env, shell=False)  # noqa: S603
 
         except subprocess.CalledProcessError as e:
             print(f"❌ Tests failed: {e}")
@@ -176,9 +176,9 @@ class WallStreetBotsLauncher:
 
             print("🔧 Starting Django development server...")
             print("   Access admin at: http://localhost: 8000 / admin/")
-            subprocess.run(
-                [python_exe, "manage.py", "runserver"], check=False, cwd=self.base_dir, env=env
-            , shell=False)
+            subprocess.run(  # noqa: S603
+                [python_exe, "manage.py", "runserver"], check=False, cwd=self.base_dir, env=env, shell=False
+            )
 
         except KeyboardInterrupt:
             print("\n🛑 Django server stopped")
@@ -194,9 +194,9 @@ class WallStreetBotsLauncher:
             env["DJANGO_SETTINGS_MODULE"] = "backend.settings"
 
             print("📊 Running Risk Models Demo...")
-            subprocess.run(
-                [python_exe, "demo_risk_models.py"], check=False, cwd=self.base_dir, env=env
-            , shell=False)
+            subprocess.run(  # noqa: S603
+                [python_exe, "demo_risk_models.py"], check=False, cwd=self.base_dir, env=env, shell=False
+            )
 
         except subprocess.CalledProcessError as e:
             print(f"❌ Demo failed: {e}")

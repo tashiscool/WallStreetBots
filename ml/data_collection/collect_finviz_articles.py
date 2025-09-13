@@ -16,8 +16,8 @@ class FinVizArticles(NewsSourceInterface):
         : return: news_table: bs4.element.Tag (table of raw html tags).
         """
         url = self.base_url + self.ticker
-        req = Request(url=url, headers={"user - agent": "my - app / 0.0.1"})
-        response = urlopen(req)
+        req = Request(url=url, headers={"user - agent": "my - app / 0.0.1"})  # noqa: S310
+        response = urlopen(req)  # noqa: S310
         html = BeautifulSoup(response, features="html.parser")
         news_table = html.find(id="news - table")
         return news_table

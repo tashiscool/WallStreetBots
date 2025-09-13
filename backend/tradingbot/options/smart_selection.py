@@ -235,9 +235,11 @@ class SmartOptionsSelector:
             now = datetime.now()
             suitable_expiries = []
 
-            for expiry in expiry_dates:
-                if isinstance(expiry, date):
-                    expiry = datetime.combine(expiry, datetime.min.time())
+            for expiry_date in expiry_dates:
+                if isinstance(expiry_date, date):
+                    expiry = datetime.combine(expiry_date, datetime.min.time())
+                else:
+                    expiry = expiry_date
 
                 days_to_expiry = (expiry - now).days
 

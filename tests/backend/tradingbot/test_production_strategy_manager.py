@@ -22,7 +22,7 @@ from backend.tradingbot.production.core.production_strategy_manager import (
 
 # Test constants to avoid hardcoded passwords
 TEST_API_KEY = "test_key"
-TEST_SECRET_KEY = "test_secret"
+TEST_SECRET_KEY = "test_secret"  # noqa: S105
 
 
 class TestProductionStrategyManager:
@@ -380,7 +380,7 @@ class TestProductionStrategyManager:
         """Test ProductionStrategyManagerConfig dataclass."""
         # Use test constants instead of hardcoded strings
         TEST_API_KEY = "test_key"
-        TEST_SECRET_KEY = "test_secret"
+        TEST_SECRET_KEY = "test_secret"  # noqa: S105
         
         config = ProductionStrategyManagerConfig(
             alpaca_api_key=TEST_API_KEY,

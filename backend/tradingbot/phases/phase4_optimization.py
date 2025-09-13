@@ -308,7 +308,7 @@ class StrategyOptimizer:
                     int(param_range.max_value) - int(param_range.min_value) + 1
                 ) + int(param_range.min_value)
             elif param_range.param_type == "float":
-                params[param_range.name] = random.uniform(
+                params[param_range.name] = random.uniform(  # noqa: S311
                     param_range.min_value, param_range.max_value
                 )
             elif param_range.param_type == "bool":
@@ -332,7 +332,7 @@ class StrategyOptimizer:
                         secrets.randbelow(int(param_range.min_value), int(param_range.max_value))
                     )
                 elif param_range.param_type == "float":
-                    individual.append(random.uniform(param_range.min_value, param_range.max_value))
+                    individual.append(random.uniform(param_range.min_value, param_range.max_value))  # noqa: S311
                 elif param_range.param_type == "bool":
                     individual.append(secrets.choice([0.0, 1.0]))
                 else:
@@ -404,7 +404,7 @@ class StrategyOptimizer:
                         int(param_range.min_value), int(param_range.max_value)
                     )
                 elif param_range.param_type == "float":
-                    mutated[i] = random.uniform(param_range.min_value, param_range.max_value)
+                    mutated[i] = random.uniform(param_range.min_value, param_range.max_value)  # noqa: S311
                 elif param_range.param_type == "bool":
                     mutated[i] = secrets.choice([0.0, 1.0])
 

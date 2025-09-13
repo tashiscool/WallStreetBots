@@ -11,22 +11,22 @@ from dataclasses import dataclass
 from enum import Enum
 import asyncio
 
-logger=logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class RiskLevel(Enum): 
     """Risk level classifications"""
-    LOW="low"
-    MODERATE="moderate" 
-    HIGH="high"
-    CRITICAL="critical"
+    LOW = "low"
+    MODERATE = "moderate" 
+    HIGH = "high"
+    CRITICAL = "critical"
 
 
 class ValidationResult(Enum): 
     """Risk validation outcomes"""
-    APPROVED="approved"
-    REJECTED="rejected"
-    MODIFIED="modified"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    MODIFIED = "modified"
 
 
 @dataclass
@@ -36,14 +36,14 @@ class TradeSignal:
     action: str  # "BUY" or "SELL"
     quantity: int
     price: Decimal
-    option_type: Optional[str]=None
-    strike: Optional[Decimal]=None
-    expiry_date: Optional[datetime]=None
-    strategy: str="UNKNOWN"
-    confidence: float=0.0
+    option_type: Optional[str] = None
+    strike: Optional[Decimal] = None
+    expiry_date: Optional[datetime] = None
+    strategy: str = "UNKNOWN"
+    confidence: float = 0.0
     
     @property
-    def total_value(self) -> Decimal: 
+    def total_value(self)->Decimal: 
         """Calculate total trade value"""
         return self.price * Decimal(str(self.quantity))
 
@@ -88,12 +88,12 @@ class RiskValidationResult:
     timestamp: datetime
     
     @property
-    def is_modified(self) -> bool: 
+    def is_modified(self)->bool: 
         """Check if trade was modified"""
-        return self.original_quantity != self.approved_quantity
+        return self.original_quantity  !=  self.approved_quantity
     
     @property
-    def rejection_reason(self) -> Optional[str]: 
+    def rejection_reason(self)->Optional[str]: 
         """Get rejection reason if trade was rejected"""
         return self.reason if not self.approved else None
 
@@ -101,52 +101,52 @@ class RiskValidationResult:
 class RealTimeRiskManager: 
     """Advanced real - time risk management system"""
     
-    def __init__(self, alpaca_manager=None): 
-        self.alpaca_manager=alpaca_manager
+    def __init__(self, alpaca_manager = None): 
+        self.alpaca_manager = alpaca_manager
         
         # Risk parameters (configurable)
-        self.max_portfolio_risk=Decimal('0.20')  # 20% max portfolio risk
-        self.max_single_position_risk=Decimal('0.05')  # 5% max per position
-        self.max_daily_loss=Decimal('0.10')  # 10% max daily loss
-        self.max_options_allocation=Decimal('0.15')  # 15% max in options
-        self.min_buying_power_buffer=Decimal('0.20')  # 20% buying power buffer
-        self.max_correlation_risk=Decimal('0.30')  # 30% max in correlated positions
+        self.max_portfolio_risk = Decimal('0.20')  # 20% max portfolio risk
+        self.max_single_position_risk = Decimal('0.05')  # 5% max per position
+        self.max_daily_loss = Decimal('0.10')  # 10% max daily loss
+        self.max_options_allocation = Decimal('0.15')  # 15% max in options
+        self.min_buying_power_buffer = Decimal('0.20')  # 20% buying power buffer
+        self.max_correlation_risk = Decimal('0.30')  # 30% max in correlated positions
         
         # Day trading limits
-        self.max_day_trades=3  # For non - PDT accounts
-        self.pdt_threshold=Decimal('25000')  # PDT threshold
+        self.max_day_trades = 3  # For non - PDT accounts
+        self.pdt_threshold = Decimal('25000')  # PDT threshold
         
         # Risk tracking
-        self.risk_events=[]
-        self.daily_losses=Decimal('0')
-        self.last_account_update=None
-        self.cached_account=None
-        self.cached_positions=[]
+        self.risk_events = []
+        self.daily_losses = Decimal('0')
+        self.last_account_update = None
+        self.cached_account = None
+        self.cached_positions = []
         
-    async def validate_trade_safety(self, trade_signal: TradeSignal) -> RiskValidationResult:
+    async def validate_trade_safety(self, trade_signal: TradeSignal)->RiskValidationResult:
         """
         Comprehensive trade validation with live account data
         """
         try: 
             # Get fresh account data
-            account=await self._get_current_account()
-            positions=await self._get_current_positions()
+            account = await self._get_current_account()
+            positions = await self._get_current_positions()
             
             # Initialize validation result
-            result=RiskValidationResult(
-                approved=False,
-                validation_result=ValidationResult.REJECTED,
-                original_quantity=trade_signal.quantity,
-                approved_quantity=0,
-                risk_level=RiskLevel.HIGH,
-                reason="Validation pending",
-                warnings=[],
-                risk_metrics={},
-                timestamp=datetime.now()
+            result = RiskValidationResult(
+                approved = False,
+                validation_result = ValidationResult.REJECTED,
+                original_quantity = trade_signal.quantity,
+                approved_quantity = 0,
+                risk_level = RiskLevel.HIGH,
+                reason = "Validation pending",
+                warnings = [],
+                risk_metrics = {},
+                timestamp = datetime.now()
             )
             
             # Run all risk checks
-            checks=[
+            checks = [
                 self._check_portfolio_risk(trade_signal, account, positions),
                 self._check_position_sizing(trade_signal, account, positions),
                 self._check_buying_power(trade_signal, account),
@@ -158,55 +158,55 @@ class RealTimeRiskManager:
             ]
             
             # Execute all checks concurrently
-            check_results=await asyncio.gather(*checks, return_exceptions=True)
+            check_results = await asyncio.gather(*checks, return_exceptions = True)
             
             # Process check results
-            all_passed=True
-            highest_risk=RiskLevel.LOW
-            approved_qty=trade_signal.quantity
+            all_passed = True
+            highest_risk = RiskLevel.LOW
+            approved_qty = trade_signal.quantity
             
             for i, check_result in enumerate(check_results): 
                 if isinstance(check_result, Exception): 
                     logger.error(f"Risk check {i} failed: {check_result}")
                     result.warnings.append(f"Risk check failed: {check_result}")
-                    all_passed=False
+                    all_passed = False
                     continue
                 
-                check_passed, risk_level, suggested_qty, warning=check_result
+                check_passed, risk_level, suggested_qty, warning = check_result
                 
                 if not check_passed: 
-                    all_passed=False
+                    all_passed = False
                     
-                if risk_level.value > highest_risk.value: 
-                    highest_risk=risk_level
+                if risk_level.value  >  highest_risk.value: 
+                    highest_risk = risk_level
                     
-                if suggested_qty < approved_qty: 
-                    approved_qty=suggested_qty
+                if suggested_qty  <  approved_qty: 
+                    approved_qty = suggested_qty
                     
                 if warning: 
                     result.warnings.append(warning)
             
             # Calculate final risk metrics
-            result.risk_metrics=await self._calculate_risk_metrics(
+            result.risk_metrics = await self._calculate_risk_metrics(
                 trade_signal, account, positions
             )
             
             # Determine final approval status
-            result.risk_level=highest_risk
-            result.approved_quantity=approved_qty
+            result.risk_level = highest_risk
+            result.approved_quantity = approved_qty
             
             if not all_passed: 
-                result.approved=False
-                result.validation_result=ValidationResult.REJECTED
-                result.reason="Failed risk validation checks"
-            elif approved_qty < trade_signal.quantity: 
-                result.approved=True
-                result.validation_result=ValidationResult.MODIFIED
-                result.reason=f"Position size reduced from {trade_signal.quantity} to {approved_qty}"
+                result.approved = False
+                result.validation_result = ValidationResult.REJECTED
+                result.reason = "Failed risk validation checks"
+            elif approved_qty  <  trade_signal.quantity: 
+                result.approved = True
+                result.validation_result = ValidationResult.MODIFIED
+                result.reason = f"Position size reduced from {trade_signal.quantity} to {approved_qty}"
             else: 
-                result.approved=True
-                result.validation_result=ValidationResult.APPROVED
-                result.reason="All risk checks passed"
+                result.approved = True
+                result.validation_result = ValidationResult.APPROVED
+                result.reason = "All risk checks passed"
             
             # Log validation result
             await self._log_validation_result(trade_signal, result)
@@ -216,47 +216,47 @@ class RealTimeRiskManager:
         except Exception as e: 
             logger.error(f"Risk validation failed for {trade_signal.ticker}: {e}")
             return RiskValidationResult(
-                approved=False,
-                validation_result=ValidationResult.REJECTED,
-                original_quantity=trade_signal.quantity,
-                approved_quantity=0,
-                risk_level=RiskLevel.CRITICAL,
-                reason=f"Risk validation system error: {e}",
-                warnings=[],
-                risk_metrics={},
-                timestamp=datetime.now()
+                approved = False,
+                validation_result = ValidationResult.REJECTED,
+                original_quantity = trade_signal.quantity,
+                approved_quantity = 0,
+                risk_level = RiskLevel.CRITICAL,
+                reason = f"Risk validation system error: {e}",
+                warnings = [],
+                risk_metrics = {},
+                timestamp = datetime.now()
             )
     
-    async def _get_current_account(self) -> AccountSnapshot: 
+    async def _get_current_account(self)->AccountSnapshot: 
         """Get current account data from broker with caching"""
         try: 
-            # Use cached data if recent (< 30 seconds)
+            # Use cached data if recent ( <  30 seconds)
             if (self.cached_account and self.last_account_update and 
-                datetime.now() - self.last_account_update < timedelta(seconds=30)): 
+                datetime.now() - self.last_account_update  <  timedelta(seconds = 30)): 
                 return self.cached_account
             
             # Get fresh account data from Alpaca
             if not self.alpaca_manager: 
                 raise Exception("Alpaca manager not configured")
             
-            account_data=await self.alpaca_manager.get_account()
+            account_data = await self.alpaca_manager.get_account()
             
             # Convert to our data structure
-            account_snapshot=AccountSnapshot(
-                portfolio_value=Decimal(str(account_data.portfolio_value)),
-                buying_power=Decimal(str(account_data.buying_power)),
-                day_trade_count=account_data.daytrade_count,
-                equity=Decimal(str(account_data.equity)),
-                cash=Decimal(str(account_data.cash)),
-                long_market_value=Decimal(str(account_data.long_market_value)),
-                short_market_value=Decimal(str(account_data.short_market_value)),
-                maintenance_margin=Decimal(str(account_data.maintenance_margin)),
-                last_updated=datetime.now()
+            account_snapshot = AccountSnapshot(
+                portfolio_value = Decimal(str(account_data.portfolio_value)),
+                buying_power = Decimal(str(account_data.buying_power)),
+                day_trade_count = account_data.daytrade_count,
+                equity = Decimal(str(account_data.equity)),
+                cash = Decimal(str(account_data.cash)),
+                long_market_value = Decimal(str(account_data.long_market_value)),
+                short_market_value = Decimal(str(account_data.short_market_value)),
+                maintenance_margin = Decimal(str(account_data.maintenance_margin)),
+                last_updated = datetime.now()
             )
             
             # Cache the result
-            self.cached_account=account_snapshot
-            self.last_account_update=datetime.now()
+            self.cached_account = account_snapshot
+            self.last_account_update = datetime.now()
             
             return account_snapshot
             
@@ -264,34 +264,34 @@ class RealTimeRiskManager:
             logger.error(f"Failed to get account data: {e}")
             raise
     
-    async def _get_current_positions(self) -> List[PositionSummary]: 
+    async def _get_current_positions(self)->List[PositionSummary]: 
         """Get current positions from broker"""
         try: 
             if not self.alpaca_manager: 
                 return []
             
-            positions=await self.alpaca_manager.get_positions()
-            position_summaries=[]
+            positions = await self.alpaca_manager.get_positions()
+            position_summaries = []
             
             for pos in positions: 
                 # Determine position type
-                position_type="option" if "/" in pos.symbol else "stock"
+                position_type = "option" if "/" in pos.symbol else "stock"
                 
                 # Calculate risk exposure (market value * some risk factor)
-                market_val=Decimal(str(pos.market_value))
-                risk_exposure=abs(market_val)  # Simplified risk calculation
+                market_val = Decimal(str(pos.market_value))
+                risk_exposure = abs(market_val)  # Simplified risk calculation
                 
                 position_summaries.append(PositionSummary(
-                    ticker=pos.symbol,
-                    quantity=int(pos.qty),
-                    market_value=market_val,
-                    unrealized_pnl=Decimal(str(pos.unrealized_pnl)),
-                    cost_basis=Decimal(str(pos.cost_basis)),
-                    position_type=position_type,
-                    risk_exposure=risk_exposure
+                    ticker = pos.symbol,
+                    quantity = int(pos.qty),
+                    market_value = market_val,
+                    unrealized_pnl = Decimal(str(pos.unrealized_pnl)),
+                    cost_basis = Decimal(str(pos.cost_basis)),
+                    position_type = position_type,
+                    risk_exposure = risk_exposure
                 ))
             
-            self.cached_positions=position_summaries
+            self.cached_positions = position_summaries
             return position_summaries
             
         except Exception as e: 
@@ -299,25 +299,25 @@ class RealTimeRiskManager:
             return []
     
     async def _check_portfolio_risk(self, trade_signal: TradeSignal, account: AccountSnapshot, 
-                                  positions: List[PositionSummary]) -> tuple:
+                                  positions: List[PositionSummary])->tuple:
         """Check overall portfolio risk exposure"""
         try: 
             # Calculate current risk exposure
-            current_risk=sum(pos.risk_exposure for pos in positions)
+            current_risk = sum(pos.risk_exposure for pos in positions)
             
             # Calculate proposed trade risk
-            trade_risk=trade_signal.total_value
+            trade_risk = trade_signal.total_value
             
             # Total risk after trade
-            total_risk=current_risk + trade_risk
-            risk_percentage=total_risk / account.portfolio_value
+            total_risk = current_risk + trade_risk
+            risk_percentage = total_risk / account.portfolio_value
             
             # Check against limit
-            if risk_percentage > self.max_portfolio_risk: 
+            if risk_percentage  >  self.max_portfolio_risk: 
                 # Calculate maximum allowed quantity
-                max_allowed_risk=account.portfolio_value * self.max_portfolio_risk
-                available_risk=max_allowed_risk - current_risk
-                max_quantity=int(available_risk / trade_signal.price) if trade_signal.price > 0 else 0
+                max_allowed_risk = account.portfolio_value * self.max_portfolio_risk
+                available_risk = max_allowed_risk - current_risk
+                max_quantity = int(available_risk / trade_signal.price) if trade_signal.price  >  0 else 0
                 
                 return (
                     False,
@@ -327,12 +327,12 @@ class RealTimeRiskManager:
                 )
             
             # Determine risk level
-            if risk_percentage > self.max_portfolio_risk * Decimal('0.8'): 
-                risk_level=RiskLevel.HIGH
-            elif risk_percentage > self.max_portfolio_risk * Decimal('0.6'): 
-                risk_level=RiskLevel.MODERATE
+            if risk_percentage  >  self.max_portfolio_risk * Decimal('0.8'): 
+                risk_level = RiskLevel.HIGH
+            elif risk_percentage  >  self.max_portfolio_risk * Decimal('0.6'): 
+                risk_level = RiskLevel.MODERATE
             else: 
-                risk_level=RiskLevel.LOW
+                risk_level = RiskLevel.LOW
             
             return (True, risk_level, trade_signal.quantity, None)
             
@@ -341,16 +341,16 @@ class RealTimeRiskManager:
             return (False, RiskLevel.CRITICAL, 0, f"Portfolio risk check error: {e}")
     
     async def _check_position_sizing(self, trade_signal: TradeSignal, account: AccountSnapshot,
-                                   positions: List[PositionSummary]) -> tuple:
+                                   positions: List[PositionSummary])->tuple:
         """Check individual position size limits"""
         try: 
-            trade_value=trade_signal.total_value
-            position_percentage=trade_value / account.portfolio_value
+            trade_value = trade_signal.total_value
+            position_percentage = trade_value / account.portfolio_value
             
-            if position_percentage > self.max_single_position_risk: 
+            if position_percentage  >  self.max_single_position_risk: 
                 # Calculate max allowed quantity
-                max_value=account.portfolio_value * self.max_single_position_risk
-                max_quantity=int(max_value / trade_signal.price) if trade_signal.price > 0 else 0
+                max_value = account.portfolio_value * self.max_single_position_risk
+                max_quantity = int(max_value / trade_signal.price) if trade_signal.price  >  0 else 0
                 
                 return (
                     False,
@@ -365,23 +365,23 @@ class RealTimeRiskManager:
             logger.error(f"Position sizing check failed: {e}")
             return (False, RiskLevel.CRITICAL, 0, f"Position sizing error: {e}")
     
-    async def _check_buying_power(self, trade_signal: TradeSignal, account: AccountSnapshot) -> tuple:
+    async def _check_buying_power(self, trade_signal: TradeSignal, account: AccountSnapshot)->tuple:
         """Check buying power requirements"""
         try: 
-            required_buying_power=trade_signal.total_value
+            required_buying_power = trade_signal.total_value
             
             # Add buffer for options margin requirements
             if trade_signal.option_type: 
                 required_buying_power *= Decimal('1.2')  # 20% buffer for options
             
             # Check available buying power with buffer
-            available_bp=account.buying_power * (Decimal('1') - self.min_buying_power_buffer)
+            available_bp = account.buying_power * (Decimal('1') - self.min_buying_power_buffer)
             
-            if required_buying_power > available_bp: 
+            if required_buying_power  >  available_bp: 
                 # Calculate max affordable quantity
-                max_affordable=available_bp / (trade_signal.price * 
+                max_affordable = available_bp / (trade_signal.price * 
                                                (Decimal('1.2') if trade_signal.option_type else Decimal('1')))
-                max_quantity=int(max_affordable)
+                max_quantity = int(max_affordable)
                 
                 return (
                     False,
@@ -396,22 +396,22 @@ class RealTimeRiskManager:
             logger.error(f"Buying power check failed: {e}")
             return (False, RiskLevel.CRITICAL, 0, f"Buying power check error: {e}")
     
-    async def _check_daily_loss_limits(self, trade_signal: TradeSignal, account: AccountSnapshot) -> tuple:
+    async def _check_daily_loss_limits(self, trade_signal: TradeSignal, account: AccountSnapshot)->tuple:
         """Check daily loss limits"""
         try: 
             # This would typically track daily P & L
             # For now, using a simple unrealized P & L check
-            current_unrealized=account.equity - account.cash
-            starting_equity=account.portfolio_value  # Simplified
+            current_unrealized = account.equity - account.cash
+            starting_equity = account.portfolio_value  # Simplified
             
-            daily_loss_pct=(starting_equity - current_unrealized) / starting_equity
+            daily_loss_pct = (starting_equity - current_unrealized) / starting_equity
             
-            if daily_loss_pct > self.max_daily_loss: 
+            if daily_loss_pct  >  self.max_daily_loss: 
                 return (
                     False,
                     RiskLevel.CRITICAL,
                     0,
-                    f"Daily loss limit exceeded: {daily_loss_pct:.1%} > {self.max_daily_loss: .1%}"
+                    f"Daily loss limit exceeded: {daily_loss_pct:.1%}  >  {self.max_daily_loss: .1%}"
                 )
             
             return (True, RiskLevel.LOW, trade_signal.quantity, None)
@@ -420,13 +420,13 @@ class RealTimeRiskManager:
             logger.error(f"Daily loss check failed: {e}")
             return (True, RiskLevel.LOW, trade_signal.quantity, None)  # Allow trade on check failure
     
-    async def _check_day_trading_limits(self, trade_signal: TradeSignal, account: AccountSnapshot) -> tuple:
+    async def _check_day_trading_limits(self, trade_signal: TradeSignal, account: AccountSnapshot)->tuple:
         """Check day trading rules"""
         try: 
             # Check if account is PDT eligible
-            is_pdt=account.equity >= self.pdt_threshold
+            is_pdt = account.equity  >=  self.pdt_threshold
             
-            if not is_pdt and account.day_trade_count >= self.max_day_trades: 
+            if not is_pdt and account.day_trade_count  >=  self.max_day_trades: 
                 return (
                     False,
                     RiskLevel.HIGH,
@@ -441,7 +441,7 @@ class RealTimeRiskManager:
             return (True, RiskLevel.LOW, trade_signal.quantity, None)
     
     async def _check_options_allocation(self, trade_signal: TradeSignal, account: AccountSnapshot,
-                                      positions: List[PositionSummary]) -> tuple:
+                                      positions: List[PositionSummary])->tuple:
         """Check options allocation limits"""
         try: 
             # Only check for options trades
@@ -449,20 +449,20 @@ class RealTimeRiskManager:
                 return (True, RiskLevel.LOW, trade_signal.quantity, None)
             
             # Calculate current options exposure
-            current_options_value=sum(
+            current_options_value = sum(
                 abs(pos.market_value) for pos in positions 
-                if pos.position_type== "option"
+                if pos.position_type ==  "option"
             )
             
             # Add proposed trade
-            total_options_value=current_options_value + trade_signal.total_value
-            options_percentage=total_options_value / account.portfolio_value
+            total_options_value = current_options_value + trade_signal.total_value
+            options_percentage = total_options_value / account.portfolio_value
             
-            if options_percentage > self.max_options_allocation: 
+            if options_percentage  >  self.max_options_allocation: 
                 # Calculate max allowed options quantity
-                max_options_value=account.portfolio_value * self.max_options_allocation
-                available_options_capacity=max_options_value - current_options_value
-                max_quantity=int(available_options_capacity / trade_signal.price) if trade_signal.price > 0 else 0
+                max_options_value = account.portfolio_value * self.max_options_allocation
+                available_options_capacity = max_options_value - current_options_value
+                max_quantity = int(available_options_capacity / trade_signal.price) if trade_signal.price  >  0 else 0
                 
                 return (
                     False,
@@ -478,22 +478,22 @@ class RealTimeRiskManager:
             return (True, RiskLevel.LOW, trade_signal.quantity, None)
     
     async def _check_correlation_risk(self, trade_signal: TradeSignal, 
-                                    positions: List[PositionSummary]) -> tuple:
+                                    positions: List[PositionSummary])->tuple:
         """Check correlation risk (simplified sector / correlation analysis)"""
         try: 
             # Simplified: check for excessive exposure to same ticker
-            same_ticker_exposure=sum(
+            same_ticker_exposure = sum(
                 abs(pos.market_value) for pos in positions 
-                if pos.ticker== trade_signal.ticker
+                if pos.ticker ==  trade_signal.ticker
             )
             
             # This is a simplified check - in practice would use sector / correlation data
-            total_exposure=same_ticker_exposure + trade_signal.total_value
+            total_exposure = same_ticker_exposure + trade_signal.total_value
             
             # For now, just check if more than 10% in same ticker
-            max_single_ticker=Decimal('0.10')  # 10% max in single ticker
+            max_single_ticker = Decimal('0.10')  # 10% max in single ticker
             
-            if total_exposure > max_single_ticker: 
+            if total_exposure  >  max_single_ticker: 
                 return (
                     False,
                     RiskLevel.MODERATE,
@@ -507,12 +507,12 @@ class RealTimeRiskManager:
             logger.error(f"Correlation risk check failed: {e}")
             return (True, RiskLevel.LOW, trade_signal.quantity, None)
     
-    async def _check_volatility_risk(self, trade_signal: TradeSignal) -> tuple:
+    async def _check_volatility_risk(self, trade_signal: TradeSignal)->tuple:
         """Check volatility - based risk"""
         try: 
             # This would typically use historical volatility data
             # For now, apply conservative limits to options
-            if trade_signal.option_type and trade_signal.quantity > 10: 
+            if trade_signal.option_type and trade_signal.quantity  >  10: 
                 return (
                     True,
                     RiskLevel.MODERATE,
@@ -527,10 +527,10 @@ class RealTimeRiskManager:
             return (True, RiskLevel.LOW, trade_signal.quantity, None)
     
     async def _calculate_risk_metrics(self, trade_signal: TradeSignal, account: AccountSnapshot,
-                                    positions: List[PositionSummary]) -> Dict[str, Any]: 
+                                    positions: List[PositionSummary])->Dict[str, Any]: 
         """Calculate comprehensive risk metrics"""
         try: 
-            current_value=sum(abs(pos.market_value) for pos in positions)
+            current_value = sum(abs(pos.market_value) for pos in positions)
             
             return {
                 'current_portfolio_value': float(account.portfolio_value),
@@ -540,10 +540,10 @@ class RealTimeRiskManager:
                 'buying_power_utilization': float((account.portfolio_value - account.buying_power) / account.portfolio_value),
                 'options_allocation': float(sum(
                     abs(pos.market_value) for pos in positions 
-                    if pos.position_type== "option"
+                    if pos.position_type ==  "option"
                 ) / account.portfolio_value),
                 'cash_percentage': float(account.cash / account.portfolio_value),
-                'day_trades_remaining': max(0, self.max_day_trades - account.day_trade_count) if account.equity < self.pdt_threshold else 999
+                'day_trades_remaining': max(0, self.max_day_trades - account.day_trade_count) if account.equity  <  self.pdt_threshold else 999
             }
         except Exception as e: 
             logger.error(f"Risk metrics calculation failed: {e}")
@@ -552,7 +552,7 @@ class RealTimeRiskManager:
     async def _log_validation_result(self, trade_signal: TradeSignal, result: RiskValidationResult):
         """Log risk validation results for monitoring"""
         try: 
-            log_entry={
+            log_entry = {
                 'timestamp': result.timestamp.isoformat(),
                 'ticker': trade_signal.ticker,
                 'strategy': trade_signal.strategy,
@@ -571,8 +571,8 @@ class RealTimeRiskManager:
             self.risk_events.append(log_entry)
             
             # Keep only last 1000 events
-            if len(self.risk_events) > 1000: 
-                self.risk_events=self.risk_events[-1000: ]
+            if len(self.risk_events)  >  1000: 
+                self.risk_events = self.risk_events[-1000: ]
                 
         except Exception as e: 
             logger.error(f"Failed to log validation result: {e}")
@@ -585,7 +585,7 @@ class RealTimeRiskManager:
             # This would integrate with the main trading system to halt operations
             # For now, just log the critical event
             
-            halt_event={
+            halt_event = {
                 'timestamp': datetime.now().isoformat(),
                 'reason': reason,
                 'type': 'EMERGENCY_HALT',
@@ -603,35 +603,35 @@ class RealTimeRiskManager:
         except Exception as e: 
             logger.error(f"Emergency halt procedure failed: {e}")
     
-    async def get_risk_summary(self) -> Dict[str, Any]: 
+    async def get_risk_summary(self)->Dict[str, Any]: 
         """Get current risk summary"""
         try: 
-            account=await self._get_current_account()
-            positions=await self._get_current_positions()
+            account = await self._get_current_account()
+            positions = await self._get_current_positions()
             
-            total_exposure=sum(abs(pos.market_value) for pos in positions)
-            options_exposure=sum(
+            total_exposure = sum(abs(pos.market_value) for pos in positions)
+            options_exposure = sum(
                 abs(pos.market_value) for pos in positions 
-                if pos.position_type== "option"
+                if pos.position_type ==  "option"
             )
             
             return {
                 'timestamp': datetime.now().isoformat(),
                 'portfolio_value': float(account.portfolio_value),
                 'total_risk_exposure': float(total_exposure),
-                'risk_percentage': float(total_exposure / account.portfolio_value) if account.portfolio_value > 0 else 0,
-                'options_allocation': float(options_exposure / account.portfolio_value) if account.portfolio_value > 0 else 0,
+                'risk_percentage': float(total_exposure / account.portfolio_value) if account.portfolio_value  >  0 else 0,
+                'options_allocation': float(options_exposure / account.portfolio_value) if account.portfolio_value  >  0 else 0,
                 'buying_power': float(account.buying_power),
                 'day_trades_used': account.day_trade_count,
                 'positions_count': len(positions),
                 'recent_validations': len([e for e in self.risk_events if 
-                                         datetime.fromisoformat(e['timestamp']) > datetime.now() - timedelta(hours=1)])
+                                         datetime.fromisoformat(e['timestamp'])  >  datetime.now() - timedelta(hours = 1)])
             }
         except Exception as e: 
             logger.error(f"Risk summary generation failed: {e}")
             return {'error': str(e)}
 
 
-def create_risk_manager(alpaca_manager=None) -> RealTimeRiskManager: 
+def create_risk_manager(alpaca_manager = None)->RealTimeRiskManager: 
     """Factory function to create risk manager"""
     return RealTimeRiskManager(alpaca_manager)

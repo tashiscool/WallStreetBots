@@ -27,9 +27,9 @@ class ProductionMigration:
     """Production database migration"""
     
     def __init__(self, config: ProductionConfig):
-        self.config=config
-        self.logger=ProductionLogger("migration")
-        self.migration_stats={
+        self.config = config
+        self.logger = ProductionLogger("migration")
+        self.migration_stats = {
             'strategies_created': 0,
             'positions_migrated': 0,
             'trades_migrated': 0,
@@ -64,7 +64,7 @@ class ProductionMigration:
     
     async def create_strategies(self): 
         """Create strategy records"""
-        strategies_data=[
+        strategies_data = [
             {
                 'name': 'WSB Dip Bot',
                 'description': 'High - risk momentum continuation strategy',
@@ -149,9 +149,9 @@ class ProductionMigration:
         
         for strategy_data in strategies_data: 
             try: 
-                strategy, created=Strategy.objects.get_or_create(
-                    name=strategy_data['name'],
-                    defaults=strategy_data
+                strategy, created = Strategy.objects.get_or_create(
+                    name = strategy_data['name'],
+                    defaults = strategy_data
                 )
                 
                 if created: 
@@ -167,7 +167,7 @@ class ProductionMigration:
     async def migrate_portfolios(self): 
         """Migrate portfolio data from JSON files"""
         # Migrate LEAPS portfolio
-        leaps_file="leaps_portfolio.json"
+        leaps_file = "leaps_portfolio.json"
         if os.path.exists(leaps_file): 
             try: 
                 DatabaseMigration.migrate_leaps_portfolio(leaps_file)
@@ -177,7 +177,7 @@ class ProductionMigration:
                 self.logger.error(f"Error migrating LEAPS portfolio: {e}")
         
         # Migrate Wheel portfolio
-        wheel_file="wheel_portfolio.json"
+        wheel_file = "wheel_portfolio.json"
         if os.path.exists(wheel_file): 
             try: 
                 DatabaseMigration.migrate_wheel_portfolio(wheel_file)
@@ -187,17 +187,17 @@ class ProductionMigration:
                 self.logger.error(f"Error migrating Wheel portfolio: {e}")
         
         # Count migrated positions
-        self.migration_stats['positions_migrated']=Position.objects.count()
+        self.migration_stats['positions_migrated'] = Position.objects.count()
     
     async def create_risk_limits(self): 
         """Create risk limits for each strategy"""
-        strategies=Strategy.objects.all()
+        strategies = Strategy.objects.all()
         
         for strategy in strategies: 
             try: 
-                risk_limit, created=RiskLimit.objects.get_or_create(
-                    strategy=strategy,
-                    defaults={
+                risk_limit, created = RiskLimit.objects.get_or_create(
+                    strategy = strategy,
+                    defaults = {
                         'max_position_risk': strategy.max_position_risk,
                         'max_total_risk': strategy.max_total_risk,
                         'max_drawdown': 0.20,
@@ -214,7 +214,7 @@ class ProductionMigration:
     
     async def create_default_configurations(self): 
         """Create default system configurations"""
-        default_configs=[
+        default_configs = [
             {
                 'key': 'system_version',
                 'value': '1.0.0',
@@ -279,9 +279,9 @@ class ProductionMigration:
         
         for config_data in default_configs: 
             try: 
-                config, created=Configuration.objects.get_or_create(
-                    key=config_data['key'],
-                    defaults=config_data
+                config, created = Configuration.objects.get_or_create(
+                    key = config_data['key'],
+                    defaults = config_data
                 )
                 
                 if created: 
@@ -293,7 +293,7 @@ class ProductionMigration:
     
     async def generate_migration_report(self): 
         """Generate migration report"""
-        report={
+        report = {
             'migration_date': datetime.now().isoformat(),
             'statistics': self.migration_stats,
             'strategies': list(Strategy.objects.values('name', 'risk_level', 'status')),
@@ -304,9 +304,9 @@ class ProductionMigration:
         }
         
         # Save report to file
-        report_file=f"migration_report_{datetime.now().strftime('%Y % m%d_ % H%M % S')}.json"
+        report_file = f"migration_report_{datetime.now().strftime('%Y % m%d_ % H%M % S')}.json"
         with open(report_file, 'w') as f: 
-            json.dump(report, f, indent=2)
+            json.dump(report, f, indent = 2)
         
         self.logger.info(f"Migration report saved to {report_file}")
         
@@ -316,29 +316,29 @@ class ProductionMigration:
 
 class Command(BaseCommand): 
     """Django management command for migration"""
-    help='Migrate from JSON files to production database'
+    help = 'Migrate from JSON files to production database'
     
     def add_arguments(self, parser): 
         parser.add_argument(
             '--config - file',
-            type=str,
-            default='config / production.json',
-            help='Configuration file path'
+            type = str,
+            default = 'config / production.json',
+            help = 'Configuration file path'
         )
         parser.add_argument(
             '--dry - run',
-            action='store_true',
-            help='Run migration in dry - run mode'
+            action = 'store_true',
+            help = 'Run migration in dry - run mode'
         )
     
     def handle(self, *args, **options): 
         """Handle migration command"""
         # Load configuration
-        config_manager=ConfigManager(options['config_file'])
-        config=config_manager.load_config()
+        config_manager = ConfigManager(options['config_file'])
+        config = config_manager.load_config()
         
         # Validate configuration
-        errors=config.validate()
+        errors = config.validate()
         if errors: 
             self.stdout.write(
                 self.style.ERROR(f"Configuration errors: {', '.join(errors)}")
@@ -352,7 +352,7 @@ class Command(BaseCommand):
             return
         
         # Run migration
-        migration=ProductionMigration(config)
+        migration = ProductionMigration(config)
         
         try: 
             asyncio.run(migration.run_full_migration())
@@ -377,13 +377,13 @@ async def main():
     
     if not settings.configured: 
         settings.configure(
-            DATABASES={
+            DATABASES = {
                 'default': {
                     'ENGINE': 'django.db.backends.sqlite3',
                     'NAME': 'db.sqlite3',
                 }
             },
-            INSTALLED_APPS=[
+            INSTALLED_APPS = [
                 'django.contrib.auth',
                 'django.contrib.contenttypes',
                 'backend.tradingbot',
@@ -392,12 +392,12 @@ async def main():
         django.setup()
     
     # Load configuration
-    config_manager=ConfigManager()
-    config=config_manager.load_config()
+    config_manager = ConfigManager()
+    config = config_manager.load_config()
     
     # Run migration
-    migration=ProductionMigration(config)
+    migration = ProductionMigration(config)
     await migration.run_full_migration()
 
 
-if __name__== "__main__": asyncio.run(main())
+if __name__ ==  "__main__": asyncio.run(main())

@@ -30,60 +30,60 @@ from asgiref.sync import sync_to_async
 @dataclass
 class ProductionTradeSignal(TradeSignal): 
     """Extended TradeSignal for production use"""
-    price: float=0.0
-    trade_type: str="stock"
-    risk_amount: Decimal=Decimal('0.00')
-    expected_return: Decimal=Decimal('0.00')
-    metadata: Dict[str, Any]=field(default_factory=dict)
+    price: float = 0.0
+    trade_type: str = "stock"
+    risk_amount: Decimal = Decimal('0.00')
+    expected_return: Decimal = Decimal('0.00')
+    metadata: Dict[str, Any] = field(default_factory = dict)
 
 
 @dataclass
 class ProductionTrade: 
     """Production trade record with full integration"""
-    id: Optional[str]=None
-    strategy_name: str=""
-    ticker: str=""
-    trade_type: str=""  # 'stock', 'option', 'spread'
-    action: str=""  # 'buy', 'sell', 'open', 'close'
-    quantity: int=0
-    entry_price: Decimal=Decimal('0.00')
-    exit_price: Optional[Decimal]=None
-    pnl: Optional[Decimal]=None
-    commission: Decimal=Decimal('0.00')
-    slippage: Decimal=Decimal('0.00')
-    alpaca_order_id: str=""
-    django_order_id: Optional[int]=None
-    fill_timestamp: Optional[datetime]=None
-    exit_timestamp: Optional[datetime]=None
-    risk_amount: Decimal=Decimal('0.00')
-    expected_return: Decimal=Decimal('0.00')
-    actual_return: Optional[Decimal]=None
-    win: Optional[bool]=None
-    metadata: Dict[str, Any]=field(default_factory=dict)
-    created_at: datetime=field(default_factory=datetime.now)
-    updated_at: datetime=field(default_factory=datetime.now)
+    id: Optional[str] = None
+    strategy_name: str = ""
+    ticker: str = ""
+    trade_type: str = ""  # 'stock', 'option', 'spread'
+    action: str = ""  # 'buy', 'sell', 'open', 'close'
+    quantity: int = 0
+    entry_price: Decimal = Decimal('0.00')
+    exit_price: Optional[Decimal] = None
+    pnl: Optional[Decimal] = None
+    commission: Decimal = Decimal('0.00')
+    slippage: Decimal = Decimal('0.00')
+    alpaca_order_id: str = ""
+    django_order_id: Optional[int] = None
+    fill_timestamp: Optional[datetime] = None
+    exit_timestamp: Optional[datetime] = None
+    risk_amount: Decimal = Decimal('0.00')
+    expected_return: Decimal = Decimal('0.00')
+    actual_return: Optional[Decimal] = None
+    win: Optional[bool] = None
+    metadata: Dict[str, Any] = field(default_factory = dict)
+    created_at: datetime = field(default_factory  =  datetime.now)
+    updated_at: datetime = field(default_factory  =  datetime.now)
 
 
 @dataclass
 class ProductionPosition: 
     """Production position with real - time tracking"""
-    id: Optional[str]=None
-    ticker: str=""
-    strategy_name: str=""
-    position_type: str=""  # 'long', 'short', 'spread'
-    quantity: int=0
-    entry_price: Decimal=Decimal('0.00')
-    current_price: Decimal=Decimal('0.00')
-    unrealized_pnl: Decimal=Decimal('0.00')
-    realized_pnl: Decimal=Decimal('0.00')
-    risk_amount: Decimal=Decimal('0.00')
-    stop_loss: Optional[Decimal]=None
-    take_profit: Optional[Decimal]=None
-    alpaca_position_id: str=""
-    django_stock_instance_id: Optional[int]=None
-    metadata: Dict[str, Any]=field(default_factory=dict)
-    created_at: datetime=field(default_factory=datetime.now)
-    updated_at: datetime=field(default_factory=datetime.now)
+    id: Optional[str] = None
+    ticker: str = ""
+    strategy_name: str = ""
+    position_type: str = ""  # 'long', 'short', 'spread'
+    quantity: int = 0
+    entry_price: Decimal = Decimal('0.00')
+    current_price: Decimal = Decimal('0.00')
+    unrealized_pnl: Decimal = Decimal('0.00')
+    realized_pnl: Decimal = Decimal('0.00')
+    risk_amount: Decimal = Decimal('0.00')
+    stop_loss: Optional[Decimal] = None
+    take_profit: Optional[Decimal] = None
+    alpaca_position_id: str = ""
+    django_stock_instance_id: Optional[int] = None
+    metadata: Dict[str, Any] = field(default_factory = dict)
+    created_at: datetime = field(default_factory  =  datetime.now)
+    updated_at: datetime = field(default_factory  =  datetime.now)
 
 
 class ProductionIntegrationManager: 
@@ -98,16 +98,16 @@ class ProductionIntegrationManager:
     """
     
     def __init__(self, alpaca_api_key: str, alpaca_secret_key: str, 
-                 paper_trading: bool=True, user_id: int=1):
-        self.alpaca_manager=AlpacaManager(alpaca_api_key, alpaca_secret_key, paper_trading)
-        self.risk_manager=RiskManager(RiskParameters())
-        self.alert_system=TradingAlertSystem()
-        self.user_id=user_id
-        self.logger=logging.getLogger(__name__)
+                 paper_trading: bool = True, user_id: int = 1):
+        self.alpaca_manager = AlpacaManager(alpaca_api_key, alpaca_secret_key, paper_trading)
+        self.risk_manager = RiskManager(RiskParameters())
+        self.alert_system = TradingAlertSystem()
+        self.user_id = user_id
+        self.logger = logging.getLogger(__name__)
         
         # Active trades and positions
-        self.active_trades: Dict[str, ProductionTrade]={}
-        self.active_positions: Dict[str, ProductionPosition]={}
+        self.active_trades: Dict[str, ProductionTrade] = {}
+        self.active_positions: Dict[str, ProductionPosition] = {}
         
         # Setup logging
         self.setup_logging()
@@ -117,15 +117,15 @@ class ProductionIntegrationManager:
     def setup_logging(self): 
         """Setup structured logging"""
         logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[
+            level = logging.INFO,
+            format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers = [
                 logging.FileHandler('production_integration.log'),
                 logging.StreamHandler()
             ]
         )
     
-    async def execute_trade(self, signal: ProductionTradeSignal) -> TradeResult:
+    async def execute_trade(self, signal: ProductionTradeSignal)->TradeResult:
         """
         Execute trade with full production integration
         
@@ -136,10 +136,10 @@ class ProductionIntegrationManager:
         4. Update position tracking
         5. Send alerts
         """
-        trade_id=f"{signal.strategy_name}_{signal.ticker}_{datetime.now().strftime('%Y % m%d_ % H%M % S')}"
+        trade_id = f"{signal.strategy_name}_{signal.ticker}_{datetime.now().strftime('%Y % m%d_ % H%M % S')}"
         
         try: 
-            self.logger.info(f"Executing production trade {trade_id}", extra={
+            self.logger.info(f"Executing production trade {trade_id}", extra = {
                 'trade_id': trade_id,
                 'strategy': signal.strategy_name,
                 'ticker': signal.ticker,
@@ -148,7 +148,7 @@ class ProductionIntegrationManager:
             })
             
             # 1. Risk validation
-            risk_check=await self.validate_risk_limits(signal)
+            risk_check = await self.validate_risk_limits(signal)
             if not risk_check['allowed']: 
                 await self.alert_system.send_alert(
                     AlertType.RISK_ALERT,
@@ -156,47 +156,47 @@ class ProductionIntegrationManager:
                     f"Risk limit exceeded for {signal.ticker}: {risk_check['reason']}"
                 )
                 return TradeResult(
-                    trade_id=trade_id,
-                    signal=signal,
-                    status=TradeStatus.REJECTED,
-                    error_message=f"Risk limit exceeded: {risk_check['reason']}"
+                    trade_id = trade_id,
+                    signal = signal,
+                    status = TradeStatus.REJECTED,
+                    error_message = f"Risk limit exceeded: {risk_check['reason']}"
                 )
             
             # 2. Execute via AlpacaManager
-            alpaca_result=await self.execute_alpaca_order(signal)
+            alpaca_result = await self.execute_alpaca_order(signal)
             if not alpaca_result['success']: 
                 return TradeResult(
-                    trade_id=trade_id,
-                    signal=signal,
-                    status=TradeStatus.REJECTED,
-                    error_message=f"Alpaca execution failed: {alpaca_result['error']}"
+                    trade_id = trade_id,
+                    signal = signal,
+                    status = TradeStatus.REJECTED,
+                    error_message = f"Alpaca execution failed: {alpaca_result['error']}"
                 )
             
             # 3. Create Django Order record
-            django_order=await self.create_django_order(signal, alpaca_result['order_id'])
+            django_order = await self.create_django_order(signal, alpaca_result['order_id'])
             
             # 4. Create ProductionTrade record
-            production_trade=ProductionTrade(
-                id=trade_id,
-                strategy_name=signal.strategy_name,
-                ticker=signal.ticker,
-                trade_type=signal.trade_type,
-                action=signal.side.value,
-                quantity=signal.quantity,
-                entry_price=Decimal(str(alpaca_result['fill_price'])),
-                alpaca_order_id=alpaca_result['order_id'],
-                django_order_id=django_order.id if django_order else None,
-                fill_timestamp=datetime.now(),
-                risk_amount=Decimal(str(signal.risk_amount)),
-                expected_return=Decimal(str(signal.expected_return)),
-                metadata=signal.metadata
+            production_trade = ProductionTrade(
+                id = trade_id,
+                strategy_name = signal.strategy_name,
+                ticker = signal.ticker,
+                trade_type = signal.trade_type,
+                action = signal.side.value,
+                quantity = signal.quantity,
+                entry_price = Decimal(str(alpaca_result['fill_price'])),
+                alpaca_order_id = alpaca_result['order_id'],
+                django_order_id = django_order.id if django_order else None,
+                fill_timestamp = datetime.now(),
+                risk_amount = Decimal(str(signal.risk_amount)),
+                expected_return = Decimal(str(signal.expected_return)),
+                metadata = signal.metadata
             )
             
             # 5. Update position tracking
             await self.update_position_tracking(production_trade)
             
             # 6. Store trade
-            self.active_trades[trade_id]=production_trade
+            self.active_trades[trade_id] = production_trade
             
             # 7. Send success alert
             await self.alert_system.send_alert(
@@ -206,11 +206,11 @@ class ProductionIntegrationManager:
             )
             
             return TradeResult(
-                trade_id=trade_id,
-                signal=signal,
-                status=TradeStatus.FILLED,
-                filled_price=alpaca_result['fill_price'],
-                commission=alpaca_result.get('commission', 0.0)
+                trade_id = trade_id,
+                signal = signal,
+                status = TradeStatus.FILLED,
+                filled_price = alpaca_result['fill_price'],
+                commission = alpaca_result.get('commission', 0.0)
             )
             
         except Exception as e: 
@@ -221,38 +221,38 @@ class ProductionIntegrationManager:
                 f"Trade execution error: {e}"
             )
             return TradeResult(
-                trade_id=trade_id,
-                signal=signal,
-                status=TradeStatus.REJECTED,
-                error_message=str(e)
+                trade_id = trade_id,
+                signal = signal,
+                status = TradeStatus.REJECTED,
+                error_message = str(e)
             )
     
-    async def validate_risk_limits(self, signal: ProductionTradeSignal) -> Dict[str, Any]: 
+    async def validate_risk_limits(self, signal: ProductionTradeSignal)->Dict[str, Any]: 
         """Validate risk limits before execution"""
         try: 
             # Get current portfolio value
-            portfolio_value=await self.get_portfolio_value()
+            portfolio_value = await self.get_portfolio_value()
             
             # Calculate position risk
-            position_risk=float(signal.risk_amount) / float(portfolio_value) if portfolio_value > 0 else 0
+            position_risk = float(signal.risk_amount) / float(portfolio_value) if portfolio_value  >  0 else 0
             
             # Check individual position limit 
-            current_position_value=await self.get_position_value(signal.ticker)
+            current_position_value = await self.get_position_value(signal.ticker)
             # Allow higher limits for index ETFs (SPY, VTI, QQQ, etc.) and lower - risk strategies
             if signal.ticker in ['SPY', 'VTI', 'QQQ', 'IWM', 'DIA', 'VOO', 'VTI', 'VTEB']: 
-                max_position_value=float(portfolio_value) * 0.80  # 80% for broad market ETFs
+                max_position_value = float(portfolio_value) * 0.80  # 80% for broad market ETFs
             else: 
-                max_position_value=float(portfolio_value) * 0.20  # 20% for individual stocks
+                max_position_value = float(portfolio_value) * 0.20  # 20% for individual stocks
             
-            if float(current_position_value) + float(signal.risk_amount) > max_position_value: 
+            if float(current_position_value) + float(signal.risk_amount)  >  max_position_value: 
                 return {
                     'allowed': False,
                     'reason': f'Position limit exceeded for {signal.ticker}'
                 }
             
             # Check total risk limit (max 50% of portfolio)
-            total_risk=await self.get_total_risk()
-            if float(total_risk) + float(signal.risk_amount) > float(portfolio_value) * 0.50: 
+            total_risk = await self.get_total_risk()
+            if float(total_risk) + float(signal.risk_amount)  >  float(portfolio_value) * 0.50: 
                 return {
                     'allowed': False,
                     'reason': 'Total risk limit exceeded'
@@ -264,20 +264,20 @@ class ProductionIntegrationManager:
             self.logger.error(f"Risk validation error: {e}")
             return {'allowed': False, 'reason': f'Risk validation error: {e}'}
     
-    async def execute_alpaca_order(self, signal: ProductionTradeSignal) -> Dict[str, Any]: 
+    async def execute_alpaca_order(self, signal: ProductionTradeSignal)->Dict[str, Any]: 
         """Execute order via AlpacaManager"""
         try: 
-            if signal.side== OrderSide.BUY: 
-                result=self.alpaca_manager.market_buy(
-                    symbol=signal.ticker,
-                    qty=signal.quantity,
-                    time_in_force='day'
+            if signal.side ==  OrderSide.BUY: 
+                result = self.alpaca_manager.market_buy(
+                    symbol = signal.ticker,
+                    qty = signal.quantity,
+                    time_in_force = 'day'
                 )
             else: 
-                result=self.alpaca_manager.market_sell(
-                    symbol=signal.ticker,
-                    qty=signal.quantity,
-                    time_in_force='day'
+                result = self.alpaca_manager.market_sell(
+                    symbol = signal.ticker,
+                    qty = signal.quantity,
+                    time_in_force = 'day'
                 )
             
             if result and 'id' in result: 
@@ -300,32 +300,32 @@ class ProductionIntegrationManager:
                 'error': str(e)
             }
     
-    async def create_django_order(self, signal: ProductionTradeSignal, alpaca_order_id: str) -> Optional[Order]:
+    async def create_django_order(self, signal: ProductionTradeSignal, alpaca_order_id: str)->Optional[Order]:
         """Create Django Order record"""
         try: 
             # Get or create Company and Stock
-            company, created=await sync_to_async(Company.objects.get_or_create)(
-                ticker=signal.ticker,
-                defaults={'name': signal.ticker}
+            company, created = await sync_to_async(Company.objects.get_or_create)(
+                ticker = signal.ticker,
+                defaults = {'name': signal.ticker}
             )
             
-            stock, created=await sync_to_async(Stock.objects.get_or_create)(
-                company=company,
-                defaults={}
+            stock, created = await sync_to_async(Stock.objects.get_or_create)(
+                company = company,
+                defaults = {}
             )
             
             # Create Order
-            order=await sync_to_async(Order.objects.create)(
-                client_order_id=alpaca_order_id,
-                user_id=self.user_id,
-                stock=stock,
-                order_type='M',  # Market order
-                quantity=signal.quantity,
-                transaction_type='B' if signal.side == OrderSide.BUY else 'S',
-                status='F',  # Filled
-                filled_avg_price=signal.price,
-                filled_timestamp=datetime.now(),
-                filled_quantity=signal.quantity
+            order = await sync_to_async(Order.objects.create)(
+                client_order_id = alpaca_order_id,
+                user_id = self.user_id,
+                stock = stock,
+                order_type = 'M',  # Market order
+                quantity = signal.quantity,
+                transaction_type = 'B' if signal.side  ==  OrderSide.BUY else 'S',
+                status = 'F',  # Filled
+                filled_avg_price = signal.price,
+                filled_timestamp = datetime.now(),
+                filled_quantity = signal.quantity
             )
             
             self.logger.info(f"Created Django Order {order.id} for {signal.ticker}")
@@ -338,48 +338,48 @@ class ProductionIntegrationManager:
     async def update_position_tracking(self, trade: ProductionTrade):
         """Update position tracking after trade execution"""
         try: 
-            position_key=f"{trade.ticker}_{trade.strategy_name}"
+            position_key = f"{trade.ticker}_{trade.strategy_name}"
             
             if position_key in self.active_positions: 
-                position=self.active_positions[position_key]
+                position = self.active_positions[position_key]
                 
-                if trade.action == 'buy': # Add to position
-                    total_cost=position.quantity * position.entry_price + trade.quantity * trade.entry_price
-                    total_quantity=position.quantity + trade.quantity
-                    position.entry_price=total_cost / total_quantity
-                    position.quantity=total_quantity
+                if trade.action  ==  'buy': # Add to position
+                    total_cost = position.quantity * position.entry_price + trade.quantity * trade.entry_price
+                    total_quantity = position.quantity + trade.quantity
+                    position.entry_price = total_cost / total_quantity
+                    position.quantity = total_quantity
                 else: 
                     # Reduce position
                     position.quantity -= trade.quantity
-                    if position.quantity <= 0: 
+                    if position.quantity  <=  0: 
                         # Position closed
                         position.realized_pnl += trade.pnl or Decimal('0.00')
                         del self.active_positions[position_key]
                 
-                position.updated_at=datetime.now()
+                position.updated_at = datetime.now()
             else: 
                 # Create new position
-                position=ProductionPosition(
-                    ticker=trade.ticker,
-                    strategy_name=trade.strategy_name,
-                    position_type='long' if trade.action == 'buy' else 'short',
-                    quantity=trade.quantity,
-                    entry_price=trade.entry_price,
-                    risk_amount=trade.risk_amount,
-                    alpaca_position_id=trade.alpaca_order_id,
-                    django_stock_instance_id=trade.django_order_id
+                position = ProductionPosition(
+                    ticker = trade.ticker,
+                    strategy_name = trade.strategy_name,
+                    position_type = 'long' if trade.action  ==  'buy' else 'short',
+                    quantity = trade.quantity,
+                    entry_price = trade.entry_price,
+                    risk_amount = trade.risk_amount,
+                    alpaca_position_id = trade.alpaca_order_id,
+                    django_stock_instance_id = trade.django_order_id
                 )
-                self.active_positions[position_key]=position
+                self.active_positions[position_key] = position
             
             self.logger.info(f"Updated position tracking for {trade.ticker}")
             
         except Exception as e: 
             self.logger.error(f"Error updating position tracking: {e}")
     
-    async def get_portfolio_value(self) -> Decimal: 
+    async def get_portfolio_value(self)->Decimal: 
         """Get current portfolio value from Alpaca"""
         try: 
-            account_value=self.alpaca_manager.get_account_value()
+            account_value = self.alpaca_manager.get_account_value()
             if account_value: 
                 return Decimal(str(account_value))
             return Decimal('0.00')
@@ -387,22 +387,22 @@ class ProductionIntegrationManager:
             self.logger.error(f"Error getting portfolio value: {e}")
             return Decimal('0.00')
     
-    async def get_position_value(self, ticker: str) -> Decimal:
+    async def get_position_value(self, ticker: str)->Decimal:
         """Get current position value for ticker"""
         try: 
-            positions=self.alpaca_manager.get_positions()
+            positions = self.alpaca_manager.get_positions()
             for position in positions: 
-                if position.get('symbol') == ticker: 
+                if position.get('symbol')  ==  ticker: 
                     return Decimal(str(position.get('market_value', 0)))
             return Decimal('0.00')
         except Exception as e: 
             self.logger.error(f"Error getting position value for {ticker}: {e}")
             return Decimal('0.00')
     
-    async def get_total_risk(self) -> Decimal: 
+    async def get_total_risk(self)->Decimal: 
         """Get total risk across all positions"""
         try: 
-            total_risk=Decimal('0.00')
+            total_risk = Decimal('0.00')
             for position in self.active_positions.values(): 
                 total_risk += position.risk_amount
             return total_risk
@@ -415,37 +415,37 @@ class ProductionIntegrationManager:
         try: 
             for position_key, position in list(self.active_positions.items()): 
                 # Get current price
-                current_price=await self.get_current_price(position.ticker)
-                position.current_price=current_price
+                current_price = await self.get_current_price(position.ticker)
+                position.current_price = current_price
                 
                 # Calculate unrealized P & L
-                if position.position_type == 'long': position.unrealized_pnl=(current_price - position.entry_price) * position.quantity
+                if position.position_type  ==  'long': position.unrealized_pnl = (current_price - position.entry_price) * position.quantity
                 else: 
-                    position.unrealized_pnl=(position.entry_price - current_price) * position.quantity
+                    position.unrealized_pnl = (position.entry_price - current_price) * position.quantity
                 
                 # Check stop loss
                 if position.stop_loss: 
-                    if position.position_type== 'long' and current_price <= position.stop_loss: 
+                    if position.position_type ==  'long' and current_price  <=  position.stop_loss: 
                         await self.execute_exit_trade(position, 'stop_loss')
-                    elif position.position_type== 'short' and current_price >= position.stop_loss: 
+                    elif position.position_type ==  'short' and current_price  >=  position.stop_loss: 
                         await self.execute_exit_trade(position, 'stop_loss')
                 
                 # Check take profit
                 if position.take_profit: 
-                    if position.position_type== 'long' and current_price >= position.take_profit: 
+                    if position.position_type ==  'long' and current_price  >=  position.take_profit: 
                         await self.execute_exit_trade(position, 'take_profit')
-                    elif position.position_type== 'short' and current_price <= position.take_profit: 
+                    elif position.position_type ==  'short' and current_price  <=  position.take_profit: 
                         await self.execute_exit_trade(position, 'take_profit')
                 
-                position.updated_at=datetime.now()
+                position.updated_at = datetime.now()
                 
         except Exception as e: 
             self.logger.error(f"Error monitoring positions: {e}")
     
-    async def get_current_price(self, ticker: str) -> Decimal:
+    async def get_current_price(self, ticker: str)->Decimal:
         """Get current price for ticker"""
         try: 
-            latest_trade=self.alpaca_manager.get_latest_trade(ticker)
+            latest_trade = self.alpaca_manager.get_latest_trade(ticker)
             if latest_trade and 'price' in latest_trade: 
                 return Decimal(str(latest_trade['price']))
             return Decimal('0.00')
@@ -457,26 +457,26 @@ class ProductionIntegrationManager:
         """Execute exit trade for position"""
         try: 
             # Create exit signal
-            exit_signal=ProductionTradeSignal(
-                strategy_name=position.strategy_name,
-                ticker=position.ticker,
-                side=OrderSide.SELL if position.position_type == 'long' else OrderSide.BUY,
-                order_type=OrderType.MARKET,
-                quantity=position.quantity,
-                price=float(position.current_price),
-                trade_type='stock',
-                risk_amount=Decimal('0.00'),
-                expected_return=position.unrealized_pnl,
-                metadata={'exit_reason': reason, 'position_id': position.id}
+            exit_signal = ProductionTradeSignal(
+                strategy_name = position.strategy_name,
+                ticker = position.ticker,
+                side = OrderSide.SELL if position.position_type  ==  'long' else OrderSide.BUY,
+                order_type = OrderType.MARKET,
+                quantity = position.quantity,
+                price = float(position.current_price),
+                trade_type = 'stock',
+                risk_amount = Decimal('0.00'),
+                expected_return = position.unrealized_pnl,
+                metadata = {'exit_reason': reason, 'position_id': position.id}
             )
             
             # Execute exit trade
-            result=await self.execute_trade(exit_signal)
+            result = await self.execute_trade(exit_signal)
             
-            if result.status== TradeStatus.FILLED: 
+            if result.status ==  TradeStatus.FILLED: 
                 # Update position with realized P & L
                 position.realized_pnl += position.unrealized_pnl
-                position.unrealized_pnl=Decimal('0.00')
+                position.unrealized_pnl = Decimal('0.00')
                 
                 # Send exit alert
             await self.alert_system.send_alert(
@@ -490,14 +490,14 @@ class ProductionIntegrationManager:
         except Exception as e: 
             self.logger.error(f"Error executing exit trade: {e}")
     
-    def get_portfolio_summary(self) -> Dict[str, Any]: 
+    def get_portfolio_summary(self)->Dict[str, Any]: 
         """Get portfolio summary"""
         try: 
-            total_positions=len(self.active_positions)
-            total_trades=len(self.active_trades)
+            total_positions = len(self.active_positions)
+            total_trades = len(self.active_trades)
             
-            total_unrealized_pnl=sum(pos.unrealized_pnl for pos in self.active_positions.values())
-            total_realized_pnl=sum(pos.realized_pnl for pos in self.active_positions.values())
+            total_unrealized_pnl = sum(pos.unrealized_pnl for pos in self.active_positions.values())
+            total_realized_pnl = sum(pos.realized_pnl for pos in self.active_positions.values())
             
             return {
                 'total_positions': total_positions,
@@ -524,7 +524,7 @@ class ProductionIntegrationManager:
 
 # Factory function for easy initialization
 def create_production_integration(alpaca_api_key: str, alpaca_secret_key: str, 
-                                paper_trading: bool=True, user_id: int=1) -> ProductionIntegrationManager:
+                                paper_trading: bool = True, user_id: int = 1)->ProductionIntegrationManager:
     """
     Create ProductionIntegrationManager instance
     

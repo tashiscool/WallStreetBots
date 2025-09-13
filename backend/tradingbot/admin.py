@@ -4,11 +4,11 @@ from .models import Company, Stock
 
 
 class CompanyAdmin(admin.ModelAdmin): 
-    list_display=('name', 'ticker')
+    list_display = ('name', 'ticker')
 
 
 class StockAdmin(admin.ModelAdmin): 
-    list_display=('company',)
+    list_display = ('company',)
 
 
 # Register your models here.

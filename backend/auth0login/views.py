@@ -12,7 +12,7 @@ import plotly.express as px
 
 
 def login(request): 
-    user=request.user
+    user = request.user
     if user.is_authenticated: 
         return redirect(dashboard)
     else: 
@@ -21,14 +21,14 @@ def login(request):
 
 @login_required()
 def get_user_information(request): 
-    user=request.user
-    user_details=sync_alpaca(user)  # sync the user with Alpaca and extract details
-    auth0user=user.social_auth.get(provider='auth0')
-    alpaca_id=user.credential.alpaca_id if hasattr(user, 'credential') else "no alpaca id"
-    alpaca_key=user.credential.alpaca_key if hasattr(user, 'credential') else "no alpaca key"
+    user = request.user
+    user_details = sync_alpaca(user)  # sync the user with Alpaca and extract details
+    auth0user = user.social_auth.get(provider  =  'auth0')
+    alpaca_id = user.credential.alpaca_id if hasattr(user, 'credential') else "no alpaca id"
+    alpaca_key = user.credential.alpaca_key if hasattr(user, 'credential') else "no alpaca key"
 
     if user_details is None: 
-        userdata={
+        userdata = {
             'name': user.first_name,
             'alpaca_id': alpaca_id,
             'alpaca_key': "*" * len(alpaca_key),
@@ -36,7 +36,7 @@ def get_user_information(request):
                      " the account information."
         }
     else: 
-        userdata={
+        userdata = {
             'name': user.first_name,
             'alpaca_id': alpaca_id,
             'alpaca_key': " " + "*" * 10,
@@ -60,34 +60,34 @@ def get_user_information(request):
 
 @login_required
 def dashboard(request): 
-    user, userdata, auth0user, user_details=get_user_information(request)
+    user, userdata, auth0user, user_details = get_user_information(request)
     # managing forms
     from backend.auth0login.forms import CredentialForm, OrderForm, StrategyForm
-    credential_form=CredentialForm(request.POST or None)
-    order_form=OrderForm(request.POST or None)
-    strategy_form=StrategyForm(request.POST or None)
-    if request.method == 'POST':  # let user input their Alpaca API information
+    credential_form = CredentialForm(request.POST or None)
+    order_form = OrderForm(request.POST or None)
+    strategy_form = StrategyForm(request.POST or None)
+    if request.method  ==  'POST':  # let user input their Alpaca API information
         if 'submit_credential' in request.POST: 
             if credential_form.is_valid(): 
                 if hasattr(user, 'credential'): 
-                    user.credential.alpaca_id=credential_form.get_id()
-                    user.credential.alpaca_key=credential_form.get_key()
+                    user.credential.alpaca_id = credential_form.get_id()
+                    user.credential.alpaca_key = credential_form.get_key()
                     user.credential.save()
                 else: 
                     from .models import Credential
-                    cred=Credential(user=request.user, alpaca_id=credential_form.get_id(),
-                                      alpaca_key=credential_form.get_key())
+                    cred = Credential(user  =  request.user, alpaca_id = credential_form.get_id(),
+                                      alpaca_key = credential_form.get_key())
                     cred.save()
                 return HttpResponseRedirect('/')
 
         if 'submit_order' in request.POST: 
             if order_form.is_valid(): 
-                response=order_form.place_order(user, user_details)
-                order_form=OrderForm()
+                response = order_form.place_order(user, user_details)
+                order_form = OrderForm()
                 #  update order for display
                 from backend.tradingbot.models import Order
-                userdata["orders"]=[order.display_order() for order in
-                                      Order.objects.filter(user=user).order_by('-timestamp').iterator()]
+                userdata["orders"] = [order.display_order() for order in
+                                      Order.objects.filter(user = user).order_by('-timestamp').iterator()]
                 return render(request, 'home / index.html', {
                     'credential_form': credential_form,
                     'order_form': order_form,
@@ -102,12 +102,12 @@ def dashboard(request):
                 # here for some reason form.cleaned_data changed from type dict to
                 # type tuple. I tried to find the reason but it didn't seem to caused by
                 # our code. Might be and django bug
-                strategy=strategy_form.cleaned_data
-                user.portfolio.strategy=strategy
+                strategy = strategy_form.cleaned_data
+                user.portfolio.strategy = strategy
                 user.portfolio.save()
                 return HttpResponseRedirect('/')
 
-    graph=get_portfolio_chart(request)
+    graph = get_portfolio_chart(request)
     return render(request, 'home / index.html', {
         'credential_form': credential_form,
         'order_form': order_form,
@@ -120,78 +120,78 @@ def dashboard(request):
 
 @login_required()
 def get_portfolio_chart(request): 
-    user, userdata, auth0user, user_details=get_user_information(request)
+    user, userdata, auth0user, user_details = get_user_information(request)
     if user_details is None: 
         return
-    API_KEY=user.credential.alpaca_id
-    API_SECRET=user.credential.alpaca_key
-    BASE_URL="https: //paper - api.alpaca.markets"
-    alpaca=api.REST(key_id=API_KEY, secret_key=API_SECRET, base_url=BASE_URL, api_version='v2')
-    portfolio_hist=alpaca.get_portfolio_history().df
-    portfolio_hist=portfolio_hist.reset_index()
-    line_plot=px.line(portfolio_hist, "timestamp", "equity")
+    API_KEY = user.credential.alpaca_id
+    API_SECRET = user.credential.alpaca_key
+    BASE_URL = "https: //paper - api.alpaca.markets"
+    alpaca = api.REST(key_id  =  API_KEY, secret_key = API_SECRET, base_url = BASE_URL, api_version = 'v2')
+    portfolio_hist = alpaca.get_portfolio_history().df
+    portfolio_hist = portfolio_hist.reset_index()
+    line_plot = px.line(portfolio_hist, "timestamp", "equity")
     line_plot.update_layout(
-        xaxis_title="",
-        yaxis_title="Equity"
+        xaxis_title = "",
+        yaxis_title = "Equity"
     )
-    line_plot=line_plot.to_html()
+    line_plot = line_plot.to_html()
     return line_plot
 
 
 @login_required
 def get_stock_chart(request, symbol): 
-    user, userdata, auth0user, user_details=get_user_information(request)
+    user, userdata, auth0user, user_details = get_user_information(request)
 
-    API_KEY=user.credential.alpaca_id
-    API_SECRET=user.credential.alpaca_key
-    alpaca=api.REST(API_KEY, API_SECRET)
+    API_KEY = user.credential.alpaca_id
+    API_SECRET = user.credential.alpaca_key
+    alpaca = api.REST(API_KEY, API_SECRET)
     # Setting parameters before calling method
-    timeframe="1Day"
-    start="2021 - 01-01"
-    # today=date.today()
-    end="2021 - 02-01"
+    timeframe = "1Day"
+    start = "2021 - 01-01"
+    # today = date.today()
+    end = "2021 - 02-01"
     # Retrieve daily bars for SPY in a dataframe and printing the first 5 rows
-    spy_bars=alpaca.get_bars(symbol, timeframe, start, end).df
-    candlestick_fig=go.Figure(
-        data=[go.Candlestick(x=spy_bars.index, open=spy_bars['open'],
-                             high=spy_bars['high'], low=spy_bars['low'], close=spy_bars['close'])])
+    spy_bars = alpaca.get_bars(symbol, timeframe, start, end).df
+    candlestick_fig = go.Figure(
+        data = [go.Candlestick(x  =  spy_bars.index, open = spy_bars['open'],
+                             high = spy_bars['high'], low = spy_bars['low'], close = spy_bars['close'])])
     candlestick_fig.update_layout(
-        xaxis_title="Date",
-        yaxis_title="Price ($USD)")
-    candlestick_fig=candlestick_fig.to_html()
+        xaxis_title = "Date",
+        yaxis_title = "Price ($USD)")
+    candlestick_fig = candlestick_fig.to_html()
     return candlestick_fig
 
 
 @login_required
 def orders(request): 
-    user, userdata, auth0user, user_details=get_user_information(request)
+    user, userdata, auth0user, user_details = get_user_information(request)
     # managing forms
     from backend.auth0login.forms import CredentialForm, OrderForm, StrategyForm
-    credential_form=CredentialForm(request.POST or None)
-    order_form=OrderForm(request.POST or None)
-    strategy_form=StrategyForm(request.POST or None)
-    if request.method== 'POST': 
+    credential_form = CredentialForm(request.POST or None)
+    order_form = OrderForm(request.POST or None)
+    strategy_form = StrategyForm(request.POST or None)
+    if request.method ==  'POST': 
         if 'submit_credential' in request.POST: 
             if credential_form.is_valid(): 
                 if hasattr(user, 'credential'): 
-                    user.credential.alpaca_id=credential_form.get_id()
-                    user.credential.alpaca_key=credential_form.get_key()
+                    user.credential.alpaca_id = credential_form.get_id()
+                    user.credential.alpaca_key = credential_form.get_key()
                     user.credential.save()
                 else: 
                     from .models import Credential
-                    cred=Credential(user=request.user, alpaca_id=credential_form.get_id(),
-                                      alpaca_key=credential_form.get_key())
+                    cred = Credential(user  =  request.user, alpaca_id = credential_form.get_id(),
+                                      alpaca_key = credential_form.get_key())
                     cred.save()
                 return HttpResponseRedirect('/')
 
         if 'submit_order' in request.POST: 
             if order_form.is_valid(): 
-                response=order_form.place_order(user, user_details)
-                order_form=OrderForm()
+                response = order_form.place_order(user, user_details)
+                order_form = OrderForm()
                 #  update order for display
                 from backend.tradingbot.models import Order
-                userdata["orders"]=[order.display_order() for order in
-                                      Order.objects.filter(user=user).order_by('-timestamp').iterator()]
+                userdata["orders"] = [order.display_order() for order in
+                                      Order.objects.filter(user = user).order_by('-timestamp').iterator()]
                 return render(request, 'home / index.html', {
                     'credential_form': credential_form,
                     'order_form': order_form,
@@ -206,10 +206,10 @@ def orders(request):
                 # here for some reason form.cleaned_data changed from type dict to
                 # type tuple. I tried to find the reason but it didn't seem to caused by
                 # our code. Might be and django bug
-                rebalance_strategy=strategy_form.cleaned_data[0]
-                optimization_strategy=strategy_form.cleaned_data[1]
-                user.portfolio.rebalancing_strategy=rebalance_strategy
-                user.portfolio.optimization_strategy=optimization_strategy
+                rebalance_strategy = strategy_form.cleaned_data[0]
+                optimization_strategy = strategy_form.cleaned_data[1]
+                user.portfolio.rebalancing_strategy = rebalance_strategy
+                user.portfolio.optimization_strategy = optimization_strategy
                 user.portfolio.save()
                 return HttpResponseRedirect('/')
     return render(request, 'home / orders.html', {
@@ -224,13 +224,13 @@ def orders(request):
 @login_required
 def positions(request): 
     from backend.auth0login.forms import WatchListForm, StrategyForm
-    user, userdata, auth0user, user_details=get_user_information(request)
-    watchlist_form=WatchListForm(request.POST or None)
-    strategy_form=StrategyForm(request.POST or None)
-    if request.method== 'POST': 
+    user, userdata, auth0user, user_details = get_user_information(request)
+    watchlist_form = WatchListForm(request.POST or None)
+    strategy_form = StrategyForm(request.POST or None)
+    if request.method ==  'POST': 
         if 'add_to_watchlist' in request.POST: 
             if watchlist_form.is_valid(): 
-                response=watchlist_form.add_to_watchlist(user)
+                response = watchlist_form.add_to_watchlist(user)
                 return render(request, 'home / positions.html', {
                     'watchlist_form': watchlist_form,
                     'strategy_form': strategy_form,
@@ -244,8 +244,8 @@ def positions(request):
                 # here for some reason form.cleaned_data changed from type dict to
                 # type tuple. I tried to find the reason but it didn't seem to caused by
                 # our code. Might be and django bug
-                strategy=strategy_form.cleaned_data
-                user.portfolio.strategy=strategy
+                strategy = strategy_form.cleaned_data
+                user.portfolio.strategy = strategy
                 user.portfolio.save()
                 return HttpResponseRedirect('positions')
 
@@ -269,7 +269,7 @@ def machine_learning(request):
 
 def logout(request): 
     log_out(request)
-    return_to=urlencode({'returnTo': request.build_absolute_uri('/')})
-    logout_url='https: //%s / v2/logout?client_id=%s&%s' % \
+    return_to = urlencode({'returnTo': request.build_absolute_uri('/')})
+    logout_url = 'https: //%s / v2/logout?client_id  =  %s&%s' % \
                  (settings.SOCIAL_AUTH_AUTH0_DOMAIN, settings.SOCIAL_AUTH_AUTH0_KEY, return_to)
     return HttpResponseRedirect(logout_url)

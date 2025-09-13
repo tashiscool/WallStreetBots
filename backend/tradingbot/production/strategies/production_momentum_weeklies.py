@@ -57,119 +57,119 @@ class ProductionMomentumWeeklies:
     """
     
     def __init__(self, integration_manager, data_provider: ReliableDataProvider, config: dict):
-        self.strategy_name="momentum_weeklies"
-        self.integration_manager=integration_manager
-        self.data_provider=data_provider
-        self.config=config
-        self.logger=logging.getLogger(__name__)
+        self.strategy_name = "momentum_weeklies"
+        self.integration_manager = integration_manager
+        self.data_provider = data_provider
+        self.config = config
+        self.logger = logging.getLogger(__name__)
         
         # Core components
-        self.options_selector=SmartOptionsSelector(data_provider)
-        self.risk_manager=RealTimeRiskManager()
-        self.bs_engine=BlackScholesEngine()
+        self.options_selector = SmartOptionsSelector(data_provider)
+        self.risk_manager = RealTimeRiskManager()
+        self.bs_engine = BlackScholesEngine()
         
         # Strategy configuration
-        self.mega_caps=config.get('watchlist', [
+        self.mega_caps = config.get('watchlist', [
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX",
             "CRM", "ADBE", "ORCL", "INTC", "AMD", "QCOM", "TXN", "AVGO",
             "PYPL", "DIS", "V", "MA", "JPM", "BAC", "WMT", "HD"
         ])
         
         # Risk parameters
-        self.max_positions=config.get('max_positions', 3)
-        self.max_position_size=config.get('max_position_size', 0.05)  # 5% per position
-        self.min_volume_spike=config.get('min_volume_spike', 3.0)
-        self.min_momentum_threshold=config.get('min_momentum_threshold', 0.015)  # 1.5%
+        self.max_positions = config.get('max_positions', 3)
+        self.max_position_size = config.get('max_position_size', 0.05)  # 5% per position
+        self.min_volume_spike = config.get('min_volume_spike', 3.0)
+        self.min_momentum_threshold = config.get('min_momentum_threshold', 0.015)  # 1.5%
         
         # Option targeting
-        self.target_dte_range=config.get('target_dte_range', (0, 4))  # 0 - 4 days for weeklies
-        self.otm_range=config.get('otm_range', (0.02, 0.05))  # 2 - 5% OTM
-        self.min_premium=config.get('min_premium', 0.50)  # Minimum $0.50 premium
+        self.target_dte_range = config.get('target_dte_range', (0, 4))  # 0 - 4 days for weeklies
+        self.otm_range = config.get('otm_range', (0.02, 0.05))  # 2 - 5% OTM
+        self.min_premium = config.get('min_premium', 0.50)  # Minimum $0.50 premium
         
         # Exit criteria
-        self.profit_target=config.get('profit_target', 0.25)  # 25% profit target
-        self.stop_loss=config.get('stop_loss', 0.50)  # 50% loss stop
-        self.time_exit_hours=config.get('time_exit_hours', 4)  # Exit if no profit in 4 hours
+        self.profit_target = config.get('profit_target', 0.25)  # 25% profit target
+        self.stop_loss = config.get('stop_loss', 0.50)  # 50% loss stop
+        self.time_exit_hours = config.get('time_exit_hours', 4)  # Exit if no profit in 4 hours
         
         # Active positions tracking
-        self.active_positions: List[Dict[str, Any]]=[]
+        self.active_positions: List[Dict[str, Any]] = []
         
         self.logger.info("ProductionMomentumWeeklies strategy initialized")
     
-    def get_next_weekly_expiry(self) -> str: 
+    def get_next_weekly_expiry(self)->str: 
         """Get next weekly expiry date"""
-        today=date.today()
+        today = date.today()
         
         # For weeklies, target this Friday or next Friday
-        days_until_friday=(4 - today.weekday()) % 7  # Friday=4
+        days_until_friday = (4 - today.weekday()) % 7  # Friday = 4
         
         # If it's Friday after market hours, or very close to expiry, use next Friday
-        if days_until_friday== 0 or days_until_friday <= 1: 
-            days_until_friday=7 if days_until_friday == 0 else 7 + days_until_friday
+        if days_until_friday ==  0 or days_until_friday  <=  1: 
+            days_until_friday = 7 if days_until_friday  ==  0 else 7 + days_until_friday
             
-        next_friday=today + timedelta(days=days_until_friday)
+        next_friday = today + timedelta(days  =  days_until_friday)
         return next_friday.strftime("%Y-%m-%d")
     
-    async def detect_volume_spike(self, ticker: str) -> tuple[bool, float]: 
+    async def detect_volume_spike(self, ticker: str)->tuple[bool, float]: 
         """Detect unusual volume spike"""
         try: 
             # Get intraday volume data
-            volume_data=await self.data_provider.get_intraday_data(
-                ticker, interval="5min", period="5d"
+            volume_data = await self.data_provider.get_intraday_data(
+                ticker, interval = "5min", period = "5d"
             )
             
             if volume_data.empty: 
                 return False, 0.0
             
             # Current volume (last 5 bars average)
-            current_vol=volume_data['volume'].tail(5).mean()
+            current_vol = volume_data['volume'].tail(5).mean()
             
             # Average volume (excluding current spike)
-            avg_vol=volume_data['volume'].iloc[: -10].mean()
+            avg_vol = volume_data['volume'].iloc[: -10].mean()
             
-            if avg_vol <= 0: 
+            if avg_vol  <=  0: 
                 return False, 0.0
             
-            vol_multiple=float(current_vol / avg_vol)
-            return vol_multiple >= self.min_volume_spike, vol_multiple
+            vol_multiple = float(current_vol / avg_vol)
+            return vol_multiple  >=  self.min_volume_spike, vol_multiple
             
         except Exception as e: 
             self.logger.error(f"Error detecting volume spike for {ticker}: {e}")
             return False, 0.0
     
-    async def detect_reversal_pattern(self, ticker: str) -> tuple[bool, str, float]: 
+    async def detect_reversal_pattern(self, ticker: str)->tuple[bool, str, float]: 
         """Detect bullish reversal patterns"""
         try: 
             # Get recent price action (2 hours of 5 - minute bars)
-            price_data=await self.data_provider.get_intraday_data(
-                ticker, interval="5min", period="2d"
+            price_data = await self.data_provider.get_intraday_data(
+                ticker, interval = "5min", period = "2d"
             )
             
-            if len(price_data) < 24:  # Need at least 2 hours of data
+            if len(price_data)  <  24:  # Need at least 2 hours of data
                 return False, "insufficient_data", 0.0
             
             # Focus on last 2 hours (24 bars)
-            recent_data=price_data.tail(24)
-            prices=recent_data['close'].values
-            current_price=prices[-1]
+            recent_data = price_data.tail(24)
+            prices = recent_data['close'].values
+            current_price = prices[-1]
             
             # Find the lowest point in recent action
-            low_idx=prices.argmin()
-            low_price=prices[low_idx]
+            low_idx = prices.argmin()
+            low_price = prices[low_idx]
             
             # Calculate bounce from low
-            bounce_pct=(current_price - low_price) / low_price
+            bounce_pct = (current_price - low_price) / low_price
             
             # Reversal criteria: 
-            # 1. Significant bounce from recent low (>1.5%)
+            # 1. Significant bounce from recent low ( > 1.5%)
             # 2. Low occurred in first 60% of window (early decline, late recovery)
             # 3. Current price above recent average
-            recent_avg=prices[-12: ].mean()  # Last hour average
+            recent_avg = prices[-12: ].mean()  # Last hour average
             
-            is_reversal=(
-                bounce_pct >= self.min_momentum_threshold and
-                low_idx < len(prices) * 0.6 and
-                current_price > recent_avg
+            is_reversal = (
+                bounce_pct  >=  self.min_momentum_threshold and
+                low_idx  <  len(prices) * 0.6 and
+                current_price  >  recent_avg
             )
             
             return is_reversal, "bullish_reversal", bounce_pct
@@ -178,36 +178,36 @@ class ProductionMomentumWeeklies:
             self.logger.error(f"Error detecting reversal for {ticker}: {e}")
             return False, "error", 0.0
     
-    async def detect_breakout_momentum(self, ticker: str) -> tuple[bool, float]: 
+    async def detect_breakout_momentum(self, ticker: str)->tuple[bool, float]: 
         """Detect breakout above resistance"""
         try: 
             # Get extended price data for resistance calculation
-            price_data=await self.data_provider.get_intraday_data(
-                ticker, interval="15min", period="5d"
+            price_data = await self.data_provider.get_intraday_data(
+                ticker, interval = "15min", period = "5d"
             )
             
-            if len(price_data) < 50: 
+            if len(price_data)  <  50: 
                 return False, 0.0
             
-            prices=price_data['close'].values
-            volumes=price_data['volume'].values
-            current_price=prices[-1]
+            prices = price_data['close'].values
+            volumes = price_data['volume'].values
+            current_price = prices[-1]
             
             # Calculate resistance (highest high in past 3 days, excluding very recent)
-            resistance_window=prices[-100: -5]  # Exclude last 5 bars
-            if len(resistance_window) < 20: 
+            resistance_window = prices[-100: -5]  # Exclude last 5 bars
+            if len(resistance_window)  <  20: 
                 return False, 0.0
                 
-            resistance=resistance_window.max()
+            resistance = resistance_window.max()
             
             # Check breakout with volume confirmation
-            if current_price > resistance * 1.005:  # 0.5% above resistance
+            if current_price  >  resistance * 1.005:  # 0.5% above resistance
                 # Volume confirmation
-                recent_vol=volumes[-5: ].mean()
-                avg_vol=volumes[-50: -5].mean()
+                recent_vol = volumes[-5: ].mean()
+                avg_vol = volumes[-50: -5].mean()
                 
-                if recent_vol > avg_vol * 1.5:  # 50% volume increase
-                    breakout_strength=(current_price - resistance) / resistance
+                if recent_vol  >  avg_vol * 1.5:  # 50% volume increase
+                    breakout_strength = (current_price - resistance) / resistance
                     return True, breakout_strength
             
             return False, 0.0
@@ -217,28 +217,28 @@ class ProductionMomentumWeeklies:
             return False, 0.0
     
     async def calculate_option_premium(self, ticker: str, strike: float, expiry: str, 
-                                     option_type: str='call') -> float:
+                                     option_type: str = 'call')->float:
         """Calculate theoretical option premium"""
         try: 
             # Get current stock data
-            current_price=await self.data_provider.get_current_price(ticker)
+            current_price = await self.data_provider.get_current_price(ticker)
             if not current_price: 
                 return 0.0
             
             # Get volatility data
-            iv_data=await self.data_provider.get_implied_volatility(ticker)
-            volatility=iv_data.get('iv_rank', 30) / 100.0  # Convert IV rank to volatility
+            iv_data = await self.data_provider.get_implied_volatility(ticker)
+            volatility = iv_data.get('iv_rank', 30) / 100.0  # Convert IV rank to volatility
             
             # Calculate time to expiry
-            expiry_date=datetime.strptime(expiry, "%Y-%m-%d").date()
-            days_to_expiry=(expiry_date - date.today()).days
-            time_to_expiry=max(0.01, days_to_expiry / 365.0)  # Minimum 0.01 years
+            expiry_date = datetime.strptime(expiry, "%Y-%m-%d").date()
+            days_to_expiry = (expiry_date - date.today()).days
+            time_to_expiry = max(0.01, days_to_expiry / 365.0)  # Minimum 0.01 years
             
             # Risk - free rate (approximate)
-            risk_free_rate=0.05
+            risk_free_rate = 0.05
             
             # Calculate theoretical premium
-            premium=self.bs_engine.calculate_option_price(
+            premium = self.bs_engine.calculate_option_price(
                 current_price, strike, time_to_expiry, risk_free_rate, volatility, option_type
             )
             
@@ -248,99 +248,99 @@ class ProductionMomentumWeeklies:
             self.logger.error(f"Error calculating premium for {ticker}: {e}")
             return 1.0  # Default estimate
     
-    async def scan_momentum_opportunities(self) -> List[MomentumSignal]: 
+    async def scan_momentum_opportunities(self)->List[MomentumSignal]: 
         """Scan for momentum weekly opportunities"""
-        signals=[]
-        weekly_expiry=self.get_next_weekly_expiry()
+        signals = []
+        weekly_expiry = self.get_next_weekly_expiry()
         
         self.logger.info(f"Scanning {len(self.mega_caps)} tickers for momentum signals")
         
         for ticker in self.mega_caps: 
             try: 
                 # Skip if we already have a position in this ticker
-                if any(pos['ticker'] == ticker for pos in self.active_positions): 
+                if any(pos['ticker']  ==  ticker for pos in self.active_positions): 
                     continue
                 
                 # Check volume spike
-                has_volume_spike, vol_multiple=await self.detect_volume_spike(ticker)
+                has_volume_spike, vol_multiple = await self.detect_volume_spike(ticker)
                 if not has_volume_spike: 
                     continue
                 
                 # Check for reversal pattern
-                has_reversal, pattern_type, bounce_pct=await self.detect_reversal_pattern(ticker)
+                has_reversal, pattern_type, bounce_pct = await self.detect_reversal_pattern(ticker)
                 
                 # Check for breakout
-                has_breakout, breakout_strength=await self.detect_breakout_momentum(ticker)
+                has_breakout, breakout_strength = await self.detect_breakout_momentum(ticker)
                 
                 # Need volume spike + (reversal OR breakout)
                 if not (has_reversal or has_breakout): 
                     continue
                 
                 # Get current price
-                current_price=await self.data_provider.get_current_price(ticker)
+                current_price = await self.data_provider.get_current_price(ticker)
                 if not current_price: 
                     continue
                 
                 # Determine signal characteristics
                 if has_breakout: 
-                    signal_type="breakout"
-                    momentum=breakout_strength
-                    confidence=0.8 if vol_multiple > 5 else 0.6
-                    risk="high" if vol_multiple > 6 else "medium"
+                    signal_type = "breakout"
+                    momentum = breakout_strength
+                    confidence = 0.8 if vol_multiple  >  5 else 0.6
+                    risk = "high" if vol_multiple  >  6 else "medium"
                 else: 
-                    signal_type="bullish_reversal"
-                    momentum=bounce_pct
-                    confidence=0.7 if vol_multiple > 4 else 0.5
-                    risk="medium" if vol_multiple > 4 else "low"
+                    signal_type = "bullish_reversal"
+                    momentum = bounce_pct
+                    confidence = 0.7 if vol_multiple  >  4 else 0.5
+                    risk = "medium" if vol_multiple  >  4 else "low"
                 
                 # Skip if momentum is too weak
-                if momentum < self.min_momentum_threshold: 
+                if momentum  <  self.min_momentum_threshold: 
                     continue
                 
                 # Calculate target strike based on momentum strength
-                if momentum > 0.04:  # Very strong momentum
-                    otm_pct=self.otm_range[0]  # 2% OTM
-                elif momentum > 0.025:  # Strong momentum
-                    otm_pct=0.03  # 3% OTM
+                if momentum  >  0.04:  # Very strong momentum
+                    otm_pct = self.otm_range[0]  # 2% OTM
+                elif momentum  >  0.025:  # Strong momentum
+                    otm_pct = 0.03  # 3% OTM
                 else:  # Moderate momentum
-                    otm_pct=self.otm_range[1]  # 5% OTM
+                    otm_pct = self.otm_range[1]  # 5% OTM
                 
-                target_strike=round(current_price * (1 + otm_pct), 1)
+                target_strike = round(current_price * (1 + otm_pct), 1)
                 
                 # Calculate premium estimate
-                premium=await self.calculate_option_premium(ticker, target_strike, weekly_expiry)
+                premium = await self.calculate_option_premium(ticker, target_strike, weekly_expiry)
                 
-                if premium < self.min_premium: 
+                if premium  <  self.min_premium: 
                     continue  # Skip if premium too low
                 
                 # Calculate targets
-                expected_move=otm_pct + 0.02  # Need to move beyond strike + 2%
-                exit_target=current_price * (1 + expected_move)
-                stop_loss=current_price * 0.985  # 1.5% stock stop
+                expected_move = otm_pct + 0.02  # Need to move beyond strike + 2%
+                exit_target = current_price * (1 + expected_move)
+                stop_loss = current_price * 0.985  # 1.5% stock stop
                 
-                signal=MomentumSignal(
-                    ticker=ticker,
-                    signal_time=datetime.now(),
-                    current_price=current_price,
-                    reversal_type=signal_type,
-                    volume_spike=vol_multiple,
-                    price_momentum=momentum,
-                    weekly_expiry=weekly_expiry,
-                    target_strike=target_strike,
-                    premium_estimate=premium,
-                    risk_level=risk,
-                    exit_target=exit_target,
-                    stop_loss=stop_loss,
-                    confidence=confidence,
-                    expected_move=expected_move
+                signal = MomentumSignal(
+                    ticker = ticker,
+                    signal_time = datetime.now(),
+                    current_price = current_price,
+                    reversal_type = signal_type,
+                    volume_spike = vol_multiple,
+                    price_momentum = momentum,
+                    weekly_expiry = weekly_expiry,
+                    target_strike = target_strike,
+                    premium_estimate = premium,
+                    risk_level = risk,
+                    exit_target = exit_target,
+                    stop_loss = stop_loss,
+                    confidence = confidence,
+                    expected_move = expected_move
                 )
                 
                 signals.append(signal)
                 
                 self.logger.info(
                     f"Momentum signal: {ticker} {signal_type} "
-                    f"vol={vol_multiple: .1f}x momentum={momentum: .2%} "
-                    f"strike=${target_strike} premium=${premium: .2f}"
+                    f"vol = {vol_multiple: .1f}x momentum  =  {momentum: .2%} "
+                    f"strike = ${target_strike} premium  =  ${premium: .2f}"
                 )
                 
             except Exception as e: 
@@ -348,39 +348,39 @@ class ProductionMomentumWeeklies:
                 continue
         
         # Sort by confidence and momentum strength
-        signals.sort(key=lambda s: (s.confidence, s.price_momentum), reverse=True)
+        signals.sort(key = lambda s: (s.confidence, s.price_momentum), reverse = True)
         
         return signals
     
-    async def execute_momentum_trade(self, signal: MomentumSignal) -> bool:
+    async def execute_momentum_trade(self, signal: MomentumSignal)->bool:
         """Execute momentum trade"""
         try: 
             # Check if we can add more positions
-            if len(self.active_positions) >= self.max_positions: 
+            if len(self.active_positions)  >=  self.max_positions: 
                 self.logger.info("Max positions reached, skipping trade")
                 return False
             
             # Calculate position size
-            portfolio_value=await self.integration_manager.get_portfolio_value()
-            max_risk=portfolio_value * self.max_position_size
+            portfolio_value = await self.integration_manager.get_portfolio_value()
+            max_risk = portfolio_value * self.max_position_size
             
             # Size position based on premium and risk
-            contracts=max(1, int(max_risk / (signal.premium_estimate * 100)))  # Options are 100 shares
-            contracts=min(contracts, 10)  # Max 10 contracts for weekly momentum plays
+            contracts = max(1, int(max_risk / (signal.premium_estimate * 100)))  # Options are 100 shares
+            contracts = min(contracts, 10)  # Max 10 contracts for weekly momentum plays
             
             # Create trade signal
-            trade_signal=ProductionTradeSignal(
-                symbol=signal.ticker,
-                action="BUY",
-                quantity=contracts,
-                option_type="CALL",
-                strike_price=Decimal(str(signal.target_strike)),
-                expiration_date=datetime.strptime(signal.weekly_expiry, "%Y-%m-%d").date(),
-                premium=Decimal(str(signal.premium_estimate)),
-                confidence=signal.confidence,
-                strategy_name=self.strategy_name,
-                signal_strength=signal.price_momentum,
-                metadata={
+            trade_signal = ProductionTradeSignal(
+                symbol = signal.ticker,
+                action = "BUY",
+                quantity = contracts,
+                option_type = "CALL",
+                strike_price = Decimal(str(signal.target_strike)),
+                expiration_date = datetime.strptime(signal.weekly_expiry, "%Y-%m-%d").date(),
+                premium = Decimal(str(signal.premium_estimate)),
+                confidence = signal.confidence,
+                strategy_name = self.strategy_name,
+                signal_strength = signal.price_momentum,
+                metadata = {
                     'reversal_type': signal.reversal_type,
                     'volume_spike': signal.volume_spike,
                     'exit_target': signal.exit_target,
@@ -392,11 +392,11 @@ class ProductionMomentumWeeklies:
             )
             
             # Execute the trade
-            success=await self.integration_manager.execute_trade_signal(trade_signal)
+            success = await self.integration_manager.execute_trade_signal(trade_signal)
             
             if success: 
                 # Track position
-                position={
+                position = {
                     'ticker': signal.ticker,
                     'trade_signal': trade_signal,
                     'entry_time': signal.signal_time,
@@ -405,7 +405,7 @@ class ProductionMomentumWeeklies:
                     'exit_target': signal.exit_target,
                     'stop_loss': signal.stop_loss,
                     'risk_level': signal.risk_level,
-                    'time_limit': signal.signal_time + timedelta(hours=self.time_exit_hours)
+                    'time_limit': signal.signal_time + timedelta(hours = self.time_exit_hours)
                 }
                 
                 self.active_positions.append(position)
@@ -429,16 +429,16 @@ class ProductionMomentumWeeklies:
     
     async def manage_positions(self): 
         """Manage existing momentum positions"""
-        positions_to_remove=[]
+        positions_to_remove = []
         
         for i, position in enumerate(self.active_positions): 
             try: 
-                ticker=position['ticker']
-                entry_premium=position['entry_premium']
-                contracts=position['contracts']
+                ticker = position['ticker']
+                entry_premium = position['entry_premium']
+                contracts = position['contracts']
                 
                 # Get current option price
-                current_premium=await self.data_provider.get_option_price(
+                current_premium = await self.data_provider.get_option_price(
                     ticker,
                     position['trade_signal'].strike_price,
                     position['trade_signal'].expiration_date,
@@ -449,46 +449,46 @@ class ProductionMomentumWeeklies:
                     continue
                 
                 # Calculate P & L
-                pnl_per_contract=current_premium - entry_premium
-                total_pnl=pnl_per_contract * contracts * 100
-                pnl_pct=pnl_per_contract / entry_premium if entry_premium > 0 else 0
+                pnl_per_contract = current_premium - entry_premium
+                total_pnl = pnl_per_contract * contracts * 100
+                pnl_pct = pnl_per_contract / entry_premium if entry_premium  >  0 else 0
                 
                 # Check exit conditions
-                should_exit=False
-                exit_reason=""
+                should_exit = False
+                exit_reason = ""
                 
                 # Profit target
-                if pnl_pct >= self.profit_target: 
-                    should_exit=True
-                    exit_reason="PROFIT_TARGET"
+                if pnl_pct  >=  self.profit_target: 
+                    should_exit = True
+                    exit_reason = "PROFIT_TARGET"
                 
                 # Stop loss
-                elif pnl_pct <= -self.stop_loss: 
-                    should_exit=True
-                    exit_reason="STOP_LOSS"
+                elif pnl_pct  <=  -self.stop_loss: 
+                    should_exit = True
+                    exit_reason = "STOP_LOSS"
                 
                 # Time - based exit
-                elif datetime.now() >= position['time_limit']: 
-                    should_exit=True
-                    exit_reason="TIME_LIMIT"
+                elif datetime.now()  >=  position['time_limit']: 
+                    should_exit = True
+                    exit_reason = "TIME_LIMIT"
                 
                 # Day before expiry exit
-                elif position['trade_signal'].expiration_date <= date.today() + timedelta(days=1): 
-                    should_exit=True
-                    exit_reason="EXPIRY_RISK"
+                elif position['trade_signal'].expiration_date  <=  date.today() + timedelta(days = 1): 
+                    should_exit = True
+                    exit_reason = "EXPIRY_RISK"
                 
                 if should_exit: 
                     # Create exit trade signal
-                    exit_signal=ProductionTradeSignal(
-                        symbol=ticker,
-                        action="SELL",
-                        quantity=contracts,
-                        option_type="CALL",
-                        strike_price=position['trade_signal'].strike_price,
-                        expiration_date=position['trade_signal'].expiration_date,
-                        premium=Decimal(str(current_premium)),
-                        strategy_name=self.strategy_name,
-                        metadata={
+                    exit_signal = ProductionTradeSignal(
+                        symbol = ticker,
+                        action = "SELL",
+                        quantity = contracts,
+                        option_type = "CALL",
+                        strike_price = position['trade_signal'].strike_price,
+                        expiration_date = position['trade_signal'].expiration_date,
+                        premium = Decimal(str(current_premium)),
+                        strategy_name = self.strategy_name,
+                        metadata = {
                             'exit_reason': exit_reason,
                             'entry_premium': entry_premium,
                             'pnl_per_contract': pnl_per_contract,
@@ -498,7 +498,7 @@ class ProductionMomentumWeeklies:
                     )
                     
                     # Execute exit
-                    success=await self.integration_manager.execute_trade_signal(exit_signal)
+                    success = await self.integration_manager.execute_trade_signal(exit_signal)
                     
                     if success: 
                         await self.integration_manager.alert_system.send_alert(
@@ -518,14 +518,14 @@ class ProductionMomentumWeeklies:
         for i in reversed(positions_to_remove): 
             self.active_positions.pop(i)
     
-    async def scan_opportunities(self) -> List[ProductionTradeSignal]: 
+    async def scan_opportunities(self)->List[ProductionTradeSignal]: 
         """Main strategy execution: scan and generate trade signals"""
         try: 
             # First manage existing positions
             await self.manage_positions()
             
             # Then scan for new opportunities if we have capacity
-            if len(self.active_positions) >= self.max_positions: 
+            if len(self.active_positions)  >=  self.max_positions: 
                 return []
             
             # Skip during after - hours
@@ -533,25 +533,25 @@ class ProductionMomentumWeeklies:
                 return []
                 
             # Scan for momentum signals
-            momentum_signals=await self.scan_momentum_opportunities()
+            momentum_signals = await self.scan_momentum_opportunities()
             
             # Execute top signals
-            trade_signals=[]
+            trade_signals = []
             for signal in momentum_signals[: self.max_positions - len(self.active_positions)]:
-                success=await self.execute_momentum_trade(signal)
+                success = await self.execute_momentum_trade(signal)
                 if success: 
                     # Convert to ProductionTradeSignal for consistency
-                    trade_signal=ProductionTradeSignal(
-                        symbol=signal.ticker,
-                        action="BUY",
-                        quantity=1,  # Will be recalculated in execute_trade
-                        option_type="CALL",
-                        strike_price=Decimal(str(signal.target_strike)),
-                        expiration_date=datetime.strptime(signal.weekly_expiry, "%Y-%m-%d").date(),
-                        premium=Decimal(str(signal.premium_estimate)),
-                        confidence=signal.confidence,
-                        strategy_name=self.strategy_name,
-                        signal_strength=signal.price_momentum
+                    trade_signal = ProductionTradeSignal(
+                        symbol = signal.ticker,
+                        action = "BUY",
+                        quantity = 1,  # Will be recalculated in execute_trade
+                        option_type = "CALL",
+                        strike_price = Decimal(str(signal.target_strike)),
+                        expiration_date = datetime.strptime(signal.weekly_expiry, "%Y-%m-%d").date(),
+                        premium = Decimal(str(signal.premium_estimate)),
+                        confidence = signal.confidence,
+                        strategy_name = self.strategy_name,
+                        signal_strength = signal.price_momentum
                     )
                     trade_signals.append(trade_signal)
             
@@ -561,14 +561,14 @@ class ProductionMomentumWeeklies:
             self.logger.error(f"Error in momentum weeklies scan: {e}")
             return []
     
-    def get_strategy_status(self) -> Dict[str, Any]: 
+    def get_strategy_status(self)->Dict[str, Any]: 
         """Get current strategy status"""
         try: 
-            total_pnl=0.0
-            position_details=[]
+            total_pnl = 0.0
+            position_details = []
             
             for position in self.active_positions: 
-                entry_value=position['entry_premium'] * position['contracts'] * 100
+                entry_value = position['entry_premium'] * position['contracts'] * 100
                 total_pnl += entry_value  # This would be updated with current values in real implementation
                 
                 position_details.append({
@@ -610,7 +610,7 @@ class ProductionMomentumWeeklies:
         try: 
             while True: 
                 # Scan for momentum opportunities
-                signals=await self.scan_opportunities()
+                signals = await self.scan_opportunities()
                 
                 # Execute trades for signals
                 if signals: 
@@ -624,6 +624,6 @@ class ProductionMomentumWeeklies:
 
 
 def create_production_momentum_weeklies(integration_manager, data_provider: ReliableDataProvider, 
-                                       config: dict) -> ProductionMomentumWeeklies:
+                                       config: dict)->ProductionMomentumWeeklies:
     """Factory function to create ProductionMomentumWeeklies strategy"""
     return ProductionMomentumWeeklies(integration_manager, data_provider, config)

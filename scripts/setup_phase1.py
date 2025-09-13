@@ -15,7 +15,7 @@ def run_command(command: str, description: str):
     """Run a command and handle errors"""
     print(f"🔄 {description}...")
     try: 
-        result=subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+        result = subprocess.run(command, shell = True, check = True, capture_output = True, text = True)
         print(f"✅ {description} completed")
         return result.stdout
     except subprocess.CalledProcessError as e: 
@@ -26,7 +26,7 @@ def run_command(command: str, description: str):
 
 def create_directories(): 
     """Create necessary directories"""
-    directories=[
+    directories = [
         "config",
         "logs",
         "data",
@@ -35,7 +35,7 @@ def create_directories():
     ]
     
     for directory in directories: 
-        Path(directory).mkdir(exist_ok=True)
+        Path(directory).mkdir(exist_ok = True)
         print(f"📁 Created directory: {directory}")
 
 
@@ -43,7 +43,7 @@ def create_config_files():
     """Create configuration files"""
     
     # Create production configuration template
-    config_template={
+    config_template = {
         "data_providers": {
             "iex_api_key": "",
             "polygon_api_key": "",
@@ -97,59 +97,59 @@ def create_config_files():
     }
     
     with open("config / production.json", "w") as f: 
-        json.dump(config_template, f, indent=2)
+        json.dump(config_template, f, indent = 2)
     print("📄 Created config / production.json")
     
     # Create environment template
-    env_template="""# WallStreetBots Phase 1 Configuration
+    env_template = """# WallStreetBots Phase 1 Configuration
 # Copy this file to .env and fill in your actual values
 
 # Data Provider API Keys
-IEX_API_KEY=your_iex_api_key_here
-POLYGON_API_KEY=your_polygon_api_key_here
-FMP_API_KEY=your_fmp_api_key_here
-NEWS_API_KEY=your_news_api_key_here
-ALPHA_VANTAGE_API_KEY=your_alpha_vantage_api_key_here
+IEX_API_KEY = your_iex_api_key_here
+POLYGON_API_KEY = your_polygon_api_key_here
+FMP_API_KEY = your_fmp_api_key_here
+NEWS_API_KEY = your_news_api_key_here
+ALPHA_VANTAGE_API_KEY = your_alpha_vantage_api_key_here
 
 # Broker Configuration
-ALPACA_API_KEY=your_alpaca_api_key_here
-ALPACA_SECRET_KEY=your_alpaca_secret_key_here
-ALPACA_BASE_URL=https: //paper - api.alpaca.markets
+ALPACA_API_KEY = your_alpaca_api_key_here
+ALPACA_SECRET_KEY = your_alpaca_secret_key_here
+ALPACA_BASE_URL = https: //paper - api.alpaca.markets
 
 # Risk Management
-MAX_POSITION_RISK=0.10
-MAX_TOTAL_RISK=0.30
-MAX_DRAWDOWN=0.20
-MAX_CORRELATION=0.25
-ACCOUNT_SIZE=100000.0
-DEFAULT_COMMISSION=1.0
-DEFAULT_SLIPPAGE=0.002
+MAX_POSITION_RISK = 0.10
+MAX_TOTAL_RISK = 0.30
+MAX_DRAWDOWN = 0.20
+MAX_CORRELATION = 0.25
+ACCOUNT_SIZE = 100000.0
+DEFAULT_COMMISSION = 1.0
+DEFAULT_SLIPPAGE = 0.002
 
 # Trading Configuration
-TRADING_UNIVERSE=AAPL,MSFT,GOOGL,GOOG,META,NVDA,AVGO,AMD,TSLA
-SCAN_INTERVAL=300
-MAX_CONCURRENT_TRADES=10
-ENABLE_PAPER_TRADING=true
-ENABLE_LIVE_TRADING=false
+TRADING_UNIVERSE = AAPL,MSFT,GOOGL,GOOG,META,NVDA,AVGO,AMD,TSLA
+SCAN_INTERVAL = 300
+MAX_CONCURRENT_TRADES = 10
+ENABLE_PAPER_TRADING = true
+ENABLE_LIVE_TRADING = false
 
 # Alert Configuration
-ENABLE_SLACK=false
-SLACK_WEBHOOK_URL=your_slack_webhook_url_here
-ENABLE_EMAIL=false
-EMAIL_SMTP_SERVER=smtp.gmail.com
-EMAIL_SMTP_PORT=587
-EMAIL_USERNAME=your_email_here
-EMAIL_PASSWORD=your_email_password_here
-EMAIL_RECIPIENTS=recipient1@example.com,recipient2@example.com
+ENABLE_SLACK = false
+SLACK_WEBHOOK_URL = your_slack_webhook_url_here
+ENABLE_EMAIL = false
+EMAIL_SMTP_SERVER = smtp.gmail.com
+EMAIL_SMTP_PORT = 587
+EMAIL_USERNAME = your_email_here
+EMAIL_PASSWORD = your_email_password_here
+EMAIL_RECIPIENTS = recipient1@example.com,recipient2@example.com
 
 # Database Configuration
-DB_ENGINE=postgresql
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=wallstreetbots
-DB_USERNAME=postgres
-DB_PASSWORD=your_db_password_here
-DB_SSL_MODE=prefer
+DB_ENGINE = postgresql
+DB_HOST = localhost
+DB_PORT = 5432
+DB_NAME = wallstreetbots
+DB_USERNAME = postgres
+DB_PASSWORD = your_db_password_here
+DB_SSL_MODE = prefer
 """
     
     with open(".env.template", "w") as f: 
@@ -157,17 +157,17 @@ DB_SSL_MODE=prefer
     print("📄 Created .env.template")
     
     # Create Django settings
-    django_settings="""# Django settings for Phase 1
+    django_settings = """# Django settings for Phase 1
 import os
 from pathlib import Path
 
-BASE_DIR=Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY='your - secret-key - here'
-DEBUG=False
-ALLOWED_HOSTS=['localhost', '127.0.0.1']
+SECRET_KEY = 'your - secret-key - here'
+DEBUG = False
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
-INSTALLED_APPS=[
+INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -177,7 +177,7 @@ INSTALLED_APPS=[
     'backend.tradingbot',
 ]
 
-MIDDLEWARE=[
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -187,9 +187,9 @@ MIDDLEWARE=[
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF='backend.urls'
+ROOT_URLCONF = 'backend.urls'
 
-TEMPLATES=[
+TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
@@ -205,7 +205,7 @@ TEMPLATES=[
     },
 ]
 
-DATABASES={
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'wallstreetbots'),
@@ -216,16 +216,16 @@ DATABASES={
     }
 }
 
-LANGUAGE_CODE='en - us'
-TIME_ZONE='UTC'
-USE_I18N=True
-USE_TZ=True
+LANGUAGE_CODE = 'en - us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
 
-STATIC_URL='/static/'
-DEFAULT_AUTO_FIELD='django.db.models.BigAutoField'
+STATIC_URL = '/static/'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Logging configuration
-LOGGING={
+LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -264,7 +264,7 @@ def install_dependencies():
     print("📦 Installing Phase 1 dependencies...")
     
     # Install requirements
-    result=run_command(
+    result = run_command(
         "pip install -r requirements_phase1.txt",
         "Installing Python dependencies"
     )
@@ -281,7 +281,7 @@ def setup_database():
     print("🗄️ Setting up database...")
     
     # Create database migrations
-    result=run_command(
+    result = run_command(
         "python manage.py makemigrations tradingbot",
         "Creating database migrations"
     )
@@ -291,7 +291,7 @@ def setup_database():
         return False
     
     # Apply migrations
-    result=run_command(
+    result = run_command(
         "python manage.py migrate",
         "Applying database migrations"
     )
@@ -307,7 +307,7 @@ def run_tests():
     """Run Phase 1 tests"""
     print("🧪 Running Phase 1 tests...")
     
-    result=run_command(
+    result = run_command(
         "python -m pytest backend / tradingbot/test_phase1_integration.py -v",
         "Running integration tests"
     )
@@ -322,13 +322,13 @@ def run_tests():
 
 def create_startup_script(): 
     """Create startup script"""
-    startup_script="""#!/bin / bash
+    startup_script = """#!/bin / bash
 # WallStreetBots Phase 1 Startup Script
 
 echo "🚀 Starting WallStreetBots Phase 1..."
 
 # Check if virtual environment is activated
-if [[ "$VIRTUAL_ENV" == "" ]]; then
+if [[ "$VIRTUAL_ENV"  ==  "" ]]; then
     echo "⚠️  Virtual environment not activated. Please activate it first."
     echo "   source venv / bin/activate"
     exit 1
@@ -360,10 +360,10 @@ python manage.py runserver 0.0.0.0: 8000
 def main(): 
     """Main setup function"""
     print("🏗️  WallStreetBots Phase 1 Setup")
-    print("=" * 50)
+    print(" = " * 50)
     
     # Check Python version
-    if sys.version_info < (3, 8): 
+    if sys.version_info  <  (3, 8): 
         print("❌ Python 3.8 or higher is required")
         sys.exit(1)
     
@@ -399,7 +399,7 @@ def main():
     print("\n🚀 Creating startup script...")
     create_startup_script()
     
-    print("\n" + "=" * 50)
+    print("\n" + " = " * 50)
     print("✅ Phase 1 setup completed successfully!")
     print("\nNext steps: ")
     print("1. Copy .env.template to .env and configure your API keys")
@@ -410,4 +410,4 @@ def main():
     print("   Do not use real money with this implementation.")
 
 
-if __name__== "__main__": main()
+if __name__ ==  "__main__": main()

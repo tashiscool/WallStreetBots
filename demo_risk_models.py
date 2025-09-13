@@ -56,72 +56,72 @@ def create_realistic_portfolio():
 def demo_var_analysis(): 
     """Demonstrate VaR analysis capabilities"""
     print("🔬 VaR Analysis Demo")
-    print("=" * 50)
+    print(" = " * 50)
     
     # Create portfolio
-    portfolio=create_realistic_portfolio()
+    portfolio = create_realistic_portfolio()
     
     # Initialize VaR engine
-    var_engine=AdvancedVaREngine(portfolio['total_value'])
+    var_engine = AdvancedVaREngine(portfolio['total_value'])
     
     # Generate realistic returns based on portfolio composition
     np.random.seed(42)
-    n_days=252
-    base_return=0.0008  # 0.08% daily return
-    base_vol=0.02  # 2% daily volatility
+    n_days = 252
+    base_return = 0.0008  # 0.08% daily return
+    base_vol = 0.02  # 2% daily volatility
     
     # Add some correlation and regime changes
-    returns=[]
+    returns = []
     for i in range(n_days): 
-        if i < 100:  # First 100 days: normal market
-            daily_return=np.random.normal(base_return, base_vol)
-        elif i < 150:  # Next 50 days: high volatility
-            daily_return=np.random.normal(base_return, base_vol * 1.5)
+        if i  <  100:  # First 100 days: normal market
+            daily_return = np.random.normal(base_return, base_vol)
+        elif i  <  150:  # Next 50 days: high volatility
+            daily_return = np.random.normal(base_return, base_vol * 1.5)
         else:  # Last 102 days: crisis period
-            daily_return=np.random.normal(base_return * 0.5, base_vol * 2.0)
+            daily_return = np.random.normal(base_return * 0.5, base_vol * 2.0)
         returns.append(daily_return)
     
-    returns=np.array(returns)
+    returns = np.array(returns)
     
     # Calculate comprehensive VaR suite
     print("Calculating VaR Suite...")
-    var_suite=var_engine.calculate_var_suite(
-        returns=returns,
-        confidence_levels=[0.95, 0.99, 0.999],
-        methods=['parametric', 'historical', 'monte_carlo', 'evt']
+    var_suite = var_engine.calculate_var_suite(
+        returns = returns,
+        confidence_levels = [0.95, 0.99, 0.999],
+        methods = ['parametric', 'historical', 'monte_carlo', 'evt']
     )
     
     # Display results
     print(f"\nVaR Analysis Results (Portfolio: ${portfolio['total_value']:,.0f})")
     print("-" * 60)
-    summary=var_suite.get_summary()
+    summary = var_suite.get_summary()
     
     for key, result in summary.items(): 
         # Handle different key formats
         if '_' in key: 
-            parts=key.split('_')
-            if len(parts) >= 2: 
-                method=parts[0]
-                conf=parts[-1]  # Last part is confidence level
-                conf_pct=int(conf)
+            parts = key.split('_')
+            if len(parts)  >=  2: 
+                method = parts[0]
+                conf = parts[-1]  # Last part is confidence level
+                conf_pct = int(conf)
             else: 
-                method=key
-                conf_pct=95
+                method = key
+                conf_pct = 95
         else: 
-            method=key
-            conf_pct=95
+            method = key
+            conf_pct = 95
         
         print(f"{method.upper(): 12} VaR {conf_pct}%: ${result['var_value']:8,.0f} ({result['var_percentage']: 5.2f}%)")
     
     # Calculate CVaR
-    cvar_95=var_engine.calculate_cvar(returns, 0.95)
-    cvar_99=var_engine.calculate_cvar(returns, 0.99)
+    cvar_95 = var_engine.calculate_cvar(returns, 0.95)
+    cvar_99 = var_engine.calculate_cvar(returns, 0.99)
     print(f"\nCVaR Analysis: ")
     print(f"  CVaR 95%: ${cvar_95:,.0f}")
     print(f"  CVaR 99%: ${cvar_99:,.0f}")
     
     # Regime analysis
-    regime_info=var_engine.detect_regime_and_adjust(returns)
+    regime_info = var_engine.detect_regime_and_adjust(returns)
     print(f"\nRegime Analysis: ")
     print(f"  Current Regime: {regime_info['regime']}")
     print(f"  Adjustment Factor: {regime_info['adjustment_factor']:.2f}")
@@ -132,17 +132,17 @@ def demo_var_analysis():
 def demo_stress_testing(): 
     """Demonstrate stress testing capabilities"""
     print("\n\n🚨 Stress Testing Demo")
-    print("=" * 50)
+    print(" = " * 50)
     
     # Create portfolio
-    portfolio=create_realistic_portfolio()
+    portfolio = create_realistic_portfolio()
     
     # Initialize stress tester
-    stress_tester=StressTesting2025()
+    stress_tester = StressTesting2025()
     
     # Run stress tests
     print("Running comprehensive stress tests...")
-    report=stress_tester.run_comprehensive_stress_test(portfolio)
+    report = stress_tester.run_comprehensive_stress_test(portfolio)
     
     # Display results
     print(f"\nStress Test Results")
@@ -152,8 +152,8 @@ def demo_stress_testing():
     
     print(f"\nScenario Analysis: ")
     for scenario_name, result in report.results.items(): 
-        status="✅ PASSED" if result.passed else "❌ FAILED"
-        pnl_pct=(result.portfolio_pnl / portfolio['total_value']) * 100
+        status = "✅ PASSED" if result.passed else "❌ FAILED"
+        pnl_pct = (result.portfolio_pnl / portfolio['total_value']) * 100
         print(f"  {scenario_name: 25} {status: 10} P & L: ${result.portfolio_pnl: 8,.0f} ({pnl_pct: +5.1f}%)")
     
     print(f"\nRisk Recommendations: ")
@@ -165,18 +165,18 @@ def demo_stress_testing():
 def demo_ml_risk_prediction(): 
     """Demonstrate ML risk prediction capabilities"""
     print("\n\n🤖 ML Risk Prediction Demo")
-    print("=" * 50)
+    print(" = " * 50)
     
     # Create portfolio with market data
-    portfolio=create_realistic_portfolio()
-    market_data=portfolio['market_data']
+    portfolio = create_realistic_portfolio()
+    market_data = portfolio['market_data']
     
     # Initialize ML predictor
-    ml_predictor=MLRiskPredictor()
+    ml_predictor = MLRiskPredictor()
     
     # Volatility prediction
     print("Volatility Prediction: ")
-    vol_forecast=ml_predictor.predict_volatility_regime(market_data, horizon_days=5)
+    vol_forecast = ml_predictor.predict_volatility_regime(market_data, horizon_days = 5)
     
     print(f"  Predicted Volatility (5 - day): {vol_forecast.predicted_volatility:.2%}")
     print(f"  Confidence Interval: {vol_forecast.confidence_interval[0]:.2%} - {vol_forecast.confidence_interval[1]: .2%}")
@@ -187,7 +187,7 @@ def demo_ml_risk_prediction():
     
     # Risk prediction
     print(f"\nRisk Assessment: ")
-    risk_prediction=ml_predictor.predict_risk_score(market_data)
+    risk_prediction = ml_predictor.predict_risk_score(market_data)
     
     print(f"  Overall Risk Score: {risk_prediction.risk_score:.1f}/100")
     print(f"  Predicted Regime: {risk_prediction.regime_prediction}")
@@ -203,17 +203,17 @@ def demo_ml_risk_prediction():
 def demo_risk_dashboard(): 
     """Demonstrate comprehensive risk dashboard"""
     print("\n\n📊 Risk Dashboard Demo")
-    print("=" * 50)
+    print(" = " * 50)
     
     # Create portfolio
-    portfolio=create_realistic_portfolio()
+    portfolio = create_realistic_portfolio()
     
     # Initialize dashboard
-    dashboard=RiskDashboard2025(portfolio['total_value'])
+    dashboard = RiskDashboard2025(portfolio['total_value'])
     
     # Generate dashboard
     print("Generating comprehensive risk dashboard...")
-    dashboard_data=dashboard.get_risk_dashboard_data(portfolio)
+    dashboard_data = dashboard.get_risk_dashboard_data(portfolio)
     
     # Display dashboard
     print(f"\nRisk Dashboard Summary")
@@ -225,7 +225,7 @@ def demo_risk_dashboard():
     # Core risk metrics
     print(f"\nCore Risk Metrics: ")
     for metric, data in dashboard_data['risk_metrics'].items(): 
-        status="⚠️" if data['limit_utilization'] > 80 else "✅"
+        status = "⚠️" if data['limit_utilization']  >  80 else "✅"
         print(f"  {status} {metric.upper(): 8}: ${data['value']:8,.0f} ({data['percentage']: 5.1f}%) - {data['limit_utilization']: 5.1f}% of limit")
     
     # Advanced metrics
@@ -240,9 +240,9 @@ def demo_risk_dashboard():
     
     # Factor breakdown
     print(f"\nFactor Risk Breakdown: ")
-    total_factor_risk=sum(dashboard_data['factor_breakdown'].values())
+    total_factor_risk = sum(dashboard_data['factor_breakdown'].values())
     for factor, value in dashboard_data['factor_breakdown'].items(): 
-        pct=(value / total_factor_risk) * 100 if total_factor_risk > 0 else 0
+        pct = (value / total_factor_risk) * 100 if total_factor_risk  >  0 else 0
         print(f"  {factor: 20}: ${value: 8,.0f} ({pct: 5.1f}%)")
     
     # Stress test summary
@@ -254,7 +254,7 @@ def demo_risk_dashboard():
     print(f"\nRisk Alerts ({len(dashboard_data['alerts'])} active): ")
     if dashboard_data['alerts']: 
         for alert in dashboard_data['alerts']: 
-            severity_icon={
+            severity_icon = {
                 "LOW": "🟡", "MEDIUM": "🟠", 
                 "HIGH": "🔴", "CRITICAL": "🚨"
             }.get(alert['severity'], "⚪")
@@ -266,7 +266,7 @@ def demo_risk_dashboard():
     # Risk limit utilization
     print(f"\nRisk Limit Utilization: ")
     for limit, utilization in dashboard_data['risk_limits'].items(): 
-        status="⚠️" if utilization > 80 else "✅"
+        status = "⚠️" if utilization  >  80 else "✅"
         print(f"  {status} {limit: 15}: {utilization: 5.1f}%")
     
     return dashboard, dashboard_data
@@ -274,10 +274,10 @@ def demo_risk_dashboard():
 def demo_risk_management_workflow(): 
     """Demonstrate complete risk management workflow"""
     print("\n\n🔄 Complete Risk Management Workflow Demo")
-    print("=" * 60)
+    print(" = " * 60)
     
     # Create portfolio
-    portfolio=create_realistic_portfolio()
+    portfolio = create_realistic_portfolio()
     
     print("Step 1: Portfolio Analysis")
     print("-" * 30)
@@ -289,40 +289,40 @@ def demo_risk_management_workflow():
     
     print("\nStep 2: VaR Analysis")
     print("-" * 30)
-    var_engine, var_suite=demo_var_analysis()
+    var_engine, var_suite = demo_var_analysis()
     
     print("\nStep 3: Stress Testing")
     print("-" * 30)
-    stress_tester, stress_report=demo_stress_testing()
+    stress_tester, stress_report = demo_stress_testing()
     
     print("\nStep 4: ML Risk Prediction")
     print("-" * 30)
-    ml_predictor, risk_prediction=demo_ml_risk_prediction()
+    ml_predictor, risk_prediction = demo_ml_risk_prediction()
     
     print("\nStep 5: Risk Dashboard")
     print("-" * 30)
-    dashboard, dashboard_data=demo_risk_dashboard()
+    dashboard, dashboard_data = demo_risk_dashboard()
     
     print("\nStep 6: Risk Management Recommendations")
     print("-" * 30)
     
     # Generate actionable recommendations
-    recommendations=[]
+    recommendations = []
     
     # VaR - based recommendations
-    var_95=var_suite.results.get('historical_95')
-    if var_95 and var_95.var_value > portfolio['total_value'] * 0.03: 
+    var_95 = var_suite.results.get('historical_95')
+    if var_95 and var_95.var_value  >  portfolio['total_value'] * 0.03: 
         recommendations.append("Consider reducing position sizes - VaR exceeds 3% threshold")
     
     # Stress test recommendations
-    if stress_report.compliance_status== "NON_COMPLIANT": recommendations.append("Improve portfolio diversification - stress tests show compliance issues")
+    if stress_report.compliance_status ==  "NON_COMPLIANT": recommendations.append("Improve portfolio diversification - stress tests show compliance issues")
     
     # ML - based recommendations
-    if risk_prediction.risk_score > 70: 
+    if risk_prediction.risk_score  >  70: 
         recommendations.append("High risk environment detected - consider defensive positioning")
     
     # Dashboard recommendations
-    if dashboard_data['risk_limits']['concentration'] > 100: 
+    if dashboard_data['risk_limits']['concentration']  >  100: 
         recommendations.append("Concentration risk exceeds limits - diversify positions")
     
     print("Actionable Recommendations: ")
@@ -338,9 +338,9 @@ def demo_risk_management_workflow():
 def main(): 
     """Main demo function"""
     print("🚀 WallStreetBots Advanced Risk Models - 2025 Demo")
-    print("=" * 70)
+    print(" = " * 70)
     print(f"Demo Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 70)
+    print(" = " * 70)
     
     try: 
         # Run complete workflow demo
@@ -368,6 +368,6 @@ def main():
         traceback.print_exc()
         return False
 
-if __name__== "__main__": 
-    success=main()
+if __name__ ==  "__main__": 
+    success = main()
     sys.exit(0 if success else 1)

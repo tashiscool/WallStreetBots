@@ -23,18 +23,18 @@ from backend.tradingbot.production.core.production_strategy_manager import (
 
 class SimpleTradingBot: 
     def __init__(self): 
-        self.config=ProductionStrategyManagerConfig(
-            alpaca_api_key=os.getenv('ALPACA_API_KEY'),
-            alpaca_secret_key=os.getenv('ALPACA_SECRET_KEY'),
-            paper_trading=True,  # Change to False when ready for real money
-            user_id=1,
-            max_total_risk=0.10,     # Max 10% of account at risk
-            max_position_size=0.03,  # Max 3% per position
-            enable_alerts=False      # Keep it simple
+        self.config = ProductionStrategyManagerConfig(
+            alpaca_api_key = os.getenv('ALPACA_API_KEY'),
+            alpaca_secret_key = os.getenv('ALPACA_SECRET_KEY'),
+            paper_trading = True,  # Change to False when ready for real money
+            user_id = 1,
+            max_total_risk = 0.10,     # Max 10% of account at risk
+            max_position_size = 0.03,  # Max 3% per position
+            enable_alerts = False      # Keep it simple
         )
         
-        self.manager=None
-        self.running=False
+        self.manager = None
+        self.running = False
     
     async def start_trading(self): 
         """Start the trading bot"""
@@ -44,13 +44,13 @@ class SimpleTradingBot:
         
         try: 
             # Initialize the manager
-            self.manager=ProductionStrategyManager(self.config)
+            self.manager = ProductionStrategyManager(self.config)
             print(f"✅ Loaded {len(self.manager.strategies)} strategies")
             
             # Simple safety check
             try: 
-                portfolio_value=self.manager.integration_manager.alpaca_manager.get_account_value()
-                if portfolio_value and portfolio_value < 1000: 
+                portfolio_value = self.manager.integration_manager.alpaca_manager.get_account_value()
+                if portfolio_value and portfolio_value  <  1000: 
                     print("⚠️ Account too small - need at least $1000")
                     return
                 
@@ -58,10 +58,10 @@ class SimpleTradingBot:
             except Exception as e: 
                 print(f"⚠️ Could not get account value: {e}")
                 print("💰 Continuing with trading...")
-                portfolio_value=100000  # Assume paper account has $100k
+                portfolio_value = 100000  # Assume paper account has $100k
             
             # Start trading
-            self.running=True
+            self.running = True
             await self.manager.start_all_strategies()
             
             # Simple monitoring loop
@@ -79,12 +79,12 @@ class SimpleTradingBot:
     async def simple_status_check(self): 
         """Simple status monitoring"""
         try: 
-            now=datetime.now()
+            now = datetime.now()
             try: 
-                portfolio_value=self.manager.integration_manager.alpaca_manager.get_account_value()
-                portfolio_str=f"${portfolio_value: ,.2f}" if portfolio_value else "Unknown"
+                portfolio_value = self.manager.integration_manager.alpaca_manager.get_account_value()
+                portfolio_str = f"${portfolio_value: ,.2f}" if portfolio_value else "Unknown"
             except: 
-                portfolio_str="Unknown"
+                portfolio_str = "Unknown"
             
             print(f"[{now.strftime('%H: %M:%S')}] Portfolio: {portfolio_str} | "
                   f"Strategies: {len(self.manager.strategies)} | "
@@ -98,12 +98,12 @@ class SimpleTradingBot:
     
     async def stop_trading(self): 
         """Stop the trading bot"""
-        self.running=False
+        self.running = False
         if self.manager: 
             await self.manager.stop_all_strategies()
         print("🛑 Trading bot stopped")
 
 # Simple command line interface
-if __name__== "__main__": 
-    bot=SimpleTradingBot()
+if __name__ ==  "__main__": 
+    bot = SimpleTradingBot()
     asyncio.run(bot.start_trading())

@@ -18,14 +18,14 @@ risk - managed strategy suitable for consistent profitable trading.
 Usage: 
     from backend.tradingbot import IntegratedTradingSystem, TradingConfig
 
-    config=TradingConfig(account_size=500000, max_position_risk_pct=0.10)
-    system=IntegratedTradingSystem(config)
+    config = TradingConfig(account_size  =  500000, max_position_risk_pct = 0.10)
+    system = IntegratedTradingSystem(config)
 
     # Calculate trade for a ticker
-    trade=system.calculate_trade_for_ticker("GOOGL", 207.0, 0.28)
+    trade = system.calculate_trade_for_ticker("GOOGL", 207.0, 0.28)
 
     # Get portfolio status
-    status=system.get_portfolio_status()
+    status = system.get_portfolio_status()
 """
 
 from .options_calculator import (
@@ -82,10 +82,10 @@ from .trading_system import (
     SystemState
 )
 
-__version__="1.0.0"
-__author__="WallStreetBots Team"
+__version__ = "1.0.0"
+__author__ = "WallStreetBots Team"
 
-__all__=[
+__all__ = [
     # Main system
     "IntegratedTradingSystem",
     "TradingConfig",

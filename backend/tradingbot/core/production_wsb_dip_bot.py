@@ -52,7 +52,7 @@ class WSBDipSignal:
     volume: int
     confidence: float
     risk_metrics: Dict[str, float]
-    news_catalyst: Optional[str]=None
+    news_catalyst: Optional[str] = None
 
 
 class ProductionWSBDipBot: 
@@ -60,57 +60,57 @@ class ProductionWSBDipBot:
     
     def __init__(self, trading_interface: TradingInterface, data_provider: UnifiedDataProvider, 
                  config: ProductionConfig, logger: logging.Logger):
-        self.trading_interface=trading_interface
-        self.data_provider=data_provider
-        self.config=config
-        self.logger=logger
-        self.error_handler=ErrorHandler(logger)
-        self.metrics=MetricsCollector(logger)
+        self.trading_interface = trading_interface
+        self.data_provider = data_provider
+        self.config = config
+        self.logger = logger
+        self.error_handler = ErrorHandler(logger)
+        self.metrics = MetricsCollector(logger)
         
         # Strategy parameters
-        self.max_position_risk=0.02  # 2% max per position
-        self.min_dip_percentage=3.0  # Minimum 3% dip to consider
-        self.max_dip_percentage=15.0  # Maximum 15% dip (beyond this, likely fundamental issue)
-        self.min_volume_ratio=2.0  # Minimum 2x average volume
-        self.rsi_threshold=30.0  # RSI oversold threshold
-        self.news_sentiment_threshold=-0.3  # Minimum news sentiment
+        self.max_position_risk = 0.02  # 2% max per position
+        self.min_dip_percentage = 3.0  # Minimum 3% dip to consider
+        self.max_dip_percentage = 15.0  # Maximum 15% dip (beyond this, likely fundamental issue)
+        self.min_volume_ratio = 2.0  # Minimum 2x average volume
+        self.rsi_threshold = 30.0  # RSI oversold threshold
+        self.news_sentiment_threshold = -0.3  # Minimum news sentiment
         
         # Risk controls
-        self.max_positions=10  # Maximum concurrent positions
-        self.max_account_risk=0.10  # Maximum 10% of account at risk
-        self.daily_loss_limit=0.05  # Stop trading if down 5% for the day
+        self.max_positions = 10  # Maximum concurrent positions
+        self.max_account_risk = 0.10  # Maximum 10% of account at risk
+        self.daily_loss_limit = 0.05  # Stop trading if down 5% for the day
         
         # WSB universe (popular tickers)
-        self.wsb_universe=[
+        self.wsb_universe = [
             'AAPL', 'TSLA', 'AMZN', 'MSFT', 'GOOGL', 'META', 'NVDA', 'SPY', 'QQQ',
             'AMD', 'NFLX', 'SHOP', 'SQ', 'ROKU', 'ZOOM', 'PLTR', 'NIO', 'BABA',
             'GME', 'AMC', 'BB', 'NOK', 'SNDL', 'TLRY', 'MVIS', 'CLOV', 'WISH'
         ]
         
         # Performance tracking
-        self.daily_pnl=0.0
-        self.total_trades=0
-        self.winning_trades=0
-        self.position_history=[]
+        self.daily_pnl = 0.0
+        self.total_trades = 0
+        self.winning_trades = 0
+        self.position_history = []
         
         self.logger.info("Production WSB Dip Bot initialized with strict risk controls")
     
-    async def scan_for_opportunities(self) -> List[DipOpportunity]: 
+    async def scan_for_opportunities(self)->List[DipOpportunity]: 
         """Scan WSB universe for dip opportunities"""
         try: 
             self.logger.info("Scanning WSB universe for dip opportunities")
-            opportunities=[]
+            opportunities = []
             
             # Check daily loss limit
-            if self.daily_pnl <= -self.daily_loss_limit * self.config.risk.account_size: 
+            if self.daily_pnl  <=  -self.daily_loss_limit * self.config.risk.account_size: 
                 self.logger.warning("Daily loss limit reached. Stopping strategy.")
                 return []
             
             # Scan each ticker in universe
             for ticker in self.wsb_universe: 
                 try: 
-                    opportunity=await self._analyze_ticker(ticker)
-                    if opportunity and opportunity.risk_score >= 60:  # Minimum score threshold
+                    opportunity = await self._analyze_ticker(ticker)
+                    if opportunity and opportunity.risk_score  >=  60:  # Minimum score threshold
                         opportunities.append(opportunity)
                         
                 except Exception as e: 
@@ -118,10 +118,10 @@ class ProductionWSBDipBot:
                     continue
             
             # Sort by risk - adjusted expected return
-            opportunities.sort(key=lambda x: x.expected_return / max(x.risk_score, 1), reverse=True)
+            opportunities.sort(key = lambda x: x.expected_return / max(x.risk_score, 1), reverse = True)
             
             # Limit to top opportunities
-            top_opportunities=opportunities[: 5]
+            top_opportunities = opportunities[: 5]
             
             self.logger.info(f"Found {len(top_opportunities)} high - quality dip opportunities")
             self.metrics.record_metric("opportunities_found", len(top_opportunities))
@@ -132,100 +132,100 @@ class ProductionWSBDipBot:
             self.error_handler.handle_error(e, {"operation": "scan_for_opportunities"})
             return []
     
-    async def _analyze_ticker(self, ticker: str) -> Optional[DipOpportunity]:
+    async def _analyze_ticker(self, ticker: str)->Optional[DipOpportunity]:
         """Analyze individual ticker for dip opportunity"""
         try: 
             # Get market data
-            market_data=await self.data_provider.get_market_data(ticker)
-            if market_data.price <= 0: 
+            market_data = await self.data_provider.get_market_data(ticker)
+            if market_data.price  <=  0: 
                 return None
             
             # Calculate dip percentage
-            dip_percentage=abs((market_data.price - market_data.previous_close) / market_data.previous_close * 100)
+            dip_percentage = abs((market_data.price - market_data.previous_close) / market_data.previous_close * 100)
             
             # Filter by dip criteria
-            if dip_percentage < self.min_dip_percentage or dip_percentage > self.max_dip_percentage: 
+            if dip_percentage  <  self.min_dip_percentage or dip_percentage  >  self.max_dip_percentage: 
                 return None
             
             # Check volume surge
-            avg_volume=await self._get_average_volume(ticker)
-            volume_ratio=market_data.volume / max(avg_volume, 1)
+            avg_volume = await self._get_average_volume(ticker)
+            volume_ratio = market_data.volume / max(avg_volume, 1)
             
-            if volume_ratio < self.min_volume_ratio: 
+            if volume_ratio  <  self.min_volume_ratio: 
                 return None
             
             # Technical analysis
-            rsi=await self._calculate_rsi(ticker)
-            bollinger_position=await self._calculate_bollinger_position(ticker, market_data.price)
+            rsi = await self._calculate_rsi(ticker)
+            bollinger_position = await self._calculate_bollinger_position(ticker, market_data.price)
             
             # News sentiment analysis
-            sentiment_data=await self.data_provider.get_sentiment_data(ticker)
-            news_sentiment=sentiment_data.get('score', 0.0)
+            sentiment_data = await self.data_provider.get_sentiment_data(ticker)
+            news_sentiment = sentiment_data.get('score', 0.0)
             
             # Filter by sentiment
-            if news_sentiment < self.news_sentiment_threshold: 
+            if news_sentiment  <  self.news_sentiment_threshold: 
                 return None
             
             # Calculate risk metrics
-            risk_score=self._calculate_risk_score(
+            risk_score = self._calculate_risk_score(
                 dip_percentage, volume_ratio, rsi, bollinger_position, news_sentiment
             )
             
             # Calculate position sizing using Kelly Criterion
-            kelly_fraction=await self._calculate_kelly_fraction(ticker)
-            position_size=self._calculate_position_size(market_data.price, kelly_fraction)
+            kelly_fraction = await self._calculate_kelly_fraction(ticker)
+            position_size = self._calculate_position_size(market_data.price, kelly_fraction)
             
             # Calculate expected return and max loss
-            expected_return=self._calculate_expected_return(dip_percentage, risk_score)
-            max_loss=position_size * market_data.price * self.max_position_risk
+            expected_return = self._calculate_expected_return(dip_percentage, risk_score)
+            max_loss = position_size * market_data.price * self.max_position_risk
             
             return DipOpportunity(
-                ticker=ticker,
-                current_price=market_data.price,
-                previous_close=market_data.previous_close,
-                dip_percentage=dip_percentage,
-                volume=market_data.volume,
-                volume_ratio=volume_ratio,
-                rsi=rsi,
-                bollinger_position=bollinger_position,
-                news_sentiment=news_sentiment,
-                risk_score=risk_score,
-                kelly_fraction=kelly_fraction,
-                position_size=position_size,
-                expected_return=expected_return,
-                max_loss=max_loss,
-                confidence=min(risk_score / 100.0, 1.0)
+                ticker = ticker,
+                current_price = market_data.price,
+                previous_close = market_data.previous_close,
+                dip_percentage = dip_percentage,
+                volume = market_data.volume,
+                volume_ratio = volume_ratio,
+                rsi = rsi,
+                bollinger_position = bollinger_position,
+                news_sentiment = news_sentiment,
+                risk_score = risk_score,
+                kelly_fraction = kelly_fraction,
+                position_size = position_size,
+                expected_return = expected_return,
+                max_loss = max_loss,
+                confidence = min(risk_score / 100.0, 1.0)
             )
             
         except Exception as e: 
             self.error_handler.handle_error(e, {"ticker": ticker, "operation": "_analyze_ticker"})
             return None
     
-    async def _get_average_volume(self, ticker: str, days: int=20) -> float:
+    async def _get_average_volume(self, ticker: str, days: int = 20)->float:
         """Get average volume over specified days"""
         try: 
             # In production, would fetch historical volume data
             # For now, use a simple estimation
-            market_data=await self.data_provider.get_market_data(ticker)
+            market_data = await self.data_provider.get_market_data(ticker)
             return float(market_data.volume) * 0.8  # Rough estimation
         except: 
             return 1000000.0  # Default fallback
     
-    async def _calculate_rsi(self, ticker: str, period: int=14) -> float:
+    async def _calculate_rsi(self, ticker: str, period: int = 14)->float:
         """Calculate RSI for ticker"""
         try: 
             # In production, would fetch historical price data and calculate real RSI
             # For now, return a reasonable estimate based on current price action
-            market_data=await self.data_provider.get_market_data(ticker)
+            market_data = await self.data_provider.get_market_data(ticker)
             
             # Simple RSI estimation based on price change
-            price_change_pct=(market_data.price - market_data.previous_close) / market_data.previous_close
+            price_change_pct = (market_data.price - market_data.previous_close) / market_data.previous_close
             
-            if price_change_pct < -0.05:  # Down more than 5%
+            if price_change_pct  <  -0.05:  # Down more than 5%
                 return 25.0  # Oversold
-            elif price_change_pct < -0.03:  # Down 3 - 5%
+            elif price_change_pct  <  -0.03:  # Down 3 - 5%
                 return 35.0
-            elif price_change_pct < 0:  # Down less than 3%
+            elif price_change_pct  <  0:  # Down less than 3%
                 return 45.0
             else: 
                 return 55.0  # Up day
@@ -233,22 +233,22 @@ class ProductionWSBDipBot:
         except: 
             return 50.0  # Neutral RSI
     
-    async def _calculate_bollinger_position(self, ticker: str, current_price: float) -> float:
+    async def _calculate_bollinger_position(self, ticker: str, current_price: float)->float:
         """Calculate position within Bollinger Bands"""
         try: 
             # In production, would calculate real Bollinger Bands
             # For now, estimate based on volatility
-            market_data=await self.data_provider.get_market_data(ticker)
+            market_data = await self.data_provider.get_market_data(ticker)
             
             # Estimate volatility from price range
-            daily_range=(market_data.high - market_data.low) / market_data.previous_close
-            volatility=daily_range * 2.0  # Rough estimate
+            daily_range = (market_data.high - market_data.low) / market_data.previous_close
+            volatility = daily_range * 2.0  # Rough estimate
             
             # Estimate Bollinger position
-            price_from_close=(current_price - market_data.previous_close) / market_data.previous_close
+            price_from_close = (current_price - market_data.previous_close) / market_data.previous_close
             
-            # Normalize to -1 to 1 scale (lower band=-1, upper band=1)
-            bollinger_position=price_from_close / (volatility / 2)
+            # Normalize to -1 to 1 scale (lower band = -1, upper band = 1)
+            bollinger_position = price_from_close / (volatility / 2)
             
             return max(-1.0, min(1.0, bollinger_position))
             
@@ -256,41 +256,41 @@ class ProductionWSBDipBot:
             return 0.0  # Neutral position
     
     def _calculate_risk_score(self, dip_pct: float, volume_ratio: float, rsi: float, 
-                            bollinger_pos: float, sentiment: float) -> float:
+                            bollinger_pos: float, sentiment: float)->float:
         """Calculate composite risk score (0 - 100)"""
         try: 
-            score=0.0
+            score = 0.0
             
             # Dip percentage scoring (ideal range 3 - 8%)
-            if 3 <= dip_pct <= 8: 
+            if 3  <=  dip_pct  <=  8: 
                 score += 25 * (8 - abs(dip_pct - 5.5)) / 2.5
             else: 
                 score += 10
             
             # Volume surge scoring
-            volume_score=min(volume_ratio / 3.0, 1.0) * 20  # Up to 20 points
+            volume_score = min(volume_ratio / 3.0, 1.0) * 20  # Up to 20 points
             score += volume_score
             
             # RSI oversold scoring
-            if rsi <= 30: 
+            if rsi  <=  30: 
                 score += 20  # Oversold is good for dip buying
-            elif rsi <= 40: 
+            elif rsi  <=  40: 
                 score += 15
             else: 
                 score += 5
             
             # Bollinger band position
-            if bollinger_pos <= -0.5:  # Near lower band
+            if bollinger_pos  <=  -0.5:  # Near lower band
                 score += 15
-            elif bollinger_pos <= 0: 
+            elif bollinger_pos  <=  0: 
                 score += 10
             else: 
                 score += 5
             
             # Sentiment scoring
-            if sentiment >= 0: 
+            if sentiment  >=  0: 
                 score += 20  # Positive sentiment is good
-            elif sentiment >= -0.2: 
+            elif sentiment  >=  -0.2: 
                 score += 15
             else: 
                 score += 10
@@ -300,29 +300,29 @@ class ProductionWSBDipBot:
         except: 
             return 0.0
     
-    async def _calculate_kelly_fraction(self, ticker: str) -> float:
+    async def _calculate_kelly_fraction(self, ticker: str)->float:
         """Calculate Kelly Criterion fraction for position sizing"""
         try: 
             # Get historical performance stats for this ticker
-            stats=await self._get_strategy_stats(ticker)
+            stats = await self._get_strategy_stats(ticker)
             
-            win_probability=stats.get('win_rate', 0.5)
-            avg_win=stats.get('avg_win', 0.08)  # 8% average win
-            avg_loss=stats.get('avg_loss', 0.04)  # 4% average loss
+            win_probability = stats.get('win_rate', 0.5)
+            avg_win = stats.get('avg_win', 0.08)  # 8% average win
+            avg_loss = stats.get('avg_loss', 0.04)  # 4% average loss
             
-            # Kelly formula: f=(bp - q) / b
-            # where b=avg_win / avg_loss, p=win_probability, q=1 - p
-            if avg_loss <= 0: 
+            # Kelly formula: f = (bp - q) / b
+            # where b = avg_win / avg_loss, p = win_probability, q = 1 - p
+            if avg_loss  <=  0: 
                 return 0.0
                 
-            b=avg_win / avg_loss
-            p=win_probability
-            q=1 - p
+            b = avg_win / avg_loss
+            p = win_probability
+            q = 1 - p
             
-            kelly_fraction=(b * p - q) / b
+            kelly_fraction = (b * p - q) / b
             
             # Apply safety factor (use 25% of Kelly)
-            safe_kelly=max(0.0, kelly_fraction * 0.25)
+            safe_kelly = max(0.0, kelly_fraction * 0.25)
             
             # Cap at maximum position risk
             return min(safe_kelly, self.max_position_risk)
@@ -330,7 +330,7 @@ class ProductionWSBDipBot:
         except: 
             return 0.01  # Conservative fallback
     
-    async def _get_strategy_stats(self, ticker: str) -> Dict[str, float]: 
+    async def _get_strategy_stats(self, ticker: str)->Dict[str, float]: 
         """Get historical strategy statistics for ticker"""
         try: 
             # In production, would query database for historical performance
@@ -358,46 +358,46 @@ class ProductionWSBDipBot:
                 'sharpe_ratio': 0.0
             }
     
-    def _calculate_position_size(self, price: float, kelly_fraction: float) -> int:
+    def _calculate_position_size(self, price: float, kelly_fraction: float)->int:
         """Calculate position size in shares"""
         try: 
             # Maximum risk amount
-            risk_amount=self.config.risk.account_size * kelly_fraction
+            risk_amount = self.config.risk.account_size * kelly_fraction
             
             # Calculate shares (assuming we risk max_position_risk per trade)
-            max_loss_per_share=price * self.max_position_risk
-            position_size=int(risk_amount / max_loss_per_share)
+            max_loss_per_share = price * self.max_position_risk
+            position_size = int(risk_amount / max_loss_per_share)
             
             # Minimum position size
-            if position_size < 10: 
-                position_size=10
+            if position_size  <  10: 
+                position_size = 10
                 
             # Maximum position size (for liquidity)
-            max_size=int(self.config.risk.account_size * self.max_position_risk / price)
-            position_size=min(position_size, max_size)
+            max_size = int(self.config.risk.account_size * self.max_position_risk / price)
+            position_size = min(position_size, max_size)
             
             return max(position_size, 0)
             
         except: 
             return 0
     
-    def _calculate_expected_return(self, dip_pct: float, risk_score: float) -> float:
+    def _calculate_expected_return(self, dip_pct: float, risk_score: float)->float:
         """Calculate expected return for opportunity"""
         try: 
             # Base expected return on dip recovery
-            base_return=dip_pct * 0.6  # Expect 60% of dip to recover
+            base_return = dip_pct * 0.6  # Expect 60% of dip to recover
             
             # Adjust for risk score
-            risk_multiplier=risk_score / 100.0
+            risk_multiplier = risk_score / 100.0
             
-            expected_return=base_return * risk_multiplier
+            expected_return = base_return * risk_multiplier
             
             return min(expected_return, 0.15)  # Cap at 15%
             
         except: 
             return 0.0
     
-    async def execute_dip_trade(self, opportunity: DipOpportunity) -> bool:
+    async def execute_dip_trade(self, opportunity: DipOpportunity)->bool:
         """Execute dip buy trade with full risk controls"""
         try: 
             self.logger.info(f"Executing dip trade for {opportunity.ticker}")
@@ -407,20 +407,20 @@ class ProductionWSBDipBot:
                 return False
             
             # Place buy order
-            order_result=await self.trading_interface.buy_stock(
-                ticker=opportunity.ticker,
-                quantity=opportunity.position_size,
-                order_type='limit',
-                limit_price=opportunity.current_price * 1.01  # Slightly above current price
+            order_result = await self.trading_interface.buy_stock(
+                ticker = opportunity.ticker,
+                quantity = opportunity.position_size,
+                order_type = 'limit',
+                limit_price = opportunity.current_price * 1.01  # Slightly above current price
             )
             
-            if order_result.get('status') == 'filled': # Set stop loss at 5% below entry
-                stop_loss_price=opportunity.current_price * 0.95
+            if order_result.get('status')  ==  'filled': # Set stop loss at 5% below entry
+                stop_loss_price = opportunity.current_price * 0.95
                 
-                stop_order=await self.trading_interface.place_stop_loss(
-                    ticker=opportunity.ticker,
-                    quantity=opportunity.position_size,
-                    stop_price=stop_loss_price
+                stop_order = await self.trading_interface.place_stop_loss(
+                    ticker = opportunity.ticker,
+                    quantity = opportunity.position_size,
+                    stop_price = stop_loss_price
                 )
                 
                 # Record trade
@@ -441,28 +441,28 @@ class ProductionWSBDipBot:
             })
             return False
     
-    async def _pre_trade_risk_check(self, opportunity: DipOpportunity) -> bool:
+    async def _pre_trade_risk_check(self, opportunity: DipOpportunity)->bool:
         """Pre - trade risk validation"""
         try: 
             # Check maximum positions
-            current_positions=await self._get_current_position_count()
-            if current_positions >= self.max_positions: 
+            current_positions = await self._get_current_position_count()
+            if current_positions  >=  self.max_positions: 
                 self.logger.warning("Maximum positions reached, skipping trade")
                 return False
             
             # Check account risk
-            current_risk=await self._calculate_current_account_risk()
-            if current_risk + opportunity.max_loss > self.max_account_risk * self.config.risk.account_size: 
+            current_risk = await self._calculate_current_account_risk()
+            if current_risk + opportunity.max_loss  >  self.max_account_risk * self.config.risk.account_size: 
                 self.logger.warning("Account risk limit would be exceeded, skipping trade")
                 return False
             
             # Check daily loss limit
-            if self.daily_pnl <= -self.daily_loss_limit * self.config.risk.account_size: 
+            if self.daily_pnl  <=  -self.daily_loss_limit * self.config.risk.account_size: 
                 self.logger.warning("Daily loss limit reached, skipping trade")
                 return False
             
             # Check position size minimum
-            if opportunity.position_size <= 0: 
+            if opportunity.position_size  <=  0: 
                 self.logger.warning("Invalid position size, skipping trade")
                 return False
             
@@ -472,24 +472,24 @@ class ProductionWSBDipBot:
             self.error_handler.handle_error(e, {"operation": "_pre_trade_risk_check"})
             return False
     
-    async def _get_current_position_count(self) -> int: 
+    async def _get_current_position_count(self)->int: 
         """Get current number of open positions"""
         try: 
-            positions=await self.trading_interface.get_positions()
+            positions = await self.trading_interface.get_positions()
             return len(positions)
         except: 
             return 0
     
-    async def _calculate_current_account_risk(self) -> float: 
+    async def _calculate_current_account_risk(self)->float: 
         """Calculate current total account risk"""
         try: 
-            positions=await self.trading_interface.get_positions()
-            total_risk=0.0
+            positions = await self.trading_interface.get_positions()
+            total_risk = 0.0
             
             for position in positions: 
                 # Calculate risk as unrealized loss potential
-                current_value=float(position.get('market_value', 0))
-                position_risk=current_value * self.max_position_risk
+                current_value = float(position.get('market_value', 0))
+                position_risk = current_value * self.max_position_risk
                 total_risk += position_risk
             
             return total_risk
@@ -497,10 +497,10 @@ class ProductionWSBDipBot:
             return 0.0
     
     async def _record_trade(self, opportunity: DipOpportunity, order_result: Dict, 
-                          stop_order: Dict) -> None:
+                          stop_order: Dict)->None:
         """Record trade for tracking and analysis"""
         try: 
-            trade_record={
+            trade_record = {
                 'timestamp': datetime.now(),
                 'ticker': opportunity.ticker,
                 'strategy': 'wsb_dip_bot',
@@ -525,53 +525,53 @@ class ProductionWSBDipBot:
         except Exception as e: 
             self.error_handler.handle_error(e, {"operation": "_record_trade"})
     
-    async def monitor_positions(self) -> None: 
+    async def monitor_positions(self)->None: 
         """Monitor open positions for exit conditions"""
         try: 
-            positions=await self.trading_interface.get_positions()
+            positions = await self.trading_interface.get_positions()
             
             for position in positions: 
-                ticker=position.get('symbol')
+                ticker = position.get('symbol')
                 if ticker in self.wsb_universe: 
                     await self._check_exit_conditions(position)
                     
         except Exception as e: 
             self.error_handler.handle_error(e, {"operation": "monitor_positions"})
     
-    async def _check_exit_conditions(self, position: Dict) -> None:
+    async def _check_exit_conditions(self, position: Dict)->None:
         """Check if position should be exited"""
         try: 
-            ticker=position.get('symbol')
-            current_qty=int(position.get('qty', 0))
+            ticker = position.get('symbol')
+            current_qty = int(position.get('qty', 0))
             
-            if current_qty== 0: 
+            if current_qty ==  0: 
                 return
             
             # Get current market data
-            market_data=await self.data_provider.get_market_data(ticker)
+            market_data = await self.data_provider.get_market_data(ticker)
             
             # Calculate unrealized P & L
-            entry_price=float(position.get('avg_cost_basis', 0))
-            current_price=market_data.price
-            unrealized_pnl=(current_price - entry_price) / entry_price
+            entry_price = float(position.get('avg_cost_basis', 0))
+            current_price = market_data.price
+            unrealized_pnl = (current_price - entry_price) / entry_price
             
             # Exit conditions
-            should_exit=False
-            exit_reason=""
+            should_exit = False
+            exit_reason = ""
             
             # Profit taking (8% profit)
-            if unrealized_pnl >= 0.08: 
-                should_exit=True
-                exit_reason="profit_target"
+            if unrealized_pnl  >=  0.08: 
+                should_exit = True
+                exit_reason = "profit_target"
             
             # Time - based exit (hold for max 3 days)
             # In production, would check entry timestamp
             
             # Technical exit (RSI overbought)
-            rsi=await self._calculate_rsi(ticker)
-            if rsi >= 70: 
-                should_exit=True
-                exit_reason="overbought_exit"
+            rsi = await self._calculate_rsi(ticker)
+            if rsi  >=  70: 
+                should_exit = True
+                exit_reason = "overbought_exit"
             
             if should_exit: 
                 await self._execute_exit(ticker, current_qty, exit_reason)
@@ -582,7 +582,7 @@ class ProductionWSBDipBot:
                 "operation": "_check_exit_conditions"
             })
     
-    async def _execute_exit(self, ticker: str, quantity: int, reason: str) -> None:
+    async def _execute_exit(self, ticker: str, quantity: int, reason: str)->None:
         """Execute position exit"""
         try: 
             self.logger.info(f"Exiting {ticker} position: {reason}")
@@ -591,16 +591,16 @@ class ProductionWSBDipBot:
             await self.trading_interface.cancel_orders(ticker)
             
             # Place sell order
-            order_result=await self.trading_interface.sell_stock(
-                ticker=ticker,
-                quantity=quantity,
-                order_type='market'
+            order_result = await self.trading_interface.sell_stock(
+                ticker = ticker,
+                quantity = quantity,
+                order_type = 'market'
             )
             
-            if order_result.get('status') == 'filled': self.logger.info(f"Position exited successfully: {ticker}")
+            if order_result.get('status')  ==  'filled': self.logger.info(f"Position exited successfully: {ticker}")
                 
             # Update P & L tracking
-            fill_price=float(order_result.get('fill_price', 0))
+            fill_price = float(order_result.get('fill_price', 0))
             # Would calculate P & L based on entry price
             
             self.metrics.record_metric("positions_closed", 1, {
@@ -614,14 +614,14 @@ class ProductionWSBDipBot:
                 "operation": "_execute_exit"
             })
     
-    async def run_strategy(self) -> None: 
+    async def run_strategy(self)->None: 
         """Main strategy execution loop"""
         self.logger.info("Starting WSB Dip Bot production strategy")
         
         try: 
             while True: 
                 # Scan for opportunities
-                opportunities=await self.scan_for_opportunities()
+                opportunities = await self.scan_for_opportunities()
                 
                 # Execute trades for best opportunities
                 for opportunity in opportunities[: 3]: # Limit to top 3
@@ -642,15 +642,15 @@ class ProductionWSBDipBot:
         except Exception as e: 
             self.error_handler.handle_error(e, {"operation": "run_strategy"})
     
-    async def _update_performance_metrics(self) -> None: 
+    async def _update_performance_metrics(self)->None: 
         """Update strategy performance metrics"""
         try: 
             # Calculate current day P & L
-            positions=await self.trading_interface.get_positions()
-            account_info=await self.trading_interface.get_account()
+            positions = await self.trading_interface.get_positions()
+            account_info = await self.trading_interface.get_account()
             
             # Update daily P & L
-            self.daily_pnl=float(account_info.get('daytrading_buying_power', 0)) - \
+            self.daily_pnl = float(account_info.get('daytrading_buying_power', 0)) - \
                 self.config.risk.account_size
             
             # Record metrics
@@ -661,11 +661,11 @@ class ProductionWSBDipBot:
         except Exception as e: 
             self.error_handler.handle_error(e, {"operation": "_update_performance_metrics"})
     
-    async def get_portfolio_summary(self) -> Dict[str, Any]: 
+    async def get_portfolio_summary(self)->Dict[str, Any]: 
         """Get comprehensive portfolio summary"""
         try: 
-            positions=await self.trading_interface.get_positions()
-            account_info=await self.trading_interface.get_account()
+            positions = await self.trading_interface.get_positions()
+            account_info = await self.trading_interface.get_account()
             
             return {
                 "strategy": "wsb_dip_bot",
@@ -691,7 +691,7 @@ class ProductionWSBDipBot:
 def create_wsb_dip_bot_strategy(trading_interface: TradingInterface, 
                               data_provider: UnifiedDataProvider,
                               config: ProductionConfig, 
-                              logger: logging.Logger) -> ProductionWSBDipBot:
+                              logger: logging.Logger)->ProductionWSBDipBot:
     """Create WSB Dip Bot strategy instance"""
     return ProductionWSBDipBot(trading_interface, data_provider, config, logger)
 
@@ -704,23 +704,23 @@ async def main():
     from .data_providers import create_data_provider
     
     # Load configuration
-    config_manager=create_config_manager()
-    config=config_manager.load_config()
+    config_manager = create_config_manager()
+    config = config_manager.load_config()
     
     # Create components
-    data_provider=create_data_provider(config.data_providers.__dict__)
-    trading_interface=create_trading_interface(config)
-    logger=create_production_logger("wsb_dip_bot")
+    data_provider = create_data_provider(config.data_providers.__dict__)
+    trading_interface = create_trading_interface(config)
+    logger = create_production_logger("wsb_dip_bot")
     
     # Create and run strategy
-    strategy=create_wsb_dip_bot_strategy(trading_interface, data_provider, config, logger)
+    strategy = create_wsb_dip_bot_strategy(trading_interface, data_provider, config, logger)
     await strategy.run_strategy()
 
 
-if __name__== "__main__": # Setup logging
+if __name__ ==  "__main__": # Setup logging
     logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        level = logging.INFO,
+        format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
     # Run strategy

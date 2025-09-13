@@ -29,11 +29,11 @@ try:
     from .regulatory_compliance_manager import (
         RegulatoryComplianceManager, RegulatoryAuthority, ComplianceStatus, ComplianceRule
     )
-    ADVANCED_FEATURES_AVAILABLE=True
+    ADVANCED_FEATURES_AVAILABLE = True
 except ImportError: 
-    ADVANCED_FEATURES_AVAILABLE=False
+    ADVANCED_FEATURES_AVAILABLE = False
 
-__all__=[
+__all__ = [
     'AdvancedVaREngine',
     'VaRResult', 
     'VaRSuite',
@@ -71,6 +71,6 @@ if ADVANCED_FEATURES_AVAILABLE:
     ])
 
 # Version information
-__version__="2025.1.0"
-__author__="WallStreetBots Risk Management Team"
-__description__="Advanced risk management models for algorithmic trading"
+__version__ = "2025.1.0"
+__author__ = "WallStreetBots Risk Management Team"
+__description__ = "Advanced risk management models for algorithmic trading"

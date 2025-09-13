@@ -18,7 +18,7 @@ from .strategies.production_wsb_dip_bot import ProductionWSBDipBot
 from .strategies.production_earnings_protection import ProductionEarningsProtection
 from .strategies.production_index_baseline import ProductionIndexBaseline
 
-__all__=[
+__all__ = [
     'ProductionIntegrationManager',
     'ProductionStrategyManager',
     'ProductionStrategyManagerConfig',

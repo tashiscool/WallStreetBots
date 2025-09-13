@@ -1,6 +1,6 @@
 from django import template
 
-register=template.Library()
+register = template.Library()
 
 
 @register.filter
@@ -20,13 +20,13 @@ def find_percent(change_today):
 
 @register.filter
 def compare(value, arg): 
-    if float(value) > float(arg): 
+    if float(value)  >  float(arg): 
         return True
 
 
 @register.filter
 def check_positive(value): 
-    if float(value) > 0: 
+    if float(value)  >  0: 
         return True
 
 

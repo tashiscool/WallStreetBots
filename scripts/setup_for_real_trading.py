@@ -17,9 +17,9 @@ from pathlib import Path
 
 def print_header(title): 
     """Print formatted section header"""
-    print("\n" + "="*80)
+    print("\n" + " = "*80)
     print(f" {title}")
-    print("="*80)
+    print(" = "*80)
 
 
 def print_warning(): 
@@ -30,7 +30,7 @@ This setup will configure WallStreetBots for REAL MONEY TRADING.
 
 ⚠️  IMPORTANT DISCLAIMERS: 
    - This system can lose ALL your money if configured incorrectly
-   - Start with paper trading (ALPACA_BASE_URL=paper - api.alpaca.markets)
+   - Start with paper trading (ALPACA_BASE_URL = paper - api.alpaca.markets)
    - Use small position sizes (max 1 - 2% per trade)
    - Test thoroughly before going live
    - Past performance does not guarantee future results
@@ -42,10 +42,10 @@ This setup will configure WallStreetBots for REAL MONEY TRADING.
    ✅ Runs comprehensive test suite
    ✅ Provides step - by-step setup instructions
 
-Do you want to continue? (y / N): """, end="")
+Do you want to continue? (y / N): """, end = "")
     
-    response=input().strip().lower()
-    if response != 'y': 
+    response = input().strip().lower()
+    if response  !=  'y': 
         print("Setup cancelled. Good choice to be cautious! 🛡️")
         sys.exit(0)
 
@@ -54,7 +54,7 @@ def check_python_version():
     """Check Python version compatibility"""
     print_header("🐍 Checking Python Version")
     
-    if sys.version_info < (3, 8): 
+    if sys.version_info  <  (3, 8): 
         print("❌ Python 3.8+ required. Please upgrade Python.")
         sys.exit(1)
     
@@ -69,24 +69,24 @@ def install_dependencies():
         # Create virtual environment if it doesn't exist
         if not os.path.exists('venv'): 
             print("Creating virtual environment...")
-            subprocess.run([sys.executable, '-m', 'venv', 'venv'], check=True)
+            subprocess.run([sys.executable, '-m', 'venv', 'venv'], check = True)
             print("✅ Virtual environment created")
         
         # Determine pip path
-        if os.name== 'nt': # Windows
-            pip_path='venv\\Scripts\\pip'
-            python_path='venv\\Scripts\\python'
+        if os.name ==  'nt': # Windows
+            pip_path = 'venv\\Scripts\\pip'
+            python_path = 'venv\\Scripts\\python'
         else:  # Unix / Linux/Mac
-            pip_path='venv / bin/pip'
-            python_path='venv / bin/python'
+            pip_path = 'venv / bin/pip'
+            python_path = 'venv / bin/python'
         
         # Upgrade pip
         print("Upgrading pip...")
-        subprocess.run([python_path, '-m', 'pip', 'install', '--upgrade', 'pip'], check=True)
+        subprocess.run([python_path, '-m', 'pip', 'install', '--upgrade', 'pip'], check = True)
         
         # Install requirements
         print("Installing requirements...")
-        subprocess.run([pip_path, 'install', '-r', 'requirements.txt'], check=True)
+        subprocess.run([pip_path, 'install', '-r', 'requirements.txt'], check = True)
         
         print("✅ All dependencies installed successfully")
         
@@ -99,8 +99,8 @@ def create_env_file():
     """Create .env file from example"""
     print_header("⚙️ Creating Environment Configuration")
     
-    env_example=Path('backend/.env.example')
-    env_file=Path('backend/.env')
+    env_example = Path('backend/.env.example')
+    env_file = Path('backend/.env')
     
     if not env_example.exists(): 
         print("❌ backend/.env.example not found!")
@@ -108,14 +108,14 @@ def create_env_file():
     
     if env_file.exists(): 
         print("📄 .env file already exists")
-        overwrite=input("Overwrite existing .env file? (y / N): ").strip().lower()
-        if overwrite != 'y': 
+        overwrite = input("Overwrite existing .env file? (y / N): ").strip().lower()
+        if overwrite  !=  'y': 
             print("Keeping existing .env file")
             return
     
     # Copy example to .env
     with open(env_example) as f: 
-        content=f.read()
+        content = f.read()
     
     with open(env_file, 'w') as f: 
         f.write(content)
@@ -130,18 +130,18 @@ def run_tests():
     
     try: 
         # Determine python path
-        if os.name== 'nt': # Windows
-            python_path='venv\\Scripts\\python'
+        if os.name ==  'nt': # Windows
+            python_path = 'venv\\Scripts\\python'
         else:  # Unix / Linux/Mac
-            python_path='venv / bin/python'
+            python_path = 'venv / bin/python'
         
         print("Running all tests...")
-        result=subprocess.run([
+        result = subprocess.run([
             python_path, '-m', 'pytest', 
-            'backend / tradingbot/', '-v', '--tb=short'
-        ], capture_output=True, text=True)
+            'backend / tradingbot/', '-v', '--tb = short'
+        ], capture_output = True, text = True)
         
-        if result.returncode== 0: 
+        if result.returncode ==  0: 
             print("✅ All tests passed!")
             print(f"📊 Test output: \n{result.stdout}")
         else: 
@@ -157,7 +157,7 @@ def print_api_key_instructions():
     """Print detailed API key setup instructions"""
     print_header("🔑 API Key Setup Instructions")
     
-    instructions="""
+    instructions = """
 📋 STEP - BY-STEP API KEY SETUP: 
 
 1. 🏦 ALPACA (Stock / Options Broker) - REQUIRED
@@ -166,44 +166,44 @@ def print_api_key_instructions():
    • Navigate to: Paper Trading → API Keys
    • Generate API Key and Secret
    • Add to .env: 
-     ALPACA_API_KEY=your_key_here
-     ALPACA_SECRET_KEY=your_secret_here
-     ALPACA_BASE_URL=https: //paper - api.alpaca.markets
+     ALPACA_API_KEY = your_key_here
+     ALPACA_SECRET_KEY = your_secret_here
+     ALPACA_BASE_URL = https: //paper - api.alpaca.markets
 
 2. 📊 IEX CLOUD (Market Data) - REQUIRED
    • Go to: https://iexcloud.io/
    • Sign up (starts free, $9 / month for real - time)
    • Get API token from dashboard
    • Add to .env: 
-     IEX_API_KEY=your_key_here
+     IEX_API_KEY = your_key_here
 
 3. 📈 POLYGON.IO (Options Data) - RECOMMENDED
    • Go to: https://polygon.io/
    • Sign up ($99 / month for options data)
    • Get API key from dashboard
    • Add to .env: 
-     POLYGON_API_KEY=your_key_here
+     POLYGON_API_KEY = your_key_here
 
 4. 📰 FINANCIAL MODELING PREP (Earnings) - RECOMMENDED
    • Go to: https://financialmodelingprep.com/
    • Sign up ($15 / month basic plan)
    • Get API key
    • Add to .env: 
-     FMP_API_KEY=your_key_here
+     FMP_API_KEY = your_key_here
 
 5. 📺 NEWS API (Sentiment) - OPTIONAL
    • Go to: https://newsapi.org/
    • Sign up (free tier available)
    • Get API key
    • Add to .env: 
-     NEWS_API_KEY=your_key_here
+     NEWS_API_KEY = your_key_here
 
 6. 📊 ALPHA VANTAGE (Backup Data) - OPTIONAL
    • Go to: https://www.alphavantage.co/
    • Sign up (free tier: 5 calls / minute)
    • Get API key
    • Add to .env: 
-     ALPHA_VANTAGE_API_KEY=your_key_here
+     ALPHA_VANTAGE_API_KEY = your_key_here
 
 💰 TOTAL MONTHLY COST FOR FULL SETUP: 
    - Alpaca: FREE (paper trading)
@@ -229,12 +229,12 @@ def print_usage_instructions():
     """Print detailed usage instructions"""
     print_header("🚀 Usage Instructions")
     
-    usage="""
+    usage = """
 🎯 HOW TO START TRADING: 
 
 1. 📋 SETUP CHECKLIST: 
    ✅ All API keys configured in backend/.env
-   ✅ Set PAPER_TRADING_MODE=true initially
+   ✅ Set PAPER_TRADING_MODE = true initially
    ✅ Set reasonable position limits (1 - 2% max)
    ✅ Tests passing (run: venv / bin/python -m pytest backend / tradingbot/)
 
@@ -324,4 +324,4 @@ Good luck, and may your trades be profitable! 📈
     """)
 
 
-if __name__== "__main__": main()
+if __name__ ==  "__main__": main()

@@ -14,28 +14,28 @@ async def test_simple_bot():
     print(f"📅 {datetime.now()}")
     
     # Test Alpaca connection
-    manager=AlpacaManager(
+    manager = AlpacaManager(
         os.getenv('ALPACA_API_KEY', 'PKFUYPUACYYICLF36RE3'),
         os.getenv('ALPACA_SECRET_KEY', 'AiV6GeLGENOsL4wG93CCp123wVmkaHbg93dn2ws2'),
-        paper_trading=True
+        paper_trading = True
     )
     
     # Test connection
-    success, msg=manager.validate_api()
+    success, msg = manager.validate_api()
     print(f"✅ Connection: {success} - {msg}")
     
     if success: 
         # Get account info
-        account_value=manager.get_account_value()
-        balance=manager.get_balance()
-        positions=manager.get_positions()
+        account_value = manager.get_account_value()
+        balance = manager.get_balance()
+        positions = manager.get_positions()
         
         print(f"💰 Account value: ${account_value:,.2f}")
         print(f"💵 Balance: ${balance:,.2f}")
         print(f"📊 Open positions: {len(positions)}")
         
         # Test a simple price check
-        success, price=manager.get_price('AAPL')
+        success, price = manager.get_price('AAPL')
         if success: 
             print(f"🍎 AAPL price: ${price:.2f}")
         else: 
@@ -44,7 +44,7 @@ async def test_simple_bot():
     print("\n🎉 Simple bot test complete!")
     print("✅ Ready for paper trading!")
 
-if __name__== "__main__": 
+if __name__ ==  "__main__": 
     import django
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
     django.setup()

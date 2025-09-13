@@ -30,19 +30,19 @@ class RiskIntegratedConfig(ProductionStrategyManagerConfig):
     """Configuration for risk - integrated production manager"""
     
     # Risk management settings
-    risk_limits: RiskLimits=field(default_factory=RiskLimits)
-    enable_ml_risk: bool=True
-    enable_stress_testing: bool=True
-    enable_risk_dashboard: bool=True
+    risk_limits: RiskLimits = field(default_factory  =  RiskLimits)
+    enable_ml_risk: bool = True
+    enable_stress_testing: bool = True
+    enable_risk_dashboard: bool = True
     
     # Risk monitoring settings
-    risk_calculation_interval: int=30  # seconds
-    risk_alert_threshold: float=0.8  # 80% of limits
+    risk_calculation_interval: int = 30  # seconds
+    risk_alert_threshold: float = 0.8  # 80% of limits
     
     # Risk integration settings
-    auto_position_sizing: bool=True
-    auto_risk_controls: bool=True
-    cross_strategy_coordination: bool=True
+    auto_position_sizing: bool = True
+    auto_risk_controls: bool = True
+    cross_strategy_coordination: bool = True
 
 
 class RiskIntegratedProductionManager: 
@@ -64,36 +64,36 @@ class RiskIntegratedProductionManager:
         Args: 
             config: Configuration including risk management settings
         """
-        self.config=config
-        self.logger=logging.getLogger(__name__)
+        self.config = config
+        self.logger = logging.getLogger(__name__)
         
         # Initialize base production manager
-        self.base_manager=ProductionStrategyManager(config)
+        self.base_manager = ProductionStrategyManager(config)
         
         # Initialize risk management
-        self.risk_manager=RiskIntegrationManager(
-            risk_limits=config.risk_limits,
-            enable_ml=config.enable_ml_risk,
-            enable_stress_testing=config.enable_stress_testing,
-            enable_dashboard=config.enable_risk_dashboard
+        self.risk_manager = RiskIntegrationManager(
+            risk_limits = config.risk_limits,
+            enable_ml = config.enable_ml_risk,
+            enable_stress_testing = config.enable_stress_testing,
+            enable_dashboard = config.enable_risk_dashboard
         )
         
         # Risk - aware strategies
-        self.risk_aware_strategies: Dict[str, RiskAwareStrategy]={}
+        self.risk_aware_strategies: Dict[str, RiskAwareStrategy] = {}
         
         # Risk monitoring state
-        self.risk_monitoring_active=False
-        self.last_risk_calculation=None
-        self.risk_alerts_sent=set()
+        self.risk_monitoring_active = False
+        self.last_risk_calculation = None
+        self.risk_alerts_sent = set()
         
         # Performance tracking
-        self.risk_calculations_count=0
-        self.trades_blocked_by_risk=0
-        self.risk_adjustments_made=0
+        self.risk_calculations_count = 0
+        self.trades_blocked_by_risk = 0
+        self.risk_adjustments_made = 0
         
         self.logger.info("Risk - Integrated Production Manager initialized")
     
-    async def start_all_strategies(self) -> bool: 
+    async def start_all_strategies(self)->bool: 
         """
         Start all strategies with integrated risk management
         
@@ -102,7 +102,7 @@ class RiskIntegratedProductionManager:
         """
         try: 
             # Start base strategies
-            base_success=await self.base_manager.start_all_strategies()
+            base_success = await self.base_manager.start_all_strategies()
             if not base_success: 
                 self.logger.error("Failed to start base strategies")
                 return False
@@ -124,10 +124,10 @@ class RiskIntegratedProductionManager:
         """Create risk - aware wrappers for all strategies"""
         try: 
             for strategy_name, strategy_instance in self.base_manager.strategies.items(): 
-                risk_aware_strategy=create_risk_aware_strategy(
+                risk_aware_strategy = create_risk_aware_strategy(
                     strategy_instance, self.risk_manager, strategy_name
                 )
-                self.risk_aware_strategies[strategy_name]=risk_aware_strategy
+                self.risk_aware_strategies[strategy_name] = risk_aware_strategy
                 
                 self.logger.info(f"Created risk - aware wrapper for {strategy_name}")
             
@@ -137,7 +137,7 @@ class RiskIntegratedProductionManager:
     async def _start_risk_monitoring(self): 
         """Start continuous risk monitoring"""
         try: 
-            self.risk_monitoring_active=True
+            self.risk_monitoring_active = True
             
             # Start risk monitoring task
             asyncio.create_task(self._risk_monitoring_loop())
@@ -168,25 +168,25 @@ class RiskIntegratedProductionManager:
         """Calculate and update portfolio risk metrics"""
         try: 
             # Get current positions
-            positions=await self._get_current_positions()
+            positions = await self._get_current_positions()
             
             # Get market data
-            market_data=await self._get_market_data()
+            market_data = await self._get_market_data()
             
             # Get portfolio value
-            portfolio_value=await self._get_portfolio_value()
+            portfolio_value = await self._get_portfolio_value()
             
             # Calculate risk metrics
-            risk_metrics=await self.risk_manager.calculate_portfolio_risk(
+            risk_metrics = await self.risk_manager.calculate_portfolio_risk(
                 positions, market_data, portfolio_value
             )
             
             # Update tracking
             self.risk_calculations_count += 1
-            self.last_risk_calculation=datetime.now()
+            self.last_risk_calculation = datetime.now()
             
-            self.logger.debug(f"Risk calculated: VaR={risk_metrics.portfolio_var:.2%}, "
-                            f"CVaR={risk_metrics.portfolio_cvar: .2%}, "
+            self.logger.debug(f"Risk calculated: VaR = {risk_metrics.portfolio_var:.2%}, "
+                            f"CVaR = {risk_metrics.portfolio_cvar: .2%}, "
                             f"Within limits: {risk_metrics.within_limits}")
             
         except Exception as e: 
@@ -200,11 +200,11 @@ class RiskIntegratedProductionManager:
                 await self._send_risk_alert("Risk limits breached", self.risk_manager.current_metrics.alerts)
             
             # Check utilization thresholds
-            utilization=self._calculate_risk_utilization()
+            utilization = self._calculate_risk_utilization()
             
             for metric, util in utilization.items(): 
-                if util > self.config.risk_alert_threshold: 
-                    alert_key=f"{metric}_high_utilization"
+                if util  >  self.config.risk_alert_threshold: 
+                    alert_key = f"{metric}_high_utilization"
                     if alert_key not in self.risk_alerts_sent: 
                         await self._send_risk_alert(f"High {metric} utilization: {util:.1%}")
                         self.risk_alerts_sent.add(alert_key)
@@ -212,22 +212,22 @@ class RiskIntegratedProductionManager:
         except Exception as e: 
             self.logger.error(f"Error checking risk alerts: {e}")
     
-    def _calculate_risk_utilization(self) -> Dict[str, float]: 
+    def _calculate_risk_utilization(self)->Dict[str, float]: 
         """Calculate risk utilization percentages"""
-        metrics=self.risk_manager.current_metrics
-        limits=self.risk_manager.risk_limits
+        metrics = self.risk_manager.current_metrics
+        limits = self.risk_manager.risk_limits
         
         return {
-            'var': metrics.portfolio_var / limits.max_total_var if limits.max_total_var > 0 else 0,
-            'cvar': metrics.portfolio_cvar / limits.max_total_cvar if limits.max_total_cvar > 0 else 0,
-            'concentration': metrics.concentration_risk / limits.max_concentration if limits.max_concentration > 0 else 0,
-            'greeks': metrics.greeks_risk / limits.max_greeks_risk if limits.max_greeks_risk > 0 else 0
+            'var': metrics.portfolio_var / limits.max_total_var if limits.max_total_var  >  0 else 0,
+            'cvar': metrics.portfolio_cvar / limits.max_total_cvar if limits.max_total_cvar  >  0 else 0,
+            'concentration': metrics.concentration_risk / limits.max_concentration if limits.max_concentration  >  0 else 0,
+            'greeks': metrics.greeks_risk / limits.max_greeks_risk if limits.max_greeks_risk  >  0 else 0
         }
     
-    async def _send_risk_alert(self, message: str, details: List[str]=None):
+    async def _send_risk_alert(self, message: str, details: List[str] = None):
         """Send risk alert notification"""
         try: 
-            alert_message=f"🚨 RISK ALERT: {message}"
+            alert_message = f"🚨 RISK ALERT: {message}"
             if details: 
                 alert_message += f"\nDetails: {', '.join(details)}"
             
@@ -239,7 +239,7 @@ class RiskIntegratedProductionManager:
         except Exception as e: 
             self.logger.error(f"Error sending risk alert: {e}")
     
-    async def _get_current_positions(self) -> Dict[str, Dict]: 
+    async def _get_current_positions(self)->Dict[str, Dict]: 
         """Get current portfolio positions"""
         try: 
             # This would get actual positions from the broker
@@ -253,7 +253,7 @@ class RiskIntegratedProductionManager:
             self.logger.error(f"Error getting current positions: {e}")
             return {}
     
-    async def _get_market_data(self) -> Dict[str, Any]: 
+    async def _get_market_data(self)->Dict[str, Any]: 
         """Get current market data"""
         try: 
             # This would get actual market data
@@ -261,9 +261,9 @@ class RiskIntegratedProductionManager:
             import pandas as pd
             import numpy as np
             
-            dates=pd.date_range(end=datetime.now(), periods=252, freq='D')
-            returns=np.random.normal(0, 0.02, 252)
-            prices=100 * np.cumprod(1 + returns)
+            dates = pd.date_range(end  =  datetime.now(), periods = 252, freq = 'D')
+            returns = np.random.normal(0, 0.02, 252)
+            prices = 100 * np.cumprod(1 + returns)
             
             return {
                 'AAPL': pd.DataFrame({
@@ -272,27 +272,27 @@ class RiskIntegratedProductionManager:
                     'Low': prices * 0.98,
                     'Close': prices,
                     'Volume': np.random.randint(1000000, 5000000, 252)
-                }, index=dates),
+                }, index = dates),
                 'SPY': pd.DataFrame({
                     'Open': prices * 0.99,
                     'High': prices * 1.01,
                     'Low': prices * 0.99,
                     'Close': prices,
                     'Volume': np.random.randint(5000000, 10000000, 252)
-                }, index=dates),
+                }, index = dates),
                 'TSLA': pd.DataFrame({
                     'Open': prices * 0.95,
                     'High': prices * 1.05,
                     'Low': prices * 0.95,
                     'Close': prices,
                     'Volume': np.random.randint(2000000, 8000000, 252)
-                }, index=dates)
+                }, index = dates)
             }
         except Exception as e: 
             self.logger.error(f"Error getting market data: {e}")
             return {}
     
-    async def _get_portfolio_value(self) -> float: 
+    async def _get_portfolio_value(self)->float: 
         """Get current portfolio value"""
         try: 
             # This would get actual portfolio value from the broker
@@ -307,8 +307,8 @@ class RiskIntegratedProductionManager:
                                    symbol: str,
                                    action: str,
                                    quantity: float,
-                                   price: float=None,
-                                   **kwargs) -> Dict[str, Any]: 
+                                   price: float = None,
+                                   **kwargs)->Dict[str, Any]: 
         """
         Execute a trade through a specific strategy with risk management
         
@@ -332,8 +332,8 @@ class RiskIntegratedProductionManager:
                 }
             
             # Execute trade through risk - aware strategy
-            risk_aware_strategy=self.risk_aware_strategies[strategy_name]
-            result=await risk_aware_strategy.execute_trade(
+            risk_aware_strategy = self.risk_aware_strategies[strategy_name]
+            result = await risk_aware_strategy.execute_trade(
                 symbol, action, quantity, price, **kwargs
             )
             
@@ -354,13 +354,13 @@ class RiskIntegratedProductionManager:
                 'strategy': strategy_name
             }
     
-    async def get_risk_summary(self) -> Dict[str, Any]: 
+    async def get_risk_summary(self)->Dict[str, Any]: 
         """Get comprehensive risk summary"""
         try: 
-            risk_summary=await self.risk_manager.get_risk_summary()
+            risk_summary = await self.risk_manager.get_risk_summary()
             
             # Add manager - specific metrics
-            risk_summary['manager_metrics']={
+            risk_summary['manager_metrics'] = {
                 'risk_calculations_count': self.risk_calculations_count,
                 'trades_blocked_by_risk': self.trades_blocked_by_risk,
                 'risk_adjustments_made': self.risk_adjustments_made,
@@ -369,11 +369,11 @@ class RiskIntegratedProductionManager:
             }
             
             # Add strategy - specific risk metrics
-            strategy_risks={}
+            strategy_risks = {}
             for name, strategy in self.risk_aware_strategies.items(): 
-                strategy_risks[name]=await strategy.get_risk_status()
+                strategy_risks[name] = await strategy.get_risk_status()
             
-            risk_summary['strategy_risks']=strategy_risks
+            risk_summary['strategy_risks'] = strategy_risks
             
             return risk_summary
             
@@ -381,14 +381,14 @@ class RiskIntegratedProductionManager:
             self.logger.error(f"Error getting risk summary: {e}")
             return {'error': str(e)}
     
-    async def get_system_status(self) -> Dict[str, Any]: 
+    async def get_system_status(self)->Dict[str, Any]: 
         """Get overall system status including risk management"""
         try: 
             # Get base system status
-            base_status=self.base_manager.get_system_status()
+            base_status = self.base_manager.get_system_status()
             
             # Get risk status
-            risk_status=await self.get_risk_summary()
+            risk_status = await self.get_risk_summary()
             
             # Combine statuses
             return {
@@ -411,7 +411,7 @@ class RiskIntegratedProductionManager:
         """Stop all strategies and risk monitoring"""
         try: 
             # Stop risk monitoring
-            self.risk_monitoring_active=False
+            self.risk_monitoring_active = False
             
             # Stop base strategies
             await self.base_manager.stop_all_strategies()
@@ -424,15 +424,15 @@ class RiskIntegratedProductionManager:
     def update_risk_limits(self, new_limits: RiskLimits):
         """Update risk limits"""
         try: 
-            self.risk_manager.risk_limits=new_limits
-            self.config.risk_limits=new_limits
+            self.risk_manager.risk_limits = new_limits
+            self.config.risk_limits = new_limits
             
             self.logger.info(f"Risk limits updated: {new_limits}")
             
         except Exception as e: 
             self.logger.error(f"Error updating risk limits: {e}")
     
-    def enable_risk_management(self, strategy_name: str=None):
+    def enable_risk_management(self, strategy_name: str = None):
         """Enable risk management for specific strategy or all strategies"""
         try: 
             if strategy_name: 
@@ -449,7 +449,7 @@ class RiskIntegratedProductionManager:
         except Exception as e: 
             self.logger.error(f"Error enabling risk management: {e}")
     
-    def disable_risk_management(self, strategy_name: str=None):
+    def disable_risk_management(self, strategy_name: str = None):
         """Disable risk management for specific strategy or all strategies"""
         try: 
             if strategy_name: 

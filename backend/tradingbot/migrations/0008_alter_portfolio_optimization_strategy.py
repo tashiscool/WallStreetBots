@@ -5,14 +5,14 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration): 
 
-    dependencies=[
+    dependencies = [
         ('tradingbot', '0007_alter_portfolio_optimization_strategy'),
     ]
 
-    operations=[
+    operations = [
         migrations.AlterField(
-            model_name='portfolio',
-            name='optimization_strategy',
-            field=models.CharField(choices=[('none', 'None'), ('ma_sharp_ratio', 'Sharpe ratio based on moving average')], default='none', help_text='Optimization Strategy', max_length=50),
+            model_name = 'portfolio',
+            name = 'optimization_strategy',
+            field = models.CharField(choices  =  [('none', 'None'), ('ma_sharp_ratio', 'Sharpe ratio based on moving average')], default = 'none', help_text = 'Optimization Strategy', max_length = 50),
         ),
     ]

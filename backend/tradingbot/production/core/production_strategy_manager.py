@@ -41,20 +41,20 @@ from ...analytics.market_regime_adapter import MarketRegimeAdapter, RegimeAdapta
 
 
 class StrategyProfile(str, Enum): 
-    research_2024="research_2024"
-    wsb_2025="wsb_2025"
-    trump_2025="trump_2025"
-    bubble_aware_2025="bubble_aware_2025"
+    research_2024 = "research_2024"
+    wsb_2025 = "wsb_2025"
+    trump_2025 = "trump_2025"
+    bubble_aware_2025 = "bubble_aware_2025"
 
 
 @dataclass
 class StrategyConfig: 
     """Configuration for individual strategy"""
     name: str
-    enabled: bool=True
-    max_position_size: float=0.20
-    risk_tolerance: str="medium"  # "low", "medium", "high"
-    parameters: Dict[str, Any]=field(default_factory=dict)
+    enabled: bool = True
+    max_position_size: float = 0.20
+    risk_tolerance: str = "medium"  # "low", "medium", "high"
+    parameters: Dict[str, Any] = field(default_factory = dict)
 
 
 @dataclass
@@ -62,35 +62,35 @@ class ProductionStrategyManagerConfig:
     """Configuration for production strategy manager"""
     alpaca_api_key: str
     alpaca_secret_key: str
-    paper_trading: bool=True
-    user_id: int=1
+    paper_trading: bool = True
+    user_id: int = 1
     
     # Strategy configurations
-    strategies: Dict[str, StrategyConfig]=field(default_factory=dict)
+    strategies: Dict[str, StrategyConfig] = field(default_factory = dict)
     
     # Risk management
-    max_total_risk: float=0.50  # 50% max total risk
-    max_position_size: float=0.20  # 20% max per position
+    max_total_risk: float = 0.50  # 50% max total risk
+    max_position_size: float = 0.20  # 20% max per position
     
     # Data settings
-    data_refresh_interval: int=30  # seconds
+    data_refresh_interval: int = 30  # seconds
     
     # Alert settings
-    enable_alerts: bool=True
+    enable_alerts: bool = True
 
     # NEW: choose a preset
-    profile: StrategyProfile=StrategyProfile.research_2024
+    profile: StrategyProfile = StrategyProfile.research_2024
 
     # Advanced analytics settings
-    enable_advanced_analytics: bool=True
-    enable_market_regime_adaptation: bool=True
-    analytics_update_interval: int=3600  # seconds
-    regime_adaptation_interval: int=1800  # seconds
+    enable_advanced_analytics: bool = True
+    enable_market_regime_adaptation: bool = True
+    analytics_update_interval: int = 3600  # seconds
+    regime_adaptation_interval: int = 1800  # seconds
 
 
-def _preset_defaults(profile: StrategyProfile) -> Dict[str, StrategyConfig]: 
+def _preset_defaults(profile: StrategyProfile)->Dict[str, StrategyConfig]: 
     """Return default strategy configs for a given profile."""
-    if profile== StrategyProfile.research_2024: 
+    if profile ==  StrategyProfile.research_2024: 
         # === RESEARCH 2024 PRESET (Conservative) ===
         return {
             'wsb_dip_bot': StrategyConfig('wsb_dip_bot', True, 0.25, 'high', {
@@ -169,19 +169,19 @@ def _preset_defaults(profile: StrategyProfile) -> Dict[str, StrategyConfig]:
             })
         }
     
-    elif profile== StrategyProfile.bubble_aware_2025: 
+    elif profile ==  StrategyProfile.bubble_aware_2025: 
         # === BUBBLE - AWARE 2025 PRESET (Enhanced with M & A Scanner) ===
-        # Based on validated market data: PLTR P / S >100, OpenAI $300B/$14B loss projection,
+        # Based on validated market data: PLTR P / S  > 100, OpenAI $300B/$14B loss projection,
         # 64% US VC to AI, $364B Big Tech capex, MIT ROI study, M & A deregulation
         
         # AI Infrastructure (beneficiaries of $364B Big Tech capex)
-        ai_infra_core=['SPY','QQQ','SMH','SOXX','NVDA','AVGO','AMAT','LRCX','INTC','MU']
+        ai_infra_core = ['SPY','QQQ','SMH','SOXX','NVDA','AVGO','AMAT','LRCX','INTC','MU']
         # M & A targets with high $/employee potential (Ferguson FTC, competition EO revoked)
-        ma_targets=['XLF','KRE','IBB','JETS','XLE','XLU','XLRE']  
+        ma_targets = ['XLF','KRE','IBB','JETS','XLE','XLU','XLRE']  
         # Israeli tech (13.4B exits, $300M median, 45% premiums)
-        israeli_tech=['CYBR','S','CHKP','NICE','MNDY','WIX','FROG']
-        # Bubble candidates (P / S >35 threshold, overvaluation indicators)
-        bubble_watch=['PLTR','SMCI','ARM','COIN','MSTR']  # PLTR P / S >100 validated
+        israeli_tech = ['CYBR','S','CHKP','NICE','MNDY','WIX','FROG']
+        # Bubble candidates (P / S  > 35 threshold, overvaluation indicators)
+        bubble_watch = ['PLTR','SMCI','ARM','COIN','MSTR']  # PLTR P / S  > 100 validated
         
         return {
             'wsb_dip_bot': StrategyConfig('wsb_dip_bot', True, 0.20, 'high', {
@@ -197,7 +197,7 @@ def _preset_defaults(profile: StrategyProfile) -> Dict[str, StrategyConfig]:
                 'ai_exposure_limit': 0.15,                   # Cap AI exposure at 15%
                 'avoid_post_gap_hours': 2,                   # Skip euphoric gaps
                 'news_resolution_required': True,            # Wait for policy clarity
-                'overvaluation_filter': True,                # Skip P / S >35 names
+                'overvaluation_filter': True,                # Skip P / S  > 35 names
                 'bubble_watch_list': bubble_watch
             }),
             'earnings_protection': StrategyConfig('earnings_protection', True, 0.05, 'high', {
@@ -367,14 +367,14 @@ def _preset_defaults(profile: StrategyProfile) -> Dict[str, StrategyConfig]:
                 'israeli_tech_focus': israeli_tech
             })
         }
-    elif profile== StrategyProfile.trump_2025: 
+    elif profile ==  StrategyProfile.trump_2025: 
         # === TRUMP 2025 PRESET (Policy - Aware) ===
         # AI infrastructure focus (deregulation + domestic fab incentives)
-        ai_infra_core=['SPY','QQQ','SMH','SOXX','INTC','MU','AMAT','LRCX','ACLS','NVDA','AVGO','QCOM','TXN','ADI']
+        ai_infra_core = ['SPY','QQQ','SMH','SOXX','INTC','MU','AMAT','LRCX','ACLS','NVDA','AVGO','QCOM','TXN','ADI']
         # M & A beneficiaries (deregulation + antitrust relaxation)
-        ma_targets=['XLF','KRE','IBB','JETS','XLE','XLU','XLRE']  # Financials, biotech, energy, utilities, REITs
+        ma_targets = ['XLF','KRE','IBB','JETS','XLE','XLU','XLRE']  # Financials, biotech, energy, utilities, REITs
         # Israeli tech scanner (high - value M & A activity)
-        israeli_tech=['CYBR','S','CHKP','NICE','MNDY','WIX','FROG']
+        israeli_tech = ['CYBR','S','CHKP','NICE','MNDY','WIX','FROG']
         
         return {
             'spx_credit_spreads': StrategyConfig('spx_credit_spreads', True, 0.15, 'medium', {
@@ -490,7 +490,7 @@ def _preset_defaults(profile: StrategyProfile) -> Dict[str, StrategyConfig]:
         }
     
     # === WSB 2025 PRESET (Aggressive) ===
-    meme_core=['NVDA','TSLA','SMCI','ARM','AAPL','MSFT','GOOGL','AMZN','META','COIN','MSTR','PLTR','AMD','SPY','QQQ','IWM','GME','AMC']
+    meme_core = ['NVDA','TSLA','SMCI','ARM','AAPL','MSFT','GOOGL','AMZN','META','COIN','MSTR','PLTR','AMD','SPY','QQQ','IWM','GME','AMC']
     return {
         'wsb_dip_bot': StrategyConfig('wsb_dip_bot', True, 0.28, 'high', {
             'run_lookback_days': 5,'run_threshold': 0.06,'dip_threshold': -0.015,
@@ -553,22 +553,22 @@ def _preset_defaults(profile: StrategyProfile) -> Dict[str, StrategyConfig]:
 
 def _apply_profile_risk_overrides(cfg: ProductionStrategyManagerConfig):
     """Tighten / loosen top - level risk based on profile."""
-    if cfg.profile== StrategyProfile.wsb_2025: 
-        cfg.max_total_risk=0.65
-        cfg.max_position_size=0.30
-        cfg.data_refresh_interval=10
-    elif cfg.profile == StrategyProfile.trump_2025: 
-        cfg.max_total_risk=0.55      # Moderate risk for policy volatility
-        cfg.max_position_size=0.25   # Slightly higher than research
-        cfg.data_refresh_interval=20  # Between WSB and research
-    elif cfg.profile == StrategyProfile.bubble_aware_2025: 
-        cfg.max_total_risk=0.45      # Conservative due to bubble risk
-        cfg.max_position_size=0.20   # Keep position sizes controlled
-        cfg.data_refresh_interval=30  # Standard refresh rate
+    if cfg.profile ==  StrategyProfile.wsb_2025: 
+        cfg.max_total_risk = 0.65
+        cfg.max_position_size = 0.30
+        cfg.data_refresh_interval = 10
+    elif cfg.profile  ==  StrategyProfile.trump_2025: 
+        cfg.max_total_risk = 0.55      # Moderate risk for policy volatility
+        cfg.max_position_size = 0.25   # Slightly higher than research
+        cfg.data_refresh_interval = 20  # Between WSB and research
+    elif cfg.profile  ==  StrategyProfile.bubble_aware_2025: 
+        cfg.max_total_risk = 0.45      # Conservative due to bubble risk
+        cfg.max_position_size = 0.20   # Keep position sizes controlled
+        cfg.data_refresh_interval = 30  # Standard refresh rate
     else: 
-        cfg.max_total_risk=0.50
-        cfg.max_position_size=0.20
-        cfg.data_refresh_interval=30
+        cfg.max_total_risk = 0.50
+        cfg.max_position_size = 0.20
+        cfg.data_refresh_interval = 30
 
 
 class ProductionStrategyManager: 
@@ -583,61 +583,61 @@ class ProductionStrategyManager:
     """
     
     def __init__(self, config: ProductionStrategyManagerConfig):
-        self.config=config
-        self.logger=logging.getLogger(__name__)
+        self.config = config
+        self.logger = logging.getLogger(__name__)
         
         # Apply profile - specific risk overrides
         _apply_profile_risk_overrides(self.config)
         
         # Initialize core components
-        self.integration_manager=ProductionIntegrationManager(
+        self.integration_manager = ProductionIntegrationManager(
             config.alpaca_api_key,
             config.alpaca_secret_key,
             config.paper_trading,
             config.user_id
         )
         
-        self.data_provider=ProductionDataProvider(
+        self.data_provider = ProductionDataProvider(
             config.alpaca_api_key,
             config.alpaca_secret_key
         )
         
         # Initialize strategies
-        self.strategies: Dict[str, Any]={}
+        self.strategies: Dict[str, Any] = {}
         self._initialize_strategies()
         
         # System state
-        self.is_running=False
-        self.start_time: Optional[datetime]=None
-        self.last_heartbeat: Optional[datetime]=None
+        self.is_running = False
+        self.start_time: Optional[datetime] = None
+        self.last_heartbeat: Optional[datetime] = None
         
         # Performance tracking
-        self.performance_metrics: Dict[str, Any]={}
+        self.performance_metrics: Dict[str, Any] = {}
 
         # Advanced analytics and market regime adaptation
-        self.advanced_analytics=None
-        self.market_regime_adapter=None
-        self.current_regime_adaptation: Optional[StrategyAdaptation]=None
-        self.analytics_history: List[PerformanceMetrics]=[]
+        self.advanced_analytics = None
+        self.market_regime_adapter = None
+        self.current_regime_adaptation: Optional[StrategyAdaptation] = None
+        self.analytics_history: List[PerformanceMetrics] = []
 
         if self.config.enable_advanced_analytics: 
-            self.advanced_analytics=AdvancedAnalytics(risk_free_rate=0.02)
+            self.advanced_analytics = AdvancedAnalytics(risk_free_rate  =  0.02)
             self.logger.info("Advanced analytics enabled")
 
         if self.config.enable_market_regime_adaptation: 
-            regime_config=RegimeAdaptationConfig()
-            self.market_regime_adapter=MarketRegimeAdapter(regime_config)
+            regime_config = RegimeAdaptationConfig()
+            self.market_regime_adapter = MarketRegimeAdapter(regime_config)
             self.logger.info("Market regime adaptation enabled")
         
         # Bubble - aware and M & A overlays (optional for strategies to read)
-        self.bubble_aware_adjustments={
+        self.bubble_aware_adjustments = {
             'ai_exposure_limit': 0.15,
             'overvaluation_short_bias': 0.05,
             'ma_speculation_boost': 1.3,
             'volatility_harvest_mode': True
         }
         
-        self.ma_speculation={
+        self.ma_speculation = {
             'regulatory_relaxation_weight': 1.5,
             'antitrust_probability': 0.30,
             'deal_premium_target': 0.25,
@@ -651,27 +651,27 @@ class ProductionStrategyManager:
         """Initialize all enabled strategies"""
         try: 
             # Get preset defaults based on configured profile
-            default_configs=_preset_defaults(self.config.profile)
+            default_configs = _preset_defaults(self.config.profile)
             
             
             # Merge with user configurations
-            strategy_configs={**default_configs, **self.config.strategies}
+            strategy_configs = {**default_configs, **self.config.strategies}
             
             # Initialize strategies
             for strategy_name, strategy_config in strategy_configs.items(): 
                 if strategy_config.enabled: 
                     try: 
                         # Sanitize parameters to prevent runtime issues
-                        sanitized_config=StrategyConfig(
-                            name=strategy_config.name,
-                            enabled=strategy_config.enabled,
-                            max_position_size=strategy_config.max_position_size,
-                            risk_tolerance=strategy_config.risk_tolerance,
-                            parameters=self._sanitize_parameters(strategy_config.parameters)
+                        sanitized_config = StrategyConfig(
+                            name = strategy_config.name,
+                            enabled = strategy_config.enabled,
+                            max_position_size = strategy_config.max_position_size,
+                            risk_tolerance = strategy_config.risk_tolerance,
+                            parameters = self._sanitize_parameters(strategy_config.parameters)
                         )
-                        strategy=self._create_strategy(strategy_name, sanitized_config)
+                        strategy = self._create_strategy(strategy_name, sanitized_config)
                         if strategy: 
-                            self.strategies[strategy_name]=strategy
+                            self.strategies[strategy_name] = strategy
                             self.logger.info(f"Initialized strategy: {strategy_name}")
                     except Exception as e: 
                         self.logger.error(f"Failed to initialize strategy {strategy_name}: {e}")
@@ -681,55 +681,55 @@ class ProductionStrategyManager:
         except Exception as e: 
             self.logger.error(f"Error initializing strategies: {e}")
     
-    def _create_strategy(self, strategy_name: str, config: StrategyConfig) -> Optional[Any]:
+    def _create_strategy(self, strategy_name: str, config: StrategyConfig)->Optional[Any]:
         """Create individual strategy instance"""
         try: 
-            if strategy_name== 'wsb_dip_bot': return create_production_wsb_dip_bot(
+            if strategy_name ==  'wsb_dip_bot': return create_production_wsb_dip_bot(
                     self.integration_manager,
                     self.data_provider,
                     config.parameters
                 )
-            elif strategy_name== 'earnings_protection': return create_production_earnings_protection(
+            elif strategy_name ==  'earnings_protection': return create_production_earnings_protection(
                     self.integration_manager,
                     self.data_provider,
                     config.parameters
                 )
-            elif strategy_name== 'index_baseline': return create_production_index_baseline(
+            elif strategy_name ==  'index_baseline': return create_production_index_baseline(
                     self.integration_manager,
                     self.data_provider,
                     config.parameters
                 )
-            elif strategy_name== 'wheel_strategy': return create_production_wheel_strategy(
+            elif strategy_name ==  'wheel_strategy': return create_production_wheel_strategy(
                     self.integration_manager,
                     self.data_provider,
                     config.parameters
                 )
-            elif strategy_name== 'momentum_weeklies': return create_production_momentum_weeklies(
+            elif strategy_name ==  'momentum_weeklies': return create_production_momentum_weeklies(
                     self.integration_manager,
                     self.data_provider,
                     config.parameters
                 )
-            elif strategy_name== 'debit_spreads': return create_production_debit_spreads(
+            elif strategy_name ==  'debit_spreads': return create_production_debit_spreads(
                     self.integration_manager,
                     self.data_provider,
                     config.parameters
                 )
-            elif strategy_name== 'leaps_tracker': return create_production_leaps_tracker(
+            elif strategy_name ==  'leaps_tracker': return create_production_leaps_tracker(
                     self.integration_manager,
                     self.data_provider,
                     config.parameters
                 )
-            elif strategy_name== 'swing_trading': return create_production_swing_trading(
+            elif strategy_name ==  'swing_trading': return create_production_swing_trading(
                     self.integration_manager,
                     self.data_provider,
                     config.parameters
                 )
-            elif strategy_name== 'spx_credit_spreads': return create_production_spx_credit_spreads(
+            elif strategy_name ==  'spx_credit_spreads': return create_production_spx_credit_spreads(
                     self.integration_manager,
                     self.data_provider,
                     config.parameters
                 )
-            elif strategy_name== 'lotto_scanner': return create_production_lotto_scanner(
+            elif strategy_name ==  'lotto_scanner': return create_production_lotto_scanner(
                     self.integration_manager,
                     self.data_provider,
                     config.parameters
@@ -742,34 +742,34 @@ class ProductionStrategyManager:
             self.logger.error(f"Error creating strategy {strategy_name}: {e}")
             return None
     
-    def _validate_range(self, name: str, val: float, lo: float, hi: float) -> float:
+    def _validate_range(self, name: str, val: float, lo: float, hi: float)->float:
         """Validate parameter ranges with clamping and logging."""
-        if not isinstance(val, (int, float)) or not (lo <= float(val) <= hi): 
+        if not isinstance(val, (int, float)) or not (lo  <=  float(val)  <=  hi): 
             self.logger.warning(f"Parameter {name} out of range [{lo},{hi}]: {val}. Clamping.")
             return max(lo, min(hi, float(val))) if isinstance(val, (int, float)) else lo
         return float(val)
     
-    def _sanitize_parameters(self, params: Dict[str, Any]) -> Dict[str, Any]: 
+    def _sanitize_parameters(self, params: Dict[str, Any])->Dict[str, Any]: 
         """Sanitize strategy parameters to avoid runtime blowups."""
-        out=dict(params)
+        out = dict(params)
         # Explicit bounds for critical parameters
         if 'target_short_delta' in out: 
-            out['target_short_delta']=self._validate_range('target_short_delta', out['target_short_delta'], 0.03, 0.30)
+            out['target_short_delta'] = self._validate_range('target_short_delta', out['target_short_delta'], 0.03, 0.30)
         if 'profit_target_pct' in out: 
-            out['profit_target_pct']=self._validate_range('profit_target_pct', out['profit_target_pct'], 0.10, 0.80)
+            out['profit_target_pct'] = self._validate_range('profit_target_pct', out['profit_target_pct'], 0.10, 0.80)
         if 'stop_loss_multiple' in out: 
-            out['stop_loss_multiple']=self._validate_range('stop_loss_multiple', out['stop_loss_multiple'], 1.0, 5.0)
+            out['stop_loss_multiple'] = self._validate_range('stop_loss_multiple', out['stop_loss_multiple'], 1.0, 5.0)
         if 'vix_filter' in out: 
-            out['vix_filter']=self._validate_range('vix_filter', out['vix_filter'], 10, 60)
+            out['vix_filter'] = self._validate_range('vix_filter', out['vix_filter'], 10, 60)
         if 'ai_exposure_limit' in out: 
-            out['ai_exposure_limit']=self._validate_range('ai_exposure_limit', out['ai_exposure_limit'], 0.0, 0.50)
+            out['ai_exposure_limit'] = self._validate_range('ai_exposure_limit', out['ai_exposure_limit'], 0.0, 0.50)
         if 'overvaluation_threshold' in out: 
-            out['overvaluation_threshold']=self._validate_range('overvaluation_threshold', out['overvaluation_threshold'], 5, 200)
+            out['overvaluation_threshold'] = self._validate_range('overvaluation_threshold', out['overvaluation_threshold'], 5, 200)
         if 'price_per_employee_threshold' in out: 
-            out['price_per_employee_threshold']=self._validate_range('price_per_employee_threshold', out['price_per_employee_threshold'], 100000, 50000000)
+            out['price_per_employee_threshold'] = self._validate_range('price_per_employee_threshold', out['price_per_employee_threshold'], 100000, 50000000)
         return out
     
-    async def start_all_strategies(self) -> bool: 
+    async def start_all_strategies(self)->bool: 
         """Start all enabled strategies"""
         try: 
             self.logger.info("Starting all production strategies")
@@ -779,7 +779,7 @@ class ProductionStrategyManager:
                 return False
             
             # Start strategies
-            started_count=0
+            started_count = 0
             for strategy_name, strategy in self.strategies.items(): 
                 try: 
                     # Start strategy in background
@@ -789,9 +789,9 @@ class ProductionStrategyManager:
                 except Exception as e: 
                     self.logger.error(f"Failed to start strategy {strategy_name}: {e}")
             
-            if started_count > 0: 
-                self.is_running=True
-                self.start_time=datetime.now()
+            if started_count  >  0: 
+                self.is_running = True
+                self.start_time = datetime.now()
                 
                 # Start monitoring tasks
                 asyncio.create_task(self._monitoring_loop())
@@ -819,7 +819,7 @@ class ProductionStrategyManager:
         try: 
             self.logger.info("Stopping all production strategies")
             
-            self.is_running=False
+            self.is_running = False
             
             # Strategies will stop when their run loops exit
             # In a more sophisticated implementation, we would send stop signals
@@ -829,23 +829,23 @@ class ProductionStrategyManager:
         except Exception as e: 
             self.logger.error(f"Error stopping strategies: {e}")
     
-    async def _validate_system_state(self) -> bool: 
+    async def _validate_system_state(self)->bool: 
         """Validate system state before starting"""
         try: 
             # Validate Alpaca connection
-            success, message=self.integration_manager.alpaca_manager.validate_api()
+            success, message = self.integration_manager.alpaca_manager.validate_api()
             if not success: 
                 self.logger.error(f"Alpaca validation failed: {message}")
                 return False
             
             # Validate account size
-            portfolio_value=await self.integration_manager.get_portfolio_value()
-            if portfolio_value < 1000:  # Minimum $1000
+            portfolio_value = await self.integration_manager.get_portfolio_value()
+            if portfolio_value  <  1000:  # Minimum $1000
                 self.logger.error(f"Account size {portfolio_value} below minimum")
                 return False
             
             # Validate market hours (optional - strategies can run outside market hours)
-            market_open=await self.data_provider.is_market_open()
+            market_open = await self.data_provider.is_market_open()
             if not market_open: 
                 self.logger.warning("Market is closed - strategies will wait for market open")
             
@@ -880,7 +880,7 @@ class ProductionStrategyManager:
         """Heartbeat loop for system monitoring"""
         while self.is_running: 
             try: 
-                self.last_heartbeat=datetime.now()
+                self.last_heartbeat = datetime.now()
                 
                 # Send heartbeat alert
                 if self.config.enable_alerts: 
@@ -928,13 +928,13 @@ class ProductionStrategyManager:
         """Check risk limits across all strategies"""
         try: 
             # Get total portfolio risk
-            total_risk=await self.integration_manager.get_total_risk()
-            portfolio_value=await self.integration_manager.get_portfolio_value()
+            total_risk = await self.integration_manager.get_total_risk()
+            portfolio_value = await self.integration_manager.get_portfolio_value()
             
-            if portfolio_value > 0: 
-                risk_percentage=float(total_risk / portfolio_value)
+            if portfolio_value  >  0: 
+                risk_percentage = float(total_risk / portfolio_value)
                 
-                if risk_percentage > self.config.max_total_risk: 
+                if risk_percentage  >  self.config.max_total_risk: 
                     await self.integration_manager.alert_system.send_alert(
                         "RISK_ALERT",
                         "HIGH",
@@ -957,19 +957,19 @@ class ProductionStrategyManager:
         """Update performance metrics"""
         try: 
             # Get portfolio summary
-            portfolio_summary=self.integration_manager.get_portfolio_summary()
+            portfolio_summary = self.integration_manager.get_portfolio_summary()
             
             # Get strategy performance
-            strategy_performance={}
+            strategy_performance = {}
             for strategy_name, strategy in self.strategies.items(): 
                 try: 
                     if hasattr(strategy, 'get_strategy_status'): 
-                        strategy_performance[strategy_name]=strategy.get_strategy_status()
+                        strategy_performance[strategy_name] = strategy.get_strategy_status()
                 except Exception as e: 
                     self.logger.error(f"Error getting status for {strategy_name}: {e}")
             
             # Update metrics
-            self.performance_metrics={
+            self.performance_metrics = {
                 'timestamp': datetime.now().isoformat(),
                 'system_uptime': (datetime.now() - self.start_time).total_seconds() if self.start_time else 0,
                 'portfolio': portfolio_summary,
@@ -1007,32 +1007,32 @@ class ProductionStrategyManager:
                 return
 
             # Get portfolio returns data
-            portfolio_returns=await self._get_portfolio_returns()
-            benchmark_returns=await self._get_benchmark_returns()
+            portfolio_returns = await self._get_portfolio_returns()
+            benchmark_returns = await self._get_benchmark_returns()
 
-            if len(portfolio_returns) < 30:  # Need minimum data
+            if len(portfolio_returns)  <  30:  # Need minimum data
                 self.logger.info("Insufficient data for analytics calculation")
                 return
 
             # Calculate comprehensive metrics
-            metrics=self.advanced_analytics.calculate_comprehensive_metrics(
-                returns=portfolio_returns,
-                benchmark_returns=benchmark_returns,
-                start_date=self.start_time,
-                end_date=datetime.now()
+            metrics = self.advanced_analytics.calculate_comprehensive_metrics(
+                returns = portfolio_returns,
+                benchmark_returns = benchmark_returns,
+                start_date = self.start_time,
+                end_date = datetime.now()
             )
 
             # Store in history
             self.analytics_history.append(metrics)
-            if len(self.analytics_history) > 100:  # Keep last 100 calculations
-                self.analytics_history=self.analytics_history[-100: ]
+            if len(self.analytics_history)  >  100:  # Keep last 100 calculations
+                self.analytics_history = self.analytics_history[-100: ]
 
             # Generate and log analytics report
-            report=self.advanced_analytics.generate_analytics_report(metrics)
+            report = self.advanced_analytics.generate_analytics_report(metrics)
             self.logger.info("Advanced analytics updated")
 
             # Send alert for significant changes
-            if len(self.analytics_history) > 1: 
+            if len(self.analytics_history)  >  1: 
                 await self._check_analytics_alerts(metrics)
 
         except Exception as e: 
@@ -1045,21 +1045,21 @@ class ProductionStrategyManager:
                 return
 
             # Get current market data
-            market_data=await self._get_market_data_for_regime()
-            current_positions=await self._get_current_positions()
+            market_data = await self._get_market_data_for_regime()
+            current_positions = await self._get_current_positions()
 
             # Generate strategy adaptation
-            adaptation=await self.market_regime_adapter.generate_strategy_adaptation(
-                market_data=market_data,
-                current_positions=current_positions
+            adaptation = await self.market_regime_adapter.generate_strategy_adaptation(
+                market_data = market_data,
+                current_positions = current_positions
             )
 
             # Check if adaptation changed
             if (not self.current_regime_adaptation or
-                adaptation.regime != self.current_regime_adaptation.regime or
-                abs(adaptation.confidence - self.current_regime_adaptation.confidence) > 0.1): 
+                adaptation.regime  !=  self.current_regime_adaptation.regime or
+                abs(adaptation.confidence - self.current_regime_adaptation.confidence)  >  0.1): 
 
-                self.current_regime_adaptation=adaptation
+                self.current_regime_adaptation = adaptation
                 await self._apply_regime_adaptation(adaptation)
 
                 # Send regime change alert
@@ -1075,23 +1075,23 @@ class ProductionStrategyManager:
         except Exception as e: 
             self.logger.error(f"Error updating regime adaptation: {e}")
 
-    async def _get_portfolio_returns(self) -> List[float]: 
+    async def _get_portfolio_returns(self)->List[float]: 
         """Get portfolio returns for analytics"""
         try: 
             # Get portfolio value history from integration manager
             # This would need to be implemented in integration manager
-            portfolio_history=await self.integration_manager.get_portfolio_history(days=180)
+            portfolio_history = await self.integration_manager.get_portfolio_history(days  =  180)
 
-            if len(portfolio_history) < 2: 
+            if len(portfolio_history)  <  2: 
                 return []
 
             # Calculate daily returns
-            returns=[]
+            returns = []
             for i in range(1, len(portfolio_history)): 
-                prev_value=portfolio_history[i - 1]['value']
-                curr_value=portfolio_history[i]['value']
-                if prev_value > 0: 
-                    daily_return=(curr_value - prev_value) / prev_value
+                prev_value = portfolio_history[i - 1]['value']
+                curr_value = portfolio_history[i]['value']
+                if prev_value  >  0: 
+                    daily_return = (curr_value - prev_value) / prev_value
                     returns.append(daily_return)
 
             return returns
@@ -1100,22 +1100,22 @@ class ProductionStrategyManager:
             self.logger.error(f"Error getting portfolio returns: {e}")
             return []
 
-    async def _get_benchmark_returns(self) -> List[float]: 
+    async def _get_benchmark_returns(self)->List[float]: 
         """Get benchmark returns (SPY) for comparison"""
         try: 
             # Get SPY data for benchmark comparison
-            spy_data=await self.data_provider.get_historical_data('SPY', days=180)
+            spy_data = await self.data_provider.get_historical_data('SPY', days = 180)
 
-            if len(spy_data) < 2: 
+            if len(spy_data)  <  2: 
                 return []
 
             # Calculate daily returns
-            returns=[]
+            returns = []
             for i in range(1, len(spy_data)): 
-                prev_price=spy_data[i - 1].price
-                curr_price=spy_data[i].price
-                if prev_price > 0: 
-                    daily_return=(curr_price - prev_price) / prev_price
+                prev_price = spy_data[i - 1].price
+                curr_price = spy_data[i].price
+                if prev_price  >  0: 
+                    daily_return = (curr_price - prev_price) / prev_price
                     returns.append(daily_return)
 
             return returns
@@ -1124,16 +1124,16 @@ class ProductionStrategyManager:
             self.logger.error(f"Error getting benchmark returns: {e}")
             return []
 
-    async def _get_market_data_for_regime(self) -> Dict[str, Any]: 
+    async def _get_market_data_for_regime(self)->Dict[str, Any]: 
         """Get market data for regime detection"""
         try: 
             # Get key market indicators
-            market_data={}
+            market_data = {}
 
             # Get SPY data (primary indicator)
-            spy_data=await self.data_provider.get_current_price('SPY')
+            spy_data = await self.data_provider.get_current_price('SPY')
             if spy_data: 
-                market_data['SPY']={
+                market_data['SPY'] = {
                     'price': spy_data.price,
                     'volume': getattr(spy_data, 'volume', 1000000),
                     'high': getattr(spy_data, 'high', spy_data.price * 1.01),
@@ -1141,9 +1141,9 @@ class ProductionStrategyManager:
                 }
 
             # Add volatility indicator
-            vix_data=await self.data_provider.get_current_price('VIX')
+            vix_data = await self.data_provider.get_current_price('VIX')
             if vix_data: 
-                market_data['volatility']=float(vix_data.price) / 100.0
+                market_data['volatility'] = float(vix_data.price) / 100.0
 
             return market_data
 
@@ -1151,7 +1151,7 @@ class ProductionStrategyManager:
             self.logger.error(f"Error getting market data for regime: {e}")
             return {}
 
-    async def _get_current_positions(self) -> Dict[str, Any]: 
+    async def _get_current_positions(self)->Dict[str, Any]: 
         """Get current positions for regime adaptation"""
         try: 
             return await self.integration_manager.get_all_positions()
@@ -1177,7 +1177,7 @@ class ProductionStrategyManager:
 
                         # Apply parameter adjustments
                         if hasattr(strategy, 'update_parameters'): 
-                            regime_params={
+                            regime_params = {
                                 'position_multiplier': adaptation.position_size_multiplier,
                                 'max_risk': adaptation.max_risk_per_trade,
                                 'stop_loss_adjustment': adaptation.stop_loss_adjustment,
@@ -1198,11 +1198,11 @@ class ProductionStrategyManager:
         """Check for analytics - based alerts"""
         try: 
             # Check for significant performance changes
-            if len(self.analytics_history) > 1: 
-                prev_metrics=self.analytics_history[-2]
+            if len(self.analytics_history)  >  1: 
+                prev_metrics = self.analytics_history[-2]
 
                 # Check for significant drawdown increase
-                if metrics.max_drawdown > prev_metrics.max_drawdown * 1.5: 
+                if metrics.max_drawdown  >  prev_metrics.max_drawdown * 1.5: 
                     await self.integration_manager.alert_system.send_alert(
                         "DRAWDOWN_ALERT",
                         "HIGH",
@@ -1210,7 +1210,7 @@ class ProductionStrategyManager:
                     )
 
                 # Check for Sharpe ratio degradation
-                if metrics.sharpe_ratio < prev_metrics.sharpe_ratio * 0.7: 
+                if metrics.sharpe_ratio  <  prev_metrics.sharpe_ratio * 0.7: 
                     await self.integration_manager.alert_system.send_alert(
                         "PERFORMANCE_ALERT",
                         "MEDIUM",
@@ -1220,12 +1220,12 @@ class ProductionStrategyManager:
         except Exception as e: 
             self.logger.error(f"Error checking analytics alerts: {e}")
 
-    def get_advanced_analytics_summary(self) -> Dict[str, Any]: 
+    def get_advanced_analytics_summary(self)->Dict[str, Any]: 
         """Get advanced analytics summary"""
         if not self.analytics_history: 
             return {'status': 'no_data'}
 
-        latest_metrics=self.analytics_history[-1]
+        latest_metrics = self.analytics_history[-1]
         return {
             'status': 'active',
             'total_return': latest_metrics.total_return,
@@ -1239,14 +1239,14 @@ class ProductionStrategyManager:
             'trading_days': latest_metrics.trading_days
         }
 
-    def get_regime_adaptation_summary(self) -> Dict[str, Any]: 
+    def get_regime_adaptation_summary(self)->Dict[str, Any]: 
         """Get regime adaptation summary"""
         if not self.market_regime_adapter: 
             return {'status': 'disabled'}
 
         return self.market_regime_adapter.get_adaptation_summary()
 
-    def get_system_status(self) -> Dict[str, Any]: 
+    def get_system_status(self)->Dict[str, Any]: 
         """Get current system status"""
         return {
             'is_running': self.is_running,
@@ -1270,11 +1270,11 @@ class ProductionStrategyManager:
             'market_regime': self.get_regime_adaptation_summary()
         }
     
-    def get_strategy_performance(self, strategy_name: str) -> Optional[Dict[str, Any]]: 
+    def get_strategy_performance(self, strategy_name: str)->Optional[Dict[str, Any]]: 
         """Get performance for specific strategy"""
         try: 
             if strategy_name in self.strategies: 
-                strategy=self.strategies[strategy_name]
+                strategy = self.strategies[strategy_name]
                 if hasattr(strategy, 'get_strategy_status'): 
                     return strategy.get_strategy_status()
             return None
@@ -1284,6 +1284,6 @@ class ProductionStrategyManager:
 
 
 # Factory function
-def create_production_strategy_manager(config: ProductionStrategyManagerConfig) -> ProductionStrategyManager:
+def create_production_strategy_manager(config: ProductionStrategyManagerConfig)->ProductionStrategyManager:
     """Create ProductionStrategyManager instance"""
     return ProductionStrategyManager(config)

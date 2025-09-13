@@ -18,7 +18,7 @@ from .smart_selection import (
     create_smart_options_selector
 )
 
-__all__=[
+__all__ = [
     'BlackScholesEngine',
     'RealOptionsPricingEngine', 
     'OptionsContract',

@@ -38,9 +38,9 @@ from .production_spx_spreads import create_spx_spreads_strategy
 
 
 class StrategyRiskLevel(Enum): 
-    LOW_RISK="low_risk"      # Wheel, Debit Spreads, SPX Spreads
-    MEDIUM_RISK="medium_risk" # Momentum, LEAPS, Earnings Protection
-    HIGH_RISK="high_risk"     # WSB Dip Bot, Lotto Scanner
+    LOW_RISK = "low_risk"      # Wheel, Debit Spreads, SPX Spreads
+    MEDIUM_RISK = "medium_risk" # Momentum, LEAPS, Earnings Protection
+    HIGH_RISK = "high_risk"     # WSB Dip Bot, Lotto Scanner
 
 
 @dataclass
@@ -48,17 +48,17 @@ class BacktestConfig:
     """Comprehensive backtest configuration"""
     start_date: datetime
     end_date: datetime
-    initial_capital: Decimal=Decimal('100000.00')
-    commission_per_trade: Decimal=Decimal('1.00')
-    slippage_bps: int=2  # 2 basis points
-    benchmark_ticker: str="SPY"
-    max_drawdown_limit: Decimal=Decimal('0.20')  # 20% max drawdown
-    daily_loss_limit: Decimal=Decimal('0.05')    # 5% daily loss limit
-    position_size_method: str="kelly"  # "fixed", "kelly", "volatility"
-    rebalance_frequency: str="daily"  # "daily", "weekly", "monthly"
-    risk_free_rate: Decimal=Decimal('0.05')  # 5% risk - free rate
-    confidence_level: Decimal=Decimal('0.95')  # 95% confidence for VaR
-    monte_carlo_runs: int=1000
+    initial_capital: Decimal = Decimal('100000.00')
+    commission_per_trade: Decimal = Decimal('1.00')
+    slippage_bps: int = 2  # 2 basis points
+    benchmark_ticker: str = "SPY"
+    max_drawdown_limit: Decimal = Decimal('0.20')  # 20% max drawdown
+    daily_loss_limit: Decimal = Decimal('0.05')    # 5% daily loss limit
+    position_size_method: str = "kelly"  # "fixed", "kelly", "volatility"
+    rebalance_frequency: str = "daily"  # "daily", "weekly", "monthly"
+    risk_free_rate: Decimal = Decimal('0.05')  # 5% risk - free rate
+    confidence_level: Decimal = Decimal('0.95')  # 95% confidence for VaR
+    monte_carlo_runs: int = 1000
     
     
 @dataclass
@@ -73,15 +73,15 @@ class BacktestTrade:
     exit_price: Optional[Decimal]
     quantity: int
     side: str  # 'long', 'short'
-    pnl: Optional[Decimal]=None
-    commission: Decimal=Decimal('0.00')
-    slippage: Decimal=Decimal('0.00')
-    net_pnl: Optional[Decimal]=None
-    return_pct: Optional[Decimal]=None
-    holding_period_hours: Optional[int]=None
-    exit_reason: str=""
-    confidence_score: Decimal=Decimal('0.00')
-    risk_metrics: Dict[str, Any]=field(default_factory=dict)
+    pnl: Optional[Decimal] = None
+    commission: Decimal = Decimal('0.00')
+    slippage: Decimal = Decimal('0.00')
+    net_pnl: Optional[Decimal] = None
+    return_pct: Optional[Decimal] = None
+    holding_period_hours: Optional[int] = None
+    exit_reason: str = ""
+    confidence_score: Decimal = Decimal('0.00')
+    risk_metrics: Dict[str, Any] = field(default_factory = dict)
 
 
 @dataclass
@@ -92,47 +92,47 @@ class StrategyBacktestResults:
     end_date: datetime
     
     # Trade Statistics
-    total_trades: int=0
-    winning_trades: int=0
-    losing_trades: int=0
-    win_rate: Decimal=Decimal('0.00')
+    total_trades: int = 0
+    winning_trades: int = 0
+    losing_trades: int = 0
+    win_rate: Decimal = Decimal('0.00')
     
     # Return Metrics
-    total_return: Decimal=Decimal('0.00')
-    annualized_return: Decimal=Decimal('0.00')
-    cagr: Decimal=Decimal('0.00')
+    total_return: Decimal = Decimal('0.00')
+    annualized_return: Decimal = Decimal('0.00')
+    cagr: Decimal = Decimal('0.00')
     
     # Risk Metrics
-    volatility: Decimal=Decimal('0.00')
-    sharpe_ratio: Decimal=Decimal('0.00')
-    sortino_ratio: Decimal=Decimal('0.00')
-    calmar_ratio: Decimal=Decimal('0.00')
-    max_drawdown: Decimal=Decimal('0.00')
-    var_95: Decimal=Decimal('0.00')
-    expected_shortfall: Decimal=Decimal('0.00')
+    volatility: Decimal = Decimal('0.00')
+    sharpe_ratio: Decimal = Decimal('0.00')
+    sortino_ratio: Decimal = Decimal('0.00')
+    calmar_ratio: Decimal = Decimal('0.00')
+    max_drawdown: Decimal = Decimal('0.00')
+    var_95: Decimal = Decimal('0.00')
+    expected_shortfall: Decimal = Decimal('0.00')
     
     # Trade Performance
-    avg_win: Decimal=Decimal('0.00')
-    avg_loss: Decimal=Decimal('0.00')
-    largest_win: Decimal=Decimal('0.00')
-    largest_loss: Decimal=Decimal('0.00')
-    profit_factor: Decimal=Decimal('0.00')
+    avg_win: Decimal = Decimal('0.00')
+    avg_loss: Decimal = Decimal('0.00')
+    largest_win: Decimal = Decimal('0.00')
+    largest_loss: Decimal = Decimal('0.00')
+    profit_factor: Decimal = Decimal('0.00')
     
     # Kelly Criterion
-    kelly_fraction: Decimal=Decimal('0.00')
-    optimal_position_size: Decimal=Decimal('0.00')
+    kelly_fraction: Decimal = Decimal('0.00')
+    optimal_position_size: Decimal = Decimal('0.00')
     
     # Benchmark Comparison
-    benchmark_return: Decimal=Decimal('0.00')
-    alpha: Decimal=Decimal('0.00')
-    beta: Decimal=Decimal('1.00')
-    information_ratio: Decimal=Decimal('0.00')
+    benchmark_return: Decimal = Decimal('0.00')
+    alpha: Decimal = Decimal('0.00')
+    beta: Decimal = Decimal('1.00')
+    information_ratio: Decimal = Decimal('0.00')
     
     # Detailed Records
-    trades: List[BacktestTrade]=field(default_factory=list)
-    daily_returns: List[Decimal]=field(default_factory=list)
-    daily_portfolio_values: List[Decimal]=field(default_factory=list)
-    drawdown_series: List[Decimal]=field(default_factory=list)
+    trades: List[BacktestTrade] = field(default_factory = list)
+    daily_returns: List[Decimal] = field(default_factory = list)
+    daily_portfolio_values: List[Decimal] = field(default_factory = list)
+    drawdown_series: List[Decimal] = field(default_factory = list)
 
 
 @dataclass
@@ -143,38 +143,38 @@ class MonteCarloResults:
     confidence_level: Decimal
     
     # Return Distribution
-    mean_return: Decimal=Decimal('0.00')
-    median_return: Decimal=Decimal('0.00')
-    std_return: Decimal=Decimal('0.00')
-    min_return: Decimal=Decimal('0.00')
-    max_return: Decimal=Decimal('0.00')
+    mean_return: Decimal = Decimal('0.00')
+    median_return: Decimal = Decimal('0.00')
+    std_return: Decimal = Decimal('0.00')
+    min_return: Decimal = Decimal('0.00')
+    max_return: Decimal = Decimal('0.00')
     
     # Risk Metrics
-    var_estimate: Decimal=Decimal('0.00')
-    cvar_estimate: Decimal=Decimal('0.00')
-    probability_of_loss: Decimal=Decimal('0.00')
-    worst_case_scenario: Decimal=Decimal('0.00')
-    best_case_scenario: Decimal=Decimal('0.00')
+    var_estimate: Decimal = Decimal('0.00')
+    cvar_estimate: Decimal = Decimal('0.00')
+    probability_of_loss: Decimal = Decimal('0.00')
+    worst_case_scenario: Decimal = Decimal('0.00')
+    best_case_scenario: Decimal = Decimal('0.00')
     
     # Confidence Intervals
-    return_ci_lower: Decimal=Decimal('0.00')
-    return_ci_upper: Decimal=Decimal('0.00')
-    sharpe_ci_lower: Decimal=Decimal('0.00')
-    sharpe_ci_upper: Decimal=Decimal('0.00')
+    return_ci_lower: Decimal = Decimal('0.00')
+    return_ci_upper: Decimal = Decimal('0.00')
+    sharpe_ci_lower: Decimal = Decimal('0.00')
+    sharpe_ci_upper: Decimal = Decimal('0.00')
 
 
 class ProductionBacktestEngine: 
     """Production - grade backtesting engine with comprehensive validation"""
     
     def __init__(self, config: ProductionConfig, database_manager: ProductionDatabaseManager):
-        self.config=config
-        self.database=database_manager
-        self.logger=create_production_logger("phase4_backtest")
-        self.error_handler=ErrorHandler(self.logger)
-        self.metrics=MetricsCollector(self.logger)
+        self.config = config
+        self.database = database_manager
+        self.logger = create_production_logger("phase4_backtest")
+        self.error_handler = ErrorHandler(self.logger)
+        self.metrics = MetricsCollector(self.logger)
         
         # Initialize data provider
-        data_config={
+        data_config = {
             'iex_api_key': config.data_providers.iex_api_key,
             'polygon_api_key': config.data_providers.polygon_api_key,
             'fmp_api_key': config.data_providers.fmp_api_key,
@@ -182,10 +182,10 @@ class ProductionBacktestEngine:
             'alpha_vantage_api_key': config.data_providers.alpha_vantage_api_key,
         }
         from .data_providers import create_data_provider
-        self.data_provider=create_data_provider(data_config)
+        self.data_provider = create_data_provider(data_config)
         
         # Initialize trading interface for paper trading
-        trading_config={
+        trading_config = {
             'alpaca_api_key': config.broker.alpaca_api_key,
             'alpaca_secret_key': config.broker.alpaca_secret_key,
             'alpaca_base_url': config.broker.alpaca_base_url,
@@ -195,13 +195,13 @@ class ProductionBacktestEngine:
             'paper_trading': True  # ALWAYS paper trading for backtests
         }
         from .trading_interface import create_trading_interface
-        self.trading_interface=create_trading_interface(trading_config)
+        self.trading_interface = create_trading_interface(trading_config)
         
         self.logger.info("Production Backtest Engine initialized")
     
     async def validate_strategy(self, strategy_name: str, 
                               backtest_config: BacktestConfig,
-                              monte_carlo: bool=True) -> Tuple[StrategyBacktestResults, Optional[MonteCarloResults]]: 
+                              monte_carlo: bool = True)->Tuple[StrategyBacktestResults, Optional[MonteCarloResults]]: 
         """
         Comprehensive strategy validation with historical backtesting and Monte Carlo
         
@@ -211,17 +211,17 @@ class ProductionBacktestEngine:
             self.logger.info(f"Starting comprehensive validation for strategy: {strategy_name}")
             
             # Step 1: Historical Backtest
-            backtest_results=await self._run_historical_backtest(strategy_name, backtest_config)
+            backtest_results = await self._run_historical_backtest(strategy_name, backtest_config)
             
             # Step 2: Risk Validation
-            risk_validation=await self._validate_risk_metrics(backtest_results)
+            risk_validation = await self._validate_risk_metrics(backtest_results)
             if not risk_validation['passed']: 
                 raise ValueError(f"Strategy failed risk validation: {risk_validation['reasons']}")
             
             # Step 3: Monte Carlo Simulation (optional but recommended)
-            monte_carlo_results=None
+            monte_carlo_results = None
             if monte_carlo: 
-                monte_carlo_results=await self._run_monte_carlo_simulation(
+                monte_carlo_results = await self._run_monte_carlo_simulation(
                     strategy_name, backtest_results, backtest_config.monte_carlo_runs
                 )
             
@@ -243,66 +243,66 @@ class ProductionBacktestEngine:
             raise
     
     async def _run_historical_backtest(self, strategy_name: str, 
-                                     config: BacktestConfig) -> StrategyBacktestResults:
+                                     config: BacktestConfig)->StrategyBacktestResults:
         """Run historical backtest using real market data"""
         try: 
             self.logger.info(f"Running historical backtest for {strategy_name}")
             
             # Get historical market data
-            historical_data=await self._fetch_historical_data(config)
+            historical_data = await self._fetch_historical_data(config)
             
             # Initialize backtest state
-            portfolio_value=config.initial_capital
-            cash=config.initial_capital
-            positions={}
-            trades=[]
-            daily_values=[]
-            daily_returns=[]
+            portfolio_value = config.initial_capital
+            cash = config.initial_capital
+            positions = {}
+            trades = []
+            daily_values = []
+            daily_returns = []
             
             # Create strategy instance for backtesting
-            strategy=await self._create_strategy_instance(strategy_name)
+            strategy = await self._create_strategy_instance(strategy_name)
             
             # Run day - by-day simulation
-            trading_days=pd.bdate_range(config.start_date, config.end_date)
+            trading_days = pd.bdate_range(config.start_date, config.end_date)
             
             for current_date in trading_days: 
                 try: 
                     # Update portfolio with current market prices
-                    portfolio_value, unrealized_pnl=await self._update_portfolio_value(
+                    portfolio_value, unrealized_pnl = await self._update_portfolio_value(
                         positions, cash, current_date, historical_data
                     )
                     daily_values.append(portfolio_value)
                     
                     # Calculate daily return
-                    if len(daily_values) > 1: 
-                        daily_return=(portfolio_value - daily_values[-2]) / daily_values[-2]
+                    if len(daily_values)  >  1: 
+                        daily_return = (portfolio_value - daily_values[-2]) / daily_values[-2]
                         daily_returns.append(Decimal(str(daily_return)))
                     else: 
                         daily_returns.append(Decimal('0.00'))
                     
                     # Generate strategy signals
-                    signals=await self._generate_strategy_signals(
+                    signals = await self._generate_strategy_signals(
                         strategy, current_date, historical_data, portfolio_value
                     )
                     
                     # Execute trades based on signals
-                    executed_trades=await self._execute_backtest_trades(
+                    executed_trades = await self._execute_backtest_trades(
                         signals, current_date, historical_data, cash, portfolio_value, config
                     )
                     
                     # Update portfolio state
                     for trade in executed_trades: 
                         trades.append(trade)
-                        if trade.side== 'long': 
+                        if trade.side ==  'long': 
                             cash -= trade.entry_price * trade.quantity + trade.commission + trade.slippage
-                            positions[trade.ticker]={
+                            positions[trade.ticker] = {
                                 'quantity': trade.quantity,
                                 'entry_price': trade.entry_price,
                                 'entry_date': trade.entry_date
                             }
                         
                     # Check exit conditions for existing positions
-                    exits=await self._check_exit_conditions(
+                    exits = await self._check_exit_conditions(
                         positions, current_date, historical_data, config
                     )
                     
@@ -318,7 +318,7 @@ class ProductionBacktestEngine:
                     continue
             
             # Calculate comprehensive results
-            results=await self._calculate_backtest_results(
+            results = await self._calculate_backtest_results(
                 strategy_name, config, trades, daily_returns, daily_values, historical_data
             )
             
@@ -334,13 +334,13 @@ class ProductionBacktestEngine:
             })
             raise
     
-    async def _fetch_historical_data(self, config: BacktestConfig) -> Dict[str, pd.DataFrame]: 
+    async def _fetch_historical_data(self, config: BacktestConfig)->Dict[str, pd.DataFrame]: 
         """Fetch historical market data for backtesting"""
         try: 
             self.logger.info("Fetching historical market data")
             
             # Define universe of tickers (would be strategy - specific in production)
-            tickers=[
+            tickers = [
                 # Major indices
                 'SPY', 'QQQ', 'IWM', 'VXX',
                 # WSB favorites
@@ -352,17 +352,17 @@ class ProductionBacktestEngine:
                 'PTON', 'ZOOM', 'DOCU', 'ZM'
             ]
             
-            historical_data={}
+            historical_data = {}
             
             # Use yfinance for historical data (in production, would use premium data feeds)
-            start_date=config.start_date.strftime('%Y-%m-%d')
-            end_date=config.end_date.strftime('%Y-%m-%d')
+            start_date = config.start_date.strftime('%Y-%m-%d')
+            end_date = config.end_date.strftime('%Y-%m-%d')
             
             for ticker in tickers: 
                 try: 
-                    data=yf.download(ticker, start=start_date, end=end_date, progress=False)
+                    data = yf.download(ticker, start = start_date, end = end_date, progress = False)
                     if not data.empty: 
-                        historical_data[ticker]=data
+                        historical_data[ticker] = data
                         self.logger.debug(f"Loaded {len(data)} days of data for {ticker}")
                     
                 except Exception as e: 
@@ -379,16 +379,16 @@ class ProductionBacktestEngine:
     async def _create_strategy_instance(self, strategy_name: str):
         """Create strategy instance for backtesting"""
         try: 
-            if strategy_name== 'wsb_dip_bot': return create_wsb_dip_bot_strategy(
+            if strategy_name ==  'wsb_dip_bot': return create_wsb_dip_bot_strategy(
                     self.trading_interface, self.data_provider, self.config, self.logger
                 )
-            elif strategy_name== 'wheel': return create_wheel_strategy(
+            elif strategy_name ==  'wheel': return create_wheel_strategy(
                     self.trading_interface, self.data_provider, self.config, self.logger
                 )
-            elif strategy_name== 'debit_spreads': return create_debit_spreads_strategy(
+            elif strategy_name ==  'debit_spreads': return create_debit_spreads_strategy(
                     self.trading_interface, self.data_provider, self.config, self.logger
                 )
-            elif strategy_name== 'spx_spreads': return create_spx_spreads_strategy(
+            elif strategy_name ==  'spx_spreads': return create_spx_spreads_strategy(
                     self.trading_interface, self.data_provider, self.config, self.logger
                 )
             else: 
@@ -403,17 +403,17 @@ class ProductionBacktestEngine:
     
     async def _generate_strategy_signals(self, strategy, current_date: datetime,
                                        historical_data: Dict[str, pd.DataFrame],
-                                       portfolio_value: Decimal) -> List[Dict[str, Any]]: 
+                                       portfolio_value: Decimal)->List[Dict[str, Any]]: 
         """Generate strategy signals for backtesting"""
         try: 
-            signals=[]
+            signals = []
             
             # This would call the strategy's signal generation logic
             # For now, create mock signals based on strategy type
             
             if hasattr(strategy, 'scan_for_opportunities'): 
                 # WSB Dip Bot style
-                opportunities=await strategy.scan_for_opportunities()
+                opportunities = await strategy.scan_for_opportunities()
                 for opp in opportunities[: 3]: # Limit to top 3
                     signals.append({
                         'ticker': opp.ticker,
@@ -434,48 +434,48 @@ class ProductionBacktestEngine:
                                      current_date: datetime,
                                      historical_data: Dict[str, pd.DataFrame],
                                      cash: Decimal, portfolio_value: Decimal,
-                                     config: BacktestConfig) -> List[BacktestTrade]:
+                                     config: BacktestConfig)->List[BacktestTrade]:
         """Execute trades in backtest environment"""
-        trades=[]
+        trades = []
         
         try: 
             for signal in signals: 
-                ticker=signal.get('ticker')
-                action=signal.get('action')
-                quantity=signal.get('quantity', 100)
+                ticker = signal.get('ticker')
+                action = signal.get('action')
+                quantity = signal.get('quantity', 100)
                 
                 if ticker not in historical_data: 
                     continue
                 
                 # Get price data for the date
-                ticker_data=historical_data[ticker]
+                ticker_data = historical_data[ticker]
                 
                 try: 
                     if current_date.date() in ticker_data.index.date: 
-                        price_data=ticker_data.loc[ticker_data.index.date == current_date.date()]
+                        price_data = ticker_data.loc[ticker_data.index.date  ==  current_date.date()]
                         if not price_data.empty: 
-                            entry_price=Decimal(str(price_data['Close'].iloc[0]))
+                            entry_price = Decimal(str(price_data['Close'].iloc[0]))
                             
                             # Calculate costs
-                            commission=config.commission_per_trade
-                            slippage=entry_price * Decimal(str(config.slippage_bps / 10000.0))
+                            commission = config.commission_per_trade
+                            slippage = entry_price * Decimal(str(config.slippage_bps / 10000.0))
                             
                             # Check if we have enough cash
-                            total_cost=entry_price * quantity + commission + slippage
-                            if total_cost <= cash: 
-                                trade=BacktestTrade(
-                                    trade_id=f"{ticker}_{current_date.strftime('%Y % m%d')}_{len(trades)}",
-                                    strategy_name="backtest_strategy",
-                                    ticker=ticker,
-                                    entry_date=current_date,
-                                    exit_date=None,
-                                    entry_price=entry_price,
-                                    exit_price=None,
-                                    quantity=quantity,
-                                    side='long',
-                                    commission=commission,
-                                    slippage=slippage,
-                                    confidence_score=Decimal(str(signal.get('confidence', 0.5)))
+                            total_cost = entry_price * quantity + commission + slippage
+                            if total_cost  <=  cash: 
+                                trade = BacktestTrade(
+                                    trade_id = f"{ticker}_{current_date.strftime('%Y % m%d')}_{len(trades)}",
+                                    strategy_name = "backtest_strategy",
+                                    ticker = ticker,
+                                    entry_date = current_date,
+                                    exit_date = None,
+                                    entry_price = entry_price,
+                                    exit_price = None,
+                                    quantity = quantity,
+                                    side = 'long',
+                                    commission = commission,
+                                    slippage = slippage,
+                                    confidence_score = Decimal(str(signal.get('confidence', 0.5)))
                                 )
                                 trades.append(trade)
                 except KeyError: 
@@ -493,88 +493,88 @@ class ProductionBacktestEngine:
     async def _calculate_backtest_results(self, strategy_name: str, config: BacktestConfig,
                                         trades: List[BacktestTrade], daily_returns: List[Decimal],
                                         daily_values: List[Decimal],
-                                        historical_data: Dict[str, pd.DataFrame]) -> StrategyBacktestResults: 
+                                        historical_data: Dict[str, pd.DataFrame])->StrategyBacktestResults: 
         """Calculate comprehensive backtest results"""
         try: 
             # Basic trade statistics
-            total_trades=len([t for t in trades if t.exit_date is not None])
-            winning_trades=len([t for t in trades if t.net_pnl and t.net_pnl > 0])
-            losing_trades=total_trades - winning_trades
-            win_rate=Decimal(winning_trades) / Decimal(total_trades) if total_trades > 0 else Decimal('0')
+            total_trades = len([t for t in trades if t.exit_date is not None])
+            winning_trades = len([t for t in trades if t.net_pnl and t.net_pnl  >  0])
+            losing_trades = total_trades - winning_trades
+            win_rate = Decimal(winning_trades) / Decimal(total_trades) if total_trades  >  0 else Decimal('0')
             
             # Return calculations
-            total_return=(daily_values[-1] - config.initial_capital) / config.initial_capital if daily_values else Decimal('0')
+            total_return = (daily_values[-1] - config.initial_capital) / config.initial_capital if daily_values else Decimal('0')
             
             # Calculate annualized return
-            days=(config.end_date - config.start_date).days
-            years=days / 365.25
-            annualized_return=((1 + total_return) ** (1 / years) - 1) if years > 0 and total_return > -1 else Decimal('0')
+            days = (config.end_date - config.start_date).days
+            years = days / 365.25
+            annualized_return = ((1 + total_return) ** (1 / years) - 1) if years  >  0 and total_return  >  -1 else Decimal('0')
             
             # Risk metrics
-            returns_array=np.array([float(r) for r in daily_returns])
-            volatility=Decimal(str(np.std(returns_array) * np.sqrt(252))) if len(returns_array) > 1 else Decimal('0')
+            returns_array = np.array([float(r) for r in daily_returns])
+            volatility = Decimal(str(np.std(returns_array) * np.sqrt(252))) if len(returns_array)  >  1 else Decimal('0')
             
             # Sharpe ratio
-            excess_returns=returns_array - float(config.risk_free_rate / 252)
-            sharpe_ratio=Decimal(str(np.mean(excess_returns) / np.std(excess_returns) * np.sqrt(252))) if np.std(excess_returns) > 0 else Decimal('0')
+            excess_returns = returns_array - float(config.risk_free_rate / 252)
+            sharpe_ratio = Decimal(str(np.mean(excess_returns) / np.std(excess_returns) * np.sqrt(252))) if np.std(excess_returns)  >  0 else Decimal('0')
             
             # Maximum drawdown
-            peak=np.maximum.accumulate(daily_values)
-            drawdown=(np.array(daily_values) - peak) / peak
-            max_drawdown=Decimal(str(abs(np.min(drawdown))))
+            peak = np.maximum.accumulate(daily_values)
+            drawdown = (np.array(daily_values) - peak) / peak
+            max_drawdown = Decimal(str(abs(np.min(drawdown))))
             
             # Trade performance metrics
-            completed_trades=[t for t in trades if t.net_pnl is not None]
-            wins=[float(t.net_pnl) for t in completed_trades if t.net_pnl > 0]
-            losses=[float(t.net_pnl) for t in completed_trades if t.net_pnl <= 0]
+            completed_trades = [t for t in trades if t.net_pnl is not None]
+            wins = [float(t.net_pnl) for t in completed_trades if t.net_pnl  >  0]
+            losses = [float(t.net_pnl) for t in completed_trades if t.net_pnl  <=  0]
             
-            avg_win=Decimal(str(np.mean(wins))) if wins else Decimal('0')
-            avg_loss=Decimal(str(np.mean(losses))) if losses else Decimal('0')
-            largest_win=Decimal(str(max(wins))) if wins else Decimal('0')
-            largest_loss=Decimal(str(min(losses))) if losses else Decimal('0')
+            avg_win = Decimal(str(np.mean(wins))) if wins else Decimal('0')
+            avg_loss = Decimal(str(np.mean(losses))) if losses else Decimal('0')
+            largest_win = Decimal(str(max(wins))) if wins else Decimal('0')
+            largest_loss = Decimal(str(min(losses))) if losses else Decimal('0')
             
             # Profit factor
-            gross_profit=sum(wins) if wins else 0
-            gross_loss=abs(sum(losses)) if losses else 1
-            profit_factor=Decimal(str(gross_profit / gross_loss)) if gross_loss > 0 else Decimal('0')
+            gross_profit = sum(wins) if wins else 0
+            gross_loss = abs(sum(losses)) if losses else 1
+            profit_factor = Decimal(str(gross_profit / gross_loss)) if gross_loss  >  0 else Decimal('0')
             
             # Kelly Criterion
-            if avg_loss != 0: 
-                b=float(avg_win) / abs(float(avg_loss))
-                p=float(win_rate)
-                kelly_fraction=Decimal(str((b * p - (1 - p)) / b)) if b > 0 else Decimal('0')
+            if avg_loss  !=  0: 
+                b = float(avg_win) / abs(float(avg_loss))
+                p = float(win_rate)
+                kelly_fraction = Decimal(str((b * p - (1 - p)) / b)) if b  >  0 else Decimal('0')
             else: 
-                kelly_fraction=Decimal('0')
+                kelly_fraction = Decimal('0')
             
             # Benchmark comparison (SPY)
-            benchmark_return=await self._calculate_benchmark_return(config, historical_data)
-            alpha=annualized_return - benchmark_return
+            benchmark_return = await self._calculate_benchmark_return(config, historical_data)
+            alpha = annualized_return - benchmark_return
             
-            results=StrategyBacktestResults(
-                strategy_name=strategy_name,
-                start_date=config.start_date,
-                end_date=config.end_date,
-                total_trades=total_trades,
-                winning_trades=winning_trades,
-                losing_trades=losing_trades,
-                win_rate=win_rate,
-                total_return=total_return,
-                annualized_return=annualized_return,
-                cagr=annualized_return,
-                volatility=volatility,
-                sharpe_ratio=sharpe_ratio,
-                max_drawdown=max_drawdown,
-                avg_win=avg_win,
-                avg_loss=avg_loss,
-                largest_win=largest_win,
-                largest_loss=largest_loss,
-                profit_factor=profit_factor,
-                kelly_fraction=kelly_fraction,
-                benchmark_return=benchmark_return,
-                alpha=alpha,
-                trades=trades,
-                daily_returns=daily_returns,
-                daily_portfolio_values=daily_values
+            results = StrategyBacktestResults(
+                strategy_name = strategy_name,
+                start_date = config.start_date,
+                end_date = config.end_date,
+                total_trades = total_trades,
+                winning_trades = winning_trades,
+                losing_trades = losing_trades,
+                win_rate = win_rate,
+                total_return = total_return,
+                annualized_return = annualized_return,
+                cagr = annualized_return,
+                volatility = volatility,
+                sharpe_ratio = sharpe_ratio,
+                max_drawdown = max_drawdown,
+                avg_win = avg_win,
+                avg_loss = avg_loss,
+                largest_win = largest_win,
+                largest_loss = largest_loss,
+                profit_factor = profit_factor,
+                kelly_fraction = kelly_fraction,
+                benchmark_return = benchmark_return,
+                alpha = alpha,
+                trades = trades,
+                daily_returns = daily_returns,
+                daily_portfolio_values = daily_values
             )
             
             return results
@@ -584,19 +584,19 @@ class ProductionBacktestEngine:
             raise
     
     async def _calculate_benchmark_return(self, config: BacktestConfig, 
-                                        historical_data: Dict[str, pd.DataFrame]) -> Decimal: 
+                                        historical_data: Dict[str, pd.DataFrame])->Decimal: 
         """Calculate benchmark return for comparison"""
         try: 
             if config.benchmark_ticker in historical_data: 
-                benchmark_data=historical_data[config.benchmark_ticker]
-                start_price=benchmark_data.iloc[0]['Close']
-                end_price=benchmark_data.iloc[-1]['Close']
+                benchmark_data = historical_data[config.benchmark_ticker]
+                start_price = benchmark_data.iloc[0]['Close']
+                end_price = benchmark_data.iloc[-1]['Close']
                 
-                total_return=(end_price - start_price) / start_price
+                total_return = (end_price - start_price) / start_price
                 
-                days=(config.end_date - config.start_date).days
-                years=days / 365.25
-                annualized_return=((1 + total_return) ** (1 / years) - 1) if years > 0 else 0
+                days = (config.end_date - config.start_date).days
+                years = days / 365.25
+                annualized_return = ((1 + total_return) ** (1 / years) - 1) if years  >  0 else 0
                 
                 return Decimal(str(annualized_return))
             else: 
@@ -604,29 +604,29 @@ class ProductionBacktestEngine:
         except: 
             return Decimal('0.08')
     
-    async def _validate_risk_metrics(self, results: StrategyBacktestResults) -> Dict[str, Any]: 
+    async def _validate_risk_metrics(self, results: StrategyBacktestResults)->Dict[str, Any]: 
         """Validate strategy risk metrics against production standards"""
         try: 
-            validation={
+            validation = {
                 'passed': True,
                 'reasons': []
             }
             
             # Risk validation rules
-            if results.max_drawdown > Decimal('0.25'):  # Max 25% drawdown
-                validation['passed']=False
+            if results.max_drawdown  >  Decimal('0.25'):  # Max 25% drawdown
+                validation['passed'] = False
                 validation['reasons'].append(f"Max drawdown too high: {results.max_drawdown:.2%}")
             
-            if results.sharpe_ratio < Decimal('0.5'):  # Minimum Sharpe ratio
-                validation['passed']=False
+            if results.sharpe_ratio  <  Decimal('0.5'):  # Minimum Sharpe ratio
+                validation['passed'] = False
                 validation['reasons'].append(f"Sharpe ratio too low: {results.sharpe_ratio:.2f}")
             
-            if results.win_rate < Decimal('0.3'):  # Minimum 30% win rate
-                validation['passed']=False
+            if results.win_rate  <  Decimal('0.3'):  # Minimum 30% win rate
+                validation['passed'] = False
                 validation['reasons'].append(f"Win rate too low: {results.win_rate:.2%}")
             
-            if results.total_trades < 10:  # Minimum sample size
-                validation['passed']=False
+            if results.total_trades  <  10:  # Minimum sample size
+                validation['passed'] = False
                 validation['reasons'].append(f"Insufficient trade sample: {results.total_trades}")
             
             return validation
@@ -637,49 +637,49 @@ class ProductionBacktestEngine:
     
     async def _run_monte_carlo_simulation(self, strategy_name: str, 
                                         backtest_results: StrategyBacktestResults,
-                                        runs: int=1000) -> MonteCarloResults:
+                                        runs: int = 1000)->MonteCarloResults:
         """Run Monte Carlo simulation for forward - looking risk analysis"""
         try: 
             self.logger.info(f"Running Monte Carlo simulation: {runs} runs")
             
             # Extract daily returns from backtest
-            daily_returns=[float(r) for r in backtest_results.daily_returns]
+            daily_returns = [float(r) for r in backtest_results.daily_returns]
             
-            if len(daily_returns) < 20:  # Need sufficient data
+            if len(daily_returns)  <  20:  # Need sufficient data
                 raise ValueError("Insufficient data for Monte Carlo simulation")
             
             # Calculate statistics
-            mean_return=np.mean(daily_returns)
-            std_return=np.std(daily_returns)
+            mean_return = np.mean(daily_returns)
+            std_return = np.std(daily_returns)
             
             # Run simulations
-            simulation_results=[]
+            simulation_results = []
             
             for _ in range(runs): 
                 # Generate random returns based on historical distribution
-                simulated_returns=np.random.normal(mean_return, std_return, 252)  # 1 year
+                simulated_returns = np.random.normal(mean_return, std_return, 252)  # 1 year
                 
                 # Calculate cumulative return
-                cumulative_return=np.prod(1 + simulated_returns) - 1
+                cumulative_return = np.prod(1 + simulated_returns) - 1
                 simulation_results.append(cumulative_return)
             
             # Calculate Monte Carlo statistics
-            simulation_results=np.array(simulation_results)
+            simulation_results = np.array(simulation_results)
             
-            results=MonteCarloResults(
-                strategy_name=strategy_name,
-                runs=runs,
-                confidence_level=Decimal('0.95'),
-                mean_return=Decimal(str(np.mean(simulation_results))),
-                median_return=Decimal(str(np.median(simulation_results))),
-                std_return=Decimal(str(np.std(simulation_results))),
-                min_return=Decimal(str(np.min(simulation_results))),
-                max_return=Decimal(str(np.max(simulation_results))),
-                var_estimate=Decimal(str(np.percentile(simulation_results, 5))),  # 5% VaR
-                cvar_estimate=Decimal(str(np.mean(simulation_results[simulation_results <= np.percentile(simulation_results, 5)]))),
-                probability_of_loss=Decimal(str(np.sum(simulation_results < 0) / len(simulation_results))),
-                return_ci_lower=Decimal(str(np.percentile(simulation_results, 2.5))),
-                return_ci_upper=Decimal(str(np.percentile(simulation_results, 97.5)))
+            results = MonteCarloResults(
+                strategy_name = strategy_name,
+                runs = runs,
+                confidence_level = Decimal('0.95'),
+                mean_return = Decimal(str(np.mean(simulation_results))),
+                median_return = Decimal(str(np.median(simulation_results))),
+                std_return = Decimal(str(np.std(simulation_results))),
+                min_return = Decimal(str(np.min(simulation_results))),
+                max_return = Decimal(str(np.max(simulation_results))),
+                var_estimate = Decimal(str(np.percentile(simulation_results, 5))),  # 5% VaR
+                cvar_estimate = Decimal(str(np.mean(simulation_results[simulation_results  <=  np.percentile(simulation_results, 5)]))),
+                probability_of_loss = Decimal(str(np.sum(simulation_results  <  0) / len(simulation_results))),
+                return_ci_lower = Decimal(str(np.percentile(simulation_results, 2.5))),
+                return_ci_upper = Decimal(str(np.percentile(simulation_results, 97.5)))
             )
             
             self.logger.info(f"Monte Carlo completed: VaR 95%: {results.var_estimate:.2%}")
@@ -695,22 +695,22 @@ class ProductionBacktestEngine:
         """Save validation results to database"""
         try: 
             # Convert backtest results to StrategyPerformance for database
-            performance=StrategyPerformance(
-                strategy_name=strategy_name,
-                total_trades=backtest_results.total_trades,
-                winning_trades=backtest_results.winning_trades,
-                losing_trades=backtest_results.losing_trades,
-                win_rate=backtest_results.win_rate,
-                avg_win=backtest_results.avg_win,
-                avg_loss=backtest_results.avg_loss,
-                largest_win=backtest_results.largest_win,
-                largest_loss=backtest_results.largest_loss,
-                total_pnl=backtest_results.total_return * Decimal('100000'),  # Assume $100k base
-                profit_factor=backtest_results.profit_factor,
-                sharpe_ratio=backtest_results.sharpe_ratio,
-                max_drawdown=backtest_results.max_drawdown,
-                kelly_fraction=backtest_results.kelly_fraction,
-                last_calculated=datetime.now()
+            performance = StrategyPerformance(
+                strategy_name = strategy_name,
+                total_trades = backtest_results.total_trades,
+                winning_trades = backtest_results.winning_trades,
+                losing_trades = backtest_results.losing_trades,
+                win_rate = backtest_results.win_rate,
+                avg_win = backtest_results.avg_win,
+                avg_loss = backtest_results.avg_loss,
+                largest_win = backtest_results.largest_win,
+                largest_loss = backtest_results.largest_loss,
+                total_pnl = backtest_results.total_return * Decimal('100000'),  # Assume $100k base
+                profit_factor = backtest_results.profit_factor,
+                sharpe_ratio = backtest_results.sharpe_ratio,
+                max_drawdown = backtest_results.max_drawdown,
+                kelly_fraction = backtest_results.kelly_fraction,
+                last_calculated = datetime.now()
             )
             
             await self.database._save_strategy_performance(performance)
@@ -720,26 +720,26 @@ class ProductionBacktestEngine:
         except Exception as e: 
             self.error_handler.handle_error(e, {"operation": "_save_validation_results"})
     
-    async def validate_all_strategies(self) -> Dict[str, StrategyBacktestResults]: 
+    async def validate_all_strategies(self)->Dict[str, StrategyBacktestResults]: 
         """Validate all production strategies"""
-        strategies=['wsb_dip_bot', 'wheel', 'debit_spreads', 'spx_spreads']
+        strategies = ['wsb_dip_bot', 'wheel', 'debit_spreads', 'spx_spreads']
         
         # Default backtest config (last 2 years)
-        config=BacktestConfig(
-            start_date=datetime.now() - timedelta(days=730),
-            end_date=datetime.now() - timedelta(days=1),
-            initial_capital=Decimal('100000.00')
+        config = BacktestConfig(
+            start_date = datetime.now() - timedelta(days = 730),
+            end_date = datetime.now() - timedelta(days = 1),
+            initial_capital = Decimal('100000.00')
         )
         
-        results={}
+        results = {}
         
         for strategy_name in strategies: 
             try: 
                 self.logger.info(f"Validating strategy: {strategy_name}")
-                backtest_results, monte_carlo_results=await self.validate_strategy(
-                    strategy_name, config, monte_carlo=True
+                backtest_results, monte_carlo_results = await self.validate_strategy(
+                    strategy_name, config, monte_carlo = True
                 )
-                results[strategy_name]=backtest_results
+                results[strategy_name] = backtest_results
                 
             except Exception as e: 
                 self.error_handler.handle_error(e, {"strategy": strategy_name})
@@ -756,21 +756,21 @@ class HighRiskStrategyOrchestrator:
     """
     
     def __init__(self, config: ProductionConfig, database_manager: ProductionDatabaseManager):
-        self.config=config
-        self.database=database_manager
-        self.logger=create_production_logger("phase4_high_risk")
-        self.error_handler=ErrorHandler(self.logger)
-        self.metrics=MetricsCollector(self.logger)
+        self.config = config
+        self.database = database_manager
+        self.logger = create_production_logger("phase4_high_risk")
+        self.error_handler = ErrorHandler(self.logger)
+        self.metrics = MetricsCollector(self.logger)
         
         # EXTREME risk controls for high - risk strategies
-        self.max_account_risk=Decimal('0.05')  # Maximum 5% of account at risk
-        self.max_single_position_risk=Decimal('0.01')  # Maximum 1% per position
-        self.daily_loss_limit=Decimal('0.02')  # Stop at 2% daily loss
-        self.max_positions=3  # Maximum 3 concurrent high - risk positions
-        self.cooling_off_period=timedelta(hours=4)  # 4 - hour cooling off after loss
+        self.max_account_risk = Decimal('0.05')  # Maximum 5% of account at risk
+        self.max_single_position_risk = Decimal('0.01')  # Maximum 1% per position
+        self.daily_loss_limit = Decimal('0.02')  # Stop at 2% daily loss
+        self.max_positions = 3  # Maximum 3 concurrent high - risk positions
+        self.cooling_off_period = timedelta(hours  =  4)  # 4 - hour cooling off after loss
         
         # Strategy risk levels
-        self.strategy_risk_levels={
+        self.strategy_risk_levels = {
             'wsb_dip_bot': StrategyRiskLevel.HIGH_RISK,
             'lotto_scanner': StrategyRiskLevel.HIGH_RISK,
             'momentum_weeklies': StrategyRiskLevel.MEDIUM_RISK,
@@ -778,13 +778,13 @@ class HighRiskStrategyOrchestrator:
         }
         
         # Performance tracking
-        self.daily_pnl=Decimal('0.00')
-        self.active_positions={}
-        self.last_loss_time=None
+        self.daily_pnl = Decimal('0.00')
+        self.active_positions = {}
+        self.last_loss_time = None
         
         self.logger.info("High - Risk Strategy Orchestrator initialized with EXTREME risk controls")
     
-    async def can_execute_high_risk_trade(self, strategy_name: str, trade_amount: Decimal) -> Tuple[bool, str]: 
+    async def can_execute_high_risk_trade(self, strategy_name: str, trade_amount: Decimal)->Tuple[bool, str]: 
         """
         CRITICAL: Determine if high - risk trade can be executed
         This is the gatekeeper for all dangerous trades
@@ -794,39 +794,39 @@ class HighRiskStrategyOrchestrator:
             if strategy_name not in self.strategy_risk_levels: 
                 return False, f"Unknown strategy: {strategy_name}"
             
-            risk_level=self.strategy_risk_levels[strategy_name]
+            risk_level = self.strategy_risk_levels[strategy_name]
             
             # Apply risk level specific limits
-            if risk_level == StrategyRiskLevel.HIGH_RISK: 
-                max_trade_risk=self.max_single_position_risk
-                max_account_risk=self.max_account_risk
-            elif risk_level == StrategyRiskLevel.MEDIUM_RISK: 
-                max_trade_risk=Decimal('0.02')  # 2% for medium risk
-                max_account_risk=Decimal('0.08')  # 8% for medium risk
+            if risk_level  ==  StrategyRiskLevel.HIGH_RISK: 
+                max_trade_risk = self.max_single_position_risk
+                max_account_risk = self.max_account_risk
+            elif risk_level  ==  StrategyRiskLevel.MEDIUM_RISK: 
+                max_trade_risk = Decimal('0.02')  # 2% for medium risk
+                max_account_risk = Decimal('0.08')  # 8% for medium risk
             else: 
-                max_trade_risk=Decimal('0.05')  # 5% for low risk
-                max_account_risk=Decimal('0.15')  # 15% for low risk
+                max_trade_risk = Decimal('0.05')  # 5% for low risk
+                max_account_risk = Decimal('0.15')  # 15% for low risk
             
             # Check daily loss limit
-            if self.daily_pnl <= -self.daily_loss_limit * self.config.risk.account_size: 
+            if self.daily_pnl  <=  -self.daily_loss_limit * self.config.risk.account_size: 
                 return False, f"Daily loss limit exceeded: {self.daily_pnl:.2f}"
             
             # Check cooling off period
-            if self.last_loss_time and datetime.now() - self.last_loss_time < self.cooling_off_period: 
+            if self.last_loss_time and datetime.now() - self.last_loss_time  <  self.cooling_off_period: 
                 return False, "Cooling off period in effect after recent loss"
             
             # Check position count
-            if len(self.active_positions) >= self.max_positions: 
+            if len(self.active_positions)  >=  self.max_positions: 
                 return False, f"Maximum positions reached: {len(self.active_positions)}"
             
             # Check single trade risk
-            trade_risk_pct=trade_amount / self.config.risk.account_size
-            if trade_risk_pct > max_trade_risk: 
-                return False, f"Trade risk too high: {trade_risk_pct:.2%} > {max_trade_risk: .2%}"
+            trade_risk_pct = trade_amount / self.config.risk.account_size
+            if trade_risk_pct  >  max_trade_risk: 
+                return False, f"Trade risk too high: {trade_risk_pct:.2%}  >  {max_trade_risk: .2%}"
             
             # Check total account risk
-            current_risk=await self._calculate_current_account_risk()
-            if current_risk + trade_amount > max_account_risk * self.config.risk.account_size: 
+            current_risk = await self._calculate_current_account_risk()
+            if current_risk + trade_amount  >  max_account_risk * self.config.risk.account_size: 
                 return False, f"Account risk limit would be exceeded"
             
             return True, "Trade approved"
@@ -838,15 +838,15 @@ class HighRiskStrategyOrchestrator:
             })
             return False, f"Risk check error: {e}"
     
-    async def _calculate_current_account_risk(self) -> Decimal: 
+    async def _calculate_current_account_risk(self)->Decimal: 
         """Calculate current total account risk exposure"""
         try: 
-            positions=await self.database.get_active_positions()
-            total_risk=Decimal('0.00')
+            positions = await self.database.get_active_positions()
+            total_risk = Decimal('0.00')
             
             for position in positions: 
-                # Risk=position value * position risk factor
-                position_risk=position.market_value * self.max_single_position_risk
+                # Risk = position value * position risk factor
+                position_risk = position.market_value * self.max_single_position_risk
                 total_risk += position_risk
             
             return total_risk
@@ -858,13 +858,13 @@ class HighRiskStrategyOrchestrator:
 
 # Factory functions
 def create_production_backtest_engine(config: ProductionConfig, 
-                                    database_manager: ProductionDatabaseManager) -> ProductionBacktestEngine:
+                                    database_manager: ProductionDatabaseManager)->ProductionBacktestEngine:
     """Create production backtest engine"""
     return ProductionBacktestEngine(config, database_manager)
 
 
 def create_high_risk_orchestrator(config: ProductionConfig,
-                                database_manager: ProductionDatabaseManager) -> HighRiskStrategyOrchestrator:
+                                database_manager: ProductionDatabaseManager)->HighRiskStrategyOrchestrator:
     """Create high - risk strategy orchestrator"""
     return HighRiskStrategyOrchestrator(config, database_manager)
 
@@ -876,25 +876,25 @@ async def main():
     from .production_database import create_database_manager
     
     # Load configuration
-    config_manager=create_config_manager()
-    config=config_manager.load_config()
+    config_manager = create_config_manager()
+    config = config_manager.load_config()
     
     # Create database manager
-    db_config={
+    db_config = {
         'db_host': 'localhost',
         'db_name': 'wallstreetbots_prod',
         'db_user': 'postgres',
         'db_password': 'password'
     }
-    database=create_database_manager(db_config)
+    database = create_database_manager(db_config)
     await database.initialize()
     
     # Create backtest engine
-    backtest_engine=create_production_backtest_engine(config, database)
+    backtest_engine = create_production_backtest_engine(config, database)
     
     # Validate all strategies
     print("🚀 Starting comprehensive strategy validation...")
-    results=await backtest_engine.validate_all_strategies()
+    results = await backtest_engine.validate_all_strategies()
     
     # Print results
     for strategy_name, result in results.items(): 
@@ -911,10 +911,10 @@ async def main():
     await database.close()
 
 
-if __name__== "__main__": # Setup logging
+if __name__ ==  "__main__": # Setup logging
     logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        level = logging.INFO,
+        format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
     # Run Phase 4 validation

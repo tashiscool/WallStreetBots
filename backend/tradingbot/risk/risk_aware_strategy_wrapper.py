@@ -39,16 +39,16 @@ class RiskAwareStrategy(ABC):
             risk_manager: Risk integration manager
             strategy_name: Name of the strategy
         """
-        self.strategy=strategy_instance
-        self.risk_manager=risk_manager
-        self.strategy_name=strategy_name
-        self.logger=logging.getLogger(f"{__name__}.{strategy_name}")
+        self.strategy = strategy_instance
+        self.risk_manager = risk_manager
+        self.strategy_name = strategy_name
+        self.logger = logging.getLogger(f"{__name__}.{strategy_name}")
         
         # Risk state
-        self.risk_enabled=True
-        self.last_risk_check=None
-        self.risk_violations=0
-        self.total_trades_blocked=0
+        self.risk_enabled = True
+        self.last_risk_check = None
+        self.risk_violations = 0
+        self.total_trades_blocked = 0
         
         self.logger.info(f"Risk - aware wrapper initialized for {strategy_name}")
     
@@ -56,9 +56,9 @@ class RiskAwareStrategy(ABC):
                           symbol: str,
                           action: str,  # 'buy', 'sell', 'hold'
                           quantity: float,
-                          price: float=None,
-                          order_type: str='market',
-                          **kwargs) -> Dict[str, Any]: 
+                          price: float = None,
+                          order_type: str = 'market',
+                          **kwargs)->Dict[str, Any]: 
         """
         Execute a trade with risk management
         
@@ -75,16 +75,16 @@ class RiskAwareStrategy(ABC):
         """
         try: 
             # Skip risk checks for hold actions
-            if action== 'hold': return await self._execute_hold_action(symbol, **kwargs)
+            if action ==  'hold': return await self._execute_hold_action(symbol, **kwargs)
             
             # Get current portfolio value
-            portfolio_value=await self._get_portfolio_value()
+            portfolio_value = await self._get_portfolio_value()
             
             # Calculate trade value
-            trade_value=quantity * (price or await self._get_current_price(symbol))
+            trade_value = quantity * (price or await self._get_current_price(symbol))
             
             # Check if trade is allowed
-            allowed, reason=await self.risk_manager.should_allow_trade(
+            allowed, reason = await self.risk_manager.should_allow_trade(
                 self.strategy_name, symbol, trade_value, portfolio_value
             )
             
@@ -102,18 +102,18 @@ class RiskAwareStrategy(ABC):
             
             # Get risk - adjusted position size
             if self.risk_enabled: 
-                risk_adjusted_quantity=await self.risk_manager.get_risk_adjusted_position_size(
+                risk_adjusted_quantity = await self.risk_manager.get_risk_adjusted_position_size(
                     self.strategy_name, symbol, quantity, portfolio_value
                 )
                 
                 # Update quantity if risk - adjusted
-                if risk_adjusted_quantity != quantity: 
-                    self.logger.info(f"Risk - adjusted quantity for {symbol}: {quantity} -> {risk_adjusted_quantity}")
-                    quantity=risk_adjusted_quantity
-                    trade_value=quantity * (price or await self._get_current_price(symbol))
+                if risk_adjusted_quantity  !=  quantity: 
+                    self.logger.info(f"Risk - adjusted quantity for {symbol}: {quantity} - >  {risk_adjusted_quantity}")
+                    quantity = risk_adjusted_quantity
+                    trade_value = quantity * (price or await self._get_current_price(symbol))
             
             # Execute the actual trade
-            trade_result=await self._execute_actual_trade(
+            trade_result = await self._execute_actual_trade(
                 symbol, action, quantity, price, order_type, **kwargs
             )
             
@@ -134,7 +134,7 @@ class RiskAwareStrategy(ABC):
                 'error': True
             }
     
-    async def _execute_hold_action(self, symbol: str, **kwargs) -> Dict[str, Any]: 
+    async def _execute_hold_action(self, symbol: str, **kwargs)->Dict[str, Any]: 
         """Execute hold action (no risk checks needed)"""
         return {
             'success': True,
@@ -150,7 +150,7 @@ class RiskAwareStrategy(ABC):
                                   quantity: float,
                                   price: float,
                                   order_type: str,
-                                  **kwargs) -> Dict[str, Any]: 
+                                  **kwargs)->Dict[str, Any]: 
         """Execute the actual trade through the underlying strategy"""
         try: 
             # This would call the actual strategy's trade execution method
@@ -175,7 +175,7 @@ class RiskAwareStrategy(ABC):
                 'quantity': quantity
             }
     
-    async def _get_portfolio_value(self) -> float: 
+    async def _get_portfolio_value(self)->float: 
         """Get current portfolio value"""
         try: 
             # This would get the actual portfolio value from the broker
@@ -185,7 +185,7 @@ class RiskAwareStrategy(ABC):
             self.logger.error(f"Error getting portfolio value: {e}")
             return 100000.0
     
-    async def _get_current_price(self, symbol: str) -> float:
+    async def _get_current_price(self, symbol: str)->float:
         """Get current price for symbol"""
         try: 
             # This would get the actual current price
@@ -203,32 +203,32 @@ class RiskAwareStrategy(ABC):
         """Update risk metrics after successful trade"""
         try: 
             # Update portfolio positions
-            current_positions=self.risk_manager.portfolio_positions.copy()
+            current_positions = self.risk_manager.portfolio_positions.copy()
             
             if symbol not in current_positions: 
-                current_positions[symbol]={'value': 0, 'qty': 0}
+                current_positions[symbol] = {'value': 0, 'qty': 0}
             
             # Update position based on action
-            if action== 'buy': 
+            if action ==  'buy': 
                 current_positions[symbol]['qty'] += quantity
                 current_positions[symbol]['value'] += trade_value
-            elif action == 'sell': 
+            elif action  ==  'sell': 
                 current_positions[symbol]['qty'] -= quantity
                 current_positions[symbol]['value'] -= trade_value
             
             # Remove zero positions
-            if current_positions[symbol]['qty'] == 0: 
+            if current_positions[symbol]['qty']  ==  0: 
                 del current_positions[symbol]
             
             # Update risk manager
-            self.risk_manager.portfolio_positions=current_positions
+            self.risk_manager.portfolio_positions = current_positions
             
             self.logger.info(f"Updated risk metrics after {action} {quantity} {symbol}")
             
         except Exception as e: 
             self.logger.error(f"Error updating risk after trade: {e}")
     
-    async def get_risk_status(self) -> Dict[str, Any]: 
+    async def get_risk_status(self)->Dict[str, Any]: 
         """Get current risk status for this strategy"""
         return {
             'strategy_name': self.strategy_name,
@@ -241,21 +241,21 @@ class RiskAwareStrategy(ABC):
     
     def enable_risk_management(self): 
         """Enable risk management for this strategy"""
-        self.risk_enabled=True
+        self.risk_enabled = True
         self.logger.info(f"Risk management enabled for {self.strategy_name}")
     
     def disable_risk_management(self): 
         """Disable risk management for this strategy"""
-        self.risk_enabled=False
+        self.risk_enabled = False
         self.logger.warning(f"Risk management disabled for {self.strategy_name}")
     
     @abstractmethod
-    async def analyze_market(self, symbol: str, market_data: Dict[str, Any]) -> Dict[str, Any]: 
+    async def analyze_market(self, symbol: str, market_data: Dict[str, Any])->Dict[str, Any]: 
         """Analyze market conditions (to be implemented by specific strategies)"""
         pass
     
     @abstractmethod
-    async def generate_signals(self, symbol: str, market_data: Dict[str, Any]) -> List[Dict[str, Any]]: 
+    async def generate_signals(self, symbol: str, market_data: Dict[str, Any])->List[Dict[str, Any]]: 
         """Generate trading signals (to be implemented by specific strategies)"""
         pass
 
@@ -266,14 +266,14 @@ class RiskAwareWSBDipBot(RiskAwareStrategy):
     def __init__(self, strategy_instance: Any, risk_manager: RiskIntegrationManager):
         super().__init__(strategy_instance, risk_manager, "wsb_dip_bot")
     
-    async def analyze_market(self, symbol: str, market_data: Dict[str, Any]) -> Dict[str, Any]: 
+    async def analyze_market(self, symbol: str, market_data: Dict[str, Any])->Dict[str, Any]: 
         """Analyze market for dip opportunities with risk assessment"""
         try: 
             # Get base analysis from underlying strategy
-            base_analysis=await self.strategy.analyze_market(symbol, market_data)
+            base_analysis = await self.strategy.analyze_market(symbol, market_data)
             
             # Add risk assessment
-            risk_assessment=await self._assess_dip_risk(symbol, market_data)
+            risk_assessment = await self._assess_dip_risk(symbol, market_data)
             
             return {
                 **base_analysis,
@@ -285,14 +285,14 @@ class RiskAwareWSBDipBot(RiskAwareStrategy):
             self.logger.error(f"Error in risk - aware market analysis: {e}")
             return {'error': str(e), 'risk_adjusted': True}
     
-    async def generate_signals(self, symbol: str, market_data: Dict[str, Any]) -> List[Dict[str, Any]]: 
+    async def generate_signals(self, symbol: str, market_data: Dict[str, Any])->List[Dict[str, Any]]: 
         """Generate dip signals with risk management"""
         try: 
             # Get base signals from underlying strategy
-            base_signals=await self.strategy.generate_signals(symbol, market_data)
+            base_signals = await self.strategy.generate_signals(symbol, market_data)
             
             # Filter signals based on risk
-            risk_filtered_signals=[]
+            risk_filtered_signals = []
             for signal in base_signals: 
                 if await self._is_signal_risk_acceptable(signal, symbol, market_data): 
                     risk_filtered_signals.append(signal)
@@ -305,40 +305,40 @@ class RiskAwareWSBDipBot(RiskAwareStrategy):
             self.logger.error(f"Error generating risk - aware signals: {e}")
             return []
     
-    async def _assess_dip_risk(self, symbol: str, market_data: Dict[str, Any]) -> Dict[str, Any]: 
+    async def _assess_dip_risk(self, symbol: str, market_data: Dict[str, Any])->Dict[str, Any]: 
         """Assess risk specific to dip trading"""
         try: 
             # Get current risk metrics
-            risk_metrics=self.risk_manager.current_metrics
+            risk_metrics = self.risk_manager.current_metrics
             
             # Assess dip - specific risks
-            dip_risk_score=0.0
-            risk_factors=[]
+            dip_risk_score = 0.0
+            risk_factors = []
             
             # High volatility risk
-            if risk_metrics.ml_risk_score > 0.7: 
+            if risk_metrics.ml_risk_score  >  0.7: 
                 dip_risk_score += 0.3
                 risk_factors.append("High ML risk score")
             
             # Concentration risk
-            if risk_metrics.concentration_risk > 0.2: 
+            if risk_metrics.concentration_risk  >  0.2: 
                 dip_risk_score += 0.2
                 risk_factors.append("High concentration risk")
             
             # Portfolio VaR risk
-            if risk_metrics.portfolio_var > 0.03: 
+            if risk_metrics.portfolio_var  >  0.03: 
                 dip_risk_score += 0.3
                 risk_factors.append("High portfolio VaR")
             
             # Stress test risk
-            if risk_metrics.stress_test_score > 0.05: 
+            if risk_metrics.stress_test_score  >  0.05: 
                 dip_risk_score += 0.2
                 risk_factors.append("High stress test score")
             
             return {
                 'dip_risk_score': dip_risk_score,
                 'risk_factors': risk_factors,
-                'acceptable_for_dip': dip_risk_score < 0.5
+                'acceptable_for_dip': dip_risk_score  <  0.5
             }
             
         except Exception as e: 
@@ -348,21 +348,21 @@ class RiskAwareWSBDipBot(RiskAwareStrategy):
     async def _is_signal_risk_acceptable(self, 
                                        signal: Dict[str, Any], 
                                        symbol: str, 
-                                       market_data: Dict[str, Any]) -> bool: 
+                                       market_data: Dict[str, Any])->bool: 
         """Check if a signal is acceptable from a risk perspective"""
         try: 
             # Get signal details
-            action=signal.get('action', 'hold')
-            quantity=signal.get('quantity', 0)
+            action = signal.get('action', 'hold')
+            quantity = signal.get('quantity', 0)
             
-            if action== 'hold': return True
+            if action ==  'hold': return True
             
             # Get current portfolio value
-            portfolio_value=await self._get_portfolio_value()
-            trade_value=quantity * await self._get_current_price(symbol)
+            portfolio_value = await self._get_portfolio_value()
+            trade_value = quantity * await self._get_current_price(symbol)
             
             # Check if trade is allowed
-            allowed, reason=await self.risk_manager.should_allow_trade(
+            allowed, reason = await self.risk_manager.should_allow_trade(
                 self.strategy_name, symbol, trade_value, portfolio_value
             )
             
@@ -379,14 +379,14 @@ class RiskAwareEarningsProtection(RiskAwareStrategy):
     def __init__(self, strategy_instance: Any, risk_manager: RiskIntegrationManager):
         super().__init__(strategy_instance, risk_manager, "earnings_protection")
     
-    async def analyze_market(self, symbol: str, market_data: Dict[str, Any]) -> Dict[str, Any]: 
+    async def analyze_market(self, symbol: str, market_data: Dict[str, Any])->Dict[str, Any]: 
         """Analyze market for earnings opportunities with risk assessment"""
         try: 
             # Get base analysis from underlying strategy
-            base_analysis=await self.strategy.analyze_market(symbol, market_data)
+            base_analysis = await self.strategy.analyze_market(symbol, market_data)
             
             # Add earnings - specific risk assessment
-            earnings_risk=await self._assess_earnings_risk(symbol, market_data)
+            earnings_risk = await self._assess_earnings_risk(symbol, market_data)
             
             return {
                 **base_analysis,
@@ -398,14 +398,14 @@ class RiskAwareEarningsProtection(RiskAwareStrategy):
             self.logger.error(f"Error in risk - aware earnings analysis: {e}")
             return {'error': str(e), 'risk_adjusted': True}
     
-    async def generate_signals(self, symbol: str, market_data: Dict[str, Any]) -> List[Dict[str, Any]]: 
+    async def generate_signals(self, symbol: str, market_data: Dict[str, Any])->List[Dict[str, Any]]: 
         """Generate earnings protection signals with risk management"""
         try: 
             # Get base signals from underlying strategy
-            base_signals=await self.strategy.generate_signals(symbol, market_data)
+            base_signals = await self.strategy.generate_signals(symbol, market_data)
             
             # Filter signals based on earnings risk
-            risk_filtered_signals=[]
+            risk_filtered_signals = []
             for signal in base_signals: 
                 if await self._is_earnings_signal_risk_acceptable(signal, symbol, market_data): 
                     risk_filtered_signals.append(signal)
@@ -418,40 +418,40 @@ class RiskAwareEarningsProtection(RiskAwareStrategy):
             self.logger.error(f"Error generating risk - aware earnings signals: {e}")
             return []
     
-    async def _assess_earnings_risk(self, symbol: str, market_data: Dict[str, Any]) -> Dict[str, Any]: 
+    async def _assess_earnings_risk(self, symbol: str, market_data: Dict[str, Any])->Dict[str, Any]: 
         """Assess risk specific to earnings trading"""
         try: 
             # Get current risk metrics
-            risk_metrics=self.risk_manager.current_metrics
+            risk_metrics = self.risk_manager.current_metrics
             
             # Assess earnings - specific risks
-            earnings_risk_score=0.0
-            risk_factors=[]
+            earnings_risk_score = 0.0
+            risk_factors = []
             
             # IV risk (high IV can be dangerous around earnings)
             if 'iv_percentile' in market_data: 
-                iv_percentile=market_data['iv_percentile']
-                if iv_percentile > 80: 
+                iv_percentile = market_data['iv_percentile']
+                if iv_percentile  >  80: 
                     earnings_risk_score += 0.4
                     risk_factors.append("Very high IV percentile")
-                elif iv_percentile > 60: 
+                elif iv_percentile  >  60: 
                     earnings_risk_score += 0.2
                     risk_factors.append("High IV percentile")
             
             # Portfolio risk
-            if risk_metrics.portfolio_var > 0.04: 
+            if risk_metrics.portfolio_var  >  0.04: 
                 earnings_risk_score += 0.3
                 risk_factors.append("High portfolio VaR")
             
             # ML risk
-            if risk_metrics.ml_risk_score > 0.6: 
+            if risk_metrics.ml_risk_score  >  0.6: 
                 earnings_risk_score += 0.3
                 risk_factors.append("High ML risk score")
             
             return {
                 'earnings_risk_score': earnings_risk_score,
                 'risk_factors': risk_factors,
-                'acceptable_for_earnings': earnings_risk_score < 0.6
+                'acceptable_for_earnings': earnings_risk_score  <  0.6
             }
             
         except Exception as e: 
@@ -461,21 +461,21 @@ class RiskAwareEarningsProtection(RiskAwareStrategy):
     async def _is_earnings_signal_risk_acceptable(self, 
                                                 signal: Dict[str, Any], 
                                                 symbol: str, 
-                                                market_data: Dict[str, Any]) -> bool: 
+                                                market_data: Dict[str, Any])->bool: 
         """Check if an earnings signal is acceptable from a risk perspective"""
         try: 
             # Get signal details
-            action=signal.get('action', 'hold')
-            quantity=signal.get('quantity', 0)
+            action = signal.get('action', 'hold')
+            quantity = signal.get('quantity', 0)
             
-            if action== 'hold': return True
+            if action ==  'hold': return True
             
             # Get current portfolio value
-            portfolio_value=await self._get_portfolio_value()
-            trade_value=quantity * await self._get_current_price(symbol)
+            portfolio_value = await self._get_portfolio_value()
+            trade_value = quantity * await self._get_current_price(symbol)
             
             # Check if trade is allowed
-            allowed, reason=await self.risk_manager.should_allow_trade(
+            allowed, reason = await self.risk_manager.should_allow_trade(
                 self.strategy_name, symbol, trade_value, portfolio_value
             )
             
@@ -488,7 +488,7 @@ class RiskAwareEarningsProtection(RiskAwareStrategy):
 
 def create_risk_aware_strategy(strategy_instance: Any, 
                               risk_manager: RiskIntegrationManager,
-                              strategy_name: str) -> RiskAwareStrategy:
+                              strategy_name: str)->RiskAwareStrategy:
     """
     Factory function to create risk - aware strategy wrappers
     
@@ -500,8 +500,8 @@ def create_risk_aware_strategy(strategy_instance: Any,
     Returns: 
         RiskAwareStrategy: Risk - aware strategy wrapper
     """
-    if strategy_name== "wsb_dip_bot": return RiskAwareWSBDipBot(strategy_instance, risk_manager)
-    elif strategy_name== "earnings_protection": return RiskAwareEarningsProtection(strategy_instance, risk_manager)
+    if strategy_name ==  "wsb_dip_bot": return RiskAwareWSBDipBot(strategy_instance, risk_manager)
+    elif strategy_name ==  "earnings_protection": return RiskAwareEarningsProtection(strategy_instance, risk_manager)
     else: 
         # Generic risk - aware wrapper for other strategies
         return RiskAwareStrategy(strategy_instance, risk_manager, strategy_name)

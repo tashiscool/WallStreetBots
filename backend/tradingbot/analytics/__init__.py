@@ -22,7 +22,7 @@ from .market_regime_adapter import (
     adapt_strategies_to_market
 )
 
-__all__=[
+__all__ = [
     'AdvancedAnalytics',
     'PerformanceMetrics',
     'DrawdownPeriod',

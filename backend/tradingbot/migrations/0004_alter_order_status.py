@@ -5,14 +5,14 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration): 
 
-    dependencies=[
+    dependencies = [
         ('tradingbot', '0003_auto_20220108_1759'),
     ]
 
-    operations=[
+    operations = [
         migrations.AlterField(
-            model_name='order',
-            name='status',
-            field=models.CharField(choices=[('A', 'Accepted'), ('F', 'Filled'), ('C', 'Cancelled')], help_text='order status', max_length=1),
+            model_name = 'order',
+            name = 'status',
+            field = models.CharField(choices  =  [('A', 'Accepted'), ('F', 'Filled'), ('C', 'Cancelled')], help_text = 'order status', max_length = 1),
         ),
     ]

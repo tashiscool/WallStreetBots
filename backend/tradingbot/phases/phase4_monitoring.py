@@ -1,5 +1,5 @@
 """Phase 4: Advanced Monitoring and Alerting System
-Production - grade monitoring with real - time alerts and metrics
+Production - grade monitoring with real - time alerts and metrics.
 """
 
 import asyncio
@@ -32,7 +32,7 @@ class MetricType(Enum):
 
 @dataclass
 class AlertRule:
-    """Alert rule configuration"""
+    """Alert rule configuration."""
 
     name: str
     condition: str  # Python expression to evaluate
@@ -46,7 +46,7 @@ class AlertRule:
 
 @dataclass
 class Metric:
-    """Metric data structure"""
+    """Metric data structure."""
 
     name: str
     value: float
@@ -57,7 +57,7 @@ class Metric:
 
 @dataclass
 class Alert:
-    """Alert data structure"""
+    """Alert data structure."""
 
     id: str
     rule_name: str
@@ -71,7 +71,7 @@ class Alert:
 
 
 class MetricsCollector:
-    """Metrics collection and storage"""
+    """Metrics collection and storage."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
@@ -84,7 +84,7 @@ class MetricsCollector:
         self.logger.info("MetricsCollector initialized")
 
     def record_metric(self, metric: Metric):
-        """Record a metric"""
+        """Record a metric."""
         try:
             self.metrics[metric.name].append(metric)
 
@@ -104,7 +104,7 @@ class MetricsCollector:
             self.logger.error(f"Error recording metric: {e}")
 
     def get_metric_value(self, name: str, metric_type: MetricType = MetricType.GAUGE) -> float:
-        """Get current metric value"""
+        """Get current metric value."""
         try:
             if metric_type == MetricType.COUNTER:
                 return self.counters.get(name, 0.0)
@@ -124,7 +124,7 @@ class MetricsCollector:
             return 0.0
 
     def get_metric_history(self, name: str, minutes: int = 60) -> list[Metric]:
-        """Get metric history for specified time period"""
+        """Get metric history for specified time period."""
         try:
             cutoff_time = datetime.now() - timedelta(minutes=minutes)
             metrics = self.metrics.get(name, deque())
@@ -136,7 +136,7 @@ class MetricsCollector:
             return []
 
     def get_metric_stats(self, name: str, minutes: int = 60) -> dict[str, float]:
-        """Get metric statistics for specified time period"""
+        """Get metric statistics for specified time period."""
         try:
             history = self.get_metric_history(name, minutes)
 
@@ -159,7 +159,7 @@ class MetricsCollector:
 
 
 class AlertManager:
-    """Alert management and evaluation"""
+    """Alert management and evaluation."""
 
     def __init__(self, metrics_collector: MetricsCollector, logger: ProductionLogger):
         self.metrics_collector = metrics_collector
@@ -171,7 +171,7 @@ class AlertManager:
         self.logger.info("AlertManager initialized")
 
     def add_alert_rule(self, rule: AlertRule):
-        """Add an alert rule"""
+        """Add an alert rule."""
         try:
             self.alert_rules[rule.name] = rule
             self.logger.info(f"Added alert rule: {rule.name}")
@@ -180,7 +180,7 @@ class AlertManager:
             self.logger.error(f"Error adding alert rule: {e}")
 
     def remove_alert_rule(self, rule_name: str):
-        """Remove an alert rule"""
+        """Remove an alert rule."""
         try:
             if rule_name in self.alert_rules:
                 del self.alert_rules[rule_name]
@@ -190,7 +190,7 @@ class AlertManager:
             self.logger.error(f"Error removing alert rule: {e}")
 
     def register_alert_handler(self, level: AlertLevel, handler: Callable[[Alert], None]):
-        """Register an alert handler for a specific level"""
+        """Register an alert handler for a specific level."""
         try:
             if level not in self.alert_handlers:
                 self.alert_handlers[level] = []
@@ -202,7 +202,7 @@ class AlertManager:
             self.logger.error(f"Error registering alert handler: {e}")
 
     async def evaluate_alerts(self):
-        """Evaluate all alert rules"""
+        """Evaluate all alert rules."""
         try:
             for rule_name, rule in self.alert_rules.items():
                 if not rule.enabled:
@@ -224,7 +224,7 @@ class AlertManager:
             self.logger.error(f"Error evaluating alerts: {e}")
 
     async def _evaluate_rule(self, rule: AlertRule) -> bool:
-        """Evaluate a single alert rule"""
+        """Evaluate a single alert rule."""
         try:
             # Get metric value
             metric_value = self.metrics_collector.get_metric_value(rule.condition)
@@ -248,7 +248,7 @@ class AlertManager:
             return False
 
     async def _trigger_alert(self, rule: AlertRule):
-        """Trigger an alert"""
+        """Trigger an alert."""
         try:
             alert_id = f"{rule.name}_{int(time.time())}"
             metric_value = self.metrics_collector.get_metric_value(rule.condition)
@@ -275,7 +275,7 @@ class AlertManager:
             self.logger.error(f"Error triggering alert: {e}")
 
     async def _resolve_alert(self, rule_name: str):
-        """Resolve an alert"""
+        """Resolve an alert."""
         try:
             if rule_name in self.active_alerts:
                 alert = self.active_alerts[rule_name]
@@ -290,7 +290,7 @@ class AlertManager:
             self.logger.error(f"Error resolving alert: {e}")
 
     async def _send_alert(self, alert: Alert):
-        """Send alert to registered handlers"""
+        """Send alert to registered handlers."""
         try:
             handlers = self.alert_handlers.get(alert.level, [])
 
@@ -305,7 +305,7 @@ class AlertManager:
 
 
 class SystemMonitor:
-    """System monitoring and health checks"""
+    """System monitoring and health checks."""
 
     def __init__(
         self,
@@ -325,7 +325,7 @@ class SystemMonitor:
         self.logger.info("SystemMonitor initialized")
 
     def start_monitoring(self):
-        """Start system monitoring"""
+        """Start system monitoring."""
         try:
             if self.monitoring_active:
                 self.logger.warning("Monitoring already active")
@@ -341,7 +341,7 @@ class SystemMonitor:
             self.logger.error(f"Error starting monitoring: {e}")
 
     def stop_monitoring(self):
-        """Stop system monitoring"""
+        """Stop system monitoring."""
         try:
             self.monitoring_active = False
 
@@ -354,7 +354,7 @@ class SystemMonitor:
             self.logger.error(f"Error stopping monitoring: {e}")
 
     def _monitoring_loop(self):
-        """Main monitoring loop"""
+        """Main monitoring loop."""
         try:
             while self.monitoring_active:
                 # Collect system metrics
@@ -373,7 +373,7 @@ class SystemMonitor:
             self.logger.error(f"Error in monitoring loop: {e}")
 
     def _collect_system_metrics(self):
-        """Collect system - level metrics"""
+        """Collect system - level metrics."""
         try:
             import psutil
 
@@ -435,7 +435,7 @@ class SystemMonitor:
             self.logger.error(f"Error collecting system metrics: {e}")
 
     def _collect_trading_metrics(self):
-        """Collect trading - specific metrics"""
+        """Collect trading - specific metrics."""
         try:
             # Mock trading metrics - in production, these would come from actual trading data
             self.metrics_collector.record_metric(
@@ -479,13 +479,13 @@ class SystemMonitor:
 
 
 class AlertHandlers:
-    """Built - in alert handlers"""
+    """Built - in alert handlers."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
 
     async def slack_alert_handler(self, alert: Alert):
-        """Send alert to Slack"""
+        """Send alert to Slack."""
         try:
             # Mock Slack integration - in production, use actual Slack webhook
             self.logger.info(f"SLACK ALERT [{alert.level.value.upper()}]: {alert.message}")
@@ -494,7 +494,7 @@ class AlertHandlers:
             self.logger.error(f"Error sending Slack alert: {e}")
 
     async def email_alert_handler(self, alert: Alert):
-        """Send alert via email"""
+        """Send alert via email."""
         try:
             # Mock email integration - in production, use actual SMTP
             self.logger.info(f"EMAIL ALERT [{alert.level.value.upper()}]: {alert.message}")
@@ -503,7 +503,7 @@ class AlertHandlers:
             self.logger.error(f"Error sending email alert: {e}")
 
     async def webhook_alert_handler(self, alert: Alert):
-        """Send alert to webhook"""
+        """Send alert to webhook."""
         try:
             # Mock webhook integration - in production, use actual HTTP request
             self.logger.info(f"WEBHOOK ALERT [{alert.level.value.upper()}]: {alert.message}")
@@ -513,7 +513,7 @@ class AlertHandlers:
 
 
 class MonitoringDashboard:
-    """Monitoring dashboard and reporting"""
+    """Monitoring dashboard and reporting."""
 
     def __init__(
         self,
@@ -528,7 +528,7 @@ class MonitoringDashboard:
         self.logger.info("MonitoringDashboard initialized")
 
     def get_dashboard_data(self) -> dict[str, Any]:
-        """Get dashboard data"""
+        """Get dashboard data."""
         try:
             dashboard_data = {
                 "timestamp": datetime.now().isoformat(),
@@ -546,7 +546,7 @@ class MonitoringDashboard:
             return {"error": str(e)}
 
     def _get_system_health(self) -> dict[str, Any]:
-        """Get system health metrics"""
+        """Get system health metrics."""
         try:
             cpu_usage = self.metrics_collector.get_metric_value("system.cpu.usage")
             memory_usage = self.metrics_collector.get_metric_value("system.memory.usage")
@@ -570,7 +570,7 @@ class MonitoringDashboard:
             return {"status": "unknown", "error": str(e)}
 
     def _get_trading_metrics(self) -> dict[str, Any]:
-        """Get trading metrics"""
+        """Get trading metrics."""
         try:
             portfolio_value = self.metrics_collector.get_metric_value("trading.portfolio.value")
             position_count = self.metrics_collector.get_metric_value("trading.positions.count")
@@ -589,7 +589,7 @@ class MonitoringDashboard:
             return {"error": str(e)}
 
     def _get_active_alerts(self) -> list[dict[str, Any]]:
-        """Get active alerts"""
+        """Get active alerts."""
         try:
             active_alerts = []
 
@@ -613,7 +613,7 @@ class MonitoringDashboard:
             return []
 
     def _get_recent_alerts(self, limit: int = 10) -> list[dict[str, Any]]:
-        """Get recent alerts"""
+        """Get recent alerts."""
         try:
             # Mock recent alerts - in production, this would come from a database
             recent_alerts = [
@@ -642,7 +642,7 @@ class MonitoringDashboard:
             return []
 
     def _get_performance_metrics(self) -> dict[str, Any]:
-        """Get performance metrics"""
+        """Get performance metrics."""
         try:
             # Get metrics for last hour
             cpu_stats = self.metrics_collector.get_metric_stats("system.cpu.usage", 60)
@@ -657,7 +657,7 @@ class MonitoringDashboard:
 
 
 class Phase4Monitoring:
-    """Main Phase 4 monitoring orchestrator"""
+    """Main Phase 4 monitoring orchestrator."""
 
     def __init__(self, config: ConfigManager, logger: ProductionLogger):
         self.config = config
@@ -681,7 +681,7 @@ class Phase4Monitoring:
         self.logger.info("Phase4Monitoring initialized")
 
     def _setup_default_alert_rules(self):
-        """Setup default alert rules"""
+        """Setup default alert rules."""
         try:
             # System alerts
             self.alert_manager.add_alert_rule(
@@ -746,7 +746,7 @@ class Phase4Monitoring:
             self.logger.error(f"Error setting up default alert rules: {e}")
 
     def _register_alert_handlers(self):
-        """Register alert handlers"""
+        """Register alert handlers."""
         try:
             # Register handlers for each alert level
             for level in AlertLevel:
@@ -766,7 +766,7 @@ class Phase4Monitoring:
             self.logger.error(f"Error registering alert handlers: {e}")
 
     def start_monitoring(self):
-        """Start the monitoring system"""
+        """Start the monitoring system."""
         try:
             self.system_monitor.start_monitoring()
             self.logger.info("Phase 4 monitoring system started")
@@ -775,7 +775,7 @@ class Phase4Monitoring:
             self.logger.error(f"Error starting monitoring: {e}")
 
     def stop_monitoring(self):
-        """Stop the monitoring system"""
+        """Stop the monitoring system."""
         try:
             self.system_monitor.stop_monitoring()
             self.logger.info("Phase 4 monitoring system stopped")
@@ -784,7 +784,7 @@ class Phase4Monitoring:
             self.logger.error(f"Error stopping monitoring: {e}")
 
     def get_dashboard_data(self) -> dict[str, Any]:
-        """Get monitoring dashboard data"""
+        """Get monitoring dashboard data."""
         return self.dashboard.get_dashboard_data()
 
     def add_custom_metric(
@@ -792,9 +792,9 @@ class Phase4Monitoring:
         name: str,
         value: float,
         metric_type: MetricType = MetricType.GAUGE,
-        labels: dict[str, str] = None,
+        labels: dict[str, str] | None = None,
     ):
-        """Add a custom metric"""
+        """Add a custom metric."""
         try:
             metric = Metric(
                 name=name,
@@ -810,5 +810,5 @@ class Phase4Monitoring:
             self.logger.error(f"Error adding custom metric: {e}")
 
     def add_custom_alert_rule(self, rule: AlertRule):
-        """Add a custom alert rule"""
+        """Add a custom alert rule."""
         self.alert_manager.add_alert_rule(rule)

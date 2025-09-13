@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Integrated Advanced Risk Manager
-Combines all Month 1 - 6 risk management features into a unified system
+Combines all Month 1 - 6 risk management features into a unified system.
 
 This module integrates:
 - Month 1 - 2: Basic sophisticated risk models (VaR, CVaR, stress testing, ML)
@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class IntegratedRiskConfig:
-    """Configuration for integrated risk management system"""
+    """Configuration for integrated risk management system."""
 
     # Core risk settings
     max_total_var: float = 0.05  # 5% max total VaR
@@ -67,7 +67,7 @@ class IntegratedRiskConfig:
 
 
 class IntegratedAdvancedRiskManager:
-    """🏆 Complete Risk Management System - Months 1 - 6 Integration
+    """🏆 Complete Risk Management System - Months 1 - 6 Integration.
 
     This class provides a unified interface to all risk management capabilities:
     - Sophisticated VaR / CVaR calculations with multiple methodologies
@@ -82,7 +82,7 @@ class IntegratedAdvancedRiskManager:
     """
 
     def __init__(self, config: IntegratedRiskConfig = None):
-        """Initialize the integrated risk management system
+        """Initialize the integrated risk management system.
 
         Args:
             config: Risk management configuration
@@ -135,7 +135,7 @@ class IntegratedAdvancedRiskManager:
     async def comprehensive_risk_assessment(
         self, positions: dict[str, dict], market_data: dict[str, Any]
     ) -> dict[str, Any]:
-        """Perform comprehensive risk assessment using all available methods
+        """Perform comprehensive risk assessment using all available methods.
 
         Args:
             positions: Portfolio positions
@@ -260,7 +260,7 @@ class IntegratedAdvancedRiskManager:
     def _calculate_portfolio_returns(
         self, positions: dict[str, dict], market_data: dict[str, Any]
     ) -> np.ndarray:
-        """Calculate portfolio returns from positions and market data"""
+        """Calculate portfolio returns from positions and market data."""
         try:
             returns_list = []
             total_value = sum(pos.get("value", 0) for pos in positions.values())
@@ -304,7 +304,7 @@ class IntegratedAdvancedRiskManager:
     def _create_risk_state(
         self, positions: dict[str, dict], market_data: dict[str, Any]
     ) -> "RiskState":
-        """Create risk state for ML agents"""
+        """Create risk state for ML agents."""
         try:
             portfolio_returns = self._calculate_portfolio_returns(positions, market_data)
 
@@ -369,7 +369,7 @@ class IntegratedAdvancedRiskManager:
             )
 
     def _determine_asset_class(self, symbol: str) -> "AssetClass":
-        """Determine asset class from symbol"""
+        """Determine asset class from symbol."""
         symbol_upper = symbol.upper()
 
         if symbol_upper in ["BTC", "ETH", "BITCOIN", "ETHEREUM"]:
@@ -386,7 +386,7 @@ class IntegratedAdvancedRiskManager:
     async def start_continuous_monitoring(
         self, positions: dict[str, dict], market_data: dict[str, Any]
     ) -> None:
-        """Start continuous risk monitoring"""
+        """Start continuous risk monitoring."""
         self.logger.info("Starting continuous risk monitoring")
         self.system_status = "monitoring"
 
@@ -420,7 +420,7 @@ class IntegratedAdvancedRiskManager:
     async def _check_rebalancing_needs(
         self, positions: dict[str, dict], risk_results: dict[str, Any]
     ) -> None:
-        """Check if portfolio needs rebalancing"""
+        """Check if portfolio needs rebalancing."""
         try:
             # Simple rebalancing logic based on risk metrics
             total_var = risk_results.get("portfolio_risk", {}).get("total_var", 0)
@@ -442,12 +442,12 @@ class IntegratedAdvancedRiskManager:
             self.logger.error(f"Error checking rebalancing needs: {e}")
 
     def stop_monitoring(self) -> None:
-        """Stop continuous monitoring"""
+        """Stop continuous monitoring."""
         self.system_status = "stopped"
         self.logger.info("Risk monitoring stopped")
 
     def get_system_status(self) -> dict[str, Any]:
-        """Get current system status"""
+        """Get current system status."""
         return {
             "status": self.system_status,
             "advanced_features_available": ADVANCED_FEATURES_AVAILABLE,
@@ -470,7 +470,7 @@ class IntegratedAdvancedRiskManager:
 async def create_integrated_risk_system(
     portfolio_value: float = 100000, regulatory_authority: str = "FCA"
 ) -> IntegratedAdvancedRiskManager:
-    """Create a fully integrated risk management system with all features enabled
+    """Create a fully integrated risk management system with all features enabled.
 
     Args:
         portfolio_value: Total portfolio value

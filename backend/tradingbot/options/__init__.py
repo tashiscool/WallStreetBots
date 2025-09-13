@@ -1,4 +1,4 @@
-"""Options pricing and analysis module"""
+"""Options pricing and analysis module."""
 
 from .pricing_engine import (
     BlackScholesEngine,

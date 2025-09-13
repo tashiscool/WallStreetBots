@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Comprehensive Phase 3 Tests
-Test all Phase 3 strategies with mocked dependencies
+Test all Phase 3 strategies with mocked dependencies.
 """
 
 import unittest
@@ -377,10 +377,10 @@ class LEAPSPosition:
 
 
 class TestEarningsProtection(unittest.TestCase):
-    """Test Earnings Protection Strategy"""
+    """Test Earnings Protection Strategy."""
 
     def test_earnings_event_creation(self):
-        """Test earnings event creation"""
+        """Test earnings event creation."""
         event = EarningsEvent(
             ticker="AAPL",
             event_type=EarningsEventType.EARNINGS,
@@ -398,7 +398,7 @@ class TestEarningsProtection(unittest.TestCase):
         self.assertEqual(event.revenue_estimate, 120000000000)
 
     def test_iv_analysis_creation(self):
-        """Test IV analysis creation"""
+        """Test IV analysis creation."""
         analysis = IVAnalysis(
             ticker="AAPL",
             current_iv=0.25,
@@ -417,7 +417,7 @@ class TestEarningsProtection(unittest.TestCase):
         self.assertEqual(analysis.iv_crush_expected, 0.15)
 
     def test_earnings_position_creation(self):
-        """Test earnings position creation"""
+        """Test earnings position creation."""
         position = EarningsPosition(
             ticker="AAPL",
             strategy=EarningsStrategy.DEEP_ITM_PROTECTION,
@@ -444,7 +444,7 @@ class TestEarningsProtection(unittest.TestCase):
         self.assertEqual(position.days_to_earnings, 5)
 
     def test_earnings_candidate_creation(self):
-        """Test earnings candidate creation"""
+        """Test earnings candidate creation."""
         candidate = EarningsCandidate(
             ticker="AAPL",
             earnings_date=datetime.now() + timedelta(days=5),
@@ -468,10 +468,10 @@ class TestEarningsProtection(unittest.TestCase):
 
 
 class TestSwingTrading(unittest.TestCase):
-    """Test Swing Trading Strategy"""
+    """Test Swing Trading Strategy."""
 
     def test_technical_analysis_creation(self):
-        """Test technical analysis creation"""
+        """Test technical analysis creation."""
         analysis = TechnicalAnalysis(
             ticker="AAPL",
             current_price=150.0,
@@ -505,7 +505,7 @@ class TestSwingTrading(unittest.TestCase):
         self.assertEqual(analysis.volume_ratio, 1.2)
 
     def test_swing_position_creation(self):
-        """Test swing position creation"""
+        """Test swing position creation."""
         position = SwingPosition(
             ticker="AAPL",
             strategy=SwingStrategy.BREAKOUT,
@@ -533,7 +533,7 @@ class TestSwingTrading(unittest.TestCase):
         self.assertEqual(position.technical_score, 0.8)
 
     def test_swing_candidate_creation(self):
-        """Test swing candidate creation"""
+        """Test swing candidate creation."""
         candidate = SwingCandidate(
             ticker="AAPL",
             current_price=150.0,
@@ -557,10 +557,10 @@ class TestSwingTrading(unittest.TestCase):
 
 
 class TestMomentumWeeklies(unittest.TestCase):
-    """Test Momentum Weeklies Strategy"""
+    """Test Momentum Weeklies Strategy."""
 
     def test_momentum_data_creation(self):
-        """Test momentum data creation"""
+        """Test momentum data creation."""
         data = MomentumData(
             ticker="AAPL",
             current_price=150.0,
@@ -593,7 +593,7 @@ class TestMomentumWeeklies(unittest.TestCase):
         self.assertEqual(data.overall_score, 0.7)
 
     def test_momentum_position_creation(self):
-        """Test momentum position creation"""
+        """Test momentum position creation."""
         position = MomentumPosition(
             ticker="AAPL",
             momentum_type=MomentumType.PRICE_MOMENTUM,
@@ -618,10 +618,10 @@ class TestMomentumWeeklies(unittest.TestCase):
 
 
 class TestLottoScanner(unittest.TestCase):
-    """Test Lotto Scanner Strategy"""
+    """Test Lotto Scanner Strategy."""
 
     def test_volatility_analysis_creation(self):
-        """Test volatility analysis creation"""
+        """Test volatility analysis creation."""
         analysis = VolatilityAnalysis(
             ticker="AAPL",
             current_price=150.0,
@@ -647,7 +647,7 @@ class TestLottoScanner(unittest.TestCase):
         self.assertEqual(analysis.options_volume, 50000)
 
     def test_lotto_position_creation(self):
-        """Test lotto position creation"""
+        """Test lotto position creation."""
         position = LottoPosition(
             ticker="AAPL",
             lotto_type=LottoType.ZERO_DTE,
@@ -675,10 +675,10 @@ class TestLottoScanner(unittest.TestCase):
 
 
 class TestLEAPSTracker(unittest.TestCase):
-    """Test LEAPS Tracker Strategy"""
+    """Test LEAPS Tracker Strategy."""
 
     def test_secular_analysis_creation(self):
-        """Test secular analysis creation"""
+        """Test secular analysis creation."""
         analysis = SecularAnalysis(
             ticker="AAPL",
             sector="Technology",
@@ -713,7 +713,7 @@ class TestLEAPSTracker(unittest.TestCase):
         self.assertEqual(analysis.overall_score, 0.7)
 
     def test_leaps_position_creation(self):
-        """Test LEAPS position creation"""
+        """Test LEAPS position creation."""
         position = LEAPSPosition(
             ticker="AAPL",
             secular_trend=SecularTrend.TECHNOLOGY,
@@ -741,10 +741,10 @@ class TestLEAPSTracker(unittest.TestCase):
 
 
 class TestPhase3EndToEnd(unittest.TestCase):
-    """End - to - end tests for Phase 3"""
+    """End - to - end tests for Phase 3."""
 
     def test_earnings_protection_workflow(self):
-        """Test complete earnings protection workflow"""
+        """Test complete earnings protection workflow."""
         # Test earnings event creation
         event = EarningsEvent(
             ticker="AAPL",
@@ -796,7 +796,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
         self.assertEqual(candidate.strategy_recommended, EarningsStrategy.DEEP_ITM_PROTECTION)
 
     def test_swing_trading_workflow(self):
-        """Test complete swing trading workflow"""
+        """Test complete swing trading workflow."""
         # Test technical analysis creation
         analysis = TechnicalAnalysis(
             ticker="AAPL",
@@ -847,7 +847,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
         self.assertEqual(candidate.risk_reward_ratio, 2.0)
 
     def test_momentum_weeklies_workflow(self):
-        """Test complete momentum weeklies workflow"""
+        """Test complete momentum weeklies workflow."""
         # Test momentum data creation
         data = MomentumData(
             ticker="AAPL",
@@ -897,7 +897,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
         self.assertEqual(position.days_to_expiry, 7)
 
     def test_lotto_scanner_workflow(self):
-        """Test complete lotto scanner workflow"""
+        """Test complete lotto scanner workflow."""
         # Test volatility analysis creation
         analysis = VolatilityAnalysis(
             ticker="AAPL",
@@ -942,7 +942,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
         self.assertEqual(position.days_to_expiry, 0)
 
     def test_leaps_tracker_workflow(self):
-        """Test complete LEAPS tracker workflow"""
+        """Test complete LEAPS tracker workflow."""
         # Test secular analysis creation
         analysis = SecularAnalysis(
             ticker="AAPL",

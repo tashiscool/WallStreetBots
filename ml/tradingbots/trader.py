@@ -1,5 +1,5 @@
 class Action:
-    """data class returned by Strategy class
+    """data class returned by Strategy class.
 
     ORDERTYPES = [
         ('M', 'Market'),
@@ -54,7 +54,7 @@ class Strategy:
 class MonteCarloMASharpeRatioStrategy(Strategy):
     def get_actions(self, portfolio):
         """Args:
-            portfolio:   dict in the form {cash: QTY, stocks: {SYMB1: QTY, SYMB2: QTY}}
+            portfolio:   dict in the form {cash: QTY, stocks: {SYMB1: QTY, SYMB2: QTY}}.
 
         Returns:
             actions:    list of action objects
@@ -69,7 +69,7 @@ class MonteCarloMASharpeRatioStrategy(Strategy):
 class HMMNaiveStrategy(Strategy):
     def get_actions(self, portfolio):
         """Args:
-            portfolio:   dict in the form {cash: QTY, stocks: {SYMB1: QTY, SYMB2: QTY}}
+            portfolio:   dict in the form {cash: QTY, stocks: {SYMB1: QTY, SYMB2: QTY}}.
 
         Returns:
             actions:    list of action objects

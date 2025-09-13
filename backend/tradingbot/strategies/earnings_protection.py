@@ -1,12 +1,13 @@
 #!/usr / bin / env python3
 """WSB Strategy: Earnings IV Crush Protection
 Avoid the #1 WSB earnings mistake-getting crushed by IV collapse
-Focus on IV - resistant structures: Deep ITM options, calendar spreads, balanced hedges
+Focus on IV - resistant structures: Deep ITM options, calendar spreads, balanced hedges.
 """
 
 import argparse
 import json
 import math
+import sys
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
 
@@ -17,7 +18,7 @@ try:
 except ImportError as e:
     print(f"Missing required package: {e}")
     print("Run: pip install -r wsb_requirements.txt")
-    exit(1)
+    sys.exit(1)
 
 
 @dataclass
@@ -100,7 +101,7 @@ class EarningsProtectionScanner:
         ]
 
     def get_upcoming_earnings(self, days_ahead: int = 14) -> list[EarningsEvent]:
-        """Get upcoming earnings events (simplified - would use earnings API in production)"""
+        """Get upcoming earnings events (simplified - would use earnings API in production)."""
         # Mock earnings data - in production, use Alpha Vantage, FMP, or similar
         mock_earnings = [
             {"ticker": "AAPL", "days_out": 3, "time": "AMC"},
@@ -175,7 +176,7 @@ class EarningsProtectionScanner:
         return sorted(events, key=lambda x: x.days_until_earnings)
 
     def estimate_earnings_move(self, ticker: str, days_to_earnings: int) -> tuple[float, float]:
-        """Estimate expected move and current IV from options"""
+        """Estimate expected move and current IV from options."""
         try:
             stock = yf.Ticker(ticker)
 
@@ -237,7 +238,7 @@ class EarningsProtectionScanner:
             return 0.06, 0.30  # Conservative defaults
 
     def estimate_historical_iv(self, ticker: str) -> float:
-        """Estimate historical IV from price volatility"""
+        """Estimate historical IV from price volatility."""
         try:
             stock = yf.Ticker(ticker)
             hist = stock.history(period="60d")
@@ -254,7 +255,7 @@ class EarningsProtectionScanner:
             return 0.25
 
     def create_deep_itm_strategy(self, event: EarningsEvent) -> EarningsProtectionStrategy | None:
-        """Create deep ITM call strategy (less IV sensitive)"""
+        """Create deep ITM call strategy (less IV sensitive)."""
         try:
             ticker = event.ticker
             stock = yf.Ticker(ticker)
@@ -335,7 +336,7 @@ class EarningsProtectionScanner:
     def create_calendar_spread_strategy(
         self, event: EarningsEvent
     ) -> EarningsProtectionStrategy | None:
-        """Create calendar spread (sell front month, buy back month)"""
+        """Create calendar spread (sell front month, buy back month)."""
         try:
             ticker = event.ticker
             stock = yf.Ticker(ticker)
@@ -424,7 +425,7 @@ class EarningsProtectionScanner:
     def create_protective_hedge_strategy(
         self, event: EarningsEvent
     ) -> EarningsProtectionStrategy | None:
-        """Create protective hedge (long call + long put with different strikes)"""
+        """Create protective hedge (long call + long put with different strikes)."""
         try:
             ticker = event.ticker
             stock = yf.Ticker(ticker)
@@ -505,7 +506,7 @@ class EarningsProtectionScanner:
             return None
 
     def scan_earnings_protection(self) -> list[EarningsProtectionStrategy]:
-        """Scan for earnings protection strategies"""
+        """Scan for earnings protection strategies."""
         strategies = []
         events = self.get_upcoming_earnings()
 
@@ -552,7 +553,7 @@ class EarningsProtectionScanner:
         return strategies
 
     def format_strategies(self, strategies: list[EarningsProtectionStrategy]) -> str:
-        """Format earnings protection strategies"""
+        """Format earnings protection strategies."""
         if not strategies:
             return "📊 No earnings protection strategies found."
 

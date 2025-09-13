@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Production Swing Trading Strategy
-Fast profit - taking swing trades with same-day exit discipline
+Fast profit - taking swing trades with same-day exit discipline.
 """
 
 import asyncio
@@ -19,7 +19,7 @@ from ..data.production_data_integration import ReliableDataProvider
 
 @dataclass
 class SwingSignal:
-    """Production swing signal with enhanced metadata"""
+    """Production swing signal with enhanced metadata."""
 
     ticker: str
     signal_time: datetime
@@ -40,7 +40,7 @@ class SwingSignal:
 
 
 class ProductionSwingTrading:
-    """Production Swing Trading Strategy
+    """Production Swing Trading Strategy.
 
     Strategy Logic:
     1. Scans for breakouts, momentum continuation, and reversal setups
@@ -131,7 +131,7 @@ class ProductionSwingTrading:
         self.logger.info("ProductionSwingTrading strategy initialized")
 
     async def detect_breakout(self, ticker: str) -> tuple[bool, float, float]:
-        """Detect breakout above resistance with volume confirmation"""
+        """Detect breakout above resistance with volume confirmation."""
         try:
             # Get 5 days of 15 - minute data for breakout analysis
             data = await self.data_provider.get_intraday_data(ticker, interval="15min", period="5d")
@@ -193,7 +193,7 @@ class ProductionSwingTrading:
             return False, 0.0, 0.0
 
     async def detect_momentum_continuation(self, ticker: str) -> tuple[bool, float]:
-        """Detect strong momentum continuation patterns"""
+        """Detect strong momentum continuation patterns."""
         try:
             # Get 2 days of 5 - minute data for momentum analysis
             data = await self.data_provider.get_intraday_data(ticker, interval="5min", period="2d")
@@ -229,7 +229,7 @@ class ProductionSwingTrading:
             return False, 0.0
 
     async def detect_reversal_setup(self, ticker: str) -> tuple[bool, str, float]:
-        """Detect oversold bounce setups"""
+        """Detect oversold bounce setups."""
         try:
             # Get 3 days of 15 - minute data for reversal analysis
             data = await self.data_provider.get_intraday_data(ticker, interval="15min", period="3d")
@@ -273,7 +273,7 @@ class ProductionSwingTrading:
             return False, "error", 0.0
 
     def get_optimal_expiry(self) -> str:
-        """Get optimal expiry for swing trades (≤30 days)"""
+        """Get optimal expiry for swing trades (≤30 days)."""
         today = date.today()
 
         # Prefer weekly expirations for faster management
@@ -295,7 +295,7 @@ class ProductionSwingTrading:
         return expiry_date.strftime("%Y-%m-%d")
 
     def calculate_option_targets(self, premium: float) -> tuple[float, float, float, float]:
-        """Calculate profit targets and stop loss"""
+        """Calculate profit targets and stop loss."""
         profit_25 = premium * 1.25  # 25% profit
         profit_50 = premium * 1.50  # 50% profit
         profit_100 = premium * 2.00  # 100% profit
@@ -304,7 +304,7 @@ class ProductionSwingTrading:
         return profit_25, profit_50, profit_100, stop_loss
 
     async def estimate_swing_premium(self, ticker: str, strike: float, expiry: str) -> float:
-        """Estimate option premium for swing trade"""
+        """Estimate option premium for swing trade."""
         try:
             # Try to get actual options data
             options_data = await self.data_provider.get_options_chain(ticker, expiry)
@@ -350,7 +350,7 @@ class ProductionSwingTrading:
             return 2.0
 
     async def scan_swing_opportunities(self) -> list[SwingSignal]:
-        """Scan for swing trading opportunities"""
+        """Scan for swing trading opportunities."""
         signals = []
         expiry = self.get_optimal_expiry()
 
@@ -458,7 +458,7 @@ class ProductionSwingTrading:
         return signals
 
     async def execute_swing_trade(self, signal: SwingSignal) -> bool:
-        """Execute swing trade"""
+        """Execute swing trade."""
         try:
             # Check if we can add more positions
             if len(self.active_positions) >= self.max_positions:
@@ -545,7 +545,7 @@ class ProductionSwingTrading:
             return False
 
     async def manage_positions(self):
-        """Manage existing swing positions"""
+        """Manage existing swing positions."""
         positions_to_remove = []
         current_time = datetime.now()
 
@@ -687,7 +687,7 @@ class ProductionSwingTrading:
             self.active_positions.pop(i)
 
     async def scan_opportunities(self) -> list[ProductionTradeSignal]:
-        """Main strategy execution: scan and generate trade signals"""
+        """Main strategy execution: scan and generate trade signals."""
         try:
             # First manage existing positions
             await self.manage_positions()
@@ -737,7 +737,7 @@ class ProductionSwingTrading:
             return []
 
     def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         try:
             total_cost_basis = sum(pos["cost_basis"] for pos in self.active_positions)
             position_details = []
@@ -785,7 +785,7 @@ class ProductionSwingTrading:
             return {"strategy_name": self.strategy_name, "error": str(e)}
 
     async def run_strategy(self):
-        """Main strategy execution loop"""
+        """Main strategy execution loop."""
         self.logger.info("Starting Production Swing Trading Strategy")
 
         try:
@@ -807,5 +807,5 @@ class ProductionSwingTrading:
 def create_production_swing_trading(
     integration_manager, data_provider: ReliableDataProvider, config: dict
 ) -> ProductionSwingTrading:
-    """Factory function to create ProductionSwingTrading strategy"""
+    """Factory function to create ProductionSwingTrading strategy."""
     return ProductionSwingTrading(integration_manager, data_provider, config)

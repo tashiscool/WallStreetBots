@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Demo Advanced Risk Models - 2025 Implementation
-Practical demonstration of sophisticated risk management capabilities
+Practical demonstration of sophisticated risk management capabilities.
 """
 
 import os
@@ -20,7 +20,7 @@ from tradingbot.risk import AdvancedVaREngine, MLRiskPredictor, RiskDashboard202
 
 
 def create_realistic_portfolio():
-    """Create a realistic portfolio for demonstration"""
+    """Create a realistic portfolio for demonstration."""
     return {
         "total_value": 500000.0,  # $500K portfolio
         "positions": [
@@ -51,7 +51,7 @@ def create_realistic_portfolio():
 
 
 def demo_var_analysis():
-    """Demonstrate VaR analysis capabilities"""
+    """Demonstrate VaR analysis capabilities."""
     print("🔬 VaR Analysis Demo")
     print(" = " * 50)
 
@@ -130,7 +130,7 @@ def demo_var_analysis():
 
 
 def demo_stress_testing():
-    """Demonstrate stress testing capabilities"""
+    """Demonstrate stress testing capabilities."""
     print("\n + n🚨 Stress Testing Demo")
     print(" = " * 50)
 
@@ -166,7 +166,7 @@ def demo_stress_testing():
 
 
 def demo_ml_risk_prediction():
-    """Demonstrate ML risk prediction capabilities"""
+    """Demonstrate ML risk prediction capabilities."""
     print("\n + n🤖 ML Risk Prediction Demo")
     print(" = " * 50)
 
@@ -207,7 +207,7 @@ def demo_ml_risk_prediction():
 
 
 def demo_risk_dashboard():
-    """Demonstrate comprehensive risk dashboard"""
+    """Demonstrate comprehensive risk dashboard."""
     print("\n + n📊 Risk Dashboard Demo")
     print(" = " * 50)
 
@@ -280,7 +280,7 @@ def demo_risk_dashboard():
 
 
 def demo_risk_management_workflow():
-    """Demonstrate complete risk management workflow"""
+    """Demonstrate complete risk management workflow."""
     print("\n + n🔄 Complete Risk Management Workflow Demo")
     print(" = " * 60)
 
@@ -348,7 +348,7 @@ def demo_risk_management_workflow():
 
 
 def main():
-    """Main demo function"""
+    """Main demo function."""
     print("🚀 WallStreetBots Advanced Risk Models - 2025 Demo")
     print(" = " * 70)
     print(f"Demo Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Quick test runner to verify all WSB strategy modules work correctly
-Tests basic functionality without complex unit tests
+Tests basic functionality without complex unit tests.
 """
 
 import os
@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
 def test_module_imports():
-    """Test that all strategy modules can be imported and instantiated"""
+    """Test that all strategy modules can be imported and instantiated."""
     print("🤖 WSB TRADING STRATEGIES - QUICK FUNCTIONALITY TEST")
     print(" = " * 80)
     print(f"Testing at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -108,7 +108,7 @@ def test_module_imports():
 
 
 def test_basic_functionality():
-    """Test basic functionality of each module"""
+    """Test basic functionality of each module."""
     print("\n" + " = " * 80)
     print("TESTING BASIC FUNCTIONALITY")
     print(" = " * 80)
@@ -230,7 +230,7 @@ def test_basic_functionality():
 
 
 def generate_summary(import_results, functionality_results):
-    """Generate final summary"""
+    """Generate final summary."""
     print("\n" + " = " * 80)
     print("FINAL SUMMARY")
     print(" = " * 80)
@@ -295,7 +295,7 @@ def generate_summary(import_results, functionality_results):
 
 
 def main():
-    """Main test function"""
+    """Main test function."""
     try:
         # Test imports
         import_results = test_module_imports()
@@ -310,7 +310,7 @@ def main():
         print(f"🏁 TESTING COMPLETE - Status: {readiness}")
         print(f"{' = ' * 80}")
 
-        return readiness == "READY" or readiness == "MOSTLY_READY"
+        return readiness in {"READY", "MOSTLY_READY"}
 
     except Exception as e:
         print(f"\n🚨 CRITICAL ERROR: {e}")
@@ -322,4 +322,4 @@ def main():
 
 if __name__ == "__main__":
     success = main()
-    exit(0 if success else 1)
+    sys.exit(0 if success else 1)

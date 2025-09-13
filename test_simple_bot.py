@@ -1,5 +1,5 @@
 #!/usr / bin / env python3
-"""Simple Bot Test - Test the basic functionality"""
+"""Simple Bot Test - Test the basic functionality."""
 
 import asyncio
 import os
@@ -9,7 +9,7 @@ from backend.tradingbot.apimanagers import AlpacaManager
 
 
 async def test_simple_bot():
-    """Test the simple bot functionality"""
+    """Test the simple bot functionality."""
     print("🤖 Testing Simple Trading Bot...")
     print(f"📅 {datetime.now()}")
 

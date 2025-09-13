@@ -12,7 +12,7 @@ import numpy as np
 
 
 class MarketRegime(Enum):
-    """Market regime classification"""
+    """Market regime classification."""
 
     BULL = "bull"
     BEAR = "bear"
@@ -21,7 +21,7 @@ class MarketRegime(Enum):
 
 
 class SignalType(Enum):
-    """Trading signal types"""
+    """Trading signal types."""
 
     BUY = "buy"
     SELL = "sell"
@@ -31,7 +31,7 @@ class SignalType(Enum):
 
 @dataclass
 class TechnicalIndicators:
-    """Container for technical analysis indicators"""
+    """Container for technical analysis indicators."""
 
     price: float
     ema_20: float
@@ -50,14 +50,14 @@ class TechnicalIndicators:
     ema_50_slope: float = 0.0
 
     def __post_init__(self):
-        """Calculate derived indicators"""
+        """Calculate derived indicators."""
         self.distance_from_20ema = (self.price - self.ema_20) / self.price if self.price > 0 else 0
         self.distance_from_50ema = (self.price - self.ema_50) / self.price if self.price > 0 else 0
 
 
 @dataclass
 class MarketSignal:
-    """Trading signal with context"""
+    """Trading signal with context."""
 
     signal_type: SignalType
     confidence: float  # 0.0 to 1.0
@@ -75,11 +75,11 @@ class MarketSignal:
 
 
 class TechnicalAnalysis:
-    """Technical analysis calculations for regime detection"""
+    """Technical analysis calculations for regime detection."""
 
     @staticmethod
     def calculate_ema(prices: list[float], period: int) -> list[float]:
-        """Calculate Exponential Moving Average"""
+        """Calculate Exponential Moving Average."""
         if len(prices) < period:
             return [np.nan] * len(prices)
 
@@ -93,7 +93,7 @@ class TechnicalAnalysis:
 
     @staticmethod
     def calculate_rsi(prices: list[float], period: int = 14) -> list[float]:
-        """Calculate Relative Strength Index"""
+        """Calculate Relative Strength Index."""
         if len(prices) < period + 1:
             return [np.nan] * len(prices)
 
@@ -133,7 +133,7 @@ class TechnicalAnalysis:
     def calculate_atr(
         highs: list[float], lows: list[float], closes: list[float], period: int = 14
     ) -> list[float]:
-        """Calculate Average True Range"""
+        """Calculate Average True Range."""
         if len(highs) < period or len(lows) < period or len(closes) < period:
             return [np.nan] * len(closes)
 
@@ -162,7 +162,7 @@ class TechnicalAnalysis:
 
     @staticmethod
     def calculate_slope(values: list[float], period: int = 5) -> float:
-        """Calculate slope of recent values using linear regression"""
+        """Calculate slope of recent values using linear regression."""
         if len(values) < period:
             return 0.0
 
@@ -183,7 +183,7 @@ class TechnicalAnalysis:
 class MarketRegimeFilter:
     """Market regime detection based on successful playbook criteria:
     - Bull: Close  >  50 - DMA and 50 - DMA  >  200 - DMA and 20 - DMA slope positive
-    - Avoid binary events (earnings ±7 days, major macro)
+    - Avoid binary events (earnings ±7 days, major macro).
     """
 
     def __init__(self):
@@ -196,7 +196,7 @@ class MarketRegimeFilter:
         self.max_distance_from_20ema = 0.01  # 1% maximum distance for pullback
 
     def determine_regime(self, indicators: TechnicalIndicators) -> MarketRegime:
-        """Determine market regime based on EMA alignment and trend
+        """Determine market regime based on EMA alignment and trend.
 
         Bull Regime Criteria:
         1. Close  >  50 - EMA
@@ -228,7 +228,7 @@ class MarketRegimeFilter:
     def detect_pullback_setup(
         self, indicators: TechnicalIndicators, prev_indicators: TechnicalIndicators
     ) -> bool:
-        """Detect pullback setup: red day into 20 - EMA support with RSI 35 - 50
+        """Detect pullback setup: red day into 20 - EMA support with RSI 35 - 50.
 
         Setup Criteria:
         1. Previous day was red (close  <  open - approximated by price decline)
@@ -256,7 +256,7 @@ class MarketRegimeFilter:
     def detect_reversal_trigger(
         self, indicators: TechnicalIndicators, prev_indicators: TechnicalIndicators
     ) -> bool:
-        """Detect reversal trigger: intraday recovery above 20 - EMA and prior high
+        """Detect reversal trigger: intraday recovery above 20 - EMA and prior high.
 
         Trigger Criteria:
         1. Current close  >  20 - EMA
@@ -276,7 +276,7 @@ class MarketRegimeFilter:
 
 
 class SignalGenerator:
-    """Generate trading signals based on regime and technical setup"""
+    """Generate trading signals based on regime and technical setup."""
 
     def __init__(self):
         self.regime_filter = MarketRegimeFilter()
@@ -288,7 +288,7 @@ class SignalGenerator:
         earnings_risk: bool = False,
         macro_risk: bool = False,
     ) -> MarketSignal:
-        """Generate trading signal based on regime and setup
+        """Generate trading signal based on regime and setup.
 
         Args:
             current_indicators: Current market indicators
@@ -356,7 +356,7 @@ class SignalGenerator:
     def _calculate_signal_confidence(
         self, current: TechnicalIndicators, previous: TechnicalIndicators
     ) -> float:
-        """Calculate signal confidence based on multiple factors"""
+        """Calculate signal confidence based on multiple factors."""
         confidence = 0.0
 
         # Base confidence for bull regime
@@ -394,10 +394,10 @@ def create_sample_indicators(
     ema_200: float,
     rsi: float,
     volume: int = 1000000,
-    high: float = None,
-    low: float = None,
+    high: float | None = None,
+    low: float | None = None,
 ) -> TechnicalIndicators:
-    """Helper function to create sample indicators for testing"""
+    """Helper function to create sample indicators for testing."""
     return TechnicalIndicators(
         price=price,
         ema_20=ema_20,

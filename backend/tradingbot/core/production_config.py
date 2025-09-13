@@ -1,5 +1,5 @@
 """Production Configuration Management
-Environment - based configuration with validation
+Environment - based configuration with validation.
 """
 
 import json
@@ -21,7 +21,7 @@ except ImportError:
 
 @dataclass
 class DataProviderConfig:
-    """Data provider configuration"""
+    """Data provider configuration."""
 
     iex_api_key: str = ""
     polygon_api_key: str = ""
@@ -30,7 +30,7 @@ class DataProviderConfig:
     alpha_vantage_api_key: str = ""
 
     def validate(self) -> list[str]:
-        """Validate data provider configuration"""
+        """Validate data provider configuration."""
         errors = []
 
         if not self.iex_api_key:
@@ -44,7 +44,7 @@ class DataProviderConfig:
 
 @dataclass
 class BrokerConfig:
-    """Broker configuration"""
+    """Broker configuration."""
 
     alpaca_api_key: str = ""
     alpaca_secret_key: str = ""
@@ -54,7 +54,7 @@ class BrokerConfig:
     ibkr_client_id: int = 1
 
     def validate(self) -> list[str]:
-        """Validate broker configuration"""
+        """Validate broker configuration."""
         errors = []
 
         if not self.alpaca_api_key:
@@ -68,7 +68,7 @@ class BrokerConfig:
 
 @dataclass
 class RiskConfig:
-    """Risk management configuration"""
+    """Risk management configuration."""
 
     max_position_risk: float = 0.10  # 10% per position
     max_total_risk: float = 0.30  # 30% total portfolio risk
@@ -79,7 +79,7 @@ class RiskConfig:
     default_slippage: float = 0.002  # Default slippage (0.2%)
 
     def validate(self) -> list[str]:
-        """Validate risk configuration"""
+        """Validate risk configuration."""
         errors = []
 
         if not 0 < self.max_position_risk <= 1:
@@ -99,7 +99,7 @@ class RiskConfig:
 
 @dataclass
 class TradingConfig:
-    """Trading system configuration"""
+    """Trading system configuration."""
 
     universe: list[str] = field(
         default_factory=lambda: [
@@ -120,7 +120,7 @@ class TradingConfig:
     enable_live_trading: bool = False
 
     def validate(self) -> list[str]:
-        """Validate trading configuration"""
+        """Validate trading configuration."""
         errors = []
 
         if not self.universe:
@@ -137,7 +137,7 @@ class TradingConfig:
 
 @dataclass
 class AlertConfig:
-    """Alert system configuration"""
+    """Alert system configuration."""
 
     enable_slack: bool = False
     slack_webhook_url: str = ""
@@ -149,7 +149,7 @@ class AlertConfig:
     email_recipients: list[str] = field(default_factory=list)
 
     def validate(self) -> list[str]:
-        """Validate alert configuration"""
+        """Validate alert configuration."""
         errors = []
 
         if self.enable_slack and not self.slack_webhook_url:
@@ -170,7 +170,7 @@ class AlertConfig:
 
 @dataclass
 class DatabaseConfig:
-    """Database configuration"""
+    """Database configuration."""
 
     engine: str = "postgresql"
     host: str = "localhost"
@@ -181,7 +181,7 @@ class DatabaseConfig:
     ssl_mode: str = "prefer"
 
     def validate(self) -> list[str]:
-        """Validate database configuration"""
+        """Validate database configuration."""
         errors = []
 
         if not self.name:
@@ -195,7 +195,7 @@ class DatabaseConfig:
 
 @dataclass
 class ProductionConfig:
-    """Complete production configuration"""
+    """Complete production configuration."""
 
     data_providers: DataProviderConfig = field(default_factory=DataProviderConfig)
     broker: BrokerConfig = field(default_factory=BrokerConfig)
@@ -205,7 +205,7 @@ class ProductionConfig:
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
 
     def validate(self) -> list[str]:
-        """Validate entire configuration"""
+        """Validate entire configuration."""
         errors = []
 
         errors.extend(self.data_providers.validate())
@@ -218,7 +218,7 @@ class ProductionConfig:
         return errors
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert configuration to dictionary"""
+        """Convert configuration to dictionary."""
         return {
             "data_providers": {
                 "iex_api_key": self.data_providers.iex_api_key,
@@ -274,14 +274,14 @@ class ProductionConfig:
 
 
 class ConfigManager:
-    """Configuration manager with environment variable support"""
+    """Configuration manager with environment variable support."""
 
     def __init__(self, config_file: str | None = None):
         self.config_file = config_file or "config / production.json"
         self.logger = logging.getLogger(__name__)
 
     def load_config(self) -> ProductionConfig:
-        """Load configuration from file and environment variables"""
+        """Load configuration from file and environment variables."""
         # Start with defaults
         config = ProductionConfig()
 
@@ -302,7 +302,7 @@ class ConfigManager:
     def _merge_config(
         self, base_config: ProductionConfig, file_config: dict[str, Any]
     ) -> ProductionConfig:
-        """Merge file configuration into base configuration"""
+        """Merge file configuration into base configuration."""
         # Data providers
         if "data_providers" in file_config:
             dp_config = file_config["data_providers"]
@@ -430,7 +430,7 @@ class ConfigManager:
         return base_config
 
     def _load_from_env(self, config: ProductionConfig) -> ProductionConfig:
-        """Load configuration from environment variables"""
+        """Load configuration from environment variables."""
         # Data providers
         config.data_providers.iex_api_key = os.getenv(
             "IEX_API_KEY", config.data_providers.iex_api_key
@@ -524,7 +524,7 @@ class ConfigManager:
         return config
 
     def save_config(self, config: ProductionConfig) -> bool:
-        """Save configuration to file"""
+        """Save configuration to file."""
         try:
             # Ensure config directory exists
             config_dir = Path(self.config_file).parent
@@ -540,7 +540,7 @@ class ConfigManager:
             return False
 
     def create_env_template(self, output_file: str = ".env.template") -> bool:
-        """Create environment variable template file"""
+        """Create environment variable template file."""
         try:
             template = """# WallStreetBots Production Configuration
 # Copy this file to .env and fill in your actual values
@@ -608,5 +608,5 @@ DB_SSL_MODE = prefer
 
 # Factory function for easy initialization
 def create_config_manager(config_file: str | None = None) -> ConfigManager:
-    """Create configuration manager"""
+    """Create configuration manager."""
     return ConfigManager(config_file)

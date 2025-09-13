@@ -1,4 +1,4 @@
-"""Production Test Suite
+"""Production Test Suite.
 
 Comprehensive tests for production trading system:
 - test_production_strategies: Tests for all production strategies

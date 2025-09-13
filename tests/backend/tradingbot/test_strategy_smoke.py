@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Smoke Tests for Trading Strategies
-Simple tests to ensure strategies don't crash and basic functionality works
+Simple tests to ensure strategies don't crash and basic functionality works.
 """
 
 import os
@@ -34,24 +34,24 @@ from backend.tradingbot.strategies.wsb_dip_bot import DipSignal  # noqa: E402
 
 
 class TestStrategySmokeTests(unittest.TestCase):
-    """Basic smoke tests to ensure strategies don't crash"""
+    """Basic smoke tests to ensure strategies don't crash."""
 
     def test_momentum_weeklies_initialization(self):
-        """Test momentum weeklies scanner initializes"""
+        """Test momentum weeklies scanner initializes."""
         scanner = MomentumWeekliesScanner()
         self.assertIsInstance(scanner, MomentumWeekliesScanner)
         self.assertIsInstance(scanner.mega_caps, list)
         self.assertGreater(len(scanner.mega_caps), 0)
 
     def test_momentum_weeklies_expiry_calculation(self):
-        """Test weekly expiry calculation"""
+        """Test weekly expiry calculation."""
         scanner = MomentumWeekliesScanner()
         expiry = scanner.get_next_weekly_expiry()
         self.assertIsInstance(expiry, str)
         self.assertEqual(len(expiry), 10)  # YYYY - MM - DD format
 
     def test_momentum_signal_creation(self):
-        """Test MomentumSignal dataclass"""
+        """Test MomentumSignal dataclass."""
         signal = MomentumSignal(
             ticker="AAPL",
             signal_time=datetime.now(),
@@ -70,12 +70,12 @@ class TestStrategySmokeTests(unittest.TestCase):
         self.assertEqual(signal.current_price, 150.0)
 
     def test_debit_spreads_initialization(self):
-        """Test debit spreads scanner initializes"""
+        """Test debit spreads scanner initializes."""
         scanner = DebitSpreadScanner()
         self.assertIsInstance(scanner, DebitSpreadScanner)
 
     def test_debit_spreads_black_scholes(self):
-        """Test Black - Scholes calculation"""
+        """Test Black - Scholes calculation."""
         scanner = DebitSpreadScanner()
         price, delta = scanner.black_scholes_call(100.0, 105.0, 0.25, 0.05, 0.20)
         self.assertIsInstance(price, float)
@@ -84,7 +84,7 @@ class TestStrategySmokeTests(unittest.TestCase):
         self.assertGreater(delta, 0)
 
     def test_spread_opportunity_creation(self):
-        """Test SpreadOpportunity dataclass"""
+        """Test SpreadOpportunity dataclass."""
         from datetime import date
 
         opportunity = SpreadOpportunity(
@@ -112,12 +112,12 @@ class TestStrategySmokeTests(unittest.TestCase):
         self.assertEqual(opportunity.trend_strength, 0.8)
 
     def test_leaps_tracker_initialization(self):
-        """Test LEAPS tracker initializes"""
+        """Test LEAPS tracker initializes."""
         tracker = LEAPSTracker()
         self.assertIsInstance(tracker, LEAPSTracker)
 
     def test_leaps_position_creation(self):
-        """Test LEAPSPosition dataclass"""
+        """Test LEAPSPosition dataclass."""
         position = LEAPSPosition(
             ticker="AAPL",
             theme="AI Revolution",
@@ -144,12 +144,12 @@ class TestStrategySmokeTests(unittest.TestCase):
         self.assertEqual(position.strike, 150)
 
     def test_lotto_scanner_initialization(self):
-        """Test lotto scanner initializes"""
+        """Test lotto scanner initializes."""
         scanner = LottoScanner()
         self.assertIsInstance(scanner, LottoScanner)
 
     def test_lotto_play_creation(self):
-        """Test LottoPlay dataclass"""
+        """Test LottoPlay dataclass."""
         play = LottoPlay(
             ticker="TSLA",
             play_type="0dte",
@@ -174,12 +174,12 @@ class TestStrategySmokeTests(unittest.TestCase):
         self.assertEqual(play.play_type, "0dte")
 
     def test_wheel_strategy_initialization(self):
-        """Test wheel strategy initializes"""
+        """Test wheel strategy initializes."""
         strategy = WheelStrategy()
         self.assertIsInstance(strategy, WheelStrategy)
 
     def test_wheel_position_creation(self):
-        """Test WheelPosition dataclass"""
+        """Test WheelPosition dataclass."""
         position = WheelPosition(
             ticker="AAPL",
             position_type="cash_secured_put",
@@ -200,7 +200,7 @@ class TestStrategySmokeTests(unittest.TestCase):
         self.assertEqual(position.strike, 150)
 
     def test_dip_signal_creation(self):
-        """Test DipSignal class"""
+        """Test DipSignal class."""
         # Use the correct DipSignal fields from wsb_dip_bot.py
         signal = DipSignal(
             ticker="AAPL",
@@ -216,10 +216,10 @@ class TestStrategySmokeTests(unittest.TestCase):
 
 
 class TestStrategyBasicFunctionality(unittest.TestCase):
-    """Test basic functionality of strategies"""
+    """Test basic functionality of strategies."""
 
     def test_momentum_weeklies_volume_detection(self):
-        """Test volume spike detection"""
+        """Test volume spike detection."""
         scanner = MomentumWeekliesScanner()
 
         with patch("backend.tradingbot.strategies.momentum_weeklies.yf.Ticker") as mock_ticker:
@@ -234,7 +234,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
             self.assertEqual(len(result), 2)
 
     def test_momentum_weeklies_reversal_detection(self):
-        """Test reversal pattern detection"""
+        """Test reversal pattern detection."""
         scanner = MomentumWeekliesScanner()
 
         with patch("backend.tradingbot.strategies.momentum_weeklies.yf.Ticker") as mock_ticker:
@@ -252,7 +252,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
             self.assertEqual(len(result), 3)
 
     def test_debit_spreads_iv_calculation(self):
-        """Test IV rank calculation"""
+        """Test IV rank calculation."""
         scanner = DebitSpreadScanner()
 
         with patch("backend.tradingbot.strategies.debit_spreads.yf.Ticker") as mock_ticker:
@@ -268,7 +268,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
             self.assertLessEqual(iv_rank, 100.0)
 
     def test_debit_spreads_trend_assessment(self):
-        """Test trend strength assessment"""
+        """Test trend strength assessment."""
         scanner = DebitSpreadScanner()
 
         with patch("backend.tradingbot.strategies.debit_spreads.yf.Ticker") as mock_ticker:
@@ -285,10 +285,10 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
 
 
 class TestStrategyErrorHandling(unittest.TestCase):
-    """Test error handling in strategies"""
+    """Test error handling in strategies."""
 
     def test_momentum_weeklies_error_handling(self):
-        """Test error handling in momentum weeklies"""
+        """Test error handling in momentum weeklies."""
         scanner = MomentumWeekliesScanner()
 
         with patch("backend.tradingbot.strategies.momentum_weeklies.yf.Ticker") as mock_ticker:
@@ -299,7 +299,7 @@ class TestStrategyErrorHandling(unittest.TestCase):
             self.assertIsInstance(result, tuple)
 
     def test_debit_spreads_error_handling(self):
-        """Test error handling in debit spreads"""
+        """Test error handling in debit spreads."""
         scanner = DebitSpreadScanner()
 
         with patch("backend.tradingbot.strategies.debit_spreads.yf.Ticker") as mock_ticker:
@@ -311,7 +311,7 @@ class TestStrategyErrorHandling(unittest.TestCase):
 
 
 def run_smoke_tests():
-    """Run all smoke tests"""
+    """Run all smoke tests."""
     print(" = " * 60)
     print("TRADING STRATEGY SMOKE TESTS")
     print(" = " * 60)

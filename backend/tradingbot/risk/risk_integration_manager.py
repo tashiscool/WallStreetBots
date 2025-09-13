@@ -1,5 +1,5 @@
 """Risk Integration Manager
-Connects sophisticated risk models to WallStreetBots trading strategies
+Connects sophisticated risk models to WallStreetBots trading strategies.
 
 This module provides real - time risk management integration:
 - Live VaR / CVaR calculations during trading
@@ -43,7 +43,7 @@ from .stress_testing_engine import StressTesting2025
 
 @dataclass
 class RiskLimits:
-    """Risk limits configuration"""
+    """Risk limits configuration."""
 
     max_total_var: float = 0.05  # 5% max total VaR
     max_total_cvar: float = 0.07  # 7% max total CVaR
@@ -55,7 +55,7 @@ class RiskLimits:
 
 @dataclass
 class RiskMetrics:
-    """Current risk metrics"""
+    """Current risk metrics."""
 
     portfolio_var: float = 0.0
     portfolio_cvar: float = 0.0
@@ -70,7 +70,7 @@ class RiskMetrics:
 
 
 class RiskIntegrationManager:
-    """Integrates sophisticated risk models with WallStreetBots trading strategies
+    """Integrates sophisticated risk models with WallStreetBots trading strategies.
 
     Provides:
     - Real - time risk assessment during trading
@@ -87,7 +87,7 @@ class RiskIntegrationManager:
         enable_stress_testing: bool = True,
         enable_dashboard: bool = True,
     ):
-        """Initialize risk integration manager
+        """Initialize risk integration manager.
 
         Args:
             risk_limits: Risk limits configuration
@@ -123,7 +123,7 @@ class RiskIntegrationManager:
         market_data: dict[str, pd.DataFrame],
         portfolio_value: float,
     ) -> RiskMetrics:
-        """Calculate comprehensive portfolio risk metrics
+        """Calculate comprehensive portfolio risk metrics.
 
         Args:
             positions: Current portfolio positions {symbol: {qty, value, delta, gamma, vega}}
@@ -202,7 +202,7 @@ class RiskIntegrationManager:
     def _calculate_portfolio_returns(
         self, positions: dict[str, dict], market_data: dict[str, pd.DataFrame]
     ) -> pd.Series | None:
-        """Calculate portfolio returns from positions and market data"""
+        """Calculate portfolio returns from positions and market data."""
         try:
             if not positions or not market_data:
                 return None
@@ -216,7 +216,7 @@ class RiskIntegrationManager:
             if not all_dates:
                 return None
 
-            common_dates = sorted(list(all_dates))[-252:]  # Last 252 trading days
+            common_dates = sorted(all_dates)[-252:]  # Last 252 trading days
 
             # Calculate weighted returns
             portfolio_returns = []
@@ -248,7 +248,7 @@ class RiskIntegrationManager:
     async def _calculate_var_metrics(
         self, portfolio_returns: pd.Series, portfolio_value: float
     ) -> dict[str, float]:
-        """Calculate VaR metrics using multiple methods"""
+        """Calculate VaR metrics using multiple methods."""
         try:
             # Historical VaR
             hist_var_95 = var_historical(portfolio_returns, 0.95)
@@ -314,7 +314,7 @@ class RiskIntegrationManager:
     def _calculate_concentration_risk(
         self, positions: dict[str, dict], portfolio_value: float
     ) -> float:
-        """Calculate concentration risk (max single position weight)"""
+        """Calculate concentration risk (max single position weight)."""
         if not positions or portfolio_value <= 0:
             return 0.0
 
@@ -326,7 +326,7 @@ class RiskIntegrationManager:
         return max_weight
 
     def _calculate_greeks_risk(self, positions: dict[str, dict], portfolio_value: float) -> float:
-        """Calculate Greeks risk (delta, gamma, vega exposure)"""
+        """Calculate Greeks risk (delta, gamma, vega exposure)."""
         if not positions or portfolio_value <= 0:
             return 0.0
 
@@ -347,7 +347,7 @@ class RiskIntegrationManager:
         market_data: dict[str, pd.DataFrame],
         portfolio_value: float,
     ) -> float:
-        """Calculate stress test score"""
+        """Calculate stress test score."""
         if not self.stress_engine or not positions:
             return 0.0
 
@@ -373,13 +373,13 @@ class RiskIntegrationManager:
     async def _calculate_ml_risk_score(
         self, market_data: dict[str, pd.DataFrame], portfolio_value: float
     ) -> float:
-        """Calculate ML risk score"""
+        """Calculate ML risk score."""
         if not self.ml_predictor or not market_data:
             return 0.0
 
         try:
             # Use first available symbol for ML prediction
-            symbol = list(market_data.keys())[0]
+            symbol = next(iter(market_data.keys()))
             data = market_data[symbol]
 
             if len(data) < 30:
@@ -402,7 +402,7 @@ class RiskIntegrationManager:
         stress_score: float,
         ml_score: float,
     ) -> tuple[bool, list[str]]:
-        """Check if current risk is within limits"""
+        """Check if current risk is within limits."""
         alerts = []
         within_limits = True
 
@@ -447,7 +447,7 @@ class RiskIntegrationManager:
         return within_limits, alerts
 
     async def _store_risk_metrics(self, metrics: RiskMetrics, portfolio_value: float):
-        """Store risk metrics in database"""
+        """Store risk metrics in database."""
         try:
             await self.db_manager.store_risk_result(
                 timestamp=datetime.now(),
@@ -466,7 +466,7 @@ class RiskIntegrationManager:
             self.logger.error(f"Error storing risk metrics: {e}")
 
     async def _update_dashboard(self, positions: dict[str, dict], metrics: RiskMetrics):
-        """Update risk dashboard"""
+        """Update risk dashboard."""
         try:
             if self.dashboard:
                 await self.dashboard.update_risk_metrics(positions, metrics)
@@ -476,7 +476,7 @@ class RiskIntegrationManager:
     async def get_risk_adjusted_position_size(
         self, strategy_name: str, symbol: str, base_position_size: float, portfolio_value: float
     ) -> float:
-        """Calculate risk - adjusted position size based on current risk metrics
+        """Calculate risk - adjusted position size based on current risk metrics.
 
         Args:
             strategy_name: Name of the strategy
@@ -536,7 +536,7 @@ class RiskIntegrationManager:
     async def should_allow_trade(
         self, strategy_name: str, symbol: str, trade_value: float, portfolio_value: float
     ) -> tuple[bool, str]:
-        """Determine if a trade should be allowed based on risk limits
+        """Determine if a trade should be allowed based on risk limits.
 
         Args:
             strategy_name: Name of the strategy
@@ -582,13 +582,13 @@ class RiskIntegrationManager:
     def _calculate_new_concentration(
         self, symbol: str, trade_value: float, portfolio_value: float
     ) -> float:
-        """Calculate concentration risk if this trade is added"""
+        """Calculate concentration risk if this trade is added."""
         current_value = self.portfolio_positions.get(symbol, {}).get("value", 0)
         new_value = current_value + trade_value
         return new_value / portfolio_value
 
     async def get_risk_summary(self) -> dict[str, Any]:
-        """Get comprehensive risk summary"""
+        """Get comprehensive risk summary."""
         return {
             "timestamp": self.last_calculation,
             "calculation_count": self.calculation_count,

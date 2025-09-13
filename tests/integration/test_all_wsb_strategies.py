@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Comprehensive Test Suite Runner for All WSB Strategy Modules
-Tests all newly created WSB trading strategies and verifies functionality
+Tests all newly created WSB trading strategies and verifies functionality.
 """
 
 import os
@@ -55,7 +55,7 @@ except ImportError as e:
 
 # Test individual modules for basic functionality
 def test_module_imports():
-    """Test that all strategy modules can be imported correctly"""
+    """Test that all strategy modules can be imported correctly."""
     print("\n" + " = " * 80)
     print("TESTING MODULE IMPORTS")
     print(" = " * 80)
@@ -85,7 +85,7 @@ def test_module_imports():
 
 
 def test_basic_functionality():
-    """Test basic functionality of each strategy module"""
+    """Test basic functionality of each strategy module."""
     print("\n" + " = " * 80)
     print("TESTING BASIC FUNCTIONALITY")
     print(" = " * 80)
@@ -215,7 +215,7 @@ def test_basic_functionality():
 
 
 def run_all_comprehensive_tests():
-    """Run all comprehensive test suites"""
+    """Run all comprehensive test suites."""
     print("\n" + " = " * 80)
     print("RUNNING COMPREHENSIVE TEST SUITES")
     print(" = " * 80)
@@ -356,7 +356,7 @@ def run_all_comprehensive_tests():
 def generate_comprehensive_report(
     import_results, functionality_results, test_results, total_tests, total_failures, total_errors
 ):
-    """Generate comprehensive test report"""
+    """Generate comprehensive test report."""
     print("\n" + " = " * 80)
     print("COMPREHENSIVE WSB STRATEGIES TEST REPORT")
     print(" = " * 80)
@@ -480,7 +480,7 @@ def generate_comprehensive_report(
 
 
 def main():
-    """Main test runner function"""
+    """Main test runner function."""
     print("🤖 WSB TRADING STRATEGIES - COMPREHENSIVE TEST SUITE")
     print(" = " * 80)
     print("Testing all newly implemented WSB strategies: ")
@@ -529,4 +529,4 @@ if __name__ == "__main__":
     # Exit with appropriate code
     exit_codes = {"READY": 0, "MOSTLY_READY": 1, "NEEDS_WORK": 2, "CRITICAL": 3}
 
-    exit(exit_codes.get(readiness_status, 3))
+    sys.exit(exit_codes.get(readiness_status, 3))

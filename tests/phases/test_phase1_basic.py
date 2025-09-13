@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Basic Phase 1 Functionality Test
-Test core Phase 1 components without complex dependencies
+Test core Phase 1 components without complex dependencies.
 """
 
 import asyncio
@@ -30,7 +30,7 @@ from backend.tradingbot.core.production_logging import (
 
 
 def test_configuration():
-    """Test configuration management"""
+    """Test configuration management."""
     print("🔧 Testing Configuration Management...")
 
     # Test config creation
@@ -59,7 +59,7 @@ def test_configuration():
 
 
 def test_logging():
-    """Test production logging"""
+    """Test production logging."""
     print("📝 Testing Production Logging...")
 
     # Test logger creation
@@ -90,7 +90,7 @@ def test_logging():
 
 
 def test_monitoring():
-    """Test monitoring components"""
+    """Test monitoring components."""
     print("📊 Testing Monitoring Components...")
 
     # Test health checker
@@ -128,7 +128,7 @@ def test_monitoring():
 
 
 def test_data_structures():
-    """Test data structures"""
+    """Test data structures."""
     print("📈 Testing Data Structures...")
 
     # Test market data
@@ -187,7 +187,7 @@ def test_data_structures():
 
 
 def test_trading_interface():
-    """Test trading interface components"""
+    """Test trading interface components."""
     print("💼 Testing Trading Interface Components...")
 
     # Test trade signal creation
@@ -271,7 +271,7 @@ def test_trading_interface():
 
 
 def main():
-    """Run all Phase 1 tests"""
+    """Run all Phase 1 tests."""
     print("🚀 WallStreetBots Phase 1 - Basic Functionality Test")
     print(" = " * 60)
 
@@ -307,4 +307,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

@@ -70,56 +70,53 @@ def dashboard(request):
     order_form = OrderForm(request.POST or None)
     strategy_form = StrategyForm(request.POST or None)
     if request.method == "POST":  # let user input their Alpaca API information
-        if "submit_credential" in request.POST:
-            if credential_form.is_valid():
-                if hasattr(user, "credential"):
-                    user.credential.alpaca_id = credential_form.get_id()
-                    user.credential.alpaca_key = credential_form.get_key()
-                    user.credential.save()
-                else:
-                    from .models import Credential
+        if "submit_credential" in request.POST and credential_form.is_valid():
+            if hasattr(user, "credential"):
+                user.credential.alpaca_id = credential_form.get_id()
+                user.credential.alpaca_key = credential_form.get_key()
+                user.credential.save()
+            else:
+                from .models import Credential
 
-                    cred = Credential(
-                        user=request.user,
-                        alpaca_id=credential_form.get_id(),
-                        alpaca_key=credential_form.get_key(),
-                    )
-                    cred.save()
-                return HttpResponseRedirect("/")
-
-        if "submit_order" in request.POST:
-            if order_form.is_valid():
-                response = order_form.place_order(user, user_details)
-                order_form = OrderForm()
-                #  update order for display
-                from backend.tradingbot.models import Order
-
-                userdata["orders"] = [
-                    order.display_order()
-                    for order in Order.objects.filter(user=user).order_by("-timestamp").iterator()
-                ]
-                return render(
-                    request,
-                    "home / index.html",
-                    {
-                        "credential_form": credential_form,
-                        "order_form": order_form,
-                        "strategy_form": StrategyForm(None),
-                        "auth0User": auth0user,
-                        "userdata": userdata,
-                        "order_submit_form_response": response,
-                    },
+                cred = Credential(
+                    user=request.user,
+                    alpaca_id=credential_form.get_id(),
+                    alpaca_key=credential_form.get_key(),
                 )
+                cred.save()
+            return HttpResponseRedirect("/")
 
-        if "submit_strategy" in request.POST:
-            if strategy_form.is_valid():
-                # here for some reason form.cleaned_data changed from type dict to
-                # type tuple. I tried to find the reason but it didn't seem to caused by
-                # our code. Might be and django bug
-                strategy = strategy_form.cleaned_data
-                user.portfolio.strategy = strategy
-                user.portfolio.save()
-                return HttpResponseRedirect("/")
+        if "submit_order" in request.POST and order_form.is_valid():
+            response = order_form.place_order(user, user_details)
+            order_form = OrderForm()
+            #  update order for display
+            from backend.tradingbot.models import Order
+
+            userdata["orders"] = [
+                order.display_order()
+                for order in Order.objects.filter(user=user).order_by("-timestamp").iterator()
+            ]
+            return render(
+                request,
+                "home / index.html",
+                {
+                    "credential_form": credential_form,
+                    "order_form": order_form,
+                    "strategy_form": StrategyForm(None),
+                    "auth0User": auth0user,
+                    "userdata": userdata,
+                    "order_submit_form_response": response,
+                },
+            )
+
+        if "submit_strategy" in request.POST and strategy_form.is_valid():
+            # here for some reason form.cleaned_data changed from type dict to
+            # type tuple. I tried to find the reason but it didn't seem to caused by
+            # our code. Might be and django bug
+            strategy = strategy_form.cleaned_data
+            user.portfolio.strategy = strategy
+            user.portfolio.save()
+            return HttpResponseRedirect("/")
 
     graph = get_portfolio_chart(request)
     return render(
@@ -193,58 +190,55 @@ def orders(request):
     order_form = OrderForm(request.POST or None)
     strategy_form = StrategyForm(request.POST or None)
     if request.method == "POST":
-        if "submit_credential" in request.POST:
-            if credential_form.is_valid():
-                if hasattr(user, "credential"):
-                    user.credential.alpaca_id = credential_form.get_id()
-                    user.credential.alpaca_key = credential_form.get_key()
-                    user.credential.save()
-                else:
-                    from .models import Credential
+        if "submit_credential" in request.POST and credential_form.is_valid():
+            if hasattr(user, "credential"):
+                user.credential.alpaca_id = credential_form.get_id()
+                user.credential.alpaca_key = credential_form.get_key()
+                user.credential.save()
+            else:
+                from .models import Credential
 
-                    cred = Credential(
-                        user=request.user,
-                        alpaca_id=credential_form.get_id(),
-                        alpaca_key=credential_form.get_key(),
-                    )
-                    cred.save()
-                return HttpResponseRedirect("/")
-
-        if "submit_order" in request.POST:
-            if order_form.is_valid():
-                response = order_form.place_order(user, user_details)
-                order_form = OrderForm()
-                #  update order for display
-                from backend.tradingbot.models import Order
-
-                userdata["orders"] = [
-                    order.display_order()
-                    for order in Order.objects.filter(user=user).order_by("-timestamp").iterator()
-                ]
-                return render(
-                    request,
-                    "home / index.html",
-                    {
-                        "credential_form": credential_form,
-                        "order_form": order_form,
-                        "strategy_form": StrategyForm(None),
-                        "auth0User": auth0user,
-                        "userdata": userdata,
-                        "order_submit_form_response": response,
-                    },
+                cred = Credential(
+                    user=request.user,
+                    alpaca_id=credential_form.get_id(),
+                    alpaca_key=credential_form.get_key(),
                 )
+                cred.save()
+            return HttpResponseRedirect("/")
 
-        if "submit_strategy" in request.POST:
-            if strategy_form.is_valid():
-                # here for some reason form.cleaned_data changed from type dict to
-                # type tuple. I tried to find the reason but it didn't seem to caused by
-                # our code. Might be and django bug
-                rebalance_strategy = strategy_form.cleaned_data[0]
-                optimization_strategy = strategy_form.cleaned_data[1]
-                user.portfolio.rebalancing_strategy = rebalance_strategy
-                user.portfolio.optimization_strategy = optimization_strategy
-                user.portfolio.save()
-                return HttpResponseRedirect("/")
+        if "submit_order" in request.POST and order_form.is_valid():
+            response = order_form.place_order(user, user_details)
+            order_form = OrderForm()
+            #  update order for display
+            from backend.tradingbot.models import Order
+
+            userdata["orders"] = [
+                order.display_order()
+                for order in Order.objects.filter(user=user).order_by("-timestamp").iterator()
+            ]
+            return render(
+                request,
+                "home / index.html",
+                {
+                    "credential_form": credential_form,
+                    "order_form": order_form,
+                    "strategy_form": StrategyForm(None),
+                    "auth0User": auth0user,
+                    "userdata": userdata,
+                    "order_submit_form_response": response,
+                },
+            )
+
+        if "submit_strategy" in request.POST and strategy_form.is_valid():
+            # here for some reason form.cleaned_data changed from type dict to
+            # type tuple. I tried to find the reason but it didn't seem to caused by
+            # our code. Might be and django bug
+            rebalance_strategy = strategy_form.cleaned_data[0]
+            optimization_strategy = strategy_form.cleaned_data[1]
+            user.portfolio.rebalancing_strategy = rebalance_strategy
+            user.portfolio.optimization_strategy = optimization_strategy
+            user.portfolio.save()
+            return HttpResponseRedirect("/")
     return render(
         request,
         "home / orders.html",
@@ -266,30 +260,28 @@ def positions(request):
     watchlist_form = WatchListForm(request.POST or None)
     strategy_form = StrategyForm(request.POST or None)
     if request.method == "POST":
-        if "add_to_watchlist" in request.POST:
-            if watchlist_form.is_valid():
-                response = watchlist_form.add_to_watchlist(user)
-                return render(
-                    request,
-                    "home / positions.html",
-                    {
-                        "watchlist_form": watchlist_form,
-                        "strategy_form": strategy_form,
-                        "watchlist_form_response": response,
-                        "auth0User": auth0user,
-                        "userdata": userdata,
-                    },
-                )
+        if "add_to_watchlist" in request.POST and watchlist_form.is_valid():
+            response = watchlist_form.add_to_watchlist(user)
+            return render(
+                request,
+                "home / positions.html",
+                {
+                    "watchlist_form": watchlist_form,
+                    "strategy_form": strategy_form,
+                    "watchlist_form_response": response,
+                    "auth0User": auth0user,
+                    "userdata": userdata,
+                },
+            )
 
-        if "submit_strategy" in request.POST:
-            if strategy_form.is_valid():
-                # here for some reason form.cleaned_data changed from type dict to
-                # type tuple. I tried to find the reason but it didn't seem to caused by
-                # our code. Might be and django bug
-                strategy = strategy_form.cleaned_data
-                user.portfolio.strategy = strategy
-                user.portfolio.save()
-                return HttpResponseRedirect("positions")
+        if "submit_strategy" in request.POST and strategy_form.is_valid():
+            # here for some reason form.cleaned_data changed from type dict to
+            # type tuple. I tried to find the reason but it didn't seem to caused by
+            # our code. Might be and django bug
+            strategy = strategy_form.cleaned_data
+            user.portfolio.strategy = strategy
+            user.portfolio.save()
+            return HttpResponseRedirect("positions")
 
     return render(
         request,
@@ -316,9 +308,5 @@ def machine_learning(request):
 def logout(request):
     log_out(request)
     return_to = urlencode({"returnTo": request.build_absolute_uri("/")})
-    logout_url = "https: //%s / v2 / logout?client_id = %s&%s" % (
-        settings.SOCIAL_AUTH_AUTH0_DOMAIN,
-        settings.SOCIAL_AUTH_AUTH0_KEY,
-        return_to,
-    )
+    logout_url = f"https: //{settings.SOCIAL_AUTH_AUTH0_DOMAIN} / v2 / logout?client_id = {settings.SOCIAL_AUTH_AUTH0_KEY}&{return_to}"
     return HttpResponseRedirect(logout_url)

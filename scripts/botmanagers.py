@@ -6,7 +6,7 @@ class StocksManagerNaive:
     def make_decision(self):
         """Creates a dictionary of stock name as key and number of stock to buy or sell as values,
         based on the decisions of the bots.
-        Note postive number denotes buying and negative number denotes selling
+        Note postive number denotes buying and negative number denotes selling.
         """
         action_dict = {}  # e.g. {"APPL": 10}
 
@@ -59,7 +59,7 @@ class StocksManagerNaive:
         return action_dict
 
     def extract_acc_info(self, account):
-        """This function needs to be implemented"""
+        """This function needs to be implemented."""
         # put extract stuff here
         account_balance, portfolio = None, None
         return account_balance, portfolio

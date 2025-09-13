@@ -20,9 +20,9 @@ class NaiveHMMPortfolioUpdate(PortfolioManager):
         """Args:
         portfolio: portfolio dictionary contains cash and stocks with qty
         data_fetcher: source of stock data
-        buffer: proportion of the portfolio to be cash (buffer zone for price fluctuations)
+        buffer: proportion of the portfolio to be cash (buffer zone for price fluctuations).
         """
-        super(NaiveHMMPortfolioUpdate, self).__init__(portfolio, None)
+        super().__init__(portfolio, None)
         self.total_portfolio_value = None
         self.price_dict = None
         self.data_fetcher = data_fetcher
@@ -46,10 +46,10 @@ class NaiveHMMPortfolioUpdate(PortfolioManager):
         self.total_portfolio_value = total_portfolio_value
 
     def rebalance(self):
-        """Call this method to rebalance the portfolio"""
+        """Call this method to rebalance the portfolio."""
         buy_list = []
         new_portfolio = {}
-        for i in self.portfolio_stocks.keys():
+        for i in self.portfolio_stocks:
             datamanager = self.HMMdatafetcher(
                 BACKEND_ALPACA_ID, BACKEND_ALPACA_KEY, i, self.start, self.end
             )

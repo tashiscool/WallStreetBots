@@ -1,4 +1,4 @@
-"""System Health Monitor
+"""System Health Monitor.
 
 Real - time health monitoring for all system components with comprehensive alerting.
 """
@@ -15,7 +15,7 @@ import psutil
 
 
 class HealthStatus(Enum):
-    """System health status levels"""
+    """System health status levels."""
 
     HEALTHY = "healthy"
     DEGRADED = "degraded"
@@ -25,7 +25,7 @@ class HealthStatus(Enum):
 
 @dataclass
 class ComponentHealth:
-    """Health status of a system component"""
+    """Health status of a system component."""
 
     component_name: str
     status: HealthStatus
@@ -38,7 +38,7 @@ class ComponentHealth:
 
 @dataclass
 class SystemHealthReport:
-    """Comprehensive system health report"""
+    """Comprehensive system health report."""
 
     timestamp: datetime
     overall_status: HealthStatus
@@ -54,7 +54,7 @@ class SystemHealthReport:
 
 
 class SystemHealthMonitor:
-    """Real - time system health monitoring
+    """Real - time system health monitoring.
 
     Monitors all critical system components:
     - Data feed health and latency
@@ -64,7 +64,9 @@ class SystemHealthMonitor:
     - Trading performance metrics
     """
 
-    def __init__(self, trading_system=None, alert_system=None, config: dict[str, Any] = None):
+    def __init__(
+        self, trading_system=None, alert_system=None, config: dict[str, Any] | None = None
+    ):
         self.trading_system = trading_system
         self.alert_system = alert_system
         self.config = config or {}
@@ -88,7 +90,7 @@ class SystemHealthMonitor:
         self.logger.info("SystemHealthMonitor initialized")
 
     async def check_system_health(self) -> SystemHealthReport:
-        """Comprehensive system health check"""
+        """Comprehensive system health check."""
         try:
             start_time = time.time()
 
@@ -177,7 +179,7 @@ class SystemHealthMonitor:
             return self._create_critical_report(str(e))
 
     async def _check_data_feed_health(self) -> ComponentHealth:
-        """Check data feed health and latency"""
+        """Check data feed health and latency."""
         try:
             start_time = time.time()
 
@@ -245,7 +247,7 @@ class SystemHealthMonitor:
             )
 
     async def _check_broker_connection(self) -> ComponentHealth:
-        """Check broker connection health"""
+        """Check broker connection health."""
         try:
             start_time = time.time()
 
@@ -304,7 +306,7 @@ class SystemHealthMonitor:
             )
 
     async def _check_database_performance(self) -> ComponentHealth:
-        """Check database performance"""
+        """Check database performance."""
         try:
             start_time = time.time()
 
@@ -345,7 +347,7 @@ class SystemHealthMonitor:
             )
 
     async def _check_system_resources(self) -> ComponentHealth:
-        """Check system resource usage"""
+        """Check system resource usage."""
         try:
             # Get system resource usage
             cpu_percent = psutil.cpu_percent(interval=1)
@@ -406,7 +408,7 @@ class SystemHealthMonitor:
             )
 
     async def _check_trading_performance(self) -> ComponentHealth:
-        """Check trading performance metrics"""
+        """Check trading performance metrics."""
         try:
             # This would check actual trading performance in a real implementation
             # For now, we'll simulate some metrics
@@ -456,7 +458,7 @@ class SystemHealthMonitor:
             )
 
     def _calculate_overall_health(self, component_healths: list[ComponentHealth]) -> HealthStatus:
-        """Calculate overall system health from component healths"""
+        """Calculate overall system health from component healths."""
         if not component_healths:
             return HealthStatus.UNKNOWN
 
@@ -476,7 +478,7 @@ class SystemHealthMonitor:
             return HealthStatus.UNKNOWN
 
     def _generate_recommendations(self, report: SystemHealthReport) -> list[str]:
-        """Generate system - wide recommendations based on health report"""
+        """Generate system - wide recommendations based on health report."""
         recommendations = []
 
         # Collect all component recommendations
@@ -492,7 +494,7 @@ class SystemHealthMonitor:
         return list(set(recommendations))  # Remove duplicates
 
     async def _send_health_alert(self, report: SystemHealthReport):
-        """Send health alert if system is unhealthy"""
+        """Send health alert if system is unhealthy."""
         if self.alert_system:
             priority = "CRITICAL" if report.overall_status == HealthStatus.CRITICAL else "HIGH"
             await self.alert_system.send_health_alert(
@@ -504,7 +506,7 @@ class SystemHealthMonitor:
             )
 
     def _create_error_health(self, component_name: str, error: Exception) -> ComponentHealth:
-        """Create health status for component that failed to check"""
+        """Create health status for component that failed to check."""
         return ComponentHealth(
             component_name=component_name,
             status=HealthStatus.CRITICAL,
@@ -516,7 +518,7 @@ class SystemHealthMonitor:
         )
 
     def _create_critical_report(self, error_message: str) -> SystemHealthReport:
-        """Create critical health report when health check fails"""
+        """Create critical health report when health check fails."""
         return SystemHealthReport(
             timestamp=datetime.now(),
             overall_status=HealthStatus.CRITICAL,
@@ -529,12 +531,12 @@ class SystemHealthMonitor:
         )
 
     def get_health_history(self, hours: int = 24) -> list[SystemHealthReport]:
-        """Get health history for specified hours"""
+        """Get health history for specified hours."""
         cutoff_time = datetime.now() - timedelta(hours=hours)
         return [report for report in self.health_history if report.timestamp >= cutoff_time]
 
     def get_uptime_stats(self) -> dict[str, Any]:
-        """Get system uptime statistics"""
+        """Get system uptime statistics."""
         uptime = datetime.now() - self.start_time
         return {
             "start_time": self.start_time,

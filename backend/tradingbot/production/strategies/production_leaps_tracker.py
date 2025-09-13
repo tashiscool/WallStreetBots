@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Production LEAPS Tracker Strategy
-Long - term positions on secular growth trends with systematic profit - taking
+Long - term positions on secular growth trends with systematic profit - taking.
 """
 
 import asyncio
@@ -19,7 +19,7 @@ from ..data.production_data_integration import ReliableDataProvider
 
 @dataclass
 class SecularTrend:
-    """Secular growth trend definition"""
+    """Secular growth trend definition."""
 
     theme: str
     description: str
@@ -30,7 +30,7 @@ class SecularTrend:
 
 @dataclass
 class MovingAverageCross:
-    """Moving average cross analysis"""
+    """Moving average cross analysis."""
 
     cross_type: str  # "golden_cross", "death_cross", "neutral"
     cross_date: date | None
@@ -45,7 +45,7 @@ class MovingAverageCross:
 
 @dataclass
 class LEAPSCandidate:
-    """LEAPS candidate with comprehensive scoring"""
+    """LEAPS candidate with comprehensive scoring."""
 
     ticker: str
     company_name: str
@@ -69,7 +69,7 @@ class LEAPSCandidate:
 
 
 class ProductionLEAPSTracker:
-    """Production LEAPS Tracker Strategy
+    """Production LEAPS Tracker Strategy.
 
     Strategy Logic:
     1. Identifies secular growth trends and themes
@@ -181,7 +181,7 @@ class ProductionLEAPSTracker:
         self.logger.info("ProductionLEAPSTracker strategy initialized")
 
     async def analyze_moving_average_cross(self, ticker: str) -> MovingAverageCross:
-        """Analyze golden cross / death cross signals"""
+        """Analyze golden cross / death cross signals."""
         try:
             # Get 1 year of historical data
             hist_data = await self.data_provider.get_historical_data(ticker, "1y")
@@ -301,7 +301,7 @@ class ProductionLEAPSTracker:
     def calculate_entry_exit_timing_scores(
         self, ma_cross: MovingAverageCross, current_price: float
     ) -> tuple[float, float]:
-        """Calculate entry and exit timing scores based on MA cross analysis"""
+        """Calculate entry and exit timing scores based on MA cross analysis."""
         entry_score = 50.0  # Default neutral
         exit_score = 50.0  # Default neutral
 
@@ -361,7 +361,7 @@ class ProductionLEAPSTracker:
         return entry_score, exit_score
 
     async def calculate_comprehensive_score(self, ticker: str) -> tuple[float, float, float, float]:
-        """Calculate comprehensive scoring for LEAPS candidate"""
+        """Calculate comprehensive scoring for LEAPS candidate."""
         try:
             # Get 2 years of data for comprehensive analysis
             hist_data = await self.data_provider.get_historical_data(ticker, "2y")
@@ -457,7 +457,7 @@ class ProductionLEAPSTracker:
             return 50.0, 50.0, 50.0, 50.0
 
     async def get_leaps_expiries(self, ticker: str) -> list[str]:
-        """Get LEAPS expiries (12+ months out)"""
+        """Get LEAPS expiries (12+ months out)."""
         try:
             expiries = await self.data_provider.get_option_expiries(ticker)
             if not expiries:
@@ -484,7 +484,7 @@ class ProductionLEAPSTracker:
             return []
 
     async def estimate_leaps_premium(self, ticker: str, strike: float, expiry: str) -> float:
-        """Estimate LEAPS premium"""
+        """Estimate LEAPS premium."""
         try:
             # Try to get actual options data
             options_data = await self.data_provider.get_options_chain(ticker, expiry)
@@ -531,12 +531,12 @@ class ProductionLEAPSTracker:
             return 10.0
 
     async def scan_leaps_candidates(self) -> list[LEAPSCandidate]:
-        """Scan all themes for LEAPS candidates"""
+        """Scan all themes for LEAPS candidates."""
         candidates = []
 
         self.logger.info("Scanning secular growth themes for LEAPS opportunities")
 
-        for theme_key, theme in self.secular_themes.items():
+        for _theme_key, theme in self.secular_themes.items():
             self.logger.info(f"Analyzing {theme.theme}")
 
             for ticker in theme.tickers:
@@ -653,7 +653,7 @@ class ProductionLEAPSTracker:
         return candidates
 
     async def execute_leaps_trade(self, candidate: LEAPSCandidate) -> bool:
-        """Execute LEAPS trade"""
+        """Execute LEAPS trade."""
         try:
             # Check if we can add more positions
             if len(self.active_positions) >= self.max_positions:
@@ -743,7 +743,7 @@ class ProductionLEAPSTracker:
             return False
 
     async def manage_positions(self):
-        """Manage existing LEAPS positions"""
+        """Manage existing LEAPS positions."""
         positions_to_remove = []
 
         for i, position in enumerate(self.active_positions):
@@ -863,7 +863,7 @@ class ProductionLEAPSTracker:
             self.active_positions.pop(i)
 
     async def scan_opportunities(self) -> list[ProductionTradeSignal]:
-        """Main strategy execution: scan and generate trade signals"""
+        """Main strategy execution: scan and generate trade signals."""
         try:
             # First manage existing positions
             await self.manage_positions()
@@ -908,7 +908,7 @@ class ProductionLEAPSTracker:
             return []
 
     def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         try:
             total_cost_basis = sum(pos["cost_basis"] for pos in self.active_positions)
             position_details = []
@@ -954,7 +954,7 @@ class ProductionLEAPSTracker:
             return {"strategy_name": self.strategy_name, "error": str(e)}
 
     async def run_strategy(self):
-        """Main strategy execution loop"""
+        """Main strategy execution loop."""
         self.logger.info("Starting Production LEAPS Tracker Strategy")
 
         try:
@@ -976,5 +976,5 @@ class ProductionLEAPSTracker:
 def create_production_leaps_tracker(
     integration_manager, data_provider: ReliableDataProvider, config: dict
 ) -> ProductionLEAPSTracker:
-    """Factory function to create ProductionLEAPSTracker strategy"""
+    """Factory function to create ProductionLEAPSTracker strategy."""
     return ProductionLEAPSTracker(integration_manager, data_provider, config)

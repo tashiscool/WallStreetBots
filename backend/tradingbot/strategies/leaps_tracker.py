@@ -1,12 +1,13 @@
 #!/usr / bin / env python3
 """WSB Strategy #4: LEAPS Secular Winners Tracking System
-Long - term positions on secular growth trends with systematic profit - taking
+Long - term positions on secular growth trends with systematic profit - taking.
 """
 
 import argparse
 import csv
 import json
 import os
+import sys
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
 
@@ -17,7 +18,7 @@ try:
 except ImportError as e:
     print(f"Missing required package: {e}")
     print("Run: pip install -r wsb_requirements.txt")
-    exit(1)
+    sys.exit(1)
 
 
 @dataclass
@@ -168,7 +169,7 @@ class LEAPSTracker:
         }
 
     def load_portfolio(self):
-        """Load existing LEAPS portfolio"""
+        """Load existing LEAPS portfolio."""
         if os.path.exists(self.portfolio_file):
             try:
                 with open(self.portfolio_file) as f:
@@ -181,7 +182,7 @@ class LEAPSTracker:
             self.positions = []
 
     def save_portfolio(self):
-        """Save LEAPS portfolio"""
+        """Save LEAPS portfolio."""
         try:
             data = {
                 "last_updated": datetime.now().isoformat(),
@@ -193,7 +194,7 @@ class LEAPSTracker:
             print(f"Error saving portfolio: {e}")
 
     def analyze_moving_average_cross(self, ticker: str) -> MovingAverageCross:
-        """Analyze golden cross / death cross signals"""
+        """Analyze golden cross / death cross signals."""
         try:
             stock = yf.Ticker(ticker)
             hist = stock.history(period="1y")
@@ -319,7 +320,7 @@ class LEAPSTracker:
     def calculate_entry_exit_timing_scores(
         self, ma_cross: MovingAverageCross, current_price: float
     ) -> tuple[float, float]:
-        """Calculate entry and exit timing scores based on MA cross analysis"""
+        """Calculate entry and exit timing scores based on MA cross analysis."""
         entry_score = 50.0  # Default neutral
         exit_score = 50.0  # Default neutral
 
@@ -379,7 +380,7 @@ class LEAPSTracker:
         return entry_score, exit_score
 
     def calculate_trend_score(self, ticker: str) -> tuple[float, float, float, float]:
-        """Calculate multi - factor trend score (0 - 100)"""
+        """Calculate multi - factor trend score (0 - 100)."""
         try:
             stock = yf.Ticker(ticker)
 
@@ -487,7 +488,7 @@ class LEAPSTracker:
             return 50.0, 50.0, 50.0, 50.0
 
     def get_leaps_expiries(self, ticker: str) -> list[str]:
-        """Get LEAPS expiries (12+ months out)"""
+        """Get LEAPS expiries (12+ months out)."""
         try:
             stock = yf.Ticker(ticker)
             expiries = stock.options
@@ -513,7 +514,7 @@ class LEAPSTracker:
             return []
 
     def estimate_leaps_premium(self, ticker: str, strike: int, expiry: str) -> float:
-        """Estimate LEAPS premium"""
+        """Estimate LEAPS premium."""
         try:
             stock = yf.Ticker(ticker)
 
@@ -550,12 +551,12 @@ class LEAPSTracker:
             return 10.0  # Default estimate
 
     def scan_secular_winners(self) -> list[LEAPSCandidate]:
-        """Scan all themes for LEAPS candidates"""
+        """Scan all themes for LEAPS candidates."""
         candidates = []
 
         print("🔍 Scanning secular growth themes for LEAPS opportunities...")
 
-        for theme_key, theme in self.secular_themes.items():
+        for _theme_key, theme in self.secular_themes.items():
             print(f"\n📈 Analyzing {theme.theme}...")
 
             for ticker in theme.tickers:
@@ -672,7 +673,7 @@ class LEAPSTracker:
         return candidates
 
     def update_positions(self):
-        """Update all LEAPS positions with current data"""
+        """Update all LEAPS positions with current data."""
         print("📊 Updating LEAPS positions...")
 
         for pos in self.positions:
@@ -733,7 +734,7 @@ class LEAPSTracker:
         self.save_portfolio()
 
     def format_candidates(self, candidates: list[LEAPSCandidate], limit: int = 15) -> str:
-        """Format LEAPS candidates for display"""
+        """Format LEAPS candidates for display."""
         if not candidates:
             return "🔍 No strong LEAPS candidates found."
 
@@ -798,7 +799,7 @@ class LEAPSTracker:
         return output
 
     def format_portfolio(self) -> str:
-        """Format current LEAPS portfolio"""
+        """Format current LEAPS portfolio."""
         if not self.positions:
             return "📊 No LEAPS positions in portfolio."
 

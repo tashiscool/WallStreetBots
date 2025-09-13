@@ -1,4 +1,4 @@
-"""Django settings for WallStreetBots testing"""
+"""Django settings for WallStreetBots testing."""
 
 from pathlib import Path
 

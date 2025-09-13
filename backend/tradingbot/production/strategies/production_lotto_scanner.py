@@ -1,5 +1,5 @@
 """Production Lotto Scanner Strategy
-0DTE and earnings lotto plays with extreme risk management
+0DTE and earnings lotto plays with extreme risk management.
 """
 
 import asyncio
@@ -17,7 +17,7 @@ from ..data.production_data_integration import ReliableDataProvider
 
 @dataclass
 class LottoOpportunity:
-    """Individual lotto opportunity"""
+    """Individual lotto opportunity."""
 
     ticker: str
     play_type: str  # "0dte", "earnings", "catalyst"
@@ -41,7 +41,7 @@ class LottoOpportunity:
 
 
 class ProductionLottoScanner:
-    """Production Lotto Scanner Strategy
+    """Production Lotto Scanner Strategy.
 
     Extreme high - risk, high - reward plays with strict position sizing:
     - 0DTE options on momentum / catalysts
@@ -118,7 +118,7 @@ class ProductionLottoScanner:
         )
 
     async def run_strategy(self):
-        """Main strategy execution loop"""
+        """Main strategy execution loop."""
         self.logger.info("Starting Lotto Scanner production strategy")
 
         while True:
@@ -143,7 +143,7 @@ class ProductionLottoScanner:
                 await asyncio.sleep(300)
 
     async def _should_trade(self) -> bool:
-        """Check if conditions are right for lotto trading"""
+        """Check if conditions are right for lotto trading."""
         try:
             # Check market hours (lotto plays need active market)
             if not await self.data_provider.is_market_open():
@@ -176,7 +176,7 @@ class ProductionLottoScanner:
             return False
 
     async def _monitor_positions(self):
-        """Monitor and manage existing lotto positions"""
+        """Monitor and manage existing lotto positions."""
         positions_to_close = []
 
         for position_id, position_info in self.active_positions.items():
@@ -223,7 +223,7 @@ class ProductionLottoScanner:
             await self._close_position(position_id, reason)
 
     async def _scan_opportunities(self):
-        """Scan for lotto opportunities"""
+        """Scan for lotto opportunities."""
         try:
             opportunities = []
 
@@ -261,7 +261,7 @@ class ProductionLottoScanner:
             self.logger.error(f"Error scanning opportunities: {e}")
 
     async def _scan_0dte_opportunities(self) -> list[LottoOpportunity]:
-        """Scan for 0DTE opportunities"""
+        """Scan for 0DTE opportunities."""
         opportunities = []
 
         try:
@@ -318,7 +318,7 @@ class ProductionLottoScanner:
         return opportunities
 
     async def _scan_earnings_opportunities(self) -> list[LottoOpportunity]:
-        """Scan for earnings lotto opportunities"""
+        """Scan for earnings lotto opportunities."""
         opportunities = []
 
         try:
@@ -375,7 +375,7 @@ class ProductionLottoScanner:
         return opportunities
 
     async def _scan_catalyst_opportunities(self) -> list[LottoOpportunity]:
-        """Scan for catalyst - driven opportunities (news, events, etc.)"""
+        """Scan for catalyst - driven opportunities (news, events, etc.)."""
         opportunities = []
 
         try:
@@ -441,7 +441,7 @@ class ProductionLottoScanner:
         expected_move: float,
         current_spot: float,
     ) -> LottoOpportunity | None:
-        """Evaluate a specific option opportunity"""
+        """Evaluate a specific option opportunity."""
         try:
             # Find best strike near target
             best_option = await self.options_selector.find_best_strike(
@@ -529,7 +529,7 @@ class ProductionLottoScanner:
             return None
 
     async def _execute_lotto_trade(self, opportunity: LottoOpportunity):
-        """Execute a lotto trade"""
+        """Execute a lotto trade."""
         try:
             # Create trade signal
             signal = ProductionTradeSignal(
@@ -586,7 +586,7 @@ class ProductionLottoScanner:
             self.logger.error(f"Error executing lotto trade: {e}")
 
     async def _close_position(self, position_id: str, reason: str, close_pct: float = 1.0):
-        """Close a lotto position"""
+        """Close a lotto position."""
         try:
             if position_id not in self.active_positions:
                 return
@@ -632,7 +632,7 @@ class ProductionLottoScanner:
 
     # Helper methods
     async def _get_0dte_expiry(self) -> str | None:
-        """Get 0DTE expiry if available"""
+        """Get 0DTE expiry if available."""
         today = date.today()
         weekday = today.weekday()  # 0=Monday, 4 = Friday
 
@@ -643,7 +643,7 @@ class ProductionLottoScanner:
         return None
 
     async def _get_weekly_expiry(self) -> str:
-        """Get next weekly expiry (Friday)"""
+        """Get next weekly expiry (Friday)."""
         today = date.today()
         days_until_friday = (4 - today.weekday()) % 7
         if days_until_friday == 0:
@@ -653,7 +653,7 @@ class ProductionLottoScanner:
         return friday.strftime("%Y-%m-%d")
 
     async def _calculate_momentum_score(self, ticker: str) -> float:
-        """Calculate momentum score (0 - 100)"""
+        """Calculate momentum score (0 - 100)."""
         try:
             # Get recent price data
             prices = await self.data_provider.get_recent_prices(ticker, periods=20)
@@ -685,7 +685,7 @@ class ProductionLottoScanner:
             return 0
 
     async def _estimate_intraday_move(self, ticker: str) -> float:
-        """Estimate expected intraday move"""
+        """Estimate expected intraday move."""
         try:
             # Get recent volatility
             prices = await self.data_provider.get_recent_prices(ticker, periods=20)
@@ -705,7 +705,7 @@ class ProductionLottoScanner:
             return 0.03  # 3% fallback
 
     async def _get_upcoming_earnings(self) -> list[dict]:
-        """Get upcoming earnings events (mock implementation)"""
+        """Get upcoming earnings events (mock implementation)."""
         # In production, this would use a real earnings calendar API
         today = date.today()
 
@@ -733,7 +733,7 @@ class ProductionLottoScanner:
         return [e for e in mock_earnings if e["date"] >= today]
 
     async def _find_best_earnings_expiry(self, ticker: str, earnings_date: date) -> str | None:
-        """Find best expiry for earnings play"""
+        """Find best expiry for earnings play."""
         # Look for expiry within 3 days after earnings
         earnings_date + timedelta(days=1)
 
@@ -742,12 +742,12 @@ class ProductionLottoScanner:
         return await self._get_weekly_expiry()
 
     async def _get_volume_ratio(self, ticker: str) -> float:
-        """Get current volume vs average ratio"""
+        """Get current volume vs average ratio."""
         # Mock implementation - would use real volume data
         return 2.5  # Placeholder
 
     async def _get_price_momentum(self, ticker: str) -> float:
-        """Get current price momentum"""
+        """Get current price momentum."""
         try:
             prices = await self.data_provider.get_recent_prices(ticker, periods=2)
             if not prices or len(prices) < 2:
@@ -760,7 +760,7 @@ class ProductionLottoScanner:
     async def _get_option_price(
         self, ticker: str, expiry: str, strike: float, option_type: str
     ) -> float | None:
-        """Get current option price"""
+        """Get current option price."""
         try:
             chain = await self.options_selector.get_options_chain(ticker, expiry)
             if not chain:
@@ -788,5 +788,5 @@ def create_production_lotto_scanner(
     data_provider: ReliableDataProvider,
     config: dict,
 ) -> ProductionLottoScanner:
-    """Factory function to create ProductionLottoScanner"""
+    """Factory function to create ProductionLottoScanner."""
     return ProductionLottoScanner(integration_manager, data_provider, config)

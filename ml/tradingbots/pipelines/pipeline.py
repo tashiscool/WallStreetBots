@@ -13,14 +13,14 @@ class Pipeline:
 
     def pipeline(self):
         """This method is to be implemented in the subclasses
-        Should return a new portfolio_stocks
+        Should return a new portfolio_stocks.
         """
         return self.portfolio_stocks
 
     def calc_actions(self, order_type="M"):
         """Generate a list of actions based on the change in portfolio
         Args:
-            order_type: string
+            order_type: string.
 
         Returns:
             actions: list of action objects
@@ -36,8 +36,8 @@ class Pipeline:
             return False
 
         def get_action(key):
-            qty1 = PreP[key] if key in PreP.keys() else 0
-            qty2 = PostP[key] if key in PostP.keys() else 0
+            qty1 = PreP.get(key, 0)
+            qty2 = PostP.get(key, 0)
             qty = qty2 - qty1
             if get_transaction_type(qty):
                 return Action(

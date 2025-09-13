@@ -1,5 +1,5 @@
 """Phase 1 Integration Tests
-Test the unified trading interface and production components
+Test the unified trading interface and production components.
 """
 
 import asyncio
@@ -29,10 +29,10 @@ from backend.tradingbot.core.trading_interface import (
 
 
 class TestTradingInterface(unittest.TestCase):
-    """Test unified trading interface"""
+    """Test unified trading interface."""
 
     def setUp(self):
-        """Setup test environment"""
+        """Setup test environment."""
         self.mock_broker = Mock()
         self.mock_risk_manager = Mock()
         self.mock_alert_system = Mock()
@@ -48,7 +48,7 @@ class TestTradingInterface(unittest.TestCase):
         )
 
     def test_trade_signal_creation(self):
-        """Test trade signal creation"""
+        """Test trade signal creation."""
         signal = TradeSignal(
             strategy_name="test_strategy",
             ticker="AAPL",
@@ -68,7 +68,7 @@ class TestTradingInterface(unittest.TestCase):
     @patch("backend.tradingbot.trading_interface.TradingInterface.get_account_info")
     @patch("backend.tradingbot.trading_interface.TradingInterface.get_current_price")
     async def test_risk_limit_check(self, mock_price, mock_account):
-        """Test risk limit checking"""
+        """Test risk limit checking."""
         # Setup mocks
         mock_account.return_value = {"equity": 100000.0}
         mock_price.return_value = 150.0
@@ -90,7 +90,7 @@ class TestTradingInterface(unittest.TestCase):
     @patch("backend.tradingbot.trading_interface.TradingInterface.get_account_info")
     @patch("backend.tradingbot.trading_interface.TradingInterface.get_current_price")
     async def test_risk_limit_exceeded(self, mock_price, mock_account):
-        """Test risk limit exceeded scenario"""
+        """Test risk limit exceeded scenario."""
         # Setup mocks
         mock_account.return_value = {"equity": 10000.0}  # Small account
         mock_price.return_value = 150.0
@@ -110,7 +110,7 @@ class TestTradingInterface(unittest.TestCase):
         self.assertIn("exceeds limit", result["reason"])
 
     def test_signal_validation(self):
-        """Test signal validation"""
+        """Test signal validation."""
         # Mock market as open - fix the broker mock
         self.mock_broker.market_close.return_value = False  # Market is open
 
@@ -145,10 +145,10 @@ class TestTradingInterface(unittest.TestCase):
 
 
 class TestDataProviders(unittest.TestCase):
-    """Test data provider integration"""
+    """Test data provider integration."""
 
     def setUp(self):
-        """Setup test environment"""
+        """Setup test environment."""
         self.config = {
             "iex_api_key": "test_key",
             "polygon_api_key": "test_key",
@@ -160,7 +160,7 @@ class TestDataProviders(unittest.TestCase):
 
     @patch("aiohttp.ClientSession.get")
     async def test_market_data_fetch(self, mock_get):
-        """Test market data fetching"""
+        """Test market data fetching."""
         # Mock response
         mock_response = Mock()
         mock_response.status = 200
@@ -188,7 +188,7 @@ class TestDataProviders(unittest.TestCase):
 
     @patch("aiohttp.ClientSession.get")
     async def test_earnings_data_fetch(self, mock_get):
-        """Test earnings data fetching"""
+        """Test earnings data fetching."""
         # Mock response
         mock_response = Mock()
         mock_response.status = 200
@@ -209,10 +209,10 @@ class TestDataProviders(unittest.TestCase):
 
 
 class TestConfigurationManagement(unittest.TestCase):
-    """Test configuration management"""
+    """Test configuration management."""
 
     def setUp(self):
-        """Setup test environment"""
+        """Setup test environment."""
         self.temp_dir = tempfile.mkdtemp()
         self.config_file = os.path.join(self.temp_dir, "test_config.json")
 
@@ -241,7 +241,7 @@ class TestConfigurationManagement(unittest.TestCase):
             json.dump(test_config, f)
 
     def tearDown(self):
-        """Cleanup test environment"""
+        """Cleanup test environment."""
         import shutil
 
         shutil.rmtree(self.temp_dir)
@@ -251,7 +251,7 @@ class TestConfigurationManagement(unittest.TestCase):
             os.environ[var] = value
 
     def test_config_loading(self):
-        """Test configuration loading"""
+        """Test configuration loading."""
         config_manager = ConfigManager(self.config_file)
         config = config_manager.load_config()
 
@@ -262,7 +262,7 @@ class TestConfigurationManagement(unittest.TestCase):
         self.assertEqual(config.risk.account_size, 50000.0)
 
     def test_config_validation(self):
-        """Test configuration validation"""
+        """Test configuration validation."""
         # Create config with missing required fields
         invalid_config = {
             "data_providers": {
@@ -289,7 +289,7 @@ class TestConfigurationManagement(unittest.TestCase):
         self.assertTrue(any("IEX API key is required" in error for error in errors))
 
     def test_env_override(self):
-        """Test environment variable override"""
+        """Test environment variable override."""
         import os
 
         # Set environment variables
@@ -310,15 +310,15 @@ class TestConfigurationManagement(unittest.TestCase):
 
 
 class TestProductionLogging(unittest.TestCase):
-    """Test production logging system"""
+    """Test production logging system."""
 
     def setUp(self):
-        """Setup test environment"""
+        """Setup test environment."""
         self.logger = ProductionLogger("test_logger", "DEBUG")
         self.error_handler = ErrorHandler(self.logger)
 
     def test_logging(self):
-        """Test logging functionality"""
+        """Test logging functionality."""
         # Test different log levels
         self.logger.info("Test info message", test_param="value")
         self.logger.warning("Test warning message", test_param="value")
@@ -326,7 +326,7 @@ class TestProductionLogging(unittest.TestCase):
         self.logger.debug("Test debug message", test_param="value")
 
     def test_error_handling(self):
-        """Test error handling"""
+        """Test error handling."""
         error = ValueError("Test error")
         context = {"ticker": "AAPL", "strategy": "test"}
 
@@ -338,7 +338,7 @@ class TestProductionLogging(unittest.TestCase):
         self.assertFalse(result["threshold_exceeded"])
 
     def test_circuit_breaker(self):
-        """Test circuit breaker functionality"""
+        """Test circuit breaker functionality."""
         circuit_breaker = CircuitBreaker(failure_threshold=2, timeout=1.0)
 
         # Test successful calls
@@ -368,7 +368,7 @@ class TestProductionLogging(unittest.TestCase):
             circuit_breaker.call(success_func)
 
     def test_retry_decorator(self):
-        """Test retry decorator"""
+        """Test retry decorator."""
         call_count = 0
 
         @retry_with_backoff(max_attempts=3, exceptions=(ValueError,), base_delay=0.01)
@@ -394,15 +394,15 @@ class TestProductionLogging(unittest.TestCase):
 
 
 class TestHealthChecker(unittest.TestCase):
-    """Test health checker functionality"""
+    """Test health checker functionality."""
 
     def setUp(self):
-        """Setup test environment"""
+        """Setup test environment."""
         self.logger = ProductionLogger("test_health", "DEBUG")
         self.health_checker = HealthChecker(self.logger)
 
     def test_health_check_registration(self):
-        """Test health check registration"""
+        """Test health check registration."""
 
         def test_check():
             return True
@@ -411,7 +411,7 @@ class TestHealthChecker(unittest.TestCase):
         self.assertIn("test_check", self.health_checker.health_checks)
 
     async def test_health_check_execution(self):
-        """Test health check execution"""
+        """Test health check execution."""
 
         def healthy_check():
             return True
@@ -440,15 +440,15 @@ class TestHealthChecker(unittest.TestCase):
 
 
 class TestMetricsCollector(unittest.TestCase):
-    """Test metrics collector functionality"""
+    """Test metrics collector functionality."""
 
     def setUp(self):
-        """Setup test environment"""
+        """Setup test environment."""
         self.logger = ProductionLogger("test_metrics", "DEBUG")
         self.metrics_collector = MetricsCollector(self.logger)
 
     def test_metric_recording(self):
-        """Test metric recording"""
+        """Test metric recording."""
         self.metrics_collector.record_metric("test_metric", 100.0, {"tag1": "value1"})
         self.metrics_collector.record_metric("test_metric", 150.0, {"tag1": "value2"})
         self.metrics_collector.record_metric("test_metric", 200.0, {"tag1": "value1"})
@@ -456,7 +456,7 @@ class TestMetricsCollector(unittest.TestCase):
         self.assertEqual(len(self.metrics_collector.metrics["test_metric"]), 3)
 
     def test_metric_summary(self):
-        """Test metric summary generation"""
+        """Test metric summary generation."""
         # Record some metrics
         for i in range(10):
             self.metrics_collector.record_metric("test_metric", float(i * 10))
@@ -471,10 +471,10 @@ class TestMetricsCollector(unittest.TestCase):
 
 
 class TestIntegration(unittest.TestCase):
-    """Test integration between components"""
+    """Test integration between components."""
 
     def setUp(self):
-        """Setup test environment"""
+        """Setup test environment."""
         self.temp_dir = tempfile.mkdtemp()
         self.config_file = os.path.join(self.temp_dir, "integration_config.json")
 
@@ -503,13 +503,13 @@ class TestIntegration(unittest.TestCase):
             json.dump(test_config, f)
 
     def tearDown(self):
-        """Cleanup test environment"""
+        """Cleanup test environment."""
         import shutil
 
         shutil.rmtree(self.temp_dir)
 
     def test_full_integration(self):
-        """Test full integration of Phase 1 components"""
+        """Test full integration of Phase 1 components."""
         # Load configuration
         config_manager = ConfigManager(self.config_file)
         config = config_manager.load_config()

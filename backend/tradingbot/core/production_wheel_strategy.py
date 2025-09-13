@@ -1,5 +1,5 @@
 """Production Wheel Strategy Implementation
-Automated premium selling with real broker integration
+Automated premium selling with real broker integration.
 """
 
 import asyncio
@@ -15,7 +15,7 @@ from .trading_interface import OrderSide, OrderType, TradeSignal, TradingInterfa
 
 
 class WheelStage(Enum):
-    """Wheel strategy stages"""
+    """Wheel strategy stages."""
 
     CASH_SECURED_PUT = "cash_secured_put"
     ASSIGNED_STOCK = "assigned_stock"
@@ -24,7 +24,7 @@ class WheelStage(Enum):
 
 
 class WheelStatus(Enum):
-    """Wheel position status"""
+    """Wheel position status."""
 
     ACTIVE = "active"
     EXPIRED = "expired"
@@ -35,7 +35,7 @@ class WheelStatus(Enum):
 
 @dataclass
 class WheelPosition:
-    """Wheel strategy position tracking"""
+    """Wheel strategy position tracking."""
 
     ticker: str
     stage: WheelStage
@@ -65,7 +65,7 @@ class WheelPosition:
     iv_rank: float = 0.0
 
     def update_pricing(self, market_data: MarketData, options_data: list[OptionsData]):
-        """Update position with current market data"""
+        """Update position with current market data."""
         self.current_price = market_data.price
         self.unrealized_pnl = self.calculate_unrealized_pnl()
         self.last_update = datetime.now()
@@ -82,7 +82,7 @@ class WheelPosition:
                 break
 
     def calculate_unrealized_pnl(self) -> float:
-        """Calculate unrealized P & L"""
+        """Calculate unrealized P & L."""
         if self.stage == WheelStage.CASH_SECURED_PUT:
             # For puts, profit if stock stays above strike
             if self.current_price >= self.strike_price:
@@ -113,7 +113,7 @@ class WheelPosition:
         return 0.0
 
     def calculate_days_to_expiry(self) -> int:
-        """Calculate days to expiry"""
+        """Calculate days to expiry."""
         if self.expiry_date:
             delta = self.expiry_date - datetime.now()
             return max(0, delta.days)
@@ -122,7 +122,7 @@ class WheelPosition:
 
 @dataclass
 class WheelCandidate:
-    """Wheel strategy candidate screening"""
+    """Wheel strategy candidate screening."""
 
     ticker: str
     current_price: float
@@ -145,7 +145,7 @@ class WheelCandidate:
     risk_score: float = 0.0
 
     def calculate_wheel_score(self) -> float:
-        """Calculate wheel strategy score"""
+        """Calculate wheel strategy score."""
         score = 0.0
 
         # Volatility rank (higher is better for premium)
@@ -169,7 +169,7 @@ class WheelCandidate:
 
 
 class ProductionWheelStrategy:
-    """Production Wheel Strategy Implementation"""
+    """Production Wheel Strategy Implementation."""
 
     def __init__(
         self,
@@ -207,7 +207,7 @@ class ProductionWheelStrategy:
         )
 
     async def scan_for_opportunities(self) -> list[WheelCandidate]:
-        """Scan for wheel strategy opportunities"""
+        """Scan for wheel strategy opportunities."""
         self.logger.info("Scanning for wheel opportunities")
 
         try:
@@ -246,7 +246,7 @@ class ProductionWheelStrategy:
             return []
 
     async def _analyze_ticker(self, ticker: str) -> WheelCandidate | None:
-        """Analyze ticker for wheel strategy suitability"""
+        """Analyze ticker for wheel strategy suitability."""
         try:
             # Get market data
             market_data = await self.data.get_market_data(ticker)
@@ -299,7 +299,7 @@ class ProductionWheelStrategy:
     def _find_suitable_puts(
         self, options_data: list[OptionsData], current_price: float
     ) -> list[OptionsData]:
-        """Find suitable put options for wheel strategy"""
+        """Find suitable put options for wheel strategy."""
         suitable_puts = []
 
         # Look for puts 30 - 45 days out, 5 - 10% OTM
@@ -319,7 +319,7 @@ class ProductionWheelStrategy:
         return suitable_puts[:3]  # Top 3 suitable puts
 
     async def execute_wheel_trade(self, candidate: WheelCandidate) -> bool:
-        """Execute wheel strategy trade"""
+        """Execute wheel strategy trade."""
         try:
             self.logger.info(f"Executing wheel trade for {candidate.ticker}")
 
@@ -407,7 +407,7 @@ class ProductionWheelStrategy:
     def _select_best_put(
         self, options_data: list[OptionsData], current_price: float
     ) -> OptionsData | None:
-        """Select best put option for wheel strategy"""
+        """Select best put option for wheel strategy."""
         suitable_puts = self._find_suitable_puts(options_data, current_price)
 
         if not suitable_puts:
@@ -418,7 +418,7 @@ class ProductionWheelStrategy:
         return best_put
 
     def _calculate_position_size(self, ticker: str, strike_price: float) -> int:
-        """Calculate position size for wheel strategy"""
+        """Calculate position size for wheel strategy."""
         try:
             # Get account value
             account_value = self.config.risk.account_size
@@ -442,7 +442,7 @@ class ProductionWheelStrategy:
             return 1
 
     async def manage_positions(self):
-        """Manage existing wheel positions"""
+        """Manage existing wheel positions."""
         self.logger.info("Managing wheel positions")
 
         for ticker, position in list(self.positions.items()):
@@ -454,7 +454,7 @@ class ProductionWheelStrategy:
                 )
 
     async def _manage_position(self, position: WheelPosition):
-        """Manage individual wheel position"""
+        """Manage individual wheel position."""
         # Get current market data
         market_data = await self.data.get_market_data(position.ticker)
         options_data = await self.data.get_options_data(position.ticker)
@@ -471,7 +471,7 @@ class ProductionWheelStrategy:
             await self._manage_covered_call(position)
 
     async def _manage_cash_secured_put(self, position: WheelPosition):
-        """Manage cash secured put position"""
+        """Manage cash secured put position."""
         # Check for profit target
         profit_pct = position.unrealized_pnl / position.premium_received
 
@@ -493,7 +493,7 @@ class ProductionWheelStrategy:
             return
 
     async def _manage_assigned_stock(self, position: WheelPosition):
-        """Manage assigned stock position"""
+        """Manage assigned stock position."""
         # Look for covered call opportunities
         options_data = await self.data.get_options_data(position.ticker)
 
@@ -506,7 +506,7 @@ class ProductionWheelStrategy:
                 await self._sell_covered_call(position, suitable_calls[0])
 
     async def _manage_covered_call(self, position: WheelPosition):
-        """Manage covered call position"""
+        """Manage covered call position."""
         # Check for profit target
         profit_pct = position.unrealized_pnl / (position.premium_received + position.premium_paid)
 
@@ -524,7 +524,7 @@ class ProductionWheelStrategy:
     def _find_suitable_calls(
         self, options_data: list[OptionsData], current_price: float
     ) -> list[OptionsData]:
-        """Find suitable call options for covered calls"""
+        """Find suitable call options for covered calls."""
         suitable_calls = []
 
         # Look for calls 30 - 45 days out, 5 - 10% OTM
@@ -542,7 +542,7 @@ class ProductionWheelStrategy:
         return suitable_calls[:3]  # Top 3 suitable calls
 
     async def _sell_covered_call(self, position: WheelPosition, call_option: OptionsData):
-        """Sell covered call"""
+        """Sell covered call."""
         try:
             # Create trade signal
             signal = TradeSignal(
@@ -579,7 +579,7 @@ class ProductionWheelStrategy:
             )
 
     async def _close_position(self, position: WheelPosition, reason: str):
-        """Close wheel position"""
+        """Close wheel position."""
         try:
             # Create closing trade signal
             signal = TradeSignal(
@@ -617,7 +617,7 @@ class ProductionWheelStrategy:
             )
 
     async def _roll_position(self, position: WheelPosition, reason: str):
-        """Roll wheel position"""
+        """Roll wheel position."""
         try:
             # Close current position
             await self._close_position(position, f"Rolling - {reason}")
@@ -643,7 +643,7 @@ class ProductionWheelStrategy:
             )
 
     async def get_portfolio_summary(self) -> dict[str, Any]:
-        """Get wheel strategy portfolio summary"""
+        """Get wheel strategy portfolio summary."""
         total_pnl = sum(pos.unrealized_pnl for pos in self.positions.values())
         total_premium = sum(pos.premium_received for pos in self.positions.values())
 
@@ -671,7 +671,7 @@ class ProductionWheelStrategy:
         return summary
 
     async def run_strategy(self):
-        """Run wheel strategy main loop"""
+        """Run wheel strategy main loop."""
         self.logger.info("Starting Wheel Strategy")
 
         while True:
@@ -710,5 +710,5 @@ def create_wheel_strategy(
     config: ProductionConfig,
     logger: ProductionLogger,
 ) -> ProductionWheelStrategy:
-    """Create wheel strategy instance"""
+    """Create wheel strategy instance."""
     return ProductionWheelStrategy(trading_interface, data_provider, config, logger)

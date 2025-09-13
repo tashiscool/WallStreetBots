@@ -1,5 +1,5 @@
 """Phase 4: Strategy Optimization Engine
-Parameter tuning and strategy optimization
+Parameter tuning and strategy optimization.
 """
 
 import math
@@ -32,7 +32,7 @@ class OptimizationMetric(Enum):
 
 @dataclass
 class ParameterRange:
-    """Parameter range for optimization"""
+    """Parameter range for optimization."""
 
     name: str
     min_value: float
@@ -43,7 +43,7 @@ class ParameterRange:
 
 @dataclass
 class OptimizationConfig:
-    """Optimization configuration"""
+    """Optimization configuration."""
 
     method: OptimizationMethod
     metric: OptimizationMetric
@@ -58,7 +58,7 @@ class OptimizationConfig:
 
 @dataclass
 class OptimizationResult:
-    """Optimization result"""
+    """Optimization result."""
 
     best_parameters: dict[str, Any]
     best_score: float
@@ -69,7 +69,7 @@ class OptimizationResult:
 
 
 class StrategyOptimizer:
-    """Strategy optimization engine"""
+    """Strategy optimization engine."""
 
     def __init__(
         self, backtest_engine: BacktestEngine, config: ConfigManager, logger: ProductionLogger
@@ -83,7 +83,7 @@ class StrategyOptimizer:
     async def optimize_strategy(
         self, strategy, optimization_config: OptimizationConfig
     ) -> OptimizationResult:
-        """Optimize strategy parameters"""
+        """Optimize strategy parameters."""
         try:
             self.logger.info(f"Starting optimization using {optimization_config.method.value}")
 
@@ -126,7 +126,7 @@ class StrategyOptimizer:
     async def _grid_search(
         self, strategy, config: OptimizationConfig
     ) -> list[tuple[dict[str, Any], float, BacktestResults]]:
-        """Grid search optimization"""
+        """Grid search optimization."""
         results = []
 
         # Generate all parameter combinations
@@ -162,7 +162,7 @@ class StrategyOptimizer:
     async def _random_search(
         self, strategy, config: OptimizationConfig
     ) -> list[tuple[dict[str, Any], float, BacktestResults]]:
-        """Random search optimization"""
+        """Random search optimization."""
         results = []
 
         for i in range(config.max_iterations):
@@ -194,7 +194,7 @@ class StrategyOptimizer:
     async def _genetic_algorithm(
         self, strategy, config: OptimizationConfig
     ) -> list[tuple[dict[str, Any], float, BacktestResults]]:
-        """Genetic algorithm optimization"""
+        """Genetic algorithm optimization."""
         results = []
 
         # Initialize population
@@ -263,7 +263,7 @@ class StrategyOptimizer:
     def _generate_parameter_combinations(
         self, parameter_ranges: list[ParameterRange]
     ) -> list[dict[str, Any]]:
-        """Generate all parameter combinations for grid search"""
+        """Generate all parameter combinations for grid search."""
         combinations = [{}]
 
         for param_range in parameter_ranges:
@@ -298,7 +298,7 @@ class StrategyOptimizer:
         return combinations
 
     def _generate_random_parameters(self, parameter_ranges: list[ParameterRange]) -> dict[str, Any]:
-        """Generate random parameters"""
+        """Generate random parameters."""
         params = {}
 
         for param_range in parameter_ranges:
@@ -320,7 +320,7 @@ class StrategyOptimizer:
     def _initialize_population(
         self, parameter_ranges: list[ParameterRange], population_size: int
     ) -> list[list[float]]:
-        """Initialize population for genetic algorithm"""
+        """Initialize population for genetic algorithm."""
         population = []
 
         for _ in range(population_size):
@@ -344,7 +344,7 @@ class StrategyOptimizer:
     def _individual_to_parameters(
         self, individual: list[float], parameter_ranges: list[ParameterRange]
     ) -> dict[str, Any]:
-        """Convert individual to parameters"""
+        """Convert individual to parameters."""
         params = {}
 
         for i, param_range in enumerate(parameter_ranges):
@@ -366,7 +366,7 @@ class StrategyOptimizer:
         population_results: list[tuple[list[float], float, BacktestResults]],
         tournament_size: int = 3,
     ) -> list[float]:
-        """Tournament selection for genetic algorithm"""
+        """Tournament selection for genetic algorithm."""
         tournament = random.sample(
             population_results, min(tournament_size, len(population_results))
         )
@@ -376,7 +376,7 @@ class StrategyOptimizer:
     def _crossover(
         self, parent1: list[float], parent2: list[float], parameter_ranges: list[ParameterRange]
     ) -> tuple[list[float], list[float]]:
-        """Crossover operation for genetic algorithm"""
+        """Crossover operation for genetic algorithm."""
         child1 = []
         child2 = []
 
@@ -393,7 +393,7 @@ class StrategyOptimizer:
     def _mutate(
         self, individual: list[float], parameter_ranges: list[ParameterRange]
     ) -> list[float]:
-        """Mutation operation for genetic algorithm"""
+        """Mutation operation for genetic algorithm."""
         mutated = individual.copy()
 
         for i, param_range in enumerate(parameter_ranges):
@@ -410,7 +410,7 @@ class StrategyOptimizer:
         return mutated
 
     async def _update_strategy_parameters(self, strategy, parameters: dict[str, Any]):
-        """Update strategy parameters"""
+        """Update strategy parameters."""
         try:
             # Mock parameter update-in production, update actual strategy parameters
             for param_name, param_value in parameters.items():
@@ -423,7 +423,7 @@ class StrategyOptimizer:
     def _calculate_score(
         self, backtest_results: BacktestResults, metric: OptimizationMetric
     ) -> float:
-        """Calculate optimization score"""
+        """Calculate optimization score."""
         try:
             if metric == OptimizationMetric.SHARPE_RATIO:
                 return backtest_results.sharpe_ratio
@@ -448,13 +448,13 @@ class StrategyOptimizer:
 
 
 class OptimizationAnalyzer:
-    """Optimization results analyzer"""
+    """Optimization results analyzer."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
 
     def analyze_optimization(self, result: OptimizationResult) -> dict[str, Any]:
-        """Analyze optimization results"""
+        """Analyze optimization results."""
         try:
             analysis = {
                 "optimization_summary": {
@@ -485,7 +485,7 @@ class OptimizationAnalyzer:
     def _analyze_parameter_sensitivity(
         self, all_results: list[tuple[dict[str, Any], float, BacktestResults]]
     ) -> dict[str, Any]:
-        """Analyze parameter sensitivity"""
+        """Analyze parameter sensitivity."""
         try:
             sensitivity = {}
 
@@ -516,7 +516,7 @@ class OptimizationAnalyzer:
     def _analyze_convergence(
         self, all_results: list[tuple[dict[str, Any], float, BacktestResults]]
     ) -> dict[str, Any]:
-        """Analyze optimization convergence"""
+        """Analyze optimization convergence."""
         try:
             scores = [result[1] for result in all_results]
 
@@ -535,7 +535,7 @@ class OptimizationAnalyzer:
             return {}
 
     def _calculate_correlation(self, x: list[float], y: list[float]) -> float:
-        """Calculate correlation coefficient"""
+        """Calculate correlation coefficient."""
         try:
             if len(x) != len(y) or len(x) < 2:
                 return 0.0
@@ -560,7 +560,7 @@ class OptimizationAnalyzer:
             return 0.0
 
     def _calculate_convergence_rate(self, scores: list[float]) -> float:
-        """Calculate convergence rate"""
+        """Calculate convergence rate."""
         try:
             if len(scores) < 2:
                 return 0.0

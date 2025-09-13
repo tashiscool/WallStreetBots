@@ -1,12 +1,13 @@
 #!/usr / bin / env python3
 """WSB Strategy #3: Debit Call Spreads
-More repeatable than naked calls with reduced theta / IV risk
+More repeatable than naked calls with reduced theta / IV risk.
 """
 
 import argparse
 import csv
 import json
 import math
+import sys
 from dataclasses import asdict, dataclass
 from datetime import date, datetime
 
@@ -17,7 +18,7 @@ try:
 except ImportError as e:
     print(f"Missing required package: {e}")
     print("Run: pip install -r wsb_requirements.txt")
-    exit(1)
+    sys.exit(1)
 
 
 @dataclass
@@ -72,13 +73,13 @@ class DebitSpreadScanner:
         ]
 
     def norm_cdf(self, x: float) -> float:
-        """Standard normal cumulative distribution function"""
+        """Standard normal cumulative distribution function."""
         return 0.5 * (1.0 + math.erf(x / math.sqrt(2)))
 
     def black_scholes_call(
         self, S: float, K: float, T: float, r: float, sigma: float
     ) -> tuple[float, float]:
-        """Black - Scholes call price and delta"""
+        """Black - Scholes call price and delta."""
         if T <= 0 or sigma <= 0:
             return max(S - K, 0), 1.0 if S > K else 0.0
 
@@ -91,7 +92,7 @@ class DebitSpreadScanner:
         return max(call_price, 0), delta
 
     def calculate_iv_rank(self, ticker: str, current_iv: float) -> float:
-        """Calculate IV rank (current IV vs 52 - week range)"""
+        """Calculate IV rank (current IV vs 52 - week range)."""
         try:
             stock = yf.Ticker(ticker)
             hist = stock.history(period="1y")
@@ -118,7 +119,7 @@ class DebitSpreadScanner:
             return 50.0
 
     def assess_trend_strength(self, ticker: str) -> float:
-        """Assess bullish trend strength (0 - 1 score)"""
+        """Assess bullish trend strength (0 - 1 score)."""
         try:
             stock = yf.Ticker(ticker)
             hist = stock.history(period="60d")
@@ -176,7 +177,7 @@ class DebitSpreadScanner:
             return 0.5
 
     def get_options_data(self, ticker: str, expiry: str) -> pd.DataFrame | None:
-        """Get options chain for expiry"""
+        """Get options chain for expiry."""
         try:
             stock = yf.Ticker(ticker)
             chain = stock.option_chain(expiry)
@@ -204,7 +205,7 @@ class DebitSpreadScanner:
     def find_optimal_spreads(
         self, ticker: str, spot: float, expiry: str, calls: pd.DataFrame
     ) -> list[SpreadOpportunity]:
-        """Find optimal spread combinations"""
+        """Find optimal spread combinations."""
         opportunities = []
 
         days_to_exp = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
@@ -316,7 +317,7 @@ class DebitSpreadScanner:
         return opportunities[:3]  # Top 3 per ticker
 
     def estimate_iv_from_price(self, S: float, K: float, T: float, market_price: float) -> float:
-        """Estimate implied volatility using Newton - Raphson"""
+        """Estimate implied volatility using Newton - Raphson."""
         try:
             iv = 0.25  # Initial guess
 
@@ -347,7 +348,7 @@ class DebitSpreadScanner:
             return 0.25
 
     def scan_all_spreads(self, min_days: int = 20, max_days: int = 60) -> list[SpreadOpportunity]:
-        """Scan all tickers for spread opportunities"""
+        """Scan all tickers for spread opportunities."""
         all_opportunities = []
 
         print(f"🔍 Scanning {len(self.watchlist)} tickers for debit spreads...")
@@ -418,7 +419,7 @@ class DebitSpreadScanner:
         return all_opportunities
 
     def format_opportunities(self, opportunities: list[SpreadOpportunity], limit: int = 10) -> str:
-        """Format opportunities for display"""
+        """Format opportunities for display."""
         if not opportunities:
             return "🔍 No suitable debit spread opportunities found."
 
@@ -452,7 +453,7 @@ class DebitSpreadScanner:
         return output
 
     def save_to_csv(self, opportunities: list[SpreadOpportunity], filename: str):
-        """Save opportunities to CSV"""
+        """Save opportunities to CSV."""
         if not opportunities:
             return
 

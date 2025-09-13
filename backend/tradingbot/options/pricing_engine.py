@@ -1,5 +1,5 @@
 """Real Options Pricing Engine
-Replaces placeholder pricing with actual market data and Black - Scholes calculations
+Replaces placeholder pricing with actual market data and Black - Scholes calculations.
 """
 
 import logging
@@ -19,12 +19,12 @@ except ImportError:
     class NormFallback:
         @staticmethod
         def cdf(x):
-            """Cumulative distribution function for standard normal distribution"""
+            """Cumulative distribution function for standard normal distribution."""
             return 0.5 * (1 + math.erf(x / math.sqrt(2)))
 
         @staticmethod
         def pdf(x):
-            """Probability density function for standard normal distribution"""
+            """Probability density function for standard normal distribution."""
             return math.exp(-0.5 * x * x) / math.sqrt(2 * math.pi)
 
     norm = NormFallback()
@@ -44,7 +44,7 @@ if not SCIPY_AVAILABLE:
 
 @dataclass
 class Greeks:
-    """Option Greeks calculations"""
+    """Option Greeks calculations."""
 
     delta: float  # Price sensitivity to underlying
     gamma: float  # Delta sensitivity to underlying
@@ -55,7 +55,7 @@ class Greeks:
 
 @dataclass
 class OptionsContract:
-    """Real options contract data structure"""
+    """Real options contract data structure."""
 
     ticker: str
     strike: Decimal
@@ -74,7 +74,7 @@ class OptionsContract:
 
     @property
     def mid_price(self) -> Decimal:
-        """Calculate mid price from bid / ask"""
+        """Calculate mid price from bid / ask."""
         if self.bid and self.ask:
             return (self.bid + self.ask) / Decimal("2")
         elif self.last:
@@ -83,26 +83,26 @@ class OptionsContract:
 
     @property
     def bid_ask_spread(self) -> Decimal:
-        """Calculate bid - ask spread"""
+        """Calculate bid - ask spread."""
         if self.bid and self.ask:
             return self.ask - self.bid
         return Decimal("0.00")
 
     @property
     def days_to_expiry(self) -> int:
-        """Calculate days to expiry"""
+        """Calculate days to expiry."""
         return (self.expiry_date - date.today()).days
 
 
 class BlackScholesEngine:
-    """Accurate Black - Scholes options pricing engine"""
+    """Accurate Black - Scholes options pricing engine."""
 
     def __init__(self):
         self.risk_free_rate_cache = {}
         self.dividend_yield_cache = {}
 
     async def get_risk_free_rate(self) -> Decimal:
-        """Get current risk - free rate (10 - year Treasury)"""
+        """Get current risk - free rate (10 - year Treasury)."""
         # In production, this would fetch from FRED API or similar
         # For now, use approximate current rate
         try:
@@ -117,7 +117,7 @@ class BlackScholesEngine:
             return Decimal("0.045")  # Default fallback
 
     async def get_dividend_yield(self, ticker: str) -> Decimal:
-        """Get dividend yield for ticker"""
+        """Get dividend yield for ticker."""
         # Cache to avoid repeated API calls
         if ticker in self.dividend_yield_cache:
             return self.dividend_yield_cache[ticker]
@@ -148,13 +148,13 @@ class BlackScholesEngine:
             return Decimal("0.015")  # Default 1.5%
 
     def _d1(self, S: float, K: float, T: float, r: float, q: float, sigma: float) -> float:
-        """Calculate d1 parameter for Black - Scholes"""
+        """Calculate d1 parameter for Black - Scholes."""
         if T <= 0 or sigma <= 0:
             return 0.0
         return (math.log(S / K) + (r - q + 0.5 * sigma * sigma) * T) / (sigma * math.sqrt(T))
 
     def _d2(self, d1: float, sigma: float, T: float) -> float:
-        """Calculate d2 parameter for Black - Scholes"""
+        """Calculate d2 parameter for Black - Scholes."""
         if T <= 0:
             return d1
         return d1 - sigma * math.sqrt(T)
@@ -168,7 +168,7 @@ class BlackScholesEngine:
         dividend_yield: Decimal,
         volatility: Decimal,
     ) -> Decimal:
-        """Calculate call option price using Black - Scholes"""
+        """Calculate call option price using Black - Scholes."""
         try:
             S = float(spot)
             K = float(strike)
@@ -205,7 +205,7 @@ class BlackScholesEngine:
         dividend_yield: Decimal,
         volatility: Decimal,
     ) -> Decimal:
-        """Calculate put option price using Black - Scholes"""
+        """Calculate put option price using Black - Scholes."""
         try:
             S = float(spot)
             K = float(strike)
@@ -243,7 +243,7 @@ class BlackScholesEngine:
         volatility: Decimal,
         option_type: str,
     ) -> dict[str, Decimal]:
-        """Calculate option Greeks"""
+        """Calculate option Greeks."""
         try:
             S = float(spot)
             K = float(strike)
@@ -304,7 +304,7 @@ class BlackScholesEngine:
 
 
 class RealOptionsPricingEngine:
-    """Production options pricing engine with real market data"""
+    """Production options pricing engine with real market data."""
 
     def __init__(self):
         self.bs_engine = BlackScholesEngine()
@@ -313,7 +313,7 @@ class RealOptionsPricingEngine:
         self.cache_expiry = 300  # 5 minutes
 
     async def get_implied_volatility(self, ticker: str, days_back: int = 30) -> Decimal:
-        """Calculate implied volatility from historical prices"""
+        """Calculate implied volatility from historical prices."""
         cache_key = f"{ticker}_{days_back}"
 
         if cache_key in self.volatility_cache:
@@ -368,7 +368,7 @@ class RealOptionsPricingEngine:
         option_type: str,
         current_price: Decimal,
     ) -> Decimal:
-        """Calculate theoretical option price using real market parameters"""
+        """Calculate theoretical option price using real market parameters."""
         try:
             # Calculate time to expiry
             time_to_expiry = (expiry_date - date.today()).days / 365.0
@@ -420,7 +420,7 @@ class RealOptionsPricingEngine:
     async def get_options_chain_yahoo(
         self, ticker: str, expiry_date: date
     ) -> list[OptionsContract]:
-        """Get options chain from Yahoo Finance (free fallback)"""
+        """Get options chain from Yahoo Finance (free fallback)."""
         try:
             import yfinance as yf
 
@@ -486,7 +486,7 @@ class RealOptionsPricingEngine:
         max_dte: int = 45,
         option_type: str = "call",
     ) -> OptionsContract | None:
-        """Find optimal options contract based on criteria"""
+        """Find optimal options contract based on criteria."""
         try:
             # Find suitable expiry dates
             suitable_expiries = []
@@ -552,5 +552,5 @@ class RealOptionsPricingEngine:
 
 # Factory function for easy import
 def create_options_pricing_engine() -> RealOptionsPricingEngine:
-    """Create and return a configured options pricing engine"""
+    """Create and return a configured options pricing engine."""
     return RealOptionsPricingEngine()

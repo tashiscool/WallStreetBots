@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Behavioral Verification Tests for Market Regime Detection System
-Tests mathematical accuracy, signal logic, and strategy behavior validation
+Tests mathematical accuracy, signal logic, and strategy behavior validation.
 """
 
 import os
@@ -26,13 +26,13 @@ from backend.tradingbot.market_regime import (
 
 
 class TestTechnicalAnalysisAccuracy(unittest.TestCase):
-    """Test mathematical accuracy of technical analysis calculations"""
+    """Test mathematical accuracy of technical analysis calculations."""
 
     def setUp(self):
         self.ta = TechnicalAnalysis()
 
     def test_ema_calculation_accuracy(self):
-        """Test EMA calculation against known mathematical values"""
+        """Test EMA calculation against known mathematical values."""
         # Known test case with verified EMA values
         prices = [100, 102, 101, 103, 104, 102, 105, 107, 106, 108]
         period = 5
@@ -57,7 +57,7 @@ class TestTechnicalAnalysisAccuracy(unittest.TestCase):
         self.assertLess(ema_values[-1], max(prices))
 
     def test_rsi_calculation_mathematical_accuracy(self):
-        """Test RSI calculation against known benchmark values"""
+        """Test RSI calculation against known benchmark values."""
         # Known RSI test case
         prices = [
             44,
@@ -93,7 +93,7 @@ class TestTechnicalAnalysisAccuracy(unittest.TestCase):
         self.assertLess(final_rsi, 85)
 
     def test_atr_calculation_accuracy(self):
-        """Test ATR calculation mathematical correctness"""
+        """Test ATR calculation mathematical correctness."""
         # Sample OHLC data
         highs = [45, 46, 47, 46, 45, 46, 47, 48, 47, 46]
         lows = [44, 45, 45, 44, 43, 44, 45, 46, 45, 44]
@@ -113,7 +113,7 @@ class TestTechnicalAnalysisAccuracy(unittest.TestCase):
         self.assertAlmostEqual(final_atr, avg_range, delta=avg_range * 0.5)
 
     def test_slope_calculation_mathematical_accuracy(self):
-        """Test linear regression slope calculation accuracy"""
+        """Test linear regression slope calculation accuracy."""
         # Perfect upward trend: y = 2x + 10
         values = [10, 12, 14, 16, 18, 20, 22, 24, 26, 28]
         slope = self.ta.calculate_slope(values, 5)
@@ -134,13 +134,13 @@ class TestTechnicalAnalysisAccuracy(unittest.TestCase):
 
 
 class TestMarketRegimeAccuracy(unittest.TestCase):
-    """Test market regime detection mathematical logic and accuracy"""
+    """Test market regime detection mathematical logic and accuracy."""
 
     def setUp(self):
         self.regime_filter = MarketRegimeFilter()
 
     def test_bull_regime_detection_accuracy(self):
-        """Test bull regime detection with precise mathematical criteria"""
+        """Test bull regime detection with precise mathematical criteria."""
         # Perfect bull setup: Price  >  50EMA  >  200EMA, positive 20EMA slope
         indicators = TechnicalIndicators(
             price=110.0,
@@ -159,7 +159,7 @@ class TestMarketRegimeAccuracy(unittest.TestCase):
         self.assertEqual(regime, MarketRegime.BULL)
 
     def test_bear_regime_detection_accuracy(self):
-        """Test bear regime detection with precise mathematical criteria"""
+        """Test bear regime detection with precise mathematical criteria."""
         # Perfect bear setup: Price  <  50EMA  <  200EMA, negative 20EMA slope
         indicators = TechnicalIndicators(
             price=90.0,
@@ -178,7 +178,7 @@ class TestMarketRegimeAccuracy(unittest.TestCase):
         self.assertEqual(regime, MarketRegime.BEAR)
 
     def test_sideways_regime_detection_accuracy(self):
-        """Test sideways regime detection with flat slope criteria"""
+        """Test sideways regime detection with flat slope criteria."""
         indicators = TechnicalIndicators(
             price=102.0,
             ema_20=101.0,
@@ -196,7 +196,7 @@ class TestMarketRegimeAccuracy(unittest.TestCase):
         self.assertEqual(regime, MarketRegime.SIDEWAYS)
 
     def test_regime_boundary_conditions(self):
-        """Test regime detection at boundary conditions"""
+        """Test regime detection at boundary conditions."""
         # Test exact boundary case: price = 50EMA
         boundary_indicators = TechnicalIndicators(
             price=100.0,
@@ -216,7 +216,7 @@ class TestMarketRegimeAccuracy(unittest.TestCase):
         self.assertNotEqual(regime, MarketRegime.BULL)
 
     def test_pullback_setup_detection_accuracy(self):
-        """Test pullback setup detection mathematical logic"""
+        """Test pullback setup detection mathematical logic."""
         # Previous day indicators (higher price)
         prev_indicators = TechnicalIndicators(
             price=105.0,
@@ -250,7 +250,7 @@ class TestMarketRegimeAccuracy(unittest.TestCase):
         self.assertTrue(is_pullback_setup)
 
     def test_reversal_trigger_detection_accuracy(self):
-        """Test reversal trigger detection mathematical precision"""
+        """Test reversal trigger detection mathematical precision."""
         prev_indicators = TechnicalIndicators(
             price=102.0,
             ema_20=102.0,
@@ -283,13 +283,13 @@ class TestMarketRegimeAccuracy(unittest.TestCase):
 
 
 class TestSignalGenerationAccuracy(unittest.TestCase):
-    """Test signal generation logic and mathematical confidence calculations"""
+    """Test signal generation logic and mathematical confidence calculations."""
 
     def setUp(self):
         self.signal_gen = SignalGenerator()
 
     def test_pullback_and_reversal_setup_detection(self):
-        """Test pullback setup and reversal trigger detection separately"""
+        """Test pullback setup and reversal trigger detection separately."""
         # Test pullback setup detection
         prev_high_price = create_sample_indicators(
             price=210.0, ema_20=208.0, ema_50=205.0, ema_200=200.0, rsi=55, volume=1500000
@@ -331,7 +331,7 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
         self.assertTrue(has_reversal, "Should detect reversal trigger")
 
     def test_signal_generation_logic_flow(self):
-        """Test signal generation follows proper logical flow"""
+        """Test signal generation follows proper logical flow."""
         # Bull regime with no setup should give HOLD
         bull_indicators = create_sample_indicators(
             price=110.0, ema_20=108.0, ema_50=105.0, ema_200=100.0, rsi=55
@@ -350,7 +350,7 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
         self.assertEqual(signal_earnings.confidence, 0.0)
 
     def test_signal_confidence_calculation_accuracy(self):
-        """Test mathematical accuracy of confidence calculation"""
+        """Test mathematical accuracy of confidence calculation."""
         current = create_sample_indicators(
             price=110.0, ema_20=109.0, ema_50=105.0, ema_200=100.0, rsi=55, volume=2000000
         )
@@ -373,7 +373,7 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
         self.assertAlmostEqual(confidence, min(expected_confidence, 1.0), places=2)
 
     def test_risk_filter_accuracy(self):
-        """Test risk filter mathematical logic"""
+        """Test risk filter mathematical logic."""
         indicators = create_sample_indicators(
             price=110.0, ema_20=109.0, ema_50=105.0, ema_200=100.0, rsi=55
         )
@@ -394,7 +394,7 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
         self.assertIn("Major macro event", " ".join(signal_macro.reasoning))
 
     def test_regime_filter_signal_blocking(self):
-        """Test that non - bull regimes properly block signals"""
+        """Test that non - bull regimes properly block signals."""
         # Bear regime indicators
         bear_indicators = create_sample_indicators(
             price=95.0, ema_20=98.0, ema_50=102.0, ema_200=105.0, rsi=35
@@ -408,10 +408,10 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
 
 
 class TestTechnicalIndicatorsAccuracy(unittest.TestCase):
-    """Test TechnicalIndicators dataclass mathematical calculations"""
+    """Test TechnicalIndicators dataclass mathematical calculations."""
 
     def test_derived_indicators_calculation_accuracy(self):
-        """Test automatic calculation of derived indicators"""
+        """Test automatic calculation of derived indicators."""
         indicators = TechnicalIndicators(
             price=110.0,
             ema_20=105.0,
@@ -432,7 +432,7 @@ class TestTechnicalIndicatorsAccuracy(unittest.TestCase):
         self.assertAlmostEqual(indicators.distance_from_50ema, expected_distance_50, places=10)
 
     def test_zero_price_handling(self):
-        """Test handling of zero price in distance calculations"""
+        """Test handling of zero price in distance calculations."""
         indicators = TechnicalIndicators(
             price=0.0,  # Zero price edge case
             ema_20=105.0,
@@ -451,14 +451,14 @@ class TestTechnicalIndicatorsAccuracy(unittest.TestCase):
 
 
 class TestMarketRegimeIntegration(unittest.TestCase):
-    """Test integration scenarios and edge cases"""
+    """Test integration scenarios and edge cases."""
 
     def setUp(self):
         self.signal_gen = SignalGenerator()
         self.regime_filter = MarketRegimeFilter()
 
     def test_complete_signal_generation_pipeline(self):
-        """Test complete signal generation from indicators to final signal"""
+        """Test complete signal generation from indicators to final signal."""
         # Create realistic market scenario
         prev_day = create_sample_indicators(
             price=207.50,  # GOOGL - like price
@@ -494,7 +494,7 @@ class TestMarketRegimeIntegration(unittest.TestCase):
         self.assertIsInstance(signal.timestamp, datetime)
 
     def test_edge_case_handling(self):
-        """Test handling of edge cases and extreme values"""
+        """Test handling of edge cases and extreme values."""
         # Extreme RSI values
         extreme_indicators = create_sample_indicators(
             price=100.0,
@@ -524,7 +524,7 @@ class TestMarketRegimeIntegration(unittest.TestCase):
 
 
 def run_market_regime_verification_tests():
-    """Run all market regime verification tests"""
+    """Run all market regime verification tests."""
     print(" = " * 70)
     print("MARKET REGIME DETECTION - BEHAVIORAL VERIFICATION TEST SUITE")
     print(" = " * 70)

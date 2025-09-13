@@ -1,5 +1,5 @@
 """Advanced VaR Engine-2025 Implementation
-Multi - method VaR calculation with machine learning enhancements
+Multi - method VaR calculation with machine learning enhancements.
 """
 
 import warnings
@@ -14,7 +14,7 @@ warnings.filterwarnings("ignore")
 
 @dataclass
 class VaRResult:
-    """VaR calculation result"""
+    """VaR calculation result."""
 
     var_value: float
     confidence_level: float
@@ -26,14 +26,14 @@ class VaRResult:
 
 @dataclass
 class VaRSuite:
-    """Comprehensive VaR results across methods and confidence levels"""
+    """Comprehensive VaR results across methods and confidence levels."""
 
     results: dict[str, VaRResult]
     portfolio_value: float
     calculation_timestamp: str
 
     def get_summary(self) -> dict:
-        """Get summary of all VaR calculations"""
+        """Get summary of all VaR calculations."""
         summary = {}
         for key, result in self.results.items():
             summary[key] = {
@@ -46,7 +46,7 @@ class VaRSuite:
 
 
 class AdvancedVaREngine:
-    """2025 - standard VaR calculation with multiple methodologies"""
+    """2025 - standard VaR calculation with multiple methodologies."""
 
     def __init__(self, portfolio_value: float = 100000.0):
         self.portfolio_value = portfolio_value
@@ -58,7 +58,7 @@ class AdvancedVaREngine:
         confidence_levels: list[float] = [0.95, 0.99, 0.999],
         methods: list[str] = ["parametric", "historical", "monte_carlo"],
     ) -> VaRSuite:
-        """Calculate comprehensive VaR using 2025 best practices
+        """Calculate comprehensive VaR using 2025 best practices.
 
         Args:
             returns: Array of portfolio returns
@@ -94,7 +94,7 @@ class AdvancedVaREngine:
     def _calculate_var_method(
         self, returns: np.ndarray, confidence_level: float, method: str
     ) -> VaRResult:
-        """Calculate VaR using specific method"""
+        """Calculate VaR using specific method."""
         if method == "parametric":
             return self._parametric_var(returns, confidence_level)
         elif method == "historical":
@@ -107,7 +107,7 @@ class AdvancedVaREngine:
             raise ValueError(f"Unknown VaR method: {method}")
 
     def _parametric_var(self, returns: np.ndarray, confidence_level: float) -> VaRResult:
-        """Parametric VaR using normal distribution assumption"""
+        """Parametric VaR using normal distribution assumption."""
         mean_return = np.mean(returns)
         std_return = np.std(returns, ddof=1)
 
@@ -131,7 +131,7 @@ class AdvancedVaREngine:
         )
 
     def _historical_var(self, returns: np.ndarray, confidence_level: float) -> VaRResult:
-        """Historical simulation VaR"""
+        """Historical simulation VaR."""
         # Sort returns in ascending order
         sorted_returns = np.sort(returns)
 
@@ -158,7 +158,7 @@ class AdvancedVaREngine:
     def _monte_carlo_var(
         self, returns: np.ndarray, confidence_level: float, n_simulations: int = 10000
     ) -> VaRResult:
-        """Monte Carlo simulation VaR"""
+        """Monte Carlo simulation VaR."""
         mean_return = np.mean(returns)
         std_return = np.std(returns, ddof=1)
 
@@ -189,7 +189,7 @@ class AdvancedVaREngine:
         )
 
     def _evt_var(self, returns: np.ndarray, confidence_level: float) -> VaRResult:
-        """Extreme Value Theory VaR using Generalized Pareto Distribution"""
+        """Extreme Value Theory VaR using Generalized Pareto Distribution."""
         # Use only negative returns (losses) for EVT
         losses = returns[returns < 0]
 
@@ -230,7 +230,7 @@ class AdvancedVaREngine:
             return self._historical_var(returns, confidence_level)
 
     def calculate_cvar(self, returns: np.ndarray, confidence_level: float = 0.95) -> float:
-        """Calculate Conditional Value at Risk (Expected Shortfall)"""
+        """Calculate Conditional Value at Risk (Expected Shortfall)."""
         # Get VaR first
         var_result = self._historical_var(returns, confidence_level)
         var_threshold = var_result.additional_metrics["var_return"]
@@ -242,7 +242,7 @@ class AdvancedVaREngine:
         return abs(cvar)
 
     def detect_regime_and_adjust(self, returns: np.ndarray, lookback_days: int = 60) -> dict:
-        """Simple regime detection based on volatility"""
+        """Simple regime detection based on volatility."""
         returns[-lookback_days:] if len(returns) > lookback_days else returns
 
         # Calculate rolling volatility

@@ -1,5 +1,5 @@
 #!/usr / bin / env python3
-"""Production Hard Dip Scanner - Integrated Best of Both Worlds
+"""Production Hard Dip Scanner - Integrated Best of Both Worlds.
 
 Combines the practical real - data approach from the provided scanner with
 the exact clone positioning logic. Detects "hard dip after big run" and
@@ -66,22 +66,22 @@ DEFAULT_DIV_YIELD = 0.0  # 0% dividend yield
 
 # ---------- Utilities ----------
 def now_ny() -> datetime:
-    """Get current time in NY timezone"""
+    """Get current time in NY timezone."""
     return datetime.now(pytz.timezone("America / New_York"))
 
 
 def to_pct(value: float) -> str:
-    """Format as percentage"""
+    """Format as percentage."""
     return f"{value * 100: .2f}%"
 
 
 def round_to_increment(x: float, inc: float = 1.0) -> float:
-    """Round to nearest increment (for strikes)"""
+    """Round to nearest increment (for strikes)."""
     return round(x / inc) * inc
 
 
 def nearest_expiry(expiries: list[str], target_days: int) -> str | None:
-    """Find expiry closest to target DTE"""
+    """Find expiry closest to target DTE."""
     if not expiries:
         return None
 
@@ -104,14 +104,14 @@ def nearest_expiry(expiries: list[str], target_days: int) -> str | None:
 
 # Black - Scholes implementation (fallback)
 def _norm_cdf(x: float) -> float:
-    """Standard normal CDF using error function"""
+    """Standard normal CDF using error function."""
     return 0.5 * (1.0 + math.erf(x / math.sqrt(2)))
 
 
 def bs_call_price(
     spot: float, strike: float, t_years: float, r: float, q: float, iv: float
 ) -> float:
-    """Black - Scholes call price per share"""
+    """Black - Scholes call price per share."""
     if any(val <= 0 for val in [spot, strike, t_years, iv]):
         raise ValueError("Invalid BS parameters")
 
@@ -128,7 +128,7 @@ def bs_call_price(
 # ---------- Data Classes ----------
 @dataclass
 class DipSignal:
-    """Signal for hard dip after big run"""
+    """Signal for hard dip after big run."""
 
     ticker: str
     timestamp_ny: str
@@ -142,7 +142,7 @@ class DipSignal:
 
 @dataclass
 class ExactClonePlan:
-    """Exact clone options trade plan"""
+    """Exact clone options trade plan."""
 
     ticker: str
     timestamp_ny: str
@@ -183,7 +183,7 @@ class ExactClonePlan:
 
 @dataclass
 class ScanResults:
-    """Complete scan results"""
+    """Complete scan results."""
 
     scan_mode: str
     scan_timestamp: str
@@ -195,7 +195,7 @@ class ScanResults:
 
 # ---------- Market Data Functions ----------
 def fetch_daily_history(ticker: str, period: str = "90d") -> pd.DataFrame:
-    """Fetch daily price history with error handling"""
+    """Fetch daily price history with error handling."""
     try:
         ticker_obj = yf.Ticker(ticker)
         df = ticker_obj.history(period=period, interval="1d", auto_adjust=False)
@@ -216,7 +216,7 @@ def fetch_daily_history(ticker: str, period: str = "90d") -> pd.DataFrame:
 
 
 def fetch_current_price(ticker: str) -> dict[str, float] | None:
-    """Get current price and prior close for intraday scanning"""
+    """Get current price and prior close for intraday scanning."""
     try:
         ticker_obj = yf.Ticker(ticker)
 
@@ -239,7 +239,7 @@ def fetch_current_price(ticker: str) -> dict[str, float] | None:
 
 
 def get_options_chain_data(ticker: str, expiry: str, target_strike: float) -> dict | None:
-    """Get real options chain data for specific expiry and strike"""
+    """Get real options chain data for specific expiry and strike."""
     try:
         ticker_obj = yf.Ticker(ticker)
         options_chain = ticker_obj.option_chain(expiry)
@@ -276,7 +276,7 @@ def detect_eod_signal(
     run_pct: float = RUN_PCT,
     dip_pct: float = DIP_PCT,
 ) -> DipSignal | None:
-    """Detect end - of - day hard dip signal after big run"""
+    """Detect end - of - day hard dip signal after big run."""
     try:
         df = fetch_daily_history(ticker)
 
@@ -325,7 +325,7 @@ def detect_intraday_signal(
     run_pct: float = RUN_PCT,
     dip_pct: float = DIP_PCT,
 ) -> DipSignal | None:
-    """Detect intraday hard dip signal after big run"""
+    """Detect intraday hard dip signal after big run."""
     try:
         # First check for big run using daily data
         df = fetch_daily_history(ticker)
@@ -381,7 +381,7 @@ def create_exact_clone_plan(
     otm_pct: float = OTM_PCT,
     use_options_chain: bool = True,
 ) -> ExactClonePlan:
-    """Create exact clone options trade plan"""
+    """Create exact clone options trade plan."""
     ticker = signal.ticker
     spot = signal.spot_price
 
@@ -421,10 +421,7 @@ def create_exact_clone_plan(
             ask = chain_data["ask"]
 
             # Calculate mid price
-            if bid > 0 and ask > 0:
-                mid = (bid + ask) / 2.0
-            else:
-                mid = chain_data["last_price"]
+            mid = (bid + ask) / 2.0 if bid > 0 and ask > 0 else chain_data["last_price"]
 
             premium_per_contract = mid * 100.0  # Convert to per - contract
             pricing_source = "options_chain"
@@ -492,7 +489,7 @@ def create_exact_clone_plan(
 def run_eod_scan(
     universe: list[str], account_size: float, deploy_pct: float, use_options_chain: bool
 ) -> ScanResults:
-    """Run end - of - day scan"""
+    """Run end - of - day scan."""
     signals = []
     trade_plans = []
 
@@ -560,7 +557,7 @@ def run_intraday_scan(
     poll_seconds: int,
     max_minutes: int,
 ) -> ScanResults:
-    """Run intraday scanning loop"""
+    """Run intraday scanning loop."""
     end_time = now_ny() + timedelta(minutes=max_minutes) if max_minutes > 0 else None
     alerted_tickers = set()
     all_signals = []
@@ -653,7 +650,7 @@ def run_intraday_scan(
 
 # ---------- Output Functions ----------
 def write_results(results: ScanResults, output_prefix: str) -> None:
-    """Write scan results to files"""
+    """Write scan results to files."""
     # Write signals
     if results.signals:
         signals_df = pd.DataFrame([asdict(s) for s in results.signals])
@@ -697,7 +694,7 @@ def main():
         description="Production Hard Dip Scanner - Exact Clone Implementation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Examples: 
+Examples:
   # EOD scan with 90% deployment
   python production_scanner.py --mode eod --account - size 450000 --deploy - pct 0.90 --use-options - chain
 

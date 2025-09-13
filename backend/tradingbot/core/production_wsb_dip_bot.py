@@ -1,5 +1,5 @@
 """Production WSB Dip Bot Strategy
-Real - money implementation with strict risk controls
+Real - money implementation with strict risk controls.
 
 This is the flagship WallStreetBots strategy adapted for production use with:
 - Real - time market data integration
@@ -22,7 +22,7 @@ from .trading_interface import TradingInterface
 
 @dataclass
 class DipOpportunity:
-    """Production dip opportunity with risk metrics"""
+    """Production dip opportunity with risk metrics."""
 
     ticker: str
     current_price: float
@@ -43,7 +43,7 @@ class DipOpportunity:
 
 @dataclass
 class WSBDipSignal:
-    """Production WSB dip signal"""
+    """Production WSB dip signal."""
 
     ticker: str
     timestamp: datetime
@@ -56,7 +56,7 @@ class WSBDipSignal:
 
 
 class ProductionWSBDipBot:
-    """Production WSB Dip Bot Strategy with Risk Controls"""
+    """Production WSB Dip Bot Strategy with Risk Controls."""
 
     def __init__(
         self,
@@ -125,7 +125,7 @@ class ProductionWSBDipBot:
         self.logger.info("Production WSB Dip Bot initialized with strict risk controls")
 
     async def scan_for_opportunities(self) -> list[DipOpportunity]:
-        """Scan WSB universe for dip opportunities"""
+        """Scan WSB universe for dip opportunities."""
         try:
             self.logger.info("Scanning WSB universe for dip opportunities")
             opportunities = []
@@ -164,7 +164,7 @@ class ProductionWSBDipBot:
             return []
 
     async def _analyze_ticker(self, ticker: str) -> DipOpportunity | None:
-        """Analyze individual ticker for dip opportunity"""
+        """Analyze individual ticker for dip opportunity."""
         try:
             # Get market data
             market_data = await self.data_provider.get_market_data(ticker)
@@ -235,7 +235,7 @@ class ProductionWSBDipBot:
             return None
 
     async def _get_average_volume(self, ticker: str, days: int = 20) -> float:
-        """Get average volume over specified days"""
+        """Get average volume over specified days."""
         try:
             # In production, would fetch historical volume data
             # For now, use a simple estimation
@@ -245,7 +245,7 @@ class ProductionWSBDipBot:
             return 1000000.0  # Default fallback
 
     async def _calculate_rsi(self, ticker: str, period: int = 14) -> float:
-        """Calculate RSI for ticker"""
+        """Calculate RSI for ticker."""
         try:
             # In production, would fetch historical price data and calculate real RSI
             # For now, return a reasonable estimate based on current price action
@@ -269,7 +269,7 @@ class ProductionWSBDipBot:
             return 50.0  # Neutral RSI
 
     async def _calculate_bollinger_position(self, ticker: str, current_price: float) -> float:
-        """Calculate position within Bollinger Bands"""
+        """Calculate position within Bollinger Bands."""
         try:
             # In production, would calculate real Bollinger Bands
             # For now, estimate based on volatility
@@ -300,7 +300,7 @@ class ProductionWSBDipBot:
         bollinger_pos: float,
         sentiment: float,
     ) -> float:
-        """Calculate composite risk score (0 - 100)"""
+        """Calculate composite risk score (0 - 100)."""
         try:
             score = 0.0
 
@@ -344,7 +344,7 @@ class ProductionWSBDipBot:
             return 0.0
 
     async def _calculate_kelly_fraction(self, ticker: str) -> float:
-        """Calculate Kelly Criterion fraction for position sizing"""
+        """Calculate Kelly Criterion fraction for position sizing."""
         try:
             # Get historical performance stats for this ticker
             stats = await self._get_strategy_stats(ticker)
@@ -374,7 +374,7 @@ class ProductionWSBDipBot:
             return 0.01  # Conservative fallback
 
     async def _get_strategy_stats(self, ticker: str) -> dict[str, float]:
-        """Get historical strategy statistics for ticker"""
+        """Get historical strategy statistics for ticker."""
         try:
             # In production, would query database for historical performance
             # For now, return reasonable estimates based on strategy type
@@ -402,7 +402,7 @@ class ProductionWSBDipBot:
             }
 
     def _calculate_position_size(self, price: float, kelly_fraction: float) -> int:
-        """Calculate position size in shares"""
+        """Calculate position size in shares."""
         try:
             # Maximum risk amount
             risk_amount = self.config.risk.account_size * kelly_fraction
@@ -424,7 +424,7 @@ class ProductionWSBDipBot:
             return 0
 
     def _calculate_expected_return(self, dip_pct: float, risk_score: float) -> float:
-        """Calculate expected return for opportunity"""
+        """Calculate expected return for opportunity."""
         try:
             # Base expected return on dip recovery
             base_return = dip_pct * 0.6  # Expect 60% of dip to recover
@@ -440,7 +440,7 @@ class ProductionWSBDipBot:
             return 0.0
 
     async def execute_dip_trade(self, opportunity: DipOpportunity) -> bool:
-        """Execute dip buy trade with full risk controls"""
+        """Execute dip buy trade with full risk controls."""
         try:
             self.logger.info(f"Executing dip trade for {opportunity.ticker}")
 
@@ -485,7 +485,7 @@ class ProductionWSBDipBot:
             return False
 
     async def _pre_trade_risk_check(self, opportunity: DipOpportunity) -> bool:
-        """Pre-trade risk validation"""
+        """Pre-trade risk validation."""
         try:
             # Check maximum positions
             current_positions = await self._get_current_position_count()
@@ -519,7 +519,7 @@ class ProductionWSBDipBot:
             return False
 
     async def _get_current_position_count(self) -> int:
-        """Get current number of open positions"""
+        """Get current number of open positions."""
         try:
             positions = await self.trading_interface.get_positions()
             return len(positions)
@@ -527,7 +527,7 @@ class ProductionWSBDipBot:
             return 0
 
     async def _calculate_current_account_risk(self) -> float:
-        """Calculate current total account risk"""
+        """Calculate current total account risk."""
         try:
             positions = await self.trading_interface.get_positions()
             total_risk = 0.0
@@ -545,7 +545,7 @@ class ProductionWSBDipBot:
     async def _record_trade(
         self, opportunity: DipOpportunity, order_result: dict, stop_order: dict
     ) -> None:
-        """Record trade for tracking and analysis"""
+        """Record trade for tracking and analysis."""
         try:
             trade_record = {
                 "timestamp": datetime.now(),
@@ -573,7 +573,7 @@ class ProductionWSBDipBot:
             self.error_handler.handle_error(e, {"operation": "_record_trade"})
 
     async def monitor_positions(self) -> None:
-        """Monitor open positions for exit conditions"""
+        """Monitor open positions for exit conditions."""
         try:
             positions = await self.trading_interface.get_positions()
 
@@ -586,7 +586,7 @@ class ProductionWSBDipBot:
             self.error_handler.handle_error(e, {"operation": "monitor_positions"})
 
     async def _check_exit_conditions(self, position: dict) -> None:
-        """Check if position should be exited"""
+        """Check if position should be exited."""
         try:
             ticker = position.get("symbol")
             current_qty = int(position.get("qty", 0))
@@ -629,7 +629,7 @@ class ProductionWSBDipBot:
             )
 
     async def _execute_exit(self, ticker: str, quantity: int, reason: str) -> None:
-        """Execute position exit"""
+        """Execute position exit."""
         try:
             self.logger.info(f"Exiting {ticker} position: {reason}")
 
@@ -654,7 +654,7 @@ class ProductionWSBDipBot:
             self.error_handler.handle_error(e, {"ticker": ticker, "operation": "_execute_exit"})
 
     async def run_strategy(self) -> None:
-        """Main strategy execution loop"""
+        """Main strategy execution loop."""
         self.logger.info("Starting WSB Dip Bot production strategy")
 
         try:
@@ -682,7 +682,7 @@ class ProductionWSBDipBot:
             self.error_handler.handle_error(e, {"operation": "run_strategy"})
 
     async def _update_performance_metrics(self) -> None:
-        """Update strategy performance metrics"""
+        """Update strategy performance metrics."""
         try:
             # Calculate current day P & L
             positions = await self.trading_interface.get_positions()
@@ -703,7 +703,7 @@ class ProductionWSBDipBot:
             self.error_handler.handle_error(e, {"operation": "_update_performance_metrics"})
 
     async def get_portfolio_summary(self) -> dict[str, Any]:
-        """Get comprehensive portfolio summary"""
+        """Get comprehensive portfolio summary."""
         try:
             positions = await self.trading_interface.get_positions()
             account_info = await self.trading_interface.get_account()
@@ -735,13 +735,13 @@ def create_wsb_dip_bot_strategy(
     config: ProductionConfig,
     logger: logging.Logger,
 ) -> ProductionWSBDipBot:
-    """Create WSB Dip Bot strategy instance"""
+    """Create WSB Dip Bot strategy instance."""
     return ProductionWSBDipBot(trading_interface, data_provider, config, logger)
 
 
 # Standalone execution for testing
 async def main():
-    """Standalone execution for testing"""
+    """Standalone execution for testing."""
     from .data_providers import create_data_provider
     from .production_config import create_config_manager
     from .trading_interface import create_trading_interface

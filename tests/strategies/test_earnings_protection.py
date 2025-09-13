@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Comprehensive Test Suite for Earnings Protection WSB Strategy Module
-Tests all components of the earnings IV crush protection system
+Tests all components of the earnings IV crush protection system.
 """
 
 import os
@@ -22,10 +22,10 @@ from backend.tradingbot.strategies.earnings_protection import (
 
 
 class TestEarningsProtectionScanner(unittest.TestCase):
-    """Test the earnings protection scanner functionality"""
+    """Test the earnings protection scanner functionality."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.scanner = EarningsProtectionScanner()
 
         # Mock earnings event
@@ -66,14 +66,14 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         )
 
     def test_scanner_initialization(self):
-        """Test scanner initializes correctly"""
+        """Test scanner initializes correctly."""
         self.assertIsInstance(self.scanner.earnings_candidates, list)
         self.assertGreater(len(self.scanner.earnings_candidates), 0)
         self.assertIn("AAPL", self.scanner.earnings_candidates)
         self.assertIn("GOOGL", self.scanner.earnings_candidates)
 
     def test_earnings_move_estimation(self):
-        """Test earnings move estimation from straddle pricing"""
+        """Test earnings move estimation from straddle pricing."""
         with patch("backend.tradingbot.strategies.earnings_protection.yf.Ticker") as mock_yf:
             mock_ticker = Mock()
 
@@ -100,7 +100,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             self.assertLess(iv_estimate, 1.0)  # Less than 100% IV
 
     def test_iv_crush_risk_assessment(self):
-        """Test IV crush risk assessment logic"""
+        """Test IV crush risk assessment logic."""
         # High IV vs historical = high crush risk
         high_iv_event = EarningsEvent(
             ticker="TSLA",
@@ -121,7 +121,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         self.assertEqual(high_iv_event.iv_crush_risk, "extreme")
 
     def test_deep_itm_strategy_creation(self):
-        """Test deep ITM call strategy creation"""
+        """Test deep ITM call strategy creation."""
         with patch("backend.tradingbot.strategies.earnings_protection.yf.Ticker") as mock_yf:
             mock_ticker = Mock()
 
@@ -156,7 +156,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
                 )  # Benefits from upside
 
     def test_calendar_spread_strategy_creation(self):
-        """Test calendar spread strategy creation"""
+        """Test calendar spread strategy creation."""
         with patch("backend.tradingbot.strategies.earnings_protection.yf.Ticker") as mock_yf:
             mock_ticker = Mock()
 
@@ -188,7 +188,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
                 )  # Benefits from no movement
 
     def test_protective_hedge_strategy_creation(self):
-        """Test protective hedge strategy creation"""
+        """Test protective hedge strategy creation."""
         with patch("backend.tradingbot.strategies.earnings_protection.yf.Ticker") as mock_yf:
             mock_ticker = Mock()
 
@@ -214,7 +214,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
                 )  # Higher IV sensitivity than other strategies
 
     def test_strategy_iv_sensitivity_comparison(self):
-        """Test IV sensitivity comparison across strategies"""
+        """Test IV sensitivity comparison across strategies."""
         # Create sample strategies with different IV sensitivities
         deep_itm = EarningsProtectionStrategy(
             ticker="AAPL",
@@ -294,7 +294,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
 
     @patch("backend.tradingbot.strategies.earnings_protection.yf.Ticker")
     def test_scan_earnings_protection_integration(self, mock_yf):
-        """Test the main scanning function"""
+        """Test the main scanning function."""
         mock_ticker = Mock()
 
         # Mock company info
@@ -331,7 +331,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
                 self.assertLess(strategy.iv_sensitivity, 0.8)  # Should have some protection
 
     def test_wsb_earnings_avoidance_principles(self):
-        """Test adherence to WSB earnings avoidance principles"""
+        """Test adherence to WSB earnings avoidance principles."""
         # WSB Rule: Most earnings plays lose money due to IV crush
         # Should heavily favor low IV sensitivity strategies
 
@@ -361,7 +361,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         self.assertEqual(high_iv_event.iv_crush_risk, "extreme")
 
     def test_alternative_post_earnings_opportunities(self):
-        """Test post - earnings opportunity identification"""
+        """Test post - earnings opportunity identification."""
         # After earnings, IV crush creates buying opportunities
         post_earnings_iv = 0.20  # Crushed from 0.50 pre-earnings
         historical_iv = 0.25
@@ -377,7 +377,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         # 3. Better risk / reward for longer - term positions
 
     def test_position_sizing_recommendations(self):
-        """Test position sizing for earnings protection strategies"""
+        """Test position sizing for earnings protection strategies."""
         strategy = EarningsProtectionStrategy(
             ticker="AAPL",
             strategy_name="Calendar Spread $150",
@@ -411,10 +411,10 @@ class TestEarningsProtectionScanner(unittest.TestCase):
 
 
 class TestEarningsProtectionCalculations(unittest.TestCase):
-    """Test calculation accuracy for earnings protection"""
+    """Test calculation accuracy for earnings protection."""
 
     def test_iv_sensitivity_calculation(self):
-        """Test IV sensitivity calculation methodology"""
+        """Test IV sensitivity calculation methodology."""
         # For options, IV sensitivity depends on vega and time value proportion
 
         # Deep ITM option: mostly intrinsic value, low IV sensitivity
@@ -434,7 +434,7 @@ class TestEarningsProtectionCalculations(unittest.TestCase):
         self.assertGreater(atm_iv_sensitivity, 0.8)  # More than 80% sensitive
 
     def test_calendar_spread_iv_benefits(self):
-        """Test calendar spread IV crush benefits"""
+        """Test calendar spread IV crush benefits."""
         # Front month (short): high IV, crushes after earnings
         front_premium_before = 5.0
         front_premium_after = 2.0  # IV crush
@@ -453,7 +453,7 @@ class TestEarningsProtectionCalculations(unittest.TestCase):
         self.assertGreater(spread_value_after, spread_cost)  # Value increases
 
     def test_expected_move_vs_actual_move_analysis(self):
-        """Test analysis showing expected moves are often overestimated"""
+        """Test analysis showing expected moves are often overestimated."""
         # Historical analysis: expected moves vs actual moves
         expected_moves = [0.08, 0.12, 0.06, 0.10, 0.15, 0.09, 0.11]  # From straddle pricing
         actual_moves = [0.04, 0.08, 0.03, 0.05, 0.09, 0.06, 0.07]  # Historical actual moves
@@ -472,7 +472,7 @@ class TestEarningsProtectionCalculations(unittest.TestCase):
 
 
 def run_earnings_protection_tests():
-    """Run all earnings protection tests"""
+    """Run all earnings protection tests."""
     print(" = " * 60)
     print("EARNINGS PROTECTION WSB STRATEGY - COMPREHENSIVE TEST SUITE")
     print(" = " * 60)

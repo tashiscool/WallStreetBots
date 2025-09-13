@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """WallStreetBots Launcher - Cross - platform executable launcher
-This script acts like a .exe/.bat file to launch the trading system
+This script acts like a .exe/.bat file to launch the trading system.
 """
 
 import os
@@ -17,7 +17,7 @@ class WallStreetBotsLauncher:
         self.venv_path = self.base_dir / "venv"
 
     def get_python_executable(self):
-        """Get the correct Python executable path for the platform"""
+        """Get the correct Python executable path for the platform."""
         if self.system == "windows":
             python_exe = self.venv_path / "Scripts" / "python.exe"
             if not python_exe.exists():
@@ -34,7 +34,7 @@ class WallStreetBotsLauncher:
         return str(python_exe)
 
     def check_environment(self):
-        """Check if the environment is properly set up"""
+        """Check if the environment is properly set up."""
         print("🔍 Checking WallStreetBots Environment...")
 
         # Check if we're in the right directory
@@ -73,7 +73,7 @@ class WallStreetBotsLauncher:
         return True
 
     def install_dependencies(self):
-        """Install required dependencies"""
+        """Install required dependencies."""
         print("\n📦 Installing dependencies...")
         python_exe = self.get_python_executable()
 
@@ -99,7 +99,7 @@ class WallStreetBotsLauncher:
             return False
 
     def show_menu(self):
-        """Display the main menu"""
+        """Display the main menu."""
         print("\n" + " = " * 50)
         print("🤖 WallStreetBots Control Center")
         print(" = " * 50)
@@ -115,7 +115,7 @@ class WallStreetBotsLauncher:
         print(" = " * 50)
 
     def run_simple_bot(self, real_money=False):
-        """Run the simple trading bot"""
+        """Run the simple trading bot."""
         python_exe = self.get_python_executable()
 
         if real_money:
@@ -143,7 +143,7 @@ class WallStreetBotsLauncher:
             print(f"❌ Bot failed to start: {e}")
 
     def run_tests(self, test_type="risk"):
-        """Run various test suites"""
+        """Run various test suites."""
         python_exe = self.get_python_executable()
 
         test_files = {
@@ -165,7 +165,7 @@ class WallStreetBotsLauncher:
             print(f"❌ Tests failed: {e}")
 
     def run_django_admin(self):
-        """Start Django admin panel"""
+        """Start Django admin panel."""
         python_exe = self.get_python_executable()
 
         try:
@@ -184,7 +184,7 @@ class WallStreetBotsLauncher:
             print(f"❌ Django failed to start: {e}")
 
     def run_demo_risk_models(self):
-        """Run the risk models demo"""
+        """Run the risk models demo."""
         python_exe = self.get_python_executable()
 
         try:
@@ -200,7 +200,7 @@ class WallStreetBotsLauncher:
             print(f"❌ Demo failed: {e}")
 
     def system_status(self):
-        """Show detailed system status"""
+        """Show detailed system status."""
         print("\n🔍 System Status Check")
         print(" = " * 30)
 
@@ -243,7 +243,7 @@ class WallStreetBotsLauncher:
             print(f"  {status} {db}{size}")
 
     def run(self):
-        """Main launcher loop"""
+        """Main launcher loop."""
         print("🤖 WallStreetBots Launcher")
         print(" = " * 30)
 

@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Comprehensive tests for ProductionStrategyManager
-Tests all strategy initialization, configuration, and lifecycle management
+Tests all strategy initialization, configuration, and lifecycle management.
 """
 
 import os
@@ -22,11 +22,11 @@ from backend.tradingbot.production.core.production_strategy_manager import (
 
 
 class TestProductionStrategyManager:
-    """Test suite for ProductionStrategyManager"""
+    """Test suite for ProductionStrategyManager."""
 
     @pytest.fixture
     def mock_config(self):
-        """Create mock configuration for testing"""
+        """Create mock configuration for testing."""
         return ProductionStrategyManagerConfig(
             alpaca_api_key="test_key",
             alpaca_secret_key="test_secret",
@@ -40,7 +40,7 @@ class TestProductionStrategyManager:
 
     @pytest.fixture
     def mock_integration_manager(self):
-        """Create mock integration manager"""
+        """Create mock integration manager."""
         mock_manager = Mock()
         mock_manager.alpaca_manager = Mock()
         mock_manager.alpaca_manager.validate_api.return_value = (True, "Success")
@@ -51,7 +51,7 @@ class TestProductionStrategyManager:
 
     @pytest.fixture
     def mock_data_provider(self):
-        """Create mock data provider"""
+        """Create mock data provider."""
         mock_provider = Mock()
         mock_provider.is_market_open = AsyncMock(return_value=True)
         mock_provider.get_current_price = AsyncMock(return_value=100.0)
@@ -60,7 +60,7 @@ class TestProductionStrategyManager:
 
     @pytest.fixture
     def strategy_manager(self, mock_config, mock_integration_manager, mock_data_provider):
-        """Create strategy manager with mocks"""
+        """Create strategy manager with mocks."""
         with (
             patch(
                 "backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager",
@@ -75,7 +75,7 @@ class TestProductionStrategyManager:
             return manager
 
     def test_initialization(self, mock_config):
-        """Test ProductionStrategyManager initialization"""
+        """Test ProductionStrategyManager initialization."""
         with (
             patch(
                 "backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager"
@@ -98,7 +98,7 @@ class TestProductionStrategyManager:
             MockData.assert_called_once()
 
     def test_default_strategy_configurations(self, mock_config):
-        """Test that all 10 strategies have default configurations"""
+        """Test that all 10 strategies have default configurations."""
         with (
             patch(
                 "backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager"
@@ -123,7 +123,7 @@ class TestProductionStrategyManager:
         "backend.tradingbot.production.core.production_strategy_manager.create_production_wsb_dip_bot"
     )
     def test_strategy_creation_wsb_dip_bot(self, mock_wsb, strategy_manager):
-        """Test WSB Dip Bot strategy creation"""
+        """Test WSB Dip Bot strategy creation."""
         # Mock strategy factory
         mock_strategy = Mock()
         mock_wsb.return_value = mock_strategy
@@ -141,7 +141,7 @@ class TestProductionStrategyManager:
         "backend.tradingbot.production.core.production_strategy_manager.create_production_wheel_strategy"
     )
     def test_strategy_creation_wheel_strategy(self, mock_wheel, strategy_manager):
-        """Test Wheel Strategy creation"""
+        """Test Wheel Strategy creation."""
         mock_strategy = Mock()
         mock_wheel.return_value = mock_strategy
 
@@ -158,7 +158,7 @@ class TestProductionStrategyManager:
         "backend.tradingbot.production.core.production_strategy_manager.create_production_momentum_weeklies"
     )
     def test_strategy_creation_momentum_weeklies(self, mock_momentum, strategy_manager):
-        """Test Momentum Weeklies strategy creation"""
+        """Test Momentum Weeklies strategy creation."""
         mock_strategy = Mock()
         mock_momentum.return_value = mock_strategy
 
@@ -175,7 +175,7 @@ class TestProductionStrategyManager:
         "backend.tradingbot.production.core.production_strategy_manager.create_production_debit_spreads"
     )
     def test_strategy_creation_debit_spreads(self, mock_debit, strategy_manager):
-        """Test Debit Spreads strategy creation"""
+        """Test Debit Spreads strategy creation."""
         mock_strategy = Mock()
         mock_debit.return_value = mock_strategy
 
@@ -192,7 +192,7 @@ class TestProductionStrategyManager:
         "backend.tradingbot.production.core.production_strategy_manager.create_production_leaps_tracker"
     )
     def test_strategy_creation_leaps_tracker(self, mock_leaps, strategy_manager):
-        """Test LEAPS Tracker strategy creation"""
+        """Test LEAPS Tracker strategy creation."""
         mock_strategy = Mock()
         mock_leaps.return_value = mock_strategy
 
@@ -207,7 +207,7 @@ class TestProductionStrategyManager:
         "backend.tradingbot.production.core.production_strategy_manager.create_production_swing_trading"
     )
     def test_strategy_creation_swing_trading(self, mock_swing, strategy_manager):
-        """Test Swing Trading strategy creation"""
+        """Test Swing Trading strategy creation."""
         mock_strategy = Mock()
         mock_swing.return_value = mock_strategy
 
@@ -224,7 +224,7 @@ class TestProductionStrategyManager:
         "backend.tradingbot.production.core.production_strategy_manager.create_production_spx_credit_spreads"
     )
     def test_strategy_creation_spx_credit_spreads(self, mock_spx, strategy_manager):
-        """Test SPX Credit Spreads strategy creation"""
+        """Test SPX Credit Spreads strategy creation."""
         mock_strategy = Mock()
         mock_spx.return_value = mock_strategy
 
@@ -241,7 +241,7 @@ class TestProductionStrategyManager:
         "backend.tradingbot.production.core.production_strategy_manager.create_production_lotto_scanner"
     )
     def test_strategy_creation_lotto_scanner(self, mock_lotto, strategy_manager):
-        """Test Lotto Scanner strategy creation"""
+        """Test Lotto Scanner strategy creation."""
         mock_strategy = Mock()
         mock_lotto.return_value = mock_strategy
 
@@ -255,14 +255,14 @@ class TestProductionStrategyManager:
         mock_lotto.assert_called_once()
 
     def test_unknown_strategy_creation(self, strategy_manager):
-        """Test creation of unknown strategy returns None"""
+        """Test creation of unknown strategy returns None."""
         config = StrategyConfig(name="unknown_strategy", enabled=True, parameters={})
 
         strategy = strategy_manager._create_strategy("unknown_strategy", config)
         assert strategy is None
 
     def test_strategy_creation_exception_handling(self, strategy_manager):
-        """Test exception handling in strategy creation"""
+        """Test exception handling in strategy creation."""
         with patch(
             "backend.tradingbot.production.core.production_strategy_manager.create_production_wsb_dip_bot",
             side_effect=Exception("Test error"),
@@ -276,7 +276,7 @@ class TestProductionStrategyManager:
     async def test_validate_system_state_success(
         self, strategy_manager, mock_integration_manager, mock_data_provider
     ):
-        """Test successful system state validation"""
+        """Test successful system state validation."""
         mock_integration_manager.alpaca_manager.validate_api.return_value = (True, "Success")
         mock_integration_manager.get_portfolio_value.return_value = 50000.0
         mock_data_provider.is_market_open.return_value = True
@@ -288,7 +288,7 @@ class TestProductionStrategyManager:
     async def test_validate_system_state_alpaca_failure(
         self, strategy_manager, mock_integration_manager
     ):
-        """Test system validation fails on Alpaca API validation"""
+        """Test system validation fails on Alpaca API validation."""
         mock_integration_manager.alpaca_manager.validate_api.return_value = (False, "API Error")
 
         result = await strategy_manager._validate_system_state()
@@ -298,7 +298,7 @@ class TestProductionStrategyManager:
     async def test_validate_system_state_insufficient_account(
         self, strategy_manager, mock_integration_manager
     ):
-        """Test system validation fails on insufficient account size"""
+        """Test system validation fails on insufficient account size."""
         mock_integration_manager.alpaca_manager.validate_api.return_value = (True, "Success")
         mock_integration_manager.get_portfolio_value.return_value = 500.0  # Below $1000 minimum
 
@@ -307,7 +307,7 @@ class TestProductionStrategyManager:
 
     @pytest.mark.asyncio
     async def test_start_all_strategies_success(self, strategy_manager):
-        """Test successful strategy startup"""
+        """Test successful strategy startup."""
         # Mock strategies
         mock_strategy1 = Mock()
         mock_strategy1.run_strategy = AsyncMock()
@@ -331,7 +331,7 @@ class TestProductionStrategyManager:
 
     @pytest.mark.asyncio
     async def test_start_all_strategies_validation_failure(self, strategy_manager):
-        """Test strategy startup fails validation"""
+        """Test strategy startup fails validation."""
         strategy_manager._validate_system_state = AsyncMock(return_value=False)
 
         result = await strategy_manager.start_all_strategies()
@@ -340,7 +340,7 @@ class TestProductionStrategyManager:
 
     @pytest.mark.asyncio
     async def test_start_all_strategies_no_strategies(self, strategy_manager):
-        """Test startup with no strategies"""
+        """Test startup with no strategies."""
         strategy_manager.strategies = {}
         strategy_manager._validate_system_state = AsyncMock(return_value=True)
 
@@ -349,7 +349,7 @@ class TestProductionStrategyManager:
 
     @pytest.mark.asyncio
     async def test_stop_all_strategies(self, strategy_manager):
-        """Test stopping all strategies"""
+        """Test stopping all strategies."""
         strategy_manager.is_running = True
 
         await strategy_manager.stop_all_strategies()
@@ -357,7 +357,7 @@ class TestProductionStrategyManager:
         assert not strategy_manager.is_running
 
     def test_strategy_config_dataclass(self):
-        """Test StrategyConfig dataclass"""
+        """Test StrategyConfig dataclass."""
         config = StrategyConfig(
             name="test_strategy",
             enabled=True,
@@ -373,7 +373,7 @@ class TestProductionStrategyManager:
         assert config.parameters == {"param1": "value1"}
 
     def test_production_strategy_manager_config_dataclass(self):
-        """Test ProductionStrategyManagerConfig dataclass"""
+        """Test ProductionStrategyManagerConfig dataclass."""
         config = ProductionStrategyManagerConfig(
             alpaca_api_key="test_key",
             alpaca_secret_key="test_secret",
@@ -389,7 +389,7 @@ class TestProductionStrategyManager:
         assert config.max_position_size == 0.20  # Default value
 
     def test_strategy_parameters_validation(self, mock_config):
-        """Test that strategy parameters are properly configured"""
+        """Test that strategy parameters are properly configured."""
         with (
             patch(
                 "backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager"
@@ -422,7 +422,7 @@ class TestProductionStrategyManager:
                     break
 
     def test_risk_tolerance_levels(self, mock_config):
-        """Test that strategies have appropriate risk tolerance levels"""
+        """Test that strategies have appropriate risk tolerance levels."""
         with (
             patch(
                 "backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager"
@@ -448,18 +448,18 @@ class TestProductionStrategyManager:
             }
 
             # Verify risk tolerance levels are set appropriately
-            for strategy_name, expected_risk in expected_risk_levels.items():
+            for _strategy_name, _expected_risk in expected_risk_levels.items():
                 # This would be validated in an actual implementation
                 # For now, we just check the structure exists
                 assert isinstance(manager.strategies, dict)
 
 
 class TestIntegrationScenarios:
-    """Integration test scenarios for ProductionStrategyManager"""
+    """Integration test scenarios for ProductionStrategyManager."""
 
     @pytest.mark.asyncio
     async def test_full_initialization_cycle(self):
-        """Test complete initialization of all strategies"""
+        """Test complete initialization of all strategies."""
         config = ProductionStrategyManagerConfig(
             alpaca_api_key="test_key",
             alpaca_secret_key="test_secret",
@@ -530,7 +530,7 @@ class TestIntegrationScenarios:
 
     @pytest.mark.asyncio
     async def test_error_recovery_scenarios(self):
-        """Test error recovery in various failure scenarios"""
+        """Test error recovery in various failure scenarios."""
         config = ProductionStrategyManagerConfig(
             alpaca_api_key="test_key",
             alpaca_secret_key="test_secret",
@@ -569,7 +569,7 @@ class TestIntegrationScenarios:
 
 
 def test_strategy_manager_import():
-    """Test that ProductionStrategyManager can be imported successfully"""
+    """Test that ProductionStrategyManager can be imported successfully."""
     from backend.tradingbot.production.core.production_strategy_manager import (
         ProductionStrategyManager,
         ProductionStrategyManagerConfig,
@@ -582,7 +582,7 @@ def test_strategy_manager_import():
 
 
 def test_all_strategy_imports():
-    """Test that all production strategies can be imported"""
+    """Test that all production strategies can be imported."""
     try:
         from backend.tradingbot.production.strategies import (
             ProductionDebitSpreads,

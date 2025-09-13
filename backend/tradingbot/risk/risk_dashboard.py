@@ -1,5 +1,5 @@
 """Risk Dashboard - 2025 Implementation
-Real - time risk monitoring and alerting system
+Real - time risk monitoring and alerting system.
 """
 
 from dataclasses import dataclass
@@ -15,7 +15,7 @@ from .stress_testing_engine import StressTesting2025
 
 @dataclass
 class RiskAlert:
-    """Risk alert data structure"""
+    """Risk alert data structure."""
 
     alert_id: str
     alert_type: str
@@ -29,7 +29,7 @@ class RiskAlert:
 
 @dataclass
 class RiskSummary:
-    """Comprehensive risk summary"""
+    """Comprehensive risk summary."""
 
     # Core risk metrics
     var_1d: float
@@ -65,7 +65,7 @@ class RiskSummary:
 
 
 class RiskDashboard2025:
-    """Real - time risk monitoring dashboard with 2025 features"""
+    """Real - time risk monitoring dashboard with 2025 features."""
 
     def __init__(self, portfolio_value: float = 100000.0):
         self.portfolio_value = portfolio_value
@@ -90,7 +90,7 @@ class RiskDashboard2025:
         self.alert_history = []
 
     def generate_risk_summary(self, portfolio: dict[str, Any]) -> RiskSummary:
-        """Generate comprehensive real - time risk summary"""
+        """Generate comprehensive real - time risk summary."""
         # Extract portfolio data
         positions = portfolio.get("positions", [])
         portfolio.get("strategies", {})
@@ -148,7 +148,7 @@ class RiskDashboard2025:
     def _calculate_core_risk_metrics(
         self, positions: list[dict], market_data: dict
     ) -> tuple[float, float, float]:
-        """Calculate core VaR and CVaR metrics"""
+        """Calculate core VaR and CVaR metrics."""
         # Generate sample returns for demonstration
         # In real implementation, this would use actual position returns
         np.random.seed(42)
@@ -171,12 +171,12 @@ class RiskDashboard2025:
         return var_1d, var_5d, cvar_99
 
     def _calculate_tail_expectation(self, positions: list[dict]) -> float:
-        """Calculate tail expectation using EVT"""
+        """Calculate tail expectation using EVT."""
         # Simplified tail expectation calculation
         return self.portfolio_value * 0.03  # 3% of portfolio value
 
     def _calculate_regime_adjusted_risk(self, market_data: dict) -> float:
-        """Calculate regime-adjusted risk"""
+        """Calculate regime-adjusted risk."""
         # Get regime detection from VaR engine
         sample_returns = np.random.normal(0.001, 0.02, 60)
         regime_info = self.var_engine.detect_regime_and_adjust(sample_returns)
@@ -188,7 +188,7 @@ class RiskDashboard2025:
         return base_risk * adjustment_factor
 
     def _calculate_ml_risk_forecast(self, market_data: dict) -> float:
-        """Calculate ML - based risk forecast"""
+        """Calculate ML - based risk forecast."""
         # Use ML predictor for risk score
         risk_prediction = self.ml_predictor.predict_risk_score(market_data)
 
@@ -196,7 +196,7 @@ class RiskDashboard2025:
         return (risk_prediction.risk_score / 100) * self.portfolio_value
 
     def _calculate_sentiment_risk(self, market_data: dict) -> float:
-        """Calculate sentiment - based risk"""
+        """Calculate sentiment - based risk."""
         sentiment = market_data.get("sentiment", 0)
 
         # Convert sentiment to risk score
@@ -208,7 +208,7 @@ class RiskDashboard2025:
             return self.portfolio_value * 0.02  # 2% risk for neutral / positive sentiment
 
     def _calculate_options_flow_risk(self, market_data: dict) -> float:
-        """Calculate options flow risk"""
+        """Calculate options flow risk."""
         put_call_ratio = market_data.get("put_call_ratio", 1.0)
 
         # High put / call ratio indicates bearish sentiment
@@ -220,7 +220,7 @@ class RiskDashboard2025:
             return self.portfolio_value * 0.02  # 2% risk
 
     def _calculate_social_media_risk(self, market_data: dict) -> float:
-        """Calculate social media risk"""
+        """Calculate social media risk."""
         social_volume = market_data.get("social_volume", 0.5)
         social_sentiment = market_data.get("social_sentiment", 0)
 
@@ -229,7 +229,7 @@ class RiskDashboard2025:
         return self.portfolio_value * risk_score * 0.1  # Scale to portfolio
 
     def _calculate_factor_risk_breakdown(self, positions: list[dict]) -> dict[str, float]:
-        """Calculate factor risk breakdown"""
+        """Calculate factor risk breakdown."""
         # Simplified factor risk calculation
         factors = {
             "market_risk": 0.40,  # 40% market risk
@@ -242,7 +242,7 @@ class RiskDashboard2025:
         return {factor: risk * self.portfolio_value for factor, risk in factors.items()}
 
     def _calculate_concentration_risk(self, positions: list[dict]) -> float:
-        """Calculate concentration risk"""
+        """Calculate concentration risk."""
         if not positions:
             return 0.0
 
@@ -258,7 +258,7 @@ class RiskDashboard2025:
         return herfindahl * self.portfolio_value
 
     def _run_stress_tests(self, portfolio: dict) -> tuple[float, dict[str, float]]:
-        """Run stress tests and return results"""
+        """Run stress tests and return results."""
         try:
             stress_report = self.stress_tester.run_comprehensive_stress_test(portfolio)
 
@@ -277,7 +277,7 @@ class RiskDashboard2025:
             return 0.0, {}
 
     def _check_risk_alerts(self, portfolio: dict) -> None:
-        """Check for risk limit breaches and generate alerts"""
+        """Check for risk limit breaches and generate alerts."""
         # Clear previous alerts
         self.active_alerts = []
 
@@ -327,7 +327,7 @@ class RiskDashboard2025:
         portfolio_impact: float,
         recommended_action: str,
     ) -> None:
-        """Add new risk alert"""
+        """Add new risk alert."""
         alert = RiskAlert(
             alert_id=f"{alert_type}_{datetime.now().strftime('%Y % m % d_ % H % M % S')}",
             alert_type=alert_type,
@@ -344,7 +344,7 @@ class RiskDashboard2025:
     def _calculate_risk_limit_utilization(
         self, var_1d: float, var_5d: float, cvar_99: float, concentration_risk: float
     ) -> dict[str, float]:
-        """Calculate risk limit utilization percentages"""
+        """Calculate risk limit utilization percentages."""
         return {
             "var_1d": (var_1d / (self.risk_limits["max_var_1d"] * self.portfolio_value)) * 100,
             "var_5d": (var_5d / (self.risk_limits["max_var_5d"] * self.portfolio_value)) * 100,
@@ -356,7 +356,7 @@ class RiskDashboard2025:
         }
 
     def get_risk_dashboard_data(self, portfolio: dict[str, Any]) -> dict[str, Any]:
-        """Get formatted dashboard data for display"""
+        """Get formatted dashboard data for display."""
         risk_summary = self.generate_risk_summary(portfolio)
 
         return {
@@ -420,7 +420,7 @@ class RiskDashboard2025:
         }
 
     def acknowledge_alert(self, alert_id: str) -> bool:
-        """Acknowledge a risk alert"""
+        """Acknowledge a risk alert."""
         for alert in self.active_alerts:
             if alert.alert_id == alert_id:
                 alert.acknowledged = True
@@ -428,7 +428,7 @@ class RiskDashboard2025:
         return False
 
     def get_alert_history(self, limit: int = 50) -> list[dict]:
-        """Get alert history"""
+        """Get alert history."""
         return [
             {
                 "id": alert.alert_id,

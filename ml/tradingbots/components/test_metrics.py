@@ -14,7 +14,7 @@ class MovingAverageSharpeRatioTestCase(unittest.TestCase):
         101         101
         102         102
         103         103
-        102         102
+        102         102.
 
         weight = [0.7, 0.3]
         """

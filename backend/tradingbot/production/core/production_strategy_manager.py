@@ -1,5 +1,5 @@
 """Production Strategy Manager
-Orchestrates all production - ready strategies with real broker integration
+Orchestrates all production - ready strategies with real broker integration.
 
 This module provides a unified interface for managing all production strategies:
 - WSB Dip Bot (production version)
@@ -51,7 +51,7 @@ class StrategyProfile(str, Enum):
 
 @dataclass
 class StrategyConfig:
-    """Configuration for individual strategy"""
+    """Configuration for individual strategy."""
 
     name: str
     enabled: bool = True
@@ -62,7 +62,7 @@ class StrategyConfig:
 
 @dataclass
 class ProductionStrategyManagerConfig:
-    """Configuration for production strategy manager"""
+    """Configuration for production strategy manager."""
 
     alpaca_api_key: str
     alpaca_secret_key: str
@@ -443,7 +443,7 @@ def _preset_defaults(profile: StrategyProfile) -> dict[str, StrategyConfig]:
                     "assignment_acceptance": True,
                     "covered_call_delta": 0.20,
                     "portfolio_allocation": 0.35,
-                    "diversified_watchlist": ai_infra_core + ["AAPL", "MSFT", "GOOGL"],
+                    "diversified_watchlist": [*ai_infra_core, "AAPL", "MSFT", "GOOGL"],
                     "avoid_earnings": True,
                     "min_liquidity_score": 0.7,
                     "fundamental_screen": True,
@@ -1062,7 +1062,7 @@ def _apply_profile_risk_overrides(cfg: ProductionStrategyManagerConfig):
 
 
 class ProductionStrategyManager:
-    """Production Strategy Manager
+    """Production Strategy Manager.
 
     Orchestrates all production - ready strategies:
     - Manages strategy lifecycle (start / stop / monitor)
@@ -1131,7 +1131,7 @@ class ProductionStrategyManager:
         self.logger.info(f"ProductionStrategyManager initialized with profile: {config.profile}")
 
     def _initialize_strategies(self):
-        """Initialize all enabled strategies"""
+        """Initialize all enabled strategies."""
         try:
             # Get preset defaults based on configured profile
             default_configs = _preset_defaults(self.config.profile)
@@ -1164,7 +1164,7 @@ class ProductionStrategyManager:
             self.logger.error(f"Error initializing strategies: {e}")
 
     def _create_strategy(self, strategy_name: str, config: StrategyConfig) -> Any | None:
-        """Create individual strategy instance"""
+        """Create individual strategy instance."""
         try:
             if strategy_name == "wsb_dip_bot":
                 return create_production_wsb_dip_bot(
@@ -1216,9 +1216,9 @@ class ProductionStrategyManager:
 
     def _validate_range(self, name: str, val: float, lo: float, hi: float) -> float:
         """Validate parameter ranges with clamping and logging."""
-        if not isinstance(val, (int, float)) or not (lo <= float(val) <= hi):
+        if not isinstance(val, int | float) or not (lo <= float(val) <= hi):
             self.logger.warning(f"Parameter {name} out of range [{lo},{hi}]: {val}. Clamping.")
-            return max(lo, min(hi, float(val))) if isinstance(val, (int, float)) else lo
+            return max(lo, min(hi, float(val))) if isinstance(val, int | float) else lo
         return float(val)
 
     def _sanitize_parameters(self, params: dict[str, Any]) -> dict[str, Any]:
@@ -1257,7 +1257,7 @@ class ProductionStrategyManager:
         return out
 
     async def start_all_strategies(self) -> bool:
-        """Start all enabled strategies"""
+        """Start all enabled strategies."""
         try:
             self.logger.info("Starting all production strategies")
 
@@ -1302,7 +1302,7 @@ class ProductionStrategyManager:
             return False
 
     async def stop_all_strategies(self):
-        """Stop all strategies"""
+        """Stop all strategies."""
         try:
             self.logger.info("Stopping all production strategies")
 
@@ -1317,7 +1317,7 @@ class ProductionStrategyManager:
             self.logger.error(f"Error stopping strategies: {e}")
 
     async def _validate_system_state(self) -> bool:
-        """Validate system state before starting"""
+        """Validate system state before starting."""
         try:
             # Validate Alpaca connection
             success, message = self.integration_manager.alpaca_manager.validate_api()
@@ -1344,7 +1344,7 @@ class ProductionStrategyManager:
             return False
 
     async def _monitoring_loop(self):
-        """Main monitoring loop"""
+        """Main monitoring loop."""
         while self.is_running:
             try:
                 # Monitor positions across all strategies
@@ -1364,7 +1364,7 @@ class ProductionStrategyManager:
                 await asyncio.sleep(60)  # Wait longer on error
 
     async def _heartbeat_loop(self):
-        """Heartbeat loop for system monitoring"""
+        """Heartbeat loop for system monitoring."""
         while self.is_running:
             try:
                 self.last_heartbeat = datetime.now()
@@ -1385,7 +1385,7 @@ class ProductionStrategyManager:
                 await asyncio.sleep(60)
 
     async def _performance_tracking_loop(self):
-        """Performance tracking loop"""
+        """Performance tracking loop."""
         while self.is_running:
             try:
                 # Update performance metrics
@@ -1399,7 +1399,7 @@ class ProductionStrategyManager:
                 await asyncio.sleep(300)
 
     async def _monitor_all_positions(self):
-        """Monitor positions across all strategies"""
+        """Monitor positions across all strategies."""
         try:
             for strategy_name, strategy in self.strategies.items():
                 try:
@@ -1412,7 +1412,7 @@ class ProductionStrategyManager:
             self.logger.error(f"Error in monitor_all_positions: {e}")
 
     async def _check_risk_limits(self):
-        """Check risk limits across all strategies"""
+        """Check risk limits across all strategies."""
         try:
             # Get total portfolio risk
             total_risk = await self.integration_manager.get_total_risk()
@@ -1432,7 +1432,7 @@ class ProductionStrategyManager:
             self.logger.error(f"Error checking risk limits: {e}")
 
     async def _refresh_data_cache(self):
-        """Refresh data cache"""
+        """Refresh data cache."""
         try:
             # Clear old cache entries
             self.data_provider.clear_cache()
@@ -1441,7 +1441,7 @@ class ProductionStrategyManager:
             self.logger.error(f"Error refreshing data cache: {e}")
 
     async def _update_performance_metrics(self):
-        """Update performance metrics"""
+        """Update performance metrics."""
         try:
             # Get portfolio summary
             portfolio_summary = self.integration_manager.get_portfolio_summary()
@@ -1470,7 +1470,7 @@ class ProductionStrategyManager:
             self.logger.error(f"Error updating performance metrics: {e}")
 
     async def _analytics_loop(self):
-        """Advanced analytics calculation loop"""
+        """Advanced analytics calculation loop."""
         while self.is_running:
             try:
                 await self._calculate_advanced_analytics()
@@ -1480,7 +1480,7 @@ class ProductionStrategyManager:
                 await asyncio.sleep(300)
 
     async def _regime_adaptation_loop(self):
-        """Market regime adaptation loop"""
+        """Market regime adaptation loop."""
         while self.is_running:
             try:
                 await self._update_regime_adaptation()
@@ -1490,7 +1490,7 @@ class ProductionStrategyManager:
                 await asyncio.sleep(300)
 
     async def _calculate_advanced_analytics(self):
-        """Calculate comprehensive performance analytics"""
+        """Calculate comprehensive performance analytics."""
         try:
             if not self.advanced_analytics:
                 return
@@ -1528,7 +1528,7 @@ class ProductionStrategyManager:
             self.logger.error(f"Error calculating advanced analytics: {e}")
 
     async def _update_regime_adaptation(self):
-        """Update market regime adaptation"""
+        """Update market regime adaptation."""
         try:
             if not self.market_regime_adapter:
                 return
@@ -1565,7 +1565,7 @@ class ProductionStrategyManager:
             self.logger.error(f"Error updating regime adaptation: {e}")
 
     async def _get_portfolio_returns(self) -> list[float]:
-        """Get portfolio returns for analytics"""
+        """Get portfolio returns for analytics."""
         try:
             # Get portfolio value history from integration manager
             # This would need to be implemented in integration manager
@@ -1590,7 +1590,7 @@ class ProductionStrategyManager:
             return []
 
     async def _get_benchmark_returns(self) -> list[float]:
-        """Get benchmark returns (SPY) for comparison"""
+        """Get benchmark returns (SPY) for comparison."""
         try:
             # Get SPY data for benchmark comparison
             spy_data = await self.data_provider.get_historical_data("SPY", days=180)
@@ -1614,7 +1614,7 @@ class ProductionStrategyManager:
             return []
 
     async def _get_market_data_for_regime(self) -> dict[str, Any]:
-        """Get market data for regime detection"""
+        """Get market data for regime detection."""
         try:
             # Get key market indicators
             market_data = {}
@@ -1641,7 +1641,7 @@ class ProductionStrategyManager:
             return {}
 
     async def _get_current_positions(self) -> dict[str, Any]:
-        """Get current positions for regime adaptation"""
+        """Get current positions for regime adaptation."""
         try:
             return await self.integration_manager.get_all_positions()
         except Exception as e:
@@ -1649,7 +1649,7 @@ class ProductionStrategyManager:
             return {}
 
     async def _apply_regime_adaptation(self, adaptation: StrategyAdaptation):
-        """Apply regime adaptation to strategies"""
+        """Apply regime adaptation to strategies."""
         try:
             # Update strategy parameters based on regime adaptation
             for strategy_name, strategy in self.strategies.items():
@@ -1688,7 +1688,7 @@ class ProductionStrategyManager:
             self.logger.error(f"Error applying regime adaptation: {e}")
 
     async def _check_analytics_alerts(self, metrics: PerformanceMetrics):
-        """Check for analytics - based alerts"""
+        """Check for analytics - based alerts."""
         try:
             # Check for significant performance changes
             if len(self.analytics_history) > 1:
@@ -1714,7 +1714,7 @@ class ProductionStrategyManager:
             self.logger.error(f"Error checking analytics alerts: {e}")
 
     def get_advanced_analytics_summary(self) -> dict[str, Any]:
-        """Get advanced analytics summary"""
+        """Get advanced analytics summary."""
         if not self.analytics_history:
             return {"status": "no_data"}
 
@@ -1733,14 +1733,14 @@ class ProductionStrategyManager:
         }
 
     def get_regime_adaptation_summary(self) -> dict[str, Any]:
-        """Get regime adaptation summary"""
+        """Get regime adaptation summary."""
         if not self.market_regime_adapter:
             return {"status": "disabled"}
 
         return self.market_regime_adapter.get_adaptation_summary()
 
     def get_system_status(self) -> dict[str, Any]:
-        """Get current system status"""
+        """Get current system status."""
         return {
             "is_running": self.is_running,
             "start_time": self.start_time.isoformat() if self.start_time else None,
@@ -1766,7 +1766,7 @@ class ProductionStrategyManager:
         }
 
     def get_strategy_performance(self, strategy_name: str) -> dict[str, Any] | None:
-        """Get performance for specific strategy"""
+        """Get performance for specific strategy."""
         try:
             if strategy_name in self.strategies:
                 strategy = self.strategies[strategy_name]
@@ -1782,5 +1782,5 @@ class ProductionStrategyManager:
 def create_production_strategy_manager(
     config: ProductionStrategyManagerConfig,
 ) -> ProductionStrategyManager:
-    """Create ProductionStrategyManager instance"""
+    """Create ProductionStrategyManager instance."""
     return ProductionStrategyManager(config)

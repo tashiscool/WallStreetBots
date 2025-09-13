@@ -1,4 +1,4 @@
-"""Production Earnings Protection Strategy - Real Trading Implementation
+"""Production Earnings Protection Strategy - Real Trading Implementation.
 
 This is a production - ready version of the Earnings Protection strategy that:
 - Uses real earnings calendar data
@@ -24,7 +24,7 @@ from ..data.production_data_integration import ReliableDataProvider as Productio
 
 @dataclass
 class EarningsSignal:
-    """Earnings protection signal"""
+    """Earnings protection signal."""
 
     ticker: str
     earnings_date: datetime
@@ -39,7 +39,7 @@ class EarningsSignal:
 
 
 class ProductionEarningsProtection:
-    """Production Earnings Protection Strategy
+    """Production Earnings Protection Strategy.
 
     Implements IV crush protection strategies:
     1. Deep ITM options for earnings plays
@@ -77,7 +77,7 @@ class ProductionEarningsProtection:
         self.logger.info("ProductionEarningsProtection initialized")
 
     async def scan_for_earnings_signals(self) -> list[EarningsSignal]:
-        """Scan for earnings protection opportunities"""
+        """Scan for earnings protection opportunities."""
         signals = []
 
         try:
@@ -106,7 +106,7 @@ class ProductionEarningsProtection:
             return []
 
     async def _analyze_earnings_opportunity(self, event: EarningsEvent) -> EarningsSignal | None:
-        """Analyze earnings opportunity for protection strategy"""
+        """Analyze earnings opportunity for protection strategy."""
         try:
             # Check if earnings is within our time window
             days_to_earnings = (event.earnings_date - datetime.now()).days
@@ -168,7 +168,7 @@ class ProductionEarningsProtection:
             return None
 
     async def _calculate_implied_move(self, ticker: str) -> Decimal:
-        """Calculate implied move from options"""
+        """Calculate implied move from options."""
         try:
             # In production, this would use real options data
             # For now, use historical volatility as proxy
@@ -185,7 +185,7 @@ class ProductionEarningsProtection:
             return Decimal("0.05")
 
     async def _calculate_iv_percentile(self, ticker: str) -> float:
-        """Calculate IV percentile"""
+        """Calculate IV percentile."""
         try:
             # In production, this would use real IV data
             # For now, use historical volatility as proxy
@@ -204,7 +204,7 @@ class ProductionEarningsProtection:
     async def _select_strategy(
         self, ticker: str, iv_percentile: float, implied_move: Decimal
     ) -> str | None:
-        """Select best protection strategy"""
+        """Select best protection strategy."""
         try:
             # Deep ITM for high IV, high implied move
             if iv_percentile > 80 and implied_move > Decimal("0.08"):
@@ -225,7 +225,7 @@ class ProductionEarningsProtection:
             return None
 
     async def execute_earnings_trade(self, signal: EarningsSignal) -> bool:
-        """Execute earnings protection trade"""
+        """Execute earnings protection trade."""
         try:
             # Calculate quantity based on strategy type
             quantity = await self._calculate_position_size(signal)
@@ -267,7 +267,7 @@ class ProductionEarningsProtection:
             return False
 
     async def _calculate_position_size(self, signal: EarningsSignal) -> int:
-        """Calculate position size based on strategy"""
+        """Calculate position size based on strategy."""
         try:
             # Simplified position sizing
             # In production, would use sophisticated risk models
@@ -291,7 +291,7 @@ class ProductionEarningsProtection:
     async def _create_trade_signal(
         self, signal: EarningsSignal, quantity: int
     ) -> ProductionTradeSignal:
-        """Create trade signal based on strategy"""
+        """Create trade signal based on strategy."""
         try:
             # Simplified trade signal creation
             # In production, would create specific options trades
@@ -325,9 +325,9 @@ class ProductionEarningsProtection:
             raise
 
     async def monitor_positions(self):
-        """Monitor active positions for exit signals"""
+        """Monitor active positions for exit signals."""
         try:
-            for ticker, position in list(self.active_positions.items()):
+            for _ticker, position in list(self.active_positions.items()):
                 exit_signal = await self._check_exit_conditions(position)
                 if exit_signal:
                     await self._execute_exit(position, exit_signal)
@@ -336,7 +336,7 @@ class ProductionEarningsProtection:
             self.logger.error(f"Error monitoring positions: {e}")
 
     async def _check_exit_conditions(self, position: EarningsSignal) -> str | None:
-        """Check exit conditions for position"""
+        """Check exit conditions for position."""
         try:
             # Check if earnings has passed
             if datetime.now() > position.earnings_date:
@@ -364,7 +364,7 @@ class ProductionEarningsProtection:
             return None
 
     async def _execute_exit(self, position: EarningsSignal, reason: str):
-        """Execute exit trade"""
+        """Execute exit trade."""
         try:
             # Get current price
             current_data = await self.data_provider.get_current_price(position.ticker)
@@ -410,7 +410,7 @@ class ProductionEarningsProtection:
             self.logger.error(f"Error executing exit: {e}")
 
     async def run_strategy(self):
-        """Main strategy loop"""
+        """Main strategy loop."""
         self.logger.info("Starting Earnings Protection strategy")
 
         try:
@@ -433,7 +433,7 @@ class ProductionEarningsProtection:
             self.logger.error(f"Error in strategy loop: {e}")
 
     def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         return {
             "strategy_name": "earnings_protection",
             "active_positions": len(self.active_positions),
@@ -466,5 +466,5 @@ def create_production_earnings_protection(
     data_provider: ProductionDataProvider,
     config: dict[str, Any],
 ) -> ProductionEarningsProtection:
-    """Create ProductionEarningsProtection instance"""
+    """Create ProductionEarningsProtection instance."""
     return ProductionEarningsProtection(integration_manager, data_provider, config)

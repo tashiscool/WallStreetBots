@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Comprehensive Test Suite for Alert System
-Tests alert generation, delivery, and execution checklists
+Tests alert generation, delivery, and execution checklists.
 """
 
 import json
@@ -33,7 +33,7 @@ from backend.tradingbot.alert_system import (
 
 
 class TestAlertDataClasses(unittest.TestCase):
-    """Test alert data classes and structures"""
+    """Test alert data classes and structures."""
 
     def setUp(self):
         self.sample_alert = Alert(
@@ -46,7 +46,7 @@ class TestAlertDataClasses(unittest.TestCase):
         )
 
     def test_alert_creation(self):
-        """Test alert object creation and properties"""
+        """Test alert object creation and properties."""
         self.assertEqual(self.sample_alert.alert_type, AlertType.ENTRY_SIGNAL)
         self.assertEqual(self.sample_alert.priority, AlertPriority.HIGH)
         self.assertEqual(self.sample_alert.ticker, "AAPL")
@@ -57,7 +57,7 @@ class TestAlertDataClasses(unittest.TestCase):
         self.assertIsInstance(self.sample_alert.timestamp, datetime)
 
     def test_alert_json_serialization(self):
-        """Test alert JSON serialization"""
+        """Test alert JSON serialization."""
         json_str = self.sample_alert.to_json()
         self.assertIsInstance(json_str, str)
 
@@ -68,7 +68,7 @@ class TestAlertDataClasses(unittest.TestCase):
         self.assertEqual(data["priority"], 3)  # HIGH priority value
 
     def test_alert_enums(self):
-        """Test alert enum types"""
+        """Test alert enum types."""
         # Test AlertType enum
         self.assertEqual(AlertType.SETUP_DETECTED.value, "setup_detected")
         self.assertEqual(AlertType.ENTRY_SIGNAL.value, "entry_signal")
@@ -83,7 +83,7 @@ class TestAlertDataClasses(unittest.TestCase):
         self.assertEqual(AlertChannel.SLACK.value, "slack")
 
     def test_checklist_item_creation(self):
-        """Test checklist item functionality"""
+        """Test checklist item functionality."""
         item = ChecklistItem(step=1, description="Verify market regime is bull")
 
         self.assertEqual(item.step, 1)
@@ -99,7 +99,7 @@ class TestAlertDataClasses(unittest.TestCase):
         self.assertEqual(item.notes, "Regime verified as bull market")
 
     def test_execution_checklist(self):
-        """Test execution checklist functionality"""
+        """Test execution checklist functionality."""
         checklist = ExecutionChecklist(
             trade_id="AAPL_20241206_001", ticker="AAPL", checklist_type="entry"
         )
@@ -134,10 +134,10 @@ class TestAlertDataClasses(unittest.TestCase):
 
 
 class TestAlertHandlers(unittest.TestCase):
-    """Test alert handler implementations"""
+    """Test alert handler implementations."""
 
     def test_desktop_alert_handler(self):
-        """Test desktop alert handler"""
+        """Test desktop alert handler."""
         handler = DesktopAlertHandler()
 
         alert = Alert(
@@ -157,7 +157,7 @@ class TestAlertHandlers(unittest.TestCase):
 
     @patch("backend.tradingbot.alert_system.send_email")
     def test_email_alert_handler(self, mock_send_email):
-        """Test email alert handler"""
+        """Test email alert handler."""
         mock_send_email.return_value = True
 
         handler = EmailAlertHandler({"host": "smtp.gmail.com", "port": 587})
@@ -174,20 +174,20 @@ class TestAlertHandlers(unittest.TestCase):
         mock_send_email.assert_called_once()
 
     def test_alert_handler_interface(self):
-        """Test alert handler abstract interface"""
+        """Test alert handler abstract interface."""
         # Should not be able to instantiate abstract class
         with self.assertRaises(TypeError):
             AlertHandler()
 
 
 class TestTradingAlertSystem(unittest.TestCase):
-    """Test main trading alert system"""
+    """Test main trading alert system."""
 
     def setUp(self):
         self.alert_system = TradingAlertSystem()
 
     def test_handler_registration(self):
-        """Test alert handler registration"""
+        """Test alert handler registration."""
         handler = DesktopAlertHandler()
 
         self.alert_system.register_handler(AlertChannel.DESKTOP, handler)
@@ -196,7 +196,7 @@ class TestTradingAlertSystem(unittest.TestCase):
 
     @pytest.mark.asyncio
     async def test_alert_sending(self):
-        """Test alert sending through system"""
+        """Test alert sending through system."""
         # Register mock handler
         mock_handler = Mock()
         mock_handler.send_alert.return_value = True
@@ -220,7 +220,7 @@ class TestTradingAlertSystem(unittest.TestCase):
 
     @pytest.mark.asyncio
     async def test_alert_filtering_by_priority(self):
-        """Test alert filtering by priority levels"""
+        """Test alert filtering by priority levels."""
         self.alert_system.min_priority = AlertPriority.HIGH
 
         # Register mock handler
@@ -258,7 +258,7 @@ class TestTradingAlertSystem(unittest.TestCase):
 
     @pytest.mark.asyncio
     async def test_alert_history_management(self):
-        """Test alert history tracking"""
+        """Test alert history tracking."""
         # Initial state
         self.assertEqual(len(self.alert_system.alert_history), 0)
 
@@ -292,13 +292,13 @@ class TestTradingAlertSystem(unittest.TestCase):
 
 
 class TestExecutionChecklistManager(unittest.TestCase):
-    """Test execution checklist management"""
+    """Test execution checklist management."""
 
     def setUp(self):
         self.checklist_manager = ExecutionChecklistManager()
 
     def test_entry_checklist_creation(self):
-        """Test creation of entry checklist"""
+        """Test creation of entry checklist."""
         from backend.tradingbot.options_calculator import TradeCalculation
 
         # Mock trade calculation
@@ -320,14 +320,14 @@ class TestExecutionChecklistManager(unittest.TestCase):
         self.assertGreater(len(checklist.items), 5)  # Should have multiple items
 
     def test_monitoring_checklist_creation(self):
-        """Test creation of monitoring checklist"""
+        """Test creation of monitoring checklist."""
         checklist = self.checklist_manager.create_monitoring_checklist("trade_456", "GOOGL")
         self.assertEqual(checklist.ticker, "GOOGL")
         self.assertEqual(checklist.checklist_type, "monitoring")
         self.assertGreater(len(checklist.items), 3)
 
     def test_exit_checklist_creation(self):
-        """Test creation of exit checklist"""
+        """Test creation of exit checklist."""
         checklist = self.checklist_manager.create_exit_checklist(
             "trade_789", "TSLA", "profit_target"
         )
@@ -336,7 +336,7 @@ class TestExecutionChecklistManager(unittest.TestCase):
         self.assertGreater(len(checklist.items), 3)
 
     def test_checklist_completion(self):
-        """Test checklist item completion"""
+        """Test checklist item completion."""
         checklist = self.checklist_manager.create_monitoring_checklist("trade_123", "SPY")
         checklist_id = checklist.trade_id
 
@@ -351,7 +351,7 @@ class TestExecutionChecklistManager(unittest.TestCase):
         self.assertEqual(completed_items[0].notes, "Market regime verified")
 
     def test_checklist_retrieval(self):
-        """Test checklist retrieval methods"""
+        """Test checklist retrieval methods."""
         # Create test checklists
         trade_calc = Mock()
         trade_calc.ticker = "AAPL"
@@ -374,11 +374,11 @@ class TestExecutionChecklistManager(unittest.TestCase):
 
 
 class TestAlertUtilities(unittest.TestCase):
-    """Test alert utility functions"""
+    """Test alert utility functions."""
 
     @patch("backend.tradingbot.alert_system.requests.post")
     def test_send_slack_success(self, mock_post):
-        """Test successful Slack message sending"""
+        """Test successful Slack message sending."""
         mock_response = Mock()
         mock_response.ok = True
         mock_post.return_value = mock_response
@@ -390,7 +390,7 @@ class TestAlertUtilities(unittest.TestCase):
 
     @patch("requests.post")
     def test_send_slack_failure(self, mock_post):
-        """Test Slack message sending failure"""
+        """Test Slack message sending failure."""
         mock_post.side_effect = Exception("Network error")
 
         with patch.dict(os.environ, {"ALERT_SLACK_WEBHOOK": "https://hooks.slack.com / test"}):
@@ -398,14 +398,14 @@ class TestAlertUtilities(unittest.TestCase):
             self.assertFalse(result)
 
     def test_send_slack_no_webhook(self):
-        """Test Slack sending with no webhook configured"""
+        """Test Slack sending with no webhook configured."""
         with patch.dict(os.environ, {}, clear=True):
             result = send_slack("Test message")
             self.assertFalse(result)
 
     @patch("smtplib.SMTP")
     def test_send_email_success(self, mock_smtp):
-        """Test successful email sending"""
+        """Test successful email sending."""
         mock_server = Mock()
         mock_smtp.return_value.__enter__.return_value = mock_server
 
@@ -426,14 +426,14 @@ class TestAlertUtilities(unittest.TestCase):
             mock_server.sendmail.assert_called_once()
 
     def test_send_email_missing_config(self):
-        """Test email sending with missing configuration"""
+        """Test email sending with missing configuration."""
         with patch.dict(os.environ, {}, clear=True):
             result = send_email("Test Subject", "Test body")
             self.assertFalse(result)
 
 
 class TestAlertIntegration(unittest.TestCase):
-    """Test alert system integration scenarios"""
+    """Test alert system integration scenarios."""
 
     def setUp(self):
         self.alert_system = TradingAlertSystem()
@@ -441,7 +441,7 @@ class TestAlertIntegration(unittest.TestCase):
 
     @pytest.mark.asyncio
     async def test_complete_trading_workflow(self):
-        """Test complete trading workflow with alerts and checklists"""
+        """Test complete trading workflow with alerts and checklists."""
         # 1. Setup detection alert
         setup_alert = Alert(
             alert_type=AlertType.SETUP_DETECTED,
@@ -493,7 +493,7 @@ class TestAlertIntegration(unittest.TestCase):
 
 
 def run_alert_system_tests():
-    """Run all alert system tests"""
+    """Run all alert system tests."""
     print(" = " * 60)
     print("ALERT SYSTEM - COMPREHENSIVE TEST SUITE")
     print(" = " * 60)

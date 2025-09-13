@@ -1,5 +1,5 @@
 """Enhanced Earnings Calendar Provider with Real IV Calculation
-Implements real earnings calendar integration with implied volatility analysis
+Implements real earnings calendar integration with implied volatility analysis.
 """
 
 import logging
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class EarningsReactionType(Enum):
-    """Expected earnings reaction types"""
+    """Expected earnings reaction types."""
 
     HIGH_VOLATILITY = "high_volatility"  # Expect big moves
     MODERATE_VOLATILITY = "moderate_volatility"  # Expect medium moves
@@ -24,7 +24,7 @@ class EarningsReactionType(Enum):
 
 @dataclass
 class ImpliedMoveData:
-    """Implied move calculation data"""
+    """Implied move calculation data."""
 
     straddle_price: Decimal
     stock_price: Decimal
@@ -37,7 +37,7 @@ class ImpliedMoveData:
 
 @dataclass
 class IVPercentileData:
-    """IV percentile analysis data"""
+    """IV percentile analysis data."""
 
     current_iv: float
     iv_percentile_30d: float
@@ -52,7 +52,7 @@ class IVPercentileData:
 
 @dataclass
 class EnhancedEarningsEvent:
-    """Enhanced earnings event with IV analysis"""
+    """Enhanced earnings event with IV analysis."""
 
     ticker: str
     company_name: str
@@ -90,7 +90,7 @@ class EnhancedEarningsEvent:
 
 
 class EarningsCalendarProvider:
-    """Enhanced Earnings Calendar Provider
+    """Enhanced Earnings Calendar Provider.
 
     Features:
     - Real earnings calendar from multiple sources
@@ -104,8 +104,8 @@ class EarningsCalendarProvider:
         self,
         data_provider=None,
         options_pricing=None,
-        polygon_api_key: str = None,
-        alpha_vantage_key: str = None,
+        polygon_api_key: str | None = None,
+        alpha_vantage_key: str | None = None,
     ):
         self.data_provider = data_provider
         self.options_pricing = options_pricing
@@ -157,7 +157,7 @@ class EarningsCalendarProvider:
         self.logger.info("EarningsCalendarProvider initialized with external data sources")
 
     async def get_earnings_calendar(self, days_ahead: int = 30) -> list[EnhancedEarningsEvent]:
-        """Get enhanced earnings calendar with IV analysis"""
+        """Get enhanced earnings calendar with IV analysis."""
         try:
             # Get base earnings events
             base_events = await self.data_provider.get_earnings_calendar(days_ahead)
@@ -197,7 +197,7 @@ class EarningsCalendarProvider:
             return []
 
     async def _get_real_earnings_calendar(self, days_ahead: int = 30) -> list[Any]:
-        """Get real earnings calendar from external sources"""
+        """Get real earnings calendar from external sources."""
         earnings_events = []
 
         # Try Polygon.io first (primary source)
@@ -227,7 +227,7 @@ class EarningsCalendarProvider:
         return earnings_events
 
     async def _get_polygon_earnings(self, days_ahead: int) -> list[Any]:
-        """Get earnings calendar from Polygon.io"""
+        """Get earnings calendar from Polygon.io."""
         try:
             from datetime import date
 
@@ -266,7 +266,7 @@ class EarningsCalendarProvider:
             return []
 
     async def _get_alpha_vantage_earnings(self, days_ahead: int) -> list[Any]:
-        """Get earnings calendar from Alpha Vantage"""
+        """Get earnings calendar from Alpha Vantage."""
         try:
             # Alpha Vantage earnings calendar API call
             earnings_data = self.alpha_vantage_client.get_earnings_calendar()
@@ -295,7 +295,7 @@ class EarningsCalendarProvider:
             return []
 
     async def _enhance_earnings_event(self, base_event) -> EnhancedEarningsEvent | None:
-        """Enhance basic earnings event with IV analysis and recommendations"""
+        """Enhance basic earnings event with IV analysis and recommendations."""
         try:
             # Check cache first
             cache_key = f"{base_event.ticker}_{base_event.earnings_date.date()}"
@@ -367,7 +367,7 @@ class EarningsCalendarProvider:
     async def _calculate_real_implied_move(
         self, ticker: str, earnings_date: datetime, current_price: Decimal
     ) -> ImpliedMoveData | None:
-        """Calculate real implied move from options straddle prices"""
+        """Calculate real implied move from options straddle prices."""
         try:
             # Find the expiry closest to but after earnings
             target_date = (
@@ -381,7 +381,7 @@ class EarningsCalendarProvider:
                 return self._estimate_implied_move_fallback(current_price)
 
             # Find expiry closest to earnings (but after)
-            expiries = list(set([opt.expiry for opt in options_chain]))
+            expiries = list({opt.expiry for opt in options_chain})
             expiries.sort()
 
             target_expiry = None
@@ -459,7 +459,7 @@ class EarningsCalendarProvider:
             return self._estimate_implied_move_fallback(current_price)
 
     def _estimate_implied_move_fallback(self, current_price: Decimal) -> ImpliedMoveData:
-        """Fallback implied move estimation"""
+        """Fallback implied move estimation."""
         # Use historical average earnings move (~4 - 8% for most stocks)
         estimated_move_pct = 0.06  # 6% average
         estimated_move_dollar = current_price * Decimal(str(estimated_move_pct))
@@ -474,7 +474,7 @@ class EarningsCalendarProvider:
         )
 
     async def _analyze_iv_percentiles(self, ticker: str) -> IVPercentileData | None:
-        """Analyze IV percentiles vs historical data"""
+        """Analyze IV percentiles vs historical data."""
         try:
             # Check cache
             if ticker in self.iv_cache:
@@ -562,7 +562,7 @@ class EarningsCalendarProvider:
             return None
 
     def _get_synthetic_historical_iv(self, current_iv: float) -> list[float]:
-        """Generate synthetic historical IV data for demonstration"""
+        """Generate synthetic historical IV data for demonstration."""
         import random
 
         # Create 90 days of synthetic IV data around current IV
@@ -583,7 +583,7 @@ class EarningsCalendarProvider:
         return historical_ivs
 
     def _calculate_percentile(self, value: float, historical_data: list[float]) -> float:
-        """Calculate percentile rank of value in historical data"""
+        """Calculate percentile rank of value in historical data."""
         if not historical_data:
             return 50.0
 
@@ -596,7 +596,7 @@ class EarningsCalendarProvider:
     async def _get_historical_earnings_performance(
         self, ticker: str
     ) -> tuple[list[float], float | None]:
-        """Get historical earnings reaction data"""
+        """Get historical earnings reaction data."""
         try:
             # In production, this would query actual historical earnings moves
             # For now, return synthetic data
@@ -628,7 +628,7 @@ class EarningsCalendarProvider:
         iv_analysis: IVPercentileData | None,
         historical_moves: list[float],
     ) -> EarningsReactionType:
-        """Classify expected earnings reaction type"""
+        """Classify expected earnings reaction type."""
         try:
             # Default to unknown
             if not implied_move:
@@ -680,7 +680,7 @@ class EarningsCalendarProvider:
         iv_analysis: IVPercentileData | None,
         implied_move: ImpliedMoveData | None,
     ) -> list[str]:
-        """Get strategy recommendations based on analysis"""
+        """Get strategy recommendations based on analysis."""
         recommendations = []
 
         try:
@@ -716,7 +716,7 @@ class EarningsCalendarProvider:
     def _assess_risk_level(
         self, reaction_type: EarningsReactionType, iv_analysis: IVPercentileData | None
     ) -> str:
-        """Assess overall risk level"""
+        """Assess overall risk level."""
         try:
             if reaction_type == EarningsReactionType.HIGH_VOLATILITY:
                 return "high"
@@ -731,7 +731,7 @@ class EarningsCalendarProvider:
             return "medium"
 
     async def get_earnings_for_ticker(self, ticker: str) -> EnhancedEarningsEvent | None:
-        """Get enhanced earnings data for specific ticker"""
+        """Get enhanced earnings data for specific ticker."""
         try:
             calendar = await self.get_earnings_calendar(30)
 
@@ -747,7 +747,7 @@ class EarningsCalendarProvider:
 
 
 def create_earnings_calendar_provider(
-    data_provider=None, options_pricing=None, polygon_api_key: str = None
+    data_provider=None, options_pricing=None, polygon_api_key: str | None = None
 ) -> EarningsCalendarProvider:
-    """Factory function to create earnings calendar provider"""
+    """Factory function to create earnings calendar provider."""
     return EarningsCalendarProvider(data_provider, options_pricing, polygon_api_key)

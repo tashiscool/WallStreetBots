@@ -1,5 +1,5 @@
 """Multi - Asset Risk Manager
-Extended risk models for crypto, forex, commodities with cross - asset correlation
+Extended risk models for crypto, forex, commodities with cross - asset correlation.
 
 This module provides:
 - Cross - asset correlation modeling
@@ -24,7 +24,7 @@ import pandas as pd
 
 
 class AssetClass(str, Enum):
-    """Asset class types"""
+    """Asset class types."""
 
     EQUITY = "equity"
     CRYPTO = "crypto"
@@ -36,7 +36,7 @@ class AssetClass(str, Enum):
 
 
 class RiskFactor(str, Enum):
-    """Risk factors for multi - asset modeling"""
+    """Risk factors for multi - asset modeling."""
 
     MARKET_RISK = "market_risk"
     CREDIT_RISK = "credit_risk"
@@ -51,7 +51,7 @@ class RiskFactor(str, Enum):
 
 @dataclass
 class AssetPosition:
-    """Multi - asset position representation"""
+    """Multi - asset position representation."""
 
     symbol: str
     asset_class: AssetClass
@@ -67,7 +67,7 @@ class AssetPosition:
 
 @dataclass
 class CrossAssetCorrelation:
-    """Cross - asset correlation data"""
+    """Cross - asset correlation data."""
 
     asset1: str
     asset2: str
@@ -80,7 +80,7 @@ class CrossAssetCorrelation:
 
 @dataclass
 class MultiAssetRiskMetrics:
-    """Multi - asset risk metrics"""
+    """Multi - asset risk metrics."""
 
     total_var: float
     total_cvar: float
@@ -95,7 +95,7 @@ class MultiAssetRiskMetrics:
 
 
 class MultiAssetRiskManager:
-    """Multi - asset risk management system
+    """Multi - asset risk management system.
 
     Provides:
     - Cross - asset correlation modeling
@@ -113,7 +113,7 @@ class MultiAssetRiskManager:
         enable_forex: bool = True,
         enable_commodities: bool = True,
     ):
-        """Initialize multi - asset risk manager
+        """Initialize multi - asset risk manager.
 
         Args:
             base_currency: Base currency for calculations
@@ -153,12 +153,12 @@ class MultiAssetRiskManager:
         quantity: float,
         value: float,
         currency: str = "USD",
-        risk_factors: dict[RiskFactor, float] = None,
+        risk_factors: dict[RiskFactor, float] | None = None,
         liquidity_score: float = 1.0,
         volatility: float = 0.0,
         beta: float = 1.0,
     ):
-        """Add multi - asset position
+        """Add multi - asset position.
 
         Args:
             symbol: Asset symbol
@@ -197,7 +197,7 @@ class MultiAssetRiskManager:
     async def calculate_cross_asset_correlations(
         self, market_data: dict[str, pd.DataFrame]
     ) -> dict[tuple[str, str], CrossAssetCorrelation]:
-        """Calculate cross - asset correlations
+        """Calculate cross - asset correlations.
 
         Args:
             market_data: Market data for all assets
@@ -213,7 +213,7 @@ class MultiAssetRiskManager:
 
             # Calculate pairwise correlations
             for i, symbol1 in enumerate(symbols):
-                for j, symbol2 in enumerate(symbols[i + 1 :], i + 1):
+                for _j, symbol2 in enumerate(symbols[i + 1 :], i + 1):
                     if symbol1 in market_data and symbol2 in market_data:
                         correlation = await self._calculate_asset_correlation(
                             symbol1, symbol2, market_data[symbol1], market_data[symbol2]
@@ -239,7 +239,7 @@ class MultiAssetRiskManager:
     async def _calculate_asset_correlation(
         self, symbol1: str, symbol2: str, data1: pd.DataFrame, data2: pd.DataFrame
     ) -> CrossAssetCorrelation | None:
-        """Calculate correlation between two assets"""
+        """Calculate correlation between two assets."""
         try:
             # Ensure data alignment
             common_dates = data1.index.intersection(data2.index)
@@ -286,18 +286,18 @@ class MultiAssetRiskManager:
             return None
 
     async def _update_correlation_matrix(self):
-        """Update correlation matrix"""
+        """Update correlation matrix."""
         try:
             if not self.correlations:
                 return
 
             # Get unique assets
             assets = set()
-            for asset1, asset2 in self.correlations.keys():
+            for asset1, asset2 in self.correlations:
                 assets.add(asset1)
                 assets.add(asset2)
 
-            assets = sorted(list(assets))
+            assets = sorted(assets)
             n_assets = len(assets)
 
             # Initialize correlation matrix
@@ -323,7 +323,7 @@ class MultiAssetRiskManager:
     async def calculate_multi_asset_var(
         self, confidence_level: float = 0.99, time_horizon: int = 1
     ) -> MultiAssetRiskMetrics:
-        """Calculate multi - asset VaR
+        """Calculate multi - asset VaR.
 
         Args:
             confidence_level: VaR confidence level
@@ -407,7 +407,7 @@ class MultiAssetRiskManager:
     async def _calculate_asset_class_var(
         self, positions: list[AssetPosition], confidence_level: float, time_horizon: int
     ) -> float:
-        """Calculate VaR for an asset class"""
+        """Calculate VaR for an asset class."""
         try:
             if not positions:
                 return 0.0
@@ -430,7 +430,7 @@ class MultiAssetRiskManager:
             return 0.0
 
     async def _calculate_risk_factor_exposures(self) -> dict[RiskFactor, float]:
-        """Calculate risk factor exposures"""
+        """Calculate risk factor exposures."""
         try:
             exposures = {}
 
@@ -449,7 +449,7 @@ class MultiAssetRiskManager:
             return {}
 
     async def _calculate_correlation_risk(self) -> float:
-        """Calculate correlation risk"""
+        """Calculate correlation risk."""
         try:
             if not self.correlation_matrix is not None:
                 return 0.0
@@ -469,7 +469,7 @@ class MultiAssetRiskManager:
             return 0.0
 
     async def _calculate_concentration_risk(self) -> float:
-        """Calculate concentration risk"""
+        """Calculate concentration risk."""
         try:
             if not self.positions:
                 return 0.0
@@ -489,7 +489,7 @@ class MultiAssetRiskManager:
             return 0.0
 
     async def _calculate_liquidity_risk(self) -> float:
-        """Calculate liquidity risk"""
+        """Calculate liquidity risk."""
         try:
             if not self.positions:
                 return 0.0
@@ -514,7 +514,7 @@ class MultiAssetRiskManager:
             return 0.0
 
     async def _calculate_currency_risk(self) -> float:
-        """Calculate currency risk"""
+        """Calculate currency risk."""
         try:
             if not self.positions:
                 return 0.0
@@ -539,13 +539,13 @@ class MultiAssetRiskManager:
             return 0.0
 
     async def _calculate_hedge_ratio(self) -> float:
-        """Calculate cross - asset hedge ratio"""
+        """Calculate cross - asset hedge ratio."""
         try:
             if not self.positions:
                 return 0.0
 
             # Calculate hedge ratio based on asset class diversification
-            asset_classes = set(pos.asset_class for pos in self.positions.values())
+            asset_classes = {pos.asset_class for pos in self.positions.values()}
             total_asset_classes = len(AssetClass)
 
             hedge_ratio = len(asset_classes) / total_asset_classes
@@ -557,7 +557,7 @@ class MultiAssetRiskManager:
             return 0.0
 
     async def _calculate_diversification_ratio(self) -> float:
-        """Calculate diversification ratio"""
+        """Calculate diversification ratio."""
         try:
             if not self.positions:
                 return 0.0
@@ -565,7 +565,7 @@ class MultiAssetRiskManager:
             # Calculate diversification ratio
             # Higher ratio = better diversification
             asset_count = len(self.positions)
-            asset_classes = len(set(pos.asset_class for pos in self.positions.values()))
+            asset_classes = len({pos.asset_class for pos in self.positions.values()})
 
             diversification_ratio = asset_classes / asset_count if asset_count > 0 else 0.0
 
@@ -576,7 +576,7 @@ class MultiAssetRiskManager:
             return 0.0
 
     async def _update_asset_class_weights(self):
-        """Update asset class weights"""
+        """Update asset class weights."""
         try:
             if not self.positions:
                 return
@@ -596,7 +596,7 @@ class MultiAssetRiskManager:
             self.logger.error(f"Error updating asset class weights: {e}")
 
     async def get_cross_asset_hedge_suggestions(self) -> list[dict[str, Any]]:
-        """Get cross - asset hedge suggestions"""
+        """Get cross - asset hedge suggestions."""
         try:
             suggestions = []
 
@@ -614,7 +614,7 @@ class MultiAssetRiskManager:
                     suggestions.append(suggestion)
 
             # Analyze asset class diversification
-            if len(set(pos.asset_class for pos in self.positions.values())) < 3:
+            if len({pos.asset_class for pos in self.positions.values()}) < 3:
                 suggestion = {
                     "type": "diversification",
                     "reasoning": "Portfolio lacks asset class diversification",
@@ -629,7 +629,7 @@ class MultiAssetRiskManager:
             return []
 
     async def get_multi_asset_summary(self) -> dict[str, Any]:
-        """Get comprehensive multi - asset summary"""
+        """Get comprehensive multi - asset summary."""
         try:
             # Calculate current metrics
             metrics = await self.calculate_multi_asset_var()
@@ -641,7 +641,7 @@ class MultiAssetRiskManager:
                 "timestamp": self.last_calculation,
                 "calculation_count": self.calculation_count,
                 "total_positions": len(self.positions),
-                "asset_classes": list(set(pos.asset_class for pos in self.positions.values())),
+                "asset_classes": list({pos.asset_class for pos in self.positions.values()}),
                 "asset_class_weights": self.asset_class_weights,
                 "risk_metrics": {
                     "total_var": metrics.total_var,

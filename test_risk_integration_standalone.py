@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Standalone Test for Risk - Strategy Integration
-Demonstrates Month 3 - 4: Integration with WallStreetBots
+Demonstrates Month 3 - 4: Integration with WallStreetBots.
 
 This script tests the integration of sophisticated risk models with trading strategies
 without Django dependencies.
@@ -30,13 +30,13 @@ logger = logging.getLogger(__name__)
 
 
 class MockStrategy:
-    """Mock strategy for testing"""
+    """Mock strategy for testing."""
 
     def __init__(self, name: str):
         self.name = name
 
     async def analyze_market(self, symbol: str, market_data: dict[str, Any]) -> dict[str, Any]:
-        """Mock market analysis"""
+        """Mock market analysis."""
         return {
             "signal": "buy" if np.random.random() > 0.5 else "sell",
             "confidence": np.random.random(),
@@ -46,7 +46,7 @@ class MockStrategy:
     async def generate_signals(
         self, symbol: str, market_data: dict[str, Any]
     ) -> list[dict[str, Any]]:
-        """Mock signal generation"""
+        """Mock signal generation."""
         signals = []
         if np.random.random() > 0.3:  # 70% chance of signal
             signals.append(
@@ -61,7 +61,7 @@ class MockStrategy:
 
 
 async def test_risk_integration_standalone():
-    """Test the risk integration without Django dependencies"""
+    """Test the risk integration without Django dependencies."""
     print("🚀 Testing Risk - Strategy Integration - Month 3 - 4 (Standalone)")
     print(" = " * 70)
 
@@ -319,7 +319,7 @@ async def test_risk_integration_standalone():
 
 
 async def main():
-    """Main test function"""
+    """Main test function."""
     print("Starting Standalone Risk - Strategy Integration Test...")
 
     success = await test_risk_integration_standalone()

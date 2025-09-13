@@ -1,5 +1,5 @@
 """Position Reconciliation System
-Validates consistency between internal position tracking and broker positions
+Validates consistency between internal position tracking and broker positions.
 """
 
 import json
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class DiscrepancyType(Enum):
-    """Types of position discrepancies"""
+    """Types of position discrepancies."""
 
     MISSING_AT_BROKER = "missing_at_broker"
     MISSING_IN_DB = "missing_in_db"
@@ -25,7 +25,7 @@ class DiscrepancyType(Enum):
 
 
 class DiscrepancySeverity(Enum):
-    """Severity levels for discrepancies"""
+    """Severity levels for discrepancies."""
 
     LOW = "low"
     MEDIUM = "medium"
@@ -35,7 +35,7 @@ class DiscrepancySeverity(Enum):
 
 @dataclass
 class PositionSnapshot:
-    """Position data from internal database"""
+    """Position data from internal database."""
 
     id: str
     ticker: str
@@ -52,7 +52,7 @@ class PositionSnapshot:
 
 @dataclass
 class BrokerPosition:
-    """Position data from broker API"""
+    """Position data from broker API."""
 
     symbol: str
     quantity: int
@@ -68,7 +68,7 @@ class BrokerPosition:
 
 @dataclass
 class PositionDiscrepancy:
-    """Represents a position discrepancy"""
+    """Represents a position discrepancy."""
 
     discrepancy_type: DiscrepancyType
     severity: DiscrepancySeverity
@@ -84,7 +84,7 @@ class PositionDiscrepancy:
 
 @dataclass
 class ReconciliationReport:
-    """Complete reconciliation report"""
+    """Complete reconciliation report."""
 
     timestamp: datetime
     total_positions_db: int
@@ -100,17 +100,17 @@ class ReconciliationReport:
 
     @property
     def is_clean(self) -> bool:
-        """Check if reconciliation is clean"""
+        """Check if reconciliation is clean."""
         return self.total_discrepancies == 0
 
     @property
     def requires_intervention(self) -> bool:
-        """Check if manual intervention is required"""
+        """Check if manual intervention is required."""
         return self.critical_discrepancies > 0
 
 
 class PositionReconciler:
-    """Position Reconciliation System
+    """Position Reconciliation System.
 
     Performs comprehensive validation between internal position tracking
     and broker positions to ensure data consistency and detect potential issues.
@@ -152,7 +152,7 @@ class PositionReconciler:
         self.logger.info("PositionReconciler initialized")
 
     async def reconcile_all_positions(self, auto_halt: bool = True) -> ReconciliationReport:
-        """Perform comprehensive position reconciliation
+        """Perform comprehensive position reconciliation.
 
         Args:
             auto_halt: Whether to automatically halt trading on critical discrepancies
@@ -258,7 +258,7 @@ class PositionReconciler:
             return error_report
 
     async def _get_database_positions(self) -> list[PositionSnapshot]:
-        """Get positions from internal database"""
+        """Get positions from internal database."""
         try:
             # This would typically query the database for open positions
             # For now, return mock data structure
@@ -282,7 +282,7 @@ class PositionReconciler:
             raise
 
     async def _get_broker_positions(self) -> list[BrokerPosition]:
-        """Get positions from broker API"""
+        """Get positions from broker API."""
         try:
             if not self.alpaca_manager:
                 self.logger.warning("Alpaca manager not configured, returning empty positions")
@@ -316,7 +316,7 @@ class PositionReconciler:
     async def _analyze_positions(
         self, db_positions: list[PositionSnapshot], broker_positions: list[BrokerPosition]
     ) -> list[PositionDiscrepancy]:
-        """Analyze positions for discrepancies"""
+        """Analyze positions for discrepancies."""
         discrepancies = []
 
         # Create lookup dictionaries
@@ -436,7 +436,7 @@ class PositionReconciler:
         return discrepancies
 
     def _should_emergency_halt(self, report: ReconciliationReport) -> bool:
-        """Determine if emergency halt should be triggered"""
+        """Determine if emergency halt should be triggered."""
         # Critical discrepancies
         if report.critical_discrepancies >= self.max_critical_discrepancies:
             return True
@@ -452,15 +452,12 @@ class PositionReconciler:
             return True
 
         # Financial impact too high
-        if report.total_financial_impact >= self.max_total_financial_impact:
-            return True
-
-        return False
+        return report.total_financial_impact >= self.max_total_financial_impact
 
     async def _trigger_emergency_halt(
-        self, report: ReconciliationReport, custom_reason: str = None
+        self, report: ReconciliationReport, custom_reason: str | None = None
     ):
-        """Trigger emergency halt of trading system"""
+        """Trigger emergency halt of trading system."""
         try:
             halt_reason = (
                 custom_reason
@@ -504,7 +501,7 @@ class PositionReconciler:
             self.logger.error(f"Failed to trigger emergency halt: {e}")
 
     def _log_reconciliation_results(self, report: ReconciliationReport):
-        """Log reconciliation results"""
+        """Log reconciliation results."""
         if report.is_clean:
             self.logger.info(
                 f"Position reconciliation CLEAN: {report.total_positions_db} positions verified"
@@ -524,7 +521,7 @@ class PositionReconciler:
                     )
 
     async def get_reconciliation_summary(self) -> dict[str, Any]:
-        """Get summary of reconciliation status"""
+        """Get summary of reconciliation status."""
         try:
             if not self.reconciliation_history:
                 return {
@@ -555,12 +552,12 @@ class PositionReconciler:
             return {"status": "ERROR", "error": str(e)}
 
     async def force_reconciliation(self) -> ReconciliationReport:
-        """Force immediate reconciliation (bypassing schedule)"""
+        """Force immediate reconciliation (bypassing schedule)."""
         self.logger.info("Forcing immediate position reconciliation")
         return await self.reconcile_all_positions(auto_halt=True)
 
     async def clear_emergency_halt(self, reason: str = "Manual override"):
-        """Clear emergency halt status"""
+        """Clear emergency halt status."""
         if self.is_emergency_halted:
             self.is_emergency_halted = False
             old_reason = self.halt_reason
@@ -571,7 +568,7 @@ class PositionReconciler:
             self.logger.info("No emergency halt to clear")
 
     async def get_position_details(self, ticker: str) -> dict[str, Any]:
-        """Get detailed reconciliation info for specific position"""
+        """Get detailed reconciliation info for specific position."""
         try:
             db_positions = await self._get_database_positions()
             broker_positions = await self._get_broker_positions()
@@ -608,5 +605,5 @@ class PositionReconciler:
 
 
 def create_position_reconciler(alpaca_manager=None, database_manager=None) -> PositionReconciler:
-    """Factory function to create position reconciler"""
+    """Factory function to create position reconciler."""
     return PositionReconciler(alpaca_manager, database_manager)

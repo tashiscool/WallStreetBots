@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Test Integrated Advanced Risk System
-Complete integration test for all Month 1 - 6 risk management features
+Complete integration test for all Month 1 - 6 risk management features.
 
 This test validates:
 - Integration of all risk management components
@@ -24,7 +24,7 @@ from backend.tradingbot.risk.integrated_advanced_risk_manager import create_inte
 
 
 def generate_test_data():
-    """Generate realistic test data for comprehensive testing"""
+    """Generate realistic test data for comprehensive testing."""
     # Create 1 year of market data
     dates = pd.date_range("2023 - 01 - 01", "2024 - 01 - 01", freq="D")
     np.random.seed(42)
@@ -68,7 +68,7 @@ def generate_test_data():
 
 
 async def test_basic_integration():
-    """Test basic system integration"""
+    """Test basic system integration."""
     print("🔧 Testing Basic System Integration...")
 
     try:
@@ -95,7 +95,7 @@ async def test_basic_integration():
 
 
 async def test_comprehensive_risk_assessment():
-    """Test comprehensive risk assessment with all features"""
+    """Test comprehensive risk assessment with all features."""
     print("\n📊 Testing Comprehensive Risk Assessment...")
 
     try:
@@ -167,7 +167,7 @@ async def test_comprehensive_risk_assessment():
 
 
 async def test_continuous_monitoring():
-    """Test continuous risk monitoring"""
+    """Test continuous risk monitoring."""
     print("\n🔄 Testing Continuous Risk Monitoring...")
 
     try:
@@ -209,7 +209,7 @@ async def test_continuous_monitoring():
 
 
 async def test_system_compatibility():
-    """Test compatibility with existing WallStreetBots components"""
+    """Test compatibility with existing WallStreetBots components."""
     print("\n🔗 Testing System Compatibility...")
 
     try:
@@ -271,7 +271,7 @@ async def test_system_compatibility():
 
 
 async def test_performance_benchmarks():
-    """Test system performance"""
+    """Test system performance."""
     print("\n⚡ Testing Performance Benchmarks...")
 
     try:
@@ -305,7 +305,7 @@ async def test_performance_benchmarks():
 
 
 async def run_comprehensive_integration_test():
-    """Run complete integration test suite"""
+    """Run complete integration test suite."""
     print("🚀 WallStreetBots Integrated Advanced Risk System Test")
     print(" = " * 70)
     print("Testing complete integration of Month 1 - 6 risk management features")

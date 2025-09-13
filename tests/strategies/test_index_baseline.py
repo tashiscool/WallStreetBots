@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Comprehensive Test Suite for Index Baseline Comparison WSB Strategy Module
-Tests all components of the SPY / VTI baseline performance comparison system
+Tests all components of the SPY / VTI baseline performance comparison system.
 """
 
 import os
@@ -23,10 +23,10 @@ from backend.tradingbot.strategies.index_baseline import (
 
 
 class TestIndexBaselineScanner(unittest.TestCase):
-    """Test the index baseline comparison scanner functionality"""
+    """Test the index baseline comparison scanner functionality."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.scanner = IndexBaselineScanner()
 
         # Mock historical price data for baselines
@@ -52,7 +52,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         self.mock_qqq_data = pd.DataFrame({"Close": qqq_prices}, index=dates)
 
     def test_scanner_initialization(self):
-        """Test scanner initializes correctly"""
+        """Test scanner initializes correctly."""
         self.assertIn("SPY", self.scanner.benchmarks)
         self.assertIn("VTI", self.scanner.benchmarks)
         self.assertIn("QQQ", self.scanner.benchmarks)
@@ -62,7 +62,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
 
     @patch("backend.tradingbot.strategies.index_baseline.yf.Ticker")
     def test_baseline_performance_tracking(self, mock_yf):
-        """Test baseline performance data collection"""
+        """Test baseline performance data collection."""
 
         # Mock yfinance responses for each ticker
         def mock_ticker_response(ticker):
@@ -98,7 +98,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         self.assertLess(baselines.spy_1y, 1.0)  # Not more than 100%
 
     def test_trading_cost_calculation(self):
-        """Test trading cost drag calculation"""
+        """Test trading cost drag calculation."""
         # High frequency strategy should have higher costs
         high_freq_cost = self.scanner.calculate_trading_costs(
             total_trades=100, avg_position_size=10000
@@ -114,7 +114,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         self.assertGreater(high_freq_cost, 0)  # Some cost
 
     def test_strategy_performance_comparison(self):
-        """Test individual strategy vs baseline comparison"""
+        """Test individual strategy vs baseline comparison."""
         with patch.object(self.scanner, "get_baseline_performance") as mock_baselines:
             # Mock baseline returns
             mock_baselines.return_value = BaselineTracker(
@@ -154,7 +154,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
                 self.skipTest("Mock setup issue-skipping test")
 
     def test_risk_adjusted_performance_metrics(self):
-        """Test Sharpe ratio and risk - adjusted comparisons"""
+        """Test Sharpe ratio and risk - adjusted comparisons."""
         comparison = PerformanceComparison(
             start_date=date.today() - timedelta(days=180),
             end_date=date.today(),
@@ -192,7 +192,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
 
     @patch("backend.tradingbot.strategies.index_baseline.yf.Ticker")
     def test_scan_all_strategies_integration(self, mock_yf):
-        """Test scanning all strategies integration"""
+        """Test scanning all strategies integration."""
 
         # Mock baseline performance with proper data structure
         def mock_ticker_response(ticker):
@@ -228,7 +228,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
                 )
 
     def test_wsb_reality_check_logic(self):
-        """Test the WSB reality check: if you can't beat SPY, buy SPY"""
+        """Test the WSB reality check: if you can't beat SPY, buy SPY."""
         # Strategy that underperforms SPY
         underperforming_comparison = PerformanceComparison(
             start_date=date.today() - timedelta(days=180),
@@ -267,7 +267,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         # Should recommend just buying SPY instead
 
     def test_trading_cost_impact_analysis(self):
-        """Test impact of trading costs on strategy performance"""
+        """Test impact of trading costs on strategy performance."""
         # High - frequency strategy with good returns but high costs
         gross_return = 0.25  # 25% gross return
         trading_costs = 0.08  # 8% cost drag (high frequency)
@@ -285,7 +285,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
             self.assertLess(net_alpha, 0)  # Negative after costs
 
     def test_consistency_vs_absolute_returns(self):
-        """Test importance of consistency (win rate, Sharpe) vs raw returns"""
+        """Test importance of consistency (win rate, Sharpe) vs raw returns."""
         # High return but inconsistent strategy
         aggressive_strategy = {
             "return": 0.35,  # 35% return
@@ -316,7 +316,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         self.assertGreater(consistent_risk_adj, aggressive_risk_adj)
 
     def test_benchmark_diversification_analysis(self):
-        """Test analysis across different benchmark indices"""
+        """Test analysis across different benchmark indices."""
         # Strategy performance vs different benchmarks
         strategy_return = 0.20  # 20% strategy return
 
@@ -345,7 +345,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         self.assertGreater(alphas["VTI"], 0)
 
     def test_format_comparison_report(self):
-        """Test comparison report formatting"""
+        """Test comparison report formatting."""
         sample_comparisons = [
             PerformanceComparison(
                 start_date=date.today() - timedelta(days=180),
@@ -386,7 +386,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         self.assertIn("WSB REALITY CHECK", report)
 
     def test_long_term_performance_considerations(self):
-        """Test long - term performance analysis considerations"""
+        """Test long - term performance analysis considerations."""
         # Market conditions change-strategies may stop working
         bull_market_performance = 0.25  # Great in bull market
         bear_market_performance = -0.15  # Poor in bear market
@@ -412,7 +412,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
             self.assertLessEqual(expected_performance, spy_expected)
 
     def test_tax_considerations_analysis(self):
-        """Test tax impact on strategy performance"""
+        """Test tax impact on strategy performance."""
         # Strategy with frequent trading
         gross_return = 0.20
         short_term_cap_gains_rate = 0.37  # 37% ordinary income rate
@@ -436,7 +436,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
 
 
 def run_index_baseline_tests():
-    """Run all index baseline tests"""
+    """Run all index baseline tests."""
     print(" = " * 60)
     print("INDEX BASELINE COMPARISON WSB STRATEGY - COMPREHENSIVE TEST SUITE")
     print(" = " * 60)

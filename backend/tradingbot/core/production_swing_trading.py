@@ -1,5 +1,5 @@
 """Production Enhanced Swing Trading Strategy
-Advanced swing trading with technical analysis and risk management
+Advanced swing trading with technical analysis and risk management.
 """
 
 import math
@@ -15,7 +15,7 @@ from .unified_data_provider import UnifiedDataProvider
 
 
 class SwingSignal(Enum):
-    """Swing trading signals"""
+    """Swing trading signals."""
 
     BUY = "buy"
     SELL = "sell"
@@ -25,7 +25,7 @@ class SwingSignal(Enum):
 
 
 class SwingStrategy(Enum):
-    """Swing trading strategies"""
+    """Swing trading strategies."""
 
     BREAKOUT = "breakout"
     PULLBACK = "pullback"
@@ -35,7 +35,7 @@ class SwingStrategy(Enum):
 
 
 class TechnicalIndicator(Enum):
-    """Technical indicators"""
+    """Technical indicators."""
 
     RSI = "rsi"
     MACD = "macd"
@@ -49,7 +49,7 @@ class TechnicalIndicator(Enum):
 
 @dataclass
 class TechnicalAnalysis:
-    """Technical analysis data"""
+    """Technical analysis data."""
 
     ticker: str
     current_price: float
@@ -79,7 +79,7 @@ class TechnicalAnalysis:
 
 @dataclass
 class SwingPosition:
-    """Swing trading position"""
+    """Swing trading position."""
 
     ticker: str
     strategy: SwingStrategy
@@ -104,7 +104,7 @@ class SwingPosition:
 
 @dataclass
 class SwingCandidate:
-    """Swing trading candidate"""
+    """Swing trading candidate."""
 
     ticker: str
     current_price: float
@@ -122,13 +122,13 @@ class SwingCandidate:
 
 
 class TechnicalAnalyzer:
-    """Technical analysis engine"""
+    """Technical analysis engine."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
 
     def calculate_rsi(self, prices: list[float], period: int = 14) -> float:
-        """Calculate RSI"""
+        """Calculate RSI."""
         if len(prices) < period + 1:
             return 50.0
 
@@ -149,7 +149,7 @@ class TechnicalAnalyzer:
     def calculate_macd(
         self, prices: list[float], fast: int = 12, slow: int = 26, signal: int = 9
     ) -> tuple[float, float, float]:
-        """Calculate MACD"""
+        """Calculate MACD."""
         if len(prices) < slow:
             return 0.0, 0.0, 0.0
 
@@ -170,7 +170,7 @@ class TechnicalAnalyzer:
     def calculate_bollinger_bands(
         self, prices: list[float], period: int = 20, std_dev: float = 2.0
     ) -> tuple[float, float, float, float, float]:
-        """Calculate Bollinger Bands"""
+        """Calculate Bollinger Bands."""
         if len(prices) < period:
             return 0.0, 0.0, 0.0, 0.0, 0.0
 
@@ -195,7 +195,7 @@ class TechnicalAnalyzer:
     def calculate_moving_averages(
         self, prices: list[float]
     ) -> tuple[float, float, float, float, float]:
-        """Calculate various moving averages"""
+        """Calculate various moving averages."""
         if len(prices) < 200:
             return 0.0, 0.0, 0.0, 0.0, 0.0
 
@@ -215,7 +215,7 @@ class TechnicalAnalyzer:
         close_prices: list[float],
         period: int = 14,
     ) -> tuple[float, float]:
-        """Calculate Stochastic Oscillator"""
+        """Calculate Stochastic Oscillator."""
         if len(close_prices) < period:
             return 50.0, 50.0
 
@@ -259,7 +259,7 @@ class TechnicalAnalyzer:
         close_prices: list[float],
         period: int = 14,
     ) -> float:
-        """Calculate Williams %R"""
+        """Calculate Williams %R."""
         if len(close_prices) < period:
             return -50.0
 
@@ -283,7 +283,7 @@ class TechnicalAnalyzer:
         close_prices: list[float],
         period: int = 20,
     ) -> float:
-        """Calculate Commodity Channel Index"""
+        """Calculate Commodity Channel Index."""
         if len(close_prices) < period:
             return 0.0
 
@@ -312,7 +312,7 @@ class TechnicalAnalyzer:
         close_prices: list[float],
         period: int = 14,
     ) -> float:
-        """Calculate Average Directional Index"""
+        """Calculate Average Directional Index."""
         if len(close_prices) < period * 2:
             return 25.0
 
@@ -321,7 +321,7 @@ class TechnicalAnalyzer:
         return 25.0  # Mock value
 
     def _calculate_ema(self, prices: list[float], period: int) -> float:
-        """Calculate Exponential Moving Average"""
+        """Calculate Exponential Moving Average."""
         if len(prices) < period:
             return prices[-1] if prices else 0.0
 
@@ -335,7 +335,7 @@ class TechnicalAnalyzer:
 
 
 class SwingTradingStrategy:
-    """Main swing trading strategy"""
+    """Main swing trading strategy."""
 
     def __init__(
         self,
@@ -363,7 +363,7 @@ class SwingTradingStrategy:
         self.logger.info("SwingTradingStrategy initialized")
 
     async def scan_for_swing_opportunities(self) -> list[SwingCandidate]:
-        """Scan for swing trading opportunities"""
+        """Scan for swing trading opportunities."""
         try:
             self.logger.info("Scanning for swing trading opportunities")
 
@@ -411,7 +411,7 @@ class SwingTradingStrategy:
             return []
 
     async def execute_swing_trade(self, candidate: SwingCandidate) -> SwingPosition | None:
-        """Execute swing trading position"""
+        """Execute swing trading position."""
         try:
             self.logger.info(f"Executing swing trade for {candidate.ticker}")
 
@@ -460,7 +460,7 @@ class SwingTradingStrategy:
             return None
 
     async def monitor_swing_positions(self) -> dict[str, Any]:
-        """Monitor active swing positions"""
+        """Monitor active swing positions."""
         try:
             self.logger.info("Monitoring swing positions")
 
@@ -510,7 +510,7 @@ class SwingTradingStrategy:
     async def _perform_technical_analysis(
         self, ticker: str, historical_data: list[dict]
     ) -> TechnicalAnalysis | None:
-        """Perform technical analysis on historical data"""
+        """Perform technical analysis on historical data."""
         try:
             if len(historical_data) < 50:
                 return None
@@ -576,7 +576,7 @@ class SwingTradingStrategy:
             return None
 
     def _generate_swing_signals(self, analysis: TechnicalAnalysis) -> list[dict]:
-        """Generate swing trading signals based on technical analysis"""
+        """Generate swing trading signals based on technical analysis."""
         signals = []
 
         # Breakout signals
@@ -630,7 +630,7 @@ class SwingTradingStrategy:
     async def _create_swing_candidate(
         self, ticker: str, analysis: TechnicalAnalysis, signal_data: dict
     ) -> SwingCandidate | None:
-        """Create swing trading candidate"""
+        """Create swing trading candidate."""
         try:
             signal = signal_data["signal"]
             strategy = signal_data["strategy"]
@@ -686,7 +686,7 @@ class SwingTradingStrategy:
             return None
 
     def _calculate_position_size(self, entry_price: float, stop_loss: float) -> int:
-        """Calculate position size based on risk"""
+        """Calculate position size based on risk."""
         # Simplified position sizing - in production, use proper risk management
         risk_per_share = abs(entry_price - stop_loss)
         max_risk_amount = 1000.0  # $1000 max risk per position
@@ -694,7 +694,7 @@ class SwingTradingStrategy:
         return min(position_size, 1000)  # Cap at 1000 shares
 
     def _calculate_technical_score(self, analysis: TechnicalAnalysis, signal_data: dict) -> float:
-        """Calculate technical analysis score"""
+        """Calculate technical analysis score."""
         score = 0.0
 
         # RSI component
@@ -737,7 +737,7 @@ class SwingTradingStrategy:
         return max(0.0, min(1.0, score))
 
     def _calculate_risk_score(self, analysis: TechnicalAnalysis, signal_data: dict) -> float:
-        """Calculate risk score (lower is better)"""
+        """Calculate risk score (lower is better)."""
         risk = 0.0
 
         # Volatility risk
@@ -759,7 +759,7 @@ class SwingTradingStrategy:
         return max(0.0, min(1.0, risk))
 
     async def _update_position_data(self, position: SwingPosition):
-        """Update position data with current market information"""
+        """Update position data with current market information."""
         try:
             # Get current market data
             market_data = await self.data.get_market_data(position.ticker)
@@ -793,14 +793,14 @@ class SwingTradingStrategy:
             self.logger.error(f"Error updating position data for {position.ticker}: {e}")
 
     def _calculate_position_pnl(self, position: SwingPosition) -> float:
-        """Calculate position P & L"""
+        """Calculate position P & L."""
         if position.position_type == "long":
             return (position.current_price - position.entry_price) * position.quantity
         else:
             return (position.entry_price - position.current_price) * position.quantity
 
     def _check_exit_conditions(self, position: SwingPosition) -> SwingSignal | None:
-        """Check for exit conditions"""
+        """Check for exit conditions."""
         # Check stop loss
         if position.position_type == "long":
             if position.current_price <= position.stop_loss:
@@ -826,7 +826,7 @@ class SwingTradingStrategy:
         return None
 
     def _update_trailing_stop(self, position: SwingPosition):
-        """Update trailing stop"""
+        """Update trailing stop."""
         if position.position_type == "long":
             if position.current_price > position.trailing_stop:
                 new_trailing_stop = position.current_price * (1 - self.stop_loss_pct)
@@ -836,7 +836,7 @@ class SwingTradingStrategy:
             position.trailing_stop = min(position.trailing_stop, new_trailing_stop)
 
     def _check_position_risks(self, position: SwingPosition) -> list[str]:
-        """Check for position risk alerts"""
+        """Check for position risk alerts."""
         alerts = []
 
         # Check for large unrealized losses
@@ -862,7 +862,7 @@ class SwingTradingStrategy:
         return alerts
 
     async def _close_position(self, ticker: str, exit_signal: SwingSignal):
-        """Close swing position"""
+        """Close swing position."""
         try:
             if ticker in self.active_positions:
                 position = self.active_positions.pop(ticker)
@@ -874,7 +874,7 @@ class SwingTradingStrategy:
             self.logger.error(f"Error closing position for {ticker}: {e}")
 
     async def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         try:
             total_pnl = sum(pos.unrealized_pnl for pos in self.active_positions.values())
             total_exposure = sum(

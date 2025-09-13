@@ -1,11 +1,12 @@
 #!/usr / bin / env python3
 """WSB Strategy: Index Fund Baseline Comparison Tracker
 Track performance vs. SPY / VTI baseline to validate if active trading beats "just buy index"
-Most WSB strategies should beat buying and holding index funds, otherwise they're not worth it
+Most WSB strategies should beat buying and holding index funds, otherwise they're not worth it.
 """
 
 import argparse
 import json
+import sys
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
 
@@ -16,7 +17,7 @@ try:
 except ImportError as e:
     print(f"Missing required package: {e}")
     print("Run: pip install -r wsb_requirements.txt")
-    exit(1)
+    sys.exit(1)
 
 
 @dataclass
@@ -61,7 +62,7 @@ class PerformanceComparison:
 
 @dataclass
 class BaselineTracker:
-    """Track key index fund benchmarks"""
+    """Track key index fund benchmarks."""
 
     spy_current: float
     vti_current: float
@@ -115,7 +116,7 @@ class IndexBaselineScanner:
         }
 
     def get_baseline_performance(self, period_months: int = 6) -> BaselineTracker:
-        """Get current baseline index performance"""
+        """Get current baseline index performance."""
         end_date = datetime.now()
         start_date = end_date - timedelta(days=period_months * 30)
 
@@ -184,7 +185,7 @@ class IndexBaselineScanner:
         )
 
     def calculate_trading_costs(self, total_trades: int, avg_position_size: float = 5000) -> float:
-        """Estimate trading cost drag"""
+        """Estimate trading cost drag."""
         # Assume $1 commission + 0.02% spread per trade
         commission_per_trade = 1.0
         spread_cost_per_trade = avg_position_size * 0.0002  # 2 bps spread
@@ -197,7 +198,7 @@ class IndexBaselineScanner:
     def compare_strategy_performance(
         self, strategy_name: str, period_months: int = 6
     ) -> PerformanceComparison:
-        """Compare strategy performance vs baselines"""
+        """Compare strategy performance vs baselines."""
         # Get baseline performance
         baselines = self.get_baseline_performance(period_months)
 
@@ -287,12 +288,12 @@ class IndexBaselineScanner:
         )
 
     def scan_all_strategies(self, period_months: int = 6) -> list[PerformanceComparison]:
-        """Compare all WSB strategies vs baselines"""
+        """Compare all WSB strategies vs baselines."""
         comparisons = []
 
         print(f"📊 Comparing WSB strategies vs index baselines ({period_months} month period)")
 
-        for strategy_name in self.wsb_strategies.keys():
+        for strategy_name in self.wsb_strategies:
             try:
                 comparison = self.compare_strategy_performance(strategy_name, period_months)
                 comparisons.append(comparison)
@@ -306,7 +307,7 @@ class IndexBaselineScanner:
         return comparisons
 
     def format_comparison_report(self, comparisons: list[PerformanceComparison]) -> str:
-        """Format baseline comparison report"""
+        """Format baseline comparison report."""
         if not comparisons:
             return "📊 No strategy comparisons available."
 

@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 
 class News(models.Model):
-    """News of a company"""
+    """News of a company."""
 
     headline = models.TextField()
     link = models.URLField(max_length=200)  # default = 200
@@ -20,7 +20,7 @@ class News(models.Model):
 
 
 class Tweets(models.Model):
-    """Tweets / Reddits of a company"""
+    """Tweets / Reddits of a company."""
 
     content = models.TextField()
     date = models.DateField(auto_now=False, auto_now_add=False)
@@ -35,7 +35,7 @@ class Tweets(models.Model):
 
 
 class Company(models.Model):
-    """Company entity"""
+    """Company entity."""
 
     name = models.TextField()
     ticker = models.CharField(max_length=255, primary_key=True)
@@ -52,7 +52,7 @@ class Company(models.Model):
 
 
 class Stock(models.Model):
-    """Stock of a company"""
+    """Stock of a company."""
 
     company = models.OneToOneField(
         Company, help_text="Company", on_delete=models.CASCADE
@@ -72,7 +72,7 @@ class Stock(models.Model):
 
 
 class Price(models.Model):
-    """Price of a stock"""
+    """Price of a stock."""
 
     stock = models.ForeignKey(Stock, help_text="Associated stock", on_delete=models.CASCADE)
     date = models.DateField(auto_now=False, auto_now_add=False)
@@ -107,7 +107,7 @@ class StockTradeSerializer(serializers.ModelSerializer):
 
 
 class Order(models.Model):
-    """Historical orders for user"""
+    """Historical orders for user."""
 
     ORDERTYPES = [
         ("M", "Market"),
@@ -220,7 +220,7 @@ class Portfolio(models.Model):
 
 
 class StockInstance(models.Model):
-    """An instance of a stock"""
+    """An instance of a stock."""
 
     user = models.ForeignKey(User, help_text="Associated user", on_delete=models.CASCADE)
     portfolio = models.ForeignKey(

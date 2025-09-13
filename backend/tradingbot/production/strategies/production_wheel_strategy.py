@@ -1,5 +1,5 @@
 """Production Wheel Strategy Implementation
-Automated premium selling with real broker integration and comprehensive risk management
+Automated premium selling with real broker integration and comprehensive risk management.
 """
 
 import asyncio
@@ -25,7 +25,7 @@ from ..data.production_data_integration import ReliableDataProvider
 
 @dataclass
 class WheelPosition:
-    """Production wheel strategy position tracking"""
+    """Production wheel strategy position tracking."""
 
     ticker: str
     stage: str  # "cash_secured_put", "assigned_stock", "covered_call", "closed"
@@ -52,7 +52,7 @@ class WheelPosition:
 
 @dataclass
 class WheelCandidate:
-    """Wheel strategy candidate analysis"""
+    """Wheel strategy candidate analysis."""
 
     ticker: str
     current_price: Decimal
@@ -78,7 +78,7 @@ class WheelCandidate:
 
 
 class ProductionWheelStrategy:
-    """Production Wheel Strategy
+    """Production Wheel Strategy.
 
     Implements the wheel strategy with:
     1. Cash - secured put selling
@@ -146,7 +146,7 @@ class ProductionWheelStrategy:
         self.logger.info("ProductionWheelStrategy initialized")
 
     async def scan_opportunities(self) -> list[TradeSignal]:
-        """Scan for new wheel opportunities and position management actions"""
+        """Scan for new wheel opportunities and position management actions."""
         try:
             signals = []
 
@@ -167,7 +167,7 @@ class ProductionWheelStrategy:
             return []
 
     async def _manage_existing_positions(self) -> list[TradeSignal]:
-        """Manage existing wheel positions"""
+        """Manage existing wheel positions."""
         signals = []
 
         for ticker, position in self.positions.items():
@@ -210,7 +210,7 @@ class ProductionWheelStrategy:
         return signals
 
     async def _check_position_management(self, position: WheelPosition) -> TradeSignal | None:
-        """Check if position needs management action"""
+        """Check if position needs management action."""
         try:
             now = datetime.now()
 
@@ -287,7 +287,7 @@ class ProductionWheelStrategy:
             return None
 
     async def _scan_new_opportunities(self) -> list[TradeSignal]:
-        """Scan for new cash - secured put opportunities"""
+        """Scan for new cash - secured put opportunities."""
         signals = []
 
         try:
@@ -319,7 +319,7 @@ class ProductionWheelStrategy:
             return []
 
     async def _analyze_wheel_candidate(self, ticker: str) -> WheelCandidate | None:
-        """Analyze a ticker for wheel strategy suitability"""
+        """Analyze a ticker for wheel strategy suitability."""
         try:
             # Get market data
             market_data = await self.data_provider.get_real_time_quote(ticker)
@@ -381,7 +381,7 @@ class ProductionWheelStrategy:
     async def _find_optimal_put(
         self, ticker: str, current_price: Decimal
     ) -> OptionsAnalysis | None:
-        """Find optimal put for cash - secured put strategy"""
+        """Find optimal put for cash - secured put strategy."""
         try:
             # Define criteria for cash - secured puts
             criteria = SelectionCriteria(
@@ -407,7 +407,7 @@ class ProductionWheelStrategy:
             return None
 
     async def _find_covered_call_opportunity(self, position: WheelPosition) -> TradeSignal | None:
-        """Find covered call opportunity for assigned stock"""
+        """Find covered call opportunity for assigned stock."""
         try:
             # Define criteria for covered calls
             criteria = SelectionCriteria(
@@ -459,7 +459,7 @@ class ProductionWheelStrategy:
             return None
 
     def _create_cash_secured_put_signal(self, candidate: WheelCandidate) -> TradeSignal | None:
-        """Create trade signal for cash - secured put"""
+        """Create trade signal for cash - secured put."""
         try:
             return TradeSignal(
                 ticker=candidate.ticker,
@@ -489,7 +489,7 @@ class ProductionWheelStrategy:
             return None
 
     async def execute_trades(self, signals: list[TradeSignal]) -> list[dict[str, Any]]:
-        """Execute wheel strategy trades"""
+        """Execute wheel strategy trades."""
         results = []
 
         for signal in signals:
@@ -508,7 +508,7 @@ class ProductionWheelStrategy:
         return results
 
     async def _update_position_after_trade(self, signal: TradeSignal, result: dict[str, Any]):
-        """Update position tracking after trade execution"""
+        """Update position tracking after trade execution."""
         try:
             if result.get("status") != "success":
                 return
@@ -557,7 +557,7 @@ class ProductionWheelStrategy:
             self.logger.error(f"Error updating position after trade {ticker}: {e}")
 
     async def _get_current_option_value(self, position: WheelPosition) -> Decimal:
-        """Get current value of option position"""
+        """Get current value of option position."""
         try:
             if not position.option_strike or not position.option_expiry:
                 return Decimal("0")
@@ -584,7 +584,7 @@ class ProductionWheelStrategy:
             return Decimal("0")
 
     def _calculate_annualized_return(self, analysis: OptionsAnalysis) -> Decimal:
-        """Calculate annualized return for wheel strategy"""
+        """Calculate annualized return for wheel strategy."""
         try:
             days_to_expiry = (analysis.contract.expiry_date - date.today()).days
             if days_to_expiry <= 0:
@@ -601,27 +601,27 @@ class ProductionWheelStrategy:
             return Decimal("0")
 
     async def _calculate_liquidity_score(self, ticker: str) -> Decimal:
-        """Calculate liquidity score (0 - 100)"""
+        """Calculate liquidity score (0 - 100)."""
         # Simplified - would analyze bid - ask spreads, volume, open interest
         return Decimal("75")  # Default good liquidity
 
     async def _calculate_volume_score(self, ticker: str) -> Decimal:
-        """Calculate volume score vs average"""
+        """Calculate volume score vs average."""
         # Simplified - would compare recent volume to average
         return Decimal("100")  # Default normal volume
 
     async def _assess_earnings_risk(self, ticker: str) -> str:
-        """Assess earnings announcement risk"""
+        """Assess earnings announcement risk."""
         # Simplified - would check earnings calendar
         return "low"  # Default low risk
 
     async def _calculate_technical_score(self, ticker: str) -> Decimal:
-        """Calculate technical analysis score"""
+        """Calculate technical analysis score."""
         # Simplified - would analyze trend, support / resistance, etc.
         return Decimal("70")  # Default neutral technical
 
     async def get_performance_metrics(self) -> dict[str, Any]:
-        """Get wheel strategy performance metrics"""
+        """Get wheel strategy performance metrics."""
         try:
             total_positions = len(self.positions)
             active_positions = sum(1 for p in self.positions.values() if p.status == "active")
@@ -657,7 +657,7 @@ class ProductionWheelStrategy:
             return {"strategy": "wheel_strategy", "error": str(e)}
 
     async def run_strategy(self):
-        """Main strategy execution loop"""
+        """Main strategy execution loop."""
         self.logger.info("Starting Production Wheel Strategy")
 
         try:
@@ -681,5 +681,5 @@ def create_production_wheel_strategy(
     data_provider: ReliableDataProvider,
     config: dict[str, Any],
 ) -> ProductionWheelStrategy:
-    """Factory function to create production wheel strategy"""
+    """Factory function to create production wheel strategy."""
     return ProductionWheelStrategy(integration_manager, data_provider, config)

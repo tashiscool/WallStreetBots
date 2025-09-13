@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Comprehensive Test Suite for Enhanced LEAPS Tracker WSB Strategy Module
-Tests all components including golden / death cross timing signals
+Tests all components including golden / death cross timing signals.
 """
 
 import os
@@ -24,10 +24,10 @@ from backend.tradingbot.strategies.leaps_tracker import (
 
 
 class TestMovingAverageCrossAnalysis(unittest.TestCase):
-    """Test the golden / death cross analysis functionality"""
+    """Test the golden / death cross analysis functionality."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.tracker = LEAPSTracker()
 
         # Create mock price data with golden cross pattern
@@ -46,7 +46,7 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         self.mock_price_data = pd.DataFrame({"Close": prices}, index=dates)
 
     def test_moving_average_calculation(self):
-        """Test moving average calculation accuracy"""
+        """Test moving average calculation accuracy."""
         # Import numpy fresh to avoid mock interference
         import numpy as np_fresh
 
@@ -57,7 +57,7 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         expected_sma_5 = (107 + 106 + 108 + 110 + 109) / 5
 
         # If we get a mock object instead of a number, skip the test
-        if not isinstance(sma_5, (int, float)):
+        if not isinstance(sma_5, int | float):
             self.skipTest("Mock interference with numpy.mean() - skipping test")
 
         # Ensure we're comparing actual numbers, not mocks
@@ -69,7 +69,7 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
 
     @patch("backend.tradingbot.strategies.leaps_tracker.yf.Ticker")
     def test_golden_cross_detection(self, mock_yf):
-        """Test golden cross detection algorithm"""
+        """Test golden cross detection algorithm."""
         mock_ticker = Mock()
         mock_ticker.history.return_value = self.mock_price_data
         mock_yf.return_value = mock_ticker
@@ -86,7 +86,7 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         self.assertIsInstance(ma_cross.price_above_200sma, bool)
 
     def test_cross_strength_calculation(self):
-        """Test cross strength calculation methodology"""
+        """Test cross strength calculation methodology."""
         # Test strong separation = strong cross
         sma_50 = 105.0
         sma_200 = 100.0
@@ -100,7 +100,7 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         self.assertGreater(cross_strength, 40)  # 5% separation should be strong
 
     def test_trend_direction_classification(self):
-        """Test trend direction classification logic"""
+        """Test trend direction classification logic."""
         # Bullish setup
         current_price = 110
         sma_50 = 108
@@ -121,15 +121,12 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         sma_50_bear = 98
         sma_200_bear = 102
 
-        if sma_50_bear < sma_200_bear:
-            trend_direction_bear = "bearish"
-        else:
-            trend_direction_bear = "sideways"
+        trend_direction_bear = "bearish" if sma_50_bear < sma_200_bear else "sideways"
 
         self.assertEqual(trend_direction_bear, "bearish")
 
     def test_entry_timing_score_calculation(self):
-        """Test entry timing score calculation"""
+        """Test entry timing score calculation."""
         # Recent golden cross should give high entry score
         recent_golden_cross = MovingAverageCross(
             cross_type="golden_cross",
@@ -171,7 +168,7 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         self.assertGreater(exit_score_death, 75)  # Should be high (exit on death cross)
 
     def test_cross_timing_windows(self):
-        """Test timing windows for different cross scenarios"""
+        """Test timing windows for different cross scenarios."""
         # Fresh golden cross (within 30 days) - best entry window
         fresh_cross_days = 20
         entry_multiplier = 1.0 if fresh_cross_days <= 30 else 0.8
@@ -189,10 +186,10 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
 
 
 class TestEnhancedLEAPSScanning(unittest.TestCase):
-    """Test enhanced LEAPS scanning with timing signals"""
+    """Test enhanced LEAPS scanning with timing signals."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.tracker = LEAPSTracker()
 
         # Mock historical data for trend analysis
@@ -210,7 +207,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
 
     @patch("backend.tradingbot.strategies.leaps_tracker.yf.Ticker")
     def test_enhanced_candidate_creation(self, mock_yf):
-        """Test LEAPS candidate creation with timing signals"""
+        """Test LEAPS candidate creation with timing signals."""
         mock_ticker = Mock()
         mock_ticker.history.return_value = self.mock_growth_data
         mock_ticker.info = {
@@ -262,7 +259,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
                 self.assertLess(candidate.exit_timing_score, 40)  # Don't exit
 
     def test_composite_scoring_with_timing(self):
-        """Test enhanced composite scoring including timing"""
+        """Test enhanced composite scoring including timing."""
         # Base scores
         trend_score = 75.0
         momentum_score = 70.0
@@ -296,7 +293,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         self.assertGreater(composite_score, poor_timing_composite)  # Good timing helps
 
     def test_risk_factor_enhancement(self):
-        """Test enhanced risk factors including timing"""
+        """Test enhanced risk factors including timing."""
         # Death cross should add risk factors
         death_cross_signal = MovingAverageCross(
             cross_type="death_cross",
@@ -329,7 +326,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         self.assertIn("Exit signal active", risk_factors)
 
     def test_leaps_expiry_validation(self):
-        """Test LEAPS expiry validation (12+ months)"""
+        """Test LEAPS expiry validation (12+ months)."""
         today = date.today()
 
         # Valid LEAPS expiries
@@ -356,7 +353,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
             self.assertLess(days_out, 365)  # Less than 12 months
 
     def test_secular_theme_classification(self):
-        """Test secular theme classification and scoring"""
+        """Test secular theme classification and scoring."""
         ai_theme = self.tracker.secular_themes["ai_revolution"]
 
         self.assertEqual(ai_theme.theme, "AI Revolution")
@@ -366,7 +363,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         self.assertIn("GPU compute", ai_theme.growth_drivers)
 
         # Each theme should have reasonable time horizons
-        for theme_key, theme in self.tracker.secular_themes.items():
+        for _theme_key, theme in self.tracker.secular_themes.items():
             self.assertIsInstance(theme.time_horizon, str)
             self.assertIn("years", theme.time_horizon)
             self.assertGreater(len(theme.tickers), 3)  # Multiple stocks per theme
@@ -374,7 +371,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
 
     @patch("backend.tradingbot.strategies.leaps_tracker.yf.Ticker")
     def test_sorting_by_timing_score(self, mock_yf):
-        """Test sorting candidates by entry timing score"""
+        """Test sorting candidates by entry timing score."""
         # Create candidates with different timing scores
         candidates = [
             LEAPSCandidate(
@@ -451,13 +448,13 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
 
 
 class TestLEAPSPortfolioManagement(unittest.TestCase):
-    """Test LEAPS portfolio management with timing signals"""
+    """Test LEAPS portfolio management with timing signals."""
 
     def setUp(self):
         self.tracker = LEAPSTracker()
 
     def test_position_timing_analysis(self):
-        """Test timing analysis for existing positions"""
+        """Test timing analysis for existing positions."""
         # Position with death cross signal - consider exit
         position = LEAPSPosition(
             ticker="TSLA",
@@ -506,7 +503,7 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
         # Should consider exit even with 40% profit due to timing
 
     def test_scale_out_with_timing_signals(self):
-        """Test scale-out recommendations enhanced with timing"""
+        """Test scale-out recommendations enhanced with timing."""
         # Position with good profits + golden cross continuation
         position = LEAPSPosition(
             ticker="NVDA",
@@ -559,7 +556,7 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
         self.assertEqual(recommended_scale_out, 0.25)  # Hold more due to timing
 
     def test_new_position_timing_screening(self):
-        """Test screening new positions for timing"""
+        """Test screening new positions for timing."""
         # Candidate with poor timing should be filtered out
         poor_timing_candidate = LEAPSCandidate(
             ticker="META",
@@ -603,10 +600,10 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
 
 
 class TestLEAPSDisplayEnhancements(unittest.TestCase):
-    """Test enhanced display features with timing signals"""
+    """Test enhanced display features with timing signals."""
 
     def test_timing_indicators(self):
-        """Test timing indicator display logic"""
+        """Test timing indicator display logic."""
         # Excellent timing
         excellent_timing_score = 85.0
         timing_icon = (
@@ -627,7 +624,7 @@ class TestLEAPSDisplayEnhancements(unittest.TestCase):
         self.assertEqual(timing_icon, "🔴")
 
     def test_cross_type_indicators(self):
-        """Test cross type indicator logic"""
+        """Test cross type indicator logic."""
         # Golden cross
         golden_cross = MovingAverageCross(
             cross_type="golden_cross",
@@ -675,7 +672,7 @@ class TestLEAPSDisplayEnhancements(unittest.TestCase):
         self.assertIn("Death Cross (15d ago)", cross_info)
 
     def test_price_vs_sma_ratios(self):
-        """Test price vs SMA ratio calculations"""
+        """Test price vs SMA ratio calculations."""
         current_price = 150.0
         sma_50 = 145.0
         sma_200 = 140.0
@@ -695,7 +692,7 @@ class TestLEAPSDisplayEnhancements(unittest.TestCase):
 
 
 def run_leaps_tracker_tests():
-    """Run all enhanced LEAPS tracker tests"""
+    """Run all enhanced LEAPS tracker tests."""
     print(" = " * 60)
     print("ENHANCED LEAPS TRACKER WSB STRATEGY - COMPREHENSIVE TEST SUITE")
     print(" = " * 60)

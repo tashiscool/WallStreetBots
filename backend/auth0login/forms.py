@@ -4,7 +4,7 @@ from django import forms
 
 
 class CredentialForm(forms.Form):
-    """credential for user"""
+    """credential for user."""
 
     alpaca_id = forms.CharField(help_text="Your Alpaca ID")
     alpaca_key = forms.CharField(help_text="Your Alpaca Key")
@@ -17,7 +17,7 @@ class CredentialForm(forms.Form):
 
 
 class OrderForm(forms.Form):
-    """manual orders from user"""
+    """manual orders from user."""
 
     ORDERTYPES = [
         ("M", "Market"),
@@ -88,7 +88,7 @@ class StrategyForm(forms.Form):
 
 
 class WatchListForm(forms.Form):
-    """manual orders from user"""
+    """manual orders from user."""
 
     ticker = forms.CharField(help_text="Stock ticker")
 

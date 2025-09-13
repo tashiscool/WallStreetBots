@@ -1,5 +1,5 @@
 """Production Index Baseline Implementation
-Performance tracking and benchmarking against index funds
+Performance tracking and benchmarking against index funds.
 """
 
 import asyncio
@@ -17,7 +17,7 @@ from .trading_interface import TradingInterface
 
 
 class BenchmarkType(Enum):
-    """Benchmark types"""
+    """Benchmark types."""
 
     SPY = "spy"  # S & P 500
     VTI = "vti"  # Total Stock Market
@@ -27,7 +27,7 @@ class BenchmarkType(Enum):
 
 @dataclass
 class BenchmarkData:
-    """Benchmark performance data"""
+    """Benchmark performance data."""
 
     ticker: str
     benchmark_type: BenchmarkType
@@ -49,7 +49,7 @@ class BenchmarkData:
 
 @dataclass
 class StrategyPerformance:
-    """Strategy performance tracking"""
+    """Strategy performance tracking."""
 
     strategy_name: str
     total_return: float
@@ -79,7 +79,7 @@ class StrategyPerformance:
 
 @dataclass
 class PerformanceComparison:
-    """Performance comparison between strategy and benchmarks"""
+    """Performance comparison between strategy and benchmarks."""
 
     strategy_name: str
     benchmark_ticker: str
@@ -104,13 +104,13 @@ class PerformanceComparison:
 
 
 class PerformanceCalculator:
-    """Performance calculation utilities"""
+    """Performance calculation utilities."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
 
     def calculate_returns(self, prices: list[float]) -> dict[str, float]:
-        """Calculate various return metrics"""
+        """Calculate various return metrics."""
         if len(prices) < 2:
             return {
                 "daily_return": 0.0,
@@ -144,7 +144,7 @@ class PerformanceCalculator:
         }
 
     def calculate_volatility(self, returns: list[float]) -> float:
-        """Calculate volatility (standard deviation of returns)"""
+        """Calculate volatility (standard deviation of returns)."""
         if len(returns) < 2:
             return 0.0
 
@@ -153,7 +153,7 @@ class PerformanceCalculator:
         return math.sqrt(variance)
 
     def calculate_sharpe_ratio(self, returns: list[float], risk_free_rate: float = 0.02) -> float:
-        """Calculate Sharpe ratio"""
+        """Calculate Sharpe ratio."""
         if len(returns) < 2:
             return 0.0
 
@@ -166,7 +166,7 @@ class PerformanceCalculator:
         return (mean_return - risk_free_rate) / volatility
 
     def calculate_max_drawdown(self, prices: list[float]) -> float:
-        """Calculate maximum drawdown"""
+        """Calculate maximum drawdown."""
         if len(prices) < 2:
             return 0.0
 
@@ -185,7 +185,7 @@ class PerformanceCalculator:
     def calculate_alpha_beta(
         self, strategy_returns: list[float], benchmark_returns: list[float]
     ) -> tuple[float, float]:
-        """Calculate alpha and beta"""
+        """Calculate alpha and beta."""
         if len(strategy_returns) != len(benchmark_returns) or len(strategy_returns) < 2:
             return 0.0, 1.0
 
@@ -212,7 +212,7 @@ class PerformanceCalculator:
 
 
 class ProductionIndexBaseline:
-    """Production Index Baseline Implementation"""
+    """Production Index Baseline Implementation."""
 
     def __init__(
         self,
@@ -245,7 +245,7 @@ class ProductionIndexBaseline:
         self.logger.info("Index Baseline Strategy initialized")
 
     async def initialize_benchmarks(self):
-        """Initialize benchmark tracking"""
+        """Initialize benchmark tracking."""
         self.logger.info("Initializing benchmark tracking")
 
         benchmark_tickers = ["SPY", "VTI", "QQQ", "IWM"]
@@ -259,7 +259,7 @@ class ProductionIndexBaseline:
                 )
 
     async def _initialize_benchmark(self, ticker: str):
-        """Initialize individual benchmark"""
+        """Initialize individual benchmark."""
         try:
             # Get current market data
             market_data = await self.data.get_market_data(ticker)
@@ -307,7 +307,7 @@ class ProductionIndexBaseline:
             )
 
     async def update_benchmarks(self):
-        """Update benchmark performance data"""
+        """Update benchmark performance data."""
         self.logger.info("Updating benchmark performance")
 
         for ticker, benchmark in self.benchmarks.items():
@@ -319,7 +319,7 @@ class ProductionIndexBaseline:
                 )
 
     async def _update_benchmark(self, ticker: str, benchmark: BenchmarkData):
-        """Update individual benchmark"""
+        """Update individual benchmark."""
         try:
             # Get current market data
             market_data = await self.data.get_market_data(ticker)
@@ -372,7 +372,7 @@ class ProductionIndexBaseline:
             self.error_handler.handle_error(e, {"ticker": ticker, "operation": "update_benchmark"})
 
     async def track_strategy_performance(self, strategy_name: str, trades: list[Trade]):
-        """Track strategy performance"""
+        """Track strategy performance."""
         try:
             self.logger.info(f"Tracking performance for {strategy_name}")
 
@@ -422,7 +422,7 @@ class ProductionIndexBaseline:
             )
 
     def _calculate_strategy_return(self, trades: list[Trade]) -> float:
-        """Calculate total strategy return"""
+        """Calculate total strategy return."""
         if not trades:
             return 0.0
 
@@ -432,13 +432,13 @@ class ProductionIndexBaseline:
         return total_pnl / total_invested if total_invested > 0 else 0.0
 
     def _calculate_trade_pnl(self, trade: Trade) -> float:
-        """Calculate individual trade P & L"""
+        """Calculate individual trade P & L."""
         # Simplified P & L calculation
         # In production, would track entry / exit prices
         return trade.commission * -1  # Simplified
 
     def _calculate_win_rate(self, trades: list[Trade]) -> float:
-        """Calculate win rate"""
+        """Calculate win rate."""
         if not trades:
             return 0.0
 
@@ -446,12 +446,12 @@ class ProductionIndexBaseline:
         return winning_trades / len(trades)
 
     def _is_winning_trade(self, trade: Trade) -> bool:
-        """Determine if trade is winning"""
+        """Determine if trade is winning."""
         # Simplified - in production would check actual P & L
         return trade.commission > 0
 
     def _calculate_avg_win_loss(self, trades: list[Trade]) -> tuple[float, float]:
-        """Calculate average win and loss"""
+        """Calculate average win and loss."""
         if not trades:
             return 0.0, 0.0
 
@@ -470,7 +470,7 @@ class ProductionIndexBaseline:
         return avg_win, avg_loss
 
     def _calculate_profit_factor(self, trades: list[Trade]) -> float:
-        """Calculate profit factor"""
+        """Calculate profit factor."""
         if not trades:
             return 0.0
 
@@ -491,7 +491,7 @@ class ProductionIndexBaseline:
     async def generate_performance_comparison(
         self, strategy_name: str
     ) -> list[PerformanceComparison]:
-        """Generate performance comparison against benchmarks"""
+        """Generate performance comparison against benchmarks."""
         comparisons = []
 
         if strategy_name not in self.strategy_performance:
@@ -539,7 +539,7 @@ class ProductionIndexBaseline:
         return comparisons
 
     async def get_performance_report(self) -> dict[str, Any]:
-        """Generate comprehensive performance report"""
+        """Generate comprehensive performance report."""
         report = {
             "report_date": datetime.now().isoformat(),
             "benchmarks": {},
@@ -583,7 +583,7 @@ class ProductionIndexBaseline:
             }
 
         # Add comparisons
-        for strategy_name in self.strategy_performance.keys():
+        for strategy_name in self.strategy_performance:
             comparisons = await self.generate_performance_comparison(strategy_name)
             report["comparisons"].extend(
                 [
@@ -605,7 +605,7 @@ class ProductionIndexBaseline:
         return report
 
     async def run_baseline_tracking(self):
-        """Run baseline tracking main loop"""
+        """Run baseline tracking main loop."""
         self.logger.info("Starting Index Baseline Tracking")
 
         # Initialize benchmarks
@@ -645,5 +645,5 @@ def create_index_baseline_strategy(
     config: ProductionConfig,
     logger: ProductionLogger,
 ) -> ProductionIndexBaseline:
-    """Create index baseline strategy instance"""
+    """Create index baseline strategy instance."""
     return ProductionIndexBaseline(trading_interface, data_provider, config, logger)

@@ -16,7 +16,7 @@ class APImanager:  # API manager for Alpaca
         self.api = tradeapi.REST(API_KEY, SECRET_KEY, self.BASE_URL, api_version="v2")
 
     def get_bar(self, symbol, timestep, start, end, price_type="close", adjustment="all"):
-        """Get a list of prices from latest to oldest with a timestep
+        """Get a list of prices from latest to oldest with a timestep.
 
         Args:
           symbol: the name of the stock
@@ -43,7 +43,7 @@ class APImanager:  # API manager for Alpaca
             return "Failed to get bars from Alpaca: " + str(e)
 
     def get_price(self, symbol):
-        """Get get the current price of a stock
+        """Get get the current price of a stock.
 
         Args:
           symbol: the name of the stock
@@ -61,7 +61,7 @@ class APImanager:  # API manager for Alpaca
             return "Failed to get price from Alpaca: " + str(e)
 
     def market_close(self):
-        """Checks if market closes
+        """Checks if market closes.
 
         Args:
           t: the time to check if the market is closed
@@ -75,10 +75,7 @@ class APImanager:  # API manager for Alpaca
         api = tradeapi.REST()
         clock = api.get_clock()
 
-        if clock.is_open:
-            return True
-        else:
-            return False
+        return bool(clock.is_open)
 
 
 class DataManager:

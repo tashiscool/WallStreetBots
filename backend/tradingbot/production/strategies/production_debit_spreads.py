@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Production Debit Spreads Strategy
-More repeatable than naked calls with reduced theta / IV risk
+More repeatable than naked calls with reduced theta / IV risk.
 """
 
 import asyncio
@@ -20,7 +20,7 @@ from ..data.production_data_integration import ReliableDataProvider
 
 @dataclass
 class SpreadOpportunity:
-    """Production spread opportunity with enhanced metadata"""
+    """Production spread opportunity with enhanced metadata."""
 
     ticker: str
     scan_date: date
@@ -45,7 +45,7 @@ class SpreadOpportunity:
 
 
 class ProductionDebitSpreads:
-    """Production Debit Spreads Strategy
+    """Production Debit Spreads Strategy.
 
     Strategy Logic:
     1. Scans for stocks with bullish trend signals
@@ -127,13 +127,13 @@ class ProductionDebitSpreads:
         self.logger.info("ProductionDebitSpreads strategy initialized")
 
     def norm_cdf(self, x: float) -> float:
-        """Standard normal cumulative distribution function"""
+        """Standard normal cumulative distribution function."""
         return 0.5 * (1.0 + math.erf(x / math.sqrt(2)))
 
     def black_scholes_call(
         self, S: float, K: float, T: float, r: float, sigma: float
     ) -> tuple[float, float]:
-        """Black - Scholes call price and delta"""
+        """Black - Scholes call price and delta."""
         if T <= 0 or sigma <= 0:
             return max(S - K, 0), 1.0 if S > K else 0.0
 
@@ -146,7 +146,7 @@ class ProductionDebitSpreads:
         return max(call_price, 0), delta
 
     async def assess_trend_strength(self, ticker: str) -> float:
-        """Assess bullish trend strength (0 - 1 score)"""
+        """Assess bullish trend strength (0 - 1 score)."""
         try:
             # Get 60 days of price data
             price_data = await self.data_provider.get_historical_data(ticker, "60d")
@@ -204,7 +204,7 @@ class ProductionDebitSpreads:
             return 0.5
 
     async def calculate_iv_rank(self, ticker: str, current_iv: float) -> float:
-        """Calculate IV rank (current IV vs historical range)"""
+        """Calculate IV rank (current IV vs historical range)."""
         try:
             # Get 1 year of historical data to estimate IV range
             hist_data = await self.data_provider.get_historical_data(ticker, "1y")
@@ -232,7 +232,7 @@ class ProductionDebitSpreads:
             return 50.0
 
     async def get_options_chain(self, ticker: str, expiry: str) -> dict[str, Any] | None:
-        """Get filtered options chain for expiry"""
+        """Get filtered options chain for expiry."""
         try:
             # Get options data from data provider
             options_data = await self.data_provider.get_options_chain(ticker, expiry)
@@ -266,7 +266,7 @@ class ProductionDebitSpreads:
     async def find_optimal_spreads(
         self, ticker: str, spot: float, expiry: str, options_data: dict[str, Any]
     ) -> list[SpreadOpportunity]:
-        """Find optimal spread combinations"""
+        """Find optimal spread combinations."""
         opportunities = []
         calls = options_data["calls"]
 
@@ -382,7 +382,7 @@ class ProductionDebitSpreads:
         return opportunities[:3]  # Top 3 per ticker
 
     def estimate_iv_from_price(self, S: float, K: float, T: float, market_price: float) -> float:
-        """Estimate implied volatility using Newton - Raphson"""
+        """Estimate implied volatility using Newton - Raphson."""
         try:
             iv = 0.25  # Initial guess
 
@@ -409,7 +409,7 @@ class ProductionDebitSpreads:
             return 0.25
 
     async def scan_spread_opportunities(self) -> list[SpreadOpportunity]:
-        """Scan for debit spread opportunities"""
+        """Scan for debit spread opportunities."""
         all_opportunities = []
 
         self.logger.info(f"Scanning {len(self.watchlist)} tickers for debit spreads")
@@ -481,7 +481,7 @@ class ProductionDebitSpreads:
         return all_opportunities
 
     async def execute_spread_trade(self, opportunity: SpreadOpportunity) -> bool:
-        """Execute debit spread trade"""
+        """Execute debit spread trade."""
         try:
             # Check if we can add more positions
             if len(self.active_positions) >= self.max_positions:
@@ -586,7 +586,7 @@ class ProductionDebitSpreads:
             return False
 
     async def manage_positions(self):
-        """Manage existing spread positions"""
+        """Manage existing spread positions."""
         positions_to_remove = []
 
         for i, position in enumerate(self.active_positions):
@@ -704,7 +704,7 @@ class ProductionDebitSpreads:
             self.active_positions.pop(i)
 
     async def scan_opportunities(self) -> list[ProductionTradeSignal]:
-        """Main strategy execution: scan and generate trade signals"""
+        """Main strategy execution: scan and generate trade signals."""
         try:
             # First manage existing positions
             await self.manage_positions()
@@ -751,7 +751,7 @@ class ProductionDebitSpreads:
             return []
 
     def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         try:
             total_pnl = 0.0
             position_details = []
@@ -799,7 +799,7 @@ class ProductionDebitSpreads:
             return {"strategy_name": self.strategy_name, "error": str(e)}
 
     async def run_strategy(self):
-        """Main strategy execution loop"""
+        """Main strategy execution loop."""
         self.logger.info("Starting Production Debit Spreads Strategy")
 
         try:
@@ -821,5 +821,5 @@ class ProductionDebitSpreads:
 def create_production_debit_spreads(
     integration_manager, data_provider: ReliableDataProvider, config: dict
 ) -> ProductionDebitSpreads:
-    """Factory function to create ProductionDebitSpreads strategy"""
+    """Factory function to create ProductionDebitSpreads strategy."""
     return ProductionDebitSpreads(integration_manager, data_provider, config)

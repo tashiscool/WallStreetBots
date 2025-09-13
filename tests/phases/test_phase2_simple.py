@@ -1,10 +1,11 @@
 #!/usr / bin / env python3
 """Simple Phase 2 Functionality Test
-Test core Phase 2 components without complex imports
+Test core Phase 2 components without complex imports.
 """
 
 import json
 import os
+import sys
 import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -49,7 +50,7 @@ class WheelPosition:
     iv_rank: float = 0.0
 
     def calculate_unrealized_pnl(self) -> float:
-        """Calculate unrealized P & L"""
+        """Calculate unrealized P & L."""
         if self.stage == WheelStage.CASH_SECURED_PUT:
             if self.current_price >= self.strike_price:
                 return self.premium_received
@@ -59,7 +60,7 @@ class WheelPosition:
         return 0.0
 
     def calculate_days_to_expiry(self) -> int:
-        """Calculate days to expiry"""
+        """Calculate days to expiry."""
         if self.expiry_date:
             delta = self.expiry_date - datetime.now()
             return max(0, delta.days)
@@ -83,7 +84,7 @@ class WheelCandidate:
     risk_score: float = 0.0
 
     def calculate_wheel_score(self) -> float:
-        """Calculate wheel strategy score"""
+        """Calculate wheel strategy score."""
         score = 0.0
         score += self.volatility_rank * 0.3
         score += self.iv_rank * 0.2
@@ -134,7 +135,7 @@ class SpreadPosition:
     net_vega: float = 0.0
 
     def calculate_max_profit(self) -> float:
-        """Calculate maximum profit potential"""
+        """Calculate maximum profit potential."""
         if self.spread_type == SpreadType.BULL_CALL_SPREAD:
             return (
                 self.short_strike - self.long_strike
@@ -142,7 +143,7 @@ class SpreadPosition:
         return 0.0
 
     def calculate_max_loss(self) -> float:
-        """Calculate maximum loss potential"""
+        """Calculate maximum loss potential."""
         return self.net_debit * self.quantity * 100
 
 
@@ -166,7 +167,7 @@ class SpreadCandidate:
     risk_score: float = 0.0
 
     def calculate_spread_score(self) -> float:
-        """Calculate spread strategy score"""
+        """Calculate spread strategy score."""
         score = 0.0
         score += min(self.profit_loss_ratio, 3.0) * 0.3
         if self.spread_type == SpreadType.BULL_CALL_SPREAD:
@@ -227,7 +228,7 @@ class StrategyPerformance:
 
 
 def test_wheel_strategy():
-    """Test Wheel Strategy components"""
+    """Test Wheel Strategy components."""
     print("🔄 Testing Wheel Strategy Components...")
 
     # Test Wheel Position
@@ -270,7 +271,7 @@ def test_wheel_strategy():
 
 
 def test_debit_spreads():
-    """Test Debit Spreads components"""
+    """Test Debit Spreads components."""
     print("📈 Testing Debit Spreads Components...")
 
     # Test Spread Position
@@ -318,7 +319,7 @@ def test_debit_spreads():
 
 
 def test_index_baseline():
-    """Test Index Baseline components"""
+    """Test Index Baseline components."""
     print("📉 Testing Index Baseline Components...")
 
     # Test Benchmark Data
@@ -369,7 +370,7 @@ def test_index_baseline():
 
 
 def test_phase2_integration():
-    """Test Phase 2 integration"""
+    """Test Phase 2 integration."""
     print("🔗 Testing Phase 2 Integration...")
 
     # Test configuration loading
@@ -434,7 +435,7 @@ def test_phase2_integration():
 
 
 def main():
-    """Run all Phase 2 tests"""
+    """Run all Phase 2 tests."""
     print("🚀 WallStreetBots Phase 2 - Simple Functionality Test")
     print(" = " * 60)
 
@@ -471,4 +472,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

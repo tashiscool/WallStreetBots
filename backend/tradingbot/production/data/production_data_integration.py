@@ -1,5 +1,5 @@
 """Production Data Integration Layer
-Provides real - time market data integration for production trading
+Provides real - time market data integration for production trading.
 
 This module replaces hardcoded mock data with:
 - Real - time market data from Alpaca
@@ -28,7 +28,7 @@ from ...apimanagers import AlpacaManager
 
 @dataclass
 class MarketData:
-    """Real - time market data structure"""
+    """Real - time market data structure."""
 
     ticker: str
     price: Decimal
@@ -46,7 +46,7 @@ class MarketData:
 
 @dataclass
 class OptionsData:
-    """Real - time options data structure"""
+    """Real - time options data structure."""
 
     ticker: str
     expiry: datetime
@@ -67,7 +67,7 @@ class OptionsData:
 
 @dataclass
 class EarningsEvent:
-    """Real earnings event data"""
+    """Real earnings event data."""
 
     ticker: str
     company_name: str
@@ -82,7 +82,7 @@ class EarningsEvent:
 
 
 class DataSource(Enum):
-    """Available data sources"""
+    """Available data sources."""
 
     ALPACA = "alpaca"
     POLYGON = "polygon"
@@ -94,7 +94,7 @@ class DataSource(Enum):
 
 @dataclass
 class DataSourceHealth:
-    """Health status of a data source"""
+    """Health status of a data source."""
 
     source: DataSource
     is_healthy: bool
@@ -110,7 +110,7 @@ class DataSourceHealth:
 
 
 class DataProviderError(Exception):
-    """Custom exception for data provider errors"""
+    """Custom exception for data provider errors."""
 
     def __init__(self, message: str, source: DataSource = None):
         super().__init__(message)
@@ -118,7 +118,7 @@ class DataProviderError(Exception):
 
 
 class ReliableDataProvider:
-    """Multi - Source Data Provider with Intelligent Failover
+    """Multi - Source Data Provider with Intelligent Failover.
 
     Provides reliable market data by automatically failing over between:
     - Primary: Alpaca (paid, reliable)
@@ -139,8 +139,8 @@ class ReliableDataProvider:
         self,
         alpaca_api_key: str,
         alpaca_secret_key: str,
-        polygon_api_key: str = None,
-        alpha_vantage_key: str = None,
+        polygon_api_key: str | None = None,
+        alpha_vantage_key: str | None = None,
     ):
         self.logger = logging.getLogger(__name__)
 
@@ -192,7 +192,7 @@ class ReliableDataProvider:
         self.logger.info("ReliableDataProvider initialized with multi - source failover")
 
     async def get_current_price(self, ticker: str) -> MarketData | None:
-        """Get current market data with automatic failover"""
+        """Get current market data with automatic failover."""
         # Check cache first
         if ticker in self.price_cache:
             cached_data = self.price_cache[ticker]
@@ -232,11 +232,11 @@ class ReliableDataProvider:
         raise DataProviderError(f"All data sources failed for {ticker}")
 
     async def get_real_time_quote(self, ticker: str) -> MarketData | None:
-        """Get real - time quote (alias for get_current_price for backward compatibility)"""
+        """Get real - time quote (alias for get_current_price for backward compatibility)."""
         return await self.get_current_price(ticker)
 
     async def get_historical_data(self, ticker: str, days: int = 30) -> list[MarketData]:
-        """Get historical market data"""
+        """Get historical market data."""
         try:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=days)
@@ -275,7 +275,7 @@ class ReliableDataProvider:
     async def get_options_chain(
         self, ticker: str, expiry_date: datetime | None = None
     ) -> list[OptionsData]:
-        """Get real options chain data with Yahoo Finance fallback"""
+        """Get real options chain data with Yahoo Finance fallback."""
         try:
             # Check cache first
             cache_key = f"{ticker}_{expiry_date.date() if expiry_date else 'all'}"
@@ -389,7 +389,7 @@ class ReliableDataProvider:
     async def _generate_synthetic_options_data(
         self, ticker: str, current_price: Decimal, expiry_date: datetime
     ) -> list[OptionsData]:
-        """Generate synthetic options data for testing (DEVELOPMENT ONLY)"""
+        """Generate synthetic options data for testing (DEVELOPMENT ONLY)."""
         try:
             synthetic_options = []
 
@@ -453,7 +453,7 @@ class ReliableDataProvider:
             return []
 
     async def get_earnings_calendar(self, days_ahead: int = 30) -> list[EarningsEvent]:
-        """Get real earnings calendar with Yahoo Finance fallback"""
+        """Get real earnings calendar with Yahoo Finance fallback."""
         try:
             # Check cache first
             cache_key = f"earnings_{days_ahead}"
@@ -552,7 +552,7 @@ class ReliableDataProvider:
             return []
 
     def _generate_synthetic_earnings_calendar(self, days_ahead: int) -> list[EarningsEvent]:
-        """Generate synthetic earnings events for testing (DEVELOPMENT ONLY)"""
+        """Generate synthetic earnings events for testing (DEVELOPMENT ONLY)."""
         try:
             synthetic_events = []
 
@@ -586,7 +586,7 @@ class ReliableDataProvider:
             return []
 
     async def get_earnings_for_ticker(self, ticker: str) -> EarningsEvent | None:
-        """Get next earnings event for specific ticker"""
+        """Get next earnings event for specific ticker."""
         try:
             earnings_calendar = await self.get_earnings_calendar()
 
@@ -601,7 +601,7 @@ class ReliableDataProvider:
             return None
 
     async def is_market_open(self) -> bool:
-        """Check if market is currently open"""
+        """Check if market is currently open."""
         try:
             # Get market status from Alpaca
             clock = self.alpaca_manager.get_clock()
@@ -632,7 +632,7 @@ class ReliableDataProvider:
             return False
 
     async def get_market_hours(self) -> dict[str, Any]:
-        """Get market hours information"""
+        """Get market hours information."""
         try:
             clock = self.alpaca_manager.get_clock()
             if clock:
@@ -672,7 +672,7 @@ class ReliableDataProvider:
             return {"is_open": False}
 
     async def get_volume_spike(self, ticker: str, multiplier: float = 3.0) -> bool:
-        """Check if ticker has volume spike"""
+        """Check if ticker has volume spike."""
         try:
             # Get current volume
             current_data = await self.get_current_price(ticker)
@@ -694,7 +694,7 @@ class ReliableDataProvider:
             return False
 
     async def calculate_returns(self, ticker: str, days: int) -> Decimal | None:
-        """Calculate returns over specified days"""
+        """Calculate returns over specified days."""
         try:
             historical_data = await self.get_historical_data(ticker, days + 5)
             if len(historical_data) < days:
@@ -710,7 +710,7 @@ class ReliableDataProvider:
             return None
 
     async def get_volatility(self, ticker: str, days: int = 20) -> Decimal | None:
-        """Calculate historical volatility"""
+        """Calculate historical volatility."""
         try:
             historical_data = await self.get_historical_data(ticker, days + 5)
             if len(historical_data) < days:
@@ -744,7 +744,7 @@ class ReliableDataProvider:
     async def get_implied_volatility(
         self, ticker: str, strike: Decimal | None = None, expiry: datetime | None = None
     ) -> Decimal | None:
-        """Get implied volatility for options - returns historical volatility as approximation"""
+        """Get implied volatility for options - returns historical volatility as approximation."""
         try:
             # For now, return historical volatility as proxy for implied volatility
             # In production, this would query actual options IV from data provider
@@ -758,7 +758,7 @@ class ReliableDataProvider:
             return None
 
     def _is_source_healthy(self, source: DataSource) -> bool:
-        """Check if a data source is healthy"""
+        """Check if a data source is healthy."""
         if source not in self.source_health:
             return False
 
@@ -776,13 +776,10 @@ class ReliableDataProvider:
             return False
 
         # Check if source is marked as disabled
-        if not health.is_enabled:
-            return False
-
-        return True
+        return health.is_enabled
 
     async def _get_price_from_source(self, ticker: str, source: DataSource) -> MarketData | None:
-        """Get price data from a specific source"""
+        """Get price data from a specific source."""
         try:
             if source == DataSource.ALPACA:
                 # Use Alpaca for real - time data
@@ -846,7 +843,7 @@ class ReliableDataProvider:
             return None
 
     def _validate_price_data(self, ticker: str, market_data: MarketData) -> bool:
-        """Validate that market data is reasonable"""
+        """Validate that market data is reasonable."""
         if not market_data:
             return False
 
@@ -862,15 +859,12 @@ class ReliableDataProvider:
         now = datetime.now()
         if market_data.timestamp.tzinfo is not None:
             now = now.replace(tzinfo=market_data.timestamp.tzinfo)
-        if (now - market_data.timestamp).total_seconds() > 86400:
-            return False
-
-        return True
+        return not (now - market_data.timestamp).total_seconds() > 86400
 
     async def _update_source_health(
-        self, source: DataSource, success: bool, response_time: float = None
+        self, source: DataSource, success: bool, response_time: float | None = None
     ):
-        """Update source health based on operation result"""
+        """Update source health based on operation result."""
         if source not in self.source_health:
             return
 
@@ -903,14 +897,14 @@ class ReliableDataProvider:
                 )
 
     def clear_cache(self):
-        """Clear all cached data"""
+        """Clear all cached data."""
         self.price_cache.clear()
         self.options_cache.clear()
         self.earnings_cache.clear()
         self.logger.info("Data cache cleared")
 
     def get_cache_stats(self) -> dict[str, Any]:
-        """Get cache statistics"""
+        """Get cache statistics."""
         return {
             "price_cache_size": len(self.price_cache),
             "options_cache_size": len(self.options_cache),
@@ -925,7 +919,7 @@ class ReliableDataProvider:
 
 # Factory function for easy initialization
 def create_production_data_provider(alpaca_api_key: str, alpaca_secret_key: str):
-    """Create ProductionDataProvider instance
+    """Create ProductionDataProvider instance.
 
     Args:
         alpaca_api_key: Alpaca API key

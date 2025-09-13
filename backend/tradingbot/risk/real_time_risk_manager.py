@@ -1,5 +1,5 @@
 """Real - Time Risk Validation System
-Implements dynamic risk management with live account data and position monitoring
+Implements dynamic risk management with live account data and position monitoring.
 """
 
 import asyncio
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class RiskLevel(Enum):
-    """Risk level classifications"""
+    """Risk level classifications."""
 
     LOW = "low"
     MODERATE = "moderate"
@@ -23,7 +23,7 @@ class RiskLevel(Enum):
 
 
 class ValidationResult(Enum):
-    """Risk validation outcomes"""
+    """Risk validation outcomes."""
 
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -32,7 +32,7 @@ class ValidationResult(Enum):
 
 @dataclass
 class TradeSignal:
-    """Trade signal data structure"""
+    """Trade signal data structure."""
 
     ticker: str
     action: str  # "BUY" or "SELL"
@@ -46,13 +46,13 @@ class TradeSignal:
 
     @property
     def total_value(self) -> Decimal:
-        """Calculate total trade value"""
+        """Calculate total trade value."""
         return self.price * Decimal(str(self.quantity))
 
 
 @dataclass
 class AccountSnapshot:
-    """Current account state from broker"""
+    """Current account state from broker."""
 
     portfolio_value: Decimal
     buying_power: Decimal
@@ -67,7 +67,7 @@ class AccountSnapshot:
 
 @dataclass
 class PositionSummary:
-    """Summary of current positions"""
+    """Summary of current positions."""
 
     ticker: str
     quantity: int
@@ -80,7 +80,7 @@ class PositionSummary:
 
 @dataclass
 class RiskValidationResult:
-    """Result of risk validation check"""
+    """Result of risk validation check."""
 
     approved: bool
     validation_result: ValidationResult
@@ -94,17 +94,17 @@ class RiskValidationResult:
 
     @property
     def is_modified(self) -> bool:
-        """Check if trade was modified"""
+        """Check if trade was modified."""
         return self.original_quantity != self.approved_quantity
 
     @property
     def rejection_reason(self) -> str | None:
-        """Get rejection reason if trade was rejected"""
+        """Get rejection reason if trade was rejected."""
         return self.reason if not self.approved else None
 
 
 class RealTimeRiskManager:
-    """Advanced real - time risk management system"""
+    """Advanced real - time risk management system."""
 
     def __init__(self, alpaca_manager=None):
         self.alpaca_manager = alpaca_manager
@@ -129,7 +129,7 @@ class RealTimeRiskManager:
         self.cached_positions = []
 
     async def validate_trade_safety(self, trade_signal: TradeSignal) -> RiskValidationResult:
-        """Comprehensive trade validation with live account data"""
+        """Comprehensive trade validation with live account data."""
         try:
             # Get fresh account data
             account = await self._get_current_account()
@@ -232,7 +232,7 @@ class RealTimeRiskManager:
             )
 
     async def _get_current_account(self) -> AccountSnapshot:
-        """Get current account data from broker with caching"""
+        """Get current account data from broker with caching."""
         try:
             # Use cached data if recent ( <  30 seconds)
             if (
@@ -272,7 +272,7 @@ class RealTimeRiskManager:
             raise
 
     async def _get_current_positions(self) -> list[PositionSummary]:
-        """Get current positions from broker"""
+        """Get current positions from broker."""
         try:
             if not self.alpaca_manager:
                 return []
@@ -310,7 +310,7 @@ class RealTimeRiskManager:
     async def _check_portfolio_risk(
         self, trade_signal: TradeSignal, account: AccountSnapshot, positions: list[PositionSummary]
     ) -> tuple:
-        """Check overall portfolio risk exposure"""
+        """Check overall portfolio risk exposure."""
         try:
             # Calculate current risk exposure
             current_risk = sum(pos.risk_exposure for pos in positions)
@@ -355,7 +355,7 @@ class RealTimeRiskManager:
     async def _check_position_sizing(
         self, trade_signal: TradeSignal, account: AccountSnapshot, positions: list[PositionSummary]
     ) -> tuple:
-        """Check individual position size limits"""
+        """Check individual position size limits."""
         try:
             trade_value = trade_signal.total_value
             position_percentage = trade_value / account.portfolio_value
@@ -381,7 +381,7 @@ class RealTimeRiskManager:
     async def _check_buying_power(
         self, trade_signal: TradeSignal, account: AccountSnapshot
     ) -> tuple:
-        """Check buying power requirements"""
+        """Check buying power requirements."""
         try:
             required_buying_power = trade_signal.total_value
 
@@ -416,7 +416,7 @@ class RealTimeRiskManager:
     async def _check_daily_loss_limits(
         self, trade_signal: TradeSignal, account: AccountSnapshot
     ) -> tuple:
-        """Check daily loss limits"""
+        """Check daily loss limits."""
         try:
             # This would typically track daily P & L
             # For now, using a simple unrealized P & L check
@@ -447,7 +447,7 @@ class RealTimeRiskManager:
     async def _check_day_trading_limits(
         self, trade_signal: TradeSignal, account: AccountSnapshot
     ) -> tuple:
-        """Check day trading rules"""
+        """Check day trading rules."""
         try:
             # Check if account is PDT eligible
             is_pdt = account.equity >= self.pdt_threshold
@@ -469,7 +469,7 @@ class RealTimeRiskManager:
     async def _check_options_allocation(
         self, trade_signal: TradeSignal, account: AccountSnapshot, positions: list[PositionSummary]
     ) -> tuple:
-        """Check options allocation limits"""
+        """Check options allocation limits."""
         try:
             # Only check for options trades
             if not trade_signal.option_type:
@@ -510,7 +510,7 @@ class RealTimeRiskManager:
     async def _check_correlation_risk(
         self, trade_signal: TradeSignal, positions: list[PositionSummary]
     ) -> tuple:
-        """Check correlation risk (simplified sector / correlation analysis)"""
+        """Check correlation risk (simplified sector / correlation analysis)."""
         try:
             # Simplified: check for excessive exposure to same ticker
             same_ticker_exposure = sum(
@@ -538,7 +538,7 @@ class RealTimeRiskManager:
             return (True, RiskLevel.LOW, trade_signal.quantity, None)
 
     async def _check_volatility_risk(self, trade_signal: TradeSignal) -> tuple:
-        """Check volatility - based risk"""
+        """Check volatility - based risk."""
         try:
             # This would typically use historical volatility data
             # For now, apply conservative limits to options
@@ -559,7 +559,7 @@ class RealTimeRiskManager:
     async def _calculate_risk_metrics(
         self, trade_signal: TradeSignal, account: AccountSnapshot, positions: list[PositionSummary]
     ) -> dict[str, Any]:
-        """Calculate comprehensive risk metrics"""
+        """Calculate comprehensive risk metrics."""
         try:
             current_value = sum(abs(pos.market_value) for pos in positions)
 
@@ -585,7 +585,7 @@ class RealTimeRiskManager:
             return {}
 
     async def _log_validation_result(self, trade_signal: TradeSignal, result: RiskValidationResult):
-        """Log risk validation results for monitoring"""
+        """Log risk validation results for monitoring."""
         try:
             log_entry = {
                 "timestamp": result.timestamp.isoformat(),
@@ -613,7 +613,7 @@ class RealTimeRiskManager:
             logger.error(f"Failed to log validation result: {e}")
 
     async def emergency_halt(self, reason: str):
-        """Emergency halt all trading activities"""
+        """Emergency halt all trading activities."""
         try:
             logger.critical(f"EMERGENCY HALT TRIGGERED: {reason}")
 
@@ -639,7 +639,7 @@ class RealTimeRiskManager:
             logger.error(f"Emergency halt procedure failed: {e}")
 
     async def get_risk_summary(self) -> dict[str, Any]:
-        """Get current risk summary"""
+        """Get current risk summary."""
         try:
             account = await self._get_current_account()
             positions = await self._get_current_positions()
@@ -677,5 +677,5 @@ class RealTimeRiskManager:
 
 
 def create_risk_manager(alpaca_manager=None) -> RealTimeRiskManager:
-    """Factory function to create risk manager"""
+    """Factory function to create risk manager."""
     return RealTimeRiskManager(alpaca_manager)

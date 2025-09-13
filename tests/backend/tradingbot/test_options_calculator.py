@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Comprehensive Test Suite for Options Calculator
-Tests Black - Scholes implementation and options calculations
+Tests Black - Scholes implementation and options calculations.
 """
 
 import math
@@ -22,13 +22,13 @@ from backend.tradingbot.options_calculator import (
 
 
 class TestBlackScholesCalculator(unittest.TestCase):
-    """Test Black - Scholes pricing calculations"""
+    """Test Black - Scholes pricing calculations."""
 
     def setUp(self):
         self.bs_calc = BlackScholesCalculator()
 
     def test_black_scholes_accuracy_known_values(self):
-        """Test Black - Scholes accuracy against known analytical values"""
+        """Test Black - Scholes accuracy against known analytical values."""
         # Standard test case with verified calculation
         spot = 100.0
         strike = 100.0
@@ -47,7 +47,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertGreater(calculated_price, 3.0)  # Reasonable lower bound
 
     def test_put_call_parity(self):
-        """Verify put - call parity: C - P=S - K * e ^ (-r * T)"""
+        """Verify put - call parity: C - P=S - K * e ^ (-r * T)."""
         spot = 100.0
         strike = 100.0
         time_to_expiry = 0.5
@@ -70,7 +70,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertAlmostEqual(actual_diff, expected_diff, places=6)
 
     def test_greeks_accuracy(self):
-        """Test Greeks calculations against analytical benchmarks"""
+        """Test Greeks calculations against analytical benchmarks."""
         spot = 100.0
         strike = 100.0
         time_to_expiry = 0.25
@@ -88,7 +88,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertLess(delta, 1)
 
     def test_option_behavior_extreme_conditions(self):
-        """Test option pricing behavior under extreme market conditions"""
+        """Test option pricing behavior under extreme market conditions."""
         base_spot = 100.0
         strike = 100.0
         time_to_expiry = 0.25
@@ -120,7 +120,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertGreater(high_vol_price, base_price)
 
     def test_time_decay_behavior(self):
-        """Test theta (time decay) behavior"""
+        """Test theta (time decay) behavior."""
         spot = 100.0
         strike = 100.0
         risk_free_rate = 0.05
@@ -142,7 +142,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertGreater(long_price, short_price)
 
     def test_call_price_basic(self):
-        """Test basic call option pricing"""
+        """Test basic call option pricing."""
         # Standard test case: ATM option with known parameters
         price = self.bs_calc.call_price(
             spot=100.0,
@@ -159,7 +159,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertLess(price, 100)  # Sanity check
 
     def test_call_price_itm(self):
-        """Test ITM call option pricing"""
+        """Test ITM call option pricing."""
         price = self.bs_calc.call_price(
             spot=110.0,  # $10 ITM
             strike=100.0,
@@ -177,7 +177,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertLess(price, 110.0)
 
     def test_call_price_otm(self):
-        """Test OTM call option pricing"""
+        """Test OTM call option pricing."""
         price = self.bs_calc.call_price(
             spot=95.0,  # $5 OTM
             strike=100.0,
@@ -192,7 +192,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertLess(price, 95.0)  # Less than spot
 
     def test_put_price_basic(self):
-        """Test basic put option pricing"""
+        """Test basic put option pricing."""
         price = self.bs_calc.put_price(
             spot=100.0,
             strike=100.0,
@@ -207,7 +207,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertLess(price, 100)
 
     def test_put_price_itm(self):
-        """Test ITM put option pricing"""
+        """Test ITM put option pricing."""
         price = self.bs_calc.put_price(
             spot=90.0,  # $10 ITM put
             strike=100.0,
@@ -222,7 +222,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertGreater(price, intrinsic_value)
 
     def test_delta_calculation(self):
-        """Test delta calculation"""
+        """Test delta calculation."""
         delta = self.bs_calc.delta(
             spot=100.0,
             strike=105.0,  # 5% OTM call
@@ -237,7 +237,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertLess(delta, 0.5)
 
     def test_gamma_calculation(self):
-        """Test gamma calculation"""
+        """Test gamma calculation."""
         gamma = self.bs_calc.gamma(
             spot=100.0,
             strike=100.0,  # ATM
@@ -253,7 +253,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertLess(gamma, 1.0)
 
     def test_theta_calculation(self):
-        """Test theta calculation"""
+        """Test theta calculation."""
         theta = self.bs_calc.theta(
             spot=100.0,
             strike=100.0,
@@ -267,7 +267,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertLess(theta, 0)
 
     def test_vega_calculation(self):
-        """Test vega calculation"""
+        """Test vega calculation."""
         vega = self.bs_calc.vega(
             spot=100.0,
             strike=100.0,
@@ -281,7 +281,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertGreater(vega, 0)
 
     def test_invalid_inputs(self):
-        """Test handling of invalid inputs"""
+        """Test handling of invalid inputs."""
         with self.assertRaises(ValueError):
             self.bs_calc.call_price(
                 spot=0,  # Invalid: zero spot price
@@ -303,7 +303,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
             )
 
     def test_put_call_parity(self):
-        """Test put - call parity relationship"""
+        """Test put - call parity relationship."""
         # Parameters
         spot = 100.0
         strike = 100.0
@@ -328,7 +328,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertAlmostEqual(actual_difference, expected_difference, delta=0.01)
 
     def test_time_decay_behavior(self):
-        """Test that options lose value as time passes"""
+        """Test that options lose value as time passes."""
         # Price with more time
         price_1month = self.bs_calc.call_price(
             spot=100,
@@ -353,7 +353,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertGreater(price_1month, price_1week)
 
     def test_volatility_impact(self):
-        """Test impact of volatility on option prices"""
+        """Test impact of volatility on option prices."""
         # Low volatility
         price_low_vol = self.bs_calc.call_price(
             spot=100,
@@ -379,13 +379,13 @@ class TestBlackScholesCalculator(unittest.TestCase):
 
 
 class TestOptionsTradeCalculator(unittest.TestCase):
-    """Test options trade calculation logic"""
+    """Test options trade calculation logic."""
 
     def setUp(self):
         self.calculator = OptionsTradeCalculator()
 
     def test_otm_strike_calculation(self):
-        """Test 5% OTM strike calculation"""
+        """Test 5% OTM strike calculation."""
         spot = 200.0
         strike = self.calculator.calculate_otm_strike(spot)
 
@@ -395,7 +395,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         self.assertGreater(strike, spot)
 
     def test_expiry_calculation(self):
-        """Test optimal expiry date calculation"""
+        """Test optimal expiry date calculation."""
         target_dte = 30
         expiry = self.calculator.find_optimal_expiry(target_dte)
 
@@ -408,7 +408,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         self.assertLess(days_diff, 45)  # Less than 6 weeks
 
     def test_position_sizing_accuracy(self):
-        """Test position sizing follows Kelly Criterion and risk management"""
+        """Test position sizing follows Kelly Criterion and risk management."""
         calculator = OptionsTradeCalculator()
         account_size = 500000.0
         risk_pct = 0.10
@@ -434,7 +434,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         self.assertLessEqual(trade.account_risk_pct, risk_pct * 100 * 1.5)
 
     def test_breakeven_calculation_accuracy(self):
-        """Test breakeven price calculation accuracy"""
+        """Test breakeven price calculation accuracy."""
         calculator = OptionsTradeCalculator()
 
         trade = calculator.calculate_trade(
@@ -453,7 +453,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         self.assertGreater(trade.breakeven_price, trade.spot_price)
 
     def test_leverage_calculation_validation(self):
-        """Test effective leverage calculation matches expected ratios"""
+        """Test effective leverage calculation matches expected ratios."""
         calculator = OptionsTradeCalculator()
 
         trade = calculator.calculate_trade(
@@ -475,7 +475,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         self.assertLess(trade.leverage_ratio, 100.0)  # Expanded upper bound
 
     def test_scenario_analysis_mathematical_consistency(self):
-        """Test scenario analysis produces mathematically consistent results"""
+        """Test scenario analysis produces mathematically consistent results."""
         calculator = OptionsTradeCalculator()
 
         trade = calculator.calculate_trade(
@@ -513,7 +513,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
                 self.assertAlmostEqual(expected_roi, actual_roi, places=2)
 
     def test_risk_management_validation(self):
-        """Test risk management constraints are properly enforced"""
+        """Test risk management constraints are properly enforced."""
         setup = OptionsStrategySetup()
         calculator = OptionsTradeCalculator(setup)
 
@@ -539,7 +539,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         self.assertLessEqual(trade.account_risk_pct, setup.max_single_trade_risk_pct * 100)
 
     def test_otm_strike_selection_behavior(self):
-        """Test OTM strike selection follows 5% rule correctly"""
+        """Test OTM strike selection follows 5% rule correctly."""
         calculator = OptionsTradeCalculator()
         spot_price = 200.0
 
@@ -556,7 +556,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         self.assertEqual(otm_strike % 1.0, 0.0)  # Should be whole dollar
 
     def test_trade_calculation_comprehensive(self):
-        """Test complete trade calculation"""
+        """Test complete trade calculation."""
         trade_calc = self.calculator.calculate_trade(
             ticker="GOOGL",
             spot_price=150.0,
@@ -577,7 +577,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         self.assertGreater(trade_calc.breakeven_price, trade_calc.strike)
 
     def test_position_sizing_logic(self):
-        """Test position sizing calculations"""
+        """Test position sizing calculations."""
         # Small account, conservative sizing
         trade_calc_small = self.calculator.calculate_trade(
             ticker="AAPL",
@@ -609,7 +609,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         )
 
     def test_risk_management_limits(self):
-        """Test risk management position limits"""
+        """Test risk management position limits."""
         # Try to create position with reasonable account size
         trade_calc = self.calculator.calculate_trade(
             ticker="TSLA",
@@ -624,7 +624,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         self.assertGreaterEqual(trade_calc.recommended_contracts, 0)  # Allow zero if too expensive
 
     def test_breakeven_calculation(self):
-        """Test breakeven price calculation accuracy"""
+        """Test breakeven price calculation accuracy."""
         trade_calc = self.calculator.calculate_trade(
             ticker="SPY",
             spot_price=400.0,
@@ -638,7 +638,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         self.assertAlmostEqual(trade_calc.breakeven_price, expected_breakeven, delta=0.01)
 
     def test_leverage_calculation(self):
-        """Test leverage ratio calculation"""
+        """Test leverage ratio calculation."""
         trade_calc = self.calculator.calculate_trade(
             ticker="QQQ",
             spot_price=350.0,
@@ -656,10 +656,10 @@ class TestOptionsTradeCalculator(unittest.TestCase):
 
 
 class TestOptionsSetup(unittest.TestCase):
-    """Test options setup data structure"""
+    """Test options setup data structure."""
 
     def test_options_setup_creation(self):
-        """Test OptionsSetup creation and properties"""
+        """Test OptionsSetup creation and properties."""
         setup = OptionsSetup(
             ticker="AAPL",
             entry_date=date.today(),
@@ -681,7 +681,7 @@ class TestOptionsSetup(unittest.TestCase):
         self.assertEqual(setup.breakeven, 168.50)  # Strike+premium
 
     def test_options_setup_moneyness(self):
-        """Test moneyness calculations"""
+        """Test moneyness calculations."""
         # ITM setup
         itm_setup = OptionsSetup(
             ticker="GOOGL",
@@ -713,7 +713,7 @@ class TestOptionsSetup(unittest.TestCase):
         self.assertEqual(otm_setup.intrinsic_value, 0.0)
 
     def test_pnl_calculation(self):
-        """Test P & L calculation at different scenarios"""
+        """Test P & L calculation at different scenarios."""
         setup = OptionsSetup(
             ticker="SPY",
             entry_date=date.today(),
@@ -737,10 +737,10 @@ class TestOptionsSetup(unittest.TestCase):
 
 
 class TestTradeValidation(unittest.TestCase):
-    """Test trade validation and historical verification"""
+    """Test trade validation and historical verification."""
 
     def test_successful_trade_validation(self):
-        """Test validation of the original successful trade"""
+        """Test validation of the original successful trade."""
         # This function prints validation but doesn't return a value
         try:
             validate_successful_trade()  # Should run without exceptions
@@ -749,7 +749,7 @@ class TestTradeValidation(unittest.TestCase):
             self.fail(f"Trade validation failed: {e}")
 
     def test_trade_calculation_bounds(self):
-        """Test that trade calculations stay within reasonable bounds"""
+        """Test that trade calculations stay within reasonable bounds."""
         calculator = OptionsTradeCalculator()
 
         # Test extreme scenarios
@@ -769,14 +769,14 @@ class TestTradeValidation(unittest.TestCase):
 
 
 class TestOptionsCalculatorIntegration(unittest.TestCase):
-    """Test integration scenarios for options calculator"""
+    """Test integration scenarios for options calculator."""
 
     def setUp(self):
         self.bs_calc = BlackScholesCalculator()
         self.trade_calc = OptionsTradeCalculator()
 
     def test_pricing_consistency(self):
-        """Test consistency between pricing and trade calculations"""
+        """Test consistency between pricing and trade calculations."""
         # Calculate theoretical option price
         spot = 100.0
         strike = 105.0
@@ -805,7 +805,7 @@ class TestOptionsCalculatorIntegration(unittest.TestCase):
         self.assertAlmostEqual(trade.strike, strike, delta=2.0)
 
     def test_greeks_integration(self):
-        """Test Greeks calculations integration"""
+        """Test Greeks calculations integration."""
         # Test that all Greeks can be calculated for the same option
         spot = 150.0
         strike = 160.0
@@ -834,7 +834,7 @@ class TestOptionsCalculatorIntegration(unittest.TestCase):
 
 
 def run_options_calculator_tests():
-    """Run all options calculator tests"""
+    """Run all options calculator tests."""
     print(" = " * 60)
     print("OPTIONS CALCULATOR - COMPREHENSIVE TEST SUITE")
     print(" = " * 60)

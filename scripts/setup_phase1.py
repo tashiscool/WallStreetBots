@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Phase 1 Setup Script
-Setup production environment for WallStreetBots Phase 1 implementation
+Setup production environment for WallStreetBots Phase 1 implementation.
 """
 
 import json
@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 def run_command(command: str, description: str):
-    """Run a command and handle errors"""
+    """Run a command and handle errors."""
     print(f"🔄 {description}...")
     try:
         result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
@@ -24,7 +24,7 @@ def run_command(command: str, description: str):
 
 
 def create_directories():
-    """Create necessary directories"""
+    """Create necessary directories."""
     directories = ["config", "logs", "data", "backups", "migrations"]
 
     for directory in directories:
@@ -33,7 +33,7 @@ def create_directories():
 
 
 def create_config_files():
-    """Create configuration files"""
+    """Create configuration files."""
     # Create production configuration template
     config_template = {
         "data_providers": {
@@ -252,7 +252,7 @@ LOGGING = {
 
 
 def install_dependencies():
-    """Install Phase 1 dependencies"""
+    """Install Phase 1 dependencies."""
     print("📦 Installing Phase 1 dependencies...")
 
     # Install requirements
@@ -266,7 +266,7 @@ def install_dependencies():
 
 
 def setup_database():
-    """Setup database"""
+    """Setup database."""
     print("🗄️ Setting up database...")
 
     # Create database migrations
@@ -289,7 +289,7 @@ def setup_database():
 
 
 def run_tests():
-    """Run Phase 1 tests"""
+    """Run Phase 1 tests."""
     print("🧪 Running Phase 1 tests...")
 
     result = run_command(
@@ -306,7 +306,7 @@ def run_tests():
 
 
 def create_startup_script():
-    """Create startup script"""
+    """Create startup script."""
     startup_script = """#!/bin / bash
 # WallStreetBots Phase 1 Startup Script
 
@@ -343,14 +343,11 @@ python manage.py runserver 0.0.0.0: 8000
 
 
 def main():
-    """Main setup function"""
+    """Main setup function."""
     print("🏗️  WallStreetBots Phase 1 Setup")
     print(" = " * 50)
 
     # Check Python version
-    if sys.version_info < (3, 8):
-        print("❌ Python 3.8 or higher is required")
-        sys.exit(1)
 
     print(f"✅ Python {sys.version_info.major}.{sys.version_info.minor} detected")
 

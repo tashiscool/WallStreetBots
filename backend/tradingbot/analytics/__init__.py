@@ -1,4 +1,4 @@
-"""Analytics Package-Advanced Performance Analytics and Market Regime Adaptation
+"""Analytics Package-Advanced Performance Analytics and Market Regime Adaptation.
 
 This package provides comprehensive analytics capabilities including:
 - Advanced performance metrics (Sharpe ratio, max drawdown, etc.)

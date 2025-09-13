@@ -1,5 +1,5 @@
 #!/usr / bin / env python3
-"""Test script for production scanner - validates logic without external dependencies"""
+"""Test script for production scanner - validates logic without external dependencies."""
 
 import math
 import os

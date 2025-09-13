@@ -1,11 +1,12 @@
 #!/usr / bin / env python3
 """WSB Strategy #5: 0DTE / Earnings Lotto Scanner
-High - risk, high - reward plays with strict position sizing and discipline
+High - risk, high - reward plays with strict position sizing and discipline.
 """
 
 import argparse
 import json
 import math
+import sys
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
 
@@ -16,7 +17,7 @@ try:
 except ImportError as e:
     print(f"Missing required package: {e}")
     print("Run: pip install -r wsb_requirements.txt")
-    exit(1)
+    sys.exit(1)
 
 
 @dataclass
@@ -57,7 +58,7 @@ class EarningsEvent:
 class LottoScanner:
     def __init__(self, max_risk_pct: float = 1.0):
         """Initialize with strict risk limits
-        max_risk_pct: Maximum % of account to risk per play (default 1%)
+        max_risk_pct: Maximum % of account to risk per play (default 1%).
         """
         self.max_risk_pct = max_risk_pct / 100
 
@@ -109,7 +110,7 @@ class LottoScanner:
         ]
 
     def get_0dte_expiry(self) -> str | None:
-        """Get 0DTE expiry if available (usually Monday / Wednesday / Friday)"""
+        """Get 0DTE expiry if available (usually Monday / Wednesday / Friday)."""
         today = date.today()
 
         # Check if today has 0DTE options (Mon / Wed / Fri for SPY, daily for others)
@@ -129,7 +130,7 @@ class LottoScanner:
         return None
 
     def get_weekly_expiry(self) -> str:
-        """Get next weekly expiry (Friday)"""
+        """Get next weekly expiry (Friday)."""
         today = date.today()
         days_until_friday = (4 - today.weekday()) % 7
         if days_until_friday == 0:  # If today is Friday
@@ -139,7 +140,7 @@ class LottoScanner:
         return friday.strftime("%Y-%m-%d")
 
     def estimate_expected_move(self, ticker: str, expiry: str) -> float:
-        """Estimate expected move from implied volatility"""
+        """Estimate expected move from implied volatility."""
         try:
             stock = yf.Ticker(ticker)
             spot = stock.history(period="1d")["Close"].iloc[-1]
@@ -195,7 +196,7 @@ class LottoScanner:
         return 0.05  # Default fallback
 
     def get_earnings_calendar(self, weeks_ahead: int = 2) -> list[EarningsEvent]:
-        """Get upcoming earnings events (simplified - would use real earnings API)"""
+        """Get upcoming earnings events (simplified - would use real earnings API)."""
         # This is a simplified version - in practice, use Alpha Vantage, FMP, or similar API
 
         # Mock earnings data for demonstration
@@ -240,7 +241,7 @@ class LottoScanner:
         return sorted(events, key=lambda x: x.earnings_date)
 
     def scan_0dte_opportunities(self, account_size: float) -> list[LottoPlay]:
-        """Scan for 0DTE opportunities"""
+        """Scan for 0DTE opportunities."""
         opportunities = []
         expiry = self.get_0dte_expiry()
 
@@ -369,7 +370,7 @@ class LottoScanner:
         return opportunities[:10]  # Top 10 plays
 
     def scan_earnings_lottos(self, account_size: float) -> list[LottoPlay]:
-        """Scan for earnings lotto plays"""
+        """Scan for earnings lotto plays."""
         opportunities = []
         earnings_events = self.get_earnings_calendar()
 
@@ -418,7 +419,7 @@ class LottoScanner:
                     ("put", spot * 0.98, "Minor downside surprise"),  # 2% OTM puts
                 ]
 
-                for option_type, target_strike, catalyst in plays_to_check:
+                for option_type, target_strike, _catalyst in plays_to_check:
                     if option_type == "call" and not chain.calls.empty:
                         options_df = chain.calls
                     elif option_type == "put" and not chain.puts.empty:
@@ -498,7 +499,7 @@ class LottoScanner:
         return opportunities[:15]
 
     def format_lotto_plays(self, plays: list[LottoPlay]) -> str:
-        """Format lotto plays for display"""
+        """Format lotto plays for display."""
         if not plays:
             return "🎰 No suitable lotto plays found."
 

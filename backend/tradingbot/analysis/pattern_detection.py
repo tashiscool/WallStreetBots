@@ -1,5 +1,5 @@
 """Advanced Pattern Detection for WSB - style Trading
-Replaces oversimplified logic with sophisticated technical analysis
+Replaces oversimplified logic with sophisticated technical analysis.
 """
 
 import logging
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PriceBar:
-    """Price bar data structure"""
+    """Price bar data structure."""
 
     timestamp: datetime
     open: Decimal
@@ -26,7 +26,7 @@ class PriceBar:
 
 @dataclass
 class PatternSignal:
-    """Enhanced pattern recognition signal"""
+    """Enhanced pattern recognition signal."""
 
     ticker: str
     signal_type: str
@@ -37,11 +37,11 @@ class PatternSignal:
 
 
 class TechnicalIndicators:
-    """Technical analysis indicators"""
+    """Technical analysis indicators."""
 
     @staticmethod
     def calculate_rsi(prices: list[Decimal], period: int = 14) -> Decimal | None:
-        """Calculate RSI (Relative Strength Index)"""
+        """Calculate RSI (Relative Strength Index)."""
         if len(prices) < period + 1:
             return None
 
@@ -74,7 +74,7 @@ class TechnicalIndicators:
 
     @staticmethod
     def calculate_sma(prices: list[Decimal], period: int) -> Decimal | None:
-        """Calculate Simple Moving Average"""
+        """Calculate Simple Moving Average."""
         if len(prices) < period:
             return None
 
@@ -90,7 +90,7 @@ class TechnicalIndicators:
     def calculate_bollinger_bands(
         prices: list[Decimal], period: int = 20, std_dev: float = 2.0
     ) -> dict[str, Decimal] | None:
-        """Calculate Bollinger Bands"""
+        """Calculate Bollinger Bands."""
         if len(prices) < period:
             return None
 
@@ -117,7 +117,7 @@ class TechnicalIndicators:
 
     @staticmethod
     def calculate_volume_spike(volumes: list[int], period: int = 20) -> float | None:
-        """Calculate volume spike ratio"""
+        """Calculate volume spike ratio."""
         if len(volumes) < period + 1:
             return None
 
@@ -137,7 +137,7 @@ class TechnicalIndicators:
 
 
 class WSBDipDetector:
-    """Advanced WSB dip detection with multiple confirmations"""
+    """Advanced WSB dip detection with multiple confirmations."""
 
     def __init__(self):
         # Enhanced thresholds for better signal quality
@@ -156,7 +156,7 @@ class WSBDipDetector:
     async def detect_wsb_dip_pattern(
         self, ticker: str, price_history: list[PriceBar]
     ) -> PatternSignal | None:
-        """Detect WSB - style dip - after - run pattern with multiple confirmations"""
+        """Detect WSB - style dip - after - run pattern with multiple confirmations."""
         try:
             if len(price_history) < 30:  # Need at least 30 days of data
                 return None
@@ -216,7 +216,7 @@ class WSBDipDetector:
             return None
 
     def _analyze_recent_run(self, closes: list[Decimal], highs: list[Decimal]) -> dict[str, Any]:
-        """Analyze recent price run to identify 'big run' setup"""
+        """Analyze recent price run to identify 'big run' setup."""
         try:
             # Look for highest high in last 10 days
             recent_high = max(highs[-10:])
@@ -258,7 +258,7 @@ class WSBDipDetector:
             return {"valid_run": False}
 
     def _analyze_current_dip(self, closes: list[Decimal], highs: list[Decimal]) -> dict[str, Any]:
-        """Analyze current dip from recent high"""
+        """Analyze current dip from recent high."""
         try:
             # Find recent high
             recent_high = max(highs[-10:])
@@ -287,7 +287,7 @@ class WSBDipDetector:
             return {"valid_dip": False}
 
     def _analyze_volume_pattern(self, volumes: list[int]) -> dict[str, Any]:
-        """Analyze volume pattern for confirmation"""
+        """Analyze volume pattern for confirmation."""
         try:
             if len(volumes) < 20:
                 return {}
@@ -313,7 +313,7 @@ class WSBDipDetector:
     def _analyze_technical_indicators(
         self, closes: list[Decimal], volumes: list[int]
     ) -> dict[str, Any]:
-        """Calculate technical indicators for confirmation"""
+        """Calculate technical indicators for confirmation."""
         try:
             # RSI
             rsi = TechnicalIndicators.calculate_rsi(closes, 14)
@@ -350,7 +350,7 @@ class WSBDipDetector:
         volume_analysis: dict,
         technical_analysis: dict,
     ) -> int:
-        """Calculate overall signal strength (0 - 10 scale)"""
+        """Calculate overall signal strength (0 - 10 scale)."""
         strength = 0
 
         # Run strength (0 - 3 points)
@@ -388,5 +388,5 @@ class WSBDipDetector:
 
 # Factory function
 def create_wsb_dip_detector() -> WSBDipDetector:
-    """Create and return a configured WSB dip detector"""
+    """Create and return a configured WSB dip detector."""
     return WSBDipDetector()

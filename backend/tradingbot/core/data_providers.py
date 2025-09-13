@@ -1,5 +1,5 @@
 """Real Data Providers
-Replaces hardcoded values with live market data
+Replaces hardcoded values with live market data.
 """
 
 import logging
@@ -12,7 +12,7 @@ import aiohttp
 
 @dataclass
 class MarketData:
-    """Standardized market data structure"""
+    """Standardized market data structure."""
 
     ticker: str
     price: float
@@ -28,7 +28,7 @@ class MarketData:
 
 @dataclass
 class OptionsData:
-    """Options chain data"""
+    """Options chain data."""
 
     ticker: str
     expiry_date: str
@@ -48,7 +48,7 @@ class OptionsData:
 
 @dataclass
 class EarningsEvent:
-    """Earnings event data"""
+    """Earnings event data."""
 
     ticker: str
     earnings_date: datetime
@@ -60,7 +60,7 @@ class EarningsEvent:
 
 
 class IEXDataProvider:
-    """IEX Cloud data provider"""
+    """IEX Cloud data provider."""
 
     def __init__(self, api_key: str):
         self.api_key = api_key
@@ -68,7 +68,7 @@ class IEXDataProvider:
         self.logger = logging.getLogger(__name__)
 
     async def get_quote(self, ticker: str) -> MarketData:
-        """Get real - time quote"""
+        """Get real - time quote."""
         try:
             async with aiohttp.ClientSession() as session:
                 url = f"{self.base_url}/stock / {ticker}/quote"
@@ -97,7 +97,7 @@ class IEXDataProvider:
             return self._get_fallback_data(ticker)
 
     def _get_fallback_data(self, ticker: str) -> MarketData:
-        """Fallback data when API fails"""
+        """Fallback data when API fails."""
         return MarketData(
             ticker=ticker,
             price=0.0,
@@ -113,7 +113,7 @@ class IEXDataProvider:
 
 
 class PolygonDataProvider:
-    """Polygon.io data provider for options and real - time data"""
+    """Polygon.io data provider for options and real - time data."""
 
     def __init__(self, api_key: str):
         self.api_key = api_key
@@ -123,7 +123,7 @@ class PolygonDataProvider:
     async def get_options_chain(
         self, ticker: str, expiry_date: str | None = None
     ) -> list[OptionsData]:
-        """Get options chain data"""
+        """Get options chain data."""
         try:
             async with aiohttp.ClientSession() as session:
                 if expiry_date:
@@ -171,7 +171,7 @@ class PolygonDataProvider:
             return []
 
     async def get_real_time_quote(self, ticker: str) -> MarketData:
-        """Get real - time quote from Polygon"""
+        """Get real - time quote from Polygon."""
         try:
             async with aiohttp.ClientSession() as session:
                 url = f"{self.base_url}/v2 / last / trade / {ticker}"
@@ -200,7 +200,7 @@ class PolygonDataProvider:
             return self._get_fallback_data(ticker)
 
     def _get_fallback_data(self, ticker: str) -> MarketData:
-        """Fallback data when API fails"""
+        """Fallback data when API fails."""
         return MarketData(
             ticker=ticker,
             price=0.0,
@@ -216,7 +216,7 @@ class PolygonDataProvider:
 
 
 class EarningsDataProvider:
-    """Real earnings data provider"""
+    """Real earnings data provider."""
 
     def __init__(self, api_key: str):
         self.api_key = api_key
@@ -224,7 +224,7 @@ class EarningsDataProvider:
         self.logger = logging.getLogger(__name__)
 
     async def get_upcoming_earnings(self, days_ahead: int = 7) -> list[EarningsEvent]:
-        """Get upcoming earnings events"""
+        """Get upcoming earnings events."""
         try:
             async with aiohttp.ClientSession() as session:
                 url = f"{self.base_url}/earning_calendar"
@@ -263,7 +263,7 @@ class EarningsDataProvider:
             return []
 
     async def get_earnings_history(self, ticker: str, limit: int = 4) -> list[EarningsEvent]:
-        """Get historical earnings data"""
+        """Get historical earnings data."""
         try:
             async with aiohttp.ClientSession() as session:
                 url = f"{self.base_url}/historical / earning_calendar / {ticker}"
@@ -305,7 +305,7 @@ class EarningsDataProvider:
 
 
 class NewsDataProvider:
-    """News and sentiment data provider"""
+    """News and sentiment data provider."""
 
     def __init__(self, api_key: str):
         self.api_key = api_key
@@ -313,7 +313,7 @@ class NewsDataProvider:
         self.logger = logging.getLogger(__name__)
 
     async def get_ticker_news(self, ticker: str, days_back: int = 1) -> list[dict[str, Any]]:
-        """Get recent news for ticker"""
+        """Get recent news for ticker."""
         try:
             async with aiohttp.ClientSession() as session:
                 url = f"{self.base_url}/everything"
@@ -337,7 +337,7 @@ class NewsDataProvider:
             return []
 
     async def analyze_sentiment(self, ticker: str) -> dict[str, float]:
-        """Analyze news sentiment for ticker"""
+        """Analyze news sentiment for ticker."""
         try:
             news = await self.get_ticker_news(ticker)
             if not news:
@@ -375,7 +375,7 @@ class NewsDataProvider:
 
 
 class UnifiedDataProvider:
-    """Unified data provider that aggregates multiple sources"""
+    """Unified data provider that aggregates multiple sources."""
 
     def __init__(self, config: dict[str, str]):
         self.iex = IEXDataProvider(config.get("iex_api_key", ""))
@@ -385,7 +385,7 @@ class UnifiedDataProvider:
         self.logger = logging.getLogger(__name__)
 
     async def get_market_data(self, ticker: str) -> MarketData:
-        """Get market data from best available source"""
+        """Get market data from best available source."""
         try:
             # Try IEX first
             data = await self.iex.get_quote(ticker)
@@ -428,19 +428,19 @@ class UnifiedDataProvider:
     async def get_options_data(
         self, ticker: str, expiry_date: str | None = None
     ) -> list[OptionsData]:
-        """Get options data from Polygon"""
+        """Get options data from Polygon."""
         return await self.polygon.get_options_chain(ticker, expiry_date)
 
     async def get_earnings_data(self, ticker: str, days_ahead: int = 7) -> list[EarningsEvent]:
-        """Get earnings data from FMP"""
+        """Get earnings data from FMP."""
         return await self.earnings.get_upcoming_earnings(days_ahead)
 
     async def get_sentiment_data(self, ticker: str) -> dict[str, float]:
-        """Get sentiment data from news analysis"""
+        """Get sentiment data from news analysis."""
         return await self.news.analyze_sentiment(ticker)
 
 
 # Factory function for easy initialization
 def create_data_provider(config: dict[str, str]) -> UnifiedDataProvider:
-    """Create unified data provider with configuration"""
+    """Create unified data provider with configuration."""
     return UnifiedDataProvider(config)

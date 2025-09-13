@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Behavioral Verification Tests for Risk Management System
-Tests mathematical accuracy of Kelly Criterion, position sizing, and portfolio risk calculations
+Tests mathematical accuracy of Kelly Criterion, position sizing, and portfolio risk calculations.
 """
 
 import os
@@ -21,13 +21,13 @@ from backend.tradingbot.risk_management import (
 
 
 class TestKellyCriterionAccuracy(unittest.TestCase):
-    """Test mathematical accuracy of Kelly Criterion calculations"""
+    """Test mathematical accuracy of Kelly Criterion calculations."""
 
     def setUp(self):
         self.kelly_calc = KellyCalculator()
 
     def test_kelly_formula_mathematical_accuracy(self):
-        """Test Kelly formula against known mathematical results"""
+        """Test Kelly formula against known mathematical results."""
         # Known test case: 60% win rate, 2: 1 reward - risk ratio
         win_prob = 0.60
         avg_win = 1.00  # 100% gain
@@ -45,7 +45,7 @@ class TestKellyCriterionAccuracy(unittest.TestCase):
         self.assertAlmostEqual(kelly_fraction, 0.4, places=10)
 
     def test_kelly_edge_cases(self):
-        """Test Kelly calculation edge cases"""
+        """Test Kelly calculation edge cases."""
         # No edge case (50 / 50 with equal payouts)
         no_edge_kelly = self.kelly_calc.calculate_kelly_fraction(0.5, 1.0, 1.0)
         self.assertEqual(no_edge_kelly, 0.0)
@@ -63,7 +63,7 @@ class TestKellyCriterionAccuracy(unittest.TestCase):
         self.assertEqual(zero_loss_kelly, 0.0)
 
     def test_kelly_from_historical_trades_accuracy(self):
-        """Test Kelly calculation from historical trade data"""
+        """Test Kelly calculation from historical trade data."""
         # Known test case with specific win / loss pattern
         trades = [
             {"return_pct": 1.0},  # 100% win
@@ -88,7 +88,7 @@ class TestKellyCriterionAccuracy(unittest.TestCase):
         self.assertAlmostEqual(kelly_fraction, 0.4, places=10)
 
     def test_kelly_empty_data_handling(self):
-        """Test handling of empty or invalid trade data"""
+        """Test handling of empty or invalid trade data."""
         # Empty trades
         kelly, stats = self.kelly_calc.calculate_from_historical_trades([])
         self.assertEqual(kelly, 0.0)
@@ -107,7 +107,7 @@ class TestKellyCriterionAccuracy(unittest.TestCase):
         self.assertIn("error", stats)
 
     def test_successful_trade_kelly_calculation(self):
-        """Test Kelly calculation using the documented successful trade"""
+        """Test Kelly calculation using the documented successful trade."""
         # Based on the 240% successful trade and typical loss patterns
         successful_trades = [
             {"return_pct": 2.40},  # The documented 240% winner
@@ -128,14 +128,14 @@ class TestKellyCriterionAccuracy(unittest.TestCase):
 
 
 class TestPositionSizingAccuracy(unittest.TestCase):
-    """Test mathematical accuracy of position sizing calculations"""
+    """Test mathematical accuracy of position sizing calculations."""
 
     def setUp(self):
         self.risk_params = RiskParameters()
         self.position_sizer = PositionSizer(self.risk_params)
 
     def test_fixed_fractional_sizing_accuracy(self):
-        """Test fixed fractional position sizing mathematical accuracy"""
+        """Test fixed fractional position sizing mathematical accuracy."""
         account_value = 100000.0
         premium_per_contract = 5.0
         risk_tier = "moderate"  # 10% risk
@@ -160,7 +160,7 @@ class TestPositionSizingAccuracy(unittest.TestCase):
         self.assertLessEqual(sizing["risk_percentage"], 10.0)  # Should not exceed tier risk
 
     def test_kelly_sizing_mathematical_consistency(self):
-        """Test Kelly - based sizing mathematical consistency"""
+        """Test Kelly - based sizing mathematical consistency."""
         account_value = 500000.0
         premium_per_contract = 4.70
 
@@ -194,7 +194,7 @@ class TestPositionSizingAccuracy(unittest.TestCase):
         self.assertEqual(sizing["kelly_contracts"], expected_kelly_contracts)
 
     def test_confidence_adjusted_sizing_accuracy(self):
-        """Test confidence-adjusted sizing mathematical accuracy"""
+        """Test confidence-adjusted sizing mathematical accuracy."""
         account_value = 200000.0
         premium_per_contract = 3.0
         setup_confidence = 0.75  # 75% confidence
@@ -218,7 +218,7 @@ class TestPositionSizingAccuracy(unittest.TestCase):
         self.assertEqual(sizing["setup_confidence"], setup_confidence)
 
     def test_position_sizing_safety_limits(self):
-        """Test position sizing respects absolute safety limits"""
+        """Test position sizing respects absolute safety limits."""
         account_value = 50000.0
         premium_per_contract = 1.0  # Very cheap options
 
@@ -239,7 +239,7 @@ class TestPositionSizingAccuracy(unittest.TestCase):
         )
 
     def test_position_sizing_input_validation(self):
-        """Test position sizing input validation"""
+        """Test position sizing input validation."""
         # Negative account value
         with self.assertRaises(ValueError):
             self.position_sizer.calculate_position_size(
@@ -260,10 +260,10 @@ class TestPositionSizingAccuracy(unittest.TestCase):
 
 
 class TestPositionMathematicalAccuracy(unittest.TestCase):
-    """Test Position class mathematical calculations"""
+    """Test Position class mathematical calculations."""
 
     def test_position_calculation_accuracy(self):
-        """Test Position P & L and risk calculations"""
+        """Test Position P & L and risk calculations."""
         # Create position with known values
         entry_date = datetime(2024, 1, 15)
         expiry_date = datetime(2024, 2, 15)  # 31 days later
@@ -295,7 +295,7 @@ class TestPositionMathematicalAccuracy(unittest.TestCase):
         self.assertEqual(position.stop_loss_level, expected_stop_loss)
 
     def test_position_roi_calculation_accuracy(self):
-        """Test ROI calculation mathematical accuracy"""
+        """Test ROI calculation mathematical accuracy."""
         position = Position(
             ticker="GOOGL",
             position_type="call",
@@ -317,7 +317,7 @@ class TestPositionMathematicalAccuracy(unittest.TestCase):
         self.assertAlmostEqual(position.unrealized_roi, expected_roi, places=10)
 
     def test_position_premium_update_accuracy(self):
-        """Test position premium update calculations"""
+        """Test position premium update calculations."""
         position = Position(
             ticker="MSFT",
             position_type="call",
@@ -351,7 +351,7 @@ class TestPositionMathematicalAccuracy(unittest.TestCase):
         self.assertEqual(position.max_profit, expected_max_profit)
 
     def test_days_to_expiry_calculation(self):
-        """Test days to expiry calculation accuracy"""
+        """Test days to expiry calculation accuracy."""
         # Mock datetime.now() for consistent testing
         entry_date = datetime(2024, 1, 1)
         expiry_date = datetime(2024, 2, 1)  # 31 days later
@@ -379,13 +379,13 @@ class TestPositionMathematicalAccuracy(unittest.TestCase):
 
 
 class TestPortfolioRiskAccuracy(unittest.TestCase):
-    """Test portfolio - level risk calculation accuracy"""
+    """Test portfolio - level risk calculation accuracy."""
 
     def setUp(self):
         self.risk_manager = RiskManager()
 
     def test_portfolio_risk_calculation_accuracy(self):
-        """Test portfolio risk metrics mathematical accuracy"""
+        """Test portfolio risk metrics mathematical accuracy."""
         # Add multiple positions
         positions = [
             Position(
@@ -433,7 +433,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
         self.assertEqual(portfolio_risk.unrealized_pnl, expected_unrealized_pnl)
 
     def test_concentration_calculation_accuracy(self):
-        """Test ticker concentration calculation accuracy"""
+        """Test ticker concentration calculation accuracy."""
         # Add positions with known concentrations
         positions = [
             # 60% in AAPL
@@ -486,7 +486,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
         )
 
     def test_risk_utilization_calculation_accuracy(self):
-        """Test risk utilization percentage calculation"""
+        """Test risk utilization percentage calculation."""
         # The portfolio uses a baseline account value when no positions exist
         # Let's test with the actual implementation behavior
         position = Position(
@@ -524,7 +524,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
 
 
 class TestRiskManagerValidation(unittest.TestCase):
-    """Test risk manager validation logic"""
+    """Test risk manager validation logic."""
 
     def setUp(self):
         self.risk_manager = RiskManager()
@@ -535,7 +535,7 @@ class TestRiskManagerValidation(unittest.TestCase):
         )
 
     def test_position_validation_size_limit(self):
-        """Test position validation against size limits"""
+        """Test position validation against size limits."""
         # Create position that exceeds single position limit
         oversized_position = Position(
             ticker="TSLA",
@@ -577,7 +577,7 @@ class TestRiskManagerValidation(unittest.TestCase):
         self.assertTrue(is_valid)
 
     def test_stop_loss_detection_accuracy(self):
-        """Test stop loss detection mathematical logic"""
+        """Test stop loss detection mathematical logic."""
         # Create position below stop loss level
         stopped_position = Position(
             ticker="NVDA",
@@ -601,7 +601,7 @@ class TestRiskManagerValidation(unittest.TestCase):
         self.assertEqual(positions_to_stop[0].ticker, "NVDA")
 
     def test_profit_target_detection_accuracy(self):
-        """Test profit target detection mathematical logic"""
+        """Test profit target detection mathematical logic."""
         # Create position above profit targets
         profitable_position = Position(
             ticker="META",
@@ -629,7 +629,7 @@ class TestRiskManagerValidation(unittest.TestCase):
 
 
 def run_risk_management_verification_tests():
-    """Run all risk management verification tests"""
+    """Run all risk management verification tests."""
     print(" = " * 70)
     print("RISK MANAGEMENT SYSTEM - BEHAVIORAL VERIFICATION TEST SUITE")
     print(" = " * 70)

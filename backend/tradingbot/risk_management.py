@@ -12,7 +12,7 @@ import numpy as np
 
 
 class RiskLevel(Enum):
-    """Risk level classification"""
+    """Risk level classification."""
 
     CONSERVATIVE = "conservative"
     MODERATE = "moderate"
@@ -21,7 +21,7 @@ class RiskLevel(Enum):
 
 
 class PositionStatus(Enum):
-    """Position status for tracking"""
+    """Position status for tracking."""
 
     OPEN = "open"
     CLOSED = "closed"
@@ -31,7 +31,7 @@ class PositionStatus(Enum):
 
 @dataclass
 class RiskParameters:
-    """Risk management configuration"""
+    """Risk management configuration."""
 
     # Account - level risk limits
     max_single_position_risk: float = 0.15  # Never risk more than 15% on single trade
@@ -70,7 +70,7 @@ class RiskParameters:
 
 @dataclass
 class Position:
-    """Individual position tracking"""
+    """Individual position tracking."""
 
     ticker: str
     position_type: str  # 'call', 'put', 'spread'
@@ -105,16 +105,16 @@ class Position:
 
     @property
     def days_to_expiry(self) -> int:
-        """Calculate days remaining to expiry"""
+        """Calculate days remaining to expiry."""
         return max(0, (self.expiry_date - datetime.now()).days)
 
     @property
     def unrealized_roi(self) -> float:
-        """Calculate unrealized return on investment"""
+        """Calculate unrealized return on investment."""
         return (self.unrealized_pnl / self.total_cost) if self.total_cost > 0 else 0.0
 
     def update_current_premium(self, new_premium: float):
-        """Update position with current market premium"""
+        """Update position with current market premium."""
         self.current_premium = new_premium
         self.current_value = self.contracts * new_premium
         self.unrealized_pnl = self.current_value - self.total_cost
@@ -125,7 +125,7 @@ class Position:
 
 @dataclass
 class PortfolioRisk:
-    """Portfolio - level risk metrics"""
+    """Portfolio - level risk metrics."""
 
     account_value: float
     total_cash: float
@@ -151,13 +151,13 @@ class PortfolioRisk:
 
 
 class KellyCalculator:
-    """Kelly Criterion calculator for optimal position sizing"""
+    """Kelly Criterion calculator for optimal position sizing."""
 
     @staticmethod
     def calculate_kelly_fraction(
         win_probability: float, avg_win_pct: float, avg_loss_pct: float
     ) -> float:
-        """Calculate Kelly fraction for optimal position sizing
+        """Calculate Kelly fraction for optimal position sizing.
 
         Args:
             win_probability: Probability of winning (0 to 1)
@@ -181,7 +181,7 @@ class KellyCalculator:
 
     @staticmethod
     def calculate_from_historical_trades(trades: list[dict]) -> tuple[float, dict]:
-        """Calculate Kelly fraction from historical trade results
+        """Calculate Kelly fraction from historical trade results.
 
         Args:
             trades: List of trade dictionaries with 'return_pct' key
@@ -217,7 +217,7 @@ class KellyCalculator:
 
 
 class PositionSizer:
-    """Advanced position sizing with multiple risk models"""
+    """Advanced position sizing with multiple risk models."""
 
     def __init__(self, risk_params: RiskParameters = None):
         self.risk_params = risk_params or RiskParameters()
@@ -233,7 +233,7 @@ class PositionSizer:
         expected_avg_loss: float = 0.45,  # Average 45% loss on losers (stop loss)
         risk_tier: str = "moderate",
     ) -> dict:
-        """Calculate optimal position size using multiple methods
+        """Calculate optimal position size using multiple methods.
 
         Returns:
             Dictionary with position sizing recommendations
@@ -308,7 +308,7 @@ class PositionSizer:
 
 
 class RiskManager:
-    """Comprehensive risk management system"""
+    """Comprehensive risk management system."""
 
     def __init__(self, risk_params: RiskParameters = None):
         self.risk_params = risk_params or RiskParameters()
@@ -316,7 +316,7 @@ class RiskManager:
         self.positions: list[Position] = []
 
     def add_position(self, position: Position) -> bool:
-        """Add position after risk checks"""
+        """Add position after risk checks."""
         # Check if position passes risk limits
         if self._validate_new_position(position):
             self.positions.append(position)
@@ -324,7 +324,7 @@ class RiskManager:
         return False
 
     def _validate_new_position(self, position: Position) -> bool:
-        """Validate new position against risk limits"""
+        """Validate new position against risk limits."""
         current_portfolio = self.calculate_portfolio_risk(position.total_cost)
 
         # Check individual position size limit
@@ -340,13 +340,10 @@ class RiskManager:
 
         # Check ticker concentration
         ticker_exposure = self._calculate_ticker_exposure(position.ticker)
-        if ticker_exposure > self.risk_params.max_concentration_per_ticker:
-            return False
-
-        return True
+        return not ticker_exposure > self.risk_params.max_concentration_per_ticker
 
     def calculate_portfolio_risk(self, additional_risk: float = 0) -> PortfolioRisk:
-        """Calculate current portfolio risk metrics"""
+        """Calculate current portfolio risk metrics."""
         if not self.positions:
             # Assume some baseline account value for empty portfolio
             account_value = 500000.0  # This should come from account data
@@ -385,7 +382,7 @@ class RiskManager:
         )
 
     def _calculate_ticker_exposure(self, ticker: str) -> float:
-        """Calculate current exposure to a specific ticker"""
+        """Calculate current exposure to a specific ticker."""
         ticker_value = sum(
             pos.current_value
             for pos in self.positions
@@ -397,7 +394,7 @@ class RiskManager:
         )
 
     def _calculate_concentrations(self) -> dict[str, float]:
-        """Calculate ticker concentration percentages"""
+        """Calculate ticker concentration percentages."""
         concentrations = {}
 
         for position in self.positions:
@@ -417,7 +414,7 @@ class RiskManager:
         return concentrations
 
     def check_stop_losses(self) -> list[Position]:
-        """Check which positions should be stopped out"""
+        """Check which positions should be stopped out."""
         positions_to_stop = []
 
         for position in self.positions:
@@ -443,7 +440,7 @@ class RiskManager:
         return positions_to_stop
 
     def check_profit_targets(self) -> list[tuple[Position, float]]:
-        """Check which positions hit profit targets"""
+        """Check which positions hit profit targets."""
         profit_exits = []
 
         for position in self.positions:
@@ -453,7 +450,7 @@ class RiskManager:
             current_roi = position.unrealized_roi
 
             # Check each profit target level
-            for i, target_roi in enumerate(self.risk_params.profit_take_levels):
+            for _i, target_roi in enumerate(self.risk_params.profit_take_levels):
                 if current_roi >= target_roi:
                     # Determine what fraction to close (1 / 3 each level)
                     fraction_to_close = 1.0 / len(self.risk_params.profit_take_levels)
@@ -463,7 +460,7 @@ class RiskManager:
         return profit_exits
 
     def generate_risk_report(self) -> dict:
-        """Generate comprehensive risk report"""
+        """Generate comprehensive risk report."""
         portfolio_risk = self.calculate_portfolio_risk()
 
         open_positions = [pos for pos in self.positions if pos.status == PositionStatus.OPEN]

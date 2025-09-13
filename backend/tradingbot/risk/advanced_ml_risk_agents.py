@@ -1,5 +1,5 @@
 """Advanced ML Risk Agents
-Reinforcement Learning for Dynamic Risk Management
+Reinforcement Learning for Dynamic Risk Management.
 
 This module implements sophisticated ML agents for dynamic risk management:
 - PPO (Proximal Policy Optimization) for risk policy learning
@@ -24,7 +24,7 @@ import numpy as np
 
 
 class RiskActionType(str, Enum):
-    """Types of risk management actions"""
+    """Types of risk management actions."""
 
     INCREASE_POSITION = "increase_position"
     DECREASE_POSITION = "decrease_position"
@@ -36,7 +36,7 @@ class RiskActionType(str, Enum):
 
 @dataclass
 class RiskState:
-    """Current risk state for ML agents"""
+    """Current risk state for ML agents."""
 
     portfolio_var: float
     portfolio_cvar: float
@@ -56,7 +56,7 @@ class RiskState:
 
 @dataclass
 class RiskAction:
-    """Risk management action"""
+    """Risk management action."""
 
     action_type: RiskActionType
     symbol: str
@@ -68,7 +68,7 @@ class RiskAction:
 
 @dataclass
 class RiskReward:
-    """Reward signal for risk management"""
+    """Reward signal for risk management."""
 
     risk_reduction: float
     performance_impact: float
@@ -77,7 +77,7 @@ class RiskReward:
 
 
 class RiskEnvironment:
-    """Risk management environment for RL agents
+    """Risk management environment for RL agents.
 
     Provides:
     - State representation
@@ -87,7 +87,7 @@ class RiskEnvironment:
     """
 
     def __init__(self, risk_limits: dict[str, float], market_data_provider: Any = None):
-        """Initialize risk environment
+        """Initialize risk environment.
 
         Args:
             risk_limits: Risk limits configuration
@@ -111,7 +111,7 @@ class RiskEnvironment:
         self.logger.info("Risk Environment initialized")
 
     def get_state(self, portfolio_data: dict[str, Any], market_data: dict[str, Any]) -> RiskState:
-        """Get current risk state
+        """Get current risk state.
 
         Args:
             portfolio_data: Current portfolio data
@@ -181,11 +181,11 @@ class RiskEnvironment:
             )
 
     def get_action_space(self) -> list[RiskActionType]:
-        """Get available action space"""
+        """Get available action space."""
         return list(RiskActionType)
 
     def execute_action(self, action: RiskAction, portfolio_data: dict[str, Any]) -> RiskReward:
-        """Execute risk management action and calculate reward
+        """Execute risk management action and calculate reward.
 
         Args:
             action: Risk action to execute
@@ -233,7 +233,7 @@ class RiskEnvironment:
     def _calculate_risk_reduction(
         self, action: RiskAction, portfolio_data: dict[str, Any]
     ) -> float:
-        """Calculate risk reduction from action"""
+        """Calculate risk reduction from action."""
         try:
             current_var = portfolio_data.get("portfolio_var", 0.0)
             portfolio_data.get("portfolio_cvar", 0.0)
@@ -259,7 +259,7 @@ class RiskEnvironment:
     def _calculate_performance_impact(
         self, action: RiskAction, portfolio_data: dict[str, Any]
     ) -> float:
-        """Calculate performance impact from action"""
+        """Calculate performance impact from action."""
         try:
             # Estimate performance impact based on action type
             if action.action_type == RiskActionType.INCREASE_POSITION:
@@ -285,7 +285,7 @@ class RiskEnvironment:
     def _calculate_compliance_score(
         self, action: RiskAction, portfolio_data: dict[str, Any]
     ) -> float:
-        """Calculate compliance score for action"""
+        """Calculate compliance score for action."""
         try:
             # Check if action improves compliance
             current_var = portfolio_data.get("portfolio_var", 0.0)
@@ -312,7 +312,7 @@ class RiskEnvironment:
             return 0.0
 
     def reset_episode(self):
-        """Reset environment for new episode"""
+        """Reset environment for new episode."""
         self.episode_count += 1
         self.action_history = []
         self.reward_history = []
@@ -320,7 +320,7 @@ class RiskEnvironment:
 
 
 class PPORiskAgent:
-    """Proximal Policy Optimization agent for risk management
+    """Proximal Policy Optimization agent for risk management.
 
     PPO is well - suited for risk management because:
     - Stable learning with clipped objective
@@ -338,7 +338,7 @@ class PPORiskAgent:
         value_coef: float = 0.5,
         entropy_coef: float = 0.01,
     ):
-        """Initialize PPO agent
+        """Initialize PPO agent.
 
         Args:
             state_dim: Dimension of state space
@@ -370,7 +370,7 @@ class PPORiskAgent:
         self.logger.info("PPO Risk Agent initialized")
 
     def _build_policy_network(self) -> dict[str, Any]:
-        """Build policy network (simplified)"""
+        """Build policy network (simplified)."""
         return {
             "layers": [self.state_dim, 128, 64, self.action_dim],
             "activation": "relu",
@@ -378,7 +378,7 @@ class PPORiskAgent:
         }
 
     def _build_value_network(self) -> dict[str, Any]:
-        """Build value network (simplified)"""
+        """Build value network (simplified)."""
         return {
             "layers": [self.state_dim, 128, 64, 1],
             "activation": "relu",
@@ -386,7 +386,7 @@ class PPORiskAgent:
         }
 
     def get_action(self, state: RiskState) -> RiskAction:
-        """Get action from current state
+        """Get action from current state.
 
         Args:
             state: Current risk state
@@ -429,7 +429,7 @@ class PPORiskAgent:
             )
 
     def _state_to_vector(self, state: RiskState) -> np.ndarray:
-        """Convert state to vector representation"""
+        """Convert state to vector representation."""
         return np.array(
             [
                 state.portfolio_var,
@@ -450,7 +450,7 @@ class PPORiskAgent:
         )
 
     def _forward_policy(self, state_vector: np.ndarray) -> np.ndarray:
-        """Forward pass through policy network (simplified)"""
+        """Forward pass through policy network (simplified)."""
         # Simplified policy network
         # In practice, this would be a neural network
 
@@ -491,7 +491,7 @@ class PPORiskAgent:
         rewards: list[RiskReward],
         old_log_probs: list[float],
     ):
-        """Update policy network using PPO
+        """Update policy network using PPO.
 
         Args:
             states: List of states
@@ -533,7 +533,7 @@ class PPORiskAgent:
             self.logger.error(f"Error updating policy: {e}")
 
     def _calculate_advantages(self, rewards: np.ndarray) -> np.ndarray:
-        """Calculate advantages using GAE (simplified)"""
+        """Calculate advantages using GAE (simplified)."""
         # Simplified advantage calculation
         # In practice, this would use Generalized Advantage Estimation
         return rewards - np.mean(rewards)
@@ -545,23 +545,23 @@ class PPORiskAgent:
         advantages: np.ndarray,
         old_log_probs: np.ndarray,
     ) -> float:
-        """Calculate PPO policy loss (simplified)"""
+        """Calculate PPO policy loss (simplified)."""
         # Simplified policy loss calculation
         # In practice, this would implement the full PPO objective
         return np.mean(advantages**2)
 
     def _calculate_value_loss(self, states: np.ndarray, rewards: np.ndarray) -> float:
-        """Calculate value function loss (simplified)"""
+        """Calculate value function loss (simplified)."""
         # Simplified value loss calculation
         return np.mean((rewards - np.mean(rewards)) ** 2)
 
     def _calculate_entropy_loss(self, states: np.ndarray) -> float:
-        """Calculate entropy loss (simplified)"""
+        """Calculate entropy loss (simplified)."""
         # Simplified entropy loss calculation
         return -np.mean(np.sum(states**2, axis=1))
 
     def save_model(self, filepath: str):
-        """Save trained model"""
+        """Save trained model."""
         try:
             model_data = {
                 "policy_net": self.policy_net,
@@ -581,7 +581,7 @@ class PPORiskAgent:
             self.logger.error(f"Error saving model: {e}")
 
     def load_model(self, filepath: str):
-        """Load trained model"""
+        """Load trained model."""
         try:
             with open(filepath, "rb") as f:
                 model_data = pickle.load(f)
@@ -600,7 +600,7 @@ class PPORiskAgent:
 
 
 class DDPGRiskAgent:
-    """Deep Deterministic Policy Gradient agent for continuous risk control
+    """Deep Deterministic Policy Gradient agent for continuous risk control.
 
     DDPG is well - suited for risk management because:
     - Handles continuous action spaces
@@ -617,7 +617,7 @@ class DDPGRiskAgent:
         tau: float = 0.005,
         gamma: float = 0.99,
     ):
-        """Initialize DDPG agent
+        """Initialize DDPG agent.
 
         Args:
             state_dim: Dimension of state space
@@ -649,7 +649,7 @@ class DDPGRiskAgent:
         self.logger.info("DDPG Risk Agent initialized")
 
     def _build_actor_network(self) -> dict[str, Any]:
-        """Build actor network (simplified)"""
+        """Build actor network (simplified)."""
         return {
             "layers": [self.state_dim, 256, 128, self.action_dim],
             "activation": "relu",
@@ -657,7 +657,7 @@ class DDPGRiskAgent:
         }
 
     def _build_critic_network(self) -> dict[str, Any]:
-        """Build critic network (simplified)"""
+        """Build critic network (simplified)."""
         return {
             "layers": [self.state_dim + self.action_dim, 256, 128, 1],
             "activation": "relu",
@@ -665,7 +665,7 @@ class DDPGRiskAgent:
         }
 
     def get_action(self, state: RiskState, noise: float = 0.1) -> RiskAction:
-        """Get continuous risk adjustment action
+        """Get continuous risk adjustment action.
 
         Args:
             state: Current risk state
@@ -719,7 +719,7 @@ class DDPGRiskAgent:
             )
 
     def _state_to_vector(self, state: RiskState) -> np.ndarray:
-        """Convert state to vector representation"""
+        """Convert state to vector representation."""
         return np.array(
             [
                 state.portfolio_var,
@@ -740,7 +740,7 @@ class DDPGRiskAgent:
         )
 
     def _forward_actor(self, state_vector: np.ndarray) -> float:
-        """Forward pass through actor network (simplified)"""
+        """Forward pass through actor network (simplified)."""
         # Simplified actor network
         # In practice, this would be a neural network
 
@@ -776,7 +776,7 @@ class DDPGRiskAgent:
         rewards: list[RiskReward],
         next_states: list[RiskState],
     ):
-        """Update DDPG networks
+        """Update DDPG networks.
 
         Args:
             states: List of states
@@ -817,29 +817,29 @@ class DDPGRiskAgent:
             self.logger.error(f"Error updating DDPG networks: {e}")
 
     def _get_target_q_values(self, next_states: np.ndarray) -> np.ndarray:
-        """Get target Q - values (simplified)"""
+        """Get target Q - values (simplified)."""
         # Simplified target Q - value calculation
         return np.zeros(len(next_states))
 
     def _update_critic(
         self, states: np.ndarray, actions: np.ndarray, target_q_values: np.ndarray
     ) -> float:
-        """Update critic network (simplified)"""
+        """Update critic network (simplified)."""
         # Simplified critic update
         return np.mean((target_q_values - np.mean(target_q_values)) ** 2)
 
     def _update_actor(self, states: np.ndarray) -> float:
-        """Update actor network (simplified)"""
+        """Update actor network (simplified)."""
         # Simplified actor update
         return np.mean(np.sum(states**2, axis=1))
 
     def _soft_update_target_networks(self):
-        """Soft update target networks (simplified)"""
+        """Soft update target networks (simplified)."""
         # Simplified soft update
         pass
 
     def save_model(self, filepath: str):
-        """Save trained model"""
+        """Save trained model."""
         try:
             model_data = {
                 "actor_net": self.actor_net,
@@ -858,7 +858,7 @@ class DDPGRiskAgent:
             self.logger.error(f"Error saving DDPG model: {e}")
 
     def load_model(self, filepath: str):
-        """Load trained model"""
+        """Load trained model."""
         try:
             with open(filepath, "rb") as f:
                 model_data = pickle.load(f)
@@ -876,7 +876,7 @@ class DDPGRiskAgent:
 
 
 class MultiAgentRiskCoordinator:
-    """Multi - agent risk coordination system
+    """Multi - agent risk coordination system.
 
     Coordinates multiple RL agents for comprehensive risk management:
     - PPO agent for discrete risk actions
@@ -893,7 +893,7 @@ class MultiAgentRiskCoordinator:
         enable_ddpg: bool = True,
         enable_td3: bool = False,
     ):
-        """Initialize multi - agent coordinator
+        """Initialize multi - agent coordinator.
 
         Args:
             risk_limits: Risk limits configuration
@@ -918,7 +918,7 @@ class MultiAgentRiskCoordinator:
             self.agents["td3"] = DDPGRiskAgent()  # Placeholder
 
         # Coordination state
-        self.agent_performance = {name: [] for name in self.agents.keys()}
+        self.agent_performance = {name: [] for name in self.agents}
         self.ensemble_decisions = []
         self.coordination_history = []
 
@@ -927,7 +927,7 @@ class MultiAgentRiskCoordinator:
     async def get_ensemble_action(
         self, portfolio_data: dict[str, Any], market_data: dict[str, Any]
     ) -> RiskAction:
-        """Get ensemble action from all agents
+        """Get ensemble action from all agents.
 
         Args:
             portfolio_data: Current portfolio data
@@ -943,7 +943,7 @@ class MultiAgentRiskCoordinator:
             # Get actions from all agents
             agent_actions = {}
             for name, agent in self.agents.items():
-                if name == "ppo" or name == "ddpg":
+                if name in {"ppo", "ddpg"}:
                     action = agent.get_action(state)
                 else:
                     action = agent.get_action(state)
@@ -979,7 +979,7 @@ class MultiAgentRiskCoordinator:
     def _make_ensemble_decision(
         self, agent_actions: dict[str, RiskAction], state: RiskState
     ) -> RiskAction:
-        """Make ensemble decision from agent actions
+        """Make ensemble decision from agent actions.
 
         Args:
             agent_actions: Actions from all agents
@@ -1034,7 +1034,7 @@ class MultiAgentRiskCoordinator:
             )
 
     def _calculate_agent_weights(self) -> dict[str, float]:
-        """Calculate agent weights based on performance"""
+        """Calculate agent weights based on performance."""
         try:
             weights = {}
             for agent_name, performance_history in self.agent_performance.items():
@@ -1067,7 +1067,7 @@ class MultiAgentRiskCoordinator:
         action: RiskAction,
         reward: RiskReward,
     ):
-        """Update all agents based on experience
+        """Update all agents based on experience.
 
         Args:
             portfolio_data: Portfolio data
@@ -1081,7 +1081,7 @@ class MultiAgentRiskCoordinator:
 
             # Update each agent
             for agent_name, agent in self.agents.items():
-                if agent_name == "ppo" or agent_name == "ddpg":  # PPO update (simplified)
+                if agent_name in {"ppo", "ddpg"}:  # PPO update (simplified)
                     agent.episode_rewards.append(reward.total_reward)
 
                 # Track performance
@@ -1093,7 +1093,7 @@ class MultiAgentRiskCoordinator:
             self.logger.error(f"Error updating agents: {e}")
 
     def get_coordination_summary(self) -> dict[str, Any]:
-        """Get coordination summary"""
+        """Get coordination summary."""
         return {
             "active_agents": list(self.agents.keys()),
             "agent_performance": {
@@ -1106,7 +1106,7 @@ class MultiAgentRiskCoordinator:
         }
 
     def save_all_models(self, directory: str):
-        """Save all agent models"""
+        """Save all agent models."""
         try:
             Path(directory).mkdir(parents=True, exist_ok=True)
 
@@ -1120,7 +1120,7 @@ class MultiAgentRiskCoordinator:
             self.logger.error(f"Error saving models: {e}")
 
     def load_all_models(self, directory: str):
-        """Load all agent models"""
+        """Load all agent models."""
         try:
             for agent_name, agent in self.agents.items():
                 filepath = f"{directory}/{agent_name}_model.pkl"

@@ -1,4 +1,4 @@
-"""Production Trading System
+"""Production Trading System.
 
 This package contains production - ready trading strategies and infrastructure
 for live trading with real broker integration, live data feeds, and comprehensive

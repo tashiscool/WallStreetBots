@@ -1,4 +1,4 @@
-"""Error Handling and Recovery System
+"""Error Handling and Recovery System.
 
 Production - grade error handling and recovery mechanisms for robust trading operations.
 """

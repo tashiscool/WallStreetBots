@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """WSB Strategy #6: Covered Calls / Wheel Strategy
-Consistent income generation on volatile names with positive expectancy
+Consistent income generation on volatile names with positive expectancy.
 """
 
 import argparse
@@ -8,6 +8,7 @@ import csv
 import json
 import math
 import os
+import sys
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
 
@@ -18,7 +19,7 @@ try:
 except ImportError as e:
     print(f"Missing required package: {e}")
     print("Run: pip install -r wsb_requirements.txt")
-    exit(1)
+    sys.exit(1)
 
 
 @dataclass
@@ -120,7 +121,7 @@ class WheelStrategy:
         ]
 
     def load_portfolio(self):
-        """Load existing wheel positions"""
+        """Load existing wheel positions."""
         if os.path.exists(self.portfolio_file):
             try:
                 with open(self.portfolio_file) as f:
@@ -133,7 +134,7 @@ class WheelStrategy:
             self.positions = []
 
     def save_portfolio(self):
-        """Save wheel portfolio"""
+        """Save wheel portfolio."""
         try:
             data = {
                 "last_updated": datetime.now().isoformat(),
@@ -145,13 +146,13 @@ class WheelStrategy:
             print(f"Error saving portfolio: {e}")
 
     def norm_cdf(self, x: float) -> float:
-        """Standard normal CDF"""
+        """Standard normal CDF."""
         return 0.5 * (1.0 + math.erf(x / math.sqrt(2)))
 
     def black_scholes_put(
         self, S: float, K: float, T: float, r: float, sigma: float
     ) -> tuple[float, float]:
-        """Black - Scholes put price and delta"""
+        """Black - Scholes put price and delta."""
         if T <= 0 or sigma <= 0:
             return max(K - S, 0), -1.0 if S < K else 0.0
 
@@ -164,7 +165,7 @@ class WheelStrategy:
         return max(put_price, 0), delta
 
     def calculate_iv_rank(self, ticker: str) -> float:
-        """Calculate IV rank based on historical volatility"""
+        """Calculate IV rank based on historical volatility."""
         try:
             stock = yf.Ticker(ticker)
             hist = stock.history(period="1y")
@@ -193,7 +194,7 @@ class WheelStrategy:
             return 50.0
 
     def get_quality_score(self, ticker: str) -> float:
-        """Assess fundamental quality (0 - 100)"""
+        """Assess fundamental quality (0 - 100)."""
         try:
             stock = yf.Ticker(ticker)
             info = stock.info
@@ -242,7 +243,7 @@ class WheelStrategy:
             return 50.0
 
     def get_dividend_yield(self, ticker: str) -> float:
-        """Get dividend yield"""
+        """Get dividend yield."""
         try:
             stock = yf.Ticker(ticker)
             info = stock.info
@@ -251,7 +252,7 @@ class WheelStrategy:
             return 0.0
 
     def calculate_liquidity_score(self, ticker: str) -> float:
-        """Calculate options liquidity score (0 - 100)"""
+        """Calculate options liquidity score (0 - 100)."""
         try:
             stock = yf.Ticker(ticker)
 
@@ -294,7 +295,7 @@ class WheelStrategy:
     def find_optimal_strikes(
         self, ticker: str, current_price: float, expiry: str
     ) -> tuple[int | None, int | None, float, float, float, float]:
-        """Find optimal put and call strikes for wheel strategy"""
+        """Find optimal put and call strikes for wheel strategy."""
         try:
             stock = yf.Ticker(ticker)
             chain = stock.option_chain(expiry)
@@ -343,7 +344,7 @@ class WheelStrategy:
             return None, None, 0.0, 0.0, 0.0, 0.0
 
     def get_monthly_expiry(self) -> str:
-        """Get next monthly expiry (3rd Friday)"""
+        """Get next monthly expiry (3rd Friday)."""
         today = date.today()
 
         # Find 3rd Friday of current month
@@ -370,7 +371,7 @@ class WheelStrategy:
         return third_friday.strftime("%Y-%m-%d")
 
     def scan_wheel_candidates(self) -> list[WheelCandidate]:
-        """Scan for good wheel candidates"""
+        """Scan for good wheel candidates."""
         candidates = []
         expiry = self.get_monthly_expiry()
 
@@ -489,7 +490,7 @@ class WheelStrategy:
         return candidates
 
     def update_positions(self):
-        """Update all wheel positions"""
+        """Update all wheel positions."""
         print("📊 Updating wheel positions...")
 
         for pos in self.positions:
@@ -532,7 +533,7 @@ class WheelStrategy:
         self.save_portfolio()
 
     def format_candidates(self, candidates: list[WheelCandidate], limit: int = 15) -> str:
-        """Format wheel candidates for display"""
+        """Format wheel candidates for display."""
         if not candidates:
             return "🔍 No suitable wheel candidates found."
 
@@ -571,7 +572,7 @@ class WheelStrategy:
         return output
 
     def format_portfolio(self) -> str:
-        """Format current wheel portfolio"""
+        """Format current wheel portfolio."""
         if not self.positions:
             return "🎡 No wheel positions in portfolio."
 

@@ -1,4 +1,4 @@
-"""Position Reconciliation Module for WallStreetBots Trading System"""
+"""Position Reconciliation Module for WallStreetBots Trading System."""
 
 from .position_reconciler import (
     BrokerPosition,

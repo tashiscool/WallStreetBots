@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Test Advanced Risk Models - 2025 Implementation
-Comprehensive testing of sophisticated risk management capabilities
+Comprehensive testing of sophisticated risk management capabilities.
 """
 
 import os
@@ -20,7 +20,7 @@ from tradingbot.risk import AdvancedVaREngine, MLRiskPredictor, RiskDashboard202
 
 
 def generate_sample_data():
-    """Generate sample market data for testing"""
+    """Generate sample market data for testing."""
     np.random.seed(42)
 
     # Generate realistic market data
@@ -52,7 +52,7 @@ def generate_sample_data():
 
 
 def test_var_engine():
-    """Test Advanced VaR Engine"""
+    """Test Advanced VaR Engine."""
     print("🔬 Testing Advanced VaR Engine")
     print(" = " * 50)
 
@@ -92,7 +92,7 @@ def test_var_engine():
 
 
 def test_stress_testing():
-    """Test Stress Testing Engine"""
+    """Test Stress Testing Engine."""
     print("\n + n🚨 Testing Stress Testing Engine")
     print(" = " * 50)
 
@@ -136,7 +136,7 @@ def test_stress_testing():
 
 
 def test_ml_risk_predictor():
-    """Test ML Risk Predictor"""
+    """Test ML Risk Predictor."""
     print("\n + n🤖 Testing ML Risk Predictor")
     print(" = " * 50)
 
@@ -174,7 +174,7 @@ def test_ml_risk_predictor():
 
 
 def test_risk_dashboard():
-    """Test Risk Dashboard"""
+    """Test Risk Dashboard."""
     print("\n + n📊 Testing Risk Dashboard")
     print(" = " * 50)
 
@@ -252,7 +252,7 @@ def test_risk_dashboard():
 
 
 def run_comprehensive_test():
-    """Run comprehensive test of all risk management modules"""
+    """Run comprehensive test of all risk management modules."""
     print("🚀 WallStreetBots Advanced Risk Models - 2025 Test Suite")
     print(" = " * 70)
     print(f"Test Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

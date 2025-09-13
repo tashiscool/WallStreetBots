@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Comprehensive Test Suite for SPX Credit Spreads WSB Strategy Module
-Tests all components of the 0DTE credit spreads scanner and strategy logic
+Tests all components of the 0DTE credit spreads scanner and strategy logic.
 """
 
 import os
@@ -18,25 +18,25 @@ from backend.tradingbot.strategies.spx_credit_spreads import (
 
 
 class TestSPXCreditSpreadsScanner(unittest.TestCase):
-    """Test the SPX / SPY credit spread scanner functionality"""
+    """Test the SPX / SPY credit spread scanner functionality."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.scanner = SPXCreditSpreadsScanner()
 
     def test_scanner_initialization(self):
-        """Test that scanner initializes properly"""
+        """Test that scanner initializes properly."""
         self.assertIsInstance(self.scanner, SPXCreditSpreadsScanner)
         self.assertIsInstance(self.scanner.credit_tickers, list)
         self.assertGreater(len(self.scanner.credit_tickers), 0)
 
     def test_norm_cdf(self):
-        """Test normal CDF calculation"""
+        """Test normal CDF calculation."""
         result = self.scanner.norm_cdf(0.0)
         self.assertAlmostEqual(result, 0.5, places=2)
 
     def test_black_scholes_put(self):
-        """Test Black - Scholes put calculation"""
+        """Test Black - Scholes put calculation."""
         price, delta = self.scanner.black_scholes_put(100.0, 95.0, 0.25, 0.05, 0.20)
 
         self.assertIsInstance(price, float)
@@ -45,7 +45,7 @@ class TestSPXCreditSpreadsScanner(unittest.TestCase):
         self.assertLess(delta, 0)  # Put delta should be negative
 
     def test_black_scholes_call(self):
-        """Test Black - Scholes call calculation"""
+        """Test Black - Scholes call calculation."""
         price, delta = self.scanner.black_scholes_call(100.0, 105.0, 0.25, 0.05, 0.20)
 
         self.assertIsInstance(price, float)
@@ -54,7 +54,7 @@ class TestSPXCreditSpreadsScanner(unittest.TestCase):
         self.assertGreater(delta, 0)  # Call delta should be positive
 
     def test_get_0dte_expiry(self):
-        """Test 0DTE expiry calculation"""
+        """Test 0DTE expiry calculation."""
         expiry = self.scanner.get_0dte_expiry()
 
         if expiry:  # Only test if market is open
@@ -63,7 +63,7 @@ class TestSPXCreditSpreadsScanner(unittest.TestCase):
 
     @patch("backend.tradingbot.strategies.spx_credit_spreads.yf.Ticker")
     def test_estimate_iv_from_expected_move(self, mock_ticker):
-        """Test IV estimation from expected move"""
+        """Test IV estimation from expected move."""
         mock_stock = Mock()
         mock_stock.info = {"regularMarketPrice": 100.0}
         mock_ticker.return_value = mock_stock
@@ -75,7 +75,7 @@ class TestSPXCreditSpreadsScanner(unittest.TestCase):
 
     @patch("backend.tradingbot.strategies.spx_credit_spreads.yf.Ticker")
     def test_get_expected_move(self, mock_ticker):
-        """Test expected move calculation"""
+        """Test expected move calculation."""
         mock_stock = Mock()
         mock_stock.info = {"regularMarketPrice": 100.0}
         mock_ticker.return_value = mock_stock
@@ -86,7 +86,7 @@ class TestSPXCreditSpreadsScanner(unittest.TestCase):
         self.assertGreater(move, 0)
 
     def test_calculate_spread_metrics(self):
-        """Test spread metrics calculation"""
+        """Test spread metrics calculation."""
         net_credit, max_profit, max_loss = self.scanner.calculate_spread_metrics(
             short_strike=4000.0, long_strike=3990.0, short_premium=0.30, long_premium=0.20
         )
@@ -100,7 +100,7 @@ class TestSPXCreditSpreadsScanner(unittest.TestCase):
         self.assertAlmostEqual(max_loss, 9.90, places=2)
 
     def test_scan_credit_spreads(self):
-        """Test credit spread scanning"""
+        """Test credit spread scanning."""
         spreads = self.scanner.scan_credit_spreads(0)
 
         self.assertIsInstance(spreads, list)
@@ -109,7 +109,7 @@ class TestSPXCreditSpreadsScanner(unittest.TestCase):
             self.assertIsInstance(spread, CreditSpreadOpportunity)
 
     def test_format_opportunities(self):
-        """Test opportunity formatting"""
+        """Test opportunity formatting."""
         opportunities = [
             CreditSpreadOpportunity(
                 ticker="SPY",
@@ -142,10 +142,10 @@ class TestSPXCreditSpreadsScanner(unittest.TestCase):
 
 
 class TestCreditSpreadOpportunity(unittest.TestCase):
-    """Test the CreditSpreadOpportunity dataclass"""
+    """Test the CreditSpreadOpportunity dataclass."""
 
     def test_credit_spread_creation(self):
-        """Test creating a credit spread opportunity"""
+        """Test creating a credit spread opportunity."""
         spread = CreditSpreadOpportunity(
             ticker="SPY",
             strategy_type="put_credit_spread",
@@ -177,7 +177,7 @@ class TestCreditSpreadOpportunity(unittest.TestCase):
         self.assertEqual(spread.max_loss, 9.70)
 
     def test_spread_width_calculation(self):
-        """Test spread width calculation"""
+        """Test spread width calculation."""
         spread = CreditSpreadOpportunity(
             ticker="SPY",
             strategy_type="put_credit_spread",
@@ -205,14 +205,14 @@ class TestCreditSpreadOpportunity(unittest.TestCase):
 
 
 class TestSPXCreditSpreadsIntegration(unittest.TestCase):
-    """Test integration scenarios"""
+    """Test integration scenarios."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.scanner = SPXCreditSpreadsScanner()
 
     def test_main_function_exists(self):
-        """Test that main function exists and is callable"""
+        """Test that main function exists and is callable."""
         from backend.tradingbot.strategies.spx_credit_spreads import main
 
         self.assertTrue(callable(main))

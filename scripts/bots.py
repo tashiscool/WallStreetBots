@@ -1,5 +1,5 @@
 class MovingAverageBot:
-    """past n day moving average bot"""
+    """past n day moving average bot."""
 
     def __init__(self, stock, balance, n=20):
         self.stock = stock

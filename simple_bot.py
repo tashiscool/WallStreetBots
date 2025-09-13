@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Simple Trading Bot - Personal Use
-Run this to start trading
+Run this to start trading.
 """
 
 import asyncio
@@ -39,7 +39,7 @@ class SimpleTradingBot:
         self.running = False
 
     async def start_trading(self):
-        """Start the trading bot"""
+        """Start the trading bot."""
         print("🤖 Starting Simple Trading Bot...")
         print(f"📅 {datetime.now()}")
         print(f"📊 Paper Trading: {self.config.paper_trading}")
@@ -81,7 +81,7 @@ class SimpleTradingBot:
             await self.stop_trading()
 
     async def simple_status_check(self):
-        """Simple status monitoring"""
+        """Simple status monitoring."""
         try:
             now = datetime.now()
             try:
@@ -105,7 +105,7 @@ class SimpleTradingBot:
             print(f"⚠️ Status check error: {e}")
 
     async def stop_trading(self):
-        """Stop the trading bot"""
+        """Stop the trading bot."""
         self.running = False
         if self.manager:
             await self.manager.stop_all_strategies()

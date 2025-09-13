@@ -38,7 +38,7 @@ class OrderSide(Enum):
 
 @dataclass
 class TradeSignal:
-    """Signal from a trading strategy"""
+    """Signal from a trading strategy."""
 
     strategy_name: str
     ticker: str
@@ -55,7 +55,7 @@ class TradeSignal:
 
 @dataclass
 class TradeResult:
-    """Result of trade execution"""
+    """Result of trade execution."""
 
     trade_id: str
     signal: TradeSignal
@@ -69,7 +69,7 @@ class TradeResult:
 
 @dataclass
 class PositionUpdate:
-    """Position update from broker"""
+    """Position update from broker."""
 
     ticker: str
     quantity: int
@@ -81,7 +81,7 @@ class PositionUpdate:
 
 
 class TradingInterface:
-    """Unified interface connecting strategies to broker execution"""
+    """Unified interface connecting strategies to broker execution."""
 
     def __init__(
         self,
@@ -102,7 +102,7 @@ class TradingInterface:
         self.setup_logging()
 
     def setup_logging(self):
-        """Setup structured logging"""
+        """Setup structured logging."""
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -110,7 +110,7 @@ class TradingInterface:
         )
 
     async def execute_trade(self, signal: TradeSignal) -> TradeResult:
-        """Execute trade with comprehensive risk controls and error handling"""
+        """Execute trade with comprehensive risk controls and error handling."""
         trade_id = f"{signal.strategy_name}_{signal.ticker}_{datetime.now().strftime('%Y % m % d_ % H % M % S')}"
 
         try:
@@ -196,7 +196,7 @@ class TradingInterface:
             )
 
     async def validate_signal(self, signal: TradeSignal) -> dict[str, Any]:
-        """Validate trading signal"""
+        """Validate trading signal."""
         # Check required fields
         if not signal.ticker or not signal.quantity or signal.quantity <= 0:
             return {"valid": False, "reason": "Invalid ticker or quantity"}
@@ -214,7 +214,7 @@ class TradingInterface:
         return {"valid": True, "reason": "Signal validated"}
 
     async def check_risk_limits(self, signal: TradeSignal) -> dict[str, Any]:
-        """Check risk limits before execution"""
+        """Check risk limits before execution."""
         try:
             # Get current account value
             account = await self.get_account_info()
@@ -256,7 +256,7 @@ class TradingInterface:
             return {"allowed": False, "reason": f"Risk check failed: {e}"}
 
     async def execute_broker_order(self, signal: TradeSignal) -> dict[str, Any]:
-        """Execute order via broker"""
+        """Execute order via broker."""
         try:
             if signal.side == OrderSide.BUY:
                 if signal.order_type == OrderType.MARKET:
@@ -286,7 +286,7 @@ class TradingInterface:
             return {"success": False, "error": str(e)}
 
     async def get_account_info(self) -> dict[str, Any]:
-        """Get account information from broker"""
+        """Get account information from broker."""
         try:
             account = self.broker.get_account()
             return {
@@ -300,7 +300,7 @@ class TradingInterface:
             return {"equity": 0, "buying_power": 0, "cash": 0, "portfolio_value": 0}
 
     async def get_current_price(self, ticker: str) -> float:
-        """Get current price for ticker"""
+        """Get current price for ticker."""
         try:
             success, price = self.broker.get_price(ticker)
             if success:
@@ -313,7 +313,7 @@ class TradingInterface:
             return 0.0
 
     async def is_market_open(self) -> bool:
-        """Check if market is open"""
+        """Check if market is open."""
         try:
             return self.broker.market_close() is True
         except Exception as e:
@@ -321,7 +321,7 @@ class TradingInterface:
             return False
 
     async def calculate_total_portfolio_risk(self) -> float:
-        """Calculate total portfolio risk percentage"""
+        """Calculate total portfolio risk percentage."""
         try:
             positions = self.broker.get_positions()
             if isinstance(positions, str):  # Error case
@@ -344,7 +344,7 @@ class TradingInterface:
             return 0.0
 
     async def update_positions(self) -> list[PositionUpdate]:
-        """Update position information from broker"""
+        """Update position information from broker."""
         try:
             positions = self.broker.get_positions()
             if isinstance(positions, str):  # Error case
@@ -370,11 +370,11 @@ class TradingInterface:
             return []
 
     async def get_trade_history(self, limit: int = 100) -> list[TradeResult]:
-        """Get recent trade history"""
+        """Get recent trade history."""
         return list(self.active_trades.values())[-limit:]
 
     async def cancel_trade(self, trade_id: str) -> bool:
-        """Cancel a pending trade"""
+        """Cancel a pending trade."""
         try:
             if trade_id in self.active_trades:
                 trade = self.active_trades[trade_id]
@@ -390,7 +390,7 @@ class TradingInterface:
 
 # Factory function for easy initialization
 def create_trading_interface(config: dict[str, Any]) -> TradingInterface:
-    """Create trading interface with default components"""
+    """Create trading interface with default components."""
     # Initialize broker manager with test keys if not provided
     api_key = config.get("alpaca_api_key", "test_key")
     secret_key = config.get("alpaca_secret_key", "test_secret")

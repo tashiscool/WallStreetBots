@@ -13,12 +13,15 @@ from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta
 from email.mime.text import MIMEText
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import requests
 
-from .exit_planning import ExitSignal
 from .market_regime import MarketSignal, SignalGenerator, SignalType, TechnicalIndicators
 from .options_calculator import OptionsTradeCalculator, TradeCalculation
+
+if TYPE_CHECKING:
+    from .exit_planning import ExitSignal
 
 # Environment configuration
 SLACK_WEBHOOK = os.getenv("ALERT_SLACK_WEBHOOK")
@@ -59,7 +62,7 @@ def send_email(subject: str, body: str) -> bool:
 
 
 class AlertType(Enum):
-    """Types of trading alerts"""
+    """Types of trading alerts."""
 
     SETUP_DETECTED = "setup_detected"
     ENTRY_SIGNAL = "entry_signal"
@@ -72,7 +75,7 @@ class AlertType(Enum):
 
 
 class AlertPriority(Enum):
-    """Alert priority levels"""
+    """Alert priority levels."""
 
     LOW = 1
     MEDIUM = 2
@@ -81,7 +84,7 @@ class AlertPriority(Enum):
 
 
 class AlertChannel(Enum):
-    """Alert delivery channels"""
+    """Alert delivery channels."""
 
     EMAIL = "email"
     SMS = "sms"
@@ -93,7 +96,7 @@ class AlertChannel(Enum):
 
 @dataclass
 class Alert:
-    """Individual alert with metadata"""
+    """Individual alert with metadata."""
 
     alert_type: AlertType
     priority: AlertPriority
@@ -106,7 +109,7 @@ class Alert:
     acknowledged: bool = False
 
     def to_json(self) -> str:
-        """Convert alert to JSON string"""
+        """Convert alert to JSON string."""
         data = asdict(self)
         # Convert enums to their values
         if "alert_type" in data and hasattr(data["alert_type"], "value"):
@@ -120,7 +123,7 @@ class Alert:
 
 @dataclass
 class ChecklistItem:
-    """Individual item in execution checklist"""
+    """Individual item in execution checklist."""
 
     step: int
     description: str
@@ -129,7 +132,7 @@ class ChecklistItem:
     notes: str = ""
 
     def complete(self, notes: str = ""):
-        """Mark item as completed"""
+        """Mark item as completed."""
         self.completed = True
         self.timestamp = datetime.now()
         self.notes = notes
@@ -137,7 +140,7 @@ class ChecklistItem:
 
 @dataclass
 class ExecutionChecklist:
-    """Systematic execution checklist for trades"""
+    """Systematic execution checklist for trades."""
 
     trade_id: str
     ticker: str
@@ -148,7 +151,7 @@ class ExecutionChecklist:
 
     @property
     def completion_percentage(self) -> float:
-        """Calculate completion percentage"""
+        """Calculate completion percentage."""
         if not self.items:
             return 0.0
         completed_items = sum(1 for item in self.items if item.completed)
@@ -156,11 +159,11 @@ class ExecutionChecklist:
 
     @property
     def is_complete(self) -> bool:
-        """Check if all items are completed"""
+        """Check if all items are completed."""
         return all(item.completed for item in self.items)
 
     def complete_step(self, step: int, notes: str = ""):
-        """Complete a specific step"""
+        """Complete a specific step."""
         for item in self.items:
             if item.step == step:
                 item.complete(notes)
@@ -171,22 +174,22 @@ class ExecutionChecklist:
 
 
 class AlertHandler(ABC):
-    """Abstract base class for alert handlers"""
+    """Abstract base class for alert handlers."""
 
     @abstractmethod
     def send_alert(self, alert: Alert) -> bool:
-        """Send alert through this channel"""
+        """Send alert through this channel."""
         pass
 
 
 class EmailAlertHandler(AlertHandler):
-    """Email alert handler"""
+    """Email alert handler."""
 
     def __init__(self, smtp_config: dict):
         self.smtp_config = smtp_config
 
     def send_alert(self, alert: Alert) -> bool:
-        """Send email alert using send_email function"""
+        """Send email alert using send_email function."""
         from .alert_system import send_email
 
         subject = f"Trading Alert: {alert.title}"
@@ -203,17 +206,17 @@ class WebhookAlertHandler(AlertHandler):
         self.webhook_url = webhook_url
 
     def send_alert(self, alert: Alert) -> bool:
-        """Send webhook alert (placeholder implementation)"""
+        """Send webhook alert (placeholder implementation)."""
         # In production, send HTTP POST to webhook
         logging.info(f"WEBHOOK ALERT: {alert.title} - {alert.message}")
         return True
 
 
 class DesktopAlertHandler(AlertHandler):
-    """Desktop notification handler"""
+    """Desktop notification handler."""
 
     def send_alert(self, alert: Alert) -> bool:
-        """Send desktop notification using subprocess"""
+        """Send desktop notification using subprocess."""
         import subprocess
 
         try:
@@ -237,7 +240,7 @@ class DesktopAlertHandler(AlertHandler):
 
 
 class TradingAlertSystem:
-    """Comprehensive trading alert system"""
+    """Comprehensive trading alert system."""
 
     def __init__(self):
         self.handlers: dict[AlertChannel, AlertHandler] = {}
@@ -258,11 +261,11 @@ class TradingAlertSystem:
         }
 
     def register_handler(self, channel: AlertChannel, handler: AlertHandler):
-        """Register an alert handler for a channel"""
+        """Register an alert handler for a channel."""
         self.handlers[channel] = handler
 
     def send_alert(self, alert: Alert) -> dict[AlertChannel, bool]:
-        """Send alert through configured channels"""
+        """Send alert through configured channels."""
         results = {}
 
         # Filter by priority (only send HIGH and URGENT alerts by default)
@@ -308,7 +311,7 @@ class TradingAlertSystem:
     async def send_alert(
         self, alert_type_or_alert, priority=None, message=None, ticker=None
     ) -> dict[AlertChannel, bool]:
-        """Send alert with flexible parameters - supports both Alert objects and string parameters
+        """Send alert with flexible parameters - supports both Alert objects and string parameters.
 
         Usage:
         - send_alert(alert_object) - Original method
@@ -349,7 +352,7 @@ class TradingAlertSystem:
                 return {}
 
     def send_alert_object(self, alert: Alert) -> dict[AlertChannel, bool]:
-        """Original send_alert method renamed"""
+        """Original send_alert method renamed."""
         results = {}
 
         # Filter by priority (only send HIGH and URGENT alerts by default)
@@ -400,7 +403,7 @@ class TradingAlertSystem:
         earnings_risk: bool = False,
         macro_risk: bool = False,
     ):
-        """Check for market signals and generate alerts"""
+        """Check for market signals and generate alerts."""
         signal = self.signal_generator.generate_signal(
             current_indicators, previous_indicators, earnings_risk, macro_risk
         )
@@ -415,7 +418,7 @@ class TradingAlertSystem:
     def _create_entry_signal_alert(
         self, ticker: str, signal: MarketSignal, indicators: TechnicalIndicators
     ):
-        """Create entry signal alert with trade calculation"""
+        """Create entry signal alert with trade calculation."""
         # Calculate recommended trade
         try:
             trade_calc = self.options_calculator.calculate_trade(
@@ -448,7 +451,7 @@ class TradingAlertSystem:
     def _create_setup_alert(
         self, ticker: str, signal: MarketSignal, indicators: TechnicalIndicators
     ):
-        """Create setup detection alert"""
+        """Create setup detection alert."""
         alert = Alert(
             alert_type=AlertType.SETUP_DETECTED,
             priority=AlertPriority.MEDIUM,
@@ -466,7 +469,7 @@ class TradingAlertSystem:
         self.send_alert(alert)
 
     def create_exit_alert(self, ticker: str, exit_signals: list[ExitSignal], position_data: dict):
-        """Create exit - related alerts"""
+        """Create exit - related alerts."""
         if not exit_signals:
             return
 
@@ -498,8 +501,8 @@ class TradingAlertSystem:
 
         self.send_alert(alert)
 
-    def create_risk_alert(self, message: str, data: dict = None):
-        """Create risk management alert"""
+    def create_risk_alert(self, message: str, data: dict | None = None):
+        """Create risk management alert."""
         alert = Alert(
             alert_type=AlertType.RISK_ALERT,
             priority=AlertPriority.HIGH,
@@ -512,7 +515,7 @@ class TradingAlertSystem:
         self.send_alert(alert)
 
     def acknowledge_alert(self, alert_id: str):
-        """Acknowledge an active alert"""
+        """Acknowledge an active alert."""
         for alert in self.active_alerts:
             if id(alert) == hash(alert_id):  # Simple ID matching
                 alert.acknowledged = True
@@ -520,13 +523,13 @@ class TradingAlertSystem:
 
 
 class ExecutionChecklistManager:
-    """Manages execution checklists for systematic trading"""
+    """Manages execution checklists for systematic trading."""
 
     def __init__(self):
         self.checklists: dict[str, ExecutionChecklist] = {}
 
     def create_entry_checklist(self, ticker: str, trade_calc: TradeCalculation) -> str:
-        """Create entry execution checklist"""
+        """Create entry execution checklist."""
         trade_id = f"{ticker}_{datetime.now().strftime('%Y % m % d_ % H % M % S')}"
 
         items = [
@@ -557,7 +560,7 @@ class ExecutionChecklistManager:
         return trade_id
 
     def create_monitoring_checklist(self, trade_id: str, ticker: str) -> ExecutionChecklist:
-        """Create daily monitoring checklist"""
+        """Create daily monitoring checklist."""
         items = [
             ChecklistItem(1, f"Check {ticker} price action vs. key EMAs"),
             ChecklistItem(2, "Monitor option premium and delta changes"),
@@ -581,7 +584,7 @@ class ExecutionChecklistManager:
     def create_exit_checklist(
         self, trade_id: str, ticker: str, exit_reason: str
     ) -> ExecutionChecklist:
-        """Create exit execution checklist"""
+        """Create exit execution checklist."""
         items = [
             ChecklistItem(1, f"Confirm exit trigger: {exit_reason}"),
             ChecklistItem(2, "Check current option premium and liquidity"),
@@ -605,11 +608,11 @@ class ExecutionChecklistManager:
         return checklist
 
     def get_checklist(self, checklist_id: str) -> ExecutionChecklist | None:
-        """Get checklist by ID"""
+        """Get checklist by ID."""
         return self.checklists.get(checklist_id)
 
     def complete_item(self, checklist_id: str, step: int, notes: str = ""):
-        """Complete a checklist item"""
+        """Complete a checklist item."""
         checklist = self.checklists.get(checklist_id)
         if checklist:
             checklist.complete_step(step, notes)
@@ -617,12 +620,12 @@ class ExecutionChecklistManager:
         return False
 
     def get_active_checklists(self) -> list[ExecutionChecklist]:
-        """Get all incomplete checklists"""
+        """Get all incomplete checklists."""
         return [cl for cl in self.checklists.values() if not cl.is_complete]
 
 
 class MarketScreener:
-    """Screen market for setup opportunities"""
+    """Screen market for setup opportunities."""
 
     def __init__(self, alert_system: TradingAlertSystem):
         self.alert_system = alert_system
@@ -639,7 +642,7 @@ class MarketScreener:
         ]
 
     def screen_for_setups(self, market_data: dict[str, dict]):
-        """Screen all tickers for bull pullback setups"""
+        """Screen all tickers for bull pullback setups."""
         for ticker in self.mega_cap_tickers:
             if ticker not in market_data:
                 continue
@@ -662,7 +665,7 @@ class MarketScreener:
                 logging.error(f"Error screening {ticker}: {e}")
 
     def _convert_to_indicators(self, data: dict) -> TechnicalIndicators:
-        """Convert market data to TechnicalIndicators"""
+        """Convert market data to TechnicalIndicators."""
         return TechnicalIndicators(
             price=data["close"],
             ema_20=data["ema_20"],

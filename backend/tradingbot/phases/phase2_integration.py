@@ -1,5 +1,5 @@
 """Phase 2 Integration Script
-Integrate all low - risk strategies with Phase 1 infrastructure
+Integrate all low - risk strategies with Phase 1 infrastructure.
 """
 
 import asyncio
@@ -18,7 +18,7 @@ from ..core.trading_interface import create_trading_interface
 
 
 class Phase2StrategyManager:
-    """Phase 2 Strategy Manager - Orchestrates all low - risk strategies"""
+    """Phase 2 Strategy Manager - Orchestrates all low - risk strategies."""
 
     def __init__(self, config: ProductionConfig):
         self.config = config
@@ -47,7 +47,7 @@ class Phase2StrategyManager:
         self.logger.info("Phase 2 Strategy Manager initialized")
 
     async def initialize(self):
-        """Initialize all Phase 2 components"""
+        """Initialize all Phase 2 components."""
         self.logger.info("Initializing Phase 2 components")
 
         try:
@@ -89,7 +89,7 @@ class Phase2StrategyManager:
             raise
 
     async def start_strategy(self, strategy_name: str) -> bool:
-        """Start a specific strategy"""
+        """Start a specific strategy."""
         try:
             self.logger.info(f"Starting strategy: {strategy_name}")
 
@@ -129,7 +129,7 @@ class Phase2StrategyManager:
             return False
 
     async def stop_strategy(self, strategy_name: str) -> bool:
-        """Stop a specific strategy"""
+        """Stop a specific strategy."""
         try:
             self.logger.info(f"Stopping strategy: {strategy_name}")
 
@@ -148,7 +148,7 @@ class Phase2StrategyManager:
             return False
 
     async def get_strategy_status(self) -> dict[str, Any]:
-        """Get status of all strategies"""
+        """Get status of all strategies."""
         status = {
             "timestamp": datetime.now().isoformat(),
             "strategies": self.strategy_status.copy(),
@@ -158,7 +158,7 @@ class Phase2StrategyManager:
         return status
 
     async def get_portfolio_summary(self) -> dict[str, Any]:
-        """Get comprehensive portfolio summary"""
+        """Get comprehensive portfolio summary."""
         summary = {"timestamp": datetime.now().isoformat(), "strategies": {}}
 
         try:
@@ -188,7 +188,7 @@ class Phase2StrategyManager:
         return summary
 
     async def run_strategies(self, strategy_names: list[str]):
-        """Run specified strategies - MISSING METHOD THAT PRODUCTION RUNNER NEEDS"""
+        """Run specified strategies - MISSING METHOD THAT PRODUCTION RUNNER NEEDS."""
         self.logger.info(f"Running Phase 2 strategies: {strategy_names}")
 
         try:
@@ -224,7 +224,7 @@ class Phase2StrategyManager:
             raise
 
     async def run_phase2_demo(self):
-        """Run Phase 2 demonstration"""
+        """Run Phase 2 demonstration."""
         self.logger.info("Starting Phase 2 demonstration")
 
         try:
@@ -291,7 +291,7 @@ class Phase2StrategyManager:
 
 
 async def main():
-    """Main Phase 2 integration function"""
+    """Main Phase 2 integration function."""
     # Load configuration
     config_manager = create_config_manager()
     config = config_manager.load_config()

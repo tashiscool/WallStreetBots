@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Advanced Analytics Module
-Comprehensive performance analytics including Sharpe ratio, max drawdown, and risk - adjusted metrics
+Comprehensive performance analytics including Sharpe ratio, max drawdown, and risk - adjusted metrics.
 """
 
 import logging
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PerformanceMetrics:
-    """Comprehensive performance metrics"""
+    """Comprehensive performance metrics."""
 
     # Returns
     total_return: float
@@ -63,7 +63,7 @@ class PerformanceMetrics:
 
 @dataclass
 class DrawdownPeriod:
-    """Drawdown period analysis"""
+    """Drawdown period analysis."""
 
     start_date: datetime
     end_date: datetime
@@ -77,7 +77,7 @@ class DrawdownPeriod:
 
 
 class AdvancedAnalytics:
-    """Advanced Analytics Engine
+    """Advanced Analytics Engine.
 
     Calculates comprehensive performance metrics including:
     - Sharpe ratio, Sortino ratio, Calmar ratio
@@ -88,7 +88,7 @@ class AdvancedAnalytics:
     """
 
     def __init__(self, risk_free_rate: float = 0.02):
-        """Initialize analytics engine
+        """Initialize analytics engine.
 
         Args:
             risk_free_rate: Annual risk - free rate (default 2%)
@@ -104,7 +104,7 @@ class AdvancedAnalytics:
         start_date: datetime | None = None,
         end_date: datetime | None = None,
     ) -> PerformanceMetrics:
-        """Calculate comprehensive performance metrics
+        """Calculate comprehensive performance metrics.
 
         Args:
             returns: Portfolio returns (daily)
@@ -217,7 +217,7 @@ class AdvancedAnalytics:
         portfolio_values: list[float] | np.ndarray | pd.Series,
         dates: list[datetime] | None = None,
     ) -> list[DrawdownPeriod]:
-        """Analyze all drawdown periods
+        """Analyze all drawdown periods.
 
         Args:
             portfolio_values: Portfolio values over time
@@ -307,11 +307,11 @@ class AdvancedAnalytics:
             return []
 
     def _calculate_total_return(self, returns: np.ndarray) -> float:
-        """Calculate total return"""
+        """Calculate total return."""
         return float(np.prod(1 + returns) - 1)
 
     def _calculate_annualized_return(self, returns: np.ndarray) -> float:
-        """Calculate annualized return"""
+        """Calculate annualized return."""
         if len(returns) == 0:
             return 0.0
         total_return = self._calculate_total_return(returns)
@@ -319,11 +319,11 @@ class AdvancedAnalytics:
         return float((1 + total_return) ** (1 / years) - 1) if years > 0 else 0.0
 
     def _calculate_volatility(self, returns: np.ndarray) -> float:
-        """Calculate annualized volatility"""
+        """Calculate annualized volatility."""
         return float(np.std(returns) * np.sqrt(252))
 
     def _calculate_sharpe_ratio(self, returns: np.ndarray) -> float:
-        """Calculate Sharpe ratio"""
+        """Calculate Sharpe ratio."""
         if len(returns) == 0 or np.std(returns) == 0:
             return 0.0
 
@@ -331,7 +331,7 @@ class AdvancedAnalytics:
         return float(np.mean(excess_returns) * 252 / (np.std(returns) * np.sqrt(252)))
 
     def _calculate_sortino_ratio(self, returns: np.ndarray) -> float:
-        """Calculate Sortino ratio (downside deviation)"""
+        """Calculate Sortino ratio (downside deviation)."""
         if len(returns) == 0:
             return 0.0
 
@@ -347,7 +347,7 @@ class AdvancedAnalytics:
     def _calculate_calmar_ratio(
         self, returns: np.ndarray, portfolio_values: np.ndarray | None
     ) -> float:
-        """Calculate Calmar ratio (annualized return / max drawdown)"""
+        """Calculate Calmar ratio (annualized return / max drawdown)."""
         ann_return = self._calculate_annualized_return(returns)
 
         if portfolio_values is not None:
@@ -359,7 +359,7 @@ class AdvancedAnalytics:
         return float(ann_return / max_dd) if max_dd > 0 else 0.0
 
     def _calculate_max_drawdown(self, portfolio_values: np.ndarray) -> float:
-        """Calculate maximum drawdown"""
+        """Calculate maximum drawdown."""
         if len(portfolio_values) < 2:
             return 0.0
 
@@ -374,13 +374,13 @@ class AdvancedAnalytics:
         return float(max_drawdown)
 
     def _calculate_var(self, returns: np.ndarray, confidence_level: float) -> float:
-        """Calculate Value at Risk"""
+        """Calculate Value at Risk."""
         if len(returns) == 0:
             return 0.0
         return float(-np.percentile(returns, (1 - confidence_level) * 100))
 
     def _calculate_cvar(self, returns: np.ndarray, confidence_level: float) -> float:
-        """Calculate Conditional Value at Risk (Expected Shortfall)"""
+        """Calculate Conditional Value at Risk (Expected Shortfall)."""
         if len(returns) == 0:
             return 0.0
 
@@ -390,13 +390,13 @@ class AdvancedAnalytics:
         return float(-np.mean(tail_returns)) if len(tail_returns) > 0 else 0.0
 
     def _calculate_win_rate(self, returns: np.ndarray) -> float:
-        """Calculate win rate"""
+        """Calculate win rate."""
         if len(returns) == 0:
             return 0.0
         return float(np.sum(returns > 0) / len(returns))
 
     def _calculate_avg_win_loss(self, returns: np.ndarray) -> tuple[float, float]:
-        """Calculate average win and loss"""
+        """Calculate average win and loss."""
         if len(returns) == 0:
             return 0.0, 0.0
 
@@ -409,7 +409,7 @@ class AdvancedAnalytics:
         return avg_win, avg_loss
 
     def _calculate_profit_factor(self, returns: np.ndarray) -> float:
-        """Calculate profit factor"""
+        """Calculate profit factor."""
         wins = returns[returns > 0]
         losses = returns[returns < 0]
 
@@ -421,7 +421,7 @@ class AdvancedAnalytics:
     def _calculate_relative_metrics(
         self, returns: np.ndarray, benchmark_returns: np.ndarray | None
     ) -> tuple[float, float, float, float, float]:
-        """Calculate relative metrics vs benchmark"""
+        """Calculate relative metrics vs benchmark."""
         if benchmark_returns is None or len(benchmark_returns) != len(returns):
             return 0.0, 1.0, 0.0, 0.0, 0.0
 
@@ -458,12 +458,12 @@ class AdvancedAnalytics:
         return alpha, beta, information_ratio, treynor_ratio, tracking_error
 
     def _calculate_recovery_factor(self, returns: np.ndarray, max_drawdown: float) -> float:
-        """Calculate recovery factor"""
+        """Calculate recovery factor."""
         total_return = self._calculate_total_return(returns)
         return float(total_return / max_drawdown) if max_drawdown > 0 else 0.0
 
     def _calculate_ulcer_index(self, portfolio_values: np.ndarray) -> float:
-        """Calculate Ulcer Index (measure of downside risk)"""
+        """Calculate Ulcer Index (measure of downside risk)."""
         if len(portfolio_values) < 2:
             return 0.0
 
@@ -478,19 +478,19 @@ class AdvancedAnalytics:
         return float(np.sqrt(np.mean(squared_drawdowns)))
 
     def _calculate_sterling_ratio(self, returns: np.ndarray, max_drawdown: float) -> float:
-        """Calculate Sterling ratio"""
+        """Calculate Sterling ratio."""
         ann_return = self._calculate_annualized_return(returns)
         return float(ann_return / max_drawdown) if max_drawdown > 0 else 0.0
 
     def _returns_to_values(self, returns: np.ndarray, initial_value: float = 10000.0) -> np.ndarray:
-        """Convert returns to portfolio values"""
+        """Convert returns to portfolio values."""
         values = [initial_value]
         for ret in returns:
             values.append(values[-1] * (1 + ret))
         return np.array(values[1:])  # Exclude initial value
 
     def _create_empty_metrics(self) -> PerformanceMetrics:
-        """Create empty metrics object"""
+        """Create empty metrics object."""
         now = datetime.now()
         return PerformanceMetrics(
             total_return=0.0,
@@ -525,36 +525,36 @@ class AdvancedAnalytics:
         )
 
     def generate_analytics_report(self, metrics: PerformanceMetrics) -> str:
-        """Generate formatted analytics report"""
+        """Generate formatted analytics report."""
         report = f"""
 📊 ADVANCED PERFORMANCE ANALYTICS REPORT
 {" = " * 50}
 
-📈 RETURNS & RISK METRICS: 
+📈 RETURNS & RISK METRICS:
   Total Return:         {metrics.total_return: > 8.2%}
   Annualized Return:    {metrics.annualized_return: > 8.2%}
   Volatility:           {metrics.volatility: > 8.2%}
 
-🏆 RISK - ADJUSTED RATIOS: 
+🏆 RISK - ADJUSTED RATIOS:
   Sharpe Ratio:         {metrics.sharpe_ratio: > 8.2f}
   Sortino Ratio:        {metrics.sortino_ratio: > 8.2f}
   Calmar Ratio:         {metrics.calmar_ratio: > 8.2f}
   Information Ratio:    {metrics.information_ratio: > 8.2f}
 
-📉 DOWNSIDE PROTECTION: 
+📉 DOWNSIDE PROTECTION:
   Max Drawdown:         {metrics.max_drawdown: > 8.2%}
   VaR (95%):           {metrics.var_95: > 8.2%}
   VaR (99%):           {metrics.var_99: > 8.2%}
   CVaR (95%):          {metrics.cvar_95: > 8.2%}
   Ulcer Index:          {metrics.ulcer_index: > 8.2f}
 
-📊 TRADING PERFORMANCE: 
+📊 TRADING PERFORMANCE:
   Win Rate:             {metrics.win_rate: > 8.2%}
   Average Win:          {metrics.avg_win: > 8.2%}
   Average Loss:         {metrics.avg_loss: > 8.2%}
   Profit Factor:        {metrics.profit_factor: > 8.2f}
 
-📅 PERIOD STATISTICS: 
+📅 PERIOD STATISTICS:
   Period:               {metrics.period_start.strftime("%Y-%m-%d")} to {metrics.period_end.strftime("%Y-%m-%d")}
   Trading Days:         {metrics.trading_days: > 8d}
   Best Day:             {metrics.best_day: > 8.2%}
@@ -562,11 +562,11 @@ class AdvancedAnalytics:
   Positive Days:        {metrics.positive_days: > 8d} ({metrics.positive_days / max(metrics.trading_days, 1):  > 5.1%})
   Negative Days:        {metrics.negative_days: > 8d} ({metrics.negative_days / max(metrics.trading_days, 1):  > 5.1%})
 
-🔄 RECOVERY METRICS: 
+🔄 RECOVERY METRICS:
   Recovery Factor:      {metrics.recovery_factor: > 8.2f}
   Sterling Ratio:       {metrics.sterling_ratio: > 8.2f}
 
-📊 RELATIVE PERFORMANCE: 
+📊 RELATIVE PERFORMANCE:
   Alpha:                {metrics.alpha: > 8.2%}
   Beta:                 {metrics.beta: > 8.2f}
   Tracking Error:       {metrics.tracking_error: > 8.2%}
@@ -584,7 +584,7 @@ def analyze_performance(
     portfolio_values: list[float] | np.ndarray | None = None,
     risk_free_rate: float = 0.02,
 ) -> PerformanceMetrics:
-    """Quick performance analysis
+    """Quick performance analysis.
 
     Args:
         returns: Portfolio returns

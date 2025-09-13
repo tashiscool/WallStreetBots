@@ -1,4 +1,4 @@
-"""End - to - End Trading Integration Tests
+"""End - to - End Trading Integration Tests.
 
 Comprehensive integration tests that validate the entire trading flow from signal generation
 to order execution and position management.
@@ -20,11 +20,11 @@ from backend.tradingbot.production.core.production_strategy_manager import (
 
 
 class TestEndToEndTrading:
-    """Integration tests that validate entire trading flow"""
+    """Integration tests that validate entire trading flow."""
 
     @pytest.fixture
     def mock_trading_system(self):
-        """Create mock trading system for testing"""
+        """Create mock trading system for testing."""
         # Mock data provider
         mock_data_provider = Mock()
         mock_data_provider.is_market_open = AsyncMock(return_value=True)
@@ -116,7 +116,7 @@ class TestEndToEndTrading:
 
     @pytest.mark.asyncio
     async def test_complete_dip_bot_flow(self, mock_trading_system):
-        """Test full WSB Dip Bot execution flow"""
+        """Test full WSB Dip Bot execution flow."""
         strategy_manager = mock_trading_system["strategy_manager"]
 
         # 1. Strategy manager is already initialized in __init__
@@ -145,7 +145,7 @@ class TestEndToEndTrading:
 
     @pytest.mark.asyncio
     async def test_error_recovery_flow(self, mock_trading_system):
-        """Test error recovery mechanisms"""
+        """Test error recovery mechanisms."""
         from backend.tradingbot.error_handling import DataProviderError, TradingErrorRecoveryManager
 
         # Create recovery manager
@@ -169,7 +169,7 @@ class TestEndToEndTrading:
 
     @pytest.mark.asyncio
     async def test_system_health_monitoring(self, mock_trading_system):
-        """Test system health monitoring"""
+        """Test system health monitoring."""
         # Create health monitor
         health_monitor = SystemHealthMonitor(
             trading_system=mock_trading_system["strategy_manager"],
@@ -198,7 +198,7 @@ class TestEndToEndTrading:
 
     @pytest.mark.asyncio
     async def test_position_reconciliation_flow(self, mock_trading_system):
-        """Test position reconciliation process"""
+        """Test position reconciliation process."""
         integration = mock_trading_system["integration"]
 
         # Mock position reconciliation
@@ -219,7 +219,7 @@ class TestEndToEndTrading:
 
     @pytest.mark.asyncio
     async def test_risk_management_integration(self, mock_trading_system):
-        """Test risk management integration"""
+        """Test risk management integration."""
         integration = mock_trading_system["integration"]
 
         # Mock risk validation
@@ -242,7 +242,7 @@ class TestEndToEndTrading:
 
     @pytest.mark.asyncio
     async def test_alert_system_integration(self, mock_trading_system):
-        """Test alert system integration"""
+        """Test alert system integration."""
         integration = mock_trading_system["integration"]
 
         # Mock alert system
@@ -259,7 +259,7 @@ class TestEndToEndTrading:
 
     @pytest.mark.asyncio
     async def test_data_provider_failover(self, mock_trading_system):
-        """Test data provider failover mechanism"""
+        """Test data provider failover mechanism."""
         data_provider = mock_trading_system["data_provider"]
 
         # Mock failover
@@ -276,7 +276,7 @@ class TestEndToEndTrading:
 
     @pytest.mark.asyncio
     async def test_strategy_performance_monitoring(self, mock_trading_system):
-        """Test strategy performance monitoring"""
+        """Test strategy performance monitoring."""
         strategy_manager = mock_trading_system["strategy_manager"]
 
         # Mock performance metrics
@@ -300,7 +300,7 @@ class TestEndToEndTrading:
 
     @pytest.mark.asyncio
     async def test_emergency_halt_procedure(self, mock_trading_system):
-        """Test emergency halt procedure"""
+        """Test emergency halt procedure."""
         strategy_manager = mock_trading_system["strategy_manager"]
 
         # Mock emergency halt
@@ -314,7 +314,7 @@ class TestEndToEndTrading:
 
     @pytest.mark.asyncio
     async def test_comprehensive_system_test(self, mock_trading_system):
-        """Comprehensive system test covering all major components"""
+        """Comprehensive system test covering all major components."""
         strategy_manager = mock_trading_system["strategy_manager"]
 
         # 1. System is already initialized in __init__

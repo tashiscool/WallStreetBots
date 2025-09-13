@@ -1,5 +1,5 @@
 """Production Momentum Weeklies Scanner
-Real - time momentum scanning with weekly options focus
+Real - time momentum scanning with weekly options focus.
 """
 
 import math
@@ -15,7 +15,7 @@ from .unified_data_provider import UnifiedDataProvider
 
 
 class MomentumSignal(Enum):
-    """Momentum trading signals"""
+    """Momentum trading signals."""
 
     STRONG_BUY = "strong_buy"
     BUY = "buy"
@@ -25,7 +25,7 @@ class MomentumSignal(Enum):
 
 
 class MomentumType(Enum):
-    """Types of momentum"""
+    """Types of momentum."""
 
     PRICE_MOMENTUM = "price_momentum"
     VOLUME_MOMENTUM = "volume_momentum"
@@ -35,7 +35,7 @@ class MomentumType(Enum):
 
 
 class WeeklyOptionType(Enum):
-    """Weekly option types"""
+    """Weekly option types."""
 
     CALL = "call"
     PUT = "put"
@@ -46,7 +46,7 @@ class WeeklyOptionType(Enum):
 
 @dataclass
 class MomentumData:
-    """Momentum analysis data"""
+    """Momentum analysis data."""
 
     ticker: str
     current_price: float
@@ -74,7 +74,7 @@ class MomentumData:
 
 @dataclass
 class WeeklyOption:
-    """Weekly option data"""
+    """Weekly option data."""
 
     ticker: str
     option_type: WeeklyOptionType
@@ -96,7 +96,7 @@ class WeeklyOption:
 
 @dataclass
 class MomentumCandidate:
-    """Momentum trading candidate"""
+    """Momentum trading candidate."""
 
     ticker: str
     momentum_data: MomentumData
@@ -114,7 +114,7 @@ class MomentumCandidate:
 
 @dataclass
 class MomentumPosition:
-    """Momentum trading position"""
+    """Momentum trading position."""
 
     ticker: str
     momentum_type: MomentumType
@@ -134,13 +134,13 @@ class MomentumPosition:
 
 
 class MomentumAnalyzer:
-    """Momentum analysis engine"""
+    """Momentum analysis engine."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
 
     def calculate_price_momentum(self, prices: list[float]) -> dict[str, float]:
-        """Calculate price momentum metrics"""
+        """Calculate price momentum metrics."""
         if len(prices) < 20:
             return {"1d": 0.0, "5d": 0.0, "20d": 0.0}
 
@@ -158,7 +158,7 @@ class MomentumAnalyzer:
         return {"1d": price_change_1d, "5d": price_change_5d, "20d": price_change_20d}
 
     def calculate_volume_momentum(self, volumes: list[int]) -> dict[str, float]:
-        """Calculate volume momentum metrics"""
+        """Calculate volume momentum metrics."""
         if len(volumes) < 20:
             return {"1d": 0.0, "5d": 0.0, "ratio": 1.0}
 
@@ -185,7 +185,7 @@ class MomentumAnalyzer:
         return {"1d": volume_change_1d, "5d": volume_change_5d, "ratio": volume_ratio}
 
     def calculate_technical_momentum(self, prices: list[float]) -> dict[str, float]:
-        """Calculate technical momentum indicators"""
+        """Calculate technical momentum indicators."""
         if len(prices) < 50:
             return {"rsi": 50.0, "macd": 0.0, "macd_signal": 0.0, "macd_histogram": 0.0}
 
@@ -203,7 +203,7 @@ class MomentumAnalyzer:
         }
 
     def calculate_moving_averages(self, prices: list[float]) -> dict[str, float]:
-        """Calculate moving averages"""
+        """Calculate moving averages."""
         if len(prices) < 50:
             return {
                 "sma_20": prices[-1],
@@ -225,7 +225,7 @@ class MomentumAnalyzer:
     def calculate_bollinger_position(
         self, prices: list[float], period: int = 20, std_dev: float = 2.0
     ) -> float:
-        """Calculate position within Bollinger Bands"""
+        """Calculate position within Bollinger Bands."""
         if len(prices) < period:
             return 0.5
 
@@ -246,7 +246,7 @@ class MomentumAnalyzer:
         return max(0.0, min(1.0, position))
 
     def calculate_momentum_score(self, momentum_data: dict[str, float]) -> float:
-        """Calculate overall momentum score"""
+        """Calculate overall momentum score."""
         score = 0.0
 
         # Price momentum component (40% weight)
@@ -282,7 +282,7 @@ class MomentumAnalyzer:
         return max(0.0, min(1.0, score))
 
     def _calculate_rsi(self, prices: list[float], period: int = 14) -> float:
-        """Calculate RSI"""
+        """Calculate RSI."""
         if len(prices) < period + 1:
             return 50.0
 
@@ -303,7 +303,7 @@ class MomentumAnalyzer:
     def _calculate_macd(
         self, prices: list[float], fast: int = 12, slow: int = 26, signal: int = 9
     ) -> tuple[float, float, float]:
-        """Calculate MACD"""
+        """Calculate MACD."""
         if len(prices) < slow:
             return 0.0, 0.0, 0.0
 
@@ -321,7 +321,7 @@ class MomentumAnalyzer:
         return macd, signal_line, histogram
 
     def _calculate_ema(self, prices: list[float], period: int) -> float:
-        """Calculate Exponential Moving Average"""
+        """Calculate Exponential Moving Average."""
         if len(prices) < period:
             return prices[-1] if prices else 0.0
 
@@ -335,14 +335,14 @@ class MomentumAnalyzer:
 
 
 class WeeklyOptionsProvider:
-    """Weekly options data provider"""
+    """Weekly options data provider."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
         self.options_cache = {}
 
     async def get_weekly_options(self, ticker: str, days_to_expiry: int = 7) -> list[WeeklyOption]:
-        """Get weekly options for ticker"""
+        """Get weekly options for ticker."""
         try:
             # Mock implementation - in production, integrate with real options API
             current_price = 150.0  # Mock current price
@@ -402,7 +402,7 @@ class WeeklyOptionsProvider:
     def find_best_option(
         self, options: list[WeeklyOption], momentum_signal: MomentumSignal, current_price: float
     ) -> WeeklyOption | None:
-        """Find best option based on momentum signal"""
+        """Find best option based on momentum signal."""
         try:
             if not options:
                 return None
@@ -436,7 +436,7 @@ class WeeklyOptionsProvider:
 
 
 class MomentumWeekliesStrategy:
-    """Main momentum weeklies strategy"""
+    """Main momentum weeklies strategy."""
 
     def __init__(
         self,
@@ -465,7 +465,7 @@ class MomentumWeekliesStrategy:
         self.logger.info("MomentumWeekliesStrategy initialized")
 
     async def scan_for_momentum_opportunities(self) -> list[MomentumCandidate]:
-        """Scan for momentum trading opportunities"""
+        """Scan for momentum trading opportunities."""
         try:
             self.logger.info("Scanning for momentum opportunities")
 
@@ -519,7 +519,7 @@ class MomentumWeekliesStrategy:
             return []
 
     async def execute_momentum_trade(self, candidate: MomentumCandidate) -> MomentumPosition | None:
-        """Execute momentum trading position"""
+        """Execute momentum trading position."""
         try:
             self.logger.info(f"Executing momentum trade for {candidate.ticker}")
 
@@ -574,7 +574,7 @@ class MomentumWeekliesStrategy:
             return None
 
     async def monitor_momentum_positions(self) -> dict[str, Any]:
-        """Monitor active momentum positions"""
+        """Monitor active momentum positions."""
         try:
             self.logger.info("Monitoring momentum positions")
 
@@ -621,7 +621,7 @@ class MomentumWeekliesStrategy:
     async def _perform_momentum_analysis(
         self, ticker: str, historical_data: list[dict]
     ) -> MomentumData | None:
-        """Perform momentum analysis on historical data"""
+        """Perform momentum analysis on historical data."""
         try:
             if len(historical_data) < 20:
                 return None
@@ -682,7 +682,7 @@ class MomentumWeekliesStrategy:
             return None
 
     def _generate_momentum_signal(self, momentum_data: MomentumData) -> MomentumSignal:
-        """Generate momentum signal based on analysis"""
+        """Generate momentum signal based on analysis."""
         score = momentum_data.overall_score
 
         if score >= 0.8:
@@ -697,7 +697,7 @@ class MomentumWeekliesStrategy:
             return MomentumSignal.HOLD
 
     def _determine_momentum_type(self, momentum_data: MomentumData) -> MomentumType:
-        """Determine primary momentum type"""
+        """Determine primary momentum type."""
         if momentum_data.volume_ratio > 2.0:
             return MomentumType.VOLUME_MOMENTUM
         elif abs(momentum_data.price_change_5d) > 0.1:
@@ -714,7 +714,7 @@ class MomentumWeekliesStrategy:
         signal: MomentumSignal,
         momentum_type: MomentumType,
     ) -> MomentumCandidate | None:
-        """Create momentum trading candidate"""
+        """Create momentum trading candidate."""
         try:
             # Calculate entry price
             entry_price = momentum_data.current_price
@@ -758,7 +758,7 @@ class MomentumWeekliesStrategy:
             return None
 
     def _calculate_position_size(self, entry_price: float, stop_loss: float) -> int:
-        """Calculate position size based on risk"""
+        """Calculate position size based on risk."""
         # Simplified position sizing - in production, use proper risk management
         risk_per_share = abs(entry_price - stop_loss)
         max_risk_amount = 500.0  # $500 max risk per position
@@ -766,7 +766,7 @@ class MomentumWeekliesStrategy:
         return min(position_size, 500)  # Cap at 500 shares
 
     async def _update_position_data(self, position: MomentumPosition):
-        """Update position data with current market information"""
+        """Update position data with current market information."""
         try:
             # Get current market data
             market_data = await self.data.get_market_data(position.ticker)
@@ -785,7 +785,7 @@ class MomentumWeekliesStrategy:
             self.logger.error(f"Error updating position data for {position.ticker}: {e}")
 
     def _calculate_position_pnl(self, position: MomentumPosition) -> float:
-        """Calculate position P & L"""
+        """Calculate position P & L."""
         # Simplified P & L calculation for options
         if position.position_type == "option":  # Mock option P & L calculation
             price_change = position.current_price - position.entry_price
@@ -795,7 +795,7 @@ class MomentumWeekliesStrategy:
             return (position.current_price - position.entry_price) * position.quantity
 
     def _check_exit_conditions(self, position: MomentumPosition) -> str | None:
-        """Check for exit conditions"""
+        """Check for exit conditions."""
         # Check stop loss
         if position.position_type == "option":
             if position.current_price <= position.stop_loss:
@@ -822,7 +822,7 @@ class MomentumWeekliesStrategy:
         return None
 
     def _check_position_risks(self, position: MomentumPosition) -> list[str]:
-        """Check for position risk alerts"""
+        """Check for position risk alerts."""
         alerts = []
 
         # Check for large unrealized losses
@@ -845,7 +845,7 @@ class MomentumWeekliesStrategy:
         return alerts
 
     async def _close_position(self, ticker: str, exit_signal: str):
-        """Close momentum position"""
+        """Close momentum position."""
         try:
             if ticker in self.active_positions:
                 position = self.active_positions.pop(ticker)
@@ -857,7 +857,7 @@ class MomentumWeekliesStrategy:
             self.logger.error(f"Error closing position for {ticker}: {e}")
 
     async def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         try:
             total_pnl = sum(pos.unrealized_pnl for pos in self.active_positions.values())
             total_exposure = sum(

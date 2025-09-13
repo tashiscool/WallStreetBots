@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Market Regime Adapter
-Integrates market regime detection with strategy parameter adaptation
+Integrates market regime detection with strategy parameter adaptation.
 """
 
 import logging
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class AdaptationLevel(Enum):
-    """Strategy adaptation intensity levels"""
+    """Strategy adaptation intensity levels."""
 
     CONSERVATIVE = "conservative"
     MODERATE = "moderate"
@@ -30,7 +30,7 @@ class AdaptationLevel(Enum):
 
 @dataclass
 class RegimeAdaptationConfig:
-    """Configuration for regime-based adaptation"""
+    """Configuration for regime-based adaptation."""
 
     # Position sizing adjustments by regime
     bull_position_multiplier: float = 1.2  # Increase positions in bull market
@@ -64,7 +64,7 @@ class RegimeAdaptationConfig:
 
 @dataclass
 class StrategyAdaptation:
-    """Strategy adaptation recommendations"""
+    """Strategy adaptation recommendations."""
 
     regime: MarketRegime
     confidence: float
@@ -95,7 +95,7 @@ class StrategyAdaptation:
 
 
 class MarketRegimeAdapter:
-    """Market Regime Strategy Adapter
+    """Market Regime Strategy Adapter.
 
     Integrates market regime detection with dynamic strategy adaptation:
     - Adjusts position sizes based on market regime
@@ -105,7 +105,7 @@ class MarketRegimeAdapter:
     """
 
     def __init__(self, config: RegimeAdaptationConfig = None):
-        """Initialize market regime adapter
+        """Initialize market regime adapter.
 
         Args:
             config: Adaptation configuration
@@ -127,7 +127,7 @@ class MarketRegimeAdapter:
         self.logger.info("Market Regime Adapter initialized")
 
     async def detect_current_regime(self, market_data: dict[str, Any]) -> MarketRegime:
-        """Detect current market regime from market data
+        """Detect current market regime from market data.
 
         Args:
             market_data: Market data containing price, volume, indicators
@@ -188,7 +188,7 @@ class MarketRegimeAdapter:
     async def generate_strategy_adaptation(
         self, market_data: dict[str, Any], current_positions: dict[str, Any] | None = None
     ) -> StrategyAdaptation:
-        """Generate strategy adaptation based on current market regime
+        """Generate strategy adaptation based on current market regime.
 
         Args:
             market_data: Current market data
@@ -261,7 +261,7 @@ class MarketRegimeAdapter:
             return self._create_default_adaptation(MarketRegime.UNDEFINED)
 
     def _extract_indicators(self, market_data: dict[str, Any]) -> TechnicalIndicators | None:
-        """Extract technical indicators from market data"""
+        """Extract technical indicators from market data."""
         try:
             # Handle different market data formats
             if "SPY" in market_data or "spy" in market_data:
@@ -292,7 +292,7 @@ class MarketRegimeAdapter:
                     )
 
             # Fallback: create indicators from any available price data
-            for symbol, data in market_data.items():
+            for _symbol, data in market_data.items():
                 if isinstance(data, dict) and "price" in data:
                     price = float(data["price"])
                     return create_sample_indicators(
@@ -310,7 +310,7 @@ class MarketRegimeAdapter:
             return None
 
     def _check_earnings_risk(self, market_data: dict[str, Any]) -> bool:
-        """Check if we're in earnings season or near earnings"""
+        """Check if we're in earnings season or near earnings."""
         try:
             # Check for earnings indicators in market data
             if "earnings_risk" in market_data:
@@ -336,7 +336,7 @@ class MarketRegimeAdapter:
             return False
 
     def _check_macro_risk(self, market_data: dict[str, Any]) -> bool:
-        """Check for macro economic events"""
+        """Check for macro economic events."""
         try:
             # Check for macro risk indicators
             if "macro_risk" in market_data:
@@ -362,7 +362,7 @@ class MarketRegimeAdapter:
             return False
 
     def _should_adapt(self, regime: MarketRegime) -> bool:
-        """Check if we should adapt strategies"""
+        """Check if we should adapt strategies."""
         # Check confidence threshold
         if self.regime_confidence < self.config.min_regime_confidence:
             return False
@@ -376,7 +376,7 @@ class MarketRegimeAdapter:
         return True
 
     def _get_position_multiplier(self, regime: MarketRegime) -> float:
-        """Get position size multiplier for regime"""
+        """Get position size multiplier for regime."""
         multipliers = {
             MarketRegime.BULL: self.config.bull_position_multiplier,
             MarketRegime.BEAR: self.config.bear_position_multiplier,
@@ -386,7 +386,7 @@ class MarketRegimeAdapter:
         return multipliers.get(regime, 0.5)
 
     def _get_max_risk(self, regime: MarketRegime) -> float:
-        """Get max risk per trade for regime"""
+        """Get max risk per trade for regime."""
         risks = {
             MarketRegime.BULL: self.config.bull_max_risk,
             MarketRegime.BEAR: self.config.bear_max_risk,
@@ -398,7 +398,7 @@ class MarketRegimeAdapter:
     def _calculate_parameter_adjustments(
         self, regime: MarketRegime, market_data: dict[str, Any]
     ) -> dict[str, Any]:
-        """Calculate strategy parameter adjustments"""
+        """Calculate strategy parameter adjustments."""
         adjustments = {}
 
         if regime == MarketRegime.BULL:
@@ -435,7 +435,7 @@ class MarketRegimeAdapter:
         return adjustments
 
     def _calculate_risk_adjustments(self, regime: MarketRegime) -> tuple[float, float]:
-        """Calculate stop loss and take profit adjustments"""
+        """Calculate stop loss and take profit adjustments."""
         if regime == MarketRegime.BULL:
             return 1.2, 0.8  # Wider stops, tighter profits
         elif regime == MarketRegime.BEAR:
@@ -448,7 +448,7 @@ class MarketRegimeAdapter:
     def _calculate_timing_adjustments(
         self, regime: MarketRegime, market_data: dict[str, Any]
     ) -> tuple[int, float]:
-        """Calculate entry delay and exit urgency"""
+        """Calculate entry delay and exit urgency."""
         # Check volatility
         volatility = market_data.get("volatility", 0.2)
 
@@ -473,7 +473,7 @@ class MarketRegimeAdapter:
         return entry_delay, exit_urgency
 
     def _generate_adaptation_reason(self, regime: MarketRegime, market_data: dict[str, Any]) -> str:
-        """Generate human - readable reason for adaptation"""
+        """Generate human - readable reason for adaptation."""
         reasons = []
 
         reasons.append(f"Market regime: {regime.value}")
@@ -492,7 +492,7 @@ class MarketRegimeAdapter:
         return "; ".join(reasons)
 
     def _create_default_adaptation(self, regime: MarketRegime) -> StrategyAdaptation:
-        """Create default adaptation"""
+        """Create default adaptation."""
         return StrategyAdaptation(
             regime=regime,
             confidence=0.5,
@@ -511,7 +511,7 @@ class MarketRegimeAdapter:
         )
 
     def get_adaptation_summary(self) -> dict[str, Any]:
-        """Get current adaptation summary"""
+        """Get current adaptation summary."""
         if not self.adaptation_history:
             return {"status": "no_adaptations", "current_regime": "undefined", "confidence": 0.0}
 
@@ -536,7 +536,7 @@ async def adapt_strategies_to_market(
     current_positions: dict[str, Any] | None = None,
     config: RegimeAdaptationConfig | None = None,
 ) -> StrategyAdaptation:
-    """Quick strategy adaptation based on market regime
+    """Quick strategy adaptation based on market regime.
 
     Args:
         market_data: Current market data

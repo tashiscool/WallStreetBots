@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Focused tests for ProductionStrategyManager
-Tests the core functionality we just implemented
+Tests the core functionality we just implemented.
 """
 
 import asyncio
@@ -23,7 +23,7 @@ from backend.tradingbot.production.core.production_strategy_manager import (
 
 
 def test_strategy_manager_initialization():
-    """Test that ProductionStrategyManager initializes correctly"""
+    """Test that ProductionStrategyManager initializes correctly."""
     print("Testing ProductionStrategyManager initialization...")
 
     config = ProductionStrategyManagerConfig(
@@ -53,7 +53,7 @@ def test_strategy_manager_initialization():
 
 
 def test_strategy_config_dataclass():
-    """Test StrategyConfig dataclass functionality"""
+    """Test StrategyConfig dataclass functionality."""
     print("Testing StrategyConfig dataclass...")
 
     config = StrategyConfig(
@@ -75,7 +75,7 @@ def test_strategy_config_dataclass():
 
 
 def test_production_strategy_manager_config_dataclass():
-    """Test ProductionStrategyManagerConfig dataclass"""
+    """Test ProductionStrategyManagerConfig dataclass."""
     print("Testing ProductionStrategyManagerConfig dataclass...")
 
     config = ProductionStrategyManagerConfig(
@@ -100,7 +100,7 @@ def test_production_strategy_manager_config_dataclass():
 
 
 def test_create_strategy_method_exists():
-    """Test that _create_strategy method exists and handles unknown strategies"""
+    """Test that _create_strategy method exists and handles unknown strategies."""
     print("Testing _create_strategy method...")
 
     config = ProductionStrategyManagerConfig(
@@ -130,7 +130,7 @@ def test_create_strategy_method_exists():
 
 @pytest.mark.asyncio
 async def test_async_methods_exist():
-    """Test that async methods exist and have correct signatures"""
+    """Test that async methods exist and have correct signatures."""
     print("Testing async methods exist...")
 
     config = ProductionStrategyManagerConfig(
@@ -178,7 +178,7 @@ async def test_async_methods_exist():
 
 
 def test_strategy_factory_methods_mapping():
-    """Test that all strategy names map to factory methods in _create_strategy"""
+    """Test that all strategy names map to factory methods in _create_strategy."""
     print("Testing strategy factory methods mapping...")
 
     config = ProductionStrategyManagerConfig(
@@ -231,7 +231,7 @@ def test_strategy_factory_methods_mapping():
 
 
 def test_all_strategy_imports_available():
-    """Test that all required strategy imports are available"""
+    """Test that all required strategy imports are available."""
     print("Testing all strategy imports...")
 
     try:
@@ -274,7 +274,7 @@ def test_all_strategy_imports_available():
 
 
 def run_all_tests():
-    """Run all focused tests"""
+    """Run all focused tests."""
     print("🧪 PRODUCTION STRATEGY MANAGER FOCUSED TESTS")
     print(" = " * 60)
 

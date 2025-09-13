@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Comprehensive Test Suite for Swing Trading WSB Strategy Module
-Tests all components of the swing trading scanner and strategy logic
+Tests all components of the swing trading scanner and strategy logic.
 """
 
 import os
@@ -22,10 +22,10 @@ from backend.tradingbot.strategies.swing_trading import (
 
 
 class TestSwingTradingScanner(unittest.TestCase):
-    """Test the swing trading scanner functionality"""
+    """Test the swing trading scanner functionality."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.scanner = SwingTradingScanner()
 
         # Create mock price data
@@ -51,14 +51,14 @@ class TestSwingTradingScanner(unittest.TestCase):
         )
 
     def test_scanner_initialization(self):
-        """Test that scanner initializes properly"""
+        """Test that scanner initializes properly."""
         self.assertIsInstance(self.scanner, SwingTradingScanner)
         self.assertIsInstance(self.scanner.swing_tickers, list)
         self.assertGreater(len(self.scanner.swing_tickers), 0)
 
     @patch("backend.tradingbot.strategies.swing_trading.yf.Ticker")
     def test_detect_breakout(self, mock_ticker):
-        """Test breakout detection"""
+        """Test breakout detection."""
         mock_stock = Mock()
         mock_stock.history.return_value = self.mock_data
         mock_ticker.return_value = mock_stock
@@ -74,7 +74,7 @@ class TestSwingTradingScanner(unittest.TestCase):
 
     @patch("backend.tradingbot.strategies.swing_trading.yf.download")
     def test_detect_momentum_continuation(self, mock_download):
-        """Test momentum continuation detection"""
+        """Test momentum continuation detection."""
         mock_download.return_value = self.mock_data
 
         is_momentum, strength = self.scanner.detect_momentum_continuation("AAPL")
@@ -84,7 +84,7 @@ class TestSwingTradingScanner(unittest.TestCase):
 
     @patch("backend.tradingbot.strategies.swing_trading.yf.download")
     def test_detect_reversal_setup(self, mock_download):
-        """Test reversal setup detection"""
+        """Test reversal setup detection."""
         mock_download.return_value = self.mock_data
 
         is_reversal, setup_type, strength = self.scanner.detect_reversal_setup("AAPL")
@@ -94,7 +94,7 @@ class TestSwingTradingScanner(unittest.TestCase):
         self.assertIsInstance(strength, float)
 
     def test_get_optimal_expiry(self):
-        """Test optimal expiry calculation"""
+        """Test optimal expiry calculation."""
         expiry = self.scanner.get_optimal_expiry(30)
 
         self.assertIsInstance(expiry, str)
@@ -103,7 +103,7 @@ class TestSwingTradingScanner(unittest.TestCase):
         self.assertEqual(expiry.count("-"), 2)
 
     def test_calculate_option_targets(self):
-        """Test option target calculations"""
+        """Test option target calculations."""
         targets = self.scanner.calculate_option_targets(100.0, 105, 2.50)
 
         self.assertEqual(len(targets), 4)
@@ -124,7 +124,7 @@ class TestSwingTradingScanner(unittest.TestCase):
 
     @patch("backend.tradingbot.strategies.swing_trading.yf.Ticker")
     def test_estimate_swing_premium(self, mock_ticker):
-        """Test swing premium estimation"""
+        """Test swing premium estimation."""
         mock_options = Mock()
         mock_options.calls = Mock()
         mock_options.calls.return_value = pd.DataFrame(
@@ -139,7 +139,7 @@ class TestSwingTradingScanner(unittest.TestCase):
 
     @patch("backend.tradingbot.strategies.swing_trading.yf.download")
     def test_scan_swing_opportunities(self, mock_download):
-        """Test scanning for swing opportunities"""
+        """Test scanning for swing opportunities."""
         mock_download.return_value = self.mock_data
 
         opportunities = self.scanner.scan_swing_opportunities()
@@ -150,7 +150,7 @@ class TestSwingTradingScanner(unittest.TestCase):
             self.assertIsInstance(opp, SwingSignal)
 
     def test_format_signals(self):
-        """Test signal formatting"""
+        """Test signal formatting."""
         signals = [
             SwingSignal(
                 ticker="AAPL",
@@ -180,10 +180,10 @@ class TestSwingTradingScanner(unittest.TestCase):
 
 
 class TestSwingSignal(unittest.TestCase):
-    """Test the SwingSignal dataclass"""
+    """Test the SwingSignal dataclass."""
 
     def test_swing_signal_creation(self):
-        """Test creating a swing signal"""
+        """Test creating a swing signal."""
         signal = SwingSignal(
             ticker="AAPL",
             signal_time=datetime.now(),
@@ -211,10 +211,10 @@ class TestSwingSignal(unittest.TestCase):
 
 
 class TestActiveSwingTrade(unittest.TestCase):
-    """Test the ActiveSwingTrade dataclass"""
+    """Test the ActiveSwingTrade dataclass."""
 
     def test_active_trade_creation(self):
-        """Test creating an active swing trade"""
+        """Test creating an active swing trade."""
         signal = SwingSignal(
             ticker="AAPL",
             signal_time=datetime.now(),
@@ -253,15 +253,15 @@ class TestActiveSwingTrade(unittest.TestCase):
 
 
 class TestSwingTradingIntegration(unittest.TestCase):
-    """Test integration scenarios"""
+    """Test integration scenarios."""
 
     def setUp(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.scanner = SwingTradingScanner()
 
     @patch("backend.tradingbot.strategies.swing_trading.yf.download")
     def test_error_handling_bad_ticker(self, mock_download):
-        """Test error handling with bad ticker"""
+        """Test error handling with bad ticker."""
         mock_download.side_effect = Exception("Ticker not found")
 
         # Should not crash, should handle gracefully
@@ -272,7 +272,7 @@ class TestSwingTradingIntegration(unittest.TestCase):
         self.assertEqual(volume_ratio, 0.0)
 
     def test_main_function_exists(self):
-        """Test that main function exists and is callable"""
+        """Test that main function exists and is callable."""
         from backend.tradingbot.strategies.swing_trading import main
 
         self.assertTrue(callable(main))

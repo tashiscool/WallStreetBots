@@ -1,5 +1,5 @@
 """Production SPX Credit Spreads Implementation
-Index options with real - time CME data integration
+Index options with real - time CME data integration.
 """
 
 import asyncio
@@ -15,7 +15,7 @@ from .trading_interface import OrderSide, OrderType, TradeSignal, TradingInterfa
 
 
 class SPXSpreadType(Enum):
-    """SPX spread types"""
+    """SPX spread types."""
 
     PUT_CREDIT_SPREAD = "put_credit_spread"
     CALL_CREDIT_SPREAD = "call_credit_spread"
@@ -24,7 +24,7 @@ class SPXSpreadType(Enum):
 
 
 class SPXSpreadStatus(Enum):
-    """SPX spread position status"""
+    """SPX spread position status."""
 
     ACTIVE = "active"
     EXPIRED = "expired"
@@ -34,7 +34,7 @@ class SPXSpreadStatus(Enum):
 
 @dataclass
 class SPXSpreadPosition:
-    """SPX spread position tracking"""
+    """SPX spread position tracking."""
 
     spread_type: SPXSpreadType
     status: SPXSpreadStatus
@@ -70,7 +70,7 @@ class SPXSpreadPosition:
     net_vega: float = 0.0
 
     def update_pricing(self, long_option_data: OptionsData, short_option_data: OptionsData):
-        """Update spread pricing with current option data"""
+        """Update spread pricing with current option data."""
         # Calculate current spread value
         long_value = long_option_data.ask
         short_value = short_option_data.bid
@@ -90,11 +90,11 @@ class SPXSpreadPosition:
         self.last_update = datetime.now()
 
     def calculate_max_profit(self) -> float:
-        """Calculate maximum profit potential"""
+        """Calculate maximum profit potential."""
         return self.net_credit * self.quantity * 100
 
     def calculate_max_loss(self) -> float:
-        """Calculate maximum loss potential"""
+        """Calculate maximum loss potential."""
         if self.spread_type == SPXSpreadType.PUT_CREDIT_SPREAD:
             return (
                 self.long_strike - self.short_strike
@@ -106,14 +106,14 @@ class SPXSpreadPosition:
         return 0.0
 
     def calculate_days_to_expiry(self) -> int:
-        """Calculate days to expiry"""
+        """Calculate days to expiry."""
         delta = self.expiry_date - datetime.now()
         return max(0, delta.days)
 
 
 @dataclass
 class SPXSpreadCandidate:
-    """SPX spread candidate screening"""
+    """SPX spread candidate screening."""
 
     spread_type: SPXSpreadType
 
@@ -144,7 +144,7 @@ class SPXSpreadCandidate:
     risk_score: float = 0.0
 
     def calculate_spread_score(self) -> float:
-        """Calculate SPX spread strategy score"""
+        """Calculate SPX spread strategy score."""
         score = 0.0
 
         # Profit / Loss ratio (higher is better)
@@ -182,14 +182,14 @@ class SPXSpreadCandidate:
 
 
 class CMEDataProvider:
-    """CME data provider for SPX options"""
+    """CME data provider for SPX options."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
         self.base_url = "https: //www.cmegroup.com / CmeWS / mvc / ProductSlate / V2 / List"
 
-    async def get_spx_options(self, expiry_date: str = None) -> list[OptionsData]:
-        """Get SPX options data from CME"""
+    async def get_spx_options(self, expiry_date: str | None = None) -> list[OptionsData]:
+        """Get SPX options data from CME."""
         try:
             # In production, would integrate with CME API
             # For now, return mock data
@@ -246,7 +246,7 @@ class CMEDataProvider:
             return []
 
     async def get_vix_level(self) -> float:
-        """Get current VIX level"""
+        """Get current VIX level."""
         try:
             # In production, would get real VIX data
             # For now, return mock VIX
@@ -257,7 +257,7 @@ class CMEDataProvider:
             return 20.0
 
     async def get_market_regime(self) -> str:
-        """Determine current market regime"""
+        """Determine current market regime."""
         try:
             # In production, would analyze market conditions
             # For now, return mock regime
@@ -269,7 +269,7 @@ class CMEDataProvider:
 
 
 class ProductionSPXSpreads:
-    """Production SPX Credit Spreads Implementation"""
+    """Production SPX Credit Spreads Implementation."""
 
     def __init__(
         self,
@@ -308,7 +308,7 @@ class ProductionSPXSpreads:
         )
 
     async def scan_for_opportunities(self) -> list[SPXSpreadCandidate]:
-        """Scan for SPX spread opportunities"""
+        """Scan for SPX spread opportunities."""
         self.logger.info("Scanning for SPX spread opportunities")
 
         try:
@@ -370,7 +370,7 @@ class ProductionSPXSpreads:
     def _find_put_credit_spreads(
         self, options_data: list[OptionsData], spx_price: float
     ) -> list[dict[str, Any]]:
-        """Find put credit spread opportunities"""
+        """Find put credit spread opportunities."""
         spreads = []
 
         # Filter put options
@@ -430,7 +430,7 @@ class ProductionSPXSpreads:
         return spreads[:3]  # Top 3 spreads
 
     async def execute_spx_spread(self, candidate: SPXSpreadCandidate) -> bool:
-        """Execute SPX spread trade"""
+        """Execute SPX spread trade."""
         try:
             self.logger.info("Executing SPX spread")
 
@@ -529,7 +529,7 @@ class ProductionSPXSpreads:
             return False
 
     async def _close_short_position(self, signal: TradeSignal, result):
-        """Close short position if long trade fails"""
+        """Close short position if long trade fails."""
         try:
             close_signal = TradeSignal(
                 strategy_name="SPX Credit Spreads",
@@ -546,7 +546,7 @@ class ProductionSPXSpreads:
             self.error_handler.handle_error(e, {"operation": "close_short_position"})
 
     def _calculate_position_size(self, candidate: SPXSpreadCandidate) -> int:
-        """Calculate position size for SPX spread"""
+        """Calculate position size for SPX spread."""
         try:
             # Get account value
             account_value = self.config.risk.account_size
@@ -567,7 +567,7 @@ class ProductionSPXSpreads:
             return 1
 
     async def manage_positions(self):
-        """Manage existing SPX spread positions"""
+        """Manage existing SPX spread positions."""
         self.logger.info("Managing SPX spread positions")
 
         for position_key, position in list(self.positions.items()):
@@ -579,7 +579,7 @@ class ProductionSPXSpreads:
                 )
 
     async def _manage_position(self, position: SPXSpreadPosition):
-        """Manage individual SPX spread position"""
+        """Manage individual SPX spread position."""
         # Get current SPX options data
         spx_options = await self.cme_data.get_spx_options()
 
@@ -620,7 +620,7 @@ class ProductionSPXSpreads:
             return
 
     async def _close_position(self, position: SPXSpreadPosition, reason: str):
-        """Close SPX spread position"""
+        """Close SPX spread position."""
         try:
             # Close short position
             short_close_signal = TradeSignal(
@@ -668,7 +668,7 @@ class ProductionSPXSpreads:
             self.error_handler.handle_error(e, {"operation": "close_position"})
 
     async def get_portfolio_summary(self) -> dict[str, Any]:
-        """Get SPX spreads portfolio summary"""
+        """Get SPX spreads portfolio summary."""
         total_pnl = sum(pos.unrealized_pnl for pos in self.positions.values())
         total_credit = sum(pos.net_credit * pos.quantity * 100 for pos in self.positions.values())
 
@@ -679,7 +679,7 @@ class ProductionSPXSpreads:
             "positions": [],
         }
 
-        for position_key, position in self.positions.items():
+        for _position_key, position in self.positions.items():
             summary["positions"].append(
                 {
                     "spread_type": position.spread_type.value,
@@ -696,7 +696,7 @@ class ProductionSPXSpreads:
         return summary
 
     async def run_strategy(self):
-        """Run SPX spreads strategy main loop"""
+        """Run SPX spreads strategy main loop."""
         self.logger.info("Starting SPX Credit Spreads Strategy")
 
         while True:
@@ -735,7 +735,7 @@ class ProductionSPXSpreads:
                 await asyncio.sleep(60)  # Wait 1 minute on error
 
     async def _is_market_open(self) -> bool:
-        """Check if market is open"""
+        """Check if market is open."""
         try:
             # In production, would check actual market hours
             # For now, return True during business hours
@@ -754,5 +754,5 @@ def create_spx_spreads_strategy(
     config: ProductionConfig,
     logger: ProductionLogger,
 ) -> ProductionSPXSpreads:
-    """Create SPX spreads strategy instance"""
+    """Create SPX spreads strategy instance."""
     return ProductionSPXSpreads(trading_interface, data_provider, config, logger)

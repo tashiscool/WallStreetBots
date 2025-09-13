@@ -7,7 +7,7 @@ from .utils import DummyFetcher
 class DummyHMM:
     def __init__(self, current_data, num_hidden_states, covar_type, n_iter, **kwargs):
         self.stock = current_data.stock
-        if self.stock == "AAPL" or self.stock == "MSFT":
+        if self.stock in {"AAPL", "MSFT"}:
             self.num_uptrend = 1
         else:
             self.num_uptrend = 0

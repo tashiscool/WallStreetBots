@@ -1,5 +1,5 @@
 """Database Migration Script
-Migrate from JSON files to PostgreSQL database
+Migrate from JSON files to PostgreSQL database.
 """
 
 import asyncio
@@ -23,7 +23,7 @@ from .production_models import (
 
 
 class ProductionMigration:
-    """Production database migration"""
+    """Production database migration."""
 
     def __init__(self, config: ProductionConfig):
         self.config = config
@@ -36,7 +36,7 @@ class ProductionMigration:
         }
 
     async def run_full_migration(self):
-        """Run complete migration from JSON to database"""
+        """Run complete migration from JSON to database."""
         self.logger.info("Starting production migration")
 
         try:
@@ -62,7 +62,7 @@ class ProductionMigration:
             raise
 
     async def create_strategies(self):
-        """Create strategy records"""
+        """Create strategy records."""
         strategies_data = [
             {
                 "name": "WSB Dip Bot",
@@ -163,7 +163,7 @@ class ProductionMigration:
                 self.logger.error(f"Error creating strategy {strategy_data['name']}: {e}")
 
     async def migrate_portfolios(self):
-        """Migrate portfolio data from JSON files"""
+        """Migrate portfolio data from JSON files."""
         # Migrate LEAPS portfolio
         leaps_file = "leaps_portfolio.json"
         if os.path.exists(leaps_file):
@@ -188,7 +188,7 @@ class ProductionMigration:
         self.migration_stats["positions_migrated"] = Position.objects.count()
 
     async def create_risk_limits(self):
-        """Create risk limits for each strategy"""
+        """Create risk limits for each strategy."""
         strategies = Strategy.objects.all()
 
         for strategy in strategies:
@@ -211,7 +211,7 @@ class ProductionMigration:
                 self.logger.error(f"Error creating risk limits for {strategy.name}: {e}")
 
     async def create_default_configurations(self):
-        """Create default system configurations"""
+        """Create default system configurations."""
         default_configs = [
             {
                 "key": "system_version",
@@ -289,7 +289,7 @@ class ProductionMigration:
                 self.logger.error(f"Error creating configuration {config_data['key']}: {e}")
 
     async def generate_migration_report(self):
-        """Generate migration report"""
+        """Generate migration report."""
         report = {
             "migration_date": datetime.now().isoformat(),
             "statistics": self.migration_stats,
@@ -312,7 +312,7 @@ class ProductionMigration:
 
 
 class Command(BaseCommand):
-    """Django management command for migration"""
+    """Django management command for migration."""
 
     help = "Migrate from JSON files to production database"
 
@@ -328,7 +328,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Handle migration command"""
+        """Handle migration command."""
         # Load configuration
         config_manager = ConfigManager(options["config_file"])
         config = config_manager.load_config()
@@ -355,7 +355,7 @@ class Command(BaseCommand):
 
 # Standalone migration script
 async def main():
-    """Standalone migration script"""
+    """Standalone migration script."""
     import sys
 
     sys.path.append(".")

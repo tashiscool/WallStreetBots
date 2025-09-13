@@ -1,5 +1,5 @@
 #!/usr / bin / env python3
-"""WallStreetBots - Complete Setup for Real Money Trading
+"""WallStreetBots - Complete Setup for Real Money Trading.
 
 This script guides you through setting up the complete trading system
 with real API keys and proper configuration for actual money trading.
@@ -15,27 +15,27 @@ from pathlib import Path
 
 
 def print_header(title):
-    """Print formatted section header"""
+    """Print formatted section header."""
     print("\n" + " = " * 80)
     print(f" {title}")
     print(" = " * 80)
 
 
 def print_warning():
-    """Print critical warning"""
+    """Print critical warning."""
     print_header("🚨 CRITICAL WARNING 🚨")
     print(
         """
 This setup will configure WallStreetBots for REAL MONEY TRADING.
 
-⚠️  IMPORTANT DISCLAIMERS: 
+⚠️  IMPORTANT DISCLAIMERS:
    - This system can lose ALL your money if configured incorrectly
    - Start with paper trading (ALPACA_BASE_URL=paper - api.alpaca.markets)
    - Use small position sizes (max 1 - 2% per trade)
    - Test thoroughly before going live
    - Past performance does not guarantee future results
 
-📋 WHAT THIS SCRIPT DOES: 
+📋 WHAT THIS SCRIPT DOES:
    ✅ Installs all required dependencies
    ✅ Creates .env file with API key placeholders
    ✅ Validates production infrastructure
@@ -53,12 +53,8 @@ Do you want to continue? (y / N): """,
 
 
 def check_python_version():
-    """Check Python version compatibility"""
+    """Check Python version compatibility."""
     print_header("🐍 Checking Python Version")
-
-    if sys.version_info < (3, 8):
-        print("❌ Python 3.8+ required. Please upgrade Python.")
-        sys.exit(1)
 
     print(
         f"✅ Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} - Compatible"
@@ -66,7 +62,7 @@ def check_python_version():
 
 
 def install_dependencies():
-    """Install all required dependencies"""
+    """Install all required dependencies."""
     print_header("📦 Installing Dependencies")
 
     try:
@@ -100,7 +96,7 @@ def install_dependencies():
 
 
 def create_env_file():
-    """Create .env file from example"""
+    """Create .env file from example."""
     print_header("⚙️ Creating Environment Configuration")
 
     env_example = Path("backend/.env.example")
@@ -129,7 +125,7 @@ def create_env_file():
 
 
 def run_tests():
-    """Run comprehensive test suite"""
+    """Run comprehensive test suite."""
     print_header("🧪 Running Test Suite")
 
     try:
@@ -160,18 +156,18 @@ def run_tests():
 
 
 def print_api_key_instructions():
-    """Print detailed API key setup instructions"""
+    """Print detailed API key setup instructions."""
     print_header("🔑 API Key Setup Instructions")
 
     instructions = """
-📋 STEP - BY - STEP API KEY SETUP: 
+📋 STEP - BY - STEP API KEY SETUP:
 
 1. 🏦 ALPACA (Stock / Options Broker) - REQUIRED
    • Go to: https://alpaca.markets/
    • Sign up for account (free)
    • Navigate to: Paper Trading → API Keys
    • Generate API Key and Secret
-   • Add to .env: 
+   • Add to .env:
      ALPACA_API_KEY = your_key_here
      ALPACA_SECRET_KEY = your_secret_here
      ALPACA_BASE_URL = https: //paper - api.alpaca.markets
@@ -180,40 +176,40 @@ def print_api_key_instructions():
    • Go to: https://iexcloud.io/
    • Sign up (starts free, $9 / month for real - time)
    • Get API token from dashboard
-   • Add to .env: 
+   • Add to .env:
      IEX_API_KEY = your_key_here
 
 3. 📈 POLYGON.IO (Options Data) - RECOMMENDED
    • Go to: https://polygon.io/
    • Sign up ($99 / month for options data)
    • Get API key from dashboard
-   • Add to .env: 
+   • Add to .env:
      POLYGON_API_KEY = your_key_here
 
 4. 📰 FINANCIAL MODELING PREP (Earnings) - RECOMMENDED
    • Go to: https://financialmodelingprep.com/
    • Sign up ($15 / month basic plan)
    • Get API key
-   • Add to .env: 
+   • Add to .env:
      FMP_API_KEY = your_key_here
 
 5. 📺 NEWS API (Sentiment) - OPTIONAL
    • Go to: https://newsapi.org/
    • Sign up (free tier available)
    • Get API key
-   • Add to .env: 
+   • Add to .env:
      NEWS_API_KEY = your_key_here
 
 6. 📊 ALPHA VANTAGE (Backup Data) - OPTIONAL
    • Go to: https://www.alphavantage.co/
    • Sign up (free tier: 5 calls / minute)
    • Get API key
-   • Add to .env: 
+   • Add to .env:
      ALPHA_VANTAGE_API_KEY = your_key_here
 
-💰 TOTAL MONTHLY COST FOR FULL SETUP: 
+💰 TOTAL MONTHLY COST FOR FULL SETUP:
    - Alpaca: FREE (paper trading)
-   - IEX Cloud: $9 / month (real - time data)  
+   - IEX Cloud: $9 / month (real - time data)
    - Polygon.io: $99 / month (options data)
    - FMP: $15 / month (earnings calendar)
    - News API: FREE (basic tier)
@@ -221,7 +217,7 @@ def print_api_key_instructions():
    - TOTAL: ~$123 / month for professional setup
    - MINIMUM: $9 / month (Alpaca + IEX) for basic trading
 
-🎯 RECOMMENDED STARTING SETUP (BUDGET): 
+🎯 RECOMMENDED STARTING SETUP (BUDGET):
    - Alpaca (FREE paper trading)
    - IEX Cloud ($9 / month for real - time data)
    - Set paper trading limits: max 1% per position
@@ -232,61 +228,61 @@ def print_api_key_instructions():
 
 
 def print_usage_instructions():
-    """Print detailed usage instructions"""
+    """Print detailed usage instructions."""
     print_header("🚀 Usage Instructions")
 
     usage = """
-🎯 HOW TO START TRADING: 
+🎯 HOW TO START TRADING:
 
-1. 📋 SETUP CHECKLIST: 
+1. 📋 SETUP CHECKLIST:
    ✅ All API keys configured in backend/.env
    ✅ Set PAPER_TRADING_MODE = true initially
    ✅ Set reasonable position limits (1 - 2% max)
    ✅ Tests passing (run: venv / bin / python -m pytest backend / tradingbot/)
 
-2. 🧪 PAPER TRADING (SAFE): 
+2. 🧪 PAPER TRADING (SAFE):
    # Test individual strategies
    python production_runner.py --paper --strategies wheel
    python production_runner.py --paper --strategies debit_spreads,spx_spreads
-   
+
    # Test full phases
    python production_runner.py --paper --phase 2  # Low - risk strategies
    python production_runner.py --paper --phase 3  # Medium - risk strategies
 
-3. 💰 LIVE TRADING (REAL MONEY - BE CAREFUL): 
+3. 💰 LIVE TRADING (REAL MONEY - BE CAREFUL):
    # Start with safest strategies and tiny position sizes
    python production_runner.py --live --strategies wheel --max - position - risk 0.01
-   
+
    # NEVER start with high - risk strategies
    # python production_runner.py --live --strategies wsb_dip_bot  # DON'T DO THIS FIRST!
 
-4. 📊 MONITORING: 
+4. 📊 MONITORING:
    • Check logs in: logs / trading.log
    • Monitor positions in Alpaca dashboard
    • Set up email / Discord alerts in .env
    • Use --dry - run flag to test without trading
 
-5. 🛡️ SAFETY FEATURES: 
+5. 🛡️ SAFETY FEATURES:
    • Circuit breakers stop trading after big losses
    • Position size limits prevent overexposure
    • Risk management validates every trade
    • Health checks monitor system status
 
-📈 STRATEGY RECOMMENDATIONS FOR BEGINNERS: 
+📈 STRATEGY RECOMMENDATIONS FOR BEGINNERS:
 
-🟢 START HERE (Safest): 
+🟢 START HERE (Safest):
    - wheel: Premium selling, positive expectancy
    - debit_spreads: Defined risk, limited loss
 
-🟡 INTERMEDIATE (After 3+ months success): 
+🟡 INTERMEDIATE (After 3+ months success):
    - spx_spreads: 0DTE SPX credit spreads
    - momentum_weeklies: Weekly options on momentum
 
-🔴 ADVANCED ONLY (High risk, need experience): 
+🔴 ADVANCED ONLY (High risk, need experience):
    - wsb_dip_bot: The viral WSB pattern (can lose 100%)
    - lotto_scanner: 0DTE lottery plays (90% lose money)
 
-⚠️ CRITICAL SAFETY RULES: 
+⚠️ CRITICAL SAFETY RULES:
    1. Start with paper trading
    2. Use tiny position sizes (0.5 - 1% of account)
    3. Test strategies for months before scaling up
@@ -294,7 +290,7 @@ def print_usage_instructions():
    5. Have a stop - loss plan for every strategy
    6. Monitor positions actively during market hours
 
-🎓 LEARNING RESOURCES: 
+🎓 LEARNING RESOURCES:
    • Read README_EXACT_CLONE.md for WSB strategy details
    • Check backend / tradingbot / test_*.py for strategy behavior
    • Monitor Phase 4 backtesting results
@@ -305,7 +301,7 @@ def print_usage_instructions():
 
 
 def main():
-    """Main setup function"""
+    """Main setup function."""
     print_warning()
     check_python_version()
     install_dependencies()
@@ -318,7 +314,7 @@ def main():
     print("""
 ✅ WallStreetBots is now ready for configuration!
 
-🔑 NEXT STEPS: 
+🔑 NEXT STEPS:
    1. Edit backend/.env with your API keys
    2. Test with paper trading first
    3. Start with tiny position sizes

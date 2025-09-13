@@ -1,5 +1,5 @@
 """Phase 4: Production Backtesting Engine
-Comprehensive backtesting with historical data validation
+Comprehensive backtesting with historical data validation.
 """
 
 from dataclasses import dataclass, field
@@ -82,7 +82,7 @@ class BacktestResults:
 
 
 class BacktestEngine:
-    """Main backtesting engine"""
+    """Main backtesting engine."""
 
     def __init__(self, config: ConfigManager, logger: ProductionLogger):
         self.config = config
@@ -100,7 +100,7 @@ class BacktestEngine:
         self.logger.info("BacktestEngine initialized")
 
     async def run_backtest(self, strategy, config: BacktestConfig) -> BacktestResults:
-        """Run comprehensive backtest"""
+        """Run comprehensive backtest."""
         try:
             self.logger.info(f"Starting backtest from {config.start_date} to {config.end_date}")
 
@@ -123,7 +123,7 @@ class BacktestEngine:
             raise
 
     def _initialize_backtest(self, config: BacktestConfig):
-        """Initialize backtesting state"""
+        """Initialize backtesting state."""
         self.current_date = config.start_date
         self.portfolio_value = config.initial_capital
         self.cash = config.initial_capital
@@ -133,7 +133,7 @@ class BacktestEngine:
         self.daily_returns = []
 
     async def _run_simulation(self, strategy, config: BacktestConfig):
-        """Run the backtest simulation"""
+        """Run the backtest simulation."""
         date_range = [
             config.start_date + timedelta(days=i)
             for i in range((config.end_date - config.start_date).days + 1)
@@ -168,10 +168,10 @@ class BacktestEngine:
             await self._check_exit_conditions(config)
 
     async def _update_portfolio_value(self):
-        """Update portfolio value based on current positions"""
+        """Update portfolio value based on current positions."""
         total_value = self.cash
 
-        for ticker, position in self.positions.items():
+        for _ticker, position in self.positions.items():
             # Mock current price update
             current_price = position["entry_price"] * (1 + 0.001)  # 0.1% daily return
             position["current_price"] = current_price
@@ -183,7 +183,7 @@ class BacktestEngine:
         self.portfolio_value = total_value
 
     def _should_rebalance(self, current_date: datetime, config: BacktestConfig) -> bool:
-        """Check if portfolio should be rebalanced"""
+        """Check if portfolio should be rebalanced."""
         if config.rebalance_frequency == BacktestPeriod.DAILY:
             return True
         elif config.rebalance_frequency == BacktestPeriod.WEEKLY:
@@ -194,7 +194,7 @@ class BacktestEngine:
         return False
 
     async def _rebalance_portfolio(self, strategy, config: BacktestConfig):
-        """Rebalance portfolio based on strategy signals"""
+        """Rebalance portfolio based on strategy signals."""
         try:
             # Mock strategy signals
             signals = await self._get_mock_signals()
@@ -207,7 +207,7 @@ class BacktestEngine:
             self.logger.error(f"Error rebalancing portfolio: {e}")
 
     async def _get_mock_signals(self) -> list[dict[str, Any]]:
-        """Generate mock trading signals"""
+        """Generate mock trading signals."""
         # Mock signals for backtesting
         universe = self.config.trading.universe
         signals = []
@@ -224,7 +224,7 @@ class BacktestEngine:
         return signals
 
     async def _process_signal(self, signal: dict[str, Any], config: BacktestConfig):
-        """Process individual trading signal"""
+        """Process individual trading signal."""
         try:
             ticker = signal.get("ticker")
             action = signal.get("action")
@@ -242,7 +242,7 @@ class BacktestEngine:
             self.logger.error(f"Error processing signal: {e}")
 
     async def _execute_buy(self, ticker: str, quantity: int, price: float, config: BacktestConfig):
-        """Execute buy order"""
+        """Execute buy order."""
         try:
             # Check if we have enough cash
             total_cost = quantity * price
@@ -289,7 +289,7 @@ class BacktestEngine:
             self.logger.error(f"Error executing buy order: {e}")
 
     async def _execute_sell(self, ticker: str, quantity: int, price: float, config: BacktestConfig):
-        """Execute sell order"""
+        """Execute sell order."""
         try:
             if ticker not in self.positions:
                 self.logger.warning(f"No position to sell for {ticker}")
@@ -343,8 +343,8 @@ class BacktestEngine:
             self.logger.error(f"Error executing sell order: {e}")
 
     async def _update_positions(self):
-        """Update position tracking"""
-        for ticker, position in self.positions.items():
+        """Update position tracking."""
+        for _ticker, position in self.positions.items():
             # Mock price update
             current_price = position["entry_price"] * (1 + 0.001)  # 0.1% daily return
             position["current_price"] = current_price
@@ -354,7 +354,7 @@ class BacktestEngine:
             position["days_held"] = (self.current_date - position["entry_date"]).days
 
     async def _check_exit_conditions(self, config: BacktestConfig):
-        """Check for exit conditions (stop loss, take profit)"""
+        """Check for exit conditions (stop loss, take profit)."""
         for ticker, position in list(self.positions.items()):
             current_price = position["current_price"]
             entry_price = position["entry_price"]
@@ -370,7 +370,7 @@ class BacktestEngine:
                 continue
 
     async def _calculate_results(self, config: BacktestConfig) -> BacktestResults:
-        """Calculate comprehensive backtest results"""
+        """Calculate comprehensive backtest results."""
         try:
             # Basic metrics
             total_trades = len(self.trades)
@@ -464,13 +464,13 @@ class BacktestEngine:
 
 
 class BacktestAnalyzer:
-    """Backtest results analyzer"""
+    """Backtest results analyzer."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
 
     def generate_report(self, results: BacktestResults) -> dict[str, Any]:
-        """Generate comprehensive backtest report"""
+        """Generate comprehensive backtest report."""
         try:
             report = {
                 "summary": {

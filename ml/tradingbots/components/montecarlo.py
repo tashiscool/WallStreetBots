@@ -11,9 +11,9 @@ class MonteCarloPortfolioUpdate(PortfolioManager):
         metric: metric object, the metric which the portfolio algorithm optimizes on
         data_fetcher: source of stock data
         simulation_itr: number of simulation iterations for monte carlo
-        buffer: proportion of the portfolio to be cash (buffer zone for price fluctuations)
+        buffer: proportion of the portfolio to be cash (buffer zone for price fluctuations).
         """
-        super(MonteCarloPortfolioUpdate, self).__init__(portfolio, metric)
+        super().__init__(portfolio, metric)
         self.total_portfolio_value = None
         self.price_dict = None
         self.simulation_itr = simulation_itr
@@ -33,7 +33,7 @@ class MonteCarloPortfolioUpdate(PortfolioManager):
         self.total_portfolio_value = total_portfolio_value
 
     def rebalance(self):
-        """Call this method to rebalance the portfolio"""
+        """Call this method to rebalance the portfolio."""
         stocks = self.portfolio_stocks.keys()
         portfolios = pd.DataFrame(columns=[*stocks, "Sharpe Ratio"])
 

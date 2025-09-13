@@ -2,7 +2,7 @@
 """Test Script for Advanced Analytics and Market Regime Adaptation
 Demonstrates the newly implemented features:
 1. Advanced Analytics: Sharpe ratio, max drawdown analysis
-2. Market Regime: Adapt strategies to market conditions
+2. Market Regime: Adapt strategies to market conditions.
 """
 
 import asyncio
@@ -20,7 +20,7 @@ from backend.tradingbot.analytics.market_regime_adapter import adapt_strategies_
 
 
 def generate_sample_returns(days: int = 252, annual_return: float = 0.08, volatility: float = 0.15):
-    """Generate sample portfolio returns"""
+    """Generate sample portfolio returns."""
     # Generate random returns with specified characteristics
     daily_return = annual_return / 252
     daily_vol = volatility / np.sqrt(252)
@@ -37,7 +37,7 @@ def generate_sample_returns(days: int = 252, annual_return: float = 0.08, volati
 
 
 async def test_advanced_analytics():
-    """Test advanced analytics functionality"""
+    """Test advanced analytics functionality."""
     print("🔬 TESTING ADVANCED ANALYTICS")
     print(" = " * 60)
 
@@ -86,7 +86,7 @@ async def test_advanced_analytics():
 
 
 async def test_market_regime_adaptation():
-    """Test market regime adaptation functionality"""
+    """Test market regime adaptation functionality."""
     print("🎯 TESTING MARKET REGIME ADAPTATION")
     print(" = " * 60)
 
@@ -194,7 +194,7 @@ async def test_market_regime_adaptation():
 
 
 def test_integration_with_production():
-    """Test integration with production strategy manager"""
+    """Test integration with production strategy manager."""
     print("🔗 TESTING INTEGRATION WITH PRODUCTION SYSTEM")
     print(" = " * 60)
 
@@ -239,7 +239,7 @@ def test_integration_with_production():
 
 
 async def main():
-    """Run all tests"""
+    """Run all tests."""
     print("🚀 ADVANCED ANALYTICS & MARKET REGIME ADAPTATION DEMO")
     print(" = " * 80)
     print(f"Test Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

@@ -1,5 +1,5 @@
 """Production Database Models and Management
-Implements PostgreSQL database schema for production trading system
+Implements PostgreSQL database schema for production trading system.
 
 This replaces the JSON file system with proper relational database for:
 - Trade tracking and history
@@ -22,7 +22,7 @@ import asyncpg
 
 @dataclass
 class Trade:
-    """Production trade record"""
+    """Production trade record."""
 
     id: int | None = None
     strategy_name: str = ""
@@ -49,7 +49,7 @@ class Trade:
 
 @dataclass
 class Position:
-    """Production position record"""
+    """Production position record."""
 
     id: int | None = None
     strategy_name: str = ""
@@ -73,7 +73,7 @@ class Position:
 
 @dataclass
 class StrategyPerformance:
-    """Strategy performance metrics"""
+    """Strategy performance metrics."""
 
     id: int | None = None
     strategy_name: str = ""
@@ -101,7 +101,7 @@ class StrategyPerformance:
 
 @dataclass
 class RiskMetrics:
-    """Risk metrics record"""
+    """Risk metrics record."""
 
     id: int | None = None
     timestamp: datetime = field(default_factory=datetime.now)
@@ -121,7 +121,7 @@ class RiskMetrics:
 
 
 class ProductionDatabaseManager:
-    """Production PostgreSQL database manager"""
+    """Production PostgreSQL database manager."""
 
     def __init__(self, config: dict[str, Any]):
         self.config = config
@@ -138,7 +138,7 @@ class ProductionDatabaseManager:
         self.logger.info("Production Database Manager initialized")
 
     async def initialize(self) -> bool:
-        """Initialize database connection pool"""
+        """Initialize database connection pool."""
         try:
             self.logger.info("Initializing database connection pool")
 
@@ -165,13 +165,13 @@ class ProductionDatabaseManager:
             return False
 
     async def close(self):
-        """Close database connection pool"""
+        """Close database connection pool."""
         if self.pool:
             await self.pool.close()
             self.logger.info("Database connection pool closed")
 
     async def _create_tables(self):
-        """Create production database tables"""
+        """Create production database tables."""
         try:
             async with self.pool.acquire() as conn:
                 # Create strategies table
@@ -313,7 +313,7 @@ class ProductionDatabaseManager:
             raise
 
     async def create_trade(self, trade: Trade) -> int:
-        """Create new trade record"""
+        """Create new trade record."""
         try:
             async with self.pool.acquire() as conn:
                 query = """
@@ -350,7 +350,7 @@ class ProductionDatabaseManager:
             raise
 
     async def update_trade(self, trade_id: int, updates: dict[str, Any]) -> bool:
-        """Update trade record"""
+        """Update trade record."""
         try:
             async with self.pool.acquire() as conn:
                 # Build dynamic update query
@@ -368,7 +368,7 @@ class ProductionDatabaseManager:
                 values.append(trade_id)  # For WHERE clause
 
                 query = f"""
-                    UPDATE trades 
+                    UPDATE trades
                     SET {", ".join(set_clauses)}
                     WHERE id = ${param_count + 1}
                 """
@@ -382,7 +382,7 @@ class ProductionDatabaseManager:
             return False
 
     async def create_position(self, position: Position) -> int:
-        """Create new position record"""
+        """Create new position record."""
         try:
             async with self.pool.acquire() as conn:
                 query = """
@@ -420,7 +420,7 @@ class ProductionDatabaseManager:
             raise
 
     async def get_active_positions(self, strategy_name: str | None = None) -> list[Position]:
-        """Get active positions"""
+        """Get active positions."""
         try:
             async with self.pool.acquire() as conn:
                 if strategy_name:
@@ -463,16 +463,16 @@ class ProductionDatabaseManager:
     async def calculate_strategy_performance(
         self, strategy_name: str, period_days: int = 30
     ) -> StrategyPerformance:
-        """Calculate strategy performance metrics"""
+        """Calculate strategy performance metrics."""
         try:
             async with self.pool.acquire() as conn:
                 # Get trades for the period
                 since_date = datetime.now() - timedelta(days=period_days)
 
                 trades_query = """
-                    SELECT * FROM trades 
-                    WHERE strategy_name = $1 
-                    AND created_at  >=  $2 
+                    SELECT * FROM trades
+                    WHERE strategy_name = $1
+                    AND created_at  >=  $2
                     AND exit_price IS NOT NULL
                 """
 
@@ -544,7 +544,7 @@ class ProductionDatabaseManager:
             return StrategyPerformance(strategy_name=strategy_name)
 
     async def _save_strategy_performance(self, performance: StrategyPerformance):
-        """Save strategy performance to database"""
+        """Save strategy performance to database."""
         try:
             async with self.pool.acquire() as conn:
                 query = """
@@ -596,13 +596,13 @@ class ProductionDatabaseManager:
 
 # Factory function for easy initialization
 def create_database_manager(config: dict[str, Any]) -> ProductionDatabaseManager:
-    """Create production database manager"""
+    """Create production database manager."""
     return ProductionDatabaseManager(config)
 
 
 # Standalone testing
 async def main():
-    """Test database functionality"""
+    """Test database functionality."""
     logging.basicConfig(level=logging.INFO)
 
     # Test configuration

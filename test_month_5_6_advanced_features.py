@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Test Month 5 - 6: Advanced Features and Automation
-Demonstrates sophisticated ML models, multi - asset risk, regulatory compliance, and automation
+Demonstrates sophisticated ML models, multi - asset risk, regulatory compliance, and automation.
 
 This script tests:
 - Reinforcement learning for dynamic risk management (PPO, DDPG, TD3 agents)
@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 
 
 async def test_advanced_ml_models():
-    """Test advanced ML models with reinforcement learning"""
+    """Test advanced ML models with reinforcement learning."""
     print("\n🤖 Testing Advanced ML Models - Reinforcement Learning")
     print(" = " * 60)
 
@@ -168,7 +168,7 @@ async def test_advanced_ml_models():
 
 
 async def test_multi_asset_risk():
-    """Test multi - asset risk management"""
+    """Test multi - asset risk management."""
     print("\n🌍 Testing Multi - Asset Risk Management")
     print(" = " * 60)
 
@@ -235,9 +235,7 @@ async def test_multi_asset_risk():
 
         print("✅ Multi - asset positions added")
         print(f"   Total positions: {len(risk_manager.positions)}")
-        print(
-            f"   Asset classes: {set(pos.asset_class for pos in risk_manager.positions.values())}"
-        )
+        print(f"   Asset classes: { {pos.asset_class for pos in risk_manager.positions.values()} }")
 
         # 3. Calculate Cross - Asset Correlations
         print("\n3. Calculating Cross - Asset Correlations...")
@@ -308,7 +306,7 @@ async def test_multi_asset_risk():
 
 
 async def test_regulatory_compliance():
-    """Test regulatory compliance features"""
+    """Test regulatory compliance features."""
     print("\n⚖️ Testing Regulatory Compliance Features")
     print(" = " * 60)
 
@@ -463,7 +461,7 @@ async def test_regulatory_compliance():
 
 
 async def test_advanced_analytics():
-    """Test advanced analytics features"""
+    """Test advanced analytics features."""
     print("\n📊 Testing Advanced Analytics")
     print(" = " * 60)
 
@@ -569,7 +567,7 @@ async def test_advanced_analytics():
 
 
 async def test_automated_rebalancing():
-    """Test ML - driven portfolio optimization and rebalancing"""
+    """Test ML - driven portfolio optimization and rebalancing."""
     print("\n⚖️ Testing Automated Rebalancing")
     print(" = " * 60)
 
@@ -719,7 +717,7 @@ async def test_automated_rebalancing():
 
 
 async def main():
-    """Main test function for Month 5 - 6 advanced features"""
+    """Main test function for Month 5 - 6 advanced features."""
     print("🚀 Testing Month 5 - 6: Advanced Features and Automation")
     print(" = " * 70)
     print("This comprehensive test covers: ")

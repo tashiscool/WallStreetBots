@@ -1,4 +1,4 @@
-"""Trading Error Recovery Manager
+"""Trading Error Recovery Manager.
 
 Centralized error handling with smart recovery mechanisms for production trading operations.
 """
@@ -19,7 +19,7 @@ from .error_types import (
 
 
 class RecoveryAction(Enum):
-    """Recovery actions that can be taken"""
+    """Recovery actions that can be taken."""
 
     RETRY_WITH_BACKUP = "retry_with_backup"
     PAUSE_AND_RETRY = "pause_and_retry"
@@ -32,7 +32,7 @@ class RecoveryAction(Enum):
 
 @dataclass
 class RecoveryContext:
-    """Context information for error recovery"""
+    """Context information for error recovery."""
 
     error: TradingError
     timestamp: datetime
@@ -49,7 +49,7 @@ class RecoveryContext:
 
 
 class TradingErrorRecoveryManager:
-    """Centralized error handling with smart recovery
+    """Centralized error handling with smart recovery.
 
     Handles different types of trading errors with appropriate recovery actions:
     - Data provider failures: Switch to backup sources
@@ -59,7 +59,9 @@ class TradingErrorRecoveryManager:
     - Unknown errors: Log and continue with caution
     """
 
-    def __init__(self, trading_system=None, alert_system=None, config: dict[str, Any] = None):
+    def __init__(
+        self, trading_system=None, alert_system=None, config: dict[str, Any] | None = None
+    ):
         self.trading_system = trading_system
         self.alert_system = alert_system
         self.config = config or {}
@@ -80,9 +82,9 @@ class TradingErrorRecoveryManager:
         self.logger.info("TradingErrorRecoveryManager initialized")
 
     async def handle_trading_error(
-        self, error: TradingError, context: dict[str, Any] = None
+        self, error: TradingError, context: dict[str, Any] | None = None
     ) -> RecoveryAction:
-        """Centralized error handling with smart recovery
+        """Centralized error handling with smart recovery.
 
         Args:
             error: The trading error that occurred
@@ -130,7 +132,7 @@ class TradingErrorRecoveryManager:
     async def _determine_recovery_action(
         self, error: TradingError, context: RecoveryContext
     ) -> RecoveryAction:
-        """Determine appropriate recovery action based on error type"""
+        """Determine appropriate recovery action based on error type."""
         if isinstance(error, DataProviderError):
             # Data feed issue-switch to backup source
             if context.retry_count < self.max_retry_attempts:
@@ -160,7 +162,7 @@ class TradingErrorRecoveryManager:
             return RecoveryAction.SWITCH_TO_PAPER_TRADING
 
     async def _execute_recovery_action(self, action: RecoveryAction, context: RecoveryContext):
-        """Execute the determined recovery action"""
+        """Execute the determined recovery action."""
         try:
             if action == RecoveryAction.RETRY_WITH_BACKUP:
                 await self._switch_to_backup_data_source()
@@ -189,42 +191,42 @@ class TradingErrorRecoveryManager:
             self.logger.error(f"Failed to execute recovery action {action.value}: {e}")
 
     async def _switch_to_backup_data_source(self):
-        """Switch to backup data source"""
+        """Switch to backup data source."""
         if self.trading_system and hasattr(self.trading_system, "data_provider"):
             await self.trading_system.data_provider.switch_to_backup()
         self.logger.info("Switched to backup data source")
 
     async def _pause_trading_temporarily(self, duration_minutes: int = 5):
-        """Pause trading temporarily"""
+        """Pause trading temporarily."""
         if self.trading_system:
             await self.trading_system.pause_trading(duration_minutes)
         self.logger.info(f"Trading paused for {duration_minutes} minutes")
 
     async def _reduce_position_sizes(self, reduction_factor: float = 0.5):
-        """Reduce position sizes"""
+        """Reduce position sizes."""
         if self.trading_system:
             await self.trading_system.reduce_position_sizes(reduction_factor)
         self.logger.info(f"Position sizes reduced by {reduction_factor: .1%}")
 
     async def _emergency_halt(self, reason: str):
-        """Emergency halt all trading"""
+        """Emergency halt all trading."""
         if self.trading_system:
             await self.trading_system.emergency_halt(reason)
         self.logger.critical(f"EMERGENCY HALT: {reason}")
 
     async def _switch_to_paper_trading(self):
-        """Switch to paper trading mode"""
+        """Switch to paper trading mode."""
         if self.trading_system:
             await self.trading_system.switch_to_paper_trading()
         self.logger.warning("Switched to paper trading mode")
 
     async def _log_unknown_error(self, error: TradingError, context: dict[str, Any]):
-        """Log unknown error and continue with caution"""
+        """Log unknown error and continue with caution."""
         self.logger.warning(f"Unknown error occurred: {error.message}, context: {context}")
         # Could implement additional logging to external systems here
 
     async def _send_critical_alert(self, error: TradingError, action: RecoveryAction):
-        """Send critical alert for serious errors"""
+        """Send critical alert for serious errors."""
         if self.alert_system:
             await self.alert_system.send_critical_alert(
                 f"Critical trading error: {type(error).__name__}",
@@ -235,7 +237,7 @@ class TradingErrorRecoveryManager:
     def _track_error_and_recovery(
         self, error: TradingError, action: RecoveryAction, context: RecoveryContext
     ):
-        """Track error occurrence and recovery actions"""
+        """Track error occurrence and recovery actions."""
         error_type = type(error).__name__
 
         # Update error counts
@@ -258,7 +260,7 @@ class TradingErrorRecoveryManager:
             self.recovery_history = self.recovery_history[-100:]
 
     def get_error_statistics(self) -> dict[str, Any]:
-        """Get error statistics and recovery history"""
+        """Get error statistics and recovery history."""
         return {
             "error_counts": self.error_counts,
             "last_error_times": self.last_error_times,
@@ -268,7 +270,7 @@ class TradingErrorRecoveryManager:
         }
 
     def is_system_healthy(self) -> bool:
-        """Check if system is healthy based on recent error patterns"""
+        """Check if system is healthy based on recent error patterns."""
         now = datetime.now()
         recent_critical_errors = 0
 

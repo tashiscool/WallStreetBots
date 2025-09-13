@@ -1,5 +1,5 @@
 """Production Strategy Wrapper
-Wraps existing strategies with production integration for real trading
+Wraps existing strategies with production integration for real trading.
 
 This module provides production - ready wrappers for all existing strategies:
 - WSB Dip Bot
@@ -33,7 +33,7 @@ from .production_integration import ProductionIntegrationManager, ProductionTrad
 
 @dataclass
 class StrategyConfig:
-    """Configuration for production strategy"""
+    """Configuration for production strategy."""
 
     name: str
     enabled: bool = True
@@ -47,7 +47,7 @@ class StrategyConfig:
 
 
 class ProductionStrategyWrapper:
-    """Base wrapper for all production strategies
+    """Base wrapper for all production strategies.
 
     Provides common functionality:
     - Real trade execution
@@ -76,7 +76,7 @@ class ProductionStrategyWrapper:
         self.logger.info(f"ProductionStrategyWrapper initialized for {strategy_name}")
 
     async def start_strategy(self):
-        """Start the production strategy"""
+        """Start the production strategy."""
         try:
             self.is_running = True
             self.logger.info(f"Starting production strategy: {self.strategy_name}")
@@ -104,12 +104,12 @@ class ProductionStrategyWrapper:
             return False
 
     async def stop_strategy(self):
-        """Stop the production strategy"""
+        """Stop the production strategy."""
         self.is_running = False
         self.logger.info(f"Stopped production strategy: {self.strategy_name}")
 
     async def _monitoring_loop(self):
-        """Main monitoring loop for the strategy"""
+        """Main monitoring loop for the strategy."""
         while self.is_running:
             try:
                 # Check if market is open (if required)
@@ -134,12 +134,12 @@ class ProductionStrategyWrapper:
                 await asyncio.sleep(60)  # Wait longer on error
 
     async def _run_strategy_scan(self):
-        """Run strategy - specific scan logic"""
+        """Run strategy - specific scan logic."""
         # This will be implemented by each specific strategy wrapper
         pass
 
     async def _monitor_positions(self):
-        """Monitor positions for this strategy"""
+        """Monitor positions for this strategy."""
         try:
             # Get positions for this strategy
             strategy_positions = [
@@ -156,7 +156,7 @@ class ProductionStrategyWrapper:
             self.logger.error(f"Error monitoring positions for {self.strategy_name}: {e}")
 
     async def _check_exit_conditions(self, position):
-        """Check exit conditions for position"""
+        """Check exit conditions for position."""
         try:
             current_price = position.current_price
 
@@ -178,7 +178,7 @@ class ProductionStrategyWrapper:
             self.logger.error(f"Error checking exit conditions: {e}")
 
     async def _execute_exit(self, position, reason: str):
-        """Execute exit trade for position"""
+        """Execute exit trade for position."""
         try:
             # Create exit signal
             exit_signal = ProductionTradeSignal(
@@ -204,7 +204,7 @@ class ProductionStrategyWrapper:
             self.logger.error(f"Error executing exit: {e}")
 
     async def _is_market_open(self) -> bool:
-        """Check if market is open"""
+        """Check if market is open."""
         try:
             # Simple market hours check (9: 30 AM - 4: 00 PM ET)
             now = datetime.now()
@@ -222,7 +222,7 @@ class ProductionStrategyWrapper:
             return False
 
     async def _update_performance_metrics(self):
-        """Update performance metrics for strategy"""
+        """Update performance metrics for strategy."""
         try:
             # Get strategy positions
             strategy_positions = [
@@ -248,7 +248,7 @@ class ProductionStrategyWrapper:
             self.logger.error(f"Error updating performance metrics: {e}")
 
     def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         return {
             "strategy_name": self.strategy_name,
             "is_running": self.is_running,
@@ -265,7 +265,7 @@ class ProductionStrategyWrapper:
 
 
 class ProductionWSBDipBot(ProductionStrategyWrapper):
-    """Production wrapper for WSB Dip Bot strategy"""
+    """Production wrapper for WSB Dip Bot strategy."""
 
     def __init__(self, integration_manager: ProductionIntegrationManager, config: StrategyConfig):
         super().__init__("wsb_dip_bot", integration_manager, config)
@@ -278,7 +278,7 @@ class ProductionWSBDipBot(ProductionStrategyWrapper):
         self.delta_target = 0.60  # Delta target for exit
 
     async def _run_strategy_scan(self):
-        """Run WSB Dip Bot scan"""
+        """Run WSB Dip Bot scan."""
         try:
             self.last_scan_time = datetime.now()
 
@@ -294,7 +294,7 @@ class ProductionWSBDipBot(ProductionStrategyWrapper):
             self.logger.error(f"Error in WSB Dip Bot scan: {e}")
 
     async def _check_dip_after_run(self, ticker: str) -> bool:
-        """Check for dip after run pattern"""
+        """Check for dip after run pattern."""
         try:
             # Get 10 - day historical data
             end_date = datetime.now()
@@ -327,7 +327,7 @@ class ProductionWSBDipBot(ProductionStrategyWrapper):
             return False
 
     async def _generate_dip_signal(self, ticker: str):
-        """Generate dip signal for ticker"""
+        """Generate dip signal for ticker."""
         try:
             current_price = await self.integration.get_current_price(ticker)
 
@@ -368,7 +368,7 @@ class ProductionWSBDipBot(ProductionStrategyWrapper):
 
 
 class ProductionMomentumWeeklies(ProductionStrategyWrapper):
-    """Production wrapper for Momentum Weeklies strategy"""
+    """Production wrapper for Momentum Weeklies strategy."""
 
     def __init__(self, integration_manager: ProductionIntegrationManager, config: StrategyConfig):
         super().__init__("momentum_weeklies", integration_manager, config)
@@ -379,7 +379,7 @@ class ProductionMomentumWeeklies(ProductionStrategyWrapper):
         self.max_expiry_days = 7  # Weekly options
 
     async def _run_strategy_scan(self):
-        """Run Momentum Weeklies scan"""
+        """Run Momentum Weeklies scan."""
         try:
             self.last_scan_time = datetime.now()
 
@@ -394,7 +394,7 @@ class ProductionMomentumWeeklies(ProductionStrategyWrapper):
             self.logger.error(f"Error in Momentum Weeklies scan: {e}")
 
     async def _get_high_volume_tickers(self) -> list[str]:
-        """Get tickers with high volume spikes"""
+        """Get tickers with high volume spikes."""
         try:
             # Simplified - would use real market data in production
             return ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "TSLA"]
@@ -403,7 +403,7 @@ class ProductionMomentumWeeklies(ProductionStrategyWrapper):
             return []
 
     async def _check_momentum_signal(self, ticker: str) -> bool:
-        """Check for momentum signal"""
+        """Check for momentum signal."""
         try:
             # Get recent price data
             await self.integration.get_current_price(ticker)
@@ -417,7 +417,7 @@ class ProductionMomentumWeeklies(ProductionStrategyWrapper):
             return False
 
     async def _generate_momentum_signal(self, ticker: str):
-        """Generate momentum signal"""
+        """Generate momentum signal."""
         try:
             current_price = await self.integration.get_current_price(ticker)
 
@@ -453,14 +453,14 @@ class ProductionMomentumWeeklies(ProductionStrategyWrapper):
 def create_production_wsb_dip_bot(
     integration_manager: ProductionIntegrationManager, config: StrategyConfig
 ) -> ProductionWSBDipBot:
-    """Create ProductionWSBDipBot instance"""
+    """Create ProductionWSBDipBot instance."""
     return ProductionWSBDipBot(integration_manager, config)
 
 
 def create_production_momentum_weeklies(
     integration_manager: ProductionIntegrationManager, config: StrategyConfig
 ) -> ProductionMomentumWeeklies:
-    """Create ProductionMomentumWeeklies instance"""
+    """Create ProductionMomentumWeeklies instance."""
     return ProductionMomentumWeeklies(integration_manager, config)
 
 

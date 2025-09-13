@@ -1,5 +1,5 @@
 """Production Database Models - Dataclass Version
-Fallback when Django is not available
+Fallback when Django is not available.
 """
 
 from dataclasses import dataclass, field
@@ -9,7 +9,7 @@ from decimal import Decimal
 
 @dataclass
 class Strategy:
-    """Trading strategy configuration"""
+    """Trading strategy configuration."""
 
     name: str
     description: str = ""
@@ -24,7 +24,7 @@ class Strategy:
 
 @dataclass
 class Position:
-    """Open trading position"""
+    """Open trading position."""
 
     id: int | None = None
     strategy: Strategy | None = None
@@ -44,7 +44,7 @@ class Position:
 
 @dataclass
 class Trade:
-    """Individual trade record"""
+    """Individual trade record."""
 
     id: int | None = None
     strategy: Strategy | None = None
@@ -64,7 +64,7 @@ class Trade:
 
 @dataclass
 class RiskLimit:
-    """Risk management limits"""
+    """Risk management limits."""
 
     id: int | None = None
     strategy: Strategy | None = None
@@ -80,7 +80,7 @@ class RiskLimit:
 
 @dataclass
 class MarketData:
-    """Market data record"""
+    """Market data record."""
 
     id: int | None = None
     ticker: str = ""
@@ -97,7 +97,7 @@ class MarketData:
 
 @dataclass
 class EarningsData:
-    """Earnings data record"""
+    """Earnings data record."""
 
     id: int | None = None
     ticker: str = ""
@@ -115,7 +115,7 @@ class EarningsData:
 
 @dataclass
 class SentimentData:
-    """Sentiment data record"""
+    """Sentiment data record."""
 
     id: int | None = None
     ticker: str = ""
@@ -132,7 +132,7 @@ class SentimentData:
 
 @dataclass
 class StrategyPerformance:
-    """Strategy performance metrics"""
+    """Strategy performance metrics."""
 
     id: int | None = None
     strategy: Strategy | None = None

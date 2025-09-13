@@ -1,5 +1,5 @@
 """Modern Alpaca API Manager using alpaca - py SDK
-PRODUCTION READY - Fully tested and compatible with real trading
+PRODUCTION READY - Fully tested and compatible with real trading.
 
 This replaces the legacy alpaca - trade-api with the modern alpaca - py SDK
 for reliable real - money trading operations.
@@ -44,7 +44,7 @@ except ImportError:
 
 
 class AlpacaManager:
-    """Modern Alpaca API Manager using alpaca - py SDK"""
+    """Modern Alpaca API Manager using alpaca - py SDK."""
 
     def __init__(self, API_KEY: str, SECRET_KEY: str, paper_trading: bool = True):
         self.API_KEY = API_KEY
@@ -78,7 +78,7 @@ class AlpacaManager:
             raise ValueError(f"Invalid Alpaca API credentials: {message}")
 
     def validate_api(self) -> tuple[bool, str]:
-        """Test if the API ID / Key pair is valid
+        """Test if the API ID / Key pair is valid.
 
         Returns:
             Tuple of (success: bool, message: str)
@@ -101,7 +101,7 @@ class AlpacaManager:
     def get_bar(
         self, symbol: str, timestep: str, start: datetime, end: datetime, price_type: str = "close"
     ) -> tuple[list[float], list[datetime]]:
-        """Get historical price data
+        """Get historical price data.
 
         Args:
             symbol: Stock symbol (e.g., 'AAPL')
@@ -165,7 +165,7 @@ class AlpacaManager:
             return [], []
 
     def get_price(self, symbol: str) -> tuple[bool, float]:
-        """Get current market price of a stock
+        """Get current market price of a stock.
 
         Args:
             symbol: Stock symbol
@@ -188,7 +188,7 @@ class AlpacaManager:
             return False, f"Failed to get price: {e!s}"
 
     def get_balance(self) -> float | None:
-        """Get account buying power
+        """Get account buying power.
 
         Returns:
             Available buying power as float, or None if error
@@ -201,7 +201,7 @@ class AlpacaManager:
             return None
 
     def get_account_value(self) -> float | None:
-        """Get total account portfolio value
+        """Get total account portfolio value.
 
         Returns:
             Portfolio value as float, or None if error
@@ -214,7 +214,7 @@ class AlpacaManager:
             return None
 
     def get_position(self, symbol: str) -> int:
-        """Get current position quantity for a symbol
+        """Get current position quantity for a symbol.
 
         Args:
             symbol: Stock symbol
@@ -230,7 +230,7 @@ class AlpacaManager:
             return 0
 
     def get_positions(self) -> list[dict[str, Any]]:
-        """Get all current positions
+        """Get all current positions.
 
         Returns:
             List of position dictionaries
@@ -265,7 +265,7 @@ class AlpacaManager:
         order_type: str = "market",
         limit_price: float | None = None,
     ) -> dict[str, Any]:
-        """Place a market buy order
+        """Place a market buy order.
 
         Args:
             symbol: Stock symbol
@@ -313,7 +313,7 @@ class AlpacaManager:
         order_type: str = "market",
         limit_price: float | None = None,
     ) -> dict[str, Any]:
-        """Place a market sell order
+        """Place a market sell order.
 
         Args:
             symbol: Stock symbol
@@ -363,7 +363,7 @@ class AlpacaManager:
         expiry: str | None = None,
         limit_price: float | None = None,
     ) -> dict[str, Any]:
-        """Buy options contract
+        """Buy options contract.
 
         Args:
             symbol: Underlying stock symbol
@@ -417,7 +417,7 @@ class AlpacaManager:
         expiry: str | None = None,
         limit_price: float | None = None,
     ) -> dict[str, Any]:
-        """Sell options contract
+        """Sell options contract.
 
         Args:
             symbol: Underlying stock symbol
@@ -465,7 +465,7 @@ class AlpacaManager:
             return {"error": f"Failed to sell option: {e!s}"}
 
     def place_stop_loss(self, symbol: str, quantity: int, stop_price: float) -> dict[str, Any]:
-        """Place stop loss order
+        """Place stop loss order.
 
         Args:
             symbol: Stock symbol
@@ -499,7 +499,7 @@ class AlpacaManager:
             return {"error": f"Failed to place stop loss: {e!s}"}
 
     def cancel_order(self, order_id: str) -> bool:
-        """Cancel an open order
+        """Cancel an open order.
 
         Args:
             order_id: Order ID to cancel
@@ -515,7 +515,7 @@ class AlpacaManager:
             return False
 
     def cancel_all_orders(self) -> bool:
-        """Cancel all open orders
+        """Cancel all open orders.
 
         Returns:
             True if successful, False otherwise
@@ -528,7 +528,7 @@ class AlpacaManager:
             return False
 
     def get_orders(self, status: str = "open") -> list[dict[str, Any]]:
-        """Get orders by status
+        """Get orders by status.
 
         Args:
             status: Order status ('open', 'closed', 'all')
@@ -570,7 +570,7 @@ class AlpacaManager:
             return []
 
     def close_position(self, symbol: str, percentage: float = 1.0) -> bool:
-        """Close position (partial or full)
+        """Close position (partial or full).
 
         Args:
             symbol: Stock symbol
@@ -595,7 +595,7 @@ class AlpacaManager:
             return False
 
     def market_close(self) -> bool:
-        """Check if market is currently closed
+        """Check if market is currently closed.
 
         Returns:
             True if market is closed, False if open
@@ -610,7 +610,7 @@ class AlpacaManager:
     def _construct_option_symbol(
         self, underlying: str, expiry: str | None, option_type: str, strike: float | None
     ) -> str:
-        """Construct option symbol in OCC format
+        """Construct option symbol in OCC format.
 
         Args:
             underlying: Stock symbol
@@ -644,7 +644,7 @@ class AlpacaManager:
             raise ValueError(f"Invalid option parameters: {e}")
 
     def get_clock(self):
-        """Get market clock information
+        """Get market clock information.
 
         Returns:
             Clock object with market status information
@@ -677,7 +677,7 @@ class AlpacaManager:
         start: datetime | None = None,
         end: datetime | None = None,
     ) -> list[dict]:
-        """Get historical bars data (alias for get_bar with different return format)
+        """Get historical bars data (alias for get_bar with different return format).
 
         Args:
             symbol: Stock symbol
@@ -700,7 +700,7 @@ class AlpacaManager:
 
             # Convert to bars format expected by strategies
             bars = []
-            for i, (price, time) in enumerate(zip(prices, times, strict=False)):
+            for _i, (price, time) in enumerate(zip(prices, times, strict=False)):
                 bars.append(
                     {
                         "timestamp": time,
@@ -723,7 +723,7 @@ class AlpacaManager:
 def create_alpaca_manager(
     api_key: str, secret_key: str, paper_trading: bool = True
 ) -> AlpacaManager:
-    """Create AlpacaManager instance
+    """Create AlpacaManager instance.
 
     Args:
         api_key: Alpaca API key

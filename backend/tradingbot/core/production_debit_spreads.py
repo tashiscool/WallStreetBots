@@ -1,5 +1,5 @@
 """Production Debit Call Spreads Implementation
-Defined - risk bullish strategies with QuantLib pricing
+Defined - risk bullish strategies with QuantLib pricing.
 """
 
 import asyncio
@@ -17,7 +17,7 @@ from .trading_interface import OrderSide, OrderType, TradeSignal, TradingInterfa
 
 
 class SpreadType(Enum):
-    """Debit spread types"""
+    """Debit spread types."""
 
     BULL_CALL_SPREAD = "bull_call_spread"
     BEAR_PUT_SPREAD = "bear_put_spread"
@@ -26,7 +26,7 @@ class SpreadType(Enum):
 
 
 class SpreadStatus(Enum):
-    """Spread position status"""
+    """Spread position status."""
 
     ACTIVE = "active"
     EXPIRED = "expired"
@@ -36,7 +36,7 @@ class SpreadStatus(Enum):
 
 @dataclass
 class SpreadPosition:
-    """Debit spread position tracking"""
+    """Debit spread position tracking."""
 
     ticker: str
     spread_type: SpreadType
@@ -71,7 +71,7 @@ class SpreadPosition:
     net_vega: float = 0.0
 
     def update_pricing(self, long_option_data: OptionsData, short_option_data: OptionsData):
-        """Update spread pricing with current option data"""
+        """Update spread pricing with current option data."""
         # Calculate current spread value
         long_value = long_option_data.bid
         short_value = short_option_data.ask
@@ -91,7 +91,7 @@ class SpreadPosition:
         self.last_update = datetime.now()
 
     def calculate_max_profit(self) -> float:
-        """Calculate maximum profit potential"""
+        """Calculate maximum profit potential."""
         if self.spread_type == SpreadType.BULL_CALL_SPREAD:
             return (
                 self.short_strike - self.long_strike
@@ -99,18 +99,18 @@ class SpreadPosition:
         return 0.0
 
     def calculate_max_loss(self) -> float:
-        """Calculate maximum loss potential"""
+        """Calculate maximum loss potential."""
         return self.net_debit * self.quantity * 100
 
     def calculate_days_to_expiry(self) -> int:
-        """Calculate days to expiry"""
+        """Calculate days to expiry."""
         delta = self.expiry_date - datetime.now()
         return max(0, delta.days)
 
 
 @dataclass
 class SpreadCandidate:
-    """Debit spread candidate screening"""
+    """Debit spread candidate screening."""
 
     ticker: str
     current_price: float
@@ -138,7 +138,7 @@ class SpreadCandidate:
     risk_score: float = 0.0
 
     def calculate_spread_score(self) -> float:
-        """Calculate spread strategy score"""
+        """Calculate spread strategy score."""
         score = 0.0
 
         # Profit / Loss ratio (higher is better)
@@ -165,7 +165,7 @@ class SpreadCandidate:
 
 
 class QuantLibPricer:
-    """QuantLib - based options pricing"""
+    """QuantLib - based options pricing."""
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -179,7 +179,7 @@ class QuantLibPricer:
         time_to_expiry: float,
         option_type: str,
     ) -> dict[str, float]:
-        """Calculate Black - Scholes price and Greeks"""
+        """Calculate Black - Scholes price and Greeks."""
         try:
             # Simplified Black - Scholes implementation
             # In production, would use QuantLib
@@ -220,16 +220,16 @@ class QuantLibPricer:
             return {"price": 0.0, "delta": 0.0, "gamma": 0.0, "theta": 0.0, "vega": 0.0}
 
     def _normal_cdf(self, x: float) -> float:
-        """Cumulative distribution function of standard normal distribution"""
+        """Cumulative distribution function of standard normal distribution."""
         return 0.5 * (1 + math.erf(x / math.sqrt(2)))
 
     def _normal_pdf(self, x: float) -> float:
-        """Probability density function of standard normal distribution"""
+        """Probability density function of standard normal distribution."""
         return math.exp(-0.5 * x**2) / math.sqrt(2 * math.pi)
 
 
 class ProductionDebitSpreads:
-    """Production Debit Spreads Implementation"""
+    """Production Debit Spreads Implementation."""
 
     def __init__(
         self,
@@ -268,7 +268,7 @@ class ProductionDebitSpreads:
         )
 
     async def scan_for_opportunities(self) -> list[SpreadCandidate]:
-        """Scan for debit spread opportunities"""
+        """Scan for debit spread opportunities."""
         self.logger.info("Scanning for debit spread opportunities")
 
         try:
@@ -301,7 +301,7 @@ class ProductionDebitSpreads:
             return []
 
     async def _analyze_ticker_for_spreads(self, ticker: str) -> list[SpreadCandidate]:
-        """Analyze ticker for debit spread opportunities"""
+        """Analyze ticker for debit spread opportunities."""
         try:
             # Get market data
             market_data = await self.data.get_market_data(ticker)
@@ -349,7 +349,7 @@ class ProductionDebitSpreads:
     def _find_bull_call_spreads(
         self, options_data: list[OptionsData], current_price: float
     ) -> list[dict[str, Any]]:
-        """Find bull call spread opportunities"""
+        """Find bull call spread opportunities."""
         spreads = []
 
         # Filter call options
@@ -409,7 +409,7 @@ class ProductionDebitSpreads:
         return spreads[:5]  # Top 5 spreads
 
     async def execute_debit_spread(self, candidate: SpreadCandidate) -> bool:
-        """Execute debit spread trade"""
+        """Execute debit spread trade."""
         try:
             self.logger.info(f"Executing debit spread for {candidate.ticker}")
 
@@ -516,7 +516,7 @@ class ProductionDebitSpreads:
             return False
 
     async def _close_long_position(self, signal: TradeSignal, result):
-        """Close long position if short trade fails"""
+        """Close long position if short trade fails."""
         try:
             close_signal = TradeSignal(
                 strategy_name="Debit Spreads",
@@ -533,7 +533,7 @@ class ProductionDebitSpreads:
             self.error_handler.handle_error(e, {"operation": "close_long_position"})
 
     def _calculate_position_size(self, candidate: SpreadCandidate) -> int:
-        """Calculate position size for debit spread"""
+        """Calculate position size for debit spread."""
         try:
             # Get account value
             account_value = self.config.risk.account_size
@@ -556,7 +556,7 @@ class ProductionDebitSpreads:
             return 1
 
     async def manage_positions(self):
-        """Manage existing debit spread positions"""
+        """Manage existing debit spread positions."""
         self.logger.info("Managing debit spread positions")
 
         for position_key, position in list(self.positions.items()):
@@ -568,7 +568,7 @@ class ProductionDebitSpreads:
                 )
 
     async def _manage_position(self, position: SpreadPosition):
-        """Manage individual debit spread position"""
+        """Manage individual debit spread position."""
         # Get current options data
         options_data = await self.data.get_options_data(position.ticker)
 
@@ -609,7 +609,7 @@ class ProductionDebitSpreads:
             return
 
     async def _close_position(self, position: SpreadPosition, reason: str):
-        """Close debit spread position"""
+        """Close debit spread position."""
         try:
             # Close long position
             long_close_signal = TradeSignal(
@@ -659,7 +659,7 @@ class ProductionDebitSpreads:
             )
 
     async def get_portfolio_summary(self) -> dict[str, Any]:
-        """Get debit spreads portfolio summary"""
+        """Get debit spreads portfolio summary."""
         total_pnl = sum(pos.unrealized_pnl for pos in self.positions.values())
         total_debit = sum(pos.net_debit * pos.quantity * 100 for pos in self.positions.values())
 
@@ -670,7 +670,7 @@ class ProductionDebitSpreads:
             "positions": [],
         }
 
-        for position_key, position in self.positions.items():
+        for _position_key, position in self.positions.items():
             summary["positions"].append(
                 {
                     "ticker": position.ticker,
@@ -688,7 +688,7 @@ class ProductionDebitSpreads:
         return summary
 
     async def run_strategy(self):
-        """Run debit spreads strategy main loop"""
+        """Run debit spreads strategy main loop."""
         self.logger.info("Starting Debit Spreads Strategy")
 
         while True:
@@ -729,5 +729,5 @@ def create_debit_spreads_strategy(
     config: ProductionConfig,
     logger: ProductionLogger,
 ) -> ProductionDebitSpreads:
-    """Create debit spreads strategy instance"""
+    """Create debit spreads strategy instance."""
     return ProductionDebitSpreads(trading_interface, data_provider, config, logger)

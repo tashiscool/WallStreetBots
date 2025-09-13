@@ -5,7 +5,7 @@ from backend.tradingbot.models import Portfolio
 
 
 class Credential(models.Model):
-    """stores the user's Alpaca API key and secret key"""
+    """stores the user's Alpaca API key and secret key."""
 
     ALPACA_ID_MAX_LENGTH = 100
     ALPACA_KEY_MAX_LENGTH = 100
@@ -26,7 +26,7 @@ class Credential(models.Model):
 
 
 class BotInstance(models.Model):
-    """An instance of a bot"""
+    """An instance of a bot."""
 
     name = models.CharField(max_length=100, blank=False, help_text="Bot Name")
     portfolio = models.OneToOneField(

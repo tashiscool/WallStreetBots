@@ -1,5 +1,5 @@
 #!/usr / bin / env python3
-"""🧪 Complete Risk Bundle Test Suite
+"""🧪 Complete Risk Bundle Test Suite.
 
 This provides comprehensive testing of all sophisticated risk management features
 to ensure 100% compatibility with institutional risk bundles.
@@ -31,13 +31,13 @@ from risk_engine_complete import RiskEngine, RiskMetrics
 
 
 class TestCompleteRiskBundle(unittest.TestCase):
-    """🏆 Comprehensive Test Suite for Complete Risk Bundle
+    """🏆 Comprehensive Test Suite for Complete Risk Bundle.
 
     Tests every feature mentioned in institutional risk systems
     """
 
     def setUp(self):
-        """Setup test environment"""
+        """Setup test environment."""
         self.risk_engine = RiskEngine("test_risk.db")
         self.db = RiskDatabase("test_database.db")
         self.db.setup()
@@ -73,7 +73,7 @@ class TestCompleteRiskBundle(unittest.TestCase):
             }
 
     def tearDown(self):
-        """Cleanup test databases"""
+        """Cleanup test databases."""
         try:
             os.remove("test_risk.db")
             os.remove("test_database.db")
@@ -81,7 +81,7 @@ class TestCompleteRiskBundle(unittest.TestCase):
             pass
 
     def test_multi_method_var_calculation(self):
-        """✅ Test multi - method VaR calculation"""
+        """✅ Test multi - method VaR calculation."""
         print("\n🔍 Testing multi - method VaR calculations...")
 
         var_methods = self.risk_engine.calculate_var_methods(0.95)
@@ -107,7 +107,7 @@ class TestCompleteRiskBundle(unittest.TestCase):
         print(f"  ✅ Monte Carlo VaR: {var_methods['monte_carlo']:.4f}")
 
     def test_liquidity_adjusted_var(self):
-        """✅ Test Liquidity - Adjusted VaR (LVaR)"""
+        """✅ Test Liquidity - Adjusted VaR (LVaR)."""
         print("\n🔍 Testing Liquidity - Adjusted VaR...")
 
         var_95 = self.risk_engine.calculate_var_methods(0.95)["historical"]
@@ -128,7 +128,7 @@ class TestCompleteRiskBundle(unittest.TestCase):
         )
 
     def test_comprehensive_risk_report(self):
-        """✅ Test comprehensive risk report generation"""
+        """✅ Test comprehensive risk report generation."""
         print("\n🔍 Testing comprehensive risk report...")
 
         metrics = self.risk_engine.comprehensive_risk_report()
@@ -171,7 +171,7 @@ class TestCompleteRiskBundle(unittest.TestCase):
 
 
 def run_comprehensive_test_suite():
-    """🏆 Run complete test suite for institutional risk management
+    """🏆 Run complete test suite for institutional risk management.
 
     This validates 100% compatibility with institutional risk bundles
     """

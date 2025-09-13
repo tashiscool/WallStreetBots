@@ -14,11 +14,11 @@ getcontext().prec = 10
 
 
 class BlackScholesCalculator:
-    """Black - Scholes - Merton options pricing calculator"""
+    """Black - Scholes - Merton options pricing calculator."""
 
     @staticmethod
     def _norm_cdf(x: float) -> float:
-        """Standard normal cumulative distribution function using error function"""
+        """Standard normal cumulative distribution function using error function."""
         return 0.5 * (1.0 + math.erf(x / math.sqrt(2)))
 
     @staticmethod
@@ -30,7 +30,7 @@ class BlackScholesCalculator:
         dividend_yield: float,
         implied_volatility: float,
     ) -> float:
-        """Calculate Black - Scholes call option price per share
+        """Calculate Black - Scholes call option price per share.
 
         Args:
             spot: Current stock price
@@ -72,7 +72,7 @@ class BlackScholesCalculator:
         dividend_yield: float,
         implied_volatility: float,
     ) -> float:
-        """Calculate option delta (price sensitivity to underlying movement)"""
+        """Calculate option delta (price sensitivity to underlying movement)."""
         if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
             return 0.0
 
@@ -94,7 +94,7 @@ class BlackScholesCalculator:
         dividend_yield: float,
         implied_volatility: float,
     ) -> float:
-        """Calculate Black - Scholes put option price per share"""
+        """Calculate Black - Scholes put option price per share."""
         if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
             raise ValueError("Spot, strike, time to expiry, and IV must be positive")
 
@@ -122,7 +122,7 @@ class BlackScholesCalculator:
         dividend_yield: float,
         implied_volatility: float,
     ) -> float:
-        """Calculate option gamma (delta sensitivity to underlying movement)"""
+        """Calculate option gamma (delta sensitivity to underlying movement)."""
         if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
             return 0.0
 
@@ -149,7 +149,7 @@ class BlackScholesCalculator:
         dividend_yield: float,
         implied_volatility: float,
     ) -> float:
-        """Calculate option theta (time decay)"""
+        """Calculate option theta (time decay)."""
         if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
             return 0.0
 
@@ -191,7 +191,7 @@ class BlackScholesCalculator:
         dividend_yield: float,
         implied_volatility: float,
     ) -> float:
-        """Calculate option vega (volatility sensitivity)"""
+        """Calculate option vega (volatility sensitivity)."""
         if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
             return 0.0
 
@@ -214,7 +214,7 @@ class BlackScholesCalculator:
 
 @dataclass
 class OptionsStrategySetup:
-    """Configuration for options trade setup based on successful playbook"""
+    """Configuration for options trade setup based on successful playbook."""
 
     # Universe filter
     mega_cap_tickers: list[str] = field(
@@ -258,7 +258,7 @@ class OptionsStrategySetup:
 
 @dataclass
 class OptionsSetup:
-    """Individual options position setup"""
+    """Individual options position setup."""
 
     ticker: str
     entry_date: date
@@ -270,35 +270,35 @@ class OptionsSetup:
 
     @property
     def total_cost(self) -> float:
-        """Total cost of the position"""
+        """Total cost of the position."""
         return self.contracts * self.premium_paid * 100
 
     @property
     def breakeven(self) -> float:
-        """Breakeven price at expiration"""
+        """Breakeven price at expiration."""
         return self.strike + self.premium_paid
 
     @property
     def intrinsic_value(self) -> float:
-        """Current intrinsic value"""
+        """Current intrinsic value."""
         return max(0.0, self.spot_at_entry - self.strike)
 
     def is_itm(self) -> bool:
-        """Check if option is in the money"""
+        """Check if option is in the money."""
         return self.spot_at_entry > self.strike
 
     def is_otm(self) -> bool:
-        """Check if option is out of the money"""
+        """Check if option is out of the money."""
         return self.spot_at_entry < self.strike
 
     def calculate_pnl(self, current_spot: float, current_premium: float) -> float:
-        """Calculate current P & L"""
+        """Calculate current P & L."""
         return self.contracts * (current_premium - self.premium_paid) * 100
 
 
 @dataclass
 class TradeCalculation:
-    """Results of options trade calculation"""
+    """Results of options trade calculation."""
 
     ticker: str
     spot_price: float
@@ -322,13 +322,13 @@ Current Price: ${self.spot_price:.2f}
 Strike: ${self.strike:.2f} ({((self.strike / self.spot_price-1) * 100):+.1f}% OTM)
 Expiry: {self.expiry_date} ({self.days_to_expiry} DTE)
 
-POSITION SIZING: 
+POSITION SIZING:
 Contracts: {self.recommended_contracts:,}
 Premium per Contract: ${self.estimated_premium:.2f}
 Total Cost: ${self.total_cost:,.0f}
 Account Risk: {self.account_risk_pct:.1f}%
 
-RISK METRICS: 
+RISK METRICS:
 Breakeven: ${self.breakeven_price:.2f}
 Estimated Delta: {self.estimated_delta:.3f}
 Effective Leverage: {self.leverage_ratio:.1f}x
@@ -337,14 +337,14 @@ Max Loss: ${self.risk_amount:,.0f}
 
 
 class OptionsTradeCalculator:
-    """Main calculator implementing the successful options playbook"""
+    """Main calculator implementing the successful options playbook."""
 
     def __init__(self, setup: OptionsStrategySetup = None):
         self.setup = setup or OptionsStrategySetup()
         self.bs_calc = BlackScholesCalculator()
 
-    def find_optimal_expiry(self, target_dte: int = None) -> date:
-        """Find the Friday closest to target DTE within acceptable range"""
+    def find_optimal_expiry(self, target_dte: int | None = None) -> date:
+        """Find the Friday closest to target DTE within acceptable range."""
         target_dte = target_dte or self.setup.target_dte_optimal
 
         # Start from target date
@@ -367,7 +367,7 @@ class OptionsTradeCalculator:
         return candidate_date
 
     def calculate_otm_strike(self, spot_price: float, increment: float = 1.0) -> float:
-        """Calculate 5% OTM strike rounded to proper increment"""
+        """Calculate 5% OTM strike rounded to proper increment."""
         raw_strike = spot_price * (1 + self.setup.otm_percentage)
         return round(raw_strike / increment) * increment
 
@@ -377,12 +377,12 @@ class OptionsTradeCalculator:
         spot_price: float,
         account_size: float,
         implied_volatility: float,
-        risk_pct: float = None,
+        risk_pct: float | None = None,
         risk_free_rate: float = 0.04,
         dividend_yield: float = 0.0,
-        custom_dte: int = None,
+        custom_dte: int | None = None,
     ) -> TradeCalculation:
-        """Calculate complete options trade based on successful playbook
+        """Calculate complete options trade based on successful playbook.
 
         Args:
             ticker: Stock ticker symbol
@@ -472,7 +472,7 @@ class OptionsTradeCalculator:
         risk_free_rate: float = 0.04,
         dividend_yield: float = 0.0,
     ) -> list[dict]:
-        """Generate scenario analysis for different spot price moves
+        """Generate scenario analysis for different spot price moves.
 
         Args:
             trade_calc: Original trade calculation
@@ -539,7 +539,7 @@ class OptionsTradeCalculator:
 
 
 def validate_successful_trade():
-    """Validate calculator against the documented successful trade"""
+    """Validate calculator against the documented successful trade."""
     # Original trade parameters
     contracts = 950
     entry_premium = 4.70

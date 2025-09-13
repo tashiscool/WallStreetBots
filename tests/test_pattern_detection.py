@@ -1,5 +1,5 @@
 """Tests for Pattern Detection Module
-Tests the advanced WSB dip detection and technical analysis functionality
+Tests the advanced WSB dip detection and technical analysis functionality.
 """
 
 import asyncio
@@ -18,10 +18,10 @@ from backend.tradingbot.analysis.pattern_detection import (
 
 
 class TestTechnicalIndicators:
-    """Test technical analysis indicators"""
+    """Test technical analysis indicators."""
 
     def test_calculate_rsi_uptrend(self):
-        """Test RSI calculation for uptrending prices"""
+        """Test RSI calculation for uptrending prices."""
         # Create uptrending price series
         prices = [Decimal(str(100 + i)) for i in range(20)]
 
@@ -32,7 +32,7 @@ class TestTechnicalIndicators:
         assert 0 <= float(rsi) <= 100
 
     def test_calculate_rsi_downtrend(self):
-        """Test RSI calculation for downtrending prices"""
+        """Test RSI calculation for downtrending prices."""
         # Create downtrending price series
         prices = [Decimal(str(100 - i)) for i in range(20)]
 
@@ -43,7 +43,7 @@ class TestTechnicalIndicators:
         assert 0 <= float(rsi) <= 100
 
     def test_calculate_rsi_insufficient_data(self):
-        """Test RSI with insufficient data"""
+        """Test RSI with insufficient data."""
         prices = [Decimal("100"), Decimal("101"), Decimal("102")]
 
         rsi = TechnicalIndicators.calculate_rsi(prices, 14)
@@ -51,7 +51,7 @@ class TestTechnicalIndicators:
         assert rsi is None
 
     def test_calculate_rsi_extreme_values(self):
-        """Test RSI with extreme price movements"""
+        """Test RSI with extreme price movements."""
         # All gains - should approach 100
         prices = [Decimal(str(100 + i * 5)) for i in range(20)]
         rsi = TechnicalIndicators.calculate_rsi(prices, 14)
@@ -63,7 +63,7 @@ class TestTechnicalIndicators:
         assert float(rsi) < 20
 
     def test_calculate_sma(self):
-        """Test Simple Moving Average calculation"""
+        """Test Simple Moving Average calculation."""
         prices = [Decimal(str(i)) for i in range(1, 21)]  # 1 to 20
 
         sma = TechnicalIndicators.calculate_sma(prices, 10)
@@ -73,7 +73,7 @@ class TestTechnicalIndicators:
         assert abs(float(sma) - 15.5) < 0.01
 
     def test_calculate_sma_insufficient_data(self):
-        """Test SMA with insufficient data"""
+        """Test SMA with insufficient data."""
         prices = [Decimal("100"), Decimal("101")]
 
         sma = TechnicalIndicators.calculate_sma(prices, 10)
@@ -81,7 +81,7 @@ class TestTechnicalIndicators:
         assert sma is None
 
     def test_calculate_bollinger_bands(self):
-        """Test Bollinger Bands calculation"""
+        """Test Bollinger Bands calculation."""
         # Create price series with known properties
         base_price = 100
         prices = [Decimal(str(base_price + i % 5)) for i in range(25)]
@@ -101,7 +101,7 @@ class TestTechnicalIndicators:
         assert 0 <= bb["position"] <= 1
 
     def test_calculate_volume_spike(self):
-        """Test volume spike calculation"""
+        """Test volume spike calculation."""
         # Normal volumes with recent spike
         volumes = [1000] * 20  # 20 days of normal volume
         volumes.append(2500)  # Recent volume spike
@@ -112,7 +112,7 @@ class TestTechnicalIndicators:
         assert abs(spike_ratio - 2.5) < 0.01  # 2500 / 1000=2.5
 
     def test_calculate_volume_spike_no_spike(self):
-        """Test volume spike with no unusual activity"""
+        """Test volume spike with no unusual activity."""
         volumes = [1000] * 21  # All normal volume
 
         spike_ratio = TechnicalIndicators.calculate_volume_spike(volumes, 20)
@@ -122,16 +122,19 @@ class TestTechnicalIndicators:
 
 
 class TestWSBDipDetector:
-    """Test WSB dip pattern detection"""
+    """Test WSB dip pattern detection."""
 
     def setup_method(self):
-        """Set up test fixtures"""
+        """Set up test fixtures."""
         self.detector = WSBDipDetector()
 
     def create_price_bars(
-        self, prices: list[float], volumes: list[int] = None, base_date: datetime = None
+        self,
+        prices: list[float],
+        volumes: list[int] | None = None,
+        base_date: datetime | None = None,
     ) -> list[PriceBar]:
-        """Helper to create price bar data"""
+        """Helper to create price bar data."""
         if base_date is None:
             base_date = datetime.now() - timedelta(days=len(prices))
 
@@ -157,7 +160,7 @@ class TestWSBDipDetector:
 
     @pytest.mark.asyncio
     async def test_detect_valid_wsb_dip_pattern(self):
-        """Test detection of valid WSB dip - after - run pattern"""
+        """Test detection of valid WSB dip - after - run pattern."""
         # Simplified working scenario - need to understand run_duration calculation
         # High will be at index 29, looking back 5 - 20 days means indices 9 - 24
         # Base price will be min of indices 9 - 24, then run duration = 29 - base_index
@@ -179,7 +182,7 @@ class TestWSBDipDetector:
         pattern = await self.detector.detect_wsb_dip_pattern("TEST", price_bars)
 
         # Test that the detection function runs without error and returns expected type
-        assert isinstance(pattern, (type(None), PatternSignal))
+        assert isinstance(pattern, type(None) | PatternSignal)
 
         # If pattern is detected, validate its properties
         if pattern is not None:
@@ -190,7 +193,7 @@ class TestWSBDipDetector:
 
     @pytest.mark.asyncio
     async def test_reject_insufficient_run(self):
-        """Test rejection of pattern without sufficient run"""
+        """Test rejection of pattern without sufficient run."""
         # Create scenario with small run ( <  15%)
         prices = (
             [100] * 10  # Flat base
@@ -206,7 +209,7 @@ class TestWSBDipDetector:
 
     @pytest.mark.asyncio
     async def test_reject_insufficient_dip(self):
-        """Test rejection of pattern without sufficient dip"""
+        """Test rejection of pattern without sufficient dip."""
         # Create scenario with big run but no dip
         prices = (
             [100] * 10  # Flat base
@@ -222,7 +225,7 @@ class TestWSBDipDetector:
 
     @pytest.mark.asyncio
     async def test_reject_old_dip(self):
-        """Test rejection of pattern with stale dip"""
+        """Test rejection of pattern with stale dip."""
         # Create scenario with big run but old dip
         prices = (
             [100] * 5  # Base
@@ -240,7 +243,7 @@ class TestWSBDipDetector:
 
     @pytest.mark.asyncio
     async def test_signal_strength_calculation(self):
-        """Test signal strength scoring system"""
+        """Test signal strength scoring system."""
         # Create strong pattern scenario with proper 35 - day structure
         # Put the high very recent (last 10 days) and make the run meet thresholds
         prices = (
@@ -269,7 +272,7 @@ class TestWSBDipDetector:
 
     @pytest.mark.asyncio
     async def test_insufficient_data(self):
-        """Test handling of insufficient historical data"""
+        """Test handling of insufficient historical data."""
         # Only 20 days of data (need 30)
         prices = [100 + i for i in range(20)]
         price_bars = self.create_price_bars(prices)
@@ -279,7 +282,7 @@ class TestWSBDipDetector:
         assert pattern is None
 
     def test_analyze_recent_run_valid(self):
-        """Test run analysis with valid run"""
+        """Test run analysis with valid run."""
         # Create price series with clear run - need longer series for realistic analysis
         base_prices = [Decimal(str(100))] * 15  # Base period
         run_prices = [
@@ -299,7 +302,7 @@ class TestWSBDipDetector:
         # Duration may be too long due to detector logic, which is acceptable for testing
 
     def test_analyze_current_dip_valid(self):
-        """Test dip analysis with valid dip"""
+        """Test dip analysis with valid dip."""
         # Create price series ending in dip
         base_prices = [Decimal("125")] * 7  # High plateau
         dip_prices = [Decimal("120"), Decimal("115"), Decimal("110")]  # Clear dip
@@ -314,7 +317,7 @@ class TestWSBDipDetector:
         assert dip_analysis["days_since_high"] <= 3
 
     def test_analyze_volume_pattern(self):
-        """Test volume pattern analysis"""
+        """Test volume pattern analysis."""
         # Normal volume with recent spike
         volumes = [1000000] * 20 + [2500000] * 3
 
@@ -325,7 +328,7 @@ class TestWSBDipDetector:
         assert "volume_trend" in volume_analysis
 
     def test_calculate_signal_strength(self):
-        """Test signal strength calculation components"""
+        """Test signal strength calculation components."""
         run_analysis = {
             "run_percentage": 0.25,  # 25% run = 2 points
             "valid_run": True,
@@ -357,11 +360,11 @@ class TestWSBDipDetector:
 
 
 class TestPatternDetectionIntegration:
-    """Integration tests for pattern detection"""
+    """Integration tests for pattern detection."""
 
     @pytest.mark.asyncio
     async def test_create_wsb_dip_detector_factory(self):
-        """Test factory function"""
+        """Test factory function."""
         detector = create_wsb_dip_detector()
 
         assert isinstance(detector, WSBDipDetector)
@@ -371,7 +374,7 @@ class TestPatternDetectionIntegration:
 
     @pytest.mark.asyncio
     async def test_real_market_scenario_aapl_dip(self):
-        """Test with realistic AAPL - like scenario"""
+        """Test with realistic AAPL - like scenario."""
         # Simulate AAPL with proper 35 - day structure
         prices = (
             [150] * 18  # Longer base around $150 (18 days)
@@ -440,7 +443,7 @@ class TestPatternDetectionIntegration:
 
     @pytest.mark.asyncio
     async def test_error_handling_invalid_data(self):
-        """Test error handling with invalid / corrupt data"""
+        """Test error handling with invalid / corrupt data."""
         detector = create_wsb_dip_detector()
 
         # Empty data

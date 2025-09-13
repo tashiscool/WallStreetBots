@@ -1,5 +1,5 @@
 """Database Schema for Risk Management
-SQLite implementation matching the PostgreSQL schema from the bundle
+SQLite implementation matching the PostgreSQL schema from the bundle.
 """
 
 import json
@@ -15,14 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 class RiskDatabaseManager:
-    """SQLite database for risk management data"""
+    """SQLite database for risk management data."""
 
     def __init__(self, db_path: str = "risk_management.db"):
         self.db_path = db_path
         self.init_database()
 
     def init_database(self):
-        """Initialize database with required tables"""
+        """Initialize database with required tables."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
 
@@ -123,7 +123,7 @@ class RiskDatabaseManager:
             conn.commit()
 
     def insert_price_data(self, symbol: str, prices: pd.DataFrame):
-        """Insert price data"""
+        """Insert price data."""
         with sqlite3.connect(self.db_path) as conn:
             for _, row in prices.iterrows():
                 conn.execute(
@@ -136,7 +136,7 @@ class RiskDatabaseManager:
             conn.commit()
 
     def insert_returns_data(self, symbol: str, returns: pd.DataFrame):
-        """Insert returns data"""
+        """Insert returns data."""
         with sqlite3.connect(self.db_path) as conn:
             for _, row in returns.iterrows():
                 conn.execute(
@@ -149,7 +149,7 @@ class RiskDatabaseManager:
             conn.commit()
 
     def get_returns_for_var(self, symbol: str, window: int = 250) -> pd.Series:
-        """Get returns vector for VaR calculation"""
+        """Get returns vector for VaR calculation."""
         with sqlite3.connect(self.db_path) as conn:
             query = """
                 SELECT ret FROM returns_series
@@ -171,11 +171,11 @@ class RiskDatabaseManager:
         kupiec_lr: float | None = None,
         details: dict | None = None,
     ):
-        """Insert risk calculation result"""
+        """Insert risk calculation result."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """
-                INSERT INTO risk_results 
+                INSERT INTO risk_results
                 (ts, account_id, alpha, var, cvar, lvar, exceptions_250, kupiec_lr, details)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -194,7 +194,7 @@ class RiskDatabaseManager:
             conn.commit()
 
     def get_latest_risk_result(self, account_id: str) -> dict | None:
-        """Get latest risk result for account"""
+        """Get latest risk result for account."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -213,7 +213,7 @@ class RiskDatabaseManager:
             return None
 
     def check_risk_limits(self, account_id: str, var: float, cvar: float) -> dict[str, bool]:
-        """Check if risk metrics are within limits"""
+        """Check if risk metrics are within limits."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -251,7 +251,7 @@ class RiskDatabaseManager:
         max_total_cvar: float,
         per_strategy: dict[str, float],
     ):
-        """Set risk limits for account"""
+        """Set risk limits for account."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """
@@ -263,7 +263,7 @@ class RiskDatabaseManager:
             conn.commit()
 
     def insert_positions(self, account_id: str, positions: list[dict]):
-        """Insert current positions"""
+        """Insert current positions."""
         with sqlite3.connect(self.db_path) as conn:
             # Clear existing positions for this account
             conn.execute("DELETE FROM positions WHERE account_id=?", (account_id,))
@@ -272,7 +272,7 @@ class RiskDatabaseManager:
             for pos in positions:
                 conn.execute(
                     """
-                    INSERT INTO positions 
+                    INSERT INTO positions
                     (account_id, symbol, qty, value, delta, gamma, vega, theta, strategy)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -291,7 +291,7 @@ class RiskDatabaseManager:
             conn.commit()
 
     def get_positions(self, account_id: str) -> list[dict]:
-        """Get current positions for account"""
+        """Get current positions for account."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -314,11 +314,11 @@ class RiskDatabaseManager:
         portfolio_impact: float = 0.0,
         details: dict | None = None,
     ):
-        """Insert risk alert"""
+        """Insert risk alert."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """
-                INSERT INTO risk_alerts 
+                INSERT INTO risk_alerts
                 (ts, alert_type, severity, message, portfolio_impact, details)
                 VALUES (?, ?, ?, ?, ?, ?)
             """,
@@ -334,7 +334,7 @@ class RiskDatabaseManager:
             conn.commit()
 
     def get_active_alerts(self) -> list[dict]:
-        """Get unacknowledged alerts"""
+        """Get unacknowledged alerts."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute("""
@@ -347,7 +347,7 @@ class RiskDatabaseManager:
             return [dict(zip(columns, row, strict=False)) for row in rows]
 
     def acknowledge_alert(self, alert_id: int):
-        """Acknowledge an alert"""
+        """Acknowledge an alert."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """
@@ -360,7 +360,7 @@ class RiskDatabaseManager:
             conn.commit()
 
     def get_risk_history(self, account_id: str, days: int = 30) -> pd.DataFrame:
-        """Get risk history for account"""
+        """Get risk history for account."""
         with sqlite3.connect(self.db_path) as conn:
             query = f"""
                 SELECT * FROM risk_results
@@ -370,7 +370,7 @@ class RiskDatabaseManager:
             return pd.read_sql_query(query, conn, params=(account_id,))
 
     def compute_returns_from_prices(self, symbol: str):
-        """Compute log returns from price data"""
+        """Compute log returns from price data."""
         with sqlite3.connect(self.db_path) as conn:
             # Get price data
             prices_df = pd.read_sql_query(
@@ -461,7 +461,7 @@ if __name__ == "__main__":  # Initialize database
 
 
 class RiskDatabaseAsync:
-    """Async manager class for risk database operations"""
+    """Async manager class for risk database operations."""
 
     def __init__(self, db_path: str = "risk_management.db"):
         self.db = RiskDatabaseManager(db_path)
@@ -472,15 +472,15 @@ class RiskDatabaseAsync:
         portfolio_value: float,
         var_99: float,
         cvar_99: float,
-        lvar_99: float = None,
+        lvar_99: float | None = None,
         concentration_risk: float = 0.0,
         greeks_risk: float = 0.0,
         stress_score: float = 0.0,
         ml_risk_score: float = 0.0,
         within_limits: bool = True,
-        alerts: list[str] = None,
+        alerts: list[str] | None = None,
     ):
-        """Store risk calculation result"""
+        """Store risk calculation result."""
         try:
             details = {
                 "concentration_risk": concentration_risk,
@@ -505,7 +505,7 @@ class RiskDatabaseAsync:
             print(f"Error storing risk result: {e}")
 
     async def get_risk_history(self, days: int = 30) -> pd.DataFrame:
-        """Get risk calculation history"""
+        """Get risk calculation history."""
         try:
             return self.db.get_risk_history(account_id="default", days=days)
         except Exception as e:
@@ -513,7 +513,7 @@ class RiskDatabaseAsync:
             return pd.DataFrame()
 
     async def get_latest_risk_metrics(self) -> dict:
-        """Get latest risk metrics"""
+        """Get latest risk metrics."""
         try:
             return self.db.get_latest_risk_result(account_id="default")
         except Exception as e:
@@ -530,7 +530,7 @@ class RiskDatabaseAsync:
         gamma: float = 0.0,
         vega: float = 0.0,
     ):
-        """Store position data"""
+        """Store position data."""
         try:
             positions = [
                 {
@@ -549,7 +549,7 @@ class RiskDatabaseAsync:
             print(f"Error storing position: {e}")
 
     async def get_positions(self, account_id: str = "default") -> dict[str, dict]:
-        """Get current positions"""
+        """Get current positions."""
         try:
             positions_list = self.db.get_positions(account_id=account_id)
             positions_dict = {}
@@ -573,7 +573,7 @@ class RiskDatabaseAsync:
         max_total_cvar: float,
         per_strategy: dict[str, float],
     ):
-        """Update risk limits"""
+        """Update risk limits."""
         try:
             self.db.set_risk_limits(
                 account_id=account_id,
@@ -585,7 +585,7 @@ class RiskDatabaseAsync:
             print(f"Error updating risk limits: {e}")
 
     async def get_risk_limits(self, account_id: str = "default") -> dict:
-        """Get current risk limits"""
+        """Get current risk limits."""
         try:
             # This would get the actual limits from the database
             # For now, return default limits

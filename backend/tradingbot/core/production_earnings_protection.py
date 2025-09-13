@@ -1,5 +1,5 @@
 """Production Earnings IV Crush Protection Strategy
-Advanced earnings protection with real - time data and sophisticated hedging
+Advanced earnings protection with real - time data and sophisticated hedging.
 """
 
 import math
@@ -15,7 +15,7 @@ from .unified_data_provider import UnifiedDataProvider
 
 
 class EarningsStrategy(Enum):
-    """Earnings protection strategies"""
+    """Earnings protection strategies."""
 
     DEEP_ITM_PROTECTION = "deep_itm_protection"
     CALENDAR_SPREAD_PROTECTION = "calendar_spread_protection"
@@ -24,7 +24,7 @@ class EarningsStrategy(Enum):
 
 
 class EarningsEventType(Enum):
-    """Types of earnings events"""
+    """Types of earnings events."""
 
     EARNINGS = "earnings"
     GUIDANCE = "guidance"
@@ -35,7 +35,7 @@ class EarningsEventType(Enum):
 
 @dataclass
 class EarningsEvent:
-    """Earnings event data"""
+    """Earnings event data."""
 
     ticker: str
     event_type: EarningsEventType
@@ -54,7 +54,7 @@ class EarningsEvent:
 
 @dataclass
 class IVAnalysis:
-    """Implied volatility analysis"""
+    """Implied volatility analysis."""
 
     ticker: str
     current_iv: float
@@ -70,7 +70,7 @@ class IVAnalysis:
 
 @dataclass
 class EarningsPosition:
-    """Earnings protection position"""
+    """Earnings protection position."""
 
     ticker: str
     strategy: EarningsStrategy
@@ -95,7 +95,7 @@ class EarningsPosition:
 
 @dataclass
 class EarningsCandidate:
-    """Earnings protection candidate"""
+    """Earnings protection candidate."""
 
     ticker: str
     earnings_date: datetime
@@ -113,7 +113,7 @@ class EarningsCandidate:
 
 
 class EarningsDataProvider:
-    """Real - time earnings data provider"""
+    """Real - time earnings data provider."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
@@ -121,7 +121,7 @@ class EarningsDataProvider:
         self.iv_cache = {}
 
     async def get_earnings_calendar(self, days_ahead: int = 30) -> list[EarningsEvent]:
-        """Get upcoming earnings events"""
+        """Get upcoming earnings events."""
         try:
             # Mock implementation - in production, integrate with real earnings API
             mock_earnings = [
@@ -165,7 +165,7 @@ class EarningsDataProvider:
             return []
 
     async def get_iv_analysis(self, ticker: str) -> IVAnalysis | None:
-        """Get implied volatility analysis for ticker"""
+        """Get implied volatility analysis for ticker."""
         try:
             # Mock IV analysis - in production, use real options data
             mock_iv = IVAnalysis(
@@ -188,7 +188,7 @@ class EarningsDataProvider:
             return None
 
     async def get_earnings_history(self, ticker: str, quarters: int = 8) -> list[dict]:
-        """Get historical earnings data"""
+        """Get historical earnings data."""
         try:
             # Mock historical earnings data
             mock_history = [
@@ -223,7 +223,7 @@ class EarningsDataProvider:
 
 
 class EarningsProtectionStrategy:
-    """Main earnings protection strategy"""
+    """Main earnings protection strategy."""
 
     def __init__(
         self,
@@ -250,7 +250,7 @@ class EarningsProtectionStrategy:
         self.logger.info("EarningsProtectionStrategy initialized")
 
     async def scan_for_earnings_opportunities(self) -> list[EarningsCandidate]:
-        """Scan for earnings protection opportunities"""
+        """Scan for earnings protection opportunities."""
         try:
             self.logger.info("Scanning for earnings protection opportunities")
 
@@ -339,7 +339,7 @@ class EarningsProtectionStrategy:
     async def execute_earnings_protection(
         self, candidate: EarningsCandidate
     ) -> EarningsPosition | None:
-        """Execute earnings protection strategy"""
+        """Execute earnings protection strategy."""
         try:
             self.logger.info(f"Executing earnings protection for {candidate.ticker}")
 
@@ -377,7 +377,7 @@ class EarningsProtectionStrategy:
             return None
 
     async def monitor_earnings_positions(self) -> dict[str, Any]:
-        """Monitor active earnings positions"""
+        """Monitor active earnings positions."""
         try:
             self.logger.info("Monitoring earnings positions")
 
@@ -430,13 +430,13 @@ class EarningsProtectionStrategy:
             return {"error": str(e)}
 
     def _calculate_expected_move(self, price: float, iv: float, days_to_expiry: int) -> float:
-        """Calculate expected move based on IV and time to expiry"""
+        """Calculate expected move based on IV and time to expiry."""
         time_to_expiry = days_to_expiry / 365.0
         expected_move = price * iv * math.sqrt(time_to_expiry)
         return expected_move
 
     def _calculate_protection_cost(self, price: float, iv: float, days_to_expiry: int) -> float:
-        """Calculate protection cost as percentage of stock price"""
+        """Calculate protection cost as percentage of stock price."""
         # Simplified calculation - in production, use real options pricing
         time_to_expiry = days_to_expiry / 365.0
         protection_cost = price * iv * math.sqrt(time_to_expiry) * 0.5
@@ -449,7 +449,7 @@ class EarningsProtectionStrategy:
         protection_cost: float,
         days_to_earnings: int,
     ) -> float:
-        """Calculate earnings protection score"""
+        """Calculate earnings protection score."""
         score = 0.0
 
         # IV rank component (higher is better)
@@ -477,7 +477,7 @@ class EarningsProtectionStrategy:
     def _calculate_risk_score(
         self, iv_analysis: IVAnalysis, expected_move: float, days_to_earnings: int
     ) -> float:
-        """Calculate risk score (lower is better)"""
+        """Calculate risk score (lower is better)."""
         risk = 0.0
 
         # IV spike risk
@@ -503,7 +503,7 @@ class EarningsProtectionStrategy:
     def _recommend_strategy(
         self, iv_analysis: IVAnalysis, expected_move: float, days_to_earnings: int
     ) -> EarningsStrategy:
-        """Recommend earnings protection strategy"""
+        """Recommend earnings protection strategy."""
         if iv_analysis.iv_rank > 0.80 and expected_move > 0.10:
             return EarningsStrategy.VOLATILITY_ARBITRAGE
         elif days_to_earnings > 15:
@@ -514,7 +514,7 @@ class EarningsProtectionStrategy:
             return EarningsStrategy.DEEP_ITM_PROTECTION
 
     def _check_portfolio_exposure(self, candidate: EarningsCandidate) -> bool:
-        """Check if portfolio exposure limits are respected"""
+        """Check if portfolio exposure limits are respected."""
         # Calculate current earnings exposure
         current_exposure = sum(pos.protection_level for pos in self.active_positions.values())
 
@@ -526,7 +526,7 @@ class EarningsProtectionStrategy:
     async def _execute_deep_itm_protection(
         self, candidate: EarningsCandidate
     ) -> EarningsPosition | None:
-        """Execute deep ITM protection strategy"""
+        """Execute deep ITM protection strategy."""
         try:
             # Mock implementation - in production, execute real options trades
             position = EarningsPosition(
@@ -558,7 +558,7 @@ class EarningsProtectionStrategy:
     async def _execute_calendar_spread_protection(
         self, candidate: EarningsCandidate
     ) -> EarningsPosition | None:
-        """Execute calendar spread protection strategy"""
+        """Execute calendar spread protection strategy."""
         try:
             # Mock implementation - in production, execute real calendar spreads
             position = EarningsPosition(
@@ -590,7 +590,7 @@ class EarningsProtectionStrategy:
     async def _execute_protective_hedge(
         self, candidate: EarningsCandidate
     ) -> EarningsPosition | None:
-        """Execute protective hedge strategy"""
+        """Execute protective hedge strategy."""
         try:
             # Mock implementation - in production, execute real protective hedges
             position = EarningsPosition(
@@ -622,7 +622,7 @@ class EarningsProtectionStrategy:
     async def _execute_volatility_arbitrage(
         self, candidate: EarningsCandidate
     ) -> EarningsPosition | None:
-        """Execute volatility arbitrage strategy"""
+        """Execute volatility arbitrage strategy."""
         try:
             # Mock implementation - in production, execute real volatility arbitrage
             position = EarningsPosition(
@@ -652,7 +652,7 @@ class EarningsProtectionStrategy:
             return None
 
     async def _update_position_data(self, position: EarningsPosition):
-        """Update position data with current market information"""
+        """Update position data with current market information."""
         try:
             # Get current market data
             market_data = await self.data.get_market_data(position.ticker)
@@ -670,7 +670,7 @@ class EarningsProtectionStrategy:
             self.logger.error(f"Error updating position data for {position.ticker}: {e}")
 
     def _calculate_position_pnl(self, position: EarningsPosition) -> float:
-        """Calculate position P & L"""
+        """Calculate position P & L."""
         # Simplified P & L calculation - in production, use real options pricing
         if position.strategy == EarningsStrategy.DEEP_ITM_PROTECTION:
             return (position.current_price - position.entry_price) * position.quantity
@@ -687,7 +687,7 @@ class EarningsProtectionStrategy:
         return 0.0
 
     def _check_position_risks(self, position: EarningsPosition) -> list[str]:
-        """Check for position risk alerts"""
+        """Check for position risk alerts."""
         alerts = []
 
         # Check for large unrealized losses
@@ -709,13 +709,13 @@ class EarningsProtectionStrategy:
         return alerts
 
     def _check_profit_targets(self, position: EarningsPosition) -> bool:
-        """Check if profit targets are met"""
+        """Check if profit targets are met."""
         # Check for profit target (50% of max profit)
         profit_target = position.max_profit * 0.5
         return position.unrealized_pnl >= profit_target
 
     def _check_roll_opportunities(self, position: EarningsPosition) -> bool:
-        """Check for roll opportunities"""
+        """Check for roll opportunities."""
         # Roll if we're close to earnings and have profit
         return (
             position.days_to_earnings <= 3
@@ -724,7 +724,7 @@ class EarningsProtectionStrategy:
         )
 
     async def _roll_position(self, position: EarningsPosition):
-        """Roll position to next expiration"""
+        """Roll position to next expiration."""
         try:
             self.logger.info(f"Rolling position for {position.ticker}")
             # Mock implementation - in production, execute roll trades
@@ -736,7 +736,7 @@ class EarningsProtectionStrategy:
             self.logger.error(f"Error rolling position for {position.ticker}: {e}")
 
     async def _close_position(self, ticker: str):
-        """Close earnings position"""
+        """Close earnings position."""
         try:
             if ticker in self.active_positions:
                 position = self.active_positions.pop(ticker)
@@ -748,7 +748,7 @@ class EarningsProtectionStrategy:
             self.logger.error(f"Error closing position for {ticker}: {e}")
 
     async def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         try:
             total_pnl = sum(pos.unrealized_pnl for pos in self.active_positions.values())
             total_exposure = sum(pos.protection_level for pos in self.active_positions.values())

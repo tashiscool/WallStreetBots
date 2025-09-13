@@ -16,7 +16,7 @@ class Stock:
         t: daytime object, current time.
         bar_list: return from the api call containing past prices
         timeframe: string, timeframe between each price. e.g. day / hour / minute
-        closing_t: time object, closing time of the latest price in bar_list
+        closing_t: time object, closing time of the latest price in bar_list.
         """
         self.symbol = symbol
         self.past_price = self.past_price_from_bars(
@@ -36,7 +36,7 @@ class Stock:
         return np.sum(self.past_price[start : (start + past_pts)]) / past_pts
 
     def update(self, cur_price, bar, bar_t, t):
-        """Update the status of the stock
+        """Update the status of the stock.
 
         Args:
         cur_price: float, current price. e.g. 125.48

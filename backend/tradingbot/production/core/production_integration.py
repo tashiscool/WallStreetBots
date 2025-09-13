@@ -1,5 +1,5 @@
 """Production Integration Layer
-Connects existing infrastructure (AlpacaManager, Django models, strategies) for real trading
+Connects existing infrastructure (AlpacaManager, Django models, strategies) for real trading.
 
 This module bridges the gap between:
 - AlpacaManager (broker integration)
@@ -27,7 +27,7 @@ from ...risk_management import RiskManager, RiskParameters
 
 @dataclass
 class ProductionTradeSignal(TradeSignal):
-    """Extended TradeSignal for production use"""
+    """Extended TradeSignal for production use."""
 
     price: float = 0.0
     trade_type: str = "stock"
@@ -38,7 +38,7 @@ class ProductionTradeSignal(TradeSignal):
 
 @dataclass
 class ProductionTrade:
-    """Production trade record with full integration"""
+    """Production trade record with full integration."""
 
     id: str | None = None
     strategy_name: str = ""
@@ -66,7 +66,7 @@ class ProductionTrade:
 
 @dataclass
 class ProductionPosition:
-    """Production position with real - time tracking"""
+    """Production position with real - time tracking."""
 
     id: str | None = None
     ticker: str = ""
@@ -88,7 +88,7 @@ class ProductionPosition:
 
 
 class ProductionIntegrationManager:
-    """Production Integration Manager
+    """Production Integration Manager.
 
     Connects all components for real trading:
     - AlpacaManager for broker execution
@@ -120,7 +120,7 @@ class ProductionIntegrationManager:
         self.logger.info("ProductionIntegrationManager initialized")
 
     def setup_logging(self):
-        """Setup structured logging"""
+        """Setup structured logging."""
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -128,7 +128,7 @@ class ProductionIntegrationManager:
         )
 
     async def execute_trade(self, signal: ProductionTradeSignal) -> TradeResult:
-        """Execute trade with full production integration
+        """Execute trade with full production integration.
 
         Steps:
         1. Validate signal and risk limits
@@ -227,7 +227,7 @@ class ProductionIntegrationManager:
             )
 
     async def validate_risk_limits(self, signal: ProductionTradeSignal) -> dict[str, Any]:
-        """Validate risk limits before execution"""
+        """Validate risk limits before execution."""
         try:
             # Get current portfolio value
             portfolio_value = await self.get_portfolio_value()
@@ -258,7 +258,7 @@ class ProductionIntegrationManager:
             return {"allowed": False, "reason": f"Risk validation error: {e}"}
 
     async def execute_alpaca_order(self, signal: ProductionTradeSignal) -> dict[str, Any]:
-        """Execute order via AlpacaManager"""
+        """Execute order via AlpacaManager."""
         try:
             if signal.side == OrderSide.BUY:
                 result = self.alpaca_manager.market_buy(
@@ -286,7 +286,7 @@ class ProductionIntegrationManager:
     async def create_django_order(
         self, signal: ProductionTradeSignal, alpaca_order_id: str
     ) -> Order | None:
-        """Create Django Order record"""
+        """Create Django Order record."""
         try:
             # Get or create Company and Stock
             company, created = await sync_to_async(Company.objects.get_or_create)(
@@ -319,7 +319,7 @@ class ProductionIntegrationManager:
             return None
 
     async def update_position_tracking(self, trade: ProductionTrade):
-        """Update position tracking after trade execution"""
+        """Update position tracking after trade execution."""
         try:
             position_key = f"{trade.ticker}_{trade.strategy_name}"
 
@@ -363,7 +363,7 @@ class ProductionIntegrationManager:
             self.logger.error(f"Error updating position tracking: {e}")
 
     async def get_portfolio_value(self) -> Decimal:
-        """Get current portfolio value from Alpaca"""
+        """Get current portfolio value from Alpaca."""
         try:
             account_value = self.alpaca_manager.get_account_value()
             if account_value:
@@ -374,7 +374,7 @@ class ProductionIntegrationManager:
             return Decimal("0.00")
 
     async def get_position_value(self, ticker: str) -> Decimal:
-        """Get current position value for ticker"""
+        """Get current position value for ticker."""
         try:
             positions = self.alpaca_manager.get_positions()
             for position in positions:
@@ -386,7 +386,7 @@ class ProductionIntegrationManager:
             return Decimal("0.00")
 
     async def get_total_risk(self) -> Decimal:
-        """Get total risk across all positions"""
+        """Get total risk across all positions."""
         try:
             total_risk = Decimal("0.00")
             for position in self.active_positions.values():
@@ -397,9 +397,9 @@ class ProductionIntegrationManager:
             return Decimal("0.00")
 
     async def monitor_positions(self):
-        """Monitor active positions for exit signals"""
+        """Monitor active positions for exit signals."""
         try:
-            for position_key, position in list(self.active_positions.items()):
+            for _position_key, position in list(self.active_positions.items()):
                 # Get current price
                 current_price = await self.get_current_price(position.ticker)
                 position.current_price = current_price
@@ -415,22 +415,18 @@ class ProductionIntegrationManager:
                     ) * position.quantity
 
                 # Check stop loss
-                if position.stop_loss:
-                    if (
-                        position.position_type == "long" and current_price <= position.stop_loss
-                    ) or (
-                        position.position_type == "short" and current_price >= position.stop_loss
-                    ):
-                        await self.execute_exit_trade(position, "stop_loss")
+                if position.stop_loss and (
+                    (position.position_type == "long" and current_price <= position.stop_loss)
+                    or (position.position_type == "short" and current_price >= position.stop_loss)
+                ):
+                    await self.execute_exit_trade(position, "stop_loss")
 
                 # Check take profit
-                if position.take_profit:
-                    if (
-                        position.position_type == "long" and current_price >= position.take_profit
-                    ) or (
-                        position.position_type == "short" and current_price <= position.take_profit
-                    ):
-                        await self.execute_exit_trade(position, "take_profit")
+                if position.take_profit and (
+                    (position.position_type == "long" and current_price >= position.take_profit)
+                    or (position.position_type == "short" and current_price <= position.take_profit)
+                ):
+                    await self.execute_exit_trade(position, "take_profit")
 
                 position.updated_at = datetime.now()
 
@@ -438,7 +434,7 @@ class ProductionIntegrationManager:
             self.logger.error(f"Error monitoring positions: {e}")
 
     async def get_current_price(self, ticker: str) -> Decimal:
-        """Get current price for ticker"""
+        """Get current price for ticker."""
         try:
             latest_trade = self.alpaca_manager.get_latest_trade(ticker)
             if latest_trade and "price" in latest_trade:
@@ -449,7 +445,7 @@ class ProductionIntegrationManager:
             return Decimal("0.00")
 
     async def execute_exit_trade(self, position: ProductionPosition, reason: str):
-        """Execute exit trade for position"""
+        """Execute exit trade for position."""
         try:
             # Create exit signal
             exit_signal = ProductionTradeSignal(
@@ -486,7 +482,7 @@ class ProductionIntegrationManager:
             self.logger.error(f"Error executing exit trade: {e}")
 
     def get_portfolio_summary(self) -> dict[str, Any]:
-        """Get portfolio summary"""
+        """Get portfolio summary."""
         try:
             total_positions = len(self.active_positions)
             total_trades = len(self.active_trades)
@@ -521,7 +517,7 @@ class ProductionIntegrationManager:
 def create_production_integration(
     alpaca_api_key: str, alpaca_secret_key: str, paper_trading: bool = True, user_id: int = 1
 ) -> ProductionIntegrationManager:
-    """Create ProductionIntegrationManager instance
+    """Create ProductionIntegrationManager instance.
 
     Args:
         alpaca_api_key: Alpaca API key

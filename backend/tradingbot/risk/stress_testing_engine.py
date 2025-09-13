@@ -1,5 +1,5 @@
 """Stress Testing Engine-2025 Implementation
-FCA - compliant stress testing framework with historical and hypothetical scenarios
+FCA - compliant stress testing framework with historical and hypothetical scenarios.
 """
 
 import warnings
@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 
 @dataclass
 class StressScenario:
-    """Individual stress test scenario"""
+    """Individual stress test scenario."""
 
     name: str
     description: str
@@ -24,7 +24,7 @@ class StressScenario:
 
 @dataclass
 class StressTestResult:
-    """Result of stress test scenario"""
+    """Result of stress test scenario."""
 
     scenario_name: str
     portfolio_pnl: float
@@ -38,7 +38,7 @@ class StressTestResult:
 
 @dataclass
 class StressTestReport:
-    """Comprehensive stress test report"""
+    """Comprehensive stress test report."""
 
     results: dict[str, StressTestResult]
     compliance_status: str
@@ -48,7 +48,7 @@ class StressTestReport:
 
 
 class StressTesting2025:
-    """FCA - compliant stress testing framework"""
+    """FCA - compliant stress testing framework."""
 
     def __init__(self):
         self.regulatory_scenarios = self._initialize_regulatory_scenarios()
@@ -59,7 +59,7 @@ class StressTesting2025:
         }
 
     def _initialize_regulatory_scenarios(self) -> dict[str, StressScenario]:
-        """Initialize FCA - compliant stress scenarios"""
+        """Initialize FCA - compliant stress scenarios."""
         scenarios = {
             "2008_financial_crisis": StressScenario(
                 name="2008 Financial Crisis",
@@ -145,7 +145,7 @@ class StressTesting2025:
     def run_comprehensive_stress_test(
         self, portfolio: dict[str, Any], integration_frequency: str = "daily"
     ) -> StressTestReport:
-        """Run comprehensive stress tests per 2025 FCA guidelines
+        """Run comprehensive stress tests per 2025 FCA guidelines.
 
         Args:
             portfolio: Portfolio dictionary with positions and strategies
@@ -207,7 +207,7 @@ class StressTesting2025:
     def _simulate_portfolio_under_stress(
         self, portfolio: dict[str, Any], scenario: StressScenario
     ) -> StressTestResult:
-        """Simulate portfolio performance under stress scenario"""
+        """Simulate portfolio performance under stress scenario."""
         # Extract portfolio information
         total_value = portfolio.get("total_value", 100000.0)
         strategies = portfolio.get("strategies", {})
@@ -253,7 +253,7 @@ class StressTesting2025:
         )
 
     def _get_strategy_sensitivity(self, strategy_name: str, scenario: StressScenario) -> float:
-        """Get strategy sensitivity to stress scenario"""
+        """Get strategy sensitivity to stress scenario."""
         # Strategy - specific sensitivities to different market shocks
         sensitivities = {
             "wsb_dip_bot": {
@@ -312,7 +312,7 @@ class StressTesting2025:
         return total_sensitivity / total_weight if total_weight > 0 else 0.0
 
     def _estimate_recovery_time(self, scenario: StressScenario, max_drawdown: float) -> int:
-        """Estimate recovery time based on scenario and drawdown"""
+        """Estimate recovery time based on scenario and drawdown."""
         base_recovery = scenario.recovery_days
 
         # Adjust based on drawdown severity
@@ -328,7 +328,7 @@ class StressTesting2025:
     def _check_risk_limits(
         self, pnl: float, max_drawdown: float, recovery_time: int
     ) -> tuple[bool, str | None]:
-        """Check if scenario results exceed risk limits"""
+        """Check if scenario results exceed risk limits."""
         if max_drawdown > self.risk_limits["max_drawdown"]:
             return (
                 False,
@@ -344,7 +344,7 @@ class StressTesting2025:
         return True, None
 
     def _check_fca_compliance(self, results: dict, failed_scenarios: list[str]) -> str:
-        """Check FCA compliance status"""
+        """Check FCA compliance status."""
         total_scenarios = len(results)
         failed_count = len(failed_scenarios)
         pass_rate = (total_scenarios - failed_count) / total_scenarios
@@ -359,7 +359,7 @@ class StressTesting2025:
     def _generate_risk_recommendations(
         self, results: dict, failed_scenarios: list[str]
     ) -> list[str]:
-        """Generate risk management recommendations"""
+        """Generate risk management recommendations."""
         recommendations = []
 
         if not failed_scenarios:
@@ -405,14 +405,14 @@ class StressTesting2025:
         return recommendations
 
     def _calculate_overall_risk_score(self, results: dict) -> float:
-        """Calculate overall portfolio risk score (0 - 100, lower is better)"""
+        """Calculate overall portfolio risk score (0 - 100, lower is better)."""
         if not results:
             return 100.0  # Maximum risk if no results
 
         total_risk = 0.0
         total_weight = 0.0
 
-        for scenario_name, result in results.items():
+        for _scenario_name, result in results.items():
             # Risk score based on P & L impact and probability
             pnl_impact = abs(result.portfolio_pnl)
             probability = result.risk_metrics.get("scenario_probability", 0.01)

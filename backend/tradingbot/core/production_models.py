@@ -1,5 +1,5 @@
 """Production Database Models
-Simple dataclass - based models that don't require Django
+Simple dataclass - based models that don't require Django.
 """
 
 from dataclasses import dataclass, field
@@ -29,7 +29,7 @@ class OrderSide(Enum):
 
 @dataclass
 class Strategy:
-    """Trading strategy configuration"""
+    """Trading strategy configuration."""
 
     id: int | None = None
     name: str = ""
@@ -44,7 +44,7 @@ class Strategy:
 
 @dataclass
 class Position:
-    """Current position in a security"""
+    """Current position in a security."""
 
     id: int | None = None
     strategy_id: int | None = None
@@ -64,7 +64,7 @@ class Position:
 
 @dataclass
 class Trade:
-    """Individual trade execution record"""
+    """Individual trade execution record."""
 
     id: int | None = None
     strategy_id: int | None = None
@@ -85,7 +85,7 @@ class Trade:
 
 @dataclass
 class RiskLimit:
-    """Risk management limits for strategies"""
+    """Risk management limits for strategies."""
 
     id: int | None = None
     strategy_id: int | None = None
@@ -100,7 +100,7 @@ class RiskLimit:
 
 @dataclass
 class Alert:
-    """System alerts and notifications"""
+    """System alerts and notifications."""
 
     id: int | None = None
     timestamp: datetime = field(default_factory=datetime.now)
@@ -121,14 +121,14 @@ _alerts: list[Alert] = []
 
 
 def create_strategy(strategy: Strategy) -> Strategy:
-    """Create a new strategy"""
+    """Create a new strategy."""
     strategy.id = len(_strategies) + 1
     _strategies.append(strategy)
     return strategy
 
 
 def get_strategy(strategy_id: int) -> Strategy | None:
-    """Get strategy by ID"""
+    """Get strategy by ID."""
     for strategy in _strategies:
         if strategy.id == strategy_id:
             return strategy
@@ -136,42 +136,42 @@ def get_strategy(strategy_id: int) -> Strategy | None:
 
 
 def create_position(position: Position) -> Position:
-    """Create a new position"""
+    """Create a new position."""
     position.id = len(_positions) + 1
     _positions.append(position)
     return position
 
 
 def get_positions(strategy_id: int | None = None) -> list[Position]:
-    """Get positions, optionally filtered by strategy"""
+    """Get positions, optionally filtered by strategy."""
     if strategy_id:
         return [p for p in _positions if p.strategy_id == strategy_id]
     return _positions.copy()
 
 
 def create_trade(trade: Trade) -> Trade:
-    """Create a new trade"""
+    """Create a new trade."""
     trade.id = len(_trades) + 1
     _trades.append(trade)
     return trade
 
 
 def get_trades(strategy_id: int | None = None) -> list[Trade]:
-    """Get trades, optionally filtered by strategy"""
+    """Get trades, optionally filtered by strategy."""
     if strategy_id:
         return [t for t in _trades if t.strategy_id == strategy_id]
     return _trades.copy()
 
 
 def create_alert(alert: Alert) -> Alert:
-    """Create a new alert"""
+    """Create a new alert."""
     alert.id = len(_alerts) + 1
     _alerts.append(alert)
     return alert
 
 
 def get_alerts(level: str | None = None) -> list[Alert]:
-    """Get alerts, optionally filtered by level"""
+    """Get alerts, optionally filtered by level."""
     if level:
         return [a for a in _alerts if a.level == level]
     return _alerts.copy()
@@ -179,7 +179,7 @@ def get_alerts(level: str | None = None) -> list[Alert]:
 
 @dataclass
 class PerformanceMetrics:
-    """Strategy performance metrics"""
+    """Strategy performance metrics."""
 
     id: int | None = None
     strategy_id: int | None = None

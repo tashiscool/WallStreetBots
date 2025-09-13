@@ -1,5 +1,5 @@
 """Production 0DTE / Earnings Lotto Scanner
-High - risk, high - reward options scanning with volatility analysis
+High - risk, high - reward options scanning with volatility analysis.
 """
 
 import math
@@ -15,7 +15,7 @@ from .unified_data_provider import UnifiedDataProvider
 
 
 class LottoSignal(Enum):
-    """Lotto trading signals"""
+    """Lotto trading signals."""
 
     STRONG_BUY = "strong_buy"
     BUY = "buy"
@@ -25,7 +25,7 @@ class LottoSignal(Enum):
 
 
 class LottoType(Enum):
-    """Types of lotto plays"""
+    """Types of lotto plays."""
 
     ZERO_DTE = "zero_dte"
     EARNINGS_LOTTO = "earnings_lotto"
@@ -35,7 +35,7 @@ class LottoType(Enum):
 
 
 class OptionStrategy(Enum):
-    """Option strategies for lotto plays"""
+    """Option strategies for lotto plays."""
 
     CALL = "call"
     PUT = "put"
@@ -47,7 +47,7 @@ class OptionStrategy(Enum):
 
 @dataclass
 class VolatilityAnalysis:
-    """Volatility analysis data"""
+    """Volatility analysis data."""
 
     ticker: str
     current_price: float
@@ -68,7 +68,7 @@ class VolatilityAnalysis:
 
 @dataclass
 class LottoOption:
-    """Lotto option data"""
+    """Lotto option data."""
 
     ticker: str
     option_type: OptionStrategy
@@ -92,7 +92,7 @@ class LottoOption:
 
 @dataclass
 class LottoCandidate:
-    """Lotto trading candidate"""
+    """Lotto trading candidate."""
 
     ticker: str
     lotto_type: LottoType
@@ -112,7 +112,7 @@ class LottoCandidate:
 
 @dataclass
 class LottoPosition:
-    """Lotto trading position"""
+    """Lotto trading position."""
 
     ticker: str
     lotto_type: LottoType
@@ -134,7 +134,7 @@ class LottoPosition:
 
 
 class VolatilityAnalyzer:
-    """Volatility analysis engine"""
+    """Volatility analysis engine."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
@@ -148,7 +148,7 @@ class VolatilityAnalyzer:
         time_to_expiry: float,
         option_type: str,
     ) -> float:
-        """Calculate implied volatility using Black - Scholes"""
+        """Calculate implied volatility using Black - Scholes."""
         try:
             # Simplified IV calculation - in production, use proper numerical methods
             time_to_expiry_years = time_to_expiry / 365.0
@@ -173,7 +173,7 @@ class VolatilityAnalyzer:
             return 0.0
 
     def calculate_historical_volatility(self, prices: list[float], period: int = 20) -> float:
-        """Calculate historical volatility"""
+        """Calculate historical volatility."""
         if len(prices) < period + 1:
             return 0.0
 
@@ -195,7 +195,7 @@ class VolatilityAnalyzer:
         return volatility
 
     def calculate_iv_percentile(self, current_iv: float, historical_ivs: list[float]) -> float:
-        """Calculate IV percentile"""
+        """Calculate IV percentile."""
         if not historical_ivs:
             return 0.5
 
@@ -206,7 +206,7 @@ class VolatilityAnalyzer:
         return percentile
 
     def calculate_iv_rank(self, current_iv: float, historical_ivs: list[float]) -> float:
-        """Calculate IV rank"""
+        """Calculate IV rank."""
         if not historical_ivs:
             return 0.5
 
@@ -220,13 +220,13 @@ class VolatilityAnalyzer:
         return max(0.0, min(1.0, rank))
 
     def calculate_expected_move(self, spot_price: float, iv: float, time_to_expiry: int) -> float:
-        """Calculate expected move"""
+        """Calculate expected move."""
         time_to_expiry_years = time_to_expiry / 365.0
         expected_move = spot_price * iv * math.sqrt(time_to_expiry_years)
         return expected_move
 
     def calculate_volatility_skew(self, call_ivs: list[float], put_ivs: list[float]) -> float:
-        """Calculate volatility skew"""
+        """Calculate volatility skew."""
         if not call_ivs or not put_ivs:
             return 0.0
 
@@ -237,7 +237,7 @@ class VolatilityAnalyzer:
         return skew
 
     def calculate_gamma_exposure(self, options_data: list[dict]) -> float:
-        """Calculate gamma exposure"""
+        """Calculate gamma exposure."""
         total_gamma = 0.0
         total_volume = 0.0
 
@@ -254,14 +254,14 @@ class VolatilityAnalyzer:
 
 
 class LottoOptionsProvider:
-    """Lotto options data provider"""
+    """Lotto options data provider."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
         self.options_cache = {}
 
     async def get_zero_dte_options(self, ticker: str) -> list[LottoOption]:
-        """Get 0DTE options for ticker"""
+        """Get 0DTE options for ticker."""
         try:
             # Mock implementation - in production, integrate with real options API
             current_price = 150.0  # Mock current price
@@ -323,7 +323,7 @@ class LottoOptionsProvider:
             return []
 
     async def get_earnings_options(self, ticker: str, earnings_date: datetime) -> list[LottoOption]:
-        """Get earnings options for ticker"""
+        """Get earnings options for ticker."""
         try:
             # Mock implementation - in production, integrate with real options API
             current_price = 150.0  # Mock current price
@@ -392,7 +392,7 @@ class LottoOptionsProvider:
         signal: LottoSignal,
         current_price: float,
     ) -> LottoOption | None:
-        """Find best lotto option based on type and signal"""
+        """Find best lotto option based on type and signal."""
         try:
             if not options:
                 return None
@@ -432,7 +432,7 @@ class LottoOptionsProvider:
 
 
 class LottoScannerStrategy:
-    """Main lotto scanner strategy"""
+    """Main lotto scanner strategy."""
 
     def __init__(
         self,
@@ -461,7 +461,7 @@ class LottoScannerStrategy:
         self.logger.info("LottoScannerStrategy initialized")
 
     async def scan_for_lotto_opportunities(self) -> list[LottoCandidate]:
-        """Scan for lotto trading opportunities"""
+        """Scan for lotto trading opportunities."""
         try:
             self.logger.info("Scanning for lotto opportunities")
 
@@ -515,7 +515,7 @@ class LottoScannerStrategy:
             return []
 
     async def execute_lotto_trade(self, candidate: LottoCandidate) -> LottoPosition | None:
-        """Execute lotto trading position"""
+        """Execute lotto trading position."""
         try:
             self.logger.info(f"Executing lotto trade for {candidate.ticker}")
 
@@ -586,7 +586,7 @@ class LottoScannerStrategy:
             return None
 
     async def monitor_lotto_positions(self) -> dict[str, Any]:
-        """Monitor active lotto positions"""
+        """Monitor active lotto positions."""
         try:
             self.logger.info("Monitoring lotto positions")
 
@@ -633,7 +633,7 @@ class LottoScannerStrategy:
     async def _perform_volatility_analysis(
         self, ticker: str, historical_data: list[dict]
     ) -> VolatilityAnalysis | None:
-        """Perform volatility analysis on historical data"""
+        """Perform volatility analysis on historical data."""
         try:
             if len(historical_data) < 20:
                 return None
@@ -699,7 +699,7 @@ class LottoScannerStrategy:
             return None
 
     def _identify_lotto_type(self, volatility_analysis: VolatilityAnalysis) -> LottoType | None:
-        """Identify lotto type based on volatility analysis"""
+        """Identify lotto type based on volatility analysis."""
         # Check for 0DTE conditions
         if volatility_analysis.iv_rank > 0.8 and volatility_analysis.gamma_exposure > 0.1:
             return LottoType.ZERO_DTE
@@ -725,7 +725,7 @@ class LottoScannerStrategy:
     def _generate_lotto_signal(
         self, volatility_analysis: VolatilityAnalysis, lotto_type: LottoType
     ) -> LottoSignal:
-        """Generate lotto signal based on analysis"""
+        """Generate lotto signal based on analysis."""
         score = 0.0
 
         # IV rank component
@@ -771,7 +771,7 @@ class LottoScannerStrategy:
         lotto_type: LottoType,
         signal: LottoSignal,
     ) -> LottoCandidate | None:
-        """Create lotto trading candidate"""
+        """Create lotto trading candidate."""
         try:
             # Calculate entry price
             entry_price = volatility_analysis.current_price
@@ -820,7 +820,7 @@ class LottoScannerStrategy:
             return None
 
     def _calculate_position_size(self, entry_price: float, stop_loss: float) -> int:
-        """Calculate position size based on risk"""
+        """Calculate position size based on risk."""
         # Simplified position sizing - in production, use proper risk management
         risk_per_share = abs(entry_price - stop_loss)
         max_risk_amount = 200.0  # $200 max risk per lotto play
@@ -830,7 +830,7 @@ class LottoScannerStrategy:
     def _calculate_lotto_score(
         self, volatility_analysis: VolatilityAnalysis, lotto_type: LottoType
     ) -> float:
-        """Calculate lotto score"""
+        """Calculate lotto score."""
         score = 0.0
 
         # IV rank component (40% weight)
@@ -859,7 +859,7 @@ class LottoScannerStrategy:
     def _calculate_risk_score(
         self, volatility_analysis: VolatilityAnalysis, lotto_type: LottoType
     ) -> float:
-        """Calculate risk score (higher is riskier)"""
+        """Calculate risk score (higher is riskier)."""
         risk = 0.0
 
         # High IV risk
@@ -885,7 +885,7 @@ class LottoScannerStrategy:
         return max(0.0, min(1.0, risk))
 
     async def _update_position_data(self, position: LottoPosition):
-        """Update position data with current market information"""
+        """Update position data with current market information."""
         try:
             # Get current market data
             market_data = await self.data.get_market_data(position.ticker)
@@ -903,13 +903,13 @@ class LottoScannerStrategy:
             self.logger.error(f"Error updating position data for {position.ticker}: {e}")
 
     def _calculate_position_pnl(self, position: LottoPosition) -> float:
-        """Calculate position P & L"""
+        """Calculate position P & L."""
         # Simplified P & L calculation for lotto options
         price_change = position.current_price - position.entry_price
         return price_change * position.quantity * 100  # Options are per 100 shares
 
     def _check_exit_conditions(self, position: LottoPosition) -> str | None:
-        """Check for exit conditions"""
+        """Check for exit conditions."""
         # Check stop loss
         if position.current_price <= position.stop_loss:
             return "stop_loss"
@@ -929,7 +929,7 @@ class LottoScannerStrategy:
         return None
 
     def _check_position_risks(self, position: LottoPosition) -> list[str]:
-        """Check for position risk alerts"""
+        """Check for position risk alerts."""
         alerts = []
 
         # Check for large unrealized losses
@@ -951,7 +951,7 @@ class LottoScannerStrategy:
         return alerts
 
     async def _close_position(self, ticker: str, exit_signal: str):
-        """Close lotto position"""
+        """Close lotto position."""
         try:
             if ticker in self.active_positions:
                 position = self.active_positions.pop(ticker)
@@ -963,7 +963,7 @@ class LottoScannerStrategy:
             self.logger.error(f"Error closing position for {ticker}: {e}")
 
     async def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         try:
             total_pnl = sum(pos.unrealized_pnl for pos in self.active_positions.values())
             total_exposure = sum(

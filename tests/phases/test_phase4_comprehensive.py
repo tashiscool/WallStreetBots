@@ -1,5 +1,5 @@
 """Comprehensive Phase 4 Testing
-Tests for backtesting, optimization, monitoring, and deployment
+Tests for backtesting, optimization, monitoring, and deployment.
 """
 
 import os
@@ -47,7 +47,7 @@ from backend.tradingbot.phases.phase4_optimization import (
 
 
 class TestPhase4Backtesting(unittest.TestCase):
-    """Test Phase 4 backtesting functionality"""
+    """Test Phase 4 backtesting functionality."""
 
     def setUp(self):
         self.logger = Mock(spec=ProductionLogger)
@@ -58,7 +58,7 @@ class TestPhase4Backtesting(unittest.TestCase):
         self.backtest_engine = BacktestEngine(self.config, self.logger)
 
     def test_backtest_config_creation(self):
-        """Test backtest configuration creation"""
+        """Test backtest configuration creation."""
         config = BacktestConfig(
             start_date=datetime(2024, 1, 1),
             end_date=datetime(2024, 12, 31),
@@ -79,7 +79,7 @@ class TestPhase4Backtesting(unittest.TestCase):
         self.assertEqual(config.rebalance_frequency, BacktestPeriod.DAILY)
 
     def test_backtest_trade_creation(self):
-        """Test backtest trade creation"""
+        """Test backtest trade creation."""
         trade = BacktestTrade(
             ticker="AAPL",
             strategy="test_strategy",
@@ -104,7 +104,7 @@ class TestPhase4Backtesting(unittest.TestCase):
 
     @patch("backend.tradingbot.phase4_backtesting.BacktestEngine._run_simulation")
     async def test_backtest_execution(self, mock_simulation):
-        """Test backtest execution"""
+        """Test backtest execution."""
         mock_simulation.return_value = None
 
         config = BacktestConfig(
@@ -131,7 +131,7 @@ class TestPhase4Backtesting(unittest.TestCase):
         mock_simulation.assert_called_once()
 
     def test_backtest_analyzer_report_generation(self):
-        """Test backtest analyzer report generation"""
+        """Test backtest analyzer report generation."""
         analyzer = BacktestAnalyzer(self.logger)
 
         config = BacktestConfig(
@@ -183,7 +183,7 @@ class TestPhase4Backtesting(unittest.TestCase):
 
 
 class TestPhase4Optimization(unittest.TestCase):
-    """Test Phase 4 optimization functionality"""
+    """Test Phase 4 optimization functionality."""
 
     def setUp(self):
         self.logger = Mock(spec=ProductionLogger)
@@ -193,7 +193,7 @@ class TestPhase4Optimization(unittest.TestCase):
         self.optimizer = StrategyOptimizer(self.backtest_engine, self.config, self.logger)
 
     def test_parameter_range_creation(self):
-        """Test parameter range creation"""
+        """Test parameter range creation."""
         param_range = ParameterRange(
             name="lookback_period", min_value=5, max_value=50, step=5, param_type="int"
         )
@@ -204,7 +204,7 @@ class TestPhase4Optimization(unittest.TestCase):
         self.assertEqual(param_range.param_type, "int")
 
     def test_optimization_config_creation(self):
-        """Test optimization configuration creation"""
+        """Test optimization configuration creation."""
         param_ranges = [
             ParameterRange("param1", 1, 10, 1, "int"),
             ParameterRange("param2", 0.1, 1.0, 0.1, "float"),
@@ -225,7 +225,7 @@ class TestPhase4Optimization(unittest.TestCase):
         self.assertEqual(len(config.parameter_ranges), 2)
 
     def test_parameter_combination_generation(self):
-        """Test parameter combination generation"""
+        """Test parameter combination generation."""
         param_ranges = [
             ParameterRange("param1", 1, 3, 1, "int"),
             ParameterRange("param2", 0.1, 0.3, 0.1, "float"),
@@ -239,7 +239,7 @@ class TestPhase4Optimization(unittest.TestCase):
         self.assertIn("param2", combinations[0])
 
     def test_random_parameter_generation(self):
-        """Test random parameter generation"""
+        """Test random parameter generation."""
         param_ranges = [
             ParameterRange("param1", 1, 10, 1, "int"),
             ParameterRange("param2", 0.1, 1.0, 0.1, "float"),
@@ -256,7 +256,7 @@ class TestPhase4Optimization(unittest.TestCase):
         self.assertIsInstance(params["param3"], bool)
 
     def test_score_calculation(self):
-        """Test optimization score calculation"""
+        """Test optimization score calculation."""
         mock_results = Mock(spec=BacktestResults)
         mock_results.sharpe_ratio = 1.5
         mock_results.total_return = 0.15
@@ -276,7 +276,7 @@ class TestPhase4Optimization(unittest.TestCase):
 
 
 class TestPhase4Monitoring(unittest.TestCase):
-    """Test Phase 4 monitoring functionality"""
+    """Test Phase 4 monitoring functionality."""
 
     def setUp(self):
         self.logger = Mock(spec=ProductionLogger)
@@ -285,7 +285,7 @@ class TestPhase4Monitoring(unittest.TestCase):
         self.monitoring = Phase4Monitoring(self.config, self.logger)
 
     def test_metric_creation(self):
-        """Test metric creation"""
+        """Test metric creation."""
         metric = Metric(
             name="test_metric",
             value=42.0,
@@ -299,7 +299,7 @@ class TestPhase4Monitoring(unittest.TestCase):
         self.assertEqual(metric.metric_type, MetricType.GAUGE)
 
     def test_alert_rule_creation(self):
-        """Test alert rule creation"""
+        """Test alert rule creation."""
         rule = AlertRule(
             name="test_alert",
             condition="test_metric",
@@ -314,7 +314,7 @@ class TestPhase4Monitoring(unittest.TestCase):
         self.assertEqual(rule.level, AlertLevel.WARNING)
 
     def test_metrics_collector(self):
-        """Test metrics collector functionality"""
+        """Test metrics collector functionality."""
         collector = self.monitoring.metrics_collector
 
         # Record a metric
@@ -329,7 +329,7 @@ class TestPhase4Monitoring(unittest.TestCase):
         self.assertEqual(value, 100.0)
 
     def test_alert_manager(self):
-        """Test alert manager functionality"""
+        """Test alert manager functionality."""
         alert_manager = self.monitoring.alert_manager
 
         # Add alert rule
@@ -349,7 +349,7 @@ class TestPhase4Monitoring(unittest.TestCase):
         self.assertNotIn("test_rule", alert_manager.alert_rules)
 
     def test_dashboard_data(self):
-        """Test dashboard data generation"""
+        """Test dashboard data generation."""
         dashboard_data = self.monitoring.get_dashboard_data()
 
         self.assertIn("timestamp", dashboard_data)
@@ -358,7 +358,7 @@ class TestPhase4Monitoring(unittest.TestCase):
         self.assertIn("active_alerts", dashboard_data)
 
     def test_custom_metric_addition(self):
-        """Test custom metric addition"""
+        """Test custom metric addition."""
         self.monitoring.add_custom_metric("custom_metric", 123.45, MetricType.GAUGE)
 
         value = self.monitoring.metrics_collector.get_metric_value("custom_metric")
@@ -366,7 +366,7 @@ class TestPhase4Monitoring(unittest.TestCase):
 
 
 class TestPhase4Deployment(unittest.TestCase):
-    """Test Phase 4 deployment functionality"""
+    """Test Phase 4 deployment functionality."""
 
     def setUp(self):
         self.logger = Mock(spec=ProductionLogger)
@@ -375,7 +375,7 @@ class TestPhase4Deployment(unittest.TestCase):
         self.deployment = Phase4Deployment(self.config, self.logger)
 
     def test_deployment_config_creation(self):
-        """Test deployment configuration creation"""
+        """Test deployment configuration creation."""
         config = DeploymentConfig(
             environment=DeploymentEnvironment.PRODUCTION,
             version="v1.0.0",
@@ -391,7 +391,7 @@ class TestPhase4Deployment(unittest.TestCase):
         self.assertEqual(config.replicas, 3)
 
     def test_docker_manager(self):
-        """Test Docker manager functionality"""
+        """Test Docker manager functionality."""
         docker_manager = DockerManager(self.logger)
 
         # Test image building (mock)
@@ -401,7 +401,7 @@ class TestPhase4Deployment(unittest.TestCase):
             self.assertTrue(result)
 
     def test_kubernetes_manager(self):
-        """Test Kubernetes manager functionality"""
+        """Test Kubernetes manager functionality."""
         k8s_manager = KubernetesManager(self.logger)
 
         config = DeploymentConfig(
@@ -421,7 +421,7 @@ class TestPhase4Deployment(unittest.TestCase):
         self.assertIn("wallstreetbots", yaml)
 
     def test_cicd_manager(self):
-        """Test CI / CD manager functionality"""
+        """Test CI / CD manager functionality."""
         cicd_manager = CICDManager(self.logger)
 
         # Test test running (mock)
@@ -438,7 +438,7 @@ class TestPhase4Deployment(unittest.TestCase):
     async def test_deployment_process(
         self, mock_health, mock_k8s, mock_push, mock_build, mock_cicd
     ):
-        """Test deployment process"""
+        """Test deployment process."""
         # Mock all dependencies to return success
         mock_cicd.return_value = True
         mock_build.return_value = True
@@ -463,7 +463,7 @@ class TestPhase4Deployment(unittest.TestCase):
 
 
 class TestPhase4Integration(unittest.TestCase):
-    """Test Phase 4 integration functionality"""
+    """Test Phase 4 integration functionality."""
 
     def setUp(self):
         self.logger = Mock(spec=ProductionLogger)
@@ -472,7 +472,7 @@ class TestPhase4Integration(unittest.TestCase):
         self.config.trading.universe = ["AAPL", "MSFT", "GOOGL"]
 
     def test_end_to_end_workflow(self):
-        """Test end - to - end Phase 4 workflow"""
+        """Test end - to - end Phase 4 workflow."""
         # This would test the complete workflow from backtesting to deployment
         # For now, we'll test that all components can be instantiated together
 
@@ -495,7 +495,7 @@ class TestPhase4Integration(unittest.TestCase):
 
 
 def run_phase4_tests():
-    """Run all Phase 4 tests"""
+    """Run all Phase 4 tests."""
     print("Running Phase 4 Comprehensive Tests...")
     print(" = " * 50)
 
@@ -543,4 +543,4 @@ def run_phase4_tests():
 
 if __name__ == "__main__":
     success = run_phase4_tests()
-    exit(0 if success else 1)
+    sys.exit(0 if success else 1)

@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Basic Phase 2 Functionality Test
-Test core Phase 2 components without external dependencies
+Test core Phase 2 components without external dependencies.
 """
 
 import json
@@ -43,7 +43,7 @@ from backend.tradingbot.core.production_wheel_strategy import (
 
 
 def test_wheel_strategy():
-    """Test Wheel Strategy components"""
+    """Test Wheel Strategy components."""
     print("🔄 Testing Wheel Strategy Components...")
 
     # Test Wheel Position
@@ -86,7 +86,7 @@ def test_wheel_strategy():
 
 
 def test_debit_spreads():
-    """Test Debit Spreads components"""
+    """Test Debit Spreads components."""
     print("📈 Testing Debit Spreads Components...")
 
     # Test Spread Position
@@ -148,7 +148,7 @@ def test_debit_spreads():
 
 
 def test_spx_spreads():
-    """Test SPX Spreads components"""
+    """Test SPX Spreads components."""
     print("📊 Testing SPX Spreads Components...")
 
     # Test SPX Spread Position
@@ -197,7 +197,7 @@ def test_spx_spreads():
 
 
 def test_index_baseline():
-    """Test Index Baseline components"""
+    """Test Index Baseline components."""
     print("📉 Testing Index Baseline Components...")
 
     # Test Benchmark Data
@@ -287,7 +287,7 @@ def test_index_baseline():
 
 
 def test_phase2_integration():
-    """Test Phase 2 integration"""
+    """Test Phase 2 integration."""
     print("🔗 Testing Phase 2 Integration...")
 
     # Test configuration loading
@@ -374,7 +374,7 @@ def test_phase2_integration():
 
 
 def main():
-    """Run all Phase 2 tests"""
+    """Run all Phase 2 tests."""
     print("🚀 WallStreetBots Phase 2 - Basic Functionality Test")
     print(" = " * 60)
 
@@ -422,4 +422,4 @@ if __name__ == "__main__":  # Mock class for testing
         def error(self, *args, **kwargs):
             pass
 
-    exit(main())
+    sys.exit(main())

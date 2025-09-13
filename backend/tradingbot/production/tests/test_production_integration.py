@@ -1,5 +1,5 @@
 """Production Integration Tests
-Comprehensive tests for production - ready trading system
+Comprehensive tests for production - ready trading system.
 
 This module tests the complete production integration:
 - AlpacaManager connection to strategies
@@ -31,11 +31,11 @@ from ..data.production_data_integration import ReliableDataProvider as Productio
 
 
 class TestProductionIntegration:
-    """Test production integration components"""
+    """Test production integration components."""
 
     @pytest.fixture
     def mock_alpaca_manager(self):
-        """Mock AlpacaManager for testing"""
+        """Mock AlpacaManager for testing."""
         mock_manager = Mock()
         mock_manager.validate_api.return_value = (True, "Mock API validated")
         mock_manager.get_account.return_value = {
@@ -52,45 +52,47 @@ class TestProductionIntegration:
 
     @pytest.fixture
     def mock_risk_manager(self):
-        """Mock RiskManager for testing"""
+        """Mock RiskManager for testing."""
         mock_risk = Mock()
         mock_risk.validate_position.return_value = {"allowed": True, "reason": "OK"}
         return mock_risk
 
     @pytest.fixture
     def mock_alert_system(self):
-        """Mock TradingAlertSystem for testing"""
+        """Mock TradingAlertSystem for testing."""
         mock_alerts = Mock()
         mock_alerts.send_alert = AsyncMock()
         return mock_alerts
 
     @pytest.fixture
     def production_integration(self, mock_alpaca_manager, mock_risk_manager, mock_alert_system):
-        """Create ProductionIntegrationManager for testing"""
-        with patch(
-            "backend.tradingbot.production.core.production_integration.AlpacaManager",
-            return_value=mock_alpaca_manager,
-        ):
-            with patch(
+        """Create ProductionIntegrationManager for testing."""
+        with (
+            patch(
+                "backend.tradingbot.production.core.production_integration.AlpacaManager",
+                return_value=mock_alpaca_manager,
+            ),
+            patch(
                 "backend.tradingbot.production.core.production_integration.RiskManager",
                 return_value=mock_risk_manager,
-            ):
-                with patch(
-                    "backend.tradingbot.production.core.production_integration.TradingAlertSystem",
-                    return_value=mock_alert_system,
-                ):
-                    integration = ProductionIntegrationManager(
-                        "test_api_key", "test_secret_key", paper_trading=True, user_id=1
-                    )
-                    integration.alpaca_manager = mock_alpaca_manager
-                    integration.risk_manager = mock_risk_manager
-                    integration.alert_system = mock_alert_system
-                    return integration
+            ),
+            patch(
+                "backend.tradingbot.production.core.production_integration.TradingAlertSystem",
+                return_value=mock_alert_system,
+            ),
+        ):
+            integration = ProductionIntegrationManager(
+                "test_api_key", "test_secret_key", paper_trading=True, user_id=1
+            )
+            integration.alpaca_manager = mock_alpaca_manager
+            integration.risk_manager = mock_risk_manager
+            integration.alert_system = mock_alert_system
+            return integration
 
     @pytest.mark.asyncio
     @pytest.mark.django_db
     async def test_trade_execution(self, production_integration):
-        """Test trade execution flow"""
+        """Test trade execution flow."""
         # Create test signal
         signal = ProductionTradeSignal(
             strategy_name="test_strategy",
@@ -126,7 +128,7 @@ class TestProductionIntegration:
 
     @pytest.mark.asyncio
     async def test_risk_validation(self, production_integration):
-        """Test risk validation"""
+        """Test risk validation."""
         # Create signal that exceeds risk limits
         signal = ProductionTradeSignal(
             strategy_name="test_strategy",
@@ -158,7 +160,7 @@ class TestProductionIntegration:
 
     @pytest.mark.asyncio
     async def test_position_tracking(self, production_integration):
-        """Test position tracking"""
+        """Test position tracking."""
         # Create trade
         trade = ProductionTrade(
             id="test_trade_1",
@@ -187,7 +189,7 @@ class TestProductionIntegration:
 
     @pytest.mark.asyncio
     async def test_position_monitoring(self, production_integration):
-        """Test position monitoring"""
+        """Test position monitoring."""
         # Create test position
         position = ProductionPosition(
             id="test_position_1",
@@ -217,7 +219,7 @@ class TestProductionIntegration:
         assert updated_position.unrealized_pnl == Decimal("100.00")  # (160 - 150) * 10
 
     def test_portfolio_summary(self, production_integration):
-        """Test portfolio summary"""
+        """Test portfolio summary."""
         # Add test positions
         position1 = ProductionPosition(
             ticker="AAPL",
@@ -264,11 +266,11 @@ class TestProductionIntegration:
 
 
 class TestProductionStrategyWrapper:
-    """Test production strategy wrappers"""
+    """Test production strategy wrappers."""
 
     @pytest.fixture
     def mock_integration(self):
-        """Mock ProductionIntegrationManager"""
+        """Mock ProductionIntegrationManager."""
         mock_integration = Mock()
         mock_integration.get_portfolio_value = AsyncMock(return_value=Decimal("100000.00"))
         mock_integration.get_current_price = AsyncMock(return_value=Decimal("150.00"))
@@ -280,7 +282,7 @@ class TestProductionStrategyWrapper:
 
     @pytest.fixture
     def strategy_config(self):
-        """Create StrategyConfig for testing"""
+        """Create StrategyConfig for testing."""
         return StrategyConfig(
             name="test_strategy",
             enabled=True,
@@ -293,7 +295,7 @@ class TestProductionStrategyWrapper:
 
     @pytest.mark.asyncio
     async def test_wsb_dip_bot_initialization(self, mock_integration, strategy_config):
-        """Test WSB Dip Bot initialization"""
+        """Test WSB Dip Bot initialization."""
         strategy = ProductionWSBDipBot(mock_integration, strategy_config)
 
         assert strategy.strategy_name == "wsb_dip_bot"
@@ -303,7 +305,7 @@ class TestProductionStrategyWrapper:
 
     @pytest.mark.asyncio
     async def test_strategy_start_stop(self, mock_integration, strategy_config):
-        """Test strategy start / stop"""
+        """Test strategy start / stop."""
         strategy = ProductionWSBDipBot(mock_integration, strategy_config)
 
         # Start strategy
@@ -317,7 +319,7 @@ class TestProductionStrategyWrapper:
 
     @pytest.mark.asyncio
     async def test_dip_after_run_detection(self, mock_integration, strategy_config):
-        """Test dip after run pattern detection"""
+        """Test dip after run pattern detection."""
         strategy = ProductionWSBDipBot(mock_integration, strategy_config)
 
         # Mock historical data
@@ -343,7 +345,7 @@ class TestProductionStrategyWrapper:
         assert result is True
 
     def test_strategy_status(self, mock_integration, strategy_config):
-        """Test strategy status"""
+        """Test strategy status."""
         strategy = ProductionWSBDipBot(mock_integration, strategy_config)
         strategy.is_running = True
         strategy.last_scan_time = datetime.now()
@@ -362,11 +364,11 @@ class TestProductionStrategyWrapper:
 
 
 class TestProductionDataProvider:
-    """Test production data provider"""
+    """Test production data provider."""
 
     @pytest.fixture
     def mock_alpaca_manager(self):
-        """Mock AlpacaManager for data provider"""
+        """Mock AlpacaManager for data provider."""
         mock_manager = Mock()
         mock_manager.get_latest_trade.return_value = {
             "price": 150.0,
@@ -388,7 +390,7 @@ class TestProductionDataProvider:
 
     @pytest.fixture
     def data_provider(self, mock_alpaca_manager):
-        """Create ProductionDataProvider for testing"""
+        """Create ProductionDataProvider for testing."""
         with patch(
             "backend.tradingbot.production.data.production_data_integration.AlpacaManager",
             return_value=mock_alpaca_manager,
@@ -399,7 +401,7 @@ class TestProductionDataProvider:
 
     @pytest.mark.asyncio
     async def test_get_current_price(self, data_provider):
-        """Test getting current price"""
+        """Test getting current price."""
         market_data = await data_provider.get_current_price("AAPL")
 
         assert market_data is not None
@@ -410,7 +412,7 @@ class TestProductionDataProvider:
 
     @pytest.mark.asyncio
     async def test_get_historical_data(self, data_provider):
-        """Test getting historical data"""
+        """Test getting historical data."""
         historical_data = await data_provider.get_historical_data("AAPL", 5)
 
         assert len(historical_data) == 1
@@ -419,7 +421,7 @@ class TestProductionDataProvider:
 
     @pytest.mark.asyncio
     async def test_market_hours_check(self, data_provider):
-        """Test market hours check"""
+        """Test market hours check."""
         is_open = await data_provider.is_market_open()
 
         # Should return True based on mock
@@ -427,7 +429,7 @@ class TestProductionDataProvider:
 
     @pytest.mark.asyncio
     async def test_volume_spike_detection(self, data_provider):
-        """Test volume spike detection"""
+        """Test volume spike detection."""
         # Mock historical data with normal volume
         historical_bars = [
             {
@@ -473,11 +475,11 @@ class TestProductionDataProvider:
 
 
 class TestProductionManager:
-    """Test production manager orchestration"""
+    """Test production manager orchestration."""
 
     @pytest.fixture
     def production_config(self):
-        """Create ProductionConfig for testing"""
+        """Create ProductionConfig for testing."""
         return ProductionConfig(
             alpaca_api_key="test_api_key",
             alpaca_secret_key="test_secret_key",
@@ -488,7 +490,7 @@ class TestProductionManager:
 
     @pytest.fixture
     def mock_integration_manager(self):
-        """Mock ProductionIntegrationManager"""
+        """Mock ProductionIntegrationManager."""
         mock_manager = Mock()
         mock_manager.alpaca_manager.validate_api.return_value = (True, "OK")
         mock_manager.get_portfolio_value = AsyncMock(return_value=Decimal("100000.00"))
@@ -506,7 +508,7 @@ class TestProductionManager:
 
     @pytest.fixture
     def mock_data_provider(self):
-        """Mock ProductionDataProvider"""
+        """Mock ProductionDataProvider."""
         mock_provider = Mock()
         mock_provider.is_market_open = AsyncMock(return_value=True)
         mock_provider.clear_cache = Mock()
@@ -519,55 +521,59 @@ class TestProductionManager:
 
     @pytest.mark.asyncio
     async def test_production_manager_initialization(self, production_config):
-        """Test production manager initialization"""
-        with patch(
-            "backend.tradingbot.production.core.production_manager.create_production_integration"
-        ) as mock_integration:
-            with patch(
+        """Test production manager initialization."""
+        with (
+            patch(
+                "backend.tradingbot.production.core.production_manager.create_production_integration"
+            ) as mock_integration,
+            patch(
                 "backend.tradingbot.production.core.production_manager.create_production_data_provider"
-            ) as mock_data:
-                mock_integration.return_value = Mock()
-                mock_data.return_value = Mock()
+            ) as mock_data,
+        ):
+            mock_integration.return_value = Mock()
+            mock_data.return_value = Mock()
 
-                manager = ProductionManager(production_config)
+            manager = ProductionManager(production_config)
 
-                assert manager.config == production_config
-                assert len(manager.strategies) == 2  # wsb_dip_bot and momentum_weeklies
-                assert "wsb_dip_bot" in manager.strategies
-                assert "momentum_weeklies" in manager.strategies
+            assert manager.config == production_config
+            assert len(manager.strategies) == 2  # wsb_dip_bot and momentum_weeklies
+            assert "wsb_dip_bot" in manager.strategies
+            assert "momentum_weeklies" in manager.strategies
 
     @pytest.mark.asyncio
     async def test_system_status(self, production_config):
-        """Test system status"""
-        with patch(
-            "backend.tradingbot.production.core.production_manager.create_production_integration"
-        ) as mock_integration:
-            with patch(
+        """Test system status."""
+        with (
+            patch(
+                "backend.tradingbot.production.core.production_manager.create_production_integration"
+            ) as mock_integration,
+            patch(
                 "backend.tradingbot.production.core.production_manager.create_production_data_provider"
-            ) as mock_data:
-                mock_integration.return_value = Mock()
-                mock_data.return_value = Mock()
+            ) as mock_data,
+        ):
+            mock_integration.return_value = Mock()
+            mock_data.return_value = Mock()
 
-                manager = ProductionManager(production_config)
-                manager.is_running = True
-                manager.start_time = datetime.now()
+            manager = ProductionManager(production_config)
+            manager.is_running = True
+            manager.start_time = datetime.now()
 
-                status = manager.get_system_status()
+            status = manager.get_system_status()
 
-                assert status["is_running"] is True
-                assert status["active_strategies"] == 2
-                assert "wsb_dip_bot" in status["strategy_status"]
-                assert "momentum_weeklies" in status["strategy_status"]
+            assert status["is_running"] is True
+            assert status["active_strategies"] == 2
+            assert "wsb_dip_bot" in status["strategy_status"]
+            assert "momentum_weeklies" in status["strategy_status"]
 
 
 # Integration test that verifies the complete flow
 class TestProductionIntegrationFlow:
-    """Test complete production integration flow"""
+    """Test complete production integration flow."""
 
     @pytest.mark.asyncio
     @pytest.mark.django_db
     async def test_complete_trading_flow(self):
-        """Test complete trading flow from signal to execution"""
+        """Test complete trading flow from signal to execution."""
         # This test would verify the complete flow:
         # 1. Strategy generates signal
         # 2. Signal validated for risk
@@ -577,68 +583,66 @@ class TestProductionIntegrationFlow:
         # 6. Alerts sent
 
         # Mock all external dependencies
-        with patch(
-            "backend.tradingbot.production.core.production_integration.AlpacaManager"
-        ) as mock_alpaca:
-            with patch(
+        with (
+            patch(
+                "backend.tradingbot.production.core.production_integration.AlpacaManager"
+            ) as mock_alpaca,
+            patch(
                 "backend.tradingbot.production.core.production_integration.RiskManager"
-            ) as mock_risk:
-                with patch(
-                    "backend.tradingbot.production.core.production_integration.TradingAlertSystem"
-                ) as mock_alerts:
-                    with patch(
-                        "backend.tradingbot.production.core.production_integration.Order"
-                    ) as mock_order:
-                        # Setup mocks
-                        mock_alpaca.return_value.validate_api.return_value = (True, "OK")
-                        mock_alpaca.return_value.get_account.return_value = {
-                            "portfolio_value": 100000.0
-                        }
-                        mock_alpaca.return_value.market_buy.return_value = {
-                            "id": "test_order",
-                            "filled_avg_price": 150.0,
-                        }
-                        mock_risk.return_value.validate_position.return_value = {
-                            "allowed": True,
-                            "reason": "OK",
-                        }
-                        mock_alerts.return_value.send_alert = AsyncMock()
-                        mock_order.objects.get_or_create.return_value = (Mock(id=1), True)
-                        mock_order.objects.create.return_value = Mock(id=1)
+            ) as mock_risk,
+            patch(
+                "backend.tradingbot.production.core.production_integration.TradingAlertSystem"
+            ) as mock_alerts,
+            patch("backend.tradingbot.production.core.production_integration.Order") as mock_order,
+        ):
+            # Setup mocks
+            mock_alpaca.return_value.validate_api.return_value = (True, "OK")
+            mock_alpaca.return_value.get_account.return_value = {"portfolio_value": 100000.0}
+            mock_alpaca.return_value.market_buy.return_value = {
+                "id": "test_order",
+                "filled_avg_price": 150.0,
+            }
+            mock_risk.return_value.validate_position.return_value = {
+                "allowed": True,
+                "reason": "OK",
+            }
+            mock_alerts.return_value.send_alert = AsyncMock()
+            mock_order.objects.get_or_create.return_value = (Mock(id=1), True)
+            mock_order.objects.create.return_value = Mock(id=1)
 
-                        # Create integration manager
-                        integration = ProductionIntegrationManager(
-                            "test_key", "test_secret", paper_trading=True, user_id=1
-                        )
+            # Create integration manager
+            integration = ProductionIntegrationManager(
+                "test_key", "test_secret", paper_trading=True, user_id=1
+            )
 
-                        # Create and execute trade signal
-                        signal = ProductionTradeSignal(
-                            strategy_name="test_strategy",
-                            ticker="AAPL",
-                            side=OrderSide.BUY,
-                            order_type=OrderType.MARKET,
-                            quantity=10,
-                            price=150.0,
-                            trade_type="stock",
-                            risk_amount=Decimal("1500.00"),
-                            expected_return=Decimal("300.00"),
-                        )
+            # Create and execute trade signal
+            signal = ProductionTradeSignal(
+                strategy_name="test_strategy",
+                ticker="AAPL",
+                side=OrderSide.BUY,
+                order_type=OrderType.MARKET,
+                quantity=10,
+                price=150.0,
+                trade_type="stock",
+                risk_amount=Decimal("1500.00"),
+                expected_return=Decimal("300.00"),
+            )
 
-                        result = await integration.execute_trade(signal)
+            result = await integration.execute_trade(signal)
 
-                        # Verify complete flow
-                        assert result.status == TradeStatus.FILLED
-                        assert result.trade_id is not None
-                        assert result.filled_price == 150.0
+            # Verify complete flow
+            assert result.status == TradeStatus.FILLED
+            assert result.trade_id is not None
+            assert result.filled_price == 150.0
 
-                        # Verify all components were called
-                        mock_alpaca.return_value.market_buy.assert_called_once()
-                        mock_alerts.return_value.send_alert.assert_called()
-                        mock_order.objects.create.assert_called_once()
+            # Verify all components were called
+            mock_alpaca.return_value.market_buy.assert_called_once()
+            mock_alerts.return_value.send_alert.assert_called()
+            mock_order.objects.create.assert_called_once()
 
-                        # Verify position tracking
-                        assert len(integration.active_trades) == 1
-                        assert len(integration.active_positions) == 1
+            # Verify position tracking
+            assert len(integration.active_trades) == 1
+            assert len(integration.active_positions) == 1
 
 
 if __name__ == "__main__":

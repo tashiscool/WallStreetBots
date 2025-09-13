@@ -1,5 +1,5 @@
 """ML Risk Predictor - 2025 Implementation
-Machine learning models for risk prediction and regime detection
+Machine learning models for risk prediction and regime detection.
 """
 
 import warnings
@@ -25,7 +25,7 @@ except ImportError:
 
 @dataclass
 class VolatilityForecast:
-    """Volatility prediction result"""
+    """Volatility prediction result."""
 
     predicted_volatility: float
     confidence_interval: tuple[float, float]
@@ -36,7 +36,7 @@ class VolatilityForecast:
 
 @dataclass
 class MLFeatures:
-    """Machine learning features"""
+    """Machine learning features."""
 
     price_features: dict[str, float]
     volume_features: dict[str, float]
@@ -48,7 +48,7 @@ class MLFeatures:
 
 @dataclass
 class RiskPrediction:
-    """Risk prediction result"""
+    """Risk prediction result."""
 
     risk_score: float  # 0 - 100, higher is riskier
     volatility_forecast: VolatilityForecast
@@ -58,7 +58,7 @@ class RiskPrediction:
 
 
 class MLRiskPredictor:
-    """Machine learning models for risk prediction"""
+    """Machine learning models for risk prediction."""
 
     def __init__(self):
         self.models = {}
@@ -72,7 +72,7 @@ class MLRiskPredictor:
             self._initialize_basic_models()
 
     def _initialize_ml_models(self):
-        """Initialize scikit - learn models"""
+        """Initialize scikit - learn models."""
         self.models = {
             "volatility_rf": RandomForestRegressor(n_estimators=100, random_state=42),
             "regime_rf": RandomForestClassifier(n_estimators=100, random_state=42),
@@ -86,14 +86,14 @@ class MLRiskPredictor:
         }
 
     def _initialize_basic_models(self):
-        """Initialize basic models without ML libraries"""
+        """Initialize basic models without ML libraries."""
         self.models = {"volatility_rf": None, "regime_rf": None, "risk_rf": None}
         self.scalers = {}
 
     def predict_volatility_regime(
         self, market_data: dict[str, Any], horizon_days: int = 5
     ) -> VolatilityForecast:
-        """Predict volatility using ensemble of models
+        """Predict volatility using ensemble of models.
 
         Args:
             market_data: Dictionary containing market data
@@ -160,7 +160,7 @@ class MLRiskPredictor:
         )
 
     def _engineer_features_2025(self, market_data: dict[str, Any]) -> MLFeatures:
-        """Advanced feature engineering with alternative data"""
+        """Advanced feature engineering with alternative data."""
         # Extract price data
         prices = market_data.get("prices", [])
         volumes = market_data.get("volumes", [])
@@ -185,7 +185,7 @@ class MLRiskPredictor:
         )
 
     def _extract_price_features(self, prices: list[float]) -> dict[str, float]:
-        """Extract price-based features"""
+        """Extract price-based features."""
         if len(prices) < 2:
             return {"returns_mean": 0.0, "returns_std": 0.0, "price_trend": 0.0}
 
@@ -203,7 +203,7 @@ class MLRiskPredictor:
         }
 
     def _extract_volume_features(self, volumes: list[float]) -> dict[str, float]:
-        """Extract volume-based features"""
+        """Extract volume-based features."""
         if len(volumes) < 2:
             return {"volume_mean": 0.0, "volume_std": 0.0, "volume_trend": 0.0}
 
@@ -221,7 +221,7 @@ class MLRiskPredictor:
     def _calculate_technical_indicators(
         self, prices: list[float], volumes: list[float]
     ) -> dict[str, float]:
-        """Calculate technical indicators"""
+        """Calculate technical indicators."""
         if len(prices) < 20:
             return {"rsi": 50.0, "macd": 0.0, "bollinger_position": 0.5}
 
@@ -245,7 +245,7 @@ class MLRiskPredictor:
         }
 
     def _extract_sentiment_features(self, market_data: dict[str, Any]) -> dict[str, float]:
-        """Extract sentiment features (simulated)"""
+        """Extract sentiment features (simulated)."""
         # In real implementation, these would come from sentiment analysis APIs
         return {
             "reddit_sentiment": np.random.uniform(-1, 1),  # -1 to 1
@@ -256,7 +256,7 @@ class MLRiskPredictor:
         }
 
     def _extract_options_flow_features(self, market_data: dict[str, Any]) -> dict[str, float]:
-        """Extract options flow features (simulated)"""
+        """Extract options flow features (simulated)."""
         # In real implementation, these would come from options data providers
         return {
             "put_call_ratio": np.random.uniform(0.5, 2.0),
@@ -267,7 +267,7 @@ class MLRiskPredictor:
         }
 
     def _extract_macro_features(self, market_data: dict[str, Any]) -> dict[str, float]:
-        """Extract macroeconomic features"""
+        """Extract macroeconomic features."""
         return {
             "vix_level": np.random.uniform(10, 50),
             "yield_curve_slope": np.random.uniform(-2, 3),
@@ -277,7 +277,7 @@ class MLRiskPredictor:
         }
 
     def _extract_feature_vector(self, features: MLFeatures) -> list[float]:
-        """Extract feature vector for ML models"""
+        """Extract feature vector for ML models."""
         feature_vector = []
 
         # Combine all features into single vector
@@ -294,7 +294,7 @@ class MLRiskPredictor:
         return feature_vector
 
     def _basic_volatility_prediction(self, market_data: dict[str, Any]) -> float:
-        """Basic volatility prediction without ML"""
+        """Basic volatility prediction without ML."""
         prices = market_data.get("prices", [])
 
         if len(prices) < 2:
@@ -318,7 +318,7 @@ class MLRiskPredictor:
         return max(0.05, min(1.0, predicted_vol))  # Clamp between 5% and 100%
 
     def _predict_regime_probabilities(self, features: MLFeatures) -> dict[str, float]:
-        """Predict market regime probabilities"""
+        """Predict market regime probabilities."""
         # Simple rule-based regime detection
         volatility = features.price_features.get("price_volatility", 0.2)
         vix = features.macro_features.get("vix_level", 20)
@@ -333,7 +333,7 @@ class MLRiskPredictor:
             return {"normal": 0.6, "high_vol": 0.3, "crisis": 0.1}
 
     def _calculate_rsi(self, prices: np.ndarray, period: int = 14) -> float:
-        """Calculate RSI indicator"""
+        """Calculate RSI indicator."""
         if len(prices) < period + 1:
             return 50.0
 
@@ -353,7 +353,7 @@ class MLRiskPredictor:
         return rsi
 
     def _calculate_macd(self, prices: np.ndarray) -> float:
-        """Calculate MACD indicator"""
+        """Calculate MACD indicator."""
         if len(prices) < 26:
             return 0.0
 
@@ -363,7 +363,7 @@ class MLRiskPredictor:
         return ema_12 - ema_26
 
     def _calculate_ema(self, prices: np.ndarray, period: int) -> float:
-        """Calculate Exponential Moving Average"""
+        """Calculate Exponential Moving Average."""
         if len(prices) < period:
             return prices[-1]
 
@@ -376,7 +376,7 @@ class MLRiskPredictor:
         return ema
 
     def _calculate_bollinger_position(self, prices: np.ndarray, period: int = 20) -> float:
-        """Calculate position within Bollinger Bands"""
+        """Calculate position within Bollinger Bands."""
         if len(prices) < period:
             return 0.5
 
@@ -398,7 +398,7 @@ class MLRiskPredictor:
             return (current_price - lower_band) / (upper_band - lower_band)
 
     def _calculate_max_drawdown(self, prices: np.ndarray) -> float:
-        """Calculate maximum drawdown"""
+        """Calculate maximum drawdown."""
         if len(prices) < 2:
             return 0.0
 
@@ -415,7 +415,7 @@ class MLRiskPredictor:
         return max_dd
 
     def _calculate_skewness(self, returns: np.ndarray) -> float:
-        """Calculate skewness of returns"""
+        """Calculate skewness of returns."""
         if len(returns) < 3:
             return 0.0
 
@@ -429,7 +429,7 @@ class MLRiskPredictor:
         return skewness
 
     def _calculate_kurtosis(self, returns: np.ndarray) -> float:
-        """Calculate kurtosis of returns"""
+        """Calculate kurtosis of returns."""
         if len(returns) < 4:
             return 0.0
 
@@ -443,7 +443,7 @@ class MLRiskPredictor:
         return kurtosis
 
     def predict_risk_score(self, market_data: dict[str, Any]) -> RiskPrediction:
-        """Predict overall risk score"""
+        """Predict overall risk score."""
         # Get volatility forecast
         vol_forecast = self.predict_volatility_regime(market_data)
 
@@ -481,7 +481,7 @@ class MLRiskPredictor:
         )
 
     def predict_volatility(self, returns_data: np.ndarray | list[float]) -> VolatilityForecast:
-        """Predict volatility from portfolio returns data
+        """Predict volatility from portfolio returns data.
 
         Args:
             returns_data: Portfolio returns as numpy array or list

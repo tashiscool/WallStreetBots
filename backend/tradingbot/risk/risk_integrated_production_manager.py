@@ -1,5 +1,5 @@
 """Risk - Integrated Production Strategy Manager
-Integrates sophisticated risk management with WallStreetBots trading strategies
+Integrates sophisticated risk management with WallStreetBots trading strategies.
 
 This module provides:
 - Real - time risk assessment during trading
@@ -27,7 +27,7 @@ from .risk_integration_manager import RiskIntegrationManager, RiskLimits
 
 @dataclass
 class RiskIntegratedConfig(ProductionStrategyManagerConfig):
-    """Configuration for risk - integrated production manager"""
+    """Configuration for risk - integrated production manager."""
 
     # Risk management settings
     risk_limits: RiskLimits = field(default_factory=RiskLimits)
@@ -46,7 +46,7 @@ class RiskIntegratedConfig(ProductionStrategyManagerConfig):
 
 
 class RiskIntegratedProductionManager:
-    """Production strategy manager with integrated sophisticated risk management
+    """Production strategy manager with integrated sophisticated risk management.
 
     This manager combines all WallStreetBots trading strategies with:
     - Real - time VaR / CVaR calculations
@@ -57,7 +57,7 @@ class RiskIntegratedProductionManager:
     """
 
     def __init__(self, config: RiskIntegratedConfig):
-        """Initialize risk - integrated production manager
+        """Initialize risk - integrated production manager.
 
         Args:
             config: Configuration including risk management settings
@@ -92,7 +92,7 @@ class RiskIntegratedProductionManager:
         self.logger.info("Risk - Integrated Production Manager initialized")
 
     async def start_all_strategies(self) -> bool:
-        """Start all strategies with integrated risk management
+        """Start all strategies with integrated risk management.
 
         Returns:
             bool: True if all strategies started successfully
@@ -118,7 +118,7 @@ class RiskIntegratedProductionManager:
             return False
 
     async def _create_risk_aware_strategies(self):
-        """Create risk - aware wrappers for all strategies"""
+        """Create risk - aware wrappers for all strategies."""
         try:
             for strategy_name, strategy_instance in self.base_manager.strategies.items():
                 risk_aware_strategy = create_risk_aware_strategy(
@@ -132,7 +132,7 @@ class RiskIntegratedProductionManager:
             self.logger.error(f"Error creating risk - aware strategies: {e}")
 
     async def _start_risk_monitoring(self):
-        """Start continuous risk monitoring"""
+        """Start continuous risk monitoring."""
         try:
             self.risk_monitoring_active = True
 
@@ -145,7 +145,7 @@ class RiskIntegratedProductionManager:
             self.logger.error(f"Error starting risk monitoring: {e}")
 
     async def _risk_monitoring_loop(self):
-        """Continuous risk monitoring loop"""
+        """Continuous risk monitoring loop."""
         while self.risk_monitoring_active:
             try:
                 # Calculate portfolio risk
@@ -162,7 +162,7 @@ class RiskIntegratedProductionManager:
                 await asyncio.sleep(60)  # Wait 1 minute before retrying
 
     async def _calculate_and_update_risk(self):
-        """Calculate and update portfolio risk metrics"""
+        """Calculate and update portfolio risk metrics."""
         try:
             # Get current positions
             positions = await self._get_current_positions()
@@ -192,7 +192,7 @@ class RiskIntegratedProductionManager:
             self.logger.error(f"Error calculating risk: {e}")
 
     async def _check_risk_alerts(self):
-        """Check for risk alerts and send notifications"""
+        """Check for risk alerts and send notifications."""
         try:
             if not self.risk_manager.current_metrics.within_limits:
                 # Send risk limit breach alert
@@ -214,7 +214,7 @@ class RiskIntegratedProductionManager:
             self.logger.error(f"Error checking risk alerts: {e}")
 
     def _calculate_risk_utilization(self) -> dict[str, float]:
-        """Calculate risk utilization percentages"""
+        """Calculate risk utilization percentages."""
         metrics = self.risk_manager.current_metrics
         limits = self.risk_manager.risk_limits
 
@@ -231,8 +231,8 @@ class RiskIntegratedProductionManager:
             else 0,
         }
 
-    async def _send_risk_alert(self, message: str, details: list[str] = None):
-        """Send risk alert notification"""
+    async def _send_risk_alert(self, message: str, details: list[str] | None = None):
+        """Send risk alert notification."""
         try:
             alert_message = f"🚨 RISK ALERT: {message}"
             if details:
@@ -247,7 +247,7 @@ class RiskIntegratedProductionManager:
             self.logger.error(f"Error sending risk alert: {e}")
 
     async def _get_current_positions(self) -> dict[str, dict]:
-        """Get current portfolio positions"""
+        """Get current portfolio positions."""
         try:
             # This would get actual positions from the broker
             # For now, return simulated positions
@@ -261,7 +261,7 @@ class RiskIntegratedProductionManager:
             return {}
 
     async def _get_market_data(self) -> dict[str, Any]:
-        """Get current market data"""
+        """Get current market data."""
         try:
             # This would get actual market data
             # For now, return simulated data
@@ -309,7 +309,7 @@ class RiskIntegratedProductionManager:
             return {}
 
     async def _get_portfolio_value(self) -> float:
-        """Get current portfolio value"""
+        """Get current portfolio value."""
         try:
             # This would get actual portfolio value from the broker
             # For now, return simulated value
@@ -324,10 +324,10 @@ class RiskIntegratedProductionManager:
         symbol: str,
         action: str,
         quantity: float,
-        price: float = None,
+        price: float | None = None,
         **kwargs,
     ) -> dict[str, Any]:
-        """Execute a trade through a specific strategy with risk management
+        """Execute a trade through a specific strategy with risk management.
 
         Args:
             strategy_name: Name of the strategy
@@ -368,7 +368,7 @@ class RiskIntegratedProductionManager:
             return {"success": False, "reason": f"Error: {e}", "strategy": strategy_name}
 
     async def get_risk_summary(self) -> dict[str, Any]:
-        """Get comprehensive risk summary"""
+        """Get comprehensive risk summary."""
         try:
             risk_summary = await self.risk_manager.get_risk_summary()
 
@@ -395,7 +395,7 @@ class RiskIntegratedProductionManager:
             return {"error": str(e)}
 
     async def get_system_status(self) -> dict[str, Any]:
-        """Get overall system status including risk management"""
+        """Get overall system status including risk management."""
         try:
             # Get base system status
             base_status = self.base_manager.get_system_status()
@@ -421,7 +421,7 @@ class RiskIntegratedProductionManager:
             return {"error": str(e)}
 
     async def stop_all_strategies(self):
-        """Stop all strategies and risk monitoring"""
+        """Stop all strategies and risk monitoring."""
         try:
             # Stop risk monitoring
             self.risk_monitoring_active = False
@@ -435,7 +435,7 @@ class RiskIntegratedProductionManager:
             self.logger.error(f"Error stopping strategies: {e}")
 
     def update_risk_limits(self, new_limits: RiskLimits):
-        """Update risk limits"""
+        """Update risk limits."""
         try:
             self.risk_manager.risk_limits = new_limits
             self.config.risk_limits = new_limits
@@ -445,8 +445,8 @@ class RiskIntegratedProductionManager:
         except Exception as e:
             self.logger.error(f"Error updating risk limits: {e}")
 
-    def enable_risk_management(self, strategy_name: str = None):
-        """Enable risk management for specific strategy or all strategies"""
+    def enable_risk_management(self, strategy_name: str | None = None):
+        """Enable risk management for specific strategy or all strategies."""
         try:
             if strategy_name:
                 if strategy_name in self.risk_aware_strategies:
@@ -462,8 +462,8 @@ class RiskIntegratedProductionManager:
         except Exception as e:
             self.logger.error(f"Error enabling risk management: {e}")
 
-    def disable_risk_management(self, strategy_name: str = None):
-        """Disable risk management for specific strategy or all strategies"""
+    def disable_risk_management(self, strategy_name: str | None = None):
+        """Disable risk management for specific strategy or all strategies."""
         try:
             if strategy_name:
                 if strategy_name in self.risk_aware_strategies:

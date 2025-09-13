@@ -22,7 +22,7 @@ class MovingAverageSharpeRatio(Metric):
         past_days: int, number of past days consider
         timestep: string, "MINUTE", "HOUR" or "DAY"
         max_n: int, maximum number of past data points to consider
-        rf: float, Returns of a Risk - free Investment
+        rf: float, Returns of a Risk - free Investment.
         """
         self.stocks = stocks
         self.past_days = past_days
@@ -48,7 +48,7 @@ class MovingAverageSharpeRatio(Metric):
         return all_prices
 
     def configure(self):
-        """One time configuration of the covariance matrix"""
+        """One time configuration of the covariance matrix."""
         prices = self.generate_stock_returns()
         self.n_points = len(prices)
         returns = prices.pct_change()
@@ -59,7 +59,7 @@ class MovingAverageSharpeRatio(Metric):
     def apply(self, weights):
         """Computes the sharpe ratio based on the portfolio weights
         Args:
-            weights: 1D np.array() with weights of each stock
+            weights: 1D np.array() with weights of each stock.
         """
         # rp=(self.returns.mean() * 252) @ weights
         # port_var=weights @ (self.cov * 252) @ weights

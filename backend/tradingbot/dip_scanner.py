@@ -13,7 +13,7 @@ from .exact_clone import DipDetector, DipSignal, ExactCloneSystem
 
 @dataclass
 class MarketHours:
-    """Market hours configuration"""
+    """Market hours configuration."""
 
     market_open: time = time(9, 30)  # 9: 30 AM ET
     market_close: time = time(16, 0)  # 4: 00 PM ET
@@ -22,7 +22,7 @@ class MarketHours:
 
 
 class LiveDipScanner:
-    """Live scanner for dip opportunities"""
+    """Live scanner for dip opportunities."""
 
     def __init__(self, system: ExactCloneSystem):
         self.system = system
@@ -42,17 +42,17 @@ class LiveDipScanner:
         self.logger = logging.getLogger(__name__)
 
     def is_market_open(self) -> bool:
-        """Check if market is currently open"""
+        """Check if market is currently open."""
         now = datetime.now().time()
         return self.market_hours.market_open <= now <= self.market_hours.market_close
 
     def is_optimal_entry_time(self) -> bool:
-        """Check if it's optimal time for entries"""
+        """Check if it's optimal time for entries."""
         now = datetime.now().time()
         return self.market_hours.optimal_entry_start <= now <= self.market_hours.optimal_entry_end
 
     async def start_scanning(self):
-        """Start the live scanning loop"""
+        """Start the live scanning loop."""
         self.is_scanning = True
         self.logger.info("🔍 Starting live dip scanner...")
 
@@ -73,11 +73,11 @@ class LiveDipScanner:
             self.logger.info("🛑 Dip scanner stopped")
 
     def stop_scanning(self):
-        """Stop the scanning loop"""
+        """Stop the scanning loop."""
         self.is_scanning = False
 
     async def _scan_cycle(self):
-        """Execute one scan cycle"""
+        """Execute one scan cycle."""
         try:
             self.logger.info("🔍 Scanning for dip opportunities...")
 
@@ -105,7 +105,7 @@ class LiveDipScanner:
 
     async def _fetch_current_market_data(self) -> dict[str, dict]:
         """Fetch current market data for all tickers
-        THIS IS A PLACEHOLDER - integrate with your data source
+        THIS IS A PLACEHOLDER - integrate with your data source.
         """
         # Placeholder data structure
         # In production, replace with real data from:
@@ -149,7 +149,7 @@ class LiveDipScanner:
         return market_data
 
     async def _process_opportunities(self, opportunities: list[DipSignal]):
-        """Process detected dip opportunities"""
+        """Process detected dip opportunities."""
         if self.system.active_position:
             self.logger.info("⏸️ Already have active position - skipping new entries")
             return
@@ -183,7 +183,7 @@ class LiveDipScanner:
             )
 
     async def _monitor_active_position(self, market_data: dict[str, dict]):
-        """Monitor active position for exit conditions"""
+        """Monitor active position for exit conditions."""
         position = self.system.active_position
         if not position:
             return
@@ -228,7 +228,7 @@ class LiveDipScanner:
             await self._send_exit_alert(position, exit_reason, exit_premium)
 
     async def _send_execution_alert(self, signal: DipSignal, setup):
-        """Send alert when trade is executed"""
+        """Send alert when trade is executed."""
         alert_data = {
             "type": "TRADE_EXECUTED",
             "ticker": signal.ticker,
@@ -246,7 +246,7 @@ class LiveDipScanner:
         self.logger.info(f"🚨 EXECUTION ALERT: {json.dumps(alert_data, indent=2)}")
 
     async def _send_exit_alert(self, position, exit_reason: str, exit_premium: float):
-        """Send alert when position is exited"""
+        """Send alert when position is exited."""
         pnl = (exit_premium - position.entry_premium) * position.contracts
         roi = (exit_premium - position.entry_premium) / position.entry_premium
 
@@ -266,7 +266,7 @@ class LiveDipScanner:
         self.logger.info(f"🎯 EXIT ALERT: {json.dumps(alert_data, indent=2)}")
 
     def should_scan(self) -> bool:
-        """Check if scanner should run a scan cycle"""
+        """Check if scanner should run a scan cycle."""
         if self.is_scanning:
             return False
 
@@ -281,7 +281,7 @@ class LiveDipScanner:
         return time_since_last_scan >= self.scan_interval
 
     def process_dip_signals(self, signals: list[DipSignal]) -> list[DipSignal]:
-        """Process and filter dip signals"""
+        """Process and filter dip signals."""
         processed_signals = []
         for signal in signals:
             # Filter out weak signals (confidence  <  0.6) regardless of time
@@ -295,18 +295,18 @@ class LiveDipScanner:
         return processed_signals
 
     def update_daily_stats(self, opportunities_found: int = 0, trades_executed: int = 0):
-        """Update daily statistics"""
+        """Update daily statistics."""
         self.opportunities_found_today += opportunities_found
         self.trades_executed_today += trades_executed
 
     def reset_daily_stats(self):
-        """Reset daily statistics (typically called at market open)"""
+        """Reset daily statistics (typically called at market open)."""
         self.opportunities_found_today = 0
         self.trades_executed_today = 0
         self.last_reset_date = datetime.now()
 
     async def scan_universe(self) -> list[DipSignal]:
-        """Scan the entire universe for dip opportunities"""
+        """Scan the entire universe for dip opportunities."""
         try:
             # Get current market data
             market_data = await self._fetch_current_market_data()
@@ -323,7 +323,7 @@ class LiveDipScanner:
             return []
 
     def get_scanner_status(self) -> dict:
-        """Get current scanner status"""
+        """Get current scanner status."""
         return {
             "is_scanning": self.is_scanning,
             "is_market_open": self.is_market_open(),
@@ -337,7 +337,7 @@ class LiveDipScanner:
 
 
 class DipTradingBot:
-    """Complete dip trading bot with scanner"""
+    """Complete dip trading bot with scanner."""
 
     def __init__(self, initial_capital: float = 500000):
         self.system = ExactCloneSystem(initial_capital)
@@ -345,7 +345,7 @@ class DipTradingBot:
         self.logger = logging.getLogger(__name__)
 
     async def start_bot(self):
-        """Start the complete trading bot"""
+        """Start the complete trading bot."""
         self.logger.info("🤖 Starting Dip Trading Bot...")
 
         # Print initial status
@@ -356,12 +356,12 @@ class DipTradingBot:
         await self.scanner.start_scanning()
 
     def stop_bot(self):
-        """Stop the trading bot"""
+        """Stop the trading bot."""
         self.scanner.stop_scanning()
         self.logger.info("🤖 Dip Trading Bot stopped")
 
     def get_full_status(self) -> dict:
-        """Get complete bot status"""
+        """Get complete bot status."""
         return {
             "bot_info": {
                 "name": "Exact Clone Dip Trading Bot",
@@ -374,7 +374,7 @@ class DipTradingBot:
         }
 
     def force_scan(self):
-        """Force an immediate scan"""
+        """Force an immediate scan."""
         if self.scanner.is_market_open():
             asyncio.create_task(self.scanner._scan_cycle())
         else:

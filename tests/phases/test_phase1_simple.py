@@ -1,5 +1,5 @@
 """Simplified Phase 1 Tests
-Test core functionality without external dependencies
+Test core functionality without external dependencies.
 """
 
 import asyncio
@@ -29,10 +29,10 @@ from backend.tradingbot.core.production_logging import (
 
 
 class TestProductionConfig(unittest.TestCase):
-    """Test configuration management"""
+    """Test configuration management."""
 
     def setUp(self):
-        """Setup test environment"""
+        """Setup test environment."""
         self.temp_dir = tempfile.mkdtemp()
         self.config_file = os.path.join(self.temp_dir, "test_config.json")
 
@@ -61,7 +61,7 @@ class TestProductionConfig(unittest.TestCase):
             json.dump(test_config, f)
 
     def tearDown(self):
-        """Cleanup test environment"""
+        """Cleanup test environment."""
         import shutil
 
         shutil.rmtree(self.temp_dir)
@@ -71,7 +71,7 @@ class TestProductionConfig(unittest.TestCase):
             os.environ[var] = value
 
     def test_config_creation(self):
-        """Test configuration creation"""
+        """Test configuration creation."""
         config = ProductionConfig()
 
         self.assertIsInstance(config.data_providers, DataProviderConfig)
@@ -80,7 +80,7 @@ class TestProductionConfig(unittest.TestCase):
         self.assertIsInstance(config.trading, TradingConfig)
 
     def test_config_loading(self):
-        """Test configuration loading from file"""
+        """Test configuration loading from file."""
         config_manager = ConfigManager(self.config_file)
         config = config_manager.load_config()
 
@@ -91,7 +91,7 @@ class TestProductionConfig(unittest.TestCase):
         self.assertEqual(config.risk.account_size, 50000.0)
 
     def test_config_validation(self):
-        """Test configuration validation"""
+        """Test configuration validation."""
         # Create a config with missing required fields
         empty_config = ProductionConfig()
         errors = empty_config.validate()
@@ -111,7 +111,7 @@ class TestProductionConfig(unittest.TestCase):
         self.assertIsInstance(errors, list)  # Just check it returns a list
 
     def test_env_override(self):
-        """Test environment variable override"""
+        """Test environment variable override."""
         import os
 
         # Set environment variables
@@ -132,15 +132,15 @@ class TestProductionConfig(unittest.TestCase):
 
 
 class TestProductionLogging(unittest.TestCase):
-    """Test production logging system"""
+    """Test production logging system."""
 
     def setUp(self):
-        """Setup test environment"""
+        """Setup test environment."""
         self.logger = ProductionLogger("test_logger", "DEBUG")
         self.error_handler = ErrorHandler(self.logger)
 
     def test_logging(self):
-        """Test logging functionality"""
+        """Test logging functionality."""
         # Test different log levels
         self.logger.info("Test info message", test_param="value")
         self.logger.warning("Test warning message", test_param="value")
@@ -148,7 +148,7 @@ class TestProductionLogging(unittest.TestCase):
         self.logger.debug("Test debug message", test_param="value")
 
     def test_error_handling(self):
-        """Test error handling"""
+        """Test error handling."""
         error = ValueError("Test error")
         context = {"ticker": "AAPL", "strategy": "test"}
 
@@ -160,7 +160,7 @@ class TestProductionLogging(unittest.TestCase):
         self.assertFalse(result["threshold_exceeded"])
 
     def test_circuit_breaker(self):
-        """Test circuit breaker functionality"""
+        """Test circuit breaker functionality."""
         circuit_breaker = CircuitBreaker(failure_threshold=2, timeout=1.0)
 
         # Test successful calls
@@ -190,7 +190,7 @@ class TestProductionLogging(unittest.TestCase):
             circuit_breaker.call(success_func)
 
     def test_retry_decorator(self):
-        """Test retry decorator"""
+        """Test retry decorator."""
         call_count = 0
 
         @retry_with_backoff(max_attempts=3, exceptions=(ValueError,), base_delay=0.01)
@@ -216,15 +216,15 @@ class TestProductionLogging(unittest.TestCase):
 
 
 class TestHealthChecker(unittest.TestCase):
-    """Test health checker functionality"""
+    """Test health checker functionality."""
 
     def setUp(self):
-        """Setup test environment"""
+        """Setup test environment."""
         self.logger = ProductionLogger("test_health", "DEBUG")
         self.health_checker = HealthChecker(self.logger)
 
     def test_health_check_registration(self):
-        """Test health check registration"""
+        """Test health check registration."""
 
         def test_check():
             return True
@@ -233,7 +233,7 @@ class TestHealthChecker(unittest.TestCase):
         self.assertIn("test_check", self.health_checker.health_checks)
 
     def test_health_check_execution(self):
-        """Test health check execution"""
+        """Test health check execution."""
 
         def healthy_check():
             return True
@@ -263,15 +263,15 @@ class TestHealthChecker(unittest.TestCase):
 
 
 class TestMetricsCollector(unittest.TestCase):
-    """Test metrics collector functionality"""
+    """Test metrics collector functionality."""
 
     def setUp(self):
-        """Setup test environment"""
+        """Setup test environment."""
         self.logger = ProductionLogger("test_metrics", "DEBUG")
         self.metrics_collector = MetricsCollector(self.logger)
 
     def test_metric_recording(self):
-        """Test metric recording"""
+        """Test metric recording."""
         self.metrics_collector.record_metric("test_metric", 100.0, {"tag1": "value1"})
         self.metrics_collector.record_metric("test_metric", 150.0, {"tag1": "value2"})
         self.metrics_collector.record_metric("test_metric", 200.0, {"tag1": "value1"})
@@ -279,7 +279,7 @@ class TestMetricsCollector(unittest.TestCase):
         self.assertEqual(len(self.metrics_collector.metrics["test_metric"]), 3)
 
     def test_metric_summary(self):
-        """Test metric summary generation"""
+        """Test metric summary generation."""
         # Record some metrics
         for i in range(10):
             self.metrics_collector.record_metric("test_metric", float(i * 10))
@@ -294,10 +294,10 @@ class TestMetricsCollector(unittest.TestCase):
 
 
 class TestDataProviders(unittest.TestCase):
-    """Test data provider components"""
+    """Test data provider components."""
 
     def test_market_data_structure(self):
-        """Test market data structure"""
+        """Test market data structure."""
         from backend.tradingbot.core.data_providers import MarketData
 
         data = MarketData(
@@ -319,7 +319,7 @@ class TestDataProviders(unittest.TestCase):
         self.assertEqual(data.volume, 1000000)
 
     def test_options_data_structure(self):
-        """Test options data structure"""
+        """Test options data structure."""
         from backend.tradingbot.core.data_providers import OptionsData
 
         data = OptionsData(
@@ -346,7 +346,7 @@ class TestDataProviders(unittest.TestCase):
         self.assertEqual(data.delta, 0.50)
 
     def test_earnings_event_structure(self):
-        """Test earnings event structure"""
+        """Test earnings event structure."""
         from backend.tradingbot.core.data_providers import EarningsEvent
 
         event = EarningsEvent(
@@ -366,10 +366,10 @@ class TestDataProviders(unittest.TestCase):
 
 
 class TestTradingInterface(unittest.TestCase):
-    """Test trading interface components"""
+    """Test trading interface components."""
 
     def test_trade_signal_creation(self):
-        """Test trade signal creation"""
+        """Test trade signal creation."""
         # Import the enums directly to avoid dependency issues
         from enum import Enum
 
@@ -423,7 +423,7 @@ class TestTradingInterface(unittest.TestCase):
         self.assertEqual(signal.confidence, 0.8)
 
     def test_trade_result_creation(self):
-        """Test trade result creation"""
+        """Test trade result creation."""
         # Import the enums directly to avoid dependency issues
         from enum import Enum
 

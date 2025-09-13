@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Create executable for WallStreetBots
-This script creates platform - specific executables and shortcuts
+This script creates platform - specific executables and shortcuts.
 """
 
 import os
@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 def create_windows_executable():
-    """Create Windows .exe using PyInstaller"""
+    """Create Windows .exe using PyInstaller."""
     try:
         import PyInstaller
     except ImportError:
@@ -35,7 +35,7 @@ def create_windows_executable():
 
 
 def create_macos_app():
-    """Create macOS .app bundle"""
+    """Create macOS .app bundle."""
     try:
         import py2app
     except ImportError:
@@ -76,7 +76,7 @@ setup(
 
 
 def create_desktop_shortcut():
-    """Create desktop shortcut"""
+    """Create desktop shortcut."""
     system = platform.system().lower()
 
     if system == "windows":  # Windows .lnk shortcut
@@ -138,7 +138,7 @@ Categories = Office;Finance;
 
 
 def main():
-    """Main function"""
+    """Main function."""
     print("🔧 WallStreetBots Executable Creator")
     print(" = " * 40)
 
@@ -152,10 +152,10 @@ def main():
 
     choice = input("\nSelect option (1 - 4): ").strip()
 
-    if choice == "1" or choice == "3":
+    if choice in {"1", "3"}:
         create_desktop_shortcut()
 
-    if choice == "2" or choice == "3":
+    if choice in {"2", "3"}:
         if system == "windows":
             create_windows_executable()
         elif system == "darwin":

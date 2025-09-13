@@ -1,5 +1,5 @@
 """Production CLI Interface
-Command - line interface for production trading system
+Command - line interface for production trading system.
 
 This module provides a simple CLI to:
 - Start / stop the production system
@@ -26,13 +26,13 @@ from .production_manager import ProductionConfig, ProductionManager
 
 
 class ProductionCLI:
-    """Command - line interface for production trading system"""
+    """Command - line interface for production trading system."""
 
     def __init__(self):
         self.manager: ProductionManager | None = None
 
     async def start_system(self, args):
-        """Start the production system"""
+        """Start the production system."""
         try:
             print("🚀 Starting Production Trading System...")
 
@@ -77,7 +77,7 @@ class ProductionCLI:
             sys.exit(1)
 
     async def show_status(self, args):
-        """Show system status"""
+        """Show system status."""
         try:
             if not self.manager:
                 print("❌ Production system not running")
@@ -110,7 +110,7 @@ class ProductionCLI:
             print(f"❌ Error getting status: {e}")
 
     async def show_portfolio(self, args):
-        """Show portfolio summary"""
+        """Show portfolio summary."""
         try:
             if not self.manager:
                 print("❌ Production system not running")
@@ -141,7 +141,7 @@ class ProductionCLI:
             print(f"❌ Error getting portfolio: {e}")
 
     async def execute_trade(self, args):
-        """Execute manual trade"""
+        """Execute manual trade."""
         try:
             if not self.manager:
                 print("❌ Production system not running")
@@ -178,7 +178,7 @@ class ProductionCLI:
             print(f"❌ Error executing trade: {e}")
 
     async def list_strategies(self, args):
-        """List available strategies"""
+        """List available strategies."""
         strategies = [
             "wsb_dip_bot",
             "momentum_weeklies",
@@ -202,7 +202,7 @@ class ProductionCLI:
 
 
 def main():
-    """Main CLI entry point"""
+    """Main CLI entry point."""
     parser = argparse.ArgumentParser(description="Production Trading System CLI")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 

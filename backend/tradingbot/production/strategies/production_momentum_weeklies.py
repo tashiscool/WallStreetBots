@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Production Momentum Weeklies Strategy
-Detects intraday reversals and news momentum for weekly options plays
+Detects intraday reversals and news momentum for weekly options plays.
 """
 
 import asyncio
@@ -19,7 +19,7 @@ from ..data.production_data_integration import ReliableDataProvider
 
 @dataclass
 class MomentumSignal:
-    """Production momentum signal with enhanced metadata"""
+    """Production momentum signal with enhanced metadata."""
 
     ticker: str
     signal_time: datetime
@@ -38,7 +38,7 @@ class MomentumSignal:
 
 
 class ProductionMomentumWeeklies:
-    """Production Momentum Weeklies Strategy
+    """Production Momentum Weeklies Strategy.
 
     Strategy Logic:
     1. Scans mega - cap stocks for intraday momentum patterns
@@ -121,7 +121,7 @@ class ProductionMomentumWeeklies:
         self.logger.info("ProductionMomentumWeeklies strategy initialized")
 
     def get_next_weekly_expiry(self) -> str:
-        """Get next weekly expiry date"""
+        """Get next weekly expiry date."""
         today = date.today()
 
         # For weeklies, target this Friday or next Friday
@@ -135,7 +135,7 @@ class ProductionMomentumWeeklies:
         return next_friday.strftime("%Y-%m-%d")
 
     async def detect_volume_spike(self, ticker: str) -> tuple[bool, float]:
-        """Detect unusual volume spike"""
+        """Detect unusual volume spike."""
         try:
             # Get intraday volume data
             volume_data = await self.data_provider.get_intraday_data(
@@ -162,7 +162,7 @@ class ProductionMomentumWeeklies:
             return False, 0.0
 
     async def detect_reversal_pattern(self, ticker: str) -> tuple[bool, str, float]:
-        """Detect bullish reversal patterns"""
+        """Detect bullish reversal patterns."""
         try:
             # Get recent price action (2 hours of 5 - minute bars)
             price_data = await self.data_provider.get_intraday_data(
@@ -203,7 +203,7 @@ class ProductionMomentumWeeklies:
             return False, "error", 0.0
 
     async def detect_breakout_momentum(self, ticker: str) -> tuple[bool, float]:
-        """Detect breakout above resistance"""
+        """Detect breakout above resistance."""
         try:
             # Get extended price data for resistance calculation
             price_data = await self.data_provider.get_intraday_data(
@@ -243,7 +243,7 @@ class ProductionMomentumWeeklies:
     async def calculate_option_premium(
         self, ticker: str, strike: float, expiry: str, option_type: str = "call"
     ) -> float:
-        """Calculate theoretical option premium"""
+        """Calculate theoretical option premium."""
         try:
             # Get current stock data
             current_price = await self.data_provider.get_current_price(ticker)
@@ -274,7 +274,7 @@ class ProductionMomentumWeeklies:
             return 1.0  # Default estimate
 
     async def scan_momentum_opportunities(self) -> list[MomentumSignal]:
-        """Scan for momentum weekly opportunities"""
+        """Scan for momentum weekly opportunities."""
         signals = []
         weekly_expiry = self.get_next_weekly_expiry()
 
@@ -378,7 +378,7 @@ class ProductionMomentumWeeklies:
         return signals
 
     async def execute_momentum_trade(self, signal: MomentumSignal) -> bool:
-        """Execute momentum trade"""
+        """Execute momentum trade."""
         try:
             # Check if we can add more positions
             if len(self.active_positions) >= self.max_positions:
@@ -455,7 +455,7 @@ class ProductionMomentumWeeklies:
             return False
 
     async def manage_positions(self):
-        """Manage existing momentum positions"""
+        """Manage existing momentum positions."""
         positions_to_remove = []
 
         for i, position in enumerate(self.active_positions):
@@ -546,7 +546,7 @@ class ProductionMomentumWeeklies:
             self.active_positions.pop(i)
 
     async def scan_opportunities(self) -> list[ProductionTradeSignal]:
-        """Main strategy execution: scan and generate trade signals"""
+        """Main strategy execution: scan and generate trade signals."""
         try:
             # First manage existing positions
             await self.manage_positions()
@@ -589,7 +589,7 @@ class ProductionMomentumWeeklies:
             return []
 
     def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         try:
             total_pnl = 0.0
             position_details = []
@@ -635,7 +635,7 @@ class ProductionMomentumWeeklies:
             return {"strategy_name": self.strategy_name, "error": str(e)}
 
     async def run_strategy(self):
-        """Main strategy execution loop"""
+        """Main strategy execution loop."""
         self.logger.info("Starting Production Momentum Weeklies Strategy")
 
         try:
@@ -657,5 +657,5 @@ class ProductionMomentumWeeklies:
 def create_production_momentum_weeklies(
     integration_manager, data_provider: ReliableDataProvider, config: dict
 ) -> ProductionMomentumWeeklies:
-    """Factory function to create ProductionMomentumWeeklies strategy"""
+    """Factory function to create ProductionMomentumWeeklies strategy."""
     return ProductionMomentumWeeklies(integration_manager, data_provider, config)

@@ -1,4 +1,4 @@
-"""Production Index Baseline Strategy - Real Trading Implementation
+"""Production Index Baseline Strategy - Real Trading Implementation.
 
 This is a production - ready version of the Index Baseline strategy that:
 - Uses real market data for performance comparison
@@ -23,7 +23,7 @@ from ..data.production_data_integration import ReliableDataProvider as Productio
 
 @dataclass
 class BaselineComparison:
-    """Baseline performance comparison"""
+    """Baseline performance comparison."""
 
     ticker: str
     benchmark_return: float
@@ -40,7 +40,7 @@ class BaselineComparison:
 
 @dataclass
 class BaselineSignal:
-    """Baseline strategy signal"""
+    """Baseline strategy signal."""
 
     ticker: str
     signal_type: str  # 'buy_and_hold', 'rebalance', 'tax_loss_harvest'
@@ -52,7 +52,7 @@ class BaselineSignal:
 
 
 class ProductionIndexBaseline:
-    """Production Index Baseline Strategy
+    """Production Index Baseline Strategy.
 
     Implements the "boring baseline" that beats most WSB strategies:
     1. SPY / VTI / QQQ buy - and - hold comparison
@@ -90,7 +90,7 @@ class ProductionIndexBaseline:
     async def calculate_baseline_performance(
         self, period_days: int = 180
     ) -> dict[str, BaselineComparison]:
-        """Calculate baseline performance vs benchmarks"""
+        """Calculate baseline performance vs benchmarks."""
         comparisons = {}
 
         try:
@@ -118,7 +118,7 @@ class ProductionIndexBaseline:
     async def _calculate_benchmark_comparison(
         self, benchmark: str, period_days: int
     ) -> BaselineComparison | None:
-        """Calculate performance comparison for a benchmark"""
+        """Calculate performance comparison for a benchmark."""
         try:
             # Get historical data
             historical_data = await self.data_provider.get_historical_data(
@@ -170,7 +170,7 @@ class ProductionIndexBaseline:
             return None
 
     async def _calculate_strategy_return(self, benchmark: str, period_days: int) -> float:
-        """Calculate strategy return (simplified)"""
+        """Calculate strategy return (simplified)."""
         try:
             # In production, this would calculate actual strategy performance
             # For now, use a simplified model based on benchmark performance
@@ -195,7 +195,7 @@ class ProductionIndexBaseline:
             return 0.0
 
     async def _calculate_sharpe_ratio(self, benchmark: str, period_days: int) -> float:
-        """Calculate Sharpe ratio"""
+        """Calculate Sharpe ratio."""
         try:
             # Get historical data
             historical_data = await self.data_provider.get_historical_data(benchmark, period_days)
@@ -233,7 +233,7 @@ class ProductionIndexBaseline:
             return 0.0
 
     async def _calculate_max_drawdown(self, historical_data: list) -> float:
-        """Calculate maximum drawdown"""
+        """Calculate maximum drawdown."""
         try:
             if len(historical_data) < 2:
                 return 0.0
@@ -256,7 +256,7 @@ class ProductionIndexBaseline:
             return 0.0
 
     async def _calculate_volatility(self, historical_data: list) -> float:
-        """Calculate volatility"""
+        """Calculate volatility."""
         try:
             if len(historical_data) < 2:
                 return 0.0
@@ -285,7 +285,7 @@ class ProductionIndexBaseline:
             return 0.0
 
     async def _calculate_trade_metrics(self, benchmark: str, period_days: int) -> tuple[float, int]:
-        """Calculate win rate and total trades"""
+        """Calculate win rate and total trades."""
         try:
             # Simplified trade metrics
             # In production, would use actual trade history
@@ -301,7 +301,7 @@ class ProductionIndexBaseline:
             return 0.0, 0
 
     async def generate_baseline_signals(self) -> list[BaselineSignal]:
-        """Generate baseline strategy signals"""
+        """Generate baseline strategy signals."""
         signals = []
 
         try:
@@ -328,7 +328,7 @@ class ProductionIndexBaseline:
             return []
 
     async def _calculate_current_allocation(self) -> float:
-        """Calculate current allocation to baseline assets"""
+        """Calculate current allocation to baseline assets."""
         try:
             portfolio_value = await self.integration.get_portfolio_value()
             baseline_value = Decimal("0.00")
@@ -348,7 +348,7 @@ class ProductionIndexBaseline:
             return 0.0
 
     async def _create_rebalance_signal(self, current_allocation: float) -> BaselineSignal | None:
-        """Create rebalancing signal"""
+        """Create rebalancing signal."""
         try:
             # Determine which benchmark to buy / sell
             target_benchmark = self.benchmarks[0]  # Default to SPY
@@ -393,7 +393,7 @@ class ProductionIndexBaseline:
             return None
 
     async def _check_tax_loss_harvesting(self) -> list[BaselineSignal]:
-        """Check for tax loss harvesting opportunities"""
+        """Check for tax loss harvesting opportunities."""
         signals = []
 
         try:
@@ -433,7 +433,7 @@ class ProductionIndexBaseline:
             return []
 
     async def execute_baseline_trade(self, signal: BaselineSignal) -> bool:
-        """Execute baseline trade"""
+        """Execute baseline trade."""
         try:
             # Calculate quantity
             quantity = int(float(signal.risk_amount) / float(signal.current_price))
@@ -497,7 +497,7 @@ class ProductionIndexBaseline:
             return False
 
     async def run_strategy(self):
-        """Main strategy loop"""
+        """Main strategy loop."""
         self.logger.info("Starting Index Baseline strategy")
 
         try:
@@ -519,7 +519,7 @@ class ProductionIndexBaseline:
             self.logger.error(f"Error in strategy loop: {e}")
 
     def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         return {
             "strategy_name": "index_baseline",
             "active_signals": len(self.active_signals),
@@ -551,5 +551,5 @@ def create_production_index_baseline(
     data_provider: ProductionDataProvider,
     config: dict[str, Any],
 ) -> ProductionIndexBaseline:
-    """Create ProductionIndexBaseline instance"""
+    """Create ProductionIndexBaseline instance."""
     return ProductionIndexBaseline(integration_manager, data_provider, config)

@@ -1,5 +1,5 @@
 """Phase 1 Demo Script
-Demonstrate the unified trading interface and production components
+Demonstrate the unified trading interface and production components.
 """
 
 import asyncio
@@ -45,7 +45,7 @@ except ImportError:
 
 
 class Phase1Demo:
-    """Demonstrate Phase 1 implementation"""
+    """Demonstrate Phase 1 implementation."""
 
     def __init__(self, config_file: str = "config / production.json"):
         self.config_file = config_file
@@ -61,7 +61,7 @@ class Phase1Demo:
         self.trading_interface = None
 
     async def initialize(self):
-        """Initialize all Phase 1 components"""
+        """Initialize all Phase 1 components."""
         self.logger.info("Initializing Phase 1 components")
 
         try:
@@ -90,7 +90,7 @@ class Phase1Demo:
             raise
 
     async def setup_health_checks(self):
-        """Setup system health checks"""
+        """Setup system health checks."""
 
         # Data provider health check
         async def data_provider_check():
@@ -115,7 +115,7 @@ class Phase1Demo:
         self.health_checker.register_check("trading_interface", trading_interface_check)
 
     async def demonstrate_data_integration(self):
-        """Demonstrate real data integration"""
+        """Demonstrate real data integration."""
         self.logger.info("Demonstrating data integration")
 
         try:
@@ -182,7 +182,7 @@ class Phase1Demo:
             self.error_handler.handle_error(e, {"component": "data_integration"})
 
     async def demonstrate_trading_interface(self):
-        """Demonstrate trading interface functionality"""
+        """Demonstrate trading interface functionality."""
         self.logger.info("Demonstrating trading interface")
 
         try:
@@ -248,7 +248,7 @@ class Phase1Demo:
             self.error_handler.handle_error(e, {"component": "trading_interface"})
 
     async def demonstrate_error_handling(self):
-        """Demonstrate error handling and resilience"""
+        """Demonstrate error handling and resilience."""
         self.logger.info("Demonstrating error handling")
 
         try:
@@ -291,7 +291,7 @@ class Phase1Demo:
             self.error_handler.handle_error(e, {"component": "error_handling"})
 
     async def demonstrate_monitoring(self):
-        """Demonstrate monitoring and metrics"""
+        """Demonstrate monitoring and metrics."""
         self.logger.info("Demonstrating monitoring and metrics")
 
         try:
@@ -305,7 +305,7 @@ class Phase1Demo:
 
             # Generate metrics summary
             metrics_summary = {}
-            for metric_name in self.metrics_collector.metrics.keys():
+            for metric_name in self.metrics_collector.metrics:
                 summary = self.metrics_collector.get_metric_summary(metric_name)
                 if summary:
                     metrics_summary[metric_name] = summary
@@ -321,7 +321,7 @@ class Phase1Demo:
             self.error_handler.handle_error(e, {"component": "monitoring"})
 
     async def run_demo(self):
-        """Run complete Phase 1 demonstration"""
+        """Run complete Phase 1 demonstration."""
         self.logger.info("Starting Phase 1 demonstration")
 
         try:
@@ -343,7 +343,7 @@ class Phase1Demo:
 
 
 async def main():
-    """Main demo function"""
+    """Main demo function."""
     demo = Phase1Demo()
     await demo.run_demo()
 

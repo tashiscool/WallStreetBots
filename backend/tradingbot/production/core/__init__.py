@@ -1,4 +1,4 @@
-"""Production Core Infrastructure
+"""Production Core Infrastructure.
 
 Core components for production trading system:
 - ProductionIntegrationManager: Connects broker, database, and strategies

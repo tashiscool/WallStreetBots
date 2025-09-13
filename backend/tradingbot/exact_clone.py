@@ -44,7 +44,7 @@ except ImportError:
 
 
 class DipType(Enum):
-    """Types of dip days for entry"""
+    """Types of dip days for entry."""
 
     GAP_DOWN = "gap_down"  # Opened significantly lower
     INTRADAY_SELLOFF = "sellof"  # Selling pressure during session
@@ -54,7 +54,7 @@ class DipType(Enum):
 
 @dataclass
 class DipSignal:
-    """Signal for a dip day entry opportunity"""
+    """Signal for a dip day entry opportunity."""
 
     ticker: str
     current_price: float
@@ -67,7 +67,7 @@ class DipSignal:
 
 @dataclass
 class ExactTradeSetup:
-    """The exact trade setup he used"""
+    """The exact trade setup he used."""
 
     ticker: str
     spot_price: float
@@ -96,7 +96,7 @@ class ExactTradeSetup:
 
 
 class DipDetector:
-    """Detect hard dip days for entry - NO TREND FILTERS"""
+    """Detect hard dip days for entry - NO TREND FILTERS."""
 
     def __init__(self):
         # Mega - cap universe with tight spreads & huge OI
@@ -129,7 +129,7 @@ class DipDetector:
         avg_volume: int,
     ) -> DipSignal | None:
         """Detect if this is a dip day worth entering
-        No trend analysis - just looking for selloffs
+        No trend analysis - just looking for selloffs.
         """
         if ticker not in self.universe:
             return None
@@ -196,7 +196,7 @@ class DipDetector:
 
 
 class ExactCloneCalculator:
-    """Calculate the exact trade setup he used"""
+    """Calculate the exact trade setup he used."""
 
     def __init__(self):
         self.bs_calc = BlackScholesCalculator()
@@ -212,7 +212,7 @@ class ExactCloneCalculator:
         current_iv: float = 0.28,
         entry_premium: float | None = None,
     ) -> ExactTradeSetup:
-        """Calculate the exact all - in setup
+        """Calculate the exact all - in setup.
 
         Args:
             ticker: Stock symbol
@@ -285,7 +285,7 @@ class ExactCloneCalculator:
         )
 
     def _find_target_friday(self, target_dte: int) -> date:
-        """Find the Friday closest to target DTE"""
+        """Find the Friday closest to target DTE."""
         base_date = date.today() + timedelta(days=target_dte)
 
         # Find next Friday (weekday 4)
@@ -298,7 +298,7 @@ class ExactCloneCalculator:
 
 
 class ExactCycleManager:
-    """Manage the cycle of repeated dip buying"""
+    """Manage the cycle of repeated dip buying."""
 
     def __init__(self):
         self.trade_history: list[dict] = []
@@ -309,7 +309,7 @@ class ExactCycleManager:
     def log_trade_result(
         self, setup: ExactTradeSetup, exit_premium: float, exit_reason: str, hold_days: int
     ):
-        """Log the result of a trade"""
+        """Log the result of a trade."""
         pnl_per_contract = exit_premium - setup.entry_premium
         total_pnl = pnl_per_contract * setup.contracts
         roi = (pnl_per_contract / setup.entry_premium) if setup.entry_premium > 0 else 0
@@ -341,7 +341,7 @@ class ExactCycleManager:
     def calculate_next_position_size(
         self, base_capital: float, win_streak: int = 0, aggressive_scaling: bool = True
     ) -> float:
-        """Calculate next position size-he often increased after wins
+        """Calculate next position size-he often increased after wins.
 
         Args:
             base_capital: Base capital available
@@ -369,7 +369,7 @@ class ExactCycleManager:
         return base_capital * scaling_factor
 
     def get_performance_summary(self) -> dict:
-        """Get performance summary"""
+        """Get performance summary."""
         if not self.trade_history:
             return {"total_trades": 0}
 
@@ -405,10 +405,10 @@ def clone_trade_plan(
     acct_cash: float,
     otm: float = 0.05,
     dte_days: int = 30,
-    entry_prem: float = None,
+    entry_prem: float | None = None,
     deploy_pct: float = 0.90,
 ) -> dict:
-    """Exact clone helper function (as specified)
+    """Exact clone helper function (as specified).
 
     Args:
         spot: stock price (e.g., 207.0)
@@ -458,7 +458,7 @@ def clone_trade_plan(
 
 
 class ExactCloneSystem:
-    """The complete exact clone system"""
+    """The complete exact clone system."""
 
     def __init__(self, initial_capital: float):
         self.dip_detector = DipDetector()
@@ -475,7 +475,7 @@ class ExactCloneSystem:
         self.logger = logging.getLogger(__name__)
 
     def scan_for_dip_opportunities(self, market_data: dict[str, dict]) -> list[DipSignal]:
-        """Scan for dip opportunities across the universe"""
+        """Scan for dip opportunities across the universe."""
         opportunities = []
 
         for ticker in self.dip_detector.universe:
@@ -508,7 +508,7 @@ class ExactCloneSystem:
     def execute_dip_trade(
         self, signal: DipSignal, current_iv: float = 0.28, deploy_pct: float = 0.90
     ) -> ExactTradeSetup:
-        """Execute the all - in dip trade"""
+        """Execute the all - in dip trade."""
         # Calculate available capital (including gains from previous trades)
         available_capital = self.current_capital
 
@@ -542,9 +542,9 @@ class ExactCloneSystem:
         return setup
 
     def check_exit_conditions(
-        self, current_premium: float, current_delta: float = None
+        self, current_premium: float, current_delta: float | None = None
     ) -> tuple[str, float] | None:
-        """Check if position should be exited
+        """Check if position should be exited.
 
         Returns:
             Tuple of (exit_reason, exit_premium) or None
@@ -576,7 +576,7 @@ class ExactCloneSystem:
         return None
 
     def execute_exit(self, exit_reason: str, exit_premium: float):
-        """Execute position exit"""
+        """Execute position exit."""
         if not self.active_position:
             return
 
@@ -605,7 +605,7 @@ class ExactCloneSystem:
         self.position_entry_date = None
 
     def _calculate_win_streak(self) -> int:
-        """Calculate current win streak"""
+        """Calculate current win streak."""
         if not self.cycle_manager.trade_history:
             return 0
 
@@ -619,7 +619,7 @@ class ExactCloneSystem:
         return streak
 
     def get_system_status(self) -> dict:
-        """Get current system status"""
+        """Get current system status."""
         performance = self.cycle_manager.get_performance_summary()
 
         status = {

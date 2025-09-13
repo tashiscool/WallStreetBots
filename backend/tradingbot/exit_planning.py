@@ -15,7 +15,7 @@ from .risk_management import Position
 
 
 class ExitReason(Enum):
-    """Reasons for position exit"""
+    """Reasons for position exit."""
 
     PROFIT_TARGET = "profit_target"
     STOP_LOSS = "stop_loss"
@@ -28,7 +28,7 @@ class ExitReason(Enum):
 
 
 class ExitSignalStrength(Enum):
-    """Strength of exit signal"""
+    """Strength of exit signal."""
 
     WEAK = "weak"
     MODERATE = "moderate"
@@ -38,7 +38,7 @@ class ExitSignalStrength(Enum):
 
 @dataclass
 class ExitLevel:
-    """Definition of an exit level with conditions"""
+    """Definition of an exit level with conditions."""
 
     name: str
     trigger_condition: str  # Human readable condition
@@ -52,7 +52,7 @@ class ExitLevel:
 
 @dataclass
 class ExitSignal:
-    """Exit signal with reasoning and urgency"""
+    """Exit signal with reasoning and urgency."""
 
     reason: ExitReason
     strength: ExitSignalStrength
@@ -68,7 +68,7 @@ class ExitSignal:
 
 @dataclass
 class ScenarioResult:
-    """Result of a scenario analysis"""
+    """Result of a scenario analysis."""
 
     scenario_name: str
     spot_price: float
@@ -94,7 +94,7 @@ class ScenarioResult:
 
 
 class ExitStrategy:
-    """Systematic exit strategy based on successful playbook"""
+    """Systematic exit strategy based on successful playbook."""
 
     def __init__(self):
         self.bs_calc = BlackScholesCalculator()
@@ -150,7 +150,7 @@ class ExitStrategy:
         risk_free_rate: float = 0.04,
         dividend_yield: float = 0.0,
     ) -> list[ExitSignal]:
-        """Analyze current exit conditions for a position
+        """Analyze current exit conditions for a position.
 
         Returns:
             List of exit signals sorted by priority
@@ -279,7 +279,7 @@ class ExitStrategy:
         trend_broken: bool,
         days_since_entry: int,
     ) -> ExitSignal | None:
-        """Check if a specific exit level is triggered"""
+        """Check if a specific exit level is triggered."""
         reasoning = []
         triggered = False
         strength = ExitSignalStrength.WEAK
@@ -343,7 +343,7 @@ class ExitStrategy:
 
 
 class ScenarioAnalyzer:
-    """Advanced scenario analysis for exit planning"""
+    """Advanced scenario analysis for exit planning."""
 
     def __init__(self):
         self.bs_calc = BlackScholesCalculator()
@@ -354,11 +354,11 @@ class ScenarioAnalyzer:
         position: Position,
         current_spot: float,
         current_iv: float,
-        scenarios: dict[str, dict] = None,
+        scenarios: dict[str, dict] | None = None,
         risk_free_rate: float = 0.04,
         dividend_yield: float = 0.0,
     ) -> list[ScenarioResult]:
-        """Run comprehensive scenario analysis
+        """Run comprehensive scenario analysis.
 
         Args:
             position: Current position to analyze
@@ -389,7 +389,7 @@ class ScenarioAnalyzer:
         return results
 
     def _get_default_scenarios(self) -> dict[str, dict]:
-        """Get default scenario parameters"""
+        """Get default scenario parameters."""
         return {
             "Bear Case (-5%)": {
                 "spot_change": -0.05,
@@ -443,7 +443,7 @@ class ScenarioAnalyzer:
         risk_free_rate: float,
         dividend_yield: float,
     ) -> ScenarioResult:
-        """Analyze a single scenario"""
+        """Analyze a single scenario."""
         # Calculate scenario parameters
         new_spot = current_spot * (1 + params["spot_change"])
         new_iv = max(0.01, current_iv + params.get("iv_change", 0))
@@ -546,7 +546,7 @@ class ScenarioAnalyzer:
         risk_free_rate: float,
         dividend_yield: float,
     ) -> float:
-        """Estimate pure time decay impact"""
+        """Estimate pure time decay impact."""
         try:
             # Current premium
             current_dte = position.days_to_expiry / 365.0
@@ -581,7 +581,7 @@ class ScenarioAnalyzer:
         risk_free_rate: float,
         dividend_yield: float,
     ) -> float:
-        """Estimate impact of volatility change"""
+        """Estimate impact of volatility change."""
         if abs(iv_change) < 0.001:
             return 0.0
 
@@ -617,7 +617,7 @@ class ScenarioAnalyzer:
             return position.entry_premium * iv_change * 50
 
     def generate_exit_plan(self, scenarios: list[ScenarioResult]) -> dict:
-        """Generate actionable exit plan based on scenario analysis"""
+        """Generate actionable exit plan based on scenario analysis."""
         # Count scenarios by recommended action
         action_counts = {}
         for scenario in scenarios:

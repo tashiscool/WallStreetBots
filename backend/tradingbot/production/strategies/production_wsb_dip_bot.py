@@ -1,4 +1,4 @@
-"""Production WSB Dip Bot - Real Trading Implementation
+"""Production WSB Dip Bot - Real Trading Implementation.
 
 This is a production - ready version of the WSB Dip Bot that:
 - Uses real market data from Alpaca
@@ -24,7 +24,7 @@ from ..data.production_data_integration import ReliableDataProvider as Productio
 
 @dataclass
 class DipSignal:
-    """Dip after run signal"""
+    """Dip after run signal."""
 
     ticker: str
     current_price: Decimal
@@ -39,7 +39,7 @@ class DipSignal:
 
 
 class ProductionWSBDipBot:
-    """Production WSB Dip Bot
+    """Production WSB Dip Bot.
 
     Implements the exact WSB pattern:
     1. Detect "big run" ( >=  10% over 10 days)
@@ -98,7 +98,7 @@ class ProductionWSBDipBot:
         self.logger.info("ProductionWSBDipBot initialized")
 
     async def scan_for_dip_signals(self) -> list[DipSignal]:
-        """Scan universe for dip after run signals"""
+        """Scan universe for dip after run signals."""
         signals = []
 
         try:
@@ -129,7 +129,7 @@ class ProductionWSBDipBot:
             return []
 
     async def _perform_preflight_checks(self):
-        """Perform pre-trading safety checks"""
+        """Perform pre-trading safety checks."""
         try:
             # Check position reconciliation
             reconciliation_report = await self.position_reconciler.reconcile_all_positions(
@@ -163,7 +163,7 @@ class ProductionWSBDipBot:
             self.is_trading_enabled = False
 
     async def _detect_advanced_dip_pattern(self, ticker: str) -> DipSignal | None:
-        """Advanced dip detection algorithm with technical indicators"""
+        """Advanced dip detection algorithm with technical indicators."""
         try:
             # Get extended price history (30 days)
             price_history = await self.data_provider.get_price_history(ticker, days=30)
@@ -252,7 +252,7 @@ class ProductionWSBDipBot:
             return None
 
     def _calculate_rsi(self, prices: list[Decimal], period: int = 14) -> float:
-        """Calculate RSI (Relative Strength Index)"""
+        """Calculate RSI (Relative Strength Index)."""
         try:
             if len(prices) < period + 1:
                 return 50.0  # Neutral RSI
@@ -287,7 +287,7 @@ class ProductionWSBDipBot:
     def _calculate_bollinger_position(
         self, prices: list[Decimal], period: int = 20, std_dev: float = 2.0
     ) -> float:
-        """Calculate Bollinger Band position (0 - 1, where 0.5 is middle)"""
+        """Calculate Bollinger Band position (0 - 1, where 0.5 is middle)."""
         try:
             if len(prices) < period:
                 return 0.5  # Neutral position
@@ -319,7 +319,7 @@ class ProductionWSBDipBot:
             return 0.5
 
     async def select_optimal_option(self, dip_signal: DipSignal) -> dict[str, Any] | None:
-        """Select best options contract based on WSB criteria"""
+        """Select best options contract based on WSB criteria."""
         try:
             # Get options chain for the target expiry
             options_chain = await self.data_provider.get_options_chain(
@@ -379,7 +379,7 @@ class ProductionWSBDipBot:
             return None
 
     async def should_exit_position(self, position: dict[str, Any]) -> dict[str, Any]:
-        """Dynamic exit decision based on multiple factors"""
+        """Dynamic exit decision based on multiple factors."""
         try:
             current_data = await self._get_current_position_data(position)
 
@@ -451,7 +451,7 @@ class ProductionWSBDipBot:
             return {"should_exit": False, "reason": "ERROR", "confidence": 0.0, "error": str(e)}
 
     async def _get_current_position_data(self, position: dict[str, Any]) -> dict[str, Any]:
-        """Get current position data including market value and Greeks"""
+        """Get current position data including market value and Greeks."""
         try:
             ticker = position["ticker"]
 
@@ -500,7 +500,7 @@ class ProductionWSBDipBot:
             return {"current_value": position["cost_basis"], "delta": 0}
 
     async def _get_recent_volatility(self, ticker: str) -> float:
-        """Get recent volatility for dynamic profit targets"""
+        """Get recent volatility for dynamic profit targets."""
         try:
             # Get recent price history
             price_history = await self.data_provider.get_price_history(ticker, days=20)
@@ -528,7 +528,7 @@ class ProductionWSBDipBot:
     def _calculate_dynamic_stop_loss(
         self, position: dict[str, Any], current_data: dict[str, Any]
     ) -> float:
-        """Calculate dynamic stop loss percentage"""
+        """Calculate dynamic stop loss percentage."""
         try:
             # Base stop loss
             base_stop_loss = 0.20  # 20% base stop loss
@@ -557,13 +557,13 @@ class ProductionWSBDipBot:
             return 0.20  # Default 20% stop loss
 
     async def _check_dip_after_run(self, ticker: str) -> DipSignal | None:
-        """Check for dip after run pattern using advanced detection"""
+        """Check for dip after run pattern using advanced detection."""
         return await self._detect_advanced_dip_pattern(ticker)
 
     async def _get_real_option_premium(
         self, ticker: str, strike: Decimal, expiry_date, spot_price: Decimal
     ) -> Decimal:
-        """Get real option premium using market data and Black - Scholes"""
+        """Get real option premium using market data and Black - Scholes."""
         try:
             from ...options.pricing_engine import create_options_pricing_engine
 
@@ -602,7 +602,7 @@ class ProductionWSBDipBot:
             return max(Decimal("0.01"), fallback_premium)  # Minimum $0.01
 
     async def execute_dip_trade(self, signal: DipSignal) -> bool:
-        """Execute dip trade"""
+        """Execute dip trade."""
         try:
             # Calculate quantity based on risk amount
             quantity = int(float(signal.risk_amount) / float(signal.expected_premium))
@@ -661,9 +661,9 @@ class ProductionWSBDipBot:
             return False
 
     async def monitor_positions(self):
-        """Monitor active positions for exit signals"""
+        """Monitor active positions for exit signals."""
         try:
-            for ticker, position in list(self.active_positions.items()):
+            for _ticker, position in list(self.active_positions.items()):
                 exit_signal = await self._check_exit_conditions(position)
                 if exit_signal:
                     await self._execute_exit(position, exit_signal)
@@ -672,7 +672,7 @@ class ProductionWSBDipBot:
             self.logger.error(f"Error monitoring positions: {e}")
 
     async def _check_exit_conditions(self, position: DipSignal) -> str | None:
-        """Check exit conditions for position"""
+        """Check exit conditions for position."""
         try:
             # Get current price
             current_data = await self.data_provider.get_current_price(position.ticker)
@@ -708,7 +708,7 @@ class ProductionWSBDipBot:
             return None
 
     async def _execute_exit(self, position: DipSignal, reason: str):
-        """Execute exit trade"""
+        """Execute exit trade."""
         try:
             # Get current option price (simplified)
             current_data = await self.data_provider.get_current_price(position.ticker)
@@ -759,7 +759,7 @@ class ProductionWSBDipBot:
             self.logger.error(f"Error executing exit: {e}")
 
     async def run_strategy(self):
-        """Main strategy loop"""
+        """Main strategy loop."""
         self.logger.info("Starting WSB Dip Bot strategy")
 
         try:
@@ -784,7 +784,7 @@ class ProductionWSBDipBot:
             self.logger.error(f"Error in strategy loop: {e}")
 
     def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         return {
             "strategy_name": "wsb_dip_bot",
             "active_positions": len(self.active_positions),
@@ -818,5 +818,5 @@ def create_production_wsb_dip_bot(
     data_provider: ProductionDataProvider,
     config: dict[str, Any],
 ) -> ProductionWSBDipBot:
-    """Create ProductionWSBDipBot instance"""
+    """Create ProductionWSBDipBot instance."""
     return ProductionWSBDipBot(integration_manager, data_provider, config)

@@ -1,5 +1,5 @@
 """Smart Options Selection with Liquidity Analysis
-Implements intelligent options contract selection based on WSB criteria and market liquidity
+Implements intelligent options contract selection based on WSB criteria and market liquidity.
 """
 
 import logging
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class LiquidityRating(Enum):
-    """Options liquidity ratings"""
+    """Options liquidity ratings."""
 
     EXCELLENT = "excellent"  # Very liquid, tight spreads
     GOOD = "good"  # Good liquidity, reasonable spreads
@@ -24,7 +24,7 @@ class LiquidityRating(Enum):
 
 @dataclass
 class OptionsAnalysis:
-    """Comprehensive options contract analysis"""
+    """Comprehensive options contract analysis."""
 
     ticker: str
     strike: Decimal
@@ -69,7 +69,7 @@ class OptionsAnalysis:
 
 @dataclass
 class SelectionCriteria:
-    """Options selection criteria"""
+    """Options selection criteria."""
 
     target_dte_min: int = 21  # Minimum days to expiry
     target_dte_max: int = 45  # Maximum days to expiry
@@ -85,7 +85,7 @@ class SelectionCriteria:
 
 
 class SmartOptionsSelector:
-    """Smart Options Selection Engine
+    """Smart Options Selection Engine.
 
     Implements sophisticated options contract selection optimized for WSB - style trading:
     - Liquidity analysis and filtering
@@ -120,7 +120,7 @@ class SmartOptionsSelector:
         signal_strength: int = 5,
         custom_criteria: SelectionCriteria | None = None,
     ) -> OptionsAnalysis | None:
-        """Select optimal call option for WSB dip bot strategy
+        """Select optimal call option for WSB dip bot strategy.
 
         Args:
             ticker: Stock symbol
@@ -185,7 +185,7 @@ class SmartOptionsSelector:
             return None
 
     def _get_dynamic_criteria(self, signal_strength: int) -> SelectionCriteria:
-        """Get dynamic selection criteria based on signal strength"""
+        """Get dynamic selection criteria based on signal strength."""
         criteria = SelectionCriteria()
 
         # Adjust criteria based on signal strength
@@ -219,7 +219,7 @@ class SmartOptionsSelector:
     async def _get_available_expiries(
         self, ticker: str, criteria: SelectionCriteria
     ) -> list[datetime]:
-        """Get available expiry dates within criteria"""
+        """Get available expiry dates within criteria."""
         try:
             # Get options chain with first available expiry to see all expiry dates
             options_chain = await self.data_provider.get_options_chain(ticker)
@@ -228,7 +228,7 @@ class SmartOptionsSelector:
                 return []
 
             # Extract unique expiry dates
-            expiry_dates = list(set([opt.expiry for opt in options_chain]))
+            expiry_dates = list({opt.expiry for opt in options_chain})
             expiry_dates.sort()
 
             # Filter by DTE criteria
@@ -258,7 +258,7 @@ class SmartOptionsSelector:
     async def _analyze_option(
         self, option, spot_price: Decimal, criteria: SelectionCriteria
     ) -> OptionsAnalysis | None:
-        """Perform comprehensive analysis of options contract"""
+        """Perform comprehensive analysis of options contract."""
         try:
             # Calculate basic metrics
             mid_price = (
@@ -348,7 +348,7 @@ class SmartOptionsSelector:
     def _assess_liquidity(
         self, volume: int, open_interest: int, spread_percentage: float
     ) -> LiquidityRating:
-        """Assess options liquidity based on volume, OI, and spread"""
+        """Assess options liquidity based on volume, OI, and spread."""
         try:
             # Check against thresholds in order of quality
             for rating, thresholds in self.liquidity_thresholds.items():
@@ -367,7 +367,7 @@ class SmartOptionsSelector:
     def _calculate_wsb_suitability_score(
         self, moneyness: float, dte: int, premium_ratio: float, delta: Decimal, spread_pct: float
     ) -> float:
-        """Calculate how suitable this option is for WSB - style trading"""
+        """Calculate how suitable this option is for WSB - style trading."""
         try:
             score = 0.0
 
@@ -422,7 +422,7 @@ class SmartOptionsSelector:
     def _calculate_liquidity_score(
         self, volume: int, open_interest: int, spread_pct: float, liquidity_rating: LiquidityRating
     ) -> float:
-        """Calculate liquidity score"""
+        """Calculate liquidity score."""
         try:
             score = 0.0
 
@@ -486,7 +486,7 @@ class SmartOptionsSelector:
     def _calculate_value_score(
         self, iv: Decimal, spread_pct: float, premium_ratio: float, delta: Decimal
     ) -> float:
-        """Calculate value score based on various metrics"""
+        """Calculate value score based on various metrics."""
         try:
             score = 5.0  # Start with neutral score
 
@@ -525,7 +525,7 @@ class SmartOptionsSelector:
             return 5.0
 
     def _meets_criteria(self, analysis: OptionsAnalysis, criteria: SelectionCriteria) -> bool:
-        """Check if option meets minimum selection criteria"""
+        """Check if option meets minimum selection criteria."""
         try:
             # Basic liquidity requirements
             if analysis.volume < criteria.min_volume:
@@ -566,10 +566,7 @@ class SmartOptionsSelector:
                 return False
 
             # Premium to stock ratio
-            if analysis.premium_to_stock_ratio > criteria.max_premium_to_stock_ratio:
-                return False
-
-            return True
+            return not analysis.premium_to_stock_ratio > criteria.max_premium_to_stock_ratio
 
         except Exception as e:
             self.logger.error(f"Error checking criteria: {e}")
@@ -578,7 +575,7 @@ class SmartOptionsSelector:
     async def get_selection_summary(
         self, ticker: str, spot_price: Decimal, signal_strength: int = 5
     ) -> dict[str, Any]:
-        """Get comprehensive summary of available options"""
+        """Get comprehensive summary of available options."""
         try:
             criteria = self._get_dynamic_criteria(signal_strength)
 
@@ -645,5 +642,5 @@ class SmartOptionsSelector:
 
 
 def create_smart_options_selector(data_provider=None, pricing_engine=None) -> SmartOptionsSelector:
-    """Factory function to create smart options selector"""
+    """Factory function to create smart options selector."""
     return SmartOptionsSelector(data_provider, pricing_engine)

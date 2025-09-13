@@ -1,10 +1,11 @@
 #!/usr / bin / env python3
 """WSB Strategy #2: Momentum Weeklies Scanner
-Detects intraday reversals and news momentum for weekly options plays
+Detects intraday reversals and news momentum for weekly options plays.
 """
 
 import argparse
 import json
+import sys
 import time
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
@@ -16,7 +17,7 @@ try:
 except ImportError as e:
     print(f"Missing required package: {e}")
     print("Run: pip install -r wsb_requirements.txt")
-    exit(1)
+    sys.exit(1)
 
 
 @dataclass
@@ -57,7 +58,7 @@ class MomentumWeekliesScanner:
         ]
 
     def get_next_weekly_expiry(self) -> str:
-        """Find next weekly expiry (typically Friday)"""
+        """Find next weekly expiry (typically Friday)."""
         today = date.today()
         days_until_friday = (4 - today.weekday()) % 7  # Friday = 4
         if days_until_friday == 0:  # If today is Friday
@@ -71,7 +72,7 @@ class MomentumWeekliesScanner:
         return next_friday.strftime("%Y-%m-%d")
 
     def detect_volume_spike(self, ticker: str) -> tuple[bool, float]:
-        """Detect unusual volume spike (3x+ average)"""
+        """Detect unusual volume spike (3x+ average)."""
         try:
             stock = yf.Ticker(ticker)
             # Get intraday data
@@ -95,7 +96,7 @@ class MomentumWeekliesScanner:
             return False, 0.0
 
     def detect_reversal_pattern(self, ticker: str) -> tuple[bool, str, float]:
-        """Detect bullish reversal patterns"""
+        """Detect bullish reversal patterns."""
         try:
             stock = yf.Ticker(ticker)
             data = stock.history(period="2d", interval="5m")
@@ -137,7 +138,7 @@ class MomentumWeekliesScanner:
             return False, "error", 0.0
 
     def detect_breakout_momentum(self, ticker: str) -> tuple[bool, float]:
-        """Detect breakout above resistance"""
+        """Detect breakout above resistance."""
         try:
             stock = yf.Ticker(ticker)
             data = stock.history(period="5d", interval="15m")
@@ -166,7 +167,7 @@ class MomentumWeekliesScanner:
             return False, 0.0
 
     def get_weekly_option_premium(self, ticker: str, strike: int, expiry: str) -> float:
-        """Estimate weekly option premium"""
+        """Estimate weekly option premium."""
         try:
             stock = yf.Ticker(ticker)
 
@@ -202,7 +203,7 @@ class MomentumWeekliesScanner:
             return 2.0  # Default estimate
 
     def scan_momentum_signals(self) -> list[MomentumSignal]:
-        """Scan for momentum weekly opportunities"""
+        """Scan for momentum weekly opportunities."""
         signals = []
         weekly_expiry = self.get_next_weekly_expiry()
 
@@ -286,7 +287,7 @@ class MomentumWeekliesScanner:
         return signals
 
     def format_signals_output(self, signals: list[MomentumSignal]) -> str:
-        """Format signals for display"""
+        """Format signals for display."""
         if not signals:
             return "🔍 No momentum weekly signals found at this time."
 

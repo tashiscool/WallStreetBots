@@ -54,7 +54,7 @@ def place_general_order(
     TRANSACTIONTYPES = [
         ('B', 'Buy'),
         ('S', 'Sell'),
-    ]
+    ].
     """
     backend_api = validate_backend()
     user_api = AlpacaManager(user.credential.alpaca_id, user.credential.alpaca_key)
@@ -138,7 +138,7 @@ def buy_order_check(order_type, price, quantity, usable_cash):
             raise ValidationError(
                 "Not enough cash to perform this operation. Marginal trading is not supported."
             )
-    elif order_type == "L" or order_type == "S" or order_type == "ST" or order_type == "T":
+    elif order_type in {"L", "S", "ST", "T"}:
         pass
     return a_order_type
 
@@ -147,6 +147,6 @@ def sell_order_check(order_type, price, quantity, usable_cash):
     a_order_type = ""
     if order_type == "M":
         a_order_type = "market"
-    elif order_type == "L" or order_type == "S" or order_type == "ST" or order_type == "T":
+    elif order_type in {"L", "S", "ST", "T"}:
         pass
     return a_order_type

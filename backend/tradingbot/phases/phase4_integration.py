@@ -1,5 +1,5 @@
 """Phase 4 Integration: Complete Production System Orchestration
-READY FOR REAL MONEY TRADING
+READY FOR REAL MONEY TRADING.
 
 This is the master orchestrator that brings together all phases:
 - Phase 1: Foundation infrastructure
@@ -55,7 +55,7 @@ class SystemStatus(Enum):
 
 @dataclass
 class SystemHealthCheck:
-    """System health check result"""
+    """System health check result."""
 
     timestamp: datetime = field(default_factory=datetime.now)
     overall_status: SystemStatus = SystemStatus.INITIALIZING
@@ -74,7 +74,7 @@ class SystemHealthCheck:
 
 @dataclass
 class StrategyAllocation:
-    """Strategy allocation configuration"""
+    """Strategy allocation configuration."""
 
     strategy_name: str
     allocation_percentage: Decimal  # Percentage of account to allocate
@@ -87,7 +87,7 @@ class StrategyAllocation:
 
 
 class Phase4IntegrationManager:
-    """Master orchestrator for the complete WallStreetBots production system
+    """Master orchestrator for the complete WallStreetBots production system.
 
     This is the brain that coordinates all phases and ensures safe operation
     """
@@ -165,7 +165,7 @@ class Phase4IntegrationManager:
 
     async def initialize_system(self) -> bool:
         """Initialize the complete production system
-        CRITICAL: This must complete successfully before any trading
+        CRITICAL: This must complete successfully before any trading.
         """
         try:
             self.logger.info("🚀 Initializing complete WallStreetBots production system...")
@@ -201,7 +201,7 @@ class Phase4IntegrationManager:
             return False
 
     async def _initialize_database(self) -> bool:
-        """Initialize production database"""
+        """Initialize production database."""
         try:
             self.logger.info("Initializing production database...")
 
@@ -235,7 +235,7 @@ class Phase4IntegrationManager:
             return False
 
     async def _initialize_data_provider(self) -> bool:
-        """Initialize data provider"""
+        """Initialize data provider."""
         try:
             self.logger.info("Initializing data provider...")
 
@@ -263,7 +263,7 @@ class Phase4IntegrationManager:
             return False
 
     async def _initialize_trading_interface(self) -> bool:
-        """Initialize trading interface"""
+        """Initialize trading interface."""
         try:
             self.logger.info("Initializing trading interface...")
 
@@ -292,7 +292,7 @@ class Phase4IntegrationManager:
             return False
 
     async def _initialize_phase_managers(self) -> bool:
-        """Initialize all phase managers"""
+        """Initialize all phase managers."""
         try:
             self.logger.info("Initializing phase managers...")
 
@@ -312,7 +312,7 @@ class Phase4IntegrationManager:
             return False
 
     async def _initialize_phase4_components(self) -> bool:
-        """Initialize Phase 4 specific components"""
+        """Initialize Phase 4 specific components."""
         try:
             self.logger.info("Initializing Phase 4 components...")
 
@@ -331,7 +331,7 @@ class Phase4IntegrationManager:
 
     async def validate_all_strategies(self, force_revalidation: bool = False) -> bool:
         """CRITICAL: Validate all strategies before allowing real money trading
-        This is the safety check that prevents deploying bad strategies
+        This is the safety check that prevents deploying bad strategies.
         """
         try:
             self.logger.info("🧪 Starting comprehensive strategy validation...")
@@ -415,7 +415,7 @@ class Phase4IntegrationManager:
     async def _evaluate_strategy_performance(
         self, strategy_name: str, results: StrategyBacktestResults, allocation: StrategyAllocation
     ) -> bool:
-        """Evaluate if strategy performance meets minimum standards"""
+        """Evaluate if strategy performance meets minimum standards."""
         try:
             # Check minimum requirements
             checks = []
@@ -471,7 +471,7 @@ class Phase4IntegrationManager:
 
     async def start_production_trading(self, paper_trading: bool = True) -> bool:
         """Start production trading system
-        CRITICAL: Only starts if all validations pass
+        CRITICAL: Only starts if all validations pass.
         """
         try:
             self.logger.info(f"🚀 Starting production trading (paper_trading={paper_trading})...")
@@ -522,7 +522,7 @@ class Phase4IntegrationManager:
     async def _start_strategy(
         self, strategy_name: str, allocation: StrategyAllocation, paper_trading: bool
     ) -> None:
-        """Start individual strategy"""
+        """Start individual strategy."""
         try:
             self.logger.info(
                 f"Starting strategy: {strategy_name} ({allocation.allocation_percentage: .1%} allocation)"
@@ -568,7 +568,7 @@ class Phase4IntegrationManager:
             raise
 
     async def _monitoring_loop(self) -> None:
-        """Continuous monitoring of the production system"""
+        """Continuous monitoring of the production system."""
         try:
             self.logger.info("🔍 Starting system monitoring loop")
 
@@ -614,7 +614,7 @@ class Phase4IntegrationManager:
             self.logger.error("Monitoring loop stopped due to error")
 
     async def perform_system_health_check(self) -> SystemHealthCheck:
-        """Perform comprehensive system health check"""
+        """Perform comprehensive system health check."""
         try:
             health_check = SystemHealthCheck()
             health_check.overall_status = self.system_status
@@ -700,7 +700,7 @@ class Phase4IntegrationManager:
             )
 
     async def stop_all_strategies(self) -> None:
-        """Stop all running strategies safely"""
+        """Stop all running strategies safely."""
         try:
             self.logger.info("🛑 Stopping all strategies...")
 
@@ -729,12 +729,12 @@ class Phase4IntegrationManager:
             self.error_handler.handle_error(e, {"operation": "stop_all_strategies"})
 
     async def emergency_shutdown(self) -> None:
-        """Emergency shutdown of the entire system"""
+        """Emergency shutdown of the entire system."""
         try:
             self.logger.critical("🚨 EMERGENCY SHUTDOWN INITIATED")
 
             # Stop all strategies immediately
-            for strategy_name, strategy_info in self.active_strategies.items():
+            for _strategy_name, strategy_info in self.active_strategies.items():
                 strategy_info["task"].cancel()
 
             # Close all positions if possible
@@ -755,13 +755,13 @@ class Phase4IntegrationManager:
             self.error_handler.handle_error(e, {"operation": "emergency_shutdown"})
 
     async def get_system_summary(self) -> dict[str, Any]:
-        """Get comprehensive system summary"""
+        """Get comprehensive system summary."""
         try:
             health_check = await self.perform_system_health_check()
 
             # Get strategy performance
             strategy_performance = {}
-            for strategy_name in self.active_strategies.keys():
+            for strategy_name in self.active_strategies:
                 if strategy_name in self.validation_results:
                     results = self.validation_results[strategy_name]
                     strategy_performance[strategy_name] = {
@@ -801,13 +801,13 @@ class Phase4IntegrationManager:
 def create_phase4_integration_manager(
     config_file_path: str | None = None,
 ) -> Phase4IntegrationManager:
-    """Create Phase 4 integration manager"""
+    """Create Phase 4 integration manager."""
     return Phase4IntegrationManager(config_file_path)
 
 
 # Standalone execution
 async def main():
-    """Standalone Phase 4 integration demonstration"""
+    """Standalone Phase 4 integration demonstration."""
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )

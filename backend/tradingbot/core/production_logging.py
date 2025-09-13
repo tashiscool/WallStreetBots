@@ -1,5 +1,5 @@
 """Production Logging and Error Handling
-Robust error handling with retry mechanisms and structured logging
+Robust error handling with retry mechanisms and structured logging.
 """
 
 import asyncio
@@ -62,7 +62,7 @@ import os
 
 
 class ProductionLogger:
-    """Production - grade logging system"""
+    """Production - grade logging system."""
 
     def __init__(self, name: str, log_level: str = "INFO"):
         self.name = name
@@ -73,7 +73,7 @@ class ProductionLogger:
         self.setup_logging(log_level)
 
     def setup_logging(self, log_level: str):
-        """Setup structured logging"""
+        """Setup structured logging."""
         if structlog:
             # Configure structlog
             structlog.configure(
@@ -123,7 +123,7 @@ class ProductionLogger:
         logger.addHandler(console_handler)
 
     def info(self, message: str, **kwargs):
-        """Log info message with context"""
+        """Log info message with context."""
         if structlog:
             self.logger.info(message, **kwargs)
         elif kwargs:
@@ -133,7 +133,7 @@ class ProductionLogger:
             self.logger.info(message)
 
     def warning(self, message: str, **kwargs):
-        """Log warning message with context"""
+        """Log warning message with context."""
         if structlog:
             self.logger.warning(message, **kwargs)
         elif kwargs:
@@ -143,7 +143,7 @@ class ProductionLogger:
             self.logger.warning(message)
 
     def error(self, message: str, **kwargs):
-        """Log error message with context"""
+        """Log error message with context."""
         if structlog:
             self.logger.error(message, **kwargs)
         elif kwargs:
@@ -153,7 +153,7 @@ class ProductionLogger:
             self.logger.error(message)
 
     def critical(self, message: str, **kwargs):
-        """Log critical message with context"""
+        """Log critical message with context."""
         if structlog:
             self.logger.critical(message, **kwargs)
         elif kwargs:
@@ -163,7 +163,7 @@ class ProductionLogger:
             self.logger.critical(message)
 
     def debug(self, message: str, **kwargs):
-        """Log debug message with context"""
+        """Log debug message with context."""
         if structlog:
             self.logger.debug(message, **kwargs)
         elif kwargs:
@@ -174,7 +174,7 @@ class ProductionLogger:
 
 
 class ErrorHandler:
-    """Centralized error handling"""
+    """Centralized error handling."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
@@ -186,8 +186,10 @@ class ErrorHandler:
             "broker_error": 5,
         }
 
-    def handle_error(self, error: Exception, context: dict[str, Any] = None) -> dict[str, Any]:
-        """Handle error with context and tracking"""
+    def handle_error(
+        self, error: Exception, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """Handle error with context and tracking."""
         error_type = type(error).__name__
         error_message = str(error)
 
@@ -222,7 +224,7 @@ class ErrorHandler:
         }
 
     def reset_error_count(self, error_type: str):
-        """Reset error count for specific error type"""
+        """Reset error count for specific error type."""
         self.error_counts[error_type] = 0
         self.logger.info(f"Reset error count for {error_type}")
 
@@ -233,7 +235,7 @@ def retry_with_backoff(
     max_delay: float = 60.0,
     exceptions: tuple = (Exception,),
 ):
-    """Decorator for retry with exponential backoff"""
+    """Decorator for retry with exponential backoff."""
 
     def decorator(func: Callable) -> Callable:
         @retry(
@@ -265,7 +267,7 @@ def retry_with_backoff(
 
 
 class CircuitBreaker:
-    """Circuit breaker pattern for external service calls"""
+    """Circuit breaker pattern for external service calls."""
 
     def __init__(self, failure_threshold: int = 5, timeout: float = 60.0):
         self.failure_threshold = failure_threshold
@@ -276,7 +278,7 @@ class CircuitBreaker:
         self.logger = ProductionLogger("circuit_breaker")
 
     def call(self, func: Callable, *args, **kwargs):
-        """Execute function with circuit breaker protection"""
+        """Execute function with circuit breaker protection."""
         if self.state == "OPEN":
             if self._should_attempt_reset():
                 self.state = "HALF_OPEN"
@@ -293,7 +295,7 @@ class CircuitBreaker:
             raise e
 
     async def call_async(self, func: Callable, *args, **kwargs):
-        """Execute async function with circuit breaker protection"""
+        """Execute async function with circuit breaker protection."""
         if self.state == "OPEN":
             if self._should_attempt_reset():
                 self.state = "HALF_OPEN"
@@ -310,21 +312,21 @@ class CircuitBreaker:
             raise e
 
     def _should_attempt_reset(self) -> bool:
-        """Check if enough time has passed to attempt reset"""
+        """Check if enough time has passed to attempt reset."""
         if self.last_failure_time is None:
             return True
 
         return (datetime.now() - self.last_failure_time).total_seconds() >= self.timeout
 
     def _on_success(self):
-        """Handle successful call"""
+        """Handle successful call."""
         self.failure_count = 0
         if self.state == "HALF_OPEN":
             self.state = "CLOSED"
             self.logger.info("Circuit breaker reset to CLOSED")
 
     def _on_failure(self):
-        """Handle failed call"""
+        """Handle failed call."""
         self.failure_count += 1
         self.last_failure_time = datetime.now()
 
@@ -338,7 +340,7 @@ class CircuitBreaker:
 
 
 class HealthChecker:
-    """System health monitoring"""
+    """System health monitoring."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
@@ -347,12 +349,12 @@ class HealthChecker:
         self.health_status: dict[str, Any] = {}
 
     def register_check(self, name: str, check_func: Callable):
-        """Register a health check function"""
+        """Register a health check function."""
         self.health_checks[name] = check_func
         self.logger.info(f"Registered health check: {name}")
 
     async def run_health_checks(self) -> dict[str, Any]:
-        """Run all registered health checks"""
+        """Run all registered health checks."""
         self.last_check_time = datetime.now()
         results = {}
 
@@ -384,7 +386,7 @@ class HealthChecker:
         return results
 
     def get_overall_health(self) -> str:
-        """Get overall system health status"""
+        """Get overall system health status."""
         if not self.health_status:
             return "unknown"
 
@@ -401,15 +403,15 @@ class HealthChecker:
 
 
 class MetricsCollector:
-    """Collect and store system metrics"""
+    """Collect and store system metrics."""
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
         self.metrics: dict[str, list[dict[str, Any]]] = {}
         self.max_metrics_per_type = 1000
 
-    def record_metric(self, metric_name: str, value: float, tags: dict[str, str] = None):
-        """Record a metric value"""
+    def record_metric(self, metric_name: str, value: float, tags: dict[str, str] | None = None):
+        """Record a metric value."""
         if metric_name not in self.metrics:
             self.metrics[metric_name] = []
 
@@ -429,7 +431,7 @@ class MetricsCollector:
         )
 
     def get_metric_summary(self, metric_name: str, window_minutes: int = 60) -> dict[str, Any]:
-        """Get metric summary for specified time window"""
+        """Get metric summary for specified time window."""
         if metric_name not in self.metrics:
             return {}
 
@@ -455,7 +457,7 @@ class MetricsCollector:
         }
 
     def export_metrics(self, file_path: str):
-        """Export metrics to JSON file"""
+        """Export metrics to JSON file."""
         try:
             with open(file_path, "w") as f:
                 json.dump(self.metrics, f, indent=2)
@@ -467,25 +469,25 @@ class MetricsCollector:
 
 # Factory functions for easy initialization
 def create_production_logger(name: str, log_level: str = "INFO") -> ProductionLogger:
-    """Create production logger"""
+    """Create production logger."""
     return ProductionLogger(name, log_level)
 
 
 def create_error_handler(logger: ProductionLogger) -> ErrorHandler:
-    """Create error handler"""
+    """Create error handler."""
     return ErrorHandler(logger)
 
 
 def create_circuit_breaker(failure_threshold: int = 5, timeout: float = 60.0) -> CircuitBreaker:
-    """Create circuit breaker"""
+    """Create circuit breaker."""
     return CircuitBreaker(failure_threshold, timeout)
 
 
 def create_health_checker(logger: ProductionLogger) -> HealthChecker:
-    """Create health checker"""
+    """Create health checker."""
     return HealthChecker(logger)
 
 
 def create_metrics_collector(logger: ProductionLogger) -> MetricsCollector:
-    """Create metrics collector"""
+    """Create metrics collector."""
     return MetricsCollector(logger)

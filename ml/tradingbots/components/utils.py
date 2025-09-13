@@ -7,7 +7,7 @@ from backend.tradingbot.apimanagers import AlpacaManager
 
 
 class DataFetcher:
-    """generic stock data fetcher"""
+    """generic stock data fetcher."""
 
     def get_cur_price(self, *args, **kwargs):
         return 0
@@ -20,7 +20,7 @@ class DataFetcher:
 
 
 class AlpacaFetcher(DataFetcher):
-    """wrapper around Alpaca API"""
+    """wrapper around Alpaca API."""
 
     TIMESTEP = {"MINUTE": TimeFrame.Minute, "HOUR": TimeFrame.Hour, "DAY": TimeFrame.Day}
 
@@ -31,7 +31,7 @@ class AlpacaFetcher(DataFetcher):
 
     def get_cur_price(self, ticker):
         """Note that I wrapped around get_bar instead of get_price because I
-        want to make sure the price is adjusted
+        want to make sure the price is adjusted.
         """
         start = (datetime.datetime.now(datetime.UTC) - timedelta(days=1)).isoformat()
         end = datetime.datetime.now(datetime.UTC).isoformat()

@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Production Trading System Runner
-READY FOR REAL MONEY TRADING
+READY FOR REAL MONEY TRADING.
 
 This script connects all the production components and runs live trading strategies.
 
@@ -55,7 +55,7 @@ from backend.tradingbot.trading_interface import create_trading_interface
 
 
 class ProductionTradingRunner:
-    """Production trading system runner with safety controls"""
+    """Production trading system runner with safety controls."""
 
     def __init__(self, args) -> None:
         self.args = args
@@ -75,7 +75,7 @@ class ProductionTradingRunner:
         self.logger.info("Production trading system initialized")
 
     def _validate_config(self) -> None:
-        """Validate critical configuration for real money trading"""
+        """Validate critical configuration for real money trading."""
         errors = []
 
         # Validate data providers
@@ -106,7 +106,7 @@ class ProductionTradingRunner:
         self.logger.info("Configuration validation passed")
 
     def _get_data_config(self):
-        """Get data provider configuration"""
+        """Get data provider configuration."""
         return {
             "iex_api_key": self.config.data_providers.iex_api_key,
             "polygon_api_key": self.config.data_providers.polygon_api_key,
@@ -116,7 +116,7 @@ class ProductionTradingRunner:
         }
 
     async def run_phase(self, phase: int) -> None:
-        """Run specific phase strategies"""
+        """Run specific phase strategies."""
         if phase == 2:
             await self._run_phase_2()
         elif phase == 3:
@@ -128,7 +128,7 @@ class ProductionTradingRunner:
             raise ValueError(msg)
 
     async def _run_phase_2(self) -> None:
-        """Run Phase 2 - Low - risk strategies"""
+        """Run Phase 2 - Low - risk strategies."""
         self.logger.info("Starting Phase 2 - Low - risk strategies")
 
         manager = Phase2StrategyManager(self.config)
@@ -145,7 +145,7 @@ class ProductionTradingRunner:
         await manager.run_strategies(strategies)
 
     async def _run_phase_3(self) -> None:
-        """Run Phase 3 - Medium - risk strategies"""
+        """Run Phase 3 - Medium - risk strategies."""
         self.logger.info("Starting Phase 3 - Medium - risk strategies")
 
         manager = Phase3StrategyManager(self.config)
@@ -178,7 +178,7 @@ class ProductionTradingRunner:
                 await manager.stop_strategy(strategy_name)
 
     async def _run_phase_4(self) -> None:
-        """Run Phase 4 - Complete system with validation"""
+        """Run Phase 4 - Complete system with validation."""
         self.logger.info("Starting Phase 4 - Complete validated system")
 
         from backend.tradingbot.phase4_integration import (
@@ -229,7 +229,7 @@ class ProductionTradingRunner:
             raise
 
     async def run_individual_strategies(self, strategy_names: list[str]) -> None:
-        """Run individual strategies"""
+        """Run individual strategies."""
         for strategy_name in strategy_names:
             self.logger.info(f"Starting strategy: {strategy_name}")
 
@@ -273,7 +273,7 @@ class ProductionTradingRunner:
                 self.logger.error(f"Unknown strategy: {strategy_name}")
 
     def print_safety_warning(self) -> None:
-        """Print critical safety warning"""
+        """Print critical safety warning."""
         if self.args.paper:
             pass
         else:
@@ -284,7 +284,7 @@ class ProductionTradingRunner:
 
 
 def parse_args():
-    """Parse command line arguments"""
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Production Trading System - Ready for Real Money",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -360,7 +360,7 @@ Examples:
 
 
 async def main() -> None:
-    """Main entry point"""
+    """Main entry point."""
     args = parse_args()
 
     # Setup logging

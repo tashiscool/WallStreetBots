@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Production SPX Credit Spreads Strategy
-WSB - style 0DTE / short - term credit spreads with defined risk
+WSB - style 0DTE / short - term credit spreads with defined risk.
 """
 
 import asyncio
@@ -20,7 +20,7 @@ from ..data.production_data_integration import ReliableDataProvider
 
 @dataclass
 class CreditSpreadOpportunity:
-    """Production credit spread opportunity"""
+    """Production credit spread opportunity."""
 
     ticker: str
     strategy_type: str  # "put_credit_spread", "call_credit_spread", "iron_condor"
@@ -48,7 +48,7 @@ class CreditSpreadOpportunity:
 
 
 class ProductionSPXCreditSpreads:
-    """Production SPX Credit Spreads Strategy
+    """Production SPX Credit Spreads Strategy.
 
     Strategy Logic:
     1. Scans for 0DTE and short - term credit spread opportunities
@@ -111,13 +111,13 @@ class ProductionSPXCreditSpreads:
         self.logger.info("ProductionSPXCreditSpreads strategy initialized")
 
     def norm_cdf(self, x: float) -> float:
-        """Standard normal cumulative distribution function"""
+        """Standard normal cumulative distribution function."""
         return 0.5 * (1.0 + math.erf(x / math.sqrt(2)))
 
     def black_scholes_put(
         self, S: float, K: float, T: float, r: float, sigma: float
     ) -> tuple[float, float]:
-        """Black - Scholes put price and delta"""
+        """Black - Scholes put price and delta."""
         if T <= 0 or sigma <= 0:
             return max(K - S, 0), -1.0 if S < K else 0.0
 
@@ -132,7 +132,7 @@ class ProductionSPXCreditSpreads:
     def black_scholes_call(
         self, S: float, K: float, T: float, r: float, sigma: float
     ) -> tuple[float, float]:
-        """Black - Scholes call price and delta"""
+        """Black - Scholes call price and delta."""
         if T <= 0 or sigma <= 0:
             return max(S - K, 0), 1.0 if S > K else 0.0
 
@@ -145,7 +145,7 @@ class ProductionSPXCreditSpreads:
         return max(call_price, 0), delta
 
     async def get_available_expiries(self, ticker: str) -> list[tuple[str, int]]:
-        """Get available expiries with DTE"""
+        """Get available expiries with DTE."""
         try:
             expiries = await self.data_provider.get_option_expiries(ticker)
             if not expiries:
@@ -173,7 +173,7 @@ class ProductionSPXCreditSpreads:
             return []
 
     async def get_expected_move(self, ticker: str) -> float:
-        """Calculate expected daily move from recent volatility"""
+        """Calculate expected daily move from recent volatility."""
         try:
             # Get 20 days of historical data
             hist_data = await self.data_provider.get_historical_data(ticker, "20d")
@@ -194,7 +194,7 @@ class ProductionSPXCreditSpreads:
     async def find_target_delta_strike(
         self, ticker: str, expiry: str, option_type: str, target_delta: float, spot_price: float
     ) -> tuple[float | None, float, float]:
-        """Find strike closest to target delta"""
+        """Find strike closest to target delta."""
         try:
             # Get options chain
             options_data = await self.data_provider.get_options_chain(ticker, expiry)
@@ -274,7 +274,7 @@ class ProductionSPXCreditSpreads:
     def calculate_spread_metrics(
         self, short_strike: float, long_strike: float, short_premium: float, long_premium: float
     ) -> tuple[float, float, float]:
-        """Calculate spread financial metrics"""
+        """Calculate spread financial metrics."""
         spread_width = abs(short_strike - long_strike)
         net_credit = short_premium - long_premium
         max_profit = net_credit
@@ -283,7 +283,7 @@ class ProductionSPXCreditSpreads:
         return net_credit, max_profit, max_loss
 
     async def scan_credit_spread_opportunities(self) -> list[CreditSpreadOpportunity]:
-        """Scan for credit spread opportunities"""
+        """Scan for credit spread opportunities."""
         opportunities = []
 
         self.logger.info("Scanning for credit spread opportunities")
@@ -436,7 +436,7 @@ class ProductionSPXCreditSpreads:
         return opportunities
 
     async def execute_credit_spread(self, opportunity: CreditSpreadOpportunity) -> bool:
-        """Execute credit spread trade"""
+        """Execute credit spread trade."""
         try:
             # Check if we can add more positions
             if len(self.active_positions) >= self.max_positions:
@@ -547,7 +547,7 @@ class ProductionSPXCreditSpreads:
             return False
 
     async def manage_positions(self):
-        """Manage existing credit spread positions"""
+        """Manage existing credit spread positions."""
         positions_to_remove = []
         current_time = datetime.now()
 
@@ -681,7 +681,7 @@ class ProductionSPXCreditSpreads:
             self.active_positions.pop(i)
 
     async def scan_opportunities(self) -> list[ProductionTradeSignal]:
-        """Main strategy execution: scan and generate trade signals"""
+        """Main strategy execution: scan and generate trade signals."""
         try:
             # First manage existing positions
             await self.manage_positions()
@@ -733,7 +733,7 @@ class ProductionSPXCreditSpreads:
             return []
 
     def get_strategy_status(self) -> dict[str, Any]:
-        """Get current strategy status"""
+        """Get current strategy status."""
         try:
             total_credit_received = sum(-pos["cost_basis"] for pos in self.active_positions)
             position_details = []
@@ -788,7 +788,7 @@ class ProductionSPXCreditSpreads:
             return {"strategy_name": self.strategy_name, "error": str(e)}
 
     async def run_strategy(self):
-        """Main strategy execution loop"""
+        """Main strategy execution loop."""
         self.logger.info("Starting Production SPX Credit Spreads Strategy")
 
         try:
@@ -810,5 +810,5 @@ class ProductionSPXCreditSpreads:
 def create_production_spx_credit_spreads(
     integration_manager, data_provider: ReliableDataProvider, config: dict
 ) -> ProductionSPXCreditSpreads:
-    """Factory function to create ProductionSPXCreditSpreads strategy"""
+    """Factory function to create ProductionSPXCreditSpreads strategy."""
     return ProductionSPXCreditSpreads(integration_manager, data_provider, config)

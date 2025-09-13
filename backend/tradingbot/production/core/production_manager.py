@@ -1,5 +1,5 @@
 """Production Manager
-Orchestrates all production components for live trading
+Orchestrates all production components for live trading.
 
 This module provides the main production manager that:
 - Connects AlpacaManager to strategies for real execution
@@ -35,7 +35,7 @@ from .production_strategy_wrapper import (
 
 @dataclass
 class ProductionConfig:
-    """Production configuration"""
+    """Production configuration."""
 
     alpaca_api_key: str
     alpaca_secret_key: str
@@ -76,7 +76,7 @@ class ProductionConfig:
 
 
 class ProductionManager:
-    """Production Manager
+    """Production Manager.
 
     Main orchestrator for production trading system:
     - Manages all production components
@@ -117,7 +117,7 @@ class ProductionManager:
         self.logger.info("ProductionManager initialized")
 
     def setup_logging(self):
-        """Setup comprehensive logging"""
+        """Setup comprehensive logging."""
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -125,7 +125,7 @@ class ProductionManager:
         )
 
     def _initialize_strategies(self):
-        """Initialize all enabled strategies"""
+        """Initialize all enabled strategies."""
         try:
             strategy_config = StrategyConfig(
                 name="default",
@@ -157,7 +157,7 @@ class ProductionManager:
             self.logger.error(f"Error initializing strategies: {e}")
 
     async def start_production_system(self) -> bool:
-        """Start the production trading system"""
+        """Start the production trading system."""
         try:
             self.logger.info("🚀 Starting Production Trading System")
 
@@ -193,14 +193,14 @@ class ProductionManager:
             return False
 
     async def stop_production_system(self):
-        """Stop the production trading system"""
+        """Stop the production trading system."""
         try:
             self.logger.info("🛑 Stopping Production Trading System")
 
             self.is_running = False
 
             # Stop all strategies
-            for strategy_name, strategy in self.strategies.items():
+            for _strategy_name, strategy in self.strategies.items():
                 await strategy.stop_strategy()
 
             # Close all positions (optional - depends on strategy)
@@ -215,7 +215,7 @@ class ProductionManager:
             self.logger.error(f"Error stopping production system: {e}")
 
     async def _validate_configuration(self) -> bool:
-        """Validate production configuration"""
+        """Validate production configuration."""
         try:
             # Validate Alpaca connection
             success, message = self.integration_manager.alpaca_manager.validate_api()
@@ -242,7 +242,7 @@ class ProductionManager:
             return False
 
     async def _initialize_database(self) -> bool:
-        """Initialize database connections and models"""
+        """Initialize database connections and models."""
         try:
             # Ensure user exists
             user, created = User.objects.get_or_create(
@@ -266,7 +266,7 @@ class ProductionManager:
             return False
 
     async def _sync_portfolio_with_alpaca(self, portfolio: Portfolio):
-        """Sync Django portfolio with Alpaca account"""
+        """Sync Django portfolio with Alpaca account."""
         try:
             # Get Alpaca account info
             cash_balance = self.integration_manager.alpaca_manager.get_balance()
@@ -280,7 +280,7 @@ class ProductionManager:
             self.logger.error(f"Portfolio sync error: {e}")
 
     async def _monitoring_loop(self):
-        """Main monitoring loop"""
+        """Main monitoring loop."""
         while self.is_running:
             try:
                 # Monitor positions
@@ -300,7 +300,7 @@ class ProductionManager:
                 await asyncio.sleep(60)  # Wait longer on error
 
     async def _heartbeat_loop(self):
-        """Heartbeat loop for system monitoring"""
+        """Heartbeat loop for system monitoring."""
         while self.is_running:
             try:
                 self.last_heartbeat = datetime.now()
@@ -321,7 +321,7 @@ class ProductionManager:
                 await asyncio.sleep(60)
 
     async def _performance_tracking_loop(self):
-        """Performance tracking loop"""
+        """Performance tracking loop."""
         while self.is_running:
             try:
                 # Update performance metrics
@@ -335,7 +335,7 @@ class ProductionManager:
                 await asyncio.sleep(300)
 
     async def _refresh_data_cache(self):
-        """Refresh data cache"""
+        """Refresh data cache."""
         try:
             # Clear old cache entries
             self.data_provider.clear_cache()
@@ -344,7 +344,7 @@ class ProductionManager:
             self.logger.error(f"Error refreshing data cache: {e}")
 
     async def _health_check(self):
-        """System health check"""
+        """System health check."""
         try:
             # Check Alpaca connection
             success, message = self.integration_manager.alpaca_manager.validate_api()
@@ -364,7 +364,7 @@ class ProductionManager:
             self.logger.error(f"Error in health check: {e}")
 
     async def _update_performance_metrics(self):
-        """Update performance metrics"""
+        """Update performance metrics."""
         try:
             # Get portfolio summary
             portfolio_summary = self.integration_manager.get_portfolio_summary()
@@ -389,11 +389,11 @@ class ProductionManager:
             self.logger.error(f"Error updating performance metrics: {e}")
 
     async def _close_all_positions(self):
-        """Close all positions (emergency stop)"""
+        """Close all positions (emergency stop)."""
         try:
             self.logger.warning("Closing all positions...")
 
-            for position_key, position in list(self.integration_manager.active_positions.items()):
+            for _position_key, position in list(self.integration_manager.active_positions.items()):
                 await self.integration_manager.execute_exit_trade(position, "emergency_close")
 
             self.logger.info("All positions closed")
@@ -402,7 +402,7 @@ class ProductionManager:
             self.logger.error(f"Error closing positions: {e}")
 
     async def _generate_final_report(self):
-        """Generate final performance report"""
+        """Generate final performance report."""
         try:
             report = {
                 "session_start": self.start_time.isoformat() if self.start_time else None,
@@ -426,7 +426,7 @@ class ProductionManager:
             self.logger.error(f"Error generating final report: {e}")
 
     def get_system_status(self) -> dict[str, Any]:
-        """Get current system status"""
+        """Get current system status."""
         return {
             "is_running": self.is_running,
             "start_time": self.start_time.isoformat() if self.start_time else None,
@@ -447,7 +447,7 @@ class ProductionManager:
 
 # Factory function for easy initialization
 def create_production_manager(config: ProductionConfig) -> ProductionManager:
-    """Create ProductionManager instance
+    """Create ProductionManager instance.
 
     Args:
         config: Production configuration

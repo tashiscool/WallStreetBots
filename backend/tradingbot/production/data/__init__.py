@@ -1,4 +1,4 @@
-"""Production Data Integration
+"""Production Data Integration.
 
 Live data providers and integration components:
 - ProductionDataProvider: Real - time market data provider

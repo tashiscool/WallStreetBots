@@ -1,12 +1,13 @@
 #!/usr / bin / env python3
 """WSB Strategy: SPX / SPY 0DTE Credit Spreads
 Most cited "actually profitable" 0DTE strategy on WSB
-Sell ~30 - delta defined - risk strangles / credit spreads at open, auto - close at ~25% profit
+Sell ~30 - delta defined - risk strangles / credit spreads at open, auto - close at ~25% profit.
 """
 
 import argparse
 import json
 import math
+import sys
 from dataclasses import asdict, dataclass
 from datetime import date, timedelta
 
@@ -17,7 +18,7 @@ try:
 except ImportError as e:
     print(f"Missing required package: {e}")
     print("Run: pip install -r wsb_requirements.txt")
-    exit(1)
+    sys.exit(1)
 
 
 @dataclass
@@ -70,13 +71,13 @@ class SPXCreditSpreadsScanner:
         self.profit_target_pct = 0.25  # 25% profit target
 
     def norm_cdf(self, x: float) -> float:
-        """Standard normal CDF"""
+        """Standard normal CDF."""
         return 0.5 * (1.0 + math.erf(x / math.sqrt(2)))
 
     def black_scholes_put(
         self, S: float, K: float, T: float, r: float, sigma: float
     ) -> tuple[float, float]:
-        """Black - Scholes put price and delta"""
+        """Black - Scholes put price and delta."""
         if T <= 0 or sigma <= 0:
             return max(K - S, 0), -1.0 if S < K else 0.0
 
@@ -91,7 +92,7 @@ class SPXCreditSpreadsScanner:
     def black_scholes_call(
         self, S: float, K: float, T: float, r: float, sigma: float
     ) -> tuple[float, float]:
-        """Black - Scholes call price and delta"""
+        """Black - Scholes call price and delta."""
         if T <= 0 or sigma <= 0:
             return max(S - K, 0), 1.0 if S > K else 0.0
 
@@ -104,7 +105,7 @@ class SPXCreditSpreadsScanner:
         return max(call_price, 0), delta
 
     def get_0dte_expiry(self) -> str | None:
-        """Get 0DTE expiry if available (Mon / Wed / Fri for SPX / SPY)"""
+        """Get 0DTE expiry if available (Mon / Wed / Fri for SPX / SPY)."""
         today = date.today()
         weekday = today.weekday()  # 0=Monday, 4 = Friday
 
@@ -116,7 +117,7 @@ class SPXCreditSpreadsScanner:
         return None
 
     def estimate_iv_from_expected_move(self, ticker: str, expected_move_pct: float) -> float:
-        """Estimate IV from expected daily move"""
+        """Estimate IV from expected daily move."""
         try:
             # Convert daily expected move to annual IV
             # Expected move=S * IV * sqrt(T)
@@ -127,7 +128,7 @@ class SPXCreditSpreadsScanner:
             return 0.20  # Default IV
 
     def get_expected_move(self, ticker: str) -> float:
-        """Estimate expected daily move from recent volatility"""
+        """Estimate expected daily move from recent volatility."""
         try:
             if ticker == "SPX":  # Use SPY as proxy for SPX
                 proxy_ticker = "SPY"
@@ -153,7 +154,7 @@ class SPXCreditSpreadsScanner:
     def find_target_delta_strike(
         self, ticker: str, expiry: str, option_type: str, target_delta: float, spot_price: float
     ) -> tuple[float | None, float, float]:
-        """Find strike closest to target delta"""
+        """Find strike closest to target delta."""
         try:
             if ticker == "SPX":  # Use SPY options as proxy for SPX (similar behavior)
                 options_ticker = "SPY"
@@ -165,10 +166,7 @@ class SPXCreditSpreadsScanner:
             stock = yf.Ticker(options_ticker)
             chain = stock.option_chain(expiry)
 
-            if option_type == "put":
-                options_df = chain.puts
-            else:
-                options_df = chain.calls
+            options_df = chain.puts if option_type == "put" else chain.calls
 
             if options_df.empty:
                 return None, 0.0, 0.0
@@ -237,7 +235,7 @@ class SPXCreditSpreadsScanner:
     def calculate_spread_metrics(
         self, short_strike: float, long_strike: float, short_premium: float, long_premium: float
     ) -> tuple[float, float, float]:
-        """Calculate spread metrics"""
+        """Calculate spread metrics."""
         spread_width = abs(short_strike - long_strike)
         net_credit = short_premium - long_premium
         max_profit = net_credit
@@ -246,7 +244,7 @@ class SPXCreditSpreadsScanner:
         return net_credit, max_profit, max_loss
 
     def scan_credit_spreads(self, dte_target: int = 0) -> list[CreditSpreadOpportunity]:
-        """Scan for credit spread opportunities"""
+        """Scan for credit spread opportunities."""
         opportunities = []
 
         # Get target expiry
@@ -425,7 +423,7 @@ class SPXCreditSpreadsScanner:
         return opportunities
 
     def format_opportunities(self, opportunities: list[CreditSpreadOpportunity]) -> str:
-        """Format credit spread opportunities"""
+        """Format credit spread opportunities."""
         if not opportunities:
             return "🎯 No credit spread opportunities found."
 

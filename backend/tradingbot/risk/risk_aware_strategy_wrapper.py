@@ -1,5 +1,5 @@
 """Risk - Aware Strategy Wrapper
-Wraps existing strategies with sophisticated risk management
+Wraps existing strategies with sophisticated risk management.
 
 This module provides risk - aware versions of all trading strategies:
 - Real - time risk assessment before trades
@@ -19,7 +19,7 @@ from .risk_integration_manager import RiskIntegrationManager
 
 
 class RiskAwareStrategy(ABC):
-    """Abstract base class for risk - aware strategies
+    """Abstract base class for risk - aware strategies.
 
     All strategies should inherit from this to get risk management integration
     """
@@ -27,7 +27,7 @@ class RiskAwareStrategy(ABC):
     def __init__(
         self, strategy_instance: Any, risk_manager: RiskIntegrationManager, strategy_name: str
     ):
-        """Initialize risk - aware strategy wrapper
+        """Initialize risk - aware strategy wrapper.
 
         Args:
             strategy_instance: The actual strategy instance
@@ -52,11 +52,11 @@ class RiskAwareStrategy(ABC):
         symbol: str,
         action: str,  # 'buy', 'sell', 'hold'
         quantity: float,
-        price: float = None,
+        price: float | None = None,
         order_type: str = "market",
         **kwargs,
     ) -> dict[str, Any]:
-        """Execute a trade with risk management
+        """Execute a trade with risk management.
 
         Args:
             symbol: Symbol to trade
@@ -134,7 +134,7 @@ class RiskAwareStrategy(ABC):
             }
 
     async def _execute_hold_action(self, symbol: str, **kwargs) -> dict[str, Any]:
-        """Execute hold action (no risk checks needed)"""
+        """Execute hold action (no risk checks needed)."""
         return {
             "success": True,
             "action": "hold",
@@ -146,7 +146,7 @@ class RiskAwareStrategy(ABC):
     async def _execute_actual_trade(
         self, symbol: str, action: str, quantity: float, price: float, order_type: str, **kwargs
     ) -> dict[str, Any]:
-        """Execute the actual trade through the underlying strategy"""
+        """Execute the actual trade through the underlying strategy."""
         try:
             # This would call the actual strategy's trade execution method
             # For now, we'll simulate the trade execution
@@ -171,7 +171,7 @@ class RiskAwareStrategy(ABC):
             }
 
     async def _get_portfolio_value(self) -> float:
-        """Get current portfolio value"""
+        """Get current portfolio value."""
         try:
             # This would get the actual portfolio value from the broker
             # For now, return a simulated value
@@ -181,7 +181,7 @@ class RiskAwareStrategy(ABC):
             return 100000.0
 
     async def _get_current_price(self, symbol: str) -> float:
-        """Get current price for symbol"""
+        """Get current price for symbol."""
         try:
             # This would get the actual current price
             # For now, return a simulated price
@@ -193,7 +193,7 @@ class RiskAwareStrategy(ABC):
     async def _update_risk_after_trade(
         self, symbol: str, action: str, quantity: float, trade_value: float
     ):
-        """Update risk metrics after successful trade"""
+        """Update risk metrics after successful trade."""
         try:
             # Update portfolio positions
             current_positions = self.risk_manager.portfolio_positions.copy()
@@ -222,7 +222,7 @@ class RiskAwareStrategy(ABC):
             self.logger.error(f"Error updating risk after trade: {e}")
 
     async def get_risk_status(self) -> dict[str, Any]:
-        """Get current risk status for this strategy"""
+        """Get current risk status for this strategy."""
         return {
             "strategy_name": self.strategy_name,
             "risk_enabled": self.risk_enabled,
@@ -233,36 +233,36 @@ class RiskAwareStrategy(ABC):
         }
 
     def enable_risk_management(self):
-        """Enable risk management for this strategy"""
+        """Enable risk management for this strategy."""
         self.risk_enabled = True
         self.logger.info(f"Risk management enabled for {self.strategy_name}")
 
     def disable_risk_management(self):
-        """Disable risk management for this strategy"""
+        """Disable risk management for this strategy."""
         self.risk_enabled = False
         self.logger.warning(f"Risk management disabled for {self.strategy_name}")
 
     @abstractmethod
     async def analyze_market(self, symbol: str, market_data: dict[str, Any]) -> dict[str, Any]:
-        """Analyze market conditions (to be implemented by specific strategies)"""
+        """Analyze market conditions (to be implemented by specific strategies)."""
         pass
 
     @abstractmethod
     async def generate_signals(
         self, symbol: str, market_data: dict[str, Any]
     ) -> list[dict[str, Any]]:
-        """Generate trading signals (to be implemented by specific strategies)"""
+        """Generate trading signals (to be implemented by specific strategies)."""
         pass
 
 
 class RiskAwareWSBDipBot(RiskAwareStrategy):
-    """Risk - aware version of WSB Dip Bot strategy"""
+    """Risk - aware version of WSB Dip Bot strategy."""
 
     def __init__(self, strategy_instance: Any, risk_manager: RiskIntegrationManager):
         super().__init__(strategy_instance, risk_manager, "wsb_dip_bot")
 
     async def analyze_market(self, symbol: str, market_data: dict[str, Any]) -> dict[str, Any]:
-        """Analyze market for dip opportunities with risk assessment"""
+        """Analyze market for dip opportunities with risk assessment."""
         try:
             # Get base analysis from underlying strategy
             base_analysis = await self.strategy.analyze_market(symbol, market_data)
@@ -279,7 +279,7 @@ class RiskAwareWSBDipBot(RiskAwareStrategy):
     async def generate_signals(
         self, symbol: str, market_data: dict[str, Any]
     ) -> list[dict[str, Any]]:
-        """Generate dip signals with risk management"""
+        """Generate dip signals with risk management."""
         try:
             # Get base signals from underlying strategy
             base_signals = await self.strategy.generate_signals(symbol, market_data)
@@ -299,7 +299,7 @@ class RiskAwareWSBDipBot(RiskAwareStrategy):
             return []
 
     async def _assess_dip_risk(self, symbol: str, market_data: dict[str, Any]) -> dict[str, Any]:
-        """Assess risk specific to dip trading"""
+        """Assess risk specific to dip trading."""
         try:
             # Get current risk metrics
             risk_metrics = self.risk_manager.current_metrics
@@ -341,7 +341,7 @@ class RiskAwareWSBDipBot(RiskAwareStrategy):
     async def _is_signal_risk_acceptable(
         self, signal: dict[str, Any], symbol: str, market_data: dict[str, Any]
     ) -> bool:
-        """Check if a signal is acceptable from a risk perspective"""
+        """Check if a signal is acceptable from a risk perspective."""
         try:
             # Get signal details
             action = signal.get("action", "hold")
@@ -367,13 +367,13 @@ class RiskAwareWSBDipBot(RiskAwareStrategy):
 
 
 class RiskAwareEarningsProtection(RiskAwareStrategy):
-    """Risk - aware version of Earnings Protection strategy"""
+    """Risk - aware version of Earnings Protection strategy."""
 
     def __init__(self, strategy_instance: Any, risk_manager: RiskIntegrationManager):
         super().__init__(strategy_instance, risk_manager, "earnings_protection")
 
     async def analyze_market(self, symbol: str, market_data: dict[str, Any]) -> dict[str, Any]:
-        """Analyze market for earnings opportunities with risk assessment"""
+        """Analyze market for earnings opportunities with risk assessment."""
         try:
             # Get base analysis from underlying strategy
             base_analysis = await self.strategy.analyze_market(symbol, market_data)
@@ -390,7 +390,7 @@ class RiskAwareEarningsProtection(RiskAwareStrategy):
     async def generate_signals(
         self, symbol: str, market_data: dict[str, Any]
     ) -> list[dict[str, Any]]:
-        """Generate earnings protection signals with risk management"""
+        """Generate earnings protection signals with risk management."""
         try:
             # Get base signals from underlying strategy
             base_signals = await self.strategy.generate_signals(symbol, market_data)
@@ -412,7 +412,7 @@ class RiskAwareEarningsProtection(RiskAwareStrategy):
     async def _assess_earnings_risk(
         self, symbol: str, market_data: dict[str, Any]
     ) -> dict[str, Any]:
-        """Assess risk specific to earnings trading"""
+        """Assess risk specific to earnings trading."""
         try:
             # Get current risk metrics
             risk_metrics = self.risk_manager.current_metrics
@@ -458,7 +458,7 @@ class RiskAwareEarningsProtection(RiskAwareStrategy):
     async def _is_earnings_signal_risk_acceptable(
         self, signal: dict[str, Any], symbol: str, market_data: dict[str, Any]
     ) -> bool:
-        """Check if an earnings signal is acceptable from a risk perspective"""
+        """Check if an earnings signal is acceptable from a risk perspective."""
         try:
             # Get signal details
             action = signal.get("action", "hold")
@@ -486,7 +486,7 @@ class RiskAwareEarningsProtection(RiskAwareStrategy):
 def create_risk_aware_strategy(
     strategy_instance: Any, risk_manager: RiskIntegrationManager, strategy_name: str
 ) -> RiskAwareStrategy:
-    """Factory function to create risk - aware strategy wrappers
+    """Factory function to create risk - aware strategy wrappers.
 
     Args:
         strategy_instance: The actual strategy instance

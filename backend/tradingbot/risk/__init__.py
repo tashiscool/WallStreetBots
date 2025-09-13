@@ -1,5 +1,5 @@
 """Advanced Risk Management Module-2025 Implementation
-Sophisticated risk models for algorithmic trading
+Sophisticated risk models for algorithmic trading.
 """
 
 from .advanced_var_engine import AdvancedVaREngine, VaRResult, VaRSuite

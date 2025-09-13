@@ -1,5 +1,5 @@
 """Phase 3 Integration Manager
-Integrates all Phase 3 strategies with existing infrastructure
+Integrates all Phase 3 strategies with existing infrastructure.
 """
 
 from dataclasses import dataclass, field
@@ -21,7 +21,7 @@ from .unified_data_provider import UnifiedDataProvider
 
 @dataclass
 class Phase3StrategyStatus:
-    """Phase 3 strategy status"""
+    """Phase 3 strategy status."""
 
     strategy_name: str
     is_active: bool
@@ -33,7 +33,7 @@ class Phase3StrategyStatus:
 
 @dataclass
 class Phase3PortfolioSummary:
-    """Phase 3 portfolio summary"""
+    """Phase 3 portfolio summary."""
 
     total_strategies: int
     active_strategies: int
@@ -45,7 +45,7 @@ class Phase3PortfolioSummary:
 
 
 class Phase3StrategyManager:
-    """Phase 3 strategy manager"""
+    """Phase 3 strategy manager."""
 
     def __init__(self, config: ConfigManager):
         self.config = config
@@ -90,7 +90,7 @@ class Phase3StrategyManager:
         self.logger.info("Phase3StrategyManager initialized")
 
     async def initialize(self):
-        """Initialize Phase 3 strategies"""
+        """Initialize Phase 3 strategies."""
         try:
             self.logger.info("Initializing Phase 3 strategies")
 
@@ -107,7 +107,7 @@ class Phase3StrategyManager:
             raise
 
     async def scan_all_opportunities(self) -> dict[str, list[Any]]:
-        """Scan for opportunities across all Phase 3 strategies"""
+        """Scan for opportunities across all Phase 3 strategies."""
         try:
             self.logger.info("Scanning for opportunities across all Phase 3 strategies")
 
@@ -178,7 +178,7 @@ class Phase3StrategyManager:
     async def execute_strategy_trades(
         self, opportunities: dict[str, list[Any]]
     ) -> dict[str, list[Any]]:
-        """Execute trades for all strategies"""
+        """Execute trades for all strategies."""
         try:
             self.logger.info("Executing trades for all Phase 3 strategies")
 
@@ -266,7 +266,7 @@ class Phase3StrategyManager:
             return {}
 
     async def monitor_all_positions(self) -> dict[str, Any]:
-        """Monitor positions across all Phase 3 strategies"""
+        """Monitor positions across all Phase 3 strategies."""
         try:
             self.logger.info("Monitoring positions across all Phase 3 strategies")
 
@@ -325,7 +325,7 @@ class Phase3StrategyManager:
             return {"error": str(e)}
 
     async def get_strategy_status(self) -> dict[str, Phase3StrategyStatus]:
-        """Get status of all Phase 3 strategies"""
+        """Get status of all Phase 3 strategies."""
         try:
             self.logger.info("Getting status of all Phase 3 strategies")
 
@@ -439,7 +439,7 @@ class Phase3StrategyManager:
             return {}
 
     async def get_portfolio_summary(self) -> Phase3PortfolioSummary:
-        """Get comprehensive portfolio summary"""
+        """Get comprehensive portfolio summary."""
         try:
             self.logger.info("Getting Phase 3 portfolio summary")
 
@@ -489,7 +489,7 @@ class Phase3StrategyManager:
             )
 
     async def run_complete_cycle(self) -> dict[str, Any]:
-        """Run complete Phase 3 trading cycle"""
+        """Run complete Phase 3 trading cycle."""
         try:
             self.logger.info("Running complete Phase 3 trading cycle")
 
@@ -535,19 +535,19 @@ class Phase3StrategyManager:
 
 # Factory functions for Phase 3 components
 async def create_phase3_strategy_manager(config_file: str) -> Phase3StrategyManager:
-    """Create Phase 3 strategy manager"""
+    """Create Phase 3 strategy manager."""
     config_manager = ConfigManager(config_file)
     config = config_manager.load_config()
     return Phase3StrategyManager(config)
 
 
 async def create_phase3_data_provider(logger: ProductionLogger) -> UnifiedDataProvider:
-    """Create Phase 3 data provider"""
+    """Create Phase 3 data provider."""
     return UnifiedDataProvider(logger)
 
 
 async def create_phase3_trading_interface(logger: ProductionLogger) -> TradingInterface:
-    """Create Phase 3 trading interface"""
+    """Create Phase 3 trading interface."""
     return TradingInterface(
         alpaca_api_key="mock_key", alpaca_secret_key="mock_secret", paper_trading=True
     )

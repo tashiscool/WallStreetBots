@@ -1,5 +1,5 @@
 """Regulatory Compliance Manager
-Full FCA / CFTC compliance features with audit trails
+Full FCA / CFTC compliance features with audit trails.
 
 This module provides:
 - FCA (Financial Conduct Authority) compliance
@@ -25,7 +25,7 @@ from typing import Any
 
 
 def serialize_datetime(obj):
-    """JSON serializer for datetime objects"""
+    """JSON serializer for datetime objects."""
     if isinstance(obj, datetime):
         return obj.isoformat()
     elif isinstance(obj, dict):
@@ -36,7 +36,7 @@ def serialize_datetime(obj):
 
 
 class RegulatoryAuthority(str, Enum):
-    """Regulatory authorities"""
+    """Regulatory authorities."""
 
     FCA = "FCA"  # UK Financial Conduct Authority
     CFTC = "CFTC"  # US Commodity Futures Trading Commission
@@ -46,7 +46,7 @@ class RegulatoryAuthority(str, Enum):
 
 
 class ComplianceRule(str, Enum):
-    """Compliance rules"""
+    """Compliance rules."""
 
     POSITION_LIMITS = "position_limits"
     RISK_LIMITS = "risk_limits"
@@ -59,7 +59,7 @@ class ComplianceRule(str, Enum):
 
 
 class ComplianceStatus(str, Enum):
-    """Compliance status"""
+    """Compliance status."""
 
     COMPLIANT = "compliant"
     NON_COMPLIANT = "non_compliant"
@@ -70,7 +70,7 @@ class ComplianceStatus(str, Enum):
 
 @dataclass
 class ComplianceRuleDefinition:
-    """Compliance rule definition"""
+    """Compliance rule definition."""
 
     rule_id: str
     authority: RegulatoryAuthority
@@ -86,7 +86,7 @@ class ComplianceRuleDefinition:
 
 @dataclass
 class ComplianceCheck:
-    """Compliance check result"""
+    """Compliance check result."""
 
     check_id: str
     rule_id: str
@@ -104,7 +104,7 @@ class ComplianceCheck:
 
 @dataclass
 class AuditTrail:
-    """Audit trail entry"""
+    """Audit trail entry."""
 
     entry_id: str
     timestamp: datetime
@@ -120,7 +120,7 @@ class AuditTrail:
 
 
 class RegulatoryComplianceManager:
-    """Regulatory compliance management system
+    """Regulatory compliance management system.
 
     Provides:
     - Automated compliance monitoring
@@ -136,7 +136,7 @@ class RegulatoryComplianceManager:
         enable_audit_trail: bool = True,
         compliance_db_path: str = "compliance.db",
     ):
-        """Initialize regulatory compliance manager
+        """Initialize regulatory compliance manager.
 
         Args:
             primary_authority: Primary regulatory authority
@@ -169,7 +169,7 @@ class RegulatoryComplianceManager:
         self.logger.info(f"Regulatory Compliance Manager initialized for {primary_authority}")
 
     def _init_compliance_database(self):
-        """Initialize compliance database"""
+        """Initialize compliance database."""
         try:
             with sqlite3.connect(self.compliance_db_path) as conn:
                 cursor = conn.cursor()
@@ -249,7 +249,7 @@ class RegulatoryComplianceManager:
             self.logger.error(f"Error initializing compliance database: {e}")
 
     def _load_default_compliance_rules(self):
-        """Load default compliance rules"""
+        """Load default compliance rules."""
         try:
             # FCA compliance rules
             if self.primary_authority == RegulatoryAuthority.FCA:
@@ -269,7 +269,7 @@ class RegulatoryComplianceManager:
             self.logger.error(f"Error loading compliance rules: {e}")
 
     def _load_fca_rules(self):
-        """Load FCA - specific compliance rules"""
+        """Load FCA - specific compliance rules."""
         fca_rules = [
             ComplianceRuleDefinition(
                 rule_id="FCA_POSITION_LIMIT_001",
@@ -313,7 +313,7 @@ class RegulatoryComplianceManager:
             self.compliance_rules[rule.rule_id] = rule
 
     def _load_cftc_rules(self):
-        """Load CFTC - specific compliance rules"""
+        """Load CFTC - specific compliance rules."""
         cftc_rules = [
             ComplianceRuleDefinition(
                 rule_id="CFTC_POSITION_LIMIT_001",
@@ -348,7 +348,7 @@ class RegulatoryComplianceManager:
             self.compliance_rules[rule.rule_id] = rule
 
     def _load_generic_rules(self):
-        """Load generic compliance rules"""
+        """Load generic compliance rules."""
         generic_rules = [
             ComplianceRuleDefinition(
                 rule_id="GEN_POSITION_LIMIT_001",
@@ -376,7 +376,7 @@ class RegulatoryComplianceManager:
     async def run_compliance_checks(
         self, portfolio_data: dict[str, Any], risk_metrics: dict[str, Any]
     ) -> list[ComplianceCheck]:
-        """Run all compliance checks
+        """Run all compliance checks.
 
         Args:
             portfolio_data: Current portfolio data
@@ -388,7 +388,7 @@ class RegulatoryComplianceManager:
         try:
             checks = []
 
-            for rule_id, rule in self.compliance_rules.items():
+            for _rule_id, rule in self.compliance_rules.items():
                 if rule.is_active:
                     check = await self._run_compliance_check(rule, portfolio_data, risk_metrics)
                     if check:
@@ -430,7 +430,7 @@ class RegulatoryComplianceManager:
         portfolio_data: dict[str, Any],
         risk_metrics: dict[str, Any],
     ) -> ComplianceCheck | None:
-        """Run individual compliance check"""
+        """Run individual compliance check."""
         try:
             # Get current value based on rule type
             current_value = await self._get_current_value(rule, portfolio_data, risk_metrics)
@@ -439,10 +439,7 @@ class RegulatoryComplianceManager:
                 return None
 
             # Check compliance
-            if (
-                rule.rule_type == ComplianceRule.POSITION_LIMITS
-                or rule.rule_type == ComplianceRule.RISK_LIMITS
-            ):
+            if rule.rule_type in (ComplianceRule.POSITION_LIMITS, ComplianceRule.RISK_LIMITS):
                 is_compliant = current_value <= rule.threshold
             elif rule.rule_type == ComplianceRule.CAPITAL_REQUIREMENTS:
                 is_compliant = current_value >= rule.threshold
@@ -497,7 +494,7 @@ class RegulatoryComplianceManager:
         portfolio_data: dict[str, Any],
         risk_metrics: dict[str, Any],
     ) -> float | None:
-        """Get current value for compliance check"""
+        """Get current value for compliance check."""
         try:
             if rule.rule_type == ComplianceRule.POSITION_LIMITS:
                 # Get maximum position size
@@ -534,7 +531,7 @@ class RegulatoryComplianceManager:
     async def _generate_remediation_actions(
         self, rule: ComplianceRuleDefinition, current_value: float, deviation: float
     ) -> list[str]:
-        """Generate remediation actions for compliance violations"""
+        """Generate remediation actions for compliance violations."""
         try:
             actions = []
 
@@ -576,10 +573,10 @@ class RegulatoryComplianceManager:
         old_values: dict[str, Any],
         new_values: dict[str, Any],
         reason: str,
-        ip_address: str = None,
-        session_id: str = None,
+        ip_address: str | None = None,
+        session_id: str | None = None,
     ):
-        """Log audit trail entry"""
+        """Log audit trail entry."""
         try:
             if not self.enable_audit_trail:
                 return
@@ -604,8 +601,8 @@ class RegulatoryComplianceManager:
             with sqlite3.connect(self.compliance_db_path) as conn:
                 conn.execute(
                     """
-                    INSERT INTO audit_trail 
-                    (entry_id, timestamp, user_id, action, entity_type, entity_id, 
+                    INSERT INTO audit_trail
+                    (entry_id, timestamp, user_id, action, entity_type, entity_id,
                      old_values, new_values, reason, ip_address, session_id)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -631,7 +628,7 @@ class RegulatoryComplianceManager:
     async def generate_regulatory_report(
         self, report_type: str, period_start: datetime, period_end: datetime, data: dict[str, Any]
     ) -> str:
-        """Generate regulatory report
+        """Generate regulatory report.
 
         Args:
             report_type: Type of report
@@ -660,8 +657,8 @@ class RegulatoryComplianceManager:
             with sqlite3.connect(self.compliance_db_path) as conn:
                 conn.execute(
                     """
-                    INSERT INTO regulatory_reports 
-                    (report_id, authority, report_type, period_start, period_end, 
+                    INSERT INTO regulatory_reports
+                    (report_id, authority, report_type, period_start, period_end,
                      status, data, created_date)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -701,7 +698,7 @@ class RegulatoryComplianceManager:
             return ""
 
     async def get_compliance_summary(self) -> dict[str, Any]:
-        """Get compliance summary"""
+        """Get compliance summary."""
         try:
             # Get recent checks
             recent_checks = [
@@ -742,7 +739,7 @@ class RegulatoryComplianceManager:
             return {"error": str(e)}
 
     def check_position_compliance(self, positions: dict[str, Any]) -> "ComplianceCheck":
-        """Check position compliance against rules
+        """Check position compliance against rules.
 
         Args:
             positions: Dictionary of positions to check
@@ -760,7 +757,7 @@ class RegulatoryComplianceManager:
 
             # Check against position limit rules
             violations = []
-            for rule_id, rule in self.compliance_rules.items():
+            for _rule_id, rule in self.compliance_rules.items():
                 if rule.rule_type == ComplianceRule.POSITION_LIMITS:
                     if concentration_risk > rule.threshold:
                         violations.append(
@@ -809,7 +806,7 @@ class RegulatoryComplianceManager:
             )
 
     def add_compliance_rule(self, rule: ComplianceRuleDefinition):
-        """Add new compliance rule"""
+        """Add new compliance rule."""
         try:
             self.compliance_rules[rule.rule_id] = rule
 
@@ -832,7 +829,7 @@ class RegulatoryComplianceManager:
             self.logger.error(f"Error adding compliance rule: {e}")
 
     def update_compliance_rule(self, rule_id: str, updates: dict[str, Any]):
-        """Update compliance rule"""
+        """Update compliance rule."""
         try:
             if rule_id not in self.compliance_rules:
                 raise ValueError(f"Rule {rule_id} not found")

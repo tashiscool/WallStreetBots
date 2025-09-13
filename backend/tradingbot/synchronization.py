@@ -17,7 +17,7 @@ def validate_backend():
 
 def sync_database_company_stock(ticker):
     """Check if company / stock for this ticker exist and sync to database if not already exists
-    returns the stock and company
+    returns the stock and company.
     """
     from backend.tradingbot.models import Company, Stock
 
@@ -37,7 +37,7 @@ def sync_database_company_stock(ticker):
 
 def sync_stock_instance(user, portfolio, stock):
     """Create a stock instance and
-    add it to the database
+    add it to the database.
     """
     from backend.tradingbot.models import StockInstance
 
@@ -176,17 +176,16 @@ def sync_alpaca(user):
         if (
             not order.client_order_id.isnumeric()
             or not Order.objects.filter(user=user, order_number=order.client_order_id).exists()
-        ):
-            if not Order.objects.filter(user=user, client_order_id=order.client_order_id).exists():
-                create_local_order(
-                    user=user,
-                    ticker=order.symbol,
-                    quantity=float(order.qty),
-                    order_type=order.order_type,
-                    transaction_type=order.side,
-                    status="A",
-                    client_order_id=order.client_order_id,
-                )
+        ) and not Order.objects.filter(user=user, client_order_id=order.client_order_id).exists():
+            create_local_order(
+                user=user,
+                ticker=order.symbol,
+                quantity=float(order.qty),
+                order_type=order.order_type,
+                transaction_type=order.side,
+                status="A",
+                client_order_id=order.client_order_id,
+            )
 
     # iterate through all 0 qty stock and add to portfolio
     display_portfolio = []

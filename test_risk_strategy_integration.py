@@ -1,6 +1,6 @@
 #!/usr / bin / env python3
 """Test Risk - Strategy Integration
-Demonstrates Month 3 - 4: Integration with WallStreetBots
+Demonstrates Month 3 - 4: Integration with WallStreetBots.
 
 This script tests the integration of sophisticated risk models with trading strategies:
 - Real - time risk assessment during trading
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 async def test_risk_strategy_integration():
-    """Test the complete risk - strategy integration"""
+    """Test the complete risk - strategy integration."""
     print("🚀 Testing Risk - Strategy Integration - Month 3 - 4")
     print(" = " * 60)
 
@@ -301,7 +301,7 @@ async def test_risk_strategy_integration():
 
 
 async def main():
-    """Main test function"""
+    """Main test function."""
     print("Starting Risk - Strategy Integration Test...")
 
     success = await test_risk_strategy_integration()

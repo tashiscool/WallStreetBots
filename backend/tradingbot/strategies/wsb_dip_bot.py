@@ -1,10 +1,10 @@
 #!/usr / bin / env python3
-"""WSB Dip - After - Run Scanner & Exact - Clone Options Planner / Monitor
+"""WSB Dip - After - Run Scanner & Exact - Clone Options Planner / Monitor.
 
-Replicates the common r / WSB winning tactic: 
+Replicates the common r / WSB winning tactic:
 - Buy ~5% OTM calls with ~30 DTE on a HARD DIP DAY that follows a BIG RUN.
 - Single strike / expiry, big size allowed (configurable risk%).
-- Exit same / next day when: 
+- Exit same / next day when:
     • option ≈ 3x entry, OR
     • goes ITM / Δ ≥ 0.60 (approx), OR
     • time stop / loss stop triggers.
@@ -14,13 +14,13 @@ Notes:
 - Trading is NOT executed by this script—only scanning, planning, and monitoring.
 - Use at your own risk.
 
-Install deps: 
+Install deps:
     pip install -r requirements.txt
 
 Examples:
     # End - of - day scan across default mega - caps; propose an options line per hit
     python wsb_dip_bot.py scan - eod --account - size 450000 --risk - pct 1.0 --use-options - chain
-    
+
     # Intraday polling every 2 minutes for 30 minutes
     python wsb_dip_bot.py scan - intraday --poll - seconds 120 --max - minutes 30 \
         --account - size 450000 --risk - pct 1.0 --use-options - chain
@@ -396,7 +396,7 @@ def monitor_plan(
     """Polls the option mid every poll_seconds. Alerts when:
     - price  >=  target_mult * entry_prem
     - approx delta  >=  delta_target (via BS using IV implied from current mid if possible)
-    - price  <=  loss_stop_mult * entry_prem (stop)
+    - price  <=  loss_stop_mult * entry_prem (stop).
     """
     end_time = now_ny() + timedelta(minutes=max_minutes) if max_minutes > 0 else None
     tkr = yf.Ticker(ticker)

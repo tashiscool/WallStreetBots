@@ -1,11 +1,12 @@
 #!/usr / bin / env python3
 """WSB Strategy: Enhanced Breakout Swing Trading
 Fast profit - taking swing trades with same-day exit discipline
-Based on WSB successful swing trading patterns with ≤30 day expiries
+Based on WSB successful swing trading patterns with ≤30 day expiries.
 """
 
 import argparse
 import json
+import sys
 import time
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
@@ -17,7 +18,7 @@ try:
 except ImportError as e:
     print(f"Missing required package: {e}")
     print("Run: pip install -r wsb_requirements.txt")
-    exit(1)
+    sys.exit(1)
 
 
 @dataclass
@@ -94,7 +95,7 @@ class SwingTradingScanner:
         self.active_trades: list[ActiveSwingTrade] = []
 
     def detect_breakout(self, ticker: str) -> tuple[bool, float, float]:
-        """Detect breakout above resistance with volume confirmation"""
+        """Detect breakout above resistance with volume confirmation."""
         try:
             stock = yf.Ticker(ticker)
 
@@ -156,7 +157,7 @@ class SwingTradingScanner:
             return False, 0.0, 0.0
 
     def detect_momentum_continuation(self, ticker: str) -> tuple[bool, float]:
-        """Detect strong momentum continuation patterns"""
+        """Detect strong momentum continuation patterns."""
         try:
             stock = yf.Ticker(ticker)
             data = stock.history(period="2d", interval="5m")
@@ -191,7 +192,7 @@ class SwingTradingScanner:
             return False, 0.0
 
     def detect_reversal_setup(self, ticker: str) -> tuple[bool, str, float]:
-        """Detect oversold bounce setups"""
+        """Detect oversold bounce setups."""
         try:
             stock = yf.Ticker(ticker)
             data = stock.history(period="3d", interval="15m")
@@ -233,7 +234,7 @@ class SwingTradingScanner:
             return False, "error", 0.0
 
     def get_optimal_expiry(self, max_days: int = 30) -> str:
-        """Get optimal expiry (WSB rule: ≤30 days for swing trades)"""
+        """Get optimal expiry (WSB rule: ≤30 days for swing trades)."""
         today = date.today()
 
         # Prefer weekly expirations for faster theta decay management
@@ -257,7 +258,7 @@ class SwingTradingScanner:
     def calculate_option_targets(
         self, current_price: float, strike: int, premium: float
     ) -> tuple[float, float, float, float]:
-        """Calculate profit targets and stop loss for swing trade"""
+        """Calculate profit targets and stop loss for swing trade."""
         # WSB swing trading targets: fast profit - taking
         profit_25 = premium * 1.25  # 25% profit - take some off
         profit_50 = premium * 1.50  # 50% profit - take more off
@@ -268,7 +269,7 @@ class SwingTradingScanner:
         return profit_25, profit_50, profit_100, stop_loss
 
     def estimate_swing_premium(self, ticker: str, strike: int, expiry: str) -> float:
-        """Estimate option premium for swing trade"""
+        """Estimate option premium for swing trade."""
         try:
             stock = yf.Ticker(ticker)
 
@@ -304,7 +305,7 @@ class SwingTradingScanner:
             return 2.0  # Conservative fallback
 
     def scan_swing_opportunities(self) -> list[SwingSignal]:
-        """Scan for swing trading opportunities"""
+        """Scan for swing trading opportunities."""
         signals = []
         expiry = self.get_optimal_expiry()
 
@@ -401,7 +402,7 @@ class SwingTradingScanner:
         return signals
 
     def monitor_active_trades(self) -> list[str]:
-        """Monitor active swing trades and generate exit signals"""
+        """Monitor active swing trades and generate exit signals."""
         exit_recommendations = []
 
         if not self.active_trades:
@@ -476,7 +477,7 @@ class SwingTradingScanner:
         return exit_recommendations
 
     def format_signals(self, signals: list[SwingSignal]) -> str:
-        """Format swing signals for display"""
+        """Format swing signals for display."""
         if not signals:
             return "🎯 No swing trading signals found at this time."
 

@@ -1,4 +1,4 @@
-"""Production Trading Strategies
+"""Production Trading Strategies.
 
 Production - ready implementations of WSB - style trading strategies:
 - ProductionWSBDipBot: Dip - after - run strategy with live execution

@@ -1,5 +1,5 @@
 """Phase 4: Production Backtesting & High - Risk Strategy Orchestration
-READY FOR REAL MONEY TRADING
+READY FOR REAL MONEY TRADING.
 
 This is the final phase that brings together:
 - Comprehensive historical validation of all strategies
@@ -41,7 +41,7 @@ class StrategyRiskLevel(Enum):
 
 @dataclass
 class BacktestConfig:
-    """Comprehensive backtest configuration"""
+    """Comprehensive backtest configuration."""
 
     start_date: datetime
     end_date: datetime
@@ -60,7 +60,7 @@ class BacktestConfig:
 
 @dataclass
 class BacktestTrade:
-    """Individual backtest trade record"""
+    """Individual backtest trade record."""
 
     trade_id: str
     strategy_name: str
@@ -84,7 +84,7 @@ class BacktestTrade:
 
 @dataclass
 class StrategyBacktestResults:
-    """Comprehensive strategy backtest results"""
+    """Comprehensive strategy backtest results."""
 
     strategy_name: str
     start_date: datetime
@@ -136,7 +136,7 @@ class StrategyBacktestResults:
 
 @dataclass
 class MonteCarloResults:
-    """Monte Carlo simulation results"""
+    """Monte Carlo simulation results."""
 
     strategy_name: str
     runs: int
@@ -164,7 +164,7 @@ class MonteCarloResults:
 
 
 class ProductionBacktestEngine:
-    """Production - grade backtesting engine with comprehensive validation"""
+    """Production - grade backtesting engine with comprehensive validation."""
 
     def __init__(self, config: ProductionConfig, database_manager: ProductionDatabaseManager):
         self.config = config
@@ -204,7 +204,7 @@ class ProductionBacktestEngine:
     async def validate_strategy(
         self, strategy_name: str, backtest_config: BacktestConfig, monte_carlo: bool = True
     ) -> tuple[StrategyBacktestResults, MonteCarloResults | None]:
-        """Comprehensive strategy validation with historical backtesting and Monte Carlo
+        """Comprehensive strategy validation with historical backtesting and Monte Carlo.
 
         This is the CRITICAL validation that must pass before any strategy touches real money
         """
@@ -249,7 +249,7 @@ class ProductionBacktestEngine:
     async def _run_historical_backtest(
         self, strategy_name: str, config: BacktestConfig
     ) -> StrategyBacktestResults:
-        """Run historical backtest using real market data"""
+        """Run historical backtest using real market data."""
         try:
             self.logger.info(f"Running historical backtest for {strategy_name}")
 
@@ -349,7 +349,7 @@ class ProductionBacktestEngine:
             raise
 
     async def _fetch_historical_data(self, config: BacktestConfig) -> dict[str, pd.DataFrame]:
-        """Fetch historical market data for backtesting"""
+        """Fetch historical market data for backtesting."""
         try:
             self.logger.info("Fetching historical market data")
 
@@ -414,7 +414,7 @@ class ProductionBacktestEngine:
             raise
 
     async def _create_strategy_instance(self, strategy_name: str):
-        """Create strategy instance for backtesting"""
+        """Create strategy instance for backtesting."""
         try:
             if strategy_name == "wsb_dip_bot":
                 return create_wsb_dip_bot_strategy(
@@ -448,7 +448,7 @@ class ProductionBacktestEngine:
         historical_data: dict[str, pd.DataFrame],
         portfolio_value: Decimal,
     ) -> list[dict[str, Any]]:
-        """Generate strategy signals for backtesting"""
+        """Generate strategy signals for backtesting."""
         try:
             signals = []
 
@@ -485,7 +485,7 @@ class ProductionBacktestEngine:
         portfolio_value: Decimal,
         config: BacktestConfig,
     ) -> list[BacktestTrade]:
-        """Execute trades in backtest environment"""
+        """Execute trades in backtest environment."""
         trades = []
 
         try:
@@ -549,7 +549,7 @@ class ProductionBacktestEngine:
         daily_values: list[Decimal],
         historical_data: dict[str, pd.DataFrame],
     ) -> StrategyBacktestResults:
-        """Calculate comprehensive backtest results"""
+        """Calculate comprehensive backtest results."""
         try:
             # Basic trade statistics
             total_trades = len([t for t in trades if t.exit_date is not None])
@@ -663,7 +663,7 @@ class ProductionBacktestEngine:
     async def _calculate_benchmark_return(
         self, config: BacktestConfig, historical_data: dict[str, pd.DataFrame]
     ) -> Decimal:
-        """Calculate benchmark return for comparison"""
+        """Calculate benchmark return for comparison."""
         try:
             if config.benchmark_ticker in historical_data:
                 benchmark_data = historical_data[config.benchmark_ticker]
@@ -683,7 +683,7 @@ class ProductionBacktestEngine:
             return Decimal("0.08")
 
     async def _validate_risk_metrics(self, results: StrategyBacktestResults) -> dict[str, Any]:
-        """Validate strategy risk metrics against production standards"""
+        """Validate strategy risk metrics against production standards."""
         try:
             validation = {"passed": True, "reasons": []}
 
@@ -713,7 +713,7 @@ class ProductionBacktestEngine:
     async def _run_monte_carlo_simulation(
         self, strategy_name: str, backtest_results: StrategyBacktestResults, runs: int = 1000
     ) -> MonteCarloResults:
-        """Run Monte Carlo simulation for forward - looking risk analysis"""
+        """Run Monte Carlo simulation for forward - looking risk analysis."""
         try:
             self.logger.info(f"Running Monte Carlo simulation: {runs} runs")
 
@@ -780,7 +780,7 @@ class ProductionBacktestEngine:
         backtest_results: StrategyBacktestResults,
         monte_carlo_results: MonteCarloResults | None,
     ):
-        """Save validation results to database"""
+        """Save validation results to database."""
         try:
             # Convert backtest results to StrategyPerformance for database
             performance = StrategyPerformance(
@@ -809,7 +809,7 @@ class ProductionBacktestEngine:
             self.error_handler.handle_error(e, {"operation": "_save_validation_results"})
 
     async def validate_all_strategies(self) -> dict[str, StrategyBacktestResults]:
-        """Validate all production strategies"""
+        """Validate all production strategies."""
         strategies = ["wsb_dip_bot", "wheel", "debit_spreads", "spx_spreads"]
 
         # Default backtest config (last 2 years)
@@ -839,7 +839,7 @@ class ProductionBacktestEngine:
 # High - Risk Strategy Orchestrator
 class HighRiskStrategyOrchestrator:
     """Orchestrates high - risk strategies with extreme risk controls
-    This is Phase 4's crown jewel - managing the most dangerous strategies
+    This is Phase 4's crown jewel - managing the most dangerous strategies.
     """
 
     def __init__(self, config: ProductionConfig, database_manager: ProductionDatabaseManager):
@@ -875,7 +875,7 @@ class HighRiskStrategyOrchestrator:
         self, strategy_name: str, trade_amount: Decimal
     ) -> tuple[bool, str]:
         """CRITICAL: Determine if high - risk trade can be executed
-        This is the gatekeeper for all dangerous trades
+        This is the gatekeeper for all dangerous trades.
         """
         try:
             # Check if strategy is high - risk
@@ -929,7 +929,7 @@ class HighRiskStrategyOrchestrator:
             return False, f"Risk check error: {e}"
 
     async def _calculate_current_account_risk(self) -> Decimal:
-        """Calculate current total account risk exposure"""
+        """Calculate current total account risk exposure."""
         try:
             positions = await self.database.get_active_positions()
             total_risk = Decimal("0.00")
@@ -950,20 +950,20 @@ class HighRiskStrategyOrchestrator:
 def create_production_backtest_engine(
     config: ProductionConfig, database_manager: ProductionDatabaseManager
 ) -> ProductionBacktestEngine:
-    """Create production backtest engine"""
+    """Create production backtest engine."""
     return ProductionBacktestEngine(config, database_manager)
 
 
 def create_high_risk_orchestrator(
     config: ProductionConfig, database_manager: ProductionDatabaseManager
 ) -> HighRiskStrategyOrchestrator:
-    """Create high - risk strategy orchestrator"""
+    """Create high - risk strategy orchestrator."""
     return HighRiskStrategyOrchestrator(config, database_manager)
 
 
 # Standalone execution for validation
 async def main():
-    """Standalone Phase 4 validation"""
+    """Standalone Phase 4 validation."""
     from .production_config import create_config_manager
     from .production_database import create_database_manager
 

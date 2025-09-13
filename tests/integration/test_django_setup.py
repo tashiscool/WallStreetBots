@@ -1,12 +1,12 @@
 #!/usr / bin / env python
-"""Test script to verify Django setup and dependencies before running migrations"""
+"""Test script to verify Django setup and dependencies before running migrations."""
 
 import os
 import sys
 
 
 def test_django_imports():
-    """Test that all required Django packages can be imported"""
+    """Test that all required Django packages can be imported."""
     print("Testing Django imports...")
 
     try:
@@ -61,7 +61,7 @@ def test_django_imports():
 
 
 def test_other_dependencies():
-    """Test other required dependencies"""
+    """Test other required dependencies."""
     print("\nTesting other dependencies...")
 
     dependencies = [
@@ -88,7 +88,7 @@ def test_other_dependencies():
 
 
 def test_django_setup():
-    """Test Django setup and configuration"""
+    """Test Django setup and configuration."""
     print("\nTesting Django setup...")
 
     # Set environment variables for testing
@@ -119,7 +119,7 @@ def test_django_setup():
 
 
 def main():
-    """Run all tests"""
+    """Run all tests."""
     print("🧪 TESTING DJANGO SETUP FOR GITHUB ACTIONS")
     print(" = " * 60)
 

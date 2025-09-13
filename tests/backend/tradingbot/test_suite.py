@@ -377,7 +377,9 @@ class TestAlertSystem(unittest.TestCase):
             message="Test message"
         )
 
-        results=self.alert_system.send_alert(alert)
+        # Use asyncio.run for the async call
+        import asyncio
+        results=asyncio.run(self.alert_system.send_alert(alert))
 
         # Should successfully route to desktop
         self.assertTrue(results.get(AlertChannel.DESKTOP, False))

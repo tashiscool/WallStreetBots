@@ -121,80 +121,78 @@ class TestProductionStrategyManager:
                 assert hasattr(manager, 'strategies')
                 assert isinstance(manager.strategies, dict)
     
-    @patch('backend.tradingbot.production.strategies.production_wsb_dip_bot.create_production_wsb_dip_bot')
-    @patch('backend.tradingbot.production.strategies.production_earnings_protection.create_production_earnings_protection')
-    @patch('backend.tradingbot.production.strategies.production_index_baseline.create_production_index_baseline')
-    def test_strategy_creation_wsb_dip_bot(self, mock_wsb, mock_earnings, mock_index, strategy_manager):
+    @patch('backend.tradingbot.production.core.production_strategy_manager.create_production_wsb_dip_bot')
+    def test_strategy_creation_wsb_dip_bot(self, mock_wsb, strategy_manager):
         """Test WSB Dip Bot strategy creation"""
         # Mock strategy factory
         mock_strategy=Mock()
         mock_wsb.return_value=mock_strategy
-        
+
         # Create strategy config
         config = StrategyConfig(
             name='wsb_dip_bot',
             enabled=True,
             parameters={'test':'value'}
         )
-        
+
         # Test creation
         strategy=strategy_manager._create_strategy('wsb_dip_bot', config)
-        
+
         assert strategy== mock_strategy
         mock_wsb.assert_called_once()
     
-    @patch('backend.tradingbot.production.strategies.production_wheel_strategy.create_production_wheel_strategy')
+    @patch('backend.tradingbot.production.core.production_strategy_manager.create_production_wheel_strategy')
     def test_strategy_creation_wheel_strategy(self, mock_wheel, strategy_manager):
         """Test Wheel Strategy creation"""
         mock_strategy=Mock()
         mock_wheel.return_value=mock_strategy
-        
+
         config = StrategyConfig(
             name='wheel_strategy',
             enabled=True,
             parameters={'target_iv_rank':50}
         )
-        
+
         strategy=strategy_manager._create_strategy('wheel_strategy', config)
-        
+
         assert strategy== mock_strategy
         mock_wheel.assert_called_once()
     
-    @patch('backend.tradingbot.production.strategies.production_momentum_weeklies.create_production_momentum_weeklies')
+    @patch('backend.tradingbot.production.core.production_strategy_manager.create_production_momentum_weeklies')
     def test_strategy_creation_momentum_weeklies(self, mock_momentum, strategy_manager):
         """Test Momentum Weeklies strategy creation"""
         mock_strategy=Mock()
         mock_momentum.return_value=mock_strategy
-        
+
         config = StrategyConfig(
             name='momentum_weeklies',
             enabled=True,
             parameters={'max_positions':3}
         )
-        
+
         strategy=strategy_manager._create_strategy('momentum_weeklies', config)
-        
+
         assert strategy== mock_strategy
         mock_momentum.assert_called_once()
-    
-    @patch('backend.tradingbot.production.strategies.production_debit_spreads.create_production_debit_spreads')
+
+    @patch('backend.tradingbot.production.core.production_strategy_manager.create_production_debit_spreads')
     def test_strategy_creation_debit_spreads(self, mock_debit, strategy_manager):
         """Test Debit Spreads strategy creation"""
         mock_strategy=Mock()
         mock_debit.return_value=mock_strategy
-        
+
         config = StrategyConfig(
             name='debit_spreads',
             enabled=True,
             parameters={'min_risk_reward':1.5}
         )
-        
+
         strategy=strategy_manager._create_strategy('debit_spreads', config)
-        
+
         assert strategy== mock_strategy
         mock_debit.assert_called_once()
-    
-    @patch('backend.tradingbot.production.strategies.production_leaps_tracker.create_production_leaps_tracker')
+
+    @patch('backend.tradingbot.production.core.production_strategy_manager.create_production_leaps_tracker')
     def test_strategy_creation_leaps_tracker(self, mock_leaps, strategy_manager):
         """Test LEAPS Tracker strategy creation"""
         mock_strategy=Mock()
@@ -211,54 +209,54 @@ class TestProductionStrategyManager:
         assert strategy== mock_strategy
         mock_leaps.assert_called_once()
     
-    @patch('backend.tradingbot.production.strategies.production_swing_trading.create_production_swing_trading')
+    @patch('backend.tradingbot.production.core.production_strategy_manager.create_production_swing_trading')
     def test_strategy_creation_swing_trading(self, mock_swing, strategy_manager):
         """Test Swing Trading strategy creation"""
         mock_strategy=Mock()
         mock_swing.return_value=mock_strategy
-        
+
         config = StrategyConfig(
             name='swing_trading',
             enabled=True,
             parameters={'max_hold_hours':8}
         )
-        
+
         strategy=strategy_manager._create_strategy('swing_trading', config)
-        
+
         assert strategy== mock_strategy
         mock_swing.assert_called_once()
-    
-    @patch('backend.tradingbot.production.strategies.production_spx_credit_spreads.create_production_spx_credit_spreads')
+
+    @patch('backend.tradingbot.production.core.production_strategy_manager.create_production_spx_credit_spreads')
     def test_strategy_creation_spx_credit_spreads(self, mock_spx, strategy_manager):
         """Test SPX Credit Spreads strategy creation"""
         mock_strategy=Mock()
         mock_spx.return_value=mock_strategy
-        
+
         config = StrategyConfig(
             name='spx_credit_spreads',
             enabled=True,
             parameters={'target_short_delta':0.30}
         )
-        
+
         strategy=strategy_manager._create_strategy('spx_credit_spreads', config)
-        
+
         assert strategy== mock_strategy
         mock_spx.assert_called_once()
-    
-    @patch('backend.tradingbot.production.strategies.production_lotto_scanner.create_production_lotto_scanner')
+
+    @patch('backend.tradingbot.production.core.production_strategy_manager.create_production_lotto_scanner')
     def test_strategy_creation_lotto_scanner(self, mock_lotto, strategy_manager):
         """Test Lotto Scanner strategy creation"""
         mock_strategy=Mock()
         mock_lotto.return_value=mock_strategy
-        
+
         config = StrategyConfig(
             name='lotto_scanner',
             enabled=True,
             parameters={'max_risk_pct':1.0}
         )
-        
+
         strategy=strategy_manager._create_strategy('lotto_scanner', config)
-        
+
         assert strategy== mock_strategy
         mock_lotto.assert_called_once()
     
@@ -275,15 +273,15 @@ class TestProductionStrategyManager:
     
     def test_strategy_creation_exception_handling(self, strategy_manager):
         """Test exception handling in strategy creation"""
-        with patch('backend.tradingbot.production.strategies.production_wsb_dip_bot.create_production_wsb_dip_bot',
+        with patch('backend.tradingbot.production.core.production_strategy_manager.create_production_wsb_dip_bot',
                    side_effect=Exception("Test error")):
-            
+
             config=StrategyConfig(
                 name='wsb_dip_bot',
                 enabled=True,
                 parameters={}
             )
-            
+
             strategy=strategy_manager._create_strategy('wsb_dip_bot', config)
             assert strategy is None
     

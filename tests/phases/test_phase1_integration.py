@@ -220,7 +220,15 @@ class TestConfigurationManagement(unittest.TestCase):
         """Setup test environment"""
         self.temp_dir=tempfile.mkdtemp()
         self.config_file=os.path.join(self.temp_dir, "test_config.json")
-        
+
+        # Store original environment variables
+        self.original_env = {}
+        env_vars_to_save = ['ALPACA_API_KEY', 'ALPACA_SECRET_KEY', 'IEX_API_KEY', 'POLYGON_API_KEY']
+        for var in env_vars_to_save:
+            if var in os.environ:
+                self.original_env[var] = os.environ[var]
+                del os.environ[var]  # Remove from environment during test
+
         # Create test configuration
         test_config={
             "data_providers":{
@@ -236,14 +244,18 @@ class TestConfigurationManagement(unittest.TestCase):
                 "account_size":50000.0
             }
         }
-        
+
         with open(self.config_file, 'w') as f:
             json.dump(test_config, f)
-    
+
     def tearDown(self):
         """Cleanup test environment"""
         import shutil
         shutil.rmtree(self.temp_dir)
+
+        # Restore original environment variables
+        for var, value in self.original_env.items():
+            os.environ[var] = value
     
     def test_config_loading(self):
         """Test configuration loading"""

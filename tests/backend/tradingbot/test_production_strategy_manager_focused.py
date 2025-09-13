@@ -5,6 +5,7 @@ Tests the core functionality we just implemented
 """
 
 import asyncio
+import pytest
 import sys
 import os
 from unittest.mock import Mock, patch
@@ -126,6 +127,7 @@ def test_create_strategy_method_exists():
         print("✅ _create_strategy method test passed")
 
 
+@pytest.mark.asyncio
 async def test_async_methods_exist():
     """Test that async methods exist and have correct signatures"""
     print("Testing async methods exist...")

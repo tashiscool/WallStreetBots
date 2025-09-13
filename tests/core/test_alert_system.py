@@ -5,6 +5,8 @@ Tests alert generation, delivery, and execution checklists
 """
 
 import unittest
+import pytest
+import asyncio
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
 import json
@@ -190,13 +192,14 @@ class TestTradingAlertSystem(unittest.TestCase):
         self.assertIn(AlertChannel.DESKTOP, self.alert_system.handlers)
         self.assertEqual(self.alert_system.handlers[AlertChannel.DESKTOP], handler)
     
-    def test_alert_sending(self):
+    @pytest.mark.asyncio
+    async def test_alert_sending(self):
         """Test alert sending through system"""
         # Register mock handler
         mock_handler=Mock()
         mock_handler.send_alert.return_value=True
         self.alert_system.register_handler(AlertChannel.EMAIL, mock_handler)
-        
+
         alert=Alert(
             alert_type=AlertType.SETUP_DETECTED,
             priority=AlertPriority.HIGH,
@@ -205,23 +208,24 @@ class TestTradingAlertSystem(unittest.TestCase):
             message="Pullback setup detected",
             channels=[AlertChannel.EMAIL]
         )
-        
-        results=self.alert_system.send_alert(alert)
-        
+
+        results=await self.alert_system.send_alert(alert)
+
         self.assertIn(AlertChannel.EMAIL, results)
         self.assertTrue(results[AlertChannel.EMAIL])
         mock_handler.send_alert.assert_called_once_with(alert)
         self.assertIn(alert, self.alert_system.alert_history)
     
-    def test_alert_filtering_by_priority(self):
+    @pytest.mark.asyncio
+    async def test_alert_filtering_by_priority(self):
         """Test alert filtering by priority levels"""
         self.alert_system.min_priority=AlertPriority.HIGH
-        
+
         # Register mock handler
         mock_handler = Mock()
         mock_handler.send_alert.return_value=True
         self.alert_system.register_handler(AlertChannel.DESKTOP, mock_handler)
-        
+
         # Low priority alert should be filtered
         low_alert=Alert(
             alert_type=AlertType.SETUP_DETECTED,
@@ -231,8 +235,8 @@ class TestTradingAlertSystem(unittest.TestCase):
             message="Low priority message",
             channels=[AlertChannel.DESKTOP]
         )
-        
-        results=self.alert_system.send_alert(low_alert)
+
+        results=await self.alert_system.send_alert(low_alert)
         self.assertEqual(results, {})  # No results due to filtering
         mock_handler.send_alert.assert_not_called()
         
@@ -250,11 +254,12 @@ class TestTradingAlertSystem(unittest.TestCase):
         self.assertTrue(results[AlertChannel.DESKTOP])
         mock_handler.send_alert.assert_called_once_with(high_alert)
     
-    def test_alert_history_management(self):
+    @pytest.mark.asyncio
+    async def test_alert_history_management(self):
         """Test alert history tracking"""
         # Initial state
         self.assertEqual(len(self.alert_system.alert_history), 0)
-        
+
         alert=Alert(
             alert_type=AlertType.TIME_WARNING,
             priority=AlertPriority.MEDIUM,
@@ -262,8 +267,8 @@ class TestTradingAlertSystem(unittest.TestCase):
             title="Time Warning",
             message="Options expiring soon"
         )
-        
-        self.alert_system.send_alert(alert)
+
+        await self.alert_system.send_alert(alert)
         self.assertEqual(len(self.alert_system.alert_history), 1)
         self.assertEqual(self.alert_system.alert_history[0], alert)
         
@@ -430,7 +435,8 @@ class TestAlertIntegration(unittest.TestCase):
         self.alert_system=TradingAlertSystem()
         self.checklist_manager=ExecutionChecklistManager()
     
-    def test_complete_trading_workflow(self):
+    @pytest.mark.asyncio
+    async def test_complete_trading_workflow(self):
         """Test complete trading workflow with alerts and checklists"""
         # 1. Setup detection alert
         setup_alert=Alert(
@@ -440,14 +446,14 @@ class TestAlertIntegration(unittest.TestCase):
             title="Bull Pullback Setup Detected",
             message="AAPL showing bull market pullback pattern"
         )
-        
+
         # Register mock handler
         mock_handler=Mock()
         mock_handler.send_alert.return_value=True
         self.alert_system.register_handler(AlertChannel.DESKTOP, mock_handler)
-        
+
         # Send setup alert
-        results=self.alert_system.send_alert(setup_alert)
+        results=await self.alert_system.send_alert(setup_alert)
         self.assertTrue(results.get(AlertChannel.DESKTOP, False))
         
         # 2. Create entry checklist

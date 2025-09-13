@@ -112,7 +112,9 @@ class MLRiskPredictor:
 
                 # Check if scaler is fitted
                 if hasattr(self.scalers["volatility"], "mean_"):
-                    feature_vector_scaled = self.scalers["volatility"].transform([feature_vector])
+                    feature_vector_scaled = self.scalers["volatility"].transform(
+                        [feature_vector]
+                    )
                 else:
                     # Fallback to basic prediction if model not trained
                     predicted_vol = self._basic_volatility_prediction(market_data)
@@ -127,7 +129,9 @@ class MLRiskPredictor:
                     )
 
                 # Get prediction
-                predicted_vol = self.models["volatility_rf"].predict(feature_vector_scaled)[0]
+                predicted_vol = self.models["volatility_rf"].predict(
+                    feature_vector_scaled
+                )[0]
 
                 # Calculate confidence interval (simplified)
                 confidence_std = 0.1  # 10% standard deviation
@@ -195,7 +199,9 @@ class MLRiskPredictor:
         return {
             "returns_mean": np.mean(returns),
             "returns_std": np.std(returns),
-            "price_trend": (prices[-1] - prices[0]) / prices[0] if len(prices) > 0 else 0.0,
+            "price_trend": (prices[-1] - prices[0]) / prices[0]
+            if len(prices) > 0
+            else 0.0,
             "price_volatility": np.std(returns) * np.sqrt(252),  # Annualized
             "max_drawdown": self._calculate_max_drawdown(prices),
             "skewness": self._calculate_skewness(returns),
@@ -212,7 +218,9 @@ class MLRiskPredictor:
         return {
             "volume_mean": np.mean(volumes),
             "volume_std": np.std(volumes),
-            "volume_trend": (volumes[-1] - volumes[0]) / volumes[0] if len(volumes) > 0 else 0.0,
+            "volume_trend": (volumes[-1] - volumes[0]) / volumes[0]
+            if len(volumes) > 0
+            else 0.0,
             "volume_volatility": np.std(volumes) / np.mean(volumes)
             if np.mean(volumes) > 0
             else 0.0,
@@ -244,7 +252,9 @@ class MLRiskPredictor:
             "sma_50": np.mean(prices[-50:]) if len(prices) >= 50 else prices[-1],
         }
 
-    def _extract_sentiment_features(self, market_data: dict[str, Any]) -> dict[str, float]:
+    def _extract_sentiment_features(
+        self, market_data: dict[str, Any]
+    ) -> dict[str, float]:
         """Extract sentiment features (simulated)."""
         # In real implementation, these would come from sentiment analysis APIs
         return {
@@ -255,7 +265,9 @@ class MLRiskPredictor:
             "sentiment_volatility": np.random.uniform(0, 1),
         }
 
-    def _extract_options_flow_features(self, market_data: dict[str, Any]) -> dict[str, float]:
+    def _extract_options_flow_features(
+        self, market_data: dict[str, Any]
+    ) -> dict[str, float]:
         """Extract options flow features (simulated)."""
         # In real implementation, these would come from options data providers
         return {
@@ -375,7 +387,9 @@ class MLRiskPredictor:
 
         return ema
 
-    def _calculate_bollinger_position(self, prices: np.ndarray, period: int = 20) -> float:
+    def _calculate_bollinger_position(
+        self, prices: np.ndarray, period: int = 20
+    ) -> float:
         """Calculate position within Bollinger Bands."""
         if len(prices) < period:
             return 0.5
@@ -449,8 +463,12 @@ class MLRiskPredictor:
 
         # Calculate risk score based on multiple factors
         risk_factors = {
-            "volatility": min(100, vol_forecast.predicted_volatility * 200),  # Scale to 0 - 100
-            "regime": 80 if vol_forecast.regime_probability.get("crisis", 0) > 0.3 else 40,
+            "volatility": min(
+                100, vol_forecast.predicted_volatility * 200
+            ),  # Scale to 0 - 100
+            "regime": 80
+            if vol_forecast.regime_probability.get("crisis", 0) > 0.3
+            else 40,
             "sentiment": 60 if market_data.get("sentiment", 0) < -0.5 else 30,
             "technical": 70
             if market_data.get("rsi", 50) > 80 or market_data.get("rsi", 50) < 20
@@ -459,14 +477,18 @@ class MLRiskPredictor:
 
         # Weighted average risk score
         weights = {"volatility": 0.4, "regime": 0.3, "sentiment": 0.2, "technical": 0.1}
-        risk_score = sum(risk_factors[factor] * weights[factor] for factor in risk_factors)
+        risk_score = sum(
+            risk_factors[factor] * weights[factor] for factor in risk_factors
+        )
 
         # Generate recommendations
         recommendations = []
         if risk_score > 70:
             recommendations.append("Reduce position sizes - high risk environment")
         if vol_forecast.regime_probability.get("crisis", 0) > 0.3:
-            recommendations.append("Consider hedging strategies - crisis regime detected")
+            recommendations.append(
+                "Consider hedging strategies - crisis regime detected"
+            )
         if risk_factors["volatility"] > 80:
             recommendations.append("High volatility expected - adjust risk parameters")
 
@@ -480,7 +502,9 @@ class MLRiskPredictor:
             recommended_actions=recommendations,
         )
 
-    def predict_volatility(self, returns_data: np.ndarray | list[float]) -> VolatilityForecast:
+    def predict_volatility(
+        self, returns_data: np.ndarray | list[float]
+    ) -> VolatilityForecast:
         """Predict volatility from portfolio returns data.
 
         Args:

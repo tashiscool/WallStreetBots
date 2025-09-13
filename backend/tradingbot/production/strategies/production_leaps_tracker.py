@@ -88,7 +88,9 @@ class ProductionLEAPSTracker:
     - Theme diversification requirements
     """
 
-    def __init__(self, integration_manager, data_provider: ReliableDataProvider, config: dict):
+    def __init__(
+        self, integration_manager, data_provider: ReliableDataProvider, config: dict
+    ):
         self.strategy_name = "leaps_tracker"
         self.integration_manager = integration_manager
         self.data_provider = data_provider
@@ -107,7 +109,16 @@ class ProductionLEAPSTracker:
                 "ai_revolution": SecularTrend(
                     theme="AI Revolution",
                     description="Artificial intelligence transforming industries",
-                    tickers=["NVDA", "AMD", "GOOGL", "MSFT", "META", "ORCL", "CRM", "SNOW"],
+                    tickers=[
+                        "NVDA",
+                        "AMD",
+                        "GOOGL",
+                        "MSFT",
+                        "META",
+                        "ORCL",
+                        "CRM",
+                        "SNOW",
+                    ],
                     growth_drivers=[
                         "GPU compute",
                         "Cloud AI",
@@ -119,7 +130,16 @@ class ProductionLEAPSTracker:
                 "cloud_transformation": SecularTrend(
                     theme="Cloud Transformation",
                     description="Enterprise digital transformation",
-                    tickers=["MSFT", "AMZN", "GOOGL", "CRM", "SNOW", "DDOG", "NET", "OKTA"],
+                    tickers=[
+                        "MSFT",
+                        "AMZN",
+                        "GOOGL",
+                        "CRM",
+                        "SNOW",
+                        "DDOG",
+                        "NET",
+                        "OKTA",
+                    ],
                     growth_drivers=[
                         "Remote work",
                         "Digital transformation",
@@ -158,7 +178,9 @@ class ProductionLEAPSTracker:
         # Risk parameters
         self.max_positions = config.get("max_positions", 5)
         self.max_position_size = config.get("max_position_size", 0.10)  # 10% per LEAPS
-        self.max_total_allocation = config.get("max_total_allocation", 0.30)  # 30% total
+        self.max_total_allocation = config.get(
+            "max_total_allocation", 0.30
+        )  # 30% total
         self.min_dte = config.get("min_dte", 365)  # Minimum 1 year
         self.max_dte = config.get("max_dte", 730)  # Maximum 2 years
 
@@ -168,12 +190,18 @@ class ProductionLEAPSTracker:
         self.max_exit_timing_score = config.get("max_exit_timing_score", 70)
 
         # Profit taking levels
-        self.profit_levels = config.get("profit_levels", [100, 200, 300, 400])  # 2x, 3x, 4x, 5x
-        self.scale_out_percentage = config.get("scale_out_percentage", 25)  # 25% each level
+        self.profit_levels = config.get(
+            "profit_levels", [100, 200, 300, 400]
+        )  # 2x, 3x, 4x, 5x
+        self.scale_out_percentage = config.get(
+            "scale_out_percentage", 25
+        )  # 25% each level
 
         # Exit criteria
         self.stop_loss = config.get("stop_loss", 0.50)  # 50% loss
-        self.time_exit_dte = config.get("time_exit_dte", 90)  # Exit 3 months before expiry
+        self.time_exit_dte = config.get(
+            "time_exit_dte", 90
+        )  # Exit 3 months before expiry
 
         # Active positions tracking
         self.active_positions: list[dict[str, Any]] = []
@@ -211,7 +239,9 @@ class ProductionLEAPSTracker:
             price_above_200 = current_price > sma_200
 
             # Calculate historical SMAs to find crosses
-            sma_50_series = [prices[max(0, i - 49) : i + 1].mean() for i in range(49, len(prices))]
+            sma_50_series = [
+                prices[max(0, i - 49) : i + 1].mean() for i in range(49, len(prices))
+            ]
             sma_200_series = [
                 prices[max(0, i - 199) : i + 1].mean() for i in range(199, len(prices))
             ]
@@ -305,7 +335,9 @@ class ProductionLEAPSTracker:
         entry_score = 50.0  # Default neutral
         exit_score = 50.0  # Default neutral
 
-        if ma_cross.cross_type == "golden_cross":  # Golden cross scenarios - good for LEAPS entries
+        if (
+            ma_cross.cross_type == "golden_cross"
+        ):  # Golden cross scenarios - good for LEAPS entries
             if ma_cross.days_since_cross is not None:
                 if ma_cross.days_since_cross <= 30:
                     # Recent golden cross - excellent entry timing
@@ -320,7 +352,9 @@ class ProductionLEAPSTracker:
                     entry_score = 65.0
                     exit_score = 35.0
 
-        elif ma_cross.cross_type == "death_cross":  # Death cross scenarios - poor for LEAPS entries
+        elif (
+            ma_cross.cross_type == "death_cross"
+        ):  # Death cross scenarios - poor for LEAPS entries
             if ma_cross.days_since_cross is not None:
                 if ma_cross.days_since_cross <= 30:
                     # Recent death cross - avoid new entries
@@ -360,7 +394,9 @@ class ProductionLEAPSTracker:
 
         return entry_score, exit_score
 
-    async def calculate_comprehensive_score(self, ticker: str) -> tuple[float, float, float, float]:
+    async def calculate_comprehensive_score(
+        self, ticker: str
+    ) -> tuple[float, float, float, float]:
         """Calculate comprehensive scoring for LEAPS candidate."""
         try:
             # Get 2 years of data for comprehensive analysis
@@ -429,7 +465,9 @@ class ProductionLEAPSTracker:
                 if current_price_data:
                     # Use price momentum and volume as proxy for financial strength
                     vol_trend = (
-                        volumes[-30:].mean() / volumes[-60:-30].mean() if len(volumes) > 60 else 1.0
+                        volumes[-30:].mean() / volumes[-60:-30].mean()
+                        if len(volumes) > 60
+                        else 1.0
                     )
                     financial_score = min(100, max(0, 50 + vol_trend * 25))
             except Exception:
@@ -483,7 +521,9 @@ class ProductionLEAPSTracker:
         except Exception:
             return []
 
-    async def estimate_leaps_premium(self, ticker: str, strike: float, expiry: str) -> float:
+    async def estimate_leaps_premium(
+        self, ticker: str, strike: float, expiry: str
+    ) -> float:
         """Estimate LEAPS premium."""
         try:
             # Try to get actual options data
@@ -513,7 +553,9 @@ class ProductionLEAPSTracker:
             if not current_price:
                 return 10.0
 
-            days_to_exp = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
+            days_to_exp = (
+                datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()
+            ).days
             time_to_expiry = days_to_exp / 365.0
 
             # Estimate volatility and use BS pricing
@@ -521,7 +563,12 @@ class ProductionLEAPSTracker:
             risk_free_rate = 0.04
 
             premium = self.bs_engine.calculate_option_price(
-                current_price, strike, time_to_expiry, risk_free_rate, volatility, "call"
+                current_price,
+                strike,
+                time_to_expiry,
+                risk_free_rate,
+                volatility,
+                "call",
             )
 
             return max(5.0, premium)
@@ -560,8 +607,10 @@ class ProductionLEAPSTracker:
 
                     # Analyze golden / death cross signals
                     ma_cross_signal = await self.analyze_moving_average_cross(ticker)
-                    entry_timing_score, exit_timing_score = self.calculate_entry_exit_timing_scores(
-                        ma_cross_signal, current_price
+                    entry_timing_score, exit_timing_score = (
+                        self.calculate_entry_exit_timing_scores(
+                            ma_cross_signal, current_price
+                        )
                     )
 
                     # Enhanced composite score including timing
@@ -570,7 +619,8 @@ class ProductionLEAPSTracker:
                         + momentum_score * 0.20
                         + financial_score * 0.20
                         + valuation_score * 0.15
-                        + entry_timing_score * 0.20  # Weight timing significantly for LEAPS
+                        + entry_timing_score
+                        * 0.20  # Weight timing significantly for LEAPS
                     )
 
                     # Skip if composite score too low
@@ -595,7 +645,9 @@ class ProductionLEAPSTracker:
 
                     # Use nearest LEAPS expiry
                     expiry = leaps_expiries[0]
-                    premium = await self.estimate_leaps_premium(ticker, target_strike, expiry)
+                    premium = await self.estimate_leaps_premium(
+                        ticker, target_strike, expiry
+                    )
                     breakeven = target_strike + premium
 
                     # Return targets
@@ -642,7 +694,9 @@ class ProductionLEAPSTracker:
                     )
 
                     candidates.append(candidate)
-                    self.logger.info(f"LEAPS candidate: {ticker} Score: {composite_score:.0f}")
+                    self.logger.info(
+                        f"LEAPS candidate: {ticker} Score: {composite_score:.0f}"
+                    )
 
                 except Exception as e:
                     self.logger.error(f"Error analyzing {ticker}: {e}")
@@ -663,7 +717,8 @@ class ProductionLEAPSTracker:
             # Check total allocation limit
             portfolio_value = await self.integration_manager.get_portfolio_value()
             current_leaps_allocation = (
-                sum(pos["cost_basis"] for pos in self.active_positions) / portfolio_value
+                sum(pos["cost_basis"] for pos in self.active_positions)
+                / portfolio_value
                 if portfolio_value > 0
                 else 0
             )
@@ -674,7 +729,9 @@ class ProductionLEAPSTracker:
 
             # Calculate position size
             max_position_value = portfolio_value * self.max_position_size
-            contracts = max(1, int(max_position_value / (candidate.premium_estimate * 100)))
+            contracts = max(
+                1, int(max_position_value / (candidate.premium_estimate * 100))
+            )
             contracts = min(contracts, 3)  # Max 3 contracts per LEAPS
 
             # Create trade signal
@@ -684,7 +741,9 @@ class ProductionLEAPSTracker:
                 quantity=contracts,
                 option_type="CALL",
                 strike_price=Decimal(str(candidate.recommended_strike)),
-                expiration_date=datetime.strptime(candidate.expiry_date, "%Y-%m-%d").date(),
+                expiration_date=datetime.strptime(
+                    candidate.expiry_date, "%Y-%m-%d"
+                ).date(),
                 premium=Decimal(str(candidate.premium_estimate)),
                 confidence=candidate.composite_score / 100.0,
                 strategy_name=self.strategy_name,
@@ -719,7 +778,9 @@ class ProductionLEAPSTracker:
                     "breakeven": candidate.break_even,
                     "scale_out_level": 0,  # Track profit - taking levels
                     "profit_levels": self.profit_levels.copy(),
-                    "expiry_date": datetime.strptime(candidate.expiry_date, "%Y-%m-%d").date(),
+                    "expiry_date": datetime.strptime(
+                        candidate.expiry_date, "%Y-%m-%d"
+                    ).date(),
                     "ma_cross_type": candidate.ma_cross_signal.cross_type,
                 }
 
@@ -739,7 +800,9 @@ class ProductionLEAPSTracker:
             return False
 
         except Exception as e:
-            self.logger.error(f"Error executing LEAPS trade for {candidate.ticker}: {e}")
+            self.logger.error(
+                f"Error executing LEAPS trade for {candidate.ticker}: {e}"
+            )
             return False
 
     async def manage_positions(self):
@@ -766,7 +829,11 @@ class ProductionLEAPSTracker:
                 # Calculate P & L
                 current_value = current_premium * contracts * 100
                 pnl = current_value - position["cost_basis"]
-                pnl_pct = (pnl / position["cost_basis"]) * 100 if position["cost_basis"] > 0 else 0
+                pnl_pct = (
+                    (pnl / position["cost_basis"]) * 100
+                    if position["cost_basis"] > 0
+                    else 0
+                )
 
                 # Check exit conditions
                 should_exit = False
@@ -776,7 +843,10 @@ class ProductionLEAPSTracker:
 
                 # Check profit - taking levels
                 for level_idx, profit_level in enumerate(position["profit_levels"]):
-                    if pnl_pct >= profit_level and position["scale_out_level"] <= level_idx:
+                    if (
+                        pnl_pct >= profit_level
+                        and position["scale_out_level"] <= level_idx
+                    ):
                         should_scale_out = True
                         scale_out_percentage = self.scale_out_percentage
                         position["scale_out_level"] = level_idx + 1
@@ -789,12 +859,16 @@ class ProductionLEAPSTracker:
                     exit_reason = "STOP_LOSS"
 
                 # Time-based exit
-                elif (position["expiry_date"] - date.today()).days <= self.time_exit_dte:
+                elif (
+                    position["expiry_date"] - date.today()
+                ).days <= self.time_exit_dte:
                     should_exit = True
                     exit_reason = "TIME_EXIT"
 
                 # Death cross exit signal
-                elif position.get("ma_cross_type") != "death_cross":  # Wasn't death cross at entry
+                elif (
+                    position.get("ma_cross_type") != "death_cross"
+                ):  # Wasn't death cross at entry
                     ma_cross = await self.analyze_moving_average_cross(ticker)
                     if (
                         ma_cross.cross_type == "death_cross"
@@ -822,7 +896,9 @@ class ProductionLEAPSTracker:
                         premium=Decimal(str(current_premium)),
                         strategy_name=self.strategy_name,
                         metadata={
-                            "leaps_action": "scale_out" if should_scale_out else "full_exit",
+                            "leaps_action": "scale_out"
+                            if should_scale_out
+                            else "full_exit",
                             "exit_reason": exit_reason,
                             "pnl": pnl,
                             "pnl_pct": pnl_pct,
@@ -830,7 +906,9 @@ class ProductionLEAPSTracker:
                         },
                     )
 
-                    success = await self.integration_manager.execute_trade_signal(exit_signal)
+                    success = await self.integration_manager.execute_trade_signal(
+                        exit_signal
+                    )
 
                     if success:
                         if should_exit:
@@ -841,11 +919,15 @@ class ProductionLEAPSTracker:
                                 f"P & L: ${pnl:.0f} ({pnl_pct: .1%})",
                             )
                             positions_to_remove.append(i)
-                            self.logger.info(f"LEAPS position closed: {ticker} {exit_reason}")
+                            self.logger.info(
+                                f"LEAPS position closed: {ticker} {exit_reason}"
+                            )
                         else:
                             # Update position after scale-out
                             position["contracts"] -= exit_contracts
-                            position["cost_basis"] -= entry_premium * exit_contracts * 100
+                            position["cost_basis"] -= (
+                                entry_premium * exit_contracts * 100
+                            )
 
                             await self.integration_manager.alert_system.send_alert(
                                 "LEAPS_SCALE_OUT",
@@ -853,7 +935,9 @@ class ProductionLEAPSTracker:
                                 f"LEAPS Scale-Out: {ticker} {exit_reason} "
                                 f"Sold {exit_contracts} contracts at {pnl_pct: .1%} gain",
                             )
-                            self.logger.info(f"LEAPS scaled out: {ticker} {exit_reason}")
+                            self.logger.info(
+                                f"LEAPS scaled out: {ticker} {exit_reason}"
+                            )
 
             except Exception as e:
                 self.logger.error(f"Error managing LEAPS position {i}: {e}")
@@ -893,7 +977,9 @@ class ProductionLEAPSTracker:
                         quantity=1,  # Will be recalculated in execute_trade
                         option_type="CALL",
                         strike_price=Decimal(str(candidate.recommended_strike)),
-                        expiration_date=datetime.strptime(candidate.expiry_date, "%Y-%m-%d").date(),
+                        expiration_date=datetime.strptime(
+                            candidate.expiry_date, "%Y-%m-%d"
+                        ).date(),
                         premium=Decimal(str(candidate.premium_estimate)),
                         confidence=candidate.composite_score / 100.0,
                         strategy_name=self.strategy_name,

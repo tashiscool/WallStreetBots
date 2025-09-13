@@ -22,14 +22,26 @@ except ImportError:
 
         @staticmethod
         def call_price(
-            spot, strike, time_to_expiry_years, risk_free_rate, dividend_yield, implied_volatility
+            spot,
+            strike,
+            time_to_expiry_years,
+            risk_free_rate,
+            dividend_yield,
+            implied_volatility,
         ):
-            if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
+            if any(
+                val <= 0
+                for val in [spot, strike, time_to_expiry_years, implied_volatility]
+            ):
                 raise ValueError("Invalid parameters")
 
             d1 = (
                 math.log(spot / strike)
-                + (risk_free_rate - dividend_yield + 0.5 * implied_volatility * implied_volatility)
+                + (
+                    risk_free_rate
+                    - dividend_yield
+                    + 0.5 * implied_volatility * implied_volatility
+                )
                 * time_to_expiry_years
             ) / (implied_volatility * math.sqrt(time_to_expiry_years))
             d2 = d1 - implied_volatility * math.sqrt(time_to_expiry_years)
@@ -163,9 +175,13 @@ class DipDetector:
         # Intraday selloff detection
         if intraday_dip_pct < -self.min_dip_pct:
             dip_magnitude = abs(intraday_dip_pct)
-            dip_type = DipType.INTRADAY_SELLOFF if dip_magnitude > 0.02 else DipType.RED_DAY
+            dip_type = (
+                DipType.INTRADAY_SELLOFF if dip_magnitude > 0.02 else DipType.RED_DAY
+            )
 
-            confidence = min(dip_magnitude * 15, 0.8)  # Slightly lower confidence than gap down
+            confidence = min(
+                dip_magnitude * 15, 0.8
+            )  # Slightly lower confidence than gap down
             if volume_ratio > self.volume_threshold:
                 confidence *= 1.3
 
@@ -307,7 +323,11 @@ class ExactCycleManager:
         self.losses: int = 0
 
     def log_trade_result(
-        self, setup: ExactTradeSetup, exit_premium: float, exit_reason: str, hold_days: int
+        self,
+        setup: ExactTradeSetup,
+        exit_premium: float,
+        exit_reason: str,
+        hold_days: int,
     ):
         """Log the result of a trade."""
         pnl_per_contract = exit_premium - setup.entry_premium
@@ -474,7 +494,9 @@ class ExactCloneSystem:
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
-    def scan_for_dip_opportunities(self, market_data: dict[str, dict]) -> list[DipSignal]:
+    def scan_for_dip_opportunities(
+        self, market_data: dict[str, dict]
+    ) -> list[DipSignal]:
         """Scan for dip opportunities across the universe."""
         opportunities = []
 
@@ -625,7 +647,9 @@ class ExactCloneSystem:
         status = {
             "current_capital": self.current_capital,
             "initial_capital": self.initial_capital,
-            "total_return": ((self.current_capital - self.initial_capital) / self.initial_capital)
+            "total_return": (
+                (self.current_capital - self.initial_capital) / self.initial_capital
+            )
             * 100,
             "active_position": self.active_position is not None,
             "performance": performance,
@@ -648,7 +672,9 @@ if __name__ == "__main__":  # Test the exact clone helper
     print("=== EXACT CLONE TRADE PLAN ===")
 
     # Example matching his GOOGL trade
-    plan = clone_trade_plan(spot=207.0, acct_cash=450000, otm=0.05, dte_days=30, entry_prem=4.70)
+    plan = clone_trade_plan(
+        spot=207.0, acct_cash=450000, otm=0.05, dte_days=30, entry_prem=4.70
+    )
 
     print("Original - style trade plan: ")
     for key, value in plan.items():

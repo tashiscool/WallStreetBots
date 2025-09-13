@@ -32,7 +32,9 @@ class Stock:
         return np.array(bar_list)
 
     def moving_average(self, start, past_pts=10):
-        assert (start + past_pts) < self.past_price.size, "past price index out of range"
+        assert (start + past_pts) < self.past_price.size, (
+            "past price index out of range"
+        )
         return np.sum(self.past_price[start : (start + past_pts)]) / past_pts
 
     def update(self, cur_price, bar, bar_t, t):
@@ -89,12 +91,16 @@ class Stock:
         #  ma_prices10=[self.moving_average(i) for i in range(0, past_pts)][: :-1]
         ema_prices12 = [
             self.EMA(12, price, self.past_price[i + 1 :])
-            for i, price in enumerate(np.insert(self.past_price, 0, self.cur_price)[:past_pts])
+            for i, price in enumerate(
+                np.insert(self.past_price, 0, self.cur_price)[:past_pts]
+            )
         ][::-1]
         #  ma_prices5=[self.moving_average(i, 5) for i in range(0, past_pts)][: :-1]
         ema_prices26 = [
             self.EMA(26, price, self.past_price[i + 1 :])
-            for i, price in enumerate(np.insert(self.past_price, 0, self.cur_price)[:past_pts])
+            for i, price in enumerate(
+                np.insert(self.past_price, 0, self.cur_price)[:past_pts]
+            )
         ][::-1]
         plt.clf()
         prices = self.past_price[::-1]
@@ -102,8 +108,12 @@ class Stock:
         plt.plot(range(past_pts), prices[-past_pts:], label="prices")
         # plt.plot(range(past_pts), ma_prices5, label="5 pts moving average")
         # plt.plot(range(past_pts), ma_prices10, label="10 pts moving average")
-        plt.plot(range(past_pts), ema_prices12, label="12 pts exponential moving average")
-        plt.plot(range(past_pts), ema_prices26, label="26 pts exponential moving average")
+        plt.plot(
+            range(past_pts), ema_prices12, label="12 pts exponential moving average"
+        )
+        plt.plot(
+            range(past_pts), ema_prices26, label="26 pts exponential moving average"
+        )
         plt.title(self.symbol + " Prices")
         plt.legend()
         plt.xlabel(str(self.timeframe))

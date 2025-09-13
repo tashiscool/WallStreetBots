@@ -33,7 +33,9 @@ class TestKellyCriterionAccuracy(unittest.TestCase):
         avg_win = 1.00  # 100% gain
         avg_loss = 0.50  # 50% loss
 
-        kelly_fraction = self.kelly_calc.calculate_kelly_fraction(win_prob, avg_win, avg_loss)
+        kelly_fraction = self.kelly_calc.calculate_kelly_fraction(
+            win_prob, avg_win, avg_loss
+        )
 
         # Expected Kelly=(bp - q) / b where b=avg_win / avg_loss, p=win_prob, q = 1 - p
         b = avg_win / avg_loss  # b=2.0
@@ -118,7 +120,9 @@ class TestKellyCriterionAccuracy(unittest.TestCase):
             {"return_pct": -0.30},  # Smaller loss
         ]
 
-        kelly_fraction, stats = self.kelly_calc.calculate_from_historical_trades(successful_trades)
+        kelly_fraction, stats = self.kelly_calc.calculate_from_historical_trades(
+            successful_trades
+        )
 
         # Should show positive edge
         self.assertGreater(kelly_fraction, 0.1)  # At least 10% Kelly
@@ -148,8 +152,12 @@ class TestPositionSizingAccuracy(unittest.TestCase):
         )
 
         # Expected calculation for fixed fractional component
-        expected_risk_amount = account_value * self.risk_params.risk_tiers[risk_tier]  # $10,000
-        expected_contracts = int(expected_risk_amount / premium_per_contract)  # 2,000 contracts
+        expected_risk_amount = (
+            account_value * self.risk_params.risk_tiers[risk_tier]
+        )  # $10,000
+        expected_contracts = int(
+            expected_risk_amount / premium_per_contract
+        )  # 2,000 contracts
 
         # Test the individual component calculation
         self.assertEqual(sizing["fixed_fractional_contracts"], expected_contracts)
@@ -157,7 +165,9 @@ class TestPositionSizingAccuracy(unittest.TestCase):
         # The final recommended size will be the minimum of all methods, so just test it's reasonable
         self.assertGreater(sizing["recommended_contracts"], 0)
         self.assertLessEqual(sizing["recommended_contracts"], expected_contracts)
-        self.assertLessEqual(sizing["risk_percentage"], 10.0)  # Should not exceed tier risk
+        self.assertLessEqual(
+            sizing["risk_percentage"], 10.0
+        )  # Should not exceed tier risk
 
     def test_kelly_sizing_mathematical_consistency(self):
         """Test Kelly - based sizing mathematical consistency."""
@@ -186,7 +196,9 @@ class TestPositionSizingAccuracy(unittest.TestCase):
 
         # Verify safe Kelly (with multiplier)
         expected_safe_kelly = expected_kelly * self.risk_params.kelly_multiplier
-        self.assertAlmostEqual(sizing["safe_kelly_fraction"], expected_safe_kelly, places=10)
+        self.assertAlmostEqual(
+            sizing["safe_kelly_fraction"], expected_safe_kelly, places=10
+        )
 
         # Verify Kelly contracts calculation
         expected_kelly_risk = account_value * expected_safe_kelly
@@ -208,7 +220,9 @@ class TestPositionSizingAccuracy(unittest.TestCase):
         )
 
         # Expected confidence adjustment
-        max_risk_amount = account_value * self.risk_params.risk_tiers[risk_tier]  # $30,000
+        max_risk_amount = (
+            account_value * self.risk_params.risk_tiers[risk_tier]
+        )  # $30,000
         expected_confidence_risk = max_risk_amount * setup_confidence  # $22,500
         expected_confidence_contracts = int(
             expected_confidence_risk / premium_per_contract
@@ -427,9 +441,13 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
         # Expected calculations
         expected_total_positions_value = (100 * 7.0) + (50 * 8.0)  # 700 + 400 = 1100
         expected_total_cost = (100 * 5.0) + (50 * 10.0)  # 500 + 500 = 1000
-        expected_unrealized_pnl = expected_total_positions_value - expected_total_cost  # 100
+        expected_unrealized_pnl = (
+            expected_total_positions_value - expected_total_cost
+        )  # 100
 
-        self.assertEqual(portfolio_risk.total_positions_value, expected_total_positions_value)
+        self.assertEqual(
+            portfolio_risk.total_positions_value, expected_total_positions_value
+        )
         self.assertEqual(portfolio_risk.unrealized_pnl, expected_unrealized_pnl)
 
     def test_concentration_calculation_accuracy(self):
@@ -479,10 +497,14 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
         expected_googl_concentration = 400 / 1000  # 0.4 or 40%
 
         self.assertAlmostEqual(
-            portfolio_risk.ticker_concentrations["AAPL"], expected_aapl_concentration, places=10
+            portfolio_risk.ticker_concentrations["AAPL"],
+            expected_aapl_concentration,
+            places=10,
         )
         self.assertAlmostEqual(
-            portfolio_risk.ticker_concentrations["GOOGL"], expected_googl_concentration, places=10
+            portfolio_risk.ticker_concentrations["GOOGL"],
+            expected_googl_concentration,
+            places=10,
         )
 
     def test_risk_utilization_calculation_accuracy(self):
@@ -512,7 +534,9 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
         current_value = 100 * 3.0  # 300
         expected_utilization = current_value / baseline_account  # 300 / 500000=0.0006
 
-        self.assertAlmostEqual(portfolio_risk.cash_utilization, expected_utilization, places=5)
+        self.assertAlmostEqual(
+            portfolio_risk.cash_utilization, expected_utilization, places=5
+        )
 
         # Test risk utilization (should be positive when positions are at risk)
         current_risk = max(0, (100 * 5.0) - current_value)  # 500 - 300 = 200
@@ -663,7 +687,11 @@ def run_risk_management_verification_tests():
     print(f"Errors: {len(result.errors)}")
 
     success_rate = (
-        ((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun) * 100
+        (
+            (result.testsRun - len(result.failures) - len(result.errors))
+            / result.testsRun
+        )
+        * 100
         if result.testsRun > 0
         else 0
     )

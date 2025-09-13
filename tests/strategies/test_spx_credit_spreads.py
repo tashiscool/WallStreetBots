@@ -89,7 +89,10 @@ class TestSPXCreditSpreadsScanner(unittest.TestCase):
     def test_calculate_spread_metrics(self):
         """Test spread metrics calculation."""
         net_credit, max_profit, max_loss = self.scanner.calculate_spread_metrics(
-            short_strike=4000.0, long_strike=3990.0, short_premium=0.30, long_premium=0.20
+            short_strike=4000.0,
+            long_strike=3990.0,
+            short_premium=0.30,
+            long_premium=0.20,
         )
 
         self.assertIsInstance(net_credit, float)

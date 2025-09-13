@@ -47,7 +47,9 @@ class MockTicker:
 
     def history(self, period="60d", interval="1d", auto_adjust=False):
         # Generate synthetic data for testing
-        base_price = {"GOOGL": 207.0, "AAPL": 175.0, "MSFT": 285.0}.get(self.symbol, 200.0)
+        base_price = {"GOOGL": 207.0, "AAPL": 175.0, "MSFT": 285.0}.get(
+            self.symbol, 200.0
+        )
 
         # Create 60 days of data
         data = []
@@ -87,7 +89,9 @@ class MockTicker:
         return expiries
 
     def option_chain(self, expiry):
-        base_price = {"GOOGL": 207.0, "AAPL": 175.0, "MSFT": 285.0}.get(self.symbol, 200.0)
+        base_price = {"GOOGL": 207.0, "AAPL": 175.0, "MSFT": 285.0}.get(
+            self.symbol, 200.0
+        )
 
         # Generate mock options chain
         calls_data = []
@@ -190,7 +194,11 @@ class MockOptionsDF:
 
             def iloc(self, idx):
                 if isinstance(idx, int):
-                    return self.data[idx].get(self.key) if 0 <= idx < len(self.data) else None
+                    return (
+                        self.data[idx].get(self.key)
+                        if 0 <= idx < len(self.data)
+                        else None
+                    )
                 return None
 
         return MockSeries(self.data, item)

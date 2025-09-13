@@ -10,7 +10,11 @@ from decimal import Decimal
 from typing import Any
 
 from ...options.pricing_engine import create_options_pricing_engine
-from ...options.smart_selection import OptionsAnalysis, SelectionCriteria, SmartOptionsSelector
+from ...options.smart_selection import (
+    OptionsAnalysis,
+    SelectionCriteria,
+    SmartOptionsSelector,
+)
 from ...risk.real_time_risk_manager import RealTimeRiskManager
 
 # Import production infrastructure
@@ -106,9 +110,13 @@ class ProductionWheelStrategy:
         # Strategy parameters from config
         self.target_iv_rank = config.get("target_iv_rank", 50)  # Minimum IV rank
         self.target_dte_range = config.get("target_dte_range", (30, 45))  # DTE range
-        self.target_delta_range = config.get("target_delta_range", (0.15, 0.30))  # Delta range
+        self.target_delta_range = config.get(
+            "target_delta_range", (0.15, 0.30)
+        )  # Delta range
         self.max_positions = config.get("max_positions", 10)  # Max concurrent positions
-        self.min_premium_dollars = config.get("min_premium_dollars", 50)  # Min premium per contract
+        self.min_premium_dollars = config.get(
+            "min_premium_dollars", 50
+        )  # Min premium per contract
         self.profit_target = config.get("profit_target", 0.25)  # 25% profit target
         self.max_loss_pct = config.get("max_loss_pct", 0.50)  # 50% max loss
         self.assignment_buffer_days = config.get(
@@ -187,11 +195,17 @@ class ProductionWheelStrategy:
                         position.unrealized_pnl = position.option_premium - option_value
 
                 elif position.stage == "assigned_stock":  # P & L from stock position
-                    stock_pnl = (current_price - position.entry_price) * position.quantity
-                    position.unrealized_pnl = position.total_premium_collected + stock_pnl
+                    stock_pnl = (
+                        current_price - position.entry_price
+                    ) * position.quantity
+                    position.unrealized_pnl = (
+                        position.total_premium_collected + stock_pnl
+                    )
 
                 elif position.stage == "covered_call":  # P & L from stock + option
-                    stock_pnl = (current_price - position.entry_price) * position.quantity
+                    stock_pnl = (
+                        current_price - position.entry_price
+                    ) * position.quantity
                     if position.option_premium:
                         option_value = await self._get_current_option_value(position)
                         option_pnl = position.option_premium - option_value
@@ -209,7 +223,9 @@ class ProductionWheelStrategy:
 
         return signals
 
-    async def _check_position_management(self, position: WheelPosition) -> TradeSignal | None:
+    async def _check_position_management(
+        self, position: WheelPosition
+    ) -> TradeSignal | None:
         """Check if position needs management action."""
         try:
             now = datetime.now()
@@ -221,7 +237,10 @@ class ProductionWheelStrategy:
                     days_to_expiry = (position.option_expiry - now.date()).days
 
                     # Close for profit if we hit target
-                    if position.unrealized_pnl >= position.option_premium * self.profit_target:
+                    if (
+                        position.unrealized_pnl
+                        >= position.option_premium * self.profit_target
+                    ):
                         return TradeSignal(
                             ticker=position.ticker,
                             action="BUY_TO_CLOSE",
@@ -256,8 +275,13 @@ class ProductionWheelStrategy:
                             },
                         )
 
-            elif position.stage == "covered_call":  # Check if we should close the call for profit
-                if position.unrealized_pnl >= position.option_premium * self.profit_target:
+            elif (
+                position.stage == "covered_call"
+            ):  # Check if we should close the call for profit
+                if (
+                    position.unrealized_pnl
+                    >= position.option_premium * self.profit_target
+                ):
                     return TradeSignal(
                         ticker=position.ticker,
                         action="BUY_TO_CLOSE",
@@ -269,13 +293,17 @@ class ProductionWheelStrategy:
                         metadata={
                             "stage": "close_profitable_call",
                             "position_id": f"{position.ticker}_{position.cycle_number}",
-                            "profit_pct": float(position.unrealized_pnl / position.option_premium)
+                            "profit_pct": float(
+                                position.unrealized_pnl / position.option_premium
+                            )
                             if position.option_premium
                             else 0,
                         },
                     )
 
-            elif position.stage == "assigned_stock":  # Look for covered call opportunity
+            elif (
+                position.stage == "assigned_stock"
+            ):  # Look for covered call opportunity
                 call_signal = await self._find_covered_call_opportunity(position)
                 if call_signal:
                     return call_signal
@@ -283,7 +311,9 @@ class ProductionWheelStrategy:
             return None
 
         except Exception as e:
-            self.logger.error(f"Error checking position management for {position.ticker}: {e}")
+            self.logger.error(
+                f"Error checking position management for {position.ticker}: {e}"
+            )
             return None
 
     async def _scan_new_opportunities(self) -> list[TradeSignal]:
@@ -371,7 +401,8 @@ class ProductionWheelStrategy:
                 technical_score=technical_score,
                 annualized_return=annualized_return,
                 probability_profit=probability_profit,
-                risk_reward_ratio=annualized_return / Decimal("100"),  # Simplified risk - reward
+                risk_reward_ratio=annualized_return
+                / Decimal("100"),  # Simplified risk - reward
             )
 
         except Exception as e:
@@ -387,7 +418,9 @@ class ProductionWheelStrategy:
             criteria = SelectionCriteria(
                 target_dte_min=self.target_dte_range[0],
                 target_dte_max=self.target_dte_range[1],
-                target_delta_min=abs(self.target_delta_range[0]),  # Delta for puts is negative
+                target_delta_min=abs(
+                    self.target_delta_range[0]
+                ),  # Delta for puts is negative
                 target_delta_max=abs(self.target_delta_range[1]),
                 min_volume=50,
                 min_open_interest=100,
@@ -406,7 +439,9 @@ class ProductionWheelStrategy:
             self.logger.error(f"Error finding optimal put for {ticker}: {e}")
             return None
 
-    async def _find_covered_call_opportunity(self, position: WheelPosition) -> TradeSignal | None:
+    async def _find_covered_call_opportunity(
+        self, position: WheelPosition
+    ) -> TradeSignal | None:
         """Find covered call opportunity for assigned stock."""
         try:
             # Define criteria for covered calls
@@ -436,7 +471,8 @@ class ProductionWheelStrategy:
                     action="SELL_TO_OPEN",
                     order_type=OrderType.LIMIT,
                     side=OrderSide.SELL,
-                    quantity=abs(position.quantity) // 100,  # Convert shares to contracts
+                    quantity=abs(position.quantity)
+                    // 100,  # Convert shares to contracts
                     price=float(call_analysis.mid_price),
                     reason=f"Wheel covered call: {call_analysis.contract.strike} strike",
                     strategy="wheel_strategy",
@@ -458,7 +494,9 @@ class ProductionWheelStrategy:
             self.logger.error(f"Error finding covered call for {position.ticker}: {e}")
             return None
 
-    def _create_cash_secured_put_signal(self, candidate: WheelCandidate) -> TradeSignal | None:
+    def _create_cash_secured_put_signal(
+        self, candidate: WheelCandidate
+    ) -> TradeSignal | None:
         """Create trade signal for cash - secured put."""
         try:
             return TradeSignal(
@@ -507,7 +545,9 @@ class ProductionWheelStrategy:
 
         return results
 
-    async def _update_position_after_trade(self, signal: TradeSignal, result: dict[str, Any]):
+    async def _update_position_after_trade(
+        self, signal: TradeSignal, result: dict[str, Any]
+    ):
         """Update position tracking after trade execution."""
         try:
             if result.get("status") != "success":
@@ -527,7 +567,9 @@ class ProductionWheelStrategy:
                     current_price=Decimal(str(signal.price or 0)),
                     unrealized_pnl=Decimal("0"),
                     option_strike=Decimal(str(metadata.get("strike", 0))),
-                    option_expiry=datetime.fromisoformat(metadata.get("expiry", "")).date(),
+                    option_expiry=datetime.fromisoformat(
+                        metadata.get("expiry", "")
+                    ).date(),
                     option_premium=Decimal(str(metadata.get("premium", 0))),
                     option_type="put",
                     total_premium_collected=Decimal(str(metadata.get("premium", 0))),
@@ -543,9 +585,15 @@ class ProductionWheelStrategy:
                     ).date()
                     position.option_premium = Decimal(str(metadata.get("premium", 0)))
                     position.option_type = "call"
-                    position.total_premium_collected += Decimal(str(metadata.get("premium", 0)))
+                    position.total_premium_collected += Decimal(
+                        str(metadata.get("premium", 0))
+                    )
 
-            elif stage in ["close_profitable_put", "close_profitable_call", "avoid_assignment"]:
+            elif stage in [
+                "close_profitable_put",
+                "close_profitable_call",
+                "avoid_assignment",
+            ]:
                 # Position closed
                 if ticker in self.positions:
                     self.positions[ticker].status = "closed"
@@ -574,13 +622,17 @@ class ProductionWheelStrategy:
                         and contract.option_type == position.option_type
                     ):
                         return (
-                            contract.mid_price if hasattr(contract, "mid_price") else Decimal("0")
+                            contract.mid_price
+                            if hasattr(contract, "mid_price")
+                            else Decimal("0")
                         )
 
             return Decimal("0")
 
         except Exception as e:
-            self.logger.error(f"Error getting current option value for {position.ticker}: {e}")
+            self.logger.error(
+                f"Error getting current option value for {position.ticker}: {e}"
+            )
             return Decimal("0")
 
     def _calculate_annualized_return(self, analysis: OptionsAnalysis) -> Decimal:
@@ -624,9 +676,13 @@ class ProductionWheelStrategy:
         """Get wheel strategy performance metrics."""
         try:
             total_positions = len(self.positions)
-            active_positions = sum(1 for p in self.positions.values() if p.status == "active")
+            active_positions = sum(
+                1 for p in self.positions.values() if p.status == "active"
+            )
 
-            total_unrealized_pnl = sum(p.unrealized_pnl for p in self.positions.values())
+            total_unrealized_pnl = sum(
+                p.unrealized_pnl for p in self.positions.values()
+            )
             total_premium_collected = sum(
                 p.total_premium_collected for p in self.positions.values()
             )
@@ -637,7 +693,9 @@ class ProductionWheelStrategy:
                 "active_positions": active_positions,
                 "total_unrealized_pnl": float(total_unrealized_pnl),
                 "total_premium_collected": float(total_premium_collected),
-                "avg_premium_per_position": float(total_premium_collected / total_positions)
+                "avg_premium_per_position": float(
+                    total_premium_collected / total_positions
+                )
                 if total_positions > 0
                 else 0,
                 "positions": {

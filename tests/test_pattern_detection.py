@@ -249,7 +249,9 @@ class TestWSBDipDetector:
         # Put the high very recent (last 10 days) and make the run meet thresholds
         prices = (
             [100] * 20  # Base (20 days)
-            + [100 + i * 4 for i in range(1, 6)]  # Strong run: 100- > 120 over 5 days (20% gain)
+            + [
+                100 + i * 4 for i in range(1, 6)
+            ]  # Strong run: 100- > 120 over 5 days (20% gain)
             + [120, 114]  # Strong dip: 120- > 114 over 2 days (5% dip)
             + [114] * 3  # Additional days to reach 30 total
         )
@@ -268,7 +270,9 @@ class TestWSBDipDetector:
 
         # The detector is very strict with its requirements
         # For now, just check that the method doesn't crash and returns a valid result
-        assert len(price_bars) >= 30, f"Should have at least 30 bars, got {len(price_bars)}"
+        assert len(price_bars) >= 30, (
+            f"Should have at least 30 bars, got {len(price_bars)}"
+        )
         # Pattern may be None due to strict criteria, which is acceptable for testing
 
     @pytest.mark.asyncio
@@ -385,7 +389,9 @@ class TestPatternDetectionIntegration:
 
         # Realistic volumes (millions) - need proper length
         base_volume = 50_000_000
-        run_volumes = [base_volume * (1 + i * 0.15) for i in range(8)]  # Increasing during run
+        run_volumes = [
+            base_volume * (1 + i * 0.15) for i in range(8)
+        ]  # Increasing during run
         dip_volumes = [
             base_volume * 2.5,
             base_volume * 2.2,
@@ -439,7 +445,9 @@ class TestPatternDetectionIntegration:
             assert 0.05 <= metadata["dip_percentage"] <= 0.15, (
                 f"Dip percentage was {metadata['dip_percentage']}"
             )
-            assert pattern.signal_strength >= 4, f"Signal strength was {pattern.signal_strength}"
+            assert pattern.signal_strength >= 4, (
+                f"Signal strength was {pattern.signal_strength}"
+            )
             assert pattern.confidence >= 0.4, f"Confidence was {pattern.confidence}"
 
     @pytest.mark.asyncio

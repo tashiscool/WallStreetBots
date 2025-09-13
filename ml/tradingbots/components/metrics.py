@@ -39,11 +39,15 @@ class MovingAverageSharpeRatio(Metric):
         import datetime
         from datetime import timedelta
 
-        start = (datetime.datetime.now(datetime.UTC) - timedelta(days=self.past_days)).isoformat()
+        start = (
+            datetime.datetime.now(datetime.UTC) - timedelta(days=self.past_days)
+        ).isoformat()
         end = datetime.datetime.now(datetime.UTC).isoformat()
         for stock in self.stocks:
             prices, _ = self.fetcher.get_past_price(stock, self.timestep, start, end)
-            prices = prices[: self.max_n][::-1] if self.max_n < len(prices) else prices[::-1]
+            prices = (
+                prices[: self.max_n][::-1] if self.max_n < len(prices) else prices[::-1]
+            )
             all_prices.loc[:, stock] = prices
         return all_prices
 

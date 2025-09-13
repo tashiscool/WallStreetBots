@@ -103,7 +103,12 @@ class LEAPSTracker:
                 theme="AI Revolution",
                 description="Artificial intelligence transforming industries",
                 tickers=["NVDA", "AMD", "GOOGL", "MSFT", "META", "ORCL", "CRM", "SNOW"],
-                growth_drivers=["GPU compute", "Cloud AI", "Enterprise adoption", "Consumer AI"],
+                growth_drivers=[
+                    "GPU compute",
+                    "Cloud AI",
+                    "Enterprise adoption",
+                    "Consumer AI",
+                ],
                 time_horizon="5 - 10 years",
             ),
             "cloud_transformation": SecularTrend(
@@ -157,7 +162,16 @@ class LEAPSTracker:
             "genomics_biotech": SecularTrend(
                 theme="Genomics & Biotech",
                 description="Precision medicine revolution",
-                tickers=["ILMN", "NVTA", "PACB", "ARKG", "CRSP", "EDIT", "NTLA", "BEAM"],
+                tickers=[
+                    "ILMN",
+                    "NVTA",
+                    "PACB",
+                    "ARKG",
+                    "CRSP",
+                    "EDIT",
+                    "NTLA",
+                    "BEAM",
+                ],
                 growth_drivers=[
                     "Gene therapy",
                     "Personalized medicine",
@@ -174,7 +188,9 @@ class LEAPSTracker:
             try:
                 with open(self.portfolio_file) as f:
                     data = json.load(f)
-                    self.positions = [LEAPSPosition(**pos) for pos in data.get("positions", [])]
+                    self.positions = [
+                        LEAPSPosition(**pos) for pos in data.get("positions", [])
+                    ]
             except Exception as e:
                 print(f"Error loading portfolio: {e}")
                 self.positions = []
@@ -225,10 +241,16 @@ class LEAPSTracker:
 
             # Calculate historical 50 and 200 SMAs to find crosses
             sma_50_series = np.array(
-                [np.mean(prices[max(0, i - 49) : i + 1]) for i in range(49, len(prices))]
+                [
+                    np.mean(prices[max(0, i - 49) : i + 1])
+                    for i in range(49, len(prices))
+                ]
             )
             sma_200_series = np.array(
-                [np.mean(prices[max(0, i - 199) : i + 1]) for i in range(199, len(prices))]
+                [
+                    np.mean(prices[max(0, i - 199) : i + 1])
+                    for i in range(199, len(prices))
+                ]
             )
 
             if len(sma_50_series) < 50 or len(sma_200_series) < 50:
@@ -523,7 +545,9 @@ class LEAPSTracker:
                 chain = stock.option_chain(expiry)
                 if not chain.calls.empty:
                     calls = chain.calls
-                    closest_strike = calls.iloc[(calls["strike"] - strike).abs().argsort()[:1]]
+                    closest_strike = calls.iloc[
+                        (calls["strike"] - strike).abs().argsort()[:1]
+                    ]
                     if not closest_strike.empty:
                         bid = closest_strike["bid"].iloc[0]
                         ask = closest_strike["ask"].iloc[0]
@@ -534,7 +558,9 @@ class LEAPSTracker:
 
             # Fallback: rough estimate
             current_price = stock.history(period="1d")["Close"].iloc[-1]
-            days_to_exp = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
+            days_to_exp = (
+                datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()
+            ).days
 
             # Rough LEAPS pricing model
             time_value = max(5.0, current_price * 0.15 * (days_to_exp / 365))
@@ -582,8 +608,10 @@ class LEAPSTracker:
 
                     # Analyze golden / death cross signals
                     ma_cross_signal = self.analyze_moving_average_cross(ticker)
-                    entry_timing_score, exit_timing_score = self.calculate_entry_exit_timing_scores(
-                        ma_cross_signal, current_price
+                    entry_timing_score, exit_timing_score = (
+                        self.calculate_entry_exit_timing_scores(
+                            ma_cross_signal, current_price
+                        )
                     )
 
                     # Enhanced composite score including timing
@@ -691,11 +719,15 @@ class LEAPSTracker:
                         bid = matching_strike["bid"].iloc[0]
                         ask = matching_strike["ask"].iloc[0]
                         current_premium = (
-                            (bid + ask) / 2 if bid > 0 and ask > 0 else pos.current_premium
+                            (bid + ask) / 2
+                            if bid > 0 and ask > 0
+                            else pos.current_premium
                         )
                     else:
                         # Estimate if no exact match
-                        current_premium = max(0, current_price - pos.strike) + 5.0  # Rough estimate
+                        current_premium = (
+                            max(0, current_price - pos.strike) + 5.0
+                        )  # Rough estimate
 
                 except Exception:
                     # Fallback estimate
@@ -717,9 +749,13 @@ class LEAPSTracker:
 
                 # Rough delta estimate
                 if current_price > pos.strike:
-                    pos.delta = min(0.95, 0.5 + (current_price - pos.strike) / current_price)
+                    pos.delta = min(
+                        0.95, 0.5 + (current_price - pos.strike) / current_price
+                    )
                 else:
-                    pos.delta = max(0.05, 0.5 - (pos.strike - current_price) / current_price)
+                    pos.delta = max(
+                        0.05, 0.5 - (pos.strike - current_price) / current_price
+                    )
 
                 # Check profit targets
                 if pos.unrealized_pct >= 100:  # 2x return
@@ -733,7 +769,9 @@ class LEAPSTracker:
 
         self.save_portfolio()
 
-    def format_candidates(self, candidates: list[LEAPSCandidate], limit: int = 15) -> str:
+    def format_candidates(
+        self, candidates: list[LEAPSCandidate], limit: int = 15
+    ) -> str:
         """Format LEAPS candidates for display."""
         if not candidates:
             return "🔍 No strong LEAPS candidates found."
@@ -774,9 +812,7 @@ class LEAPSTracker:
             output += f"   Theme: {cand.theme}\n"
             output += f"   Current: ${cand.current_price:.2f} | Target Strike: ${cand.recommended_strike}\n"
             output += f"   Expiry: {cand.expiry_date} | Premium: ${cand.premium_estimate:.2f}\n"
-            output += (
-                f"   Breakeven: ${cand.break_even:.2f} | 1Y Target: {cand.target_return_1y:.0f}%\n"
-            )
+            output += f"   Breakeven: ${cand.break_even:.2f} | 1Y Target: {cand.target_return_1y:.0f}%\n"
             output += f"   Scores - Composite: {cand.composite_score:.0f} | Trend: {cand.trend_score:.0f} | Financial: {cand.financial_score:.0f}\n"
             output += f"   {cross_icon} MA Signal: {cross_info} | Entry Score: {cand.entry_timing_score:.0f} | Exit Score: {cand.exit_timing_score:.0f}\n"
             output += f"   Price vs SMA: 50d {cand.current_price / cand.ma_cross_signal.sma_50:.2f}x | 200d {cand.current_price / cand.ma_cross_signal.sma_200: .2f}x + n"
@@ -785,11 +821,15 @@ class LEAPSTracker:
                 output += f"   ⚠️  Risks: {', '.join(cand.risk_factors)}\n"
 
         output += "\n💡 ENHANCED LEAPS STRATEGY with GOLDEN / DEATH CROSS TIMING: \n"
-        output += "• 🟢 BEST ENTRIES: Recent golden cross (30d) + high entry score (70+)\n"
+        output += (
+            "• 🟢 BEST ENTRIES: Recent golden cross (30d) + high entry score (70+)\n"
+        )
         output += "• 🟡 GOOD ENTRIES: Bullish trend + price above 50 / 200 SMA + entry score 50+\n"
         output += "• 🔴 AVOID ENTRIES: Death cross (45d) + low entry score ( < 40)\n"
         output += "• ✨ Golden cross timing can add 10 - 20% to returns + n"
-        output += "• 💀 Death cross signals - consider exits even on profitable positions + n"
+        output += (
+            "• 💀 Death cross signals - consider exits even on profitable positions + n"
+        )
         output += "• 📊 Use 50 / 200 SMA position for trend confirmation + n"
         output += "• Scale out at 2x, 3x, 4x returns (25% each) OR on death cross + n"
         output += "• Stop loss at -50% to preserve capital + n"
@@ -818,7 +858,9 @@ class LEAPSTracker:
         output += f"Unrealized P & L: ${total_pnl:,.0f} ({total_pnl_pct:+.1f}%)\n + n"
 
         # Sort by P & L percentage
-        sorted_positions = sorted(self.positions, key=lambda x: x.unrealized_pct, reverse=True)
+        sorted_positions = sorted(
+            self.positions, key=lambda x: x.unrealized_pct, reverse=True
+        )
 
         output += "INDIVIDUAL POSITIONS: \n"
         output += "-" * 60 + "\n"
@@ -841,7 +883,9 @@ class LEAPSTracker:
 
         # Scale-out recommendations
         scale_recommendations = [
-            pos for pos in self.positions if pos.unrealized_pct >= 100 and pos.scale_out_level < 3
+            pos
+            for pos in self.positions
+            if pos.unrealized_pct >= 100 and pos.scale_out_level < 3
         ]
 
         if scale_recommendations:
@@ -858,9 +902,13 @@ def main():
     parser.add_argument(
         "command", choices=["scan", "portfolio", "update"], help="Command to execute"
     )
-    parser.add_argument("--output", choices=["json", "text"], default="text", help="Output format")
+    parser.add_argument(
+        "--output", choices=["json", "text"], default="text", help="Output format"
+    )
     parser.add_argument("--limit", type=int, default=15, help="Maximum results to show")
-    parser.add_argument("--min - score", type=int, default=60, help="Minimum composite score")
+    parser.add_argument(
+        "--min - score", type=int, default=60, help="Minimum composite score"
+    )
     parser.add_argument("--save-csv", type=str, help="Save results to CSV file")
     parser.add_argument(
         "--sort - by - timing",
@@ -893,7 +941,11 @@ def main():
             print(f"💾 Saved {len(candidates)} candidates to {args.save_csv}")
 
         if args.output == "json":
-            print(json.dumps([asdict(c) for c in candidates[: args.limit]], indent=2, default=str))
+            print(
+                json.dumps(
+                    [asdict(c) for c in candidates[: args.limit]], indent=2, default=str
+                )
+            )
         else:
             print(tracker.format_candidates(candidates, args.limit))
 

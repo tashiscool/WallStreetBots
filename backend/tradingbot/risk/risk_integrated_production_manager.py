@@ -120,7 +120,10 @@ class RiskIntegratedProductionManager:
     async def _create_risk_aware_strategies(self):
         """Create risk - aware wrappers for all strategies."""
         try:
-            for strategy_name, strategy_instance in self.base_manager.strategies.items():
+            for (
+                strategy_name,
+                strategy_instance,
+            ) in self.base_manager.strategies.items():
                 risk_aware_strategy = create_risk_aware_strategy(
                     strategy_instance, self.risk_manager, strategy_name
                 )
@@ -208,7 +211,9 @@ class RiskIntegratedProductionManager:
                 if util > self.config.risk_alert_threshold:
                     alert_key = f"{metric}_high_utilization"
                     if alert_key not in self.risk_alerts_sent:
-                        await self._send_risk_alert(f"High {metric} utilization: {util:.1%}")
+                        await self._send_risk_alert(
+                            f"High {metric} utilization: {util:.1%}"
+                        )
                         self.risk_alerts_sent.add(alert_key)
 
         except Exception as e:
@@ -220,7 +225,9 @@ class RiskIntegratedProductionManager:
         limits = self.risk_manager.risk_limits
 
         return {
-            "var": metrics.portfolio_var / limits.max_total_var if limits.max_total_var > 0 else 0,
+            "var": metrics.portfolio_var / limits.max_total_var
+            if limits.max_total_var > 0
+            else 0,
             "cvar": metrics.portfolio_cvar / limits.max_total_cvar
             if limits.max_total_cvar > 0
             else 0,
@@ -253,9 +260,27 @@ class RiskIntegratedProductionManager:
             # This would get actual positions from the broker
             # For now, return simulated positions
             return {
-                "AAPL": {"qty": 100, "value": 15000, "delta": 0.6, "gamma": 0.01, "vega": 0.5},
-                "SPY": {"qty": 50, "value": 20000, "delta": 0.5, "gamma": 0.005, "vega": 0.3},
-                "TSLA": {"qty": 25, "value": 5000, "delta": 0.8, "gamma": 0.02, "vega": 0.8},
+                "AAPL": {
+                    "qty": 100,
+                    "value": 15000,
+                    "delta": 0.6,
+                    "gamma": 0.01,
+                    "vega": 0.5,
+                },
+                "SPY": {
+                    "qty": 50,
+                    "value": 20000,
+                    "delta": 0.5,
+                    "gamma": 0.005,
+                    "vega": 0.3,
+                },
+                "TSLA": {
+                    "qty": 25,
+                    "value": 5000,
+                    "delta": 0.8,
+                    "gamma": 0.02,
+                    "vega": 0.8,
+                },
             }
         except Exception as e:
             self.logger.error(f"Error getting current positions: {e}")
@@ -366,7 +391,11 @@ class RiskIntegratedProductionManager:
 
         except Exception as e:
             self.logger.error(f"Error executing strategy trade: {e}")
-            return {"success": False, "reason": f"Error: {e}", "strategy": strategy_name}
+            return {
+                "success": False,
+                "reason": f"Error: {e}",
+                "strategy": strategy_name,
+            }
 
     async def get_risk_summary(self) -> dict[str, Any]:
         """Get comprehensive risk summary."""
@@ -411,7 +440,9 @@ class RiskIntegratedProductionManager:
                     "enabled": True,
                     "monitoring_active": self.risk_monitoring_active,
                     "current_metrics": risk_status.get("metrics", {}),
-                    "within_limits": risk_status.get("metrics", {}).get("within_limits", True),
+                    "within_limits": risk_status.get("metrics", {}).get(
+                        "within_limits", True
+                    ),
                     "alerts": risk_status.get("metrics", {}).get("alerts", []),
                 },
                 "risk_performance": risk_status.get("manager_metrics", {}),

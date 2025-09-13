@@ -60,7 +60,10 @@ class TradingErrorRecoveryManager:
     """
 
     def __init__(
-        self, trading_system=None, alert_system=None, config: dict[str, Any] | None = None
+        self,
+        trading_system=None,
+        alert_system=None,
+        config: dict[str, Any] | None = None,
     ):
         self.trading_system = trading_system
         self.alert_system = alert_system
@@ -105,10 +108,14 @@ class TradingErrorRecoveryManager:
                 system_state=context or {},
             )
 
-            self.logger.error(f"Handling trading error: {type(error).__name__}: {error.message}")
+            self.logger.error(
+                f"Handling trading error: {type(error).__name__}: {error.message}"
+            )
 
             # Determine recovery action based on error type
-            recovery_action = await self._determine_recovery_action(error, recovery_context)
+            recovery_action = await self._determine_recovery_action(
+                error, recovery_context
+            )
 
             # Execute recovery action
             await self._execute_recovery_action(recovery_action, recovery_context)
@@ -161,7 +168,9 @@ class TradingErrorRecoveryManager:
         else:
             return RecoveryAction.SWITCH_TO_PAPER_TRADING
 
-    async def _execute_recovery_action(self, action: RecoveryAction, context: RecoveryContext):
+    async def _execute_recovery_action(
+        self, action: RecoveryAction, context: RecoveryContext
+    ):
         """Execute the determined recovery action."""
         try:
             if action == RecoveryAction.RETRY_WITH_BACKUP:
@@ -222,7 +231,9 @@ class TradingErrorRecoveryManager:
 
     async def _log_unknown_error(self, error: TradingError, context: dict[str, Any]):
         """Log unknown error and continue with caution."""
-        self.logger.warning(f"Unknown error occurred: {error.message}, context: {context}")
+        self.logger.warning(
+            f"Unknown error occurred: {error.message}, context: {context}"
+        )
         # Could implement additional logging to external systems here
 
     async def _send_critical_alert(self, error: TradingError, action: RecoveryAction):
@@ -277,7 +288,10 @@ class TradingErrorRecoveryManager:
         # Count critical errors in last hour
         for error_type, last_time in self.last_error_times.items():
             if now - last_time < timedelta(hours=1):
-                if error_type in ["PositionReconciliationError", "BrokerConnectionError"]:
+                if error_type in [
+                    "PositionReconciliationError",
+                    "BrokerConnectionError",
+                ]:
                     recent_critical_errors += 1
 
         return recent_critical_errors < self.emergency_halt_threshold

@@ -20,7 +20,13 @@ from asgiref.sync import sync_to_async
 
 from ...alert_system import AlertPriority, AlertType, TradingAlertSystem
 from ...apimanagers import AlpacaManager
-from ...core.trading_interface import OrderSide, OrderType, TradeResult, TradeSignal, TradeStatus
+from ...core.trading_interface import (
+    OrderSide,
+    OrderType,
+    TradeResult,
+    TradeSignal,
+    TradeStatus,
+)
 from ...models import Company, Order, Stock
 from ...risk_management import RiskManager, RiskParameters
 
@@ -104,7 +110,9 @@ class ProductionIntegrationManager:
         paper_trading: bool = True,
         user_id: int = 1,
     ):
-        self.alpaca_manager = AlpacaManager(alpaca_api_key, alpaca_secret_key, paper_trading)
+        self.alpaca_manager = AlpacaManager(
+            alpaca_api_key, alpaca_secret_key, paper_trading
+        )
         self.risk_manager = RiskManager(RiskParameters())
         self.alert_system = TradingAlertSystem()
         self.user_id = user_id
@@ -124,7 +132,10 @@ class ProductionIntegrationManager:
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            handlers=[logging.FileHandler("production_integration.log"), logging.StreamHandler()],
+            handlers=[
+                logging.FileHandler("production_integration.log"),
+                logging.StreamHandler(),
+            ],
         )
 
     async def execute_trade(self, signal: ProductionTradeSignal) -> TradeResult:
@@ -177,7 +188,9 @@ class ProductionIntegrationManager:
                 )
 
             # 3. Create Django Order record
-            django_order = await self.create_django_order(signal, alpaca_result["order_id"])
+            django_order = await self.create_django_order(
+                signal, alpaca_result["order_id"]
+            )
 
             # 4. Create ProductionTrade record
             production_trade = ProductionTrade(
@@ -220,35 +233,66 @@ class ProductionIntegrationManager:
         except Exception as e:
             self.logger.error(f"Error executing trade {trade_id}: {e}")
             await self.alert_system.send_alert(
-                AlertType.SYSTEM_ERROR, AlertPriority.HIGH, f"Trade execution error: {e}"
+                AlertType.SYSTEM_ERROR,
+                AlertPriority.HIGH,
+                f"Trade execution error: {e}",
             )
             return TradeResult(
-                trade_id=trade_id, signal=signal, status=TradeStatus.REJECTED, error_message=str(e)
+                trade_id=trade_id,
+                signal=signal,
+                status=TradeStatus.REJECTED,
+                error_message=str(e),
             )
 
-    async def validate_risk_limits(self, signal: ProductionTradeSignal) -> dict[str, Any]:
+    async def validate_risk_limits(
+        self, signal: ProductionTradeSignal
+    ) -> dict[str, Any]:
         """Validate risk limits before execution."""
         try:
             # Get current portfolio value
             portfolio_value = await self.get_portfolio_value()
 
             # Calculate position risk
-            float(signal.risk_amount) / float(portfolio_value) if portfolio_value > 0 else 0
+            float(signal.risk_amount) / float(
+                portfolio_value
+            ) if portfolio_value > 0 else 0
 
             # Check individual position limit
             current_position_value = await self.get_position_value(signal.ticker)
             # Allow higher limits for index ETFs (SPY, VTI, QQQ, etc.) and lower - risk strategies
-            if signal.ticker in ["SPY", "VTI", "QQQ", "IWM", "DIA", "VOO", "VTI", "VTEB"]:
-                max_position_value = float(portfolio_value) * 0.80  # 80% for broad market ETFs
+            if signal.ticker in [
+                "SPY",
+                "VTI",
+                "QQQ",
+                "IWM",
+                "DIA",
+                "VOO",
+                "VTI",
+                "VTEB",
+            ]:
+                max_position_value = (
+                    float(portfolio_value) * 0.80
+                )  # 80% for broad market ETFs
             else:
-                max_position_value = float(portfolio_value) * 0.20  # 20% for individual stocks
+                max_position_value = (
+                    float(portfolio_value) * 0.20
+                )  # 20% for individual stocks
 
-            if float(current_position_value) + float(signal.risk_amount) > max_position_value:
-                return {"allowed": False, "reason": f"Position limit exceeded for {signal.ticker}"}
+            if (
+                float(current_position_value) + float(signal.risk_amount)
+                > max_position_value
+            ):
+                return {
+                    "allowed": False,
+                    "reason": f"Position limit exceeded for {signal.ticker}",
+                }
 
             # Check total risk limit (max 50% of portfolio)
             total_risk = await self.get_total_risk()
-            if float(total_risk) + float(signal.risk_amount) > float(portfolio_value) * 0.50:
+            if (
+                float(total_risk) + float(signal.risk_amount)
+                > float(portfolio_value) * 0.50
+            ):
                 return {"allowed": False, "reason": "Total risk limit exceeded"}
 
             return {"allowed": True, "reason": "Risk limits OK"}
@@ -257,7 +301,9 @@ class ProductionIntegrationManager:
             self.logger.error(f"Risk validation error: {e}")
             return {"allowed": False, "reason": f"Risk validation error: {e}"}
 
-    async def execute_alpaca_order(self, signal: ProductionTradeSignal) -> dict[str, Any]:
+    async def execute_alpaca_order(
+        self, signal: ProductionTradeSignal
+    ) -> dict[str, Any]:
         """Execute order via AlpacaManager."""
         try:
             if signal.side == OrderSide.BUY:
@@ -416,15 +462,27 @@ class ProductionIntegrationManager:
 
                 # Check stop loss
                 if position.stop_loss and (
-                    (position.position_type == "long" and current_price <= position.stop_loss)
-                    or (position.position_type == "short" and current_price >= position.stop_loss)
+                    (
+                        position.position_type == "long"
+                        and current_price <= position.stop_loss
+                    )
+                    or (
+                        position.position_type == "short"
+                        and current_price >= position.stop_loss
+                    )
                 ):
                     await self.execute_exit_trade(position, "stop_loss")
 
                 # Check take profit
                 if position.take_profit and (
-                    (position.position_type == "long" and current_price >= position.take_profit)
-                    or (position.position_type == "short" and current_price <= position.take_profit)
+                    (
+                        position.position_type == "long"
+                        and current_price >= position.take_profit
+                    )
+                    or (
+                        position.position_type == "short"
+                        and current_price <= position.take_profit
+                    )
                 ):
                     await self.execute_exit_trade(position, "take_profit")
 
@@ -451,7 +509,9 @@ class ProductionIntegrationManager:
             exit_signal = ProductionTradeSignal(
                 strategy_name=position.strategy_name,
                 ticker=position.ticker,
-                side=OrderSide.SELL if position.position_type == "long" else OrderSide.BUY,
+                side=OrderSide.SELL
+                if position.position_type == "long"
+                else OrderSide.BUY,
                 order_type=OrderType.MARKET,
                 quantity=position.quantity,
                 price=float(position.current_price),
@@ -487,8 +547,12 @@ class ProductionIntegrationManager:
             total_positions = len(self.active_positions)
             total_trades = len(self.active_trades)
 
-            total_unrealized_pnl = sum(pos.unrealized_pnl for pos in self.active_positions.values())
-            total_realized_pnl = sum(pos.realized_pnl for pos in self.active_positions.values())
+            total_unrealized_pnl = sum(
+                pos.unrealized_pnl for pos in self.active_positions.values()
+            )
+            total_realized_pnl = sum(
+                pos.realized_pnl for pos in self.active_positions.values()
+            )
 
             return {
                 "total_positions": total_positions,
@@ -515,7 +579,10 @@ class ProductionIntegrationManager:
 
 # Factory function for easy initialization
 def create_production_integration(
-    alpaca_api_key: str, alpaca_secret_key: str, paper_trading: bool = True, user_id: int = 1
+    alpaca_api_key: str,
+    alpaca_secret_key: str,
+    paper_trading: bool = True,
+    user_id: int = 1,
 ) -> ProductionIntegrationManager:
     """Create ProductionIntegrationManager instance.
 
@@ -528,4 +595,6 @@ def create_production_integration(
     Returns:
         ProductionIntegrationManager instance
     """
-    return ProductionIntegrationManager(alpaca_api_key, alpaca_secret_key, paper_trading, user_id)
+    return ProductionIntegrationManager(
+        alpaca_api_key, alpaca_secret_key, paper_trading, user_id
+    )

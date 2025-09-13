@@ -29,9 +29,16 @@ from .stress_testing_engine import StressTesting2025
 
 # Import Month 5 - 6 advanced features
 try:
-    from .advanced_ml_risk_agents import MultiAgentRiskCoordinator, RiskActionType, RiskState
+    from .advanced_ml_risk_agents import (
+        MultiAgentRiskCoordinator,
+        RiskActionType,
+        RiskState,
+    )
     from .multi_asset_risk_manager import AssetClass, MultiAssetRiskManager
-    from .regulatory_compliance_manager import RegulatoryAuthority, RegulatoryComplianceManager
+    from .regulatory_compliance_manager import (
+        RegulatoryAuthority,
+        RegulatoryComplianceManager,
+    )
 
     ADVANCED_FEATURES_AVAILABLE = True
 except ImportError:
@@ -111,7 +118,9 @@ class IntegratedAdvancedRiskManager:
                     "max_drawdown": 0.15,
                     "max_leverage": 2.0,
                 }
-                self.ml_coordinator = MultiAgentRiskCoordinator(risk_limits=ml_risk_limits)
+                self.ml_coordinator = MultiAgentRiskCoordinator(
+                    risk_limits=ml_risk_limits
+                )
 
             if self.config.enable_multi_asset:
                 self.multi_asset_manager = MultiAssetRiskManager()
@@ -122,7 +131,9 @@ class IntegratedAdvancedRiskManager:
                     if self.config.regulatory_authority == "FCA"
                     else RegulatoryAuthority.CFTC
                 )
-                self.compliance_manager = RegulatoryComplianceManager(primary_authority=authority)
+                self.compliance_manager = RegulatoryComplianceManager(
+                    primary_authority=authority
+                )
 
         # System state
         self.current_positions = {}
@@ -149,7 +160,9 @@ class IntegratedAdvancedRiskManager:
 
         try:
             # 1. Core VaR / CVaR calculations
-            portfolio_returns = self._calculate_portfolio_returns(positions, market_data)
+            portfolio_returns = self._calculate_portfolio_returns(
+                positions, market_data
+            )
             if len(portfolio_returns) > 30:  # Minimum data requirement
                 var_suite = self.var_engine.calculate_var_suite(
                     returns=portfolio_returns,
@@ -159,11 +172,15 @@ class IntegratedAdvancedRiskManager:
                 results["var_analysis"] = var_suite.get_summary()
 
             # 2. Stress testing
-            stress_report = self.stress_engine.run_comprehensive_stress_test(positions, market_data)
+            stress_report = self.stress_engine.run_comprehensive_stress_test(
+                positions, market_data
+            )
             results["stress_testing"] = {
                 "compliance_status": stress_report.compliance_status,
                 "overall_risk_score": stress_report.overall_risk_score,
-                "scenarios_passed": sum(1 for r in stress_report.results.values() if r.passed),
+                "scenarios_passed": sum(
+                    1 for r in stress_report.results.values() if r.passed
+                ),
                 "total_scenarios": len(stress_report.results),
             }
 
@@ -181,7 +198,9 @@ class IntegratedAdvancedRiskManager:
                 # Convert positions to required format for ML coordinator
                 portfolio_data = {
                     "positions": positions,
-                    "total_value": sum(pos.get("value", 0) for pos in positions.values()),
+                    "total_value": sum(
+                        pos.get("value", 0) for pos in positions.values()
+                    ),
                 }
                 ml_decision = await self.ml_coordinator.get_ensemble_action(
                     portfolio_data, market_data
@@ -214,7 +233,9 @@ class IntegratedAdvancedRiskManager:
 
             # 6. Compliance check (if available)
             if self.compliance_manager:
-                compliance_results = self.compliance_manager.run_compliance_checks(positions)
+                compliance_results = self.compliance_manager.run_compliance_checks(
+                    positions
+                )
                 results["compliance"] = {
                     "status": "compliant"
                     if compliance_results.get("violations", 0) == 0
@@ -225,8 +246,10 @@ class IntegratedAdvancedRiskManager:
                 }
 
             # 7. Portfolio risk coordination
-            core_risk_metrics = await self.risk_integration_manager.calculate_portfolio_risk(
-                positions, market_data, self.config.portfolio_value
+            core_risk_metrics = (
+                await self.risk_integration_manager.calculate_portfolio_risk(
+                    positions, market_data, self.config.portfolio_value
+                )
             )
             results["portfolio_risk"] = {
                 "total_var": core_risk_metrics.portfolio_var,
@@ -267,7 +290,9 @@ class IntegratedAdvancedRiskManager:
 
             for symbol, position in positions.items():
                 if symbol in market_data:
-                    weight = position.get("value", 0) / total_value if total_value > 0 else 0
+                    weight = (
+                        position.get("value", 0) / total_value if total_value > 0 else 0
+                    )
 
                     # Handle both DataFrame and dict inputs
                     data = market_data[symbol]
@@ -280,16 +305,22 @@ class IntegratedAdvancedRiskManager:
                         if "Close" in data:
                             close_prices = np.array(data["Close"])
                             if len(close_prices) > 1:
-                                asset_returns = np.diff(close_prices) / close_prices[:-1]
+                                asset_returns = (
+                                    np.diff(close_prices) / close_prices[:-1]
+                                )
                                 weighted_returns = asset_returns * weight
                                 returns_list.append(pd.Series(weighted_returns))
 
             if returns_list:
                 if all(hasattr(r, "values") for r in returns_list):  # All pandas Series
-                    portfolio_returns = pd.concat(returns_list, axis=1).sum(axis=1).dropna()
+                    portfolio_returns = (
+                        pd.concat(returns_list, axis=1).sum(axis=1).dropna()
+                    )
                     return portfolio_returns.values
                 else:  # Mix of arrays and series, convert all to arrays
-                    arrays = [r.values if hasattr(r, "values") else r for r in returns_list]
+                    arrays = [
+                        r.values if hasattr(r, "values") else r for r in returns_list
+                    ]
                     min_length = min(len(arr) for arr in arrays)
                     truncated_arrays = [arr[:min_length] for arr in arrays]
                     portfolio_returns = np.sum(truncated_arrays, axis=0)
@@ -306,7 +337,9 @@ class IntegratedAdvancedRiskManager:
     ) -> "RiskState":
         """Create risk state for ML agents."""
         try:
-            portfolio_returns = self._calculate_portfolio_returns(positions, market_data)
+            portfolio_returns = self._calculate_portfolio_returns(
+                positions, market_data
+            )
 
             if len(portfolio_returns) > 1:
                 portfolio_var = np.percentile(portfolio_returns, 5)  # 95% VaR
@@ -318,15 +351,21 @@ class IntegratedAdvancedRiskManager:
             # Calculate concentration risk
             total_value = sum(pos.get("value", 0) for pos in positions.values())
             max_position = (
-                max(pos.get("value", 0) for pos in positions.values()) if positions else 0
+                max(pos.get("value", 0) for pos in positions.values())
+                if positions
+                else 0
             )
             concentration_risk = max_position / total_value if total_value > 0 else 0
 
             # Calculate missing fields
-            ml_risk_score = min(100, abs(portfolio_var) * 100)  # Convert VaR to risk score
+            ml_risk_score = min(
+                100, abs(portfolio_var) * 100
+            )  # Convert VaR to risk score
             position_count = len(positions)
             cash_ratio = (
-                positions.get("CASH", {}).get("value", 0) / total_value if total_value > 0 else 0.1
+                positions.get("CASH", {}).get("value", 0) / total_value
+                if total_value > 0
+                else 0.1
             )
 
             return RiskState(
@@ -393,10 +432,14 @@ class IntegratedAdvancedRiskManager:
         while self.system_status == "monitoring":
             try:
                 # Perform risk assessment
-                risk_results = await self.comprehensive_risk_assessment(positions, market_data)
+                risk_results = await self.comprehensive_risk_assessment(
+                    positions, market_data
+                )
 
                 # Store results
-                self.risk_history.append({"timestamp": datetime.now(), "results": risk_results})
+                self.risk_history.append(
+                    {"timestamp": datetime.now(), "results": risk_results}
+                )
 
                 # Keep only last 100 results
                 if len(self.risk_history) > 100:
@@ -462,7 +505,9 @@ class IntegratedAdvancedRiskManager:
                 "portfolio_value": self.config.portfolio_value,
             },
             "risk_history_count": len(self.risk_history),
-            "last_assessment": self.risk_history[-1]["timestamp"] if self.risk_history else None,
+            "last_assessment": self.risk_history[-1]["timestamp"]
+            if self.risk_history
+            else None,
         }
 
 

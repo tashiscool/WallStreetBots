@@ -10,7 +10,10 @@ import tempfile
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
-from backend.tradingbot.core.data_providers import UnifiedDataProvider, create_data_provider
+from backend.tradingbot.core.data_providers import (
+    UnifiedDataProvider,
+    create_data_provider,
+)
 from backend.tradingbot.core.production_config import ConfigManager, ProductionConfig
 from backend.tradingbot.core.production_logging import (
     CircuitBreaker,
@@ -45,7 +48,10 @@ class TestTradingInterface(unittest.TestCase):
         }
 
         self.trading_interface = TradingInterface(
-            self.mock_broker, self.mock_risk_manager, self.mock_alert_system, self.config
+            self.mock_broker,
+            self.mock_risk_manager,
+            self.mock_alert_system,
+            self.config,
         )
 
     def test_trade_signal_creation(self):
@@ -195,7 +201,12 @@ class TestDataProviders(unittest.TestCase):
         mock_response.status = 200
         mock_response.json = AsyncMock(
             return_value=[
-                {"symbol": "AAPL", "date": "2024 - 01 - 15", "time": "AMC", "epsEstimated": 2.10}
+                {
+                    "symbol": "AAPL",
+                    "date": "2024 - 01 - 15",
+                    "time": "AMC",
+                    "epsEstimated": 2.10,
+                }
             ]
         )
         mock_get.return_value.__aenter__.return_value = mock_response
@@ -219,7 +230,12 @@ class TestConfigurationManagement(unittest.TestCase):
 
         # Store original environment variables
         self.original_env = {}
-        env_vars_to_save = ["ALPACA_API_KEY", "ALPACA_SECRET_KEY", "IEX_API_KEY", "POLYGON_API_KEY"]
+        env_vars_to_save = [
+            "ALPACA_API_KEY",
+            "ALPACA_SECRET_KEY",
+            "IEX_API_KEY",
+            "POLYGON_API_KEY",
+        ]
         for var in env_vars_to_save:
             if var in os.environ:
                 self.original_env[var] = os.environ[var]
@@ -491,7 +507,11 @@ class TestIntegration(unittest.TestCase):
                 "alpaca_api_key": "test_alpaca_key",
                 "alpaca_secret_key": "test_alpaca_secret",
             },
-            "risk": {"max_position_risk": 0.10, "max_total_risk": 0.30, "account_size": 100000.0},
+            "risk": {
+                "max_position_risk": 0.10,
+                "max_total_risk": 0.30,
+                "account_size": 100000.0,
+            },
             "trading": {
                 "universe": ["AAPL", "MSFT", "GOOGL"],
                 "scan_interval": 300,
@@ -566,7 +586,9 @@ class TestIntegration(unittest.TestCase):
         )
 
         errors = invalid_config_obj.validate()
-        self.assertTrue(len(errors) > 0)  # Should have validation errors for missing keys
+        self.assertTrue(
+            len(errors) > 0
+        )  # Should have validation errors for missing keys
 
 
 if __name__ == "__main__":  # Run tests

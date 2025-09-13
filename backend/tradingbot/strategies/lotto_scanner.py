@@ -158,7 +158,9 @@ class LottoScanner:
                 mid_price = (atm_call["bid"].iloc[0] + atm_call["ask"].iloc[0]) / 2
 
                 # Very rough IV estimation from option price
-                days_to_exp = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
+                days_to_exp = (
+                    datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()
+                ).days
                 if days_to_exp <= 0:
                     days_to_exp = 1
 
@@ -187,7 +189,9 @@ class LottoScanner:
                 returns = hist["Close"].pct_change().dropna()
                 daily_vol = returns.std()
 
-                days_to_exp = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
+                days_to_exp = (
+                    datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()
+                ).days
                 expected_move = daily_vol * math.sqrt(max(1, days_to_exp))
                 return min(0.3, max(0.02, expected_move))
         except Exception:
@@ -276,7 +280,10 @@ class LottoScanner:
                 targets = [
                     ("call", spot * (1 + expected_move * 0.5)),  # Half expected move up
                     ("call", spot * (1 + expected_move)),  # Full expected move up
-                    ("put", spot * (1 - expected_move * 0.5)),  # Half expected move down
+                    (
+                        "put",
+                        spot * (1 - expected_move * 0.5),
+                    ),  # Half expected move down
                     ("put", spot * (1 - expected_move)),  # Full expected move down
                 ]
 
@@ -365,7 +372,9 @@ class LottoScanner:
                 continue
 
         # Sort by risk - adjusted expected value
-        opportunities.sort(key=lambda x: x.win_probability * x.potential_return, reverse=True)
+        opportunities.sort(
+            key=lambda x: x.win_probability * x.potential_return, reverse=True
+        )
 
         return opportunities[:10]  # Top 10 plays
 
@@ -494,7 +503,9 @@ class LottoScanner:
                 continue
 
         # Sort by expected value
-        opportunities.sort(key=lambda x: x.win_probability * x.potential_return, reverse=True)
+        opportunities.sort(
+            key=lambda x: x.win_probability * x.potential_return, reverse=True
+        )
 
         return opportunities[:15]
 
@@ -509,20 +520,20 @@ class LottoScanner:
         output += " = " * 70 + "\n"
 
         for i, play in enumerate(plays, 1):
-            risk_emoji = {"extreme": "💀", "very_high": "🔥", "high": "⚠️"}.get(play.risk_level, "⚠️")
+            risk_emoji = {"extreme": "💀", "very_high": "🔥", "high": "⚠️"}.get(
+                play.risk_level, "⚠️"
+            )
 
             output += f"\n{i}. {play.ticker} {risk_emoji} {play.play_type.upper()}\n"
-            output += f"   {play.strike} {play.option_type.upper()} exp {play.expiry_date}\n"
+            output += (
+                f"   {play.strike} {play.option_type.upper()} exp {play.expiry_date}\n"
+            )
             output += f"   Catalyst: {play.catalyst_event}\n"
             output += f"   Spot: ${play.current_spot:.2f} | Strike: ${play.strike} | Premium: ${play.current_premium:.2f}\n"
-            output += (
-                f"   Breakeven: ${play.breakeven:.2f} | Expected Move: {play.expected_move:.1%}\n"
-            )
+            output += f"   Breakeven: ${play.breakeven:.2f} | Expected Move: {play.expected_move:.1%}\n"
             output += f"   Max Position: {play.max_contracts} contracts (${play.max_position_size: .0f})\n"
             output += f"   Win Prob: {play.win_probability:.1%} | Target Return: {play.potential_return:.1f}x + n"
-            output += (
-                f"   Stop: ${play.stop_loss_price:.2f} | Target: ${play.profit_target_price:.2f}\n"
-            )
+            output += f"   Stop: ${play.stop_loss_price:.2f} | Target: ${play.profit_target_price:.2f}\n"
 
         output += "\n" + " = " * 70
         output += "\n💀 LOTTO PLAY RULES (MANDATORY): \n"
@@ -540,14 +551,24 @@ class LottoScanner:
 
 def main():
     parser = argparse.ArgumentParser(description="0DTE / Earnings Lotto Scanner")
-    parser.add_argument("command", choices=["0dte", "earnings", "both"], help="Type of lotto scan")
     parser.add_argument(
-        "--account - size", type=float, required=True, help="Account size for position sizing"
+        "command", choices=["0dte", "earnings", "both"], help="Type of lotto scan"
     )
     parser.add_argument(
-        "--max - risk - pct", type=float, default=1.0, help="Max risk %% per play (default 1%%)"
+        "--account - size",
+        type=float,
+        required=True,
+        help="Account size for position sizing",
     )
-    parser.add_argument("--output", choices=["json", "text"], default="text", help="Output format")
+    parser.add_argument(
+        "--max - risk - pct",
+        type=float,
+        default=1.0,
+        help="Max risk %% per play (default 1%%)",
+    )
+    parser.add_argument(
+        "--output", choices=["json", "text"], default="text", help="Output format"
+    )
 
     args = parser.parse_args()
 

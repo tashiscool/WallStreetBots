@@ -212,7 +212,9 @@ class RiskDatabaseManager:
                 return dict(zip(columns, row, strict=False))
             return None
 
-    def check_risk_limits(self, account_id: str, var: float, cvar: float) -> dict[str, bool]:
+    def check_risk_limits(
+        self, account_id: str, var: float, cvar: float
+    ) -> dict[str, bool]:
         """Check if risk metrics are within limits."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
@@ -412,7 +414,11 @@ if __name__ == "__main__":  # Initialize database
         account_id="test_account",
         max_total_var=5000.0,  # $5K max VaR
         max_total_cvar=8000.0,  # $8K max CVaR
-        per_strategy={"wsb_dip_bot": 2000.0, "index_baseline": 3000.0, "momentum_weeklies": 1500.0},
+        per_strategy={
+            "wsb_dip_bot": 2000.0,
+            "index_baseline": 3000.0,
+            "momentum_weeklies": 1500.0,
+        },
     )
 
     # Insert sample positions

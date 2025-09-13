@@ -41,7 +41,12 @@ except ImportError:
         MetricsCollector,
         ProductionLogger,
     )
-    from trading_interface import OrderSide, OrderType, TradeSignal, create_trading_interface
+    from trading_interface import (
+        OrderSide,
+        OrderType,
+        TradeSignal,
+        create_trading_interface,
+    )
 
 
 class Phase1Demo:
@@ -75,7 +80,9 @@ class Phase1Demo:
                 self.logger.warning(f"Configuration validation errors: {errors}")
 
             # 2. Create data provider
-            self.data_provider = create_data_provider(self.config.data_providers.__dict__)
+            self.data_provider = create_data_provider(
+                self.config.data_providers.__dict__
+            )
 
             # 3. Create trading interface
             self.trading_interface = create_trading_interface(self.config.to_dict())
@@ -145,7 +152,9 @@ class Phase1Demo:
 
             # Test earnings data
             try:
-                earnings_events = await self.data_provider.get_earnings_data("AAPL", days_ahead=7)
+                earnings_events = await self.data_provider.get_earnings_data(
+                    "AAPL", days_ahead=7
+                )
                 self.logger.info(
                     f"Found {len(earnings_events)} upcoming earnings events",
                     count=len(earnings_events),
@@ -216,7 +225,9 @@ class Phase1Demo:
             # Check risk limits
             risk_result = await self.trading_interface.check_risk_limits(signal)
             self.logger.info(
-                "Risk check result", allowed=risk_result["allowed"], reason=risk_result["reason"]
+                "Risk check result",
+                allowed=risk_result["allowed"],
+                reason=risk_result["reason"],
             )
 
             # Record metrics
@@ -234,7 +245,9 @@ class Phase1Demo:
 
             # If validation and risk checks pass, demonstrate execution
             if validation_result["valid"] and risk_result["allowed"]:
-                self.logger.info("Signal passed validation and risk checks - would execute trade")
+                self.logger.info(
+                    "Signal passed validation and risk checks - would execute trade"
+                )
 
                 # In a real implementation, this would execute the trade
                 # trade_result=await self.trading_interface.execute_trade(signal)
@@ -300,7 +313,9 @@ class Phase1Demo:
             overall_health = self.health_checker.get_overall_health()
 
             self.logger.info(
-                "Health check results", overall_health=overall_health, results=health_results
+                "Health check results",
+                overall_health=overall_health,
+                results=health_results,
             )
 
             # Generate metrics summary
@@ -350,7 +365,8 @@ async def main():
 
 if __name__ == "__main__":  # Setup logging
     logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     # Run demo

@@ -7,14 +7,17 @@ if TYPE_CHECKING:
 else:
     import datetime as dt  # noqa: TC003
 
+
 @dataclass(frozen=True)
 class Membership:
     symbol: str
     start: dt.date
     end: dt.date  # inclusive
 
+
 class UniverseProvider:
     """Resolve membership as-of a date (point-in-time)."""
+
     def __init__(self, memberships: Dict[str, List[Membership]]):
         self.memberships = memberships  # e.g., {"SP500": [Membership(...), ...]}
 

@@ -1,7 +1,9 @@
 from __future__ import annotations
 import time, os, json, uuid, pathlib
 
+
 class ClockDriftError(Exception): ...
+
 
 def assert_ntp_ok(max_drift_ms: int = 250) -> None:
     # Without NTP service call, use monotonic as a weak guard.
@@ -10,10 +12,14 @@ def assert_ntp_ok(max_drift_ms: int = 250) -> None:
     time.sleep(0.01)
     drift_ms = abs((time.time() - t1) - (time.perf_counter() - t2)) * 1000
     if drift_ms > max_drift_ms:
-        raise ClockDriftError(f"Clock drift detected: ~{drift_ms:.1f}ms > {max_drift_ms}ms")
+        raise ClockDriftError(
+            f"Clock drift detected: ~{drift_ms:.1f}ms > {max_drift_ms}ms"
+        )
+
 
 class Journal:
     """Append-only JSONL journal for decisions and a replay cursor."""
+
     def __init__(self, path: str = "./.state/journal.jsonl"):
         self.path = pathlib.Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)

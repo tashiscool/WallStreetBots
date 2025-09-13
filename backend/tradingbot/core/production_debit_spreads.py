@@ -61,7 +61,9 @@ class SpreadPosition:
 
     # Timing
     entry_date: datetime = field(default_factory=datetime.now)
-    expiry_date: datetime = field(default_factory=lambda: datetime.now() + timedelta(days=30))
+    expiry_date: datetime = field(
+        default_factory=lambda: datetime.now() + timedelta(days=30)
+    )
     last_update: datetime = field(default_factory=datetime.now)
 
     # Greeks
@@ -70,7 +72,9 @@ class SpreadPosition:
     net_theta: float = 0.0
     net_vega: float = 0.0
 
-    def update_pricing(self, long_option_data: OptionsData, short_option_data: OptionsData):
+    def update_pricing(
+        self, long_option_data: OptionsData, short_option_data: OptionsData
+    ):
         """Update spread pricing with current option data."""
         # Calculate current spread value
         long_value = long_option_data.bid
@@ -79,14 +83,24 @@ class SpreadPosition:
         self.current_value = (long_value - short_value) * self.quantity * 100
 
         # Calculate P & L
-        self.unrealized_pnl = self.current_value - (self.net_debit * self.quantity * 100)
+        self.unrealized_pnl = self.current_value - (
+            self.net_debit * self.quantity * 100
+        )
         self.profit_pct = self.unrealized_pnl / (self.net_debit * self.quantity * 100)
 
         # Update Greeks
-        self.net_delta = (long_option_data.delta - short_option_data.delta) * self.quantity * 100
-        self.net_gamma = (long_option_data.gamma - short_option_data.gamma) * self.quantity * 100
-        self.net_theta = (long_option_data.theta - short_option_data.theta) * self.quantity * 100
-        self.net_vega = (long_option_data.vega - short_option_data.vega) * self.quantity * 100
+        self.net_delta = (
+            (long_option_data.delta - short_option_data.delta) * self.quantity * 100
+        )
+        self.net_gamma = (
+            (long_option_data.gamma - short_option_data.gamma) * self.quantity * 100
+        )
+        self.net_theta = (
+            (long_option_data.theta - short_option_data.theta) * self.quantity * 100
+        )
+        self.net_vega = (
+            (long_option_data.vega - short_option_data.vega) * self.quantity * 100
+        )
 
         self.last_update = datetime.now()
 
@@ -203,9 +217,13 @@ class QuantLibPricer:
 
             # Calculate Greeks
             delta = (
-                self._normal_cdf(d1) if option_type.lower() == "call" else self._normal_cdf(d1) - 1
+                self._normal_cdf(d1)
+                if option_type.lower() == "call"
+                else self._normal_cdf(d1) - 1
             )
-            gamma = self._normal_pdf(d1) / (spot_price * volatility * math.sqrt(time_to_expiry))
+            gamma = self._normal_pdf(d1) / (
+                spot_price * volatility * math.sqrt(time_to_expiry)
+            )
             theta = -spot_price * self._normal_pdf(d1) * volatility / (
                 2 * math.sqrt(time_to_expiry)
             ) - risk_free_rate * strike_price * math.exp(
@@ -213,7 +231,13 @@ class QuantLibPricer:
             ) * self._normal_cdf(d2)
             vega = spot_price * self._normal_pdf(d1) * math.sqrt(time_to_expiry)
 
-            return {"price": price, "delta": delta, "gamma": gamma, "theta": theta, "vega": vega}
+            return {
+                "price": price,
+                "delta": delta,
+                "gamma": gamma,
+                "theta": theta,
+                "vega": vega,
+            }
 
         except Exception as e:
             self.logger.error(f"Black - Scholes calculation error: {e}")
@@ -283,7 +307,9 @@ class ProductionDebitSpreads:
                     candidates.extend(spread_candidates)
 
                 except Exception as e:
-                    self.error_handler.handle_error(e, {"ticker": ticker, "operation": "scan"})
+                    self.error_handler.handle_error(
+                        e, {"ticker": ticker, "operation": "scan"}
+                    )
                     continue
 
             # Sort by spread score
@@ -292,7 +318,9 @@ class ProductionDebitSpreads:
             self.candidates = candidates[:10]  # Top 10 candidates
 
             self.logger.info(f"Found {len(self.candidates)} debit spread candidates")
-            self.metrics.record_metric("debit_spread_candidates_found", len(self.candidates))
+            self.metrics.record_metric(
+                "debit_spread_candidates_found", len(self.candidates)
+            )
 
             return self.candidates
 
@@ -343,7 +371,9 @@ class ProductionDebitSpreads:
             return candidates
 
         except Exception as e:
-            self.error_handler.handle_error(e, {"ticker": ticker, "operation": "analyze_spreads"})
+            self.error_handler.handle_error(
+                e, {"ticker": ticker, "operation": "analyze_spreads"}
+            )
             return []
 
     def _find_bull_call_spreads(
@@ -357,14 +387,20 @@ class ProductionDebitSpreads:
 
         # Look for spreads with strikes around current price
         for long_option in call_options:
-            if long_option.strike >= current_price * 0.95:  # Long strike near ATM or ITM
+            if (
+                long_option.strike >= current_price * 0.95
+            ):  # Long strike near ATM or ITM
                 continue
 
             for short_option in call_options:
-                if short_option.strike <= long_option.strike:  # Short strike must be higher
+                if (
+                    short_option.strike <= long_option.strike
+                ):  # Short strike must be higher
                     continue
 
-                if short_option.strike - long_option.strike > current_price * 0.20:  # Max 20% width
+                if (
+                    short_option.strike - long_option.strike > current_price * 0.20
+                ):  # Max 20% width
                     continue
 
                 # Calculate spread metrics
@@ -372,7 +408,9 @@ class ProductionDebitSpreads:
                 if net_debit <= 0:  # Must be a debit spread
                     continue
 
-                max_profit = (short_option.strike - long_option.strike) * 100 - net_debit * 100
+                max_profit = (
+                    short_option.strike - long_option.strike
+                ) * 100 - net_debit * 100
                 max_loss = net_debit * 100
                 profit_loss_ratio = max_profit / max_loss if max_loss > 0 else 0
 
@@ -414,7 +452,9 @@ class ProductionDebitSpreads:
             self.logger.info(f"Executing debit spread for {candidate.ticker}")
 
             # Check if we already have a position
-            position_key = f"{candidate.ticker}_{candidate.long_strike}_{candidate.short_strike}"
+            position_key = (
+                f"{candidate.ticker}_{candidate.long_strike}_{candidate.short_strike}"
+            )
             if position_key in self.positions:
                 self.logger.warning(f"Already have position: {position_key}")
                 return False
@@ -445,7 +485,9 @@ class ProductionDebitSpreads:
             long_result = await self.trading.execute_trade(long_signal)
 
             if long_result.status.value != "filled":
-                self.logger.error(f"Long option trade failed: {long_result.error_message}")
+                self.logger.error(
+                    f"Long option trade failed: {long_result.error_message}"
+                )
                 return False
 
             # Execute short option trade
@@ -463,7 +505,9 @@ class ProductionDebitSpreads:
             short_result = await self.trading.execute_trade(short_signal)
 
             if short_result.status.value != "filled":
-                self.logger.error(f"Short option trade failed: {short_result.error_message}")
+                self.logger.error(
+                    f"Short option trade failed: {short_result.error_message}"
+                )
                 # Try to close the long position
                 await self._close_long_position(long_signal, long_result)
                 return False
@@ -505,7 +549,9 @@ class ProductionDebitSpreads:
                 max_profit=candidate.max_profit,
             )
 
-            self.metrics.record_metric("debit_spreads_executed", 1, {"ticker": candidate.ticker})
+            self.metrics.record_metric(
+                "debit_spreads_executed", 1, {"ticker": candidate.ticker}
+            )
 
             return True
 
@@ -582,7 +628,9 @@ class ProductionDebitSpreads:
         for option in options_data:
             if option.strike == position.long_strike and option.option_type == "call":
                 long_option_data = option
-            elif option.strike == position.short_strike and option.option_type == "call":
+            elif (
+                option.strike == position.short_strike and option.option_type == "call"
+            ):
                 short_option_data = option
 
         if not long_option_data or not short_option_data:
@@ -635,7 +683,10 @@ class ProductionDebitSpreads:
 
             short_result = await self.trading.execute_trade(short_close_signal)
 
-            if long_result.status.value == "filled" and short_result.status.value == "filled":
+            if (
+                long_result.status.value == "filled"
+                and short_result.status.value == "filled"
+            ):
                 # Update position
                 position.status = SpreadStatus.CLOSED
 
@@ -646,10 +697,14 @@ class ProductionDebitSpreads:
                     profit_pct=position.profit_pct,
                 )
 
-                self.metrics.record_metric("debit_spreads_closed", 1, {"ticker": position.ticker})
+                self.metrics.record_metric(
+                    "debit_spreads_closed", 1, {"ticker": position.ticker}
+                )
 
                 # Remove from active positions
-                position_key = f"{position.ticker}_{position.long_strike}_{position.short_strike}"
+                position_key = (
+                    f"{position.ticker}_{position.long_strike}_{position.short_strike}"
+                )
                 if position_key in self.positions:
                     del self.positions[position_key]
 
@@ -661,7 +716,9 @@ class ProductionDebitSpreads:
     async def get_portfolio_summary(self) -> dict[str, Any]:
         """Get debit spreads portfolio summary."""
         total_pnl = sum(pos.unrealized_pnl for pos in self.positions.values())
-        total_debit = sum(pos.net_debit * pos.quantity * 100 for pos in self.positions.values())
+        total_debit = sum(
+            pos.net_debit * pos.quantity * 100 for pos in self.positions.values()
+        )
 
         summary = {
             "total_positions": len(self.positions),
@@ -709,7 +766,9 @@ class ProductionDebitSpreads:
                 self.logger.info("Debit spreads portfolio summary", **summary)
 
                 # Record metrics
-                self.metrics.record_metric("debit_spreads_total_pnl", summary["total_pnl"])
+                self.metrics.record_metric(
+                    "debit_spreads_total_pnl", summary["total_pnl"]
+                )
                 self.metrics.record_metric(
                     "debit_spreads_active_positions", summary["total_positions"]
                 )

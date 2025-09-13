@@ -149,8 +149,12 @@ class SmartOptionsSelector:
             # Get options chains for each expiry
             all_options = []
             for expiry_date in expiry_dates:
-                options_chain = await self.data_provider.get_options_chain(ticker, expiry_date)
-                calls = [opt for opt in options_chain if opt.option_type.lower() == "call"]
+                options_chain = await self.data_provider.get_options_chain(
+                    ticker, expiry_date
+                )
+                calls = [
+                    opt for opt in options_chain if opt.option_type.lower() == "call"
+                ]
                 all_options.extend(calls)
 
             if not all_options:
@@ -269,9 +273,13 @@ class SmartOptionsSelector:
                 else option.last_price
             )
             bid_ask_spread = (
-                option.ask - option.bid if option.bid > 0 and option.ask > 0 else Decimal("0")
+                option.ask - option.bid
+                if option.bid > 0 and option.ask > 0
+                else Decimal("0")
             )
-            spread_percentage = float(bid_ask_spread / mid_price) if mid_price > 0 else 1.0
+            spread_percentage = (
+                float(bid_ask_spread / mid_price) if mid_price > 0 else 1.0
+            )
 
             # Calculate moneyness and days to expiry
             moneyness = float(option.strike / spot_price)
@@ -283,7 +291,9 @@ class SmartOptionsSelector:
             days_to_expiry = (expiry_date - date.today()).days
 
             # Calculate premium to stock ratio
-            premium_to_stock_ratio = float(mid_price / spot_price) if spot_price > 0 else 0
+            premium_to_stock_ratio = (
+                float(mid_price / spot_price) if spot_price > 0 else 0
+            )
 
             # Calculate break - even
             break_even_price = option.strike + mid_price
@@ -295,7 +305,11 @@ class SmartOptionsSelector:
 
             # Calculate scores
             wsb_suitability_score = self._calculate_wsb_suitability_score(
-                moneyness, days_to_expiry, premium_to_stock_ratio, option.delta, spread_percentage
+                moneyness,
+                days_to_expiry,
+                premium_to_stock_ratio,
+                option.delta,
+                spread_percentage,
             )
 
             liquidity_score = self._calculate_liquidity_score(
@@ -303,7 +317,10 @@ class SmartOptionsSelector:
             )
 
             value_score = self._calculate_value_score(
-                option.implied_volatility, spread_percentage, premium_to_stock_ratio, option.delta
+                option.implied_volatility,
+                spread_percentage,
+                premium_to_stock_ratio,
+                option.delta,
             )
 
             # Overall score (weighted combination)
@@ -367,7 +384,12 @@ class SmartOptionsSelector:
             return LiquidityRating.POOR
 
     def _calculate_wsb_suitability_score(
-        self, moneyness: float, dte: int, premium_ratio: float, delta: Decimal, spread_pct: float
+        self,
+        moneyness: float,
+        dte: int,
+        premium_ratio: float,
+        delta: Decimal,
+        spread_pct: float,
     ) -> float:
         """Calculate how suitable this option is for WSB - style trading."""
         try:
@@ -422,7 +444,11 @@ class SmartOptionsSelector:
             return 0.0
 
     def _calculate_liquidity_score(
-        self, volume: int, open_interest: int, spread_pct: float, liquidity_rating: LiquidityRating
+        self,
+        volume: int,
+        open_interest: int,
+        spread_pct: float,
+        liquidity_rating: LiquidityRating,
     ) -> float:
         """Calculate liquidity score."""
         try:
@@ -526,7 +552,9 @@ class SmartOptionsSelector:
         except Exception:
             return 5.0
 
-    def _meets_criteria(self, analysis: OptionsAnalysis, criteria: SelectionCriteria) -> bool:
+    def _meets_criteria(
+        self, analysis: OptionsAnalysis, criteria: SelectionCriteria
+    ) -> bool:
         """Check if option meets minimum selection criteria."""
         try:
             # Basic liquidity requirements
@@ -554,21 +582,32 @@ class SmartOptionsSelector:
                 return False
 
             # DTE requirements
-            if not (criteria.target_dte_min <= analysis.days_to_expiry <= criteria.target_dte_max):
+            if not (
+                criteria.target_dte_min
+                <= analysis.days_to_expiry
+                <= criteria.target_dte_max
+            ):
                 return False
 
             # OTM requirements
             otm_percentage = analysis.moneyness - 1.0
-            if not (criteria.target_otm_min <= otm_percentage <= criteria.target_otm_max):
+            if not (
+                criteria.target_otm_min <= otm_percentage <= criteria.target_otm_max
+            ):
                 return False
 
             # Delta requirements
             delta_val = float(analysis.delta) if analysis.delta else 0
-            if not (criteria.target_delta_min <= delta_val <= criteria.target_delta_max):
+            if not (
+                criteria.target_delta_min <= delta_val <= criteria.target_delta_max
+            ):
                 return False
 
             # Premium to stock ratio
-            return not analysis.premium_to_stock_ratio > criteria.max_premium_to_stock_ratio
+            return (
+                not analysis.premium_to_stock_ratio
+                > criteria.max_premium_to_stock_ratio
+            )
 
         except Exception as e:
             self.logger.error(f"Error checking criteria: {e}")
@@ -586,8 +625,12 @@ class SmartOptionsSelector:
             all_options = []
 
             for expiry_date in expiry_dates:
-                options_chain = await self.data_provider.get_options_chain(ticker, expiry_date)
-                calls = [opt for opt in options_chain if opt.option_type.lower() == "call"]
+                options_chain = await self.data_provider.get_options_chain(
+                    ticker, expiry_date
+                )
+                calls = [
+                    opt for opt in options_chain if opt.option_type.lower() == "call"
+                ]
                 all_options.extend(calls)
 
             # Analyze all options
@@ -643,6 +686,8 @@ class SmartOptionsSelector:
             return {"error": str(e)}
 
 
-def create_smart_options_selector(data_provider=None, pricing_engine=None) -> SmartOptionsSelector:
+def create_smart_options_selector(
+    data_provider=None, pricing_engine=None
+) -> SmartOptionsSelector:
     """Factory function to create smart options selector."""
     return SmartOptionsSelector(data_provider, pricing_engine)

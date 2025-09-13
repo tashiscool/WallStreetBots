@@ -191,7 +191,9 @@ class TestPhase4Optimization(unittest.TestCase):
         self.config = Mock(spec=ConfigManager)
         self.backtest_engine = Mock(spec=BacktestEngine)
 
-        self.optimizer = StrategyOptimizer(self.backtest_engine, self.config, self.logger)
+        self.optimizer = StrategyOptimizer(
+            self.backtest_engine, self.config, self.logger
+        )
 
     def test_parameter_range_creation(self):
         """Test parameter range creation."""
@@ -264,15 +266,21 @@ class TestPhase4Optimization(unittest.TestCase):
         mock_results.max_drawdown = 0.05
 
         # Test Sharpe ratio metric
-        score = self.optimizer._calculate_score(mock_results, OptimizationMetric.SHARPE_RATIO)
+        score = self.optimizer._calculate_score(
+            mock_results, OptimizationMetric.SHARPE_RATIO
+        )
         self.assertEqual(score, 1.5)
 
         # Test total return metric
-        score = self.optimizer._calculate_score(mock_results, OptimizationMetric.TOTAL_RETURN)
+        score = self.optimizer._calculate_score(
+            mock_results, OptimizationMetric.TOTAL_RETURN
+        )
         self.assertEqual(score, 0.15)
 
         # Test max drawdown metric (should be negative)
-        score = self.optimizer._calculate_score(mock_results, OptimizationMetric.MAX_DRAWDOWN)
+        score = self.optimizer._calculate_score(
+            mock_results, OptimizationMetric.MAX_DRAWDOWN
+        )
         self.assertEqual(score, -0.05)
 
 
@@ -320,7 +328,10 @@ class TestPhase4Monitoring(unittest.TestCase):
 
         # Record a metric
         metric = Metric(
-            name="test_metric", value=100.0, timestamp=datetime.now(), metric_type=MetricType.GAUGE
+            name="test_metric",
+            value=100.0,
+            timestamp=datetime.now(),
+            metric_type=MetricType.GAUGE,
         )
 
         collector.record_metric(metric)

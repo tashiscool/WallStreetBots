@@ -78,7 +78,9 @@ class TestBlackScholesCalculator(unittest.TestCase):
         dividend_yield = 0.0
         iv = 0.20
 
-        delta = self.bs_calc.delta(spot, strike, time_to_expiry, risk_free_rate, dividend_yield, iv)
+        delta = self.bs_calc.delta(
+            spot, strike, time_to_expiry, risk_free_rate, dividend_yield, iv
+        )
 
         # For ATM options, delta should be approximately 0.5
         self.assertAlmostEqual(delta, 0.5, delta=0.1)
@@ -464,7 +466,9 @@ class TestOptionsTradeCalculator(unittest.TestCase):
 
         # Calculate expected leverage
         notional_value = trade.recommended_contracts * 100 * trade.spot_price
-        expected_leverage = notional_value / trade.total_cost if trade.total_cost > 0 else 0
+        expected_leverage = (
+            notional_value / trade.total_cost if trade.total_cost > 0 else 0
+        )
 
         self.assertAlmostEqual(trade.leverage_ratio, expected_leverage, places=1)
 
@@ -534,7 +538,9 @@ class TestOptionsTradeCalculator(unittest.TestCase):
             risk_pct=0.10,  # Within limits
         )
 
-        self.assertLessEqual(trade.account_risk_pct, setup.max_single_trade_risk_pct * 100)
+        self.assertLessEqual(
+            trade.account_risk_pct, setup.max_single_trade_risk_pct * 100
+        )
 
     def test_otm_strike_selection_behavior(self):
         """Test OTM strike selection follows 5% rule correctly."""
@@ -596,7 +602,8 @@ class TestOptionsTradeCalculator(unittest.TestCase):
 
         # Larger account should allow more contracts
         self.assertGreater(
-            trade_calc_large.recommended_contracts, trade_calc_small.recommended_contracts
+            trade_calc_large.recommended_contracts,
+            trade_calc_small.recommended_contracts,
         )
 
         # Both should have similar risk percentages
@@ -618,8 +625,12 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         )
 
         # Should limit position size appropriately
-        self.assertLessEqual(trade_calc.account_risk_pct, 8.0)  # Within reasonable bounds
-        self.assertGreaterEqual(trade_calc.recommended_contracts, 0)  # Allow zero if too expensive
+        self.assertLessEqual(
+            trade_calc.account_risk_pct, 8.0
+        )  # Within reasonable bounds
+        self.assertGreaterEqual(
+            trade_calc.recommended_contracts, 0
+        )  # Allow zero if too expensive
 
     def test_breakeven_calculation(self):
         """Test breakeven price calculation accuracy."""
@@ -633,7 +644,9 @@ class TestOptionsTradeCalculator(unittest.TestCase):
 
         # Breakeven should be strike+premium paid per share
         expected_breakeven = trade_calc.strike + (trade_calc.estimated_premium / 100)
-        self.assertAlmostEqual(trade_calc.breakeven_price, expected_breakeven, delta=0.01)
+        self.assertAlmostEqual(
+            trade_calc.breakeven_price, expected_breakeven, delta=0.01
+        )
 
     def test_leverage_calculation(self):
         """Test leverage ratio calculation."""
@@ -761,9 +774,13 @@ class TestTradeValidation(unittest.TestCase):
 
         # Should still produce reasonable results
         self.assertGreater(trade_calc_extreme.recommended_contracts, 0)
-        self.assertLess(trade_calc_extreme.account_risk_pct, 10.0)  # Shouldn't exceed 10%
+        self.assertLess(
+            trade_calc_extreme.account_risk_pct, 10.0
+        )  # Shouldn't exceed 10%
         self.assertGreater(trade_calc_extreme.leverage_ratio, 1.0)
-        self.assertLess(trade_calc_extreme.leverage_ratio, 50.0)  # Reasonable leverage cap
+        self.assertLess(
+            trade_calc_extreme.leverage_ratio, 50.0
+        )  # Reasonable leverage cap
 
 
 class TestOptionsCalculatorIntegration(unittest.TestCase):
@@ -866,7 +883,11 @@ def run_options_calculator_tests():
     print(f"Errors: {len(result.errors)}")
 
     success_rate = (
-        ((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun) * 100
+        (
+            (result.testsRun - len(result.failures) - len(result.errors))
+            / result.testsRun
+        )
+        * 100
         if result.testsRun > 0
         else 0
     )

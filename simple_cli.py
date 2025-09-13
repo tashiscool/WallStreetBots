@@ -2,6 +2,7 @@
 """
 Simple CLI test without external dependencies
 """
+
 import sys
 import os
 
@@ -11,6 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
 from backend.tradingbot.config.simple_settings import load_settings
 from backend.tradingbot.data.client import MarketDataClient, BarSpec
 from backend.tradingbot.risk.engine import RiskEngine, RiskLimits
+
 
 def test_settings():
     """Test settings loading"""
@@ -27,6 +29,7 @@ def test_settings():
         print(f"❌ Settings error: {e}")
         return False
 
+
 def test_risk_engine():
     """Test risk engine"""
     print("\n🔍 Testing risk engine...")
@@ -42,6 +45,7 @@ def test_risk_engine():
         print(f"❌ Risk engine error: {e}")
         return False
 
+
 def test_data_client():
     """Test data client"""
     print("\n🔍 Testing data client...")
@@ -56,6 +60,7 @@ def test_data_client():
     except Exception as e:
         print(f"❌ Data client error: {e}")
         return False
+
 
 if __name__ == "__main__":
     print("🚀 WallStreetBots System Test")

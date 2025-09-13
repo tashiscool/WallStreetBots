@@ -292,7 +292,12 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
         """Test pullback setup and reversal trigger detection separately."""
         # Test pullback setup detection
         prev_high_price = create_sample_indicators(
-            price=210.0, ema_20=208.0, ema_50=205.0, ema_200=200.0, rsi=55, volume=1500000
+            price=210.0,
+            ema_20=208.0,
+            ema_50=205.0,
+            ema_200=200.0,
+            rsi=55,
+            volume=1500000,
         )
 
         # Pullback day - decline and near 20EMA with RSI in range
@@ -352,12 +357,22 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
     def test_signal_confidence_calculation_accuracy(self):
         """Test mathematical accuracy of confidence calculation."""
         current = create_sample_indicators(
-            price=110.0, ema_20=109.0, ema_50=105.0, ema_200=100.0, rsi=55, volume=2000000
+            price=110.0,
+            ema_20=109.0,
+            ema_50=105.0,
+            ema_200=100.0,
+            rsi=55,
+            volume=2000000,
         )
         current.ema_20_slope = 0.003  # Strong positive slope
 
         previous = create_sample_indicators(
-            price=108.0, ema_20=108.0, ema_50=104.0, ema_200=100.0, rsi=52, volume=1000000
+            price=108.0,
+            ema_20=108.0,
+            ema_50=104.0,
+            ema_200=100.0,
+            rsi=52,
+            volume=1000000,
         )
 
         confidence = self.signal_gen._calculate_signal_confidence(current, previous)
@@ -388,7 +403,9 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
         self.assertIn("Earnings risk", " ".join(signal_earnings.reasoning))
 
         # Test macro risk filter
-        signal_macro = self.signal_gen.generate_signal(indicators, indicators, macro_risk=True)
+        signal_macro = self.signal_gen.generate_signal(
+            indicators, indicators, macro_risk=True
+        )
         self.assertEqual(signal_macro.signal_type, SignalType.HOLD)
         self.assertEqual(signal_macro.confidence, 0.0)
         self.assertIn("Major macro event", " ".join(signal_macro.reasoning))
@@ -428,8 +445,12 @@ class TestTechnicalIndicatorsAccuracy(unittest.TestCase):
         expected_distance_20 = (110.0 - 105.0) / 110.0
         expected_distance_50 = (110.0 - 100.0) / 110.0
 
-        self.assertAlmostEqual(indicators.distance_from_20ema, expected_distance_20, places=10)
-        self.assertAlmostEqual(indicators.distance_from_50ema, expected_distance_50, places=10)
+        self.assertAlmostEqual(
+            indicators.distance_from_20ema, expected_distance_20, places=10
+        )
+        self.assertAlmostEqual(
+            indicators.distance_from_50ema, expected_distance_50, places=10
+        )
 
     def test_zero_price_handling(self):
         """Test handling of zero price in distance calculations."""
@@ -519,7 +540,9 @@ class TestMarketRegimeIntegration(unittest.TestCase):
             volume=999999999,  # Very high volume
         )
 
-        signal2 = self.signal_gen.generate_signal(overbought_indicators, overbought_indicators)
+        signal2 = self.signal_gen.generate_signal(
+            overbought_indicators, overbought_indicators
+        )
         self.assertIsInstance(signal2, MarketSignal)
 
 
@@ -558,7 +581,11 @@ def run_market_regime_verification_tests():
     print(f"Errors: {len(result.errors)}")
 
     success_rate = (
-        ((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun) * 100
+        (
+            (result.testsRun - len(result.failures) - len(result.errors))
+            / result.testsRun
+        )
+        * 100
         if result.testsRun > 0
         else 0
     )

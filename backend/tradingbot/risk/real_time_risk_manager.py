@@ -128,7 +128,9 @@ class RealTimeRiskManager:
         self.cached_account = None
         self.cached_positions = []
 
-    async def validate_trade_safety(self, trade_signal: TradeSignal) -> RiskValidationResult:
+    async def validate_trade_safety(
+        self, trade_signal: TradeSignal
+    ) -> RiskValidationResult:
         """Comprehensive trade validation with live account data."""
         try:
             # Get fresh account data
@@ -204,9 +206,7 @@ class RealTimeRiskManager:
             elif approved_qty < trade_signal.quantity:
                 result.approved = True
                 result.validation_result = ValidationResult.MODIFIED
-                result.reason = (
-                    f"Position size reduced from {trade_signal.quantity} to {approved_qty}"
-                )
+                result.reason = f"Position size reduced from {trade_signal.quantity} to {approved_qty}"
             else:
                 result.approved = True
                 result.validation_result = ValidationResult.APPROVED
@@ -308,7 +308,10 @@ class RealTimeRiskManager:
             return []
 
     async def _check_portfolio_risk(
-        self, trade_signal: TradeSignal, account: AccountSnapshot, positions: list[PositionSummary]
+        self,
+        trade_signal: TradeSignal,
+        account: AccountSnapshot,
+        positions: list[PositionSummary],
     ) -> tuple:
         """Check overall portfolio risk exposure."""
         try:
@@ -328,7 +331,9 @@ class RealTimeRiskManager:
                 max_allowed_risk = account.portfolio_value * self.max_portfolio_risk
                 available_risk = max_allowed_risk - current_risk
                 max_quantity = (
-                    int(available_risk / trade_signal.price) if trade_signal.price > 0 else 0
+                    int(available_risk / trade_signal.price)
+                    if trade_signal.price > 0
+                    else 0
                 )
 
                 return (
@@ -353,7 +358,10 @@ class RealTimeRiskManager:
             return (False, RiskLevel.CRITICAL, 0, f"Portfolio risk check error: {e}")
 
     async def _check_position_sizing(
-        self, trade_signal: TradeSignal, account: AccountSnapshot, positions: list[PositionSummary]
+        self,
+        trade_signal: TradeSignal,
+        account: AccountSnapshot,
+        positions: list[PositionSummary],
     ) -> tuple:
         """Check individual position size limits."""
         try:
@@ -363,7 +371,9 @@ class RealTimeRiskManager:
             if position_percentage > self.max_single_position_risk:
                 # Calculate max allowed quantity
                 max_value = account.portfolio_value * self.max_single_position_risk
-                max_quantity = int(max_value / trade_signal.price) if trade_signal.price > 0 else 0
+                max_quantity = (
+                    int(max_value / trade_signal.price) if trade_signal.price > 0 else 0
+                )
 
                 return (
                     False,
@@ -390,7 +400,9 @@ class RealTimeRiskManager:
                 required_buying_power *= Decimal("1.2")  # 20% buffer for options
 
             # Check available buying power with buffer
-            available_bp = account.buying_power * (Decimal("1") - self.min_buying_power_buffer)
+            available_bp = account.buying_power * (
+                Decimal("1") - self.min_buying_power_buffer
+            )
 
             if required_buying_power > available_bp:
                 # Calculate max affordable quantity
@@ -467,7 +479,10 @@ class RealTimeRiskManager:
             return (True, RiskLevel.LOW, trade_signal.quantity, None)
 
     async def _check_options_allocation(
-        self, trade_signal: TradeSignal, account: AccountSnapshot, positions: list[PositionSummary]
+        self,
+        trade_signal: TradeSignal,
+        account: AccountSnapshot,
+        positions: list[PositionSummary],
     ) -> tuple:
         """Check options allocation limits."""
         try:
@@ -477,7 +492,9 @@ class RealTimeRiskManager:
 
             # Calculate current options exposure
             current_options_value = sum(
-                abs(pos.market_value) for pos in positions if pos.position_type == "option"
+                abs(pos.market_value)
+                for pos in positions
+                if pos.position_type == "option"
             )
 
             # Add proposed trade
@@ -486,7 +503,9 @@ class RealTimeRiskManager:
 
             if options_percentage > self.max_options_allocation:
                 # Calculate max allowed options quantity
-                max_options_value = account.portfolio_value * self.max_options_allocation
+                max_options_value = (
+                    account.portfolio_value * self.max_options_allocation
+                )
                 available_options_capacity = max_options_value - current_options_value
                 max_quantity = (
                     int(available_options_capacity / trade_signal.price)
@@ -514,7 +533,9 @@ class RealTimeRiskManager:
         try:
             # Simplified: check for excessive exposure to same ticker
             same_ticker_exposure = sum(
-                abs(pos.market_value) for pos in positions if pos.ticker == trade_signal.ticker
+                abs(pos.market_value)
+                for pos in positions
+                if pos.ticker == trade_signal.ticker
             )
 
             # This is a simplified check - in practice would use sector / correlation data
@@ -557,7 +578,10 @@ class RealTimeRiskManager:
             return (True, RiskLevel.LOW, trade_signal.quantity, None)
 
     async def _calculate_risk_metrics(
-        self, trade_signal: TradeSignal, account: AccountSnapshot, positions: list[PositionSummary]
+        self,
+        trade_signal: TradeSignal,
+        account: AccountSnapshot,
+        positions: list[PositionSummary],
     ) -> dict[str, Any]:
         """Calculate comprehensive risk metrics."""
         try:
@@ -567,16 +591,25 @@ class RealTimeRiskManager:
                 "current_portfolio_value": float(account.portfolio_value),
                 "current_risk_exposure": float(current_value),
                 "proposed_trade_value": float(trade_signal.total_value),
-                "portfolio_risk_percentage": float(current_value / account.portfolio_value),
+                "portfolio_risk_percentage": float(
+                    current_value / account.portfolio_value
+                ),
                 "buying_power_utilization": float(
-                    (account.portfolio_value - account.buying_power) / account.portfolio_value
+                    (account.portfolio_value - account.buying_power)
+                    / account.portfolio_value
                 ),
                 "options_allocation": float(
-                    sum(abs(pos.market_value) for pos in positions if pos.position_type == "option")
+                    sum(
+                        abs(pos.market_value)
+                        for pos in positions
+                        if pos.position_type == "option"
+                    )
                     / account.portfolio_value
                 ),
                 "cash_percentage": float(account.cash / account.portfolio_value),
-                "day_trades_remaining": max(0, self.max_day_trades - account.day_trade_count)
+                "day_trades_remaining": max(
+                    0, self.max_day_trades - account.day_trade_count
+                )
                 if account.equity < self.pdt_threshold
                 else 999,
             }
@@ -584,7 +617,9 @@ class RealTimeRiskManager:
             logger.error(f"Risk metrics calculation failed: {e}")
             return {}
 
-    async def _log_validation_result(self, trade_signal: TradeSignal, result: RiskValidationResult):
+    async def _log_validation_result(
+        self, trade_signal: TradeSignal, result: RiskValidationResult
+    ):
         """Log risk validation results for monitoring."""
         try:
             log_entry = {
@@ -646,7 +681,9 @@ class RealTimeRiskManager:
 
             total_exposure = sum(abs(pos.market_value) for pos in positions)
             options_exposure = sum(
-                abs(pos.market_value) for pos in positions if pos.position_type == "option"
+                abs(pos.market_value)
+                for pos in positions
+                if pos.position_type == "option"
             )
 
             return {

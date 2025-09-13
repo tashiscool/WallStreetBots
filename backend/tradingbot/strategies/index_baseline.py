@@ -165,7 +165,11 @@ class IndexBaselineScanner:
                 print(f"Error fetching {ticker}: {e}")
                 # Use default values
                 baselines[ticker] = {
-                    "current": 500.0 if ticker == "SPY" else 250.0 if ticker == "VTI" else 400.0,
+                    "current": 500.0
+                    if ticker == "SPY"
+                    else 250.0
+                    if ticker == "VTI"
+                    else 400.0,
                     "period_return": 0.10,
                     "ytd_return": 0.12,
                     "one_year_return": 0.15,
@@ -184,7 +188,9 @@ class IndexBaselineScanner:
             last_updated=datetime.now(),
         )
 
-    def calculate_trading_costs(self, total_trades: int, avg_position_size: float = 5000) -> float:
+    def calculate_trading_costs(
+        self, total_trades: int, avg_position_size: float = 5000
+    ) -> float:
         """Estimate trading cost drag."""
         # Assume $1 commission + 0.02% spread per trade
         commission_per_trade = 1.0
@@ -212,7 +218,9 @@ class IndexBaselineScanner:
         start_date_obj = date.today() - timedelta(days=period_months * 30)
         end_date_obj = date.today()
 
-        strategy_return = strategy["return_6m"] * (period_months / 6.0)  # Scale by period
+        strategy_return = strategy["return_6m"] * (
+            period_months / 6.0
+        )  # Scale by period
         strategy_vol = strategy["volatility"]
         max_dd = strategy["max_drawdown"]
         win_rate = strategy["win_rate"]
@@ -222,17 +230,25 @@ class IndexBaselineScanner:
         risk_free_rate = 0.04 * (period_months / 12.0)  # 4% annual
 
         # Calculate Sharpe ratio
-        sharpe_ratio = (strategy_return - risk_free_rate) / strategy_vol if strategy_vol > 0 else 0
+        sharpe_ratio = (
+            (strategy_return - risk_free_rate) / strategy_vol if strategy_vol > 0 else 0
+        )
 
         # Get baseline returns for the period
         spy_return = (
-            baselines.spy_1y * (period_months / 12.0) if period_months >= 12 else baselines.spy_ytd
+            baselines.spy_1y * (period_months / 12.0)
+            if period_months >= 12
+            else baselines.spy_ytd
         )
         vti_return = (
-            baselines.vti_1y * (period_months / 12.0) if period_months >= 12 else baselines.vti_ytd
+            baselines.vti_1y * (period_months / 12.0)
+            if period_months >= 12
+            else baselines.vti_ytd
         )
         qqq_return = (
-            baselines.qqq_1y * (period_months / 12.0) if period_months >= 12 else baselines.qqq_ytd
+            baselines.qqq_1y * (period_months / 12.0)
+            if period_months >= 12
+            else baselines.qqq_ytd
         )
 
         # Estimate baseline volatility (historical approximation)
@@ -287,15 +303,21 @@ class IndexBaselineScanner:
             net_alpha_after_costs=net_alpha_spy,
         )
 
-    def scan_all_strategies(self, period_months: int = 6) -> list[PerformanceComparison]:
+    def scan_all_strategies(
+        self, period_months: int = 6
+    ) -> list[PerformanceComparison]:
         """Compare all WSB strategies vs baselines."""
         comparisons = []
 
-        print(f"📊 Comparing WSB strategies vs index baselines ({period_months} month period)")
+        print(
+            f"📊 Comparing WSB strategies vs index baselines ({period_months} month period)"
+        )
 
         for strategy_name in self.wsb_strategies:
             try:
-                comparison = self.compare_strategy_performance(strategy_name, period_months)
+                comparison = self.compare_strategy_performance(
+                    strategy_name, period_months
+                )
                 comparisons.append(comparison)
                 print(f"✅ Analyzed {strategy_name}")
             except Exception as e:
@@ -340,15 +362,9 @@ class IndexBaselineScanner:
             output += f"   Total Trades: {comp.strategy_total_trades} | Trading Cost Drag: {comp.trading_costs_drag:.2%}\n"
 
             output += "\n   📈 BASELINE COMPARISON: \n"
-            output += (
-                f"   SPY Return:     {comp.spy_return:.2%} | Alpha: {comp.alpha_vs_spy:+.2%}\n"
-            )
-            output += (
-                f"   VTI Return:     {comp.vti_return:.2%} | Alpha: {comp.alpha_vs_vti:+.2%}\n"
-            )
-            output += (
-                f"   QQQ Return:     {comp.qqq_return:.2%} | Alpha: {comp.alpha_vs_qqq:+.2%}\n"
-            )
+            output += f"   SPY Return:     {comp.spy_return:.2%} | Alpha: {comp.alpha_vs_spy:+.2%}\n"
+            output += f"   VTI Return:     {comp.vti_return:.2%} | Alpha: {comp.alpha_vs_vti:+.2%}\n"
+            output += f"   QQQ Return:     {comp.qqq_return:.2%} | Alpha: {comp.alpha_vs_qqq:+.2%}\n"
 
             output += "\n   🎯 FINAL VERDICT: \n"
             output += f"   Beats SPY: {'✅ YES' if comp.beats_spy else '❌ NO'} | "
@@ -393,15 +409,21 @@ class IndexBaselineScanner:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Index Fund Baseline Comparison Scanner")
+    parser = argparse.ArgumentParser(
+        description="Index Fund Baseline Comparison Scanner"
+    )
     parser.add_argument(
         "--period - months",
         type=int,
         default=6,
         help="Period in months for comparison (default: 6)",
     )
-    parser.add_argument("--strategy", type=str, help="Specific strategy to analyze (default: all)")
-    parser.add_argument("--output", choices=["json", "text"], default="text", help="Output format")
+    parser.add_argument(
+        "--strategy", type=str, help="Specific strategy to analyze (default: all)"
+    )
+    parser.add_argument(
+        "--output", choices=["json", "text"], default="text", help="Output format"
+    )
 
     args = parser.parse_args()
 
@@ -413,7 +435,9 @@ def main():
             print(f"Available strategies: {list(scanner.wsb_strategies.keys())}")
             return
 
-        comparison = scanner.compare_strategy_performance(args.strategy, args.period_months)
+        comparison = scanner.compare_strategy_performance(
+            args.strategy, args.period_months
+        )
         comparisons = [comparison]
     else:
         comparisons = scanner.scan_all_strategies(args.period_months)

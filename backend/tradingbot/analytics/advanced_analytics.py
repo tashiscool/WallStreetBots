@@ -234,7 +234,8 @@ class AdvancedAnalytics:
             # Generate dates if not provided
             if dates is None:
                 dates = [
-                    datetime.now() - timedelta(days=len(values) - i - 1) for i in range(len(values))
+                    datetime.now() - timedelta(days=len(values) - i - 1)
+                    for i in range(len(values))
                 ]
 
             drawdown_periods = []
@@ -432,7 +433,9 @@ class AdvancedAnalytics:
 
         # Calculate beta
         if np.var(benchmark_returns) > 0:
-            beta = float(np.cov(returns, benchmark_returns)[0, 1] / np.var(benchmark_returns))
+            beta = float(
+                np.cov(returns, benchmark_returns)[0, 1] / np.var(benchmark_returns)
+            )
         else:
             beta = 1.0
 
@@ -449,7 +452,9 @@ class AdvancedAnalytics:
 
         # Calculate information ratio
         excess_return = np.mean(returns - benchmark_returns) * 252
-        information_ratio = float(excess_return / tracking_error) if tracking_error > 0 else 0.0
+        information_ratio = (
+            float(excess_return / tracking_error) if tracking_error > 0 else 0.0
+        )
 
         # Calculate Treynor ratio
         excess_portfolio_return = portfolio_return - self.risk_free_rate
@@ -457,7 +462,9 @@ class AdvancedAnalytics:
 
         return alpha, beta, information_ratio, treynor_ratio, tracking_error
 
-    def _calculate_recovery_factor(self, returns: np.ndarray, max_drawdown: float) -> float:
+    def _calculate_recovery_factor(
+        self, returns: np.ndarray, max_drawdown: float
+    ) -> float:
         """Calculate recovery factor."""
         total_return = self._calculate_total_return(returns)
         return float(total_return / max_drawdown) if max_drawdown > 0 else 0.0
@@ -477,12 +484,16 @@ class AdvancedAnalytics:
 
         return float(np.sqrt(np.mean(squared_drawdowns)))
 
-    def _calculate_sterling_ratio(self, returns: np.ndarray, max_drawdown: float) -> float:
+    def _calculate_sterling_ratio(
+        self, returns: np.ndarray, max_drawdown: float
+    ) -> float:
         """Calculate Sterling ratio."""
         ann_return = self._calculate_annualized_return(returns)
         return float(ann_return / max_drawdown) if max_drawdown > 0 else 0.0
 
-    def _returns_to_values(self, returns: np.ndarray, initial_value: float = 10000.0) -> np.ndarray:
+    def _returns_to_values(
+        self, returns: np.ndarray, initial_value: float = 10000.0
+    ) -> np.ndarray:
         """Convert returns to portfolio values."""
         values = [initial_value]
         for ret in returns:
@@ -597,5 +608,7 @@ def analyze_performance(
     """
     analytics = AdvancedAnalytics(risk_free_rate)
     return analytics.calculate_comprehensive_metrics(
-        returns=returns, benchmark_returns=benchmark_returns, portfolio_values=portfolio_values
+        returns=returns,
+        benchmark_returns=benchmark_returns,
+        portfolio_values=portfolio_values,
     )

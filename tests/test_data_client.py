@@ -1,4 +1,5 @@
 """Tests for the market data client"""
+
 import pytest
 import pandas as pd
 import tempfile
@@ -7,7 +8,6 @@ from backend.tradingbot.data.client import MarketDataClient, BarSpec
 
 
 class TestMarketDataClient:
-
     def test_bar_spec_creation(self):
         """Test BarSpec dataclass creation"""
         spec = BarSpec("AAPL", "1d", "30d")
@@ -39,7 +39,9 @@ class TestMarketDataClient:
             try:
                 assert isinstance(data, pd.DataFrame)
                 assert not data.empty
-                assert all(col in data.columns for col in ['open', 'high', 'low', 'close'])
+                assert all(
+                    col in data.columns for col in ["open", "high", "low", "close"]
+                )
             except (TypeError, AttributeError, AssertionError):
                 # Handle mocked objects in tests - just check that the method completes
                 pass
@@ -54,7 +56,7 @@ class TestMarketDataClient:
             # First fetch - should create cache
             data1 = client.get_bars(spec, max_cache_age_hours=24)
             cache_file = client._cache_file(spec)
-            
+
             try:
                 assert cache_file.exists()
 
@@ -70,12 +72,15 @@ class TestMarketDataClient:
     def test_cache_disabled(self):
         """Test functionality with caching disabled"""
         import uuid
+
         non_existent_path = f"/tmp/cache_test_{uuid.uuid4()}"
         client = MarketDataClient(use_cache=False, cache_path=non_existent_path)
 
         # Cache directory should not be created on init when use_cache=False
         cache_path = client.cache_path
-        assert not cache_path.exists(), "Cache directory should not be created when use_cache=False"
+        assert not cache_path.exists(), (
+            "Cache directory should not be created when use_cache=False"
+        )
 
     @pytest.mark.integration
     def test_get_current_price(self):

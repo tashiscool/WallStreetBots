@@ -66,10 +66,20 @@ class DockerManager:
         self.logger = logger
         self.logger.info("DockerManager initialized")
 
-    def build_image(self, dockerfile_path: str, image_name: str, tag: str = "latest") -> bool:
+    def build_image(
+        self, dockerfile_path: str, image_name: str, tag: str = "latest"
+    ) -> bool:
         """Build Docker image."""
         try:
-            cmd = ["docker", "build", "-t", f"{image_name}: {tag}", "-f", dockerfile_path, "."]
+            cmd = [
+                "docker",
+                "build",
+                "-t",
+                f"{image_name}: {tag}",
+                "-f",
+                dockerfile_path,
+                ".",
+            ]
 
             self.logger.info(f"Building Docker image: {image_name}: {tag}")
             subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)  # noqa: S603
@@ -84,11 +94,15 @@ class DockerManager:
             self.logger.error(f"Error building Docker image: {e}")
             return False
 
-    def push_image(self, image_name: str, tag: str = "latest", registry: str | None = None) -> bool:
+    def push_image(
+        self, image_name: str, tag: str = "latest", registry: str | None = None
+    ) -> bool:
         """Push Docker image to registry."""
         try:
             full_image_name = (
-                f"{registry}/{image_name}: {tag}" if registry else f"{image_name}: {tag}"
+                f"{registry}/{image_name}: {tag}"
+                if registry
+                else f"{image_name}: {tag}"
             )
 
             cmd = ["docker", "push", full_image_name]
@@ -189,7 +203,9 @@ class DockerManager:
         try:
             cmd = ["docker", "logs", "--tail", str(lines), container_name]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)  # noqa: S603
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, check=True, shell=False
+            )  # noqa: S603
             logs = result.stdout.split("\n")
 
             return logs
@@ -223,13 +239,17 @@ class KubernetesManager:
             # Apply deployment
             cmd = ["kubectl", "apply", "-f", temp_file]
 
-            self.logger.info(f"Creating Kubernetes deployment: {deployment_config.version}")
+            self.logger.info(
+                f"Creating Kubernetes deployment: {deployment_config.version}"
+            )
             subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)  # noqa: S603
 
             # Clean up temp file
             os.remove(temp_file)
 
-            self.logger.info(f"Kubernetes deployment created: {deployment_config.version}")
+            self.logger.info(
+                f"Kubernetes deployment created: {deployment_config.version}"
+            )
             return True
 
         except subprocess.CalledProcessError as e:
@@ -268,7 +288,9 @@ class KubernetesManager:
         try:
             cmd = ["kubectl", "get", "deployment", deployment_name, "-o", "json"]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)  # noqa: S603
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, check=True, shell=False
+            )  # noqa: S603
             status = json.loads(result.stdout)
 
             return status
@@ -341,7 +363,9 @@ class CICDManager:
 
             # Run pytest
             cmd = ["python", "-m", "pytest", "-v", "--tb = short"]
-            result = subprocess.run(cmd, check=False, capture_output=True, text=True, shell=False)  # noqa: S603
+            result = subprocess.run(
+                cmd, check=False, capture_output=True, text=True, shell=False
+            )  # noqa: S603
 
             if result.returncode == 0:
                 self.logger.info("All tests passed")
@@ -361,7 +385,9 @@ class CICDManager:
 
             # Run flake8
             cmd = ["flake8", "backend / tradingbot/", "--max - line-length = 100"]
-            result = subprocess.run(cmd, check=False, capture_output=True, text=True, shell=False)  # noqa: S603
+            result = subprocess.run(
+                cmd, check=False, capture_output=True, text=True, shell=False
+            )  # noqa: S603
 
             if result.returncode == 0:
                 self.logger.info("Linting passed")
@@ -381,7 +407,9 @@ class CICDManager:
 
             # Run bandit security linter
             cmd = ["bandit", "-r", "backend / tradingbot/", "-f", "json"]
-            result = subprocess.run(cmd, check=False, capture_output=True, text=True, shell=False)  # noqa: S603
+            result = subprocess.run(
+                cmd, check=False, capture_output=True, text=True, shell=False
+            )  # noqa: S603
 
             if result.returncode == 0:
                 self.logger.info("Security scan passed")
@@ -404,10 +432,18 @@ class CICDManager:
             build_dir.mkdir(exist_ok=True)
 
             # Copy source code
-            subprocess.run(["cp", "-r", "backend/", str(build_dir)], check=True, shell=False)  # noqa: S603
-            subprocess.run(["cp", "requirements.txt", str(build_dir)], check=True, shell=False)  # noqa: S603
-            subprocess.run(["cp", "pyproject.toml", str(build_dir)], check=True, shell=False)  # noqa: S603
-            subprocess.run(["cp", "Dockerfile", str(build_dir)], check=True, shell=False)  # noqa: S603
+            subprocess.run(
+                ["cp", "-r", "backend/", str(build_dir)], check=True, shell=False
+            )  # noqa: S603
+            subprocess.run(
+                ["cp", "requirements.txt", str(build_dir)], check=True, shell=False
+            )  # noqa: S603
+            subprocess.run(
+                ["cp", "pyproject.toml", str(build_dir)], check=True, shell=False
+            )  # noqa: S603
+            subprocess.run(
+                ["cp", "Dockerfile", str(build_dir)], check=True, shell=False
+            )  # noqa: S603
 
             self.logger.info("Deployment artifacts built successfully")
             return True
@@ -434,7 +470,9 @@ class DeploymentManager:
     async def deploy(self, deployment_config: DeploymentConfig) -> DeploymentResult:
         """Deploy application."""
         try:
-            deployment_id = f"deploy_{deployment_config.version}_{int(datetime.now().timestamp())}"
+            deployment_id = (
+                f"deploy_{deployment_config.version}_{int(datetime.now().timestamp())}"
+            )
 
             result = DeploymentResult(
                 deployment_id=deployment_id,
@@ -546,11 +584,15 @@ class DeploymentManager:
     async def rollback(self, deployment_name: str, previous_version: str) -> bool:
         """Rollback deployment."""
         try:
-            self.logger.info(f"Rolling back deployment: {deployment_name} to {previous_version}")
+            self.logger.info(
+                f"Rolling back deployment: {deployment_name} to {previous_version}"
+            )
 
             # Update deployment to previous version
             image_name = f"{deployment_name}: {previous_version}"
-            success = self.kubernetes_manager.update_deployment(deployment_name, image_name)
+            success = self.kubernetes_manager.update_deployment(
+                deployment_name, image_name
+            )
 
             if success:
                 self.logger.info(f"Rollback completed: {deployment_name}")
@@ -663,7 +705,9 @@ class Phase4Deployment:
             self.logger.error(f"Error deploying to all environments: {e}")
             return {"error": str(e)}
 
-    def get_deployment_status(self, environment: DeploymentEnvironment) -> dict[str, Any]:
+    def get_deployment_status(
+        self, environment: DeploymentEnvironment
+    ) -> dict[str, Any]:
         """Get deployment status for environment."""
         try:
             deployment_name = f"wallstreetbots - {environment.value}"

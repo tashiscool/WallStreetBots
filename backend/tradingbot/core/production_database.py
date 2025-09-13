@@ -419,7 +419,9 @@ class ProductionDatabaseManager:
             self.logger.error(f"Error creating position record: {e}")
             raise
 
-    async def get_active_positions(self, strategy_name: str | None = None) -> list[Position]:
+    async def get_active_positions(
+        self, strategy_name: str | None = None
+    ) -> list[Position]:
         """Get active positions."""
         try:
             async with self.pool.acquire() as conn:
@@ -495,8 +497,14 @@ class ProductionDatabaseManager:
                 wins = [t["pnl"] for t in trades if t["pnl"] and t["pnl"] > 0]
                 losses = [t["pnl"] for t in trades if t["pnl"] and t["pnl"] < 0]
 
-                avg_win = Decimal(sum(wins)) / Decimal(len(wins)) if wins else Decimal("0")
-                avg_loss = Decimal(sum(losses)) / Decimal(len(losses)) if losses else Decimal("0")
+                avg_win = (
+                    Decimal(sum(wins)) / Decimal(len(wins)) if wins else Decimal("0")
+                )
+                avg_loss = (
+                    Decimal(sum(losses)) / Decimal(len(losses))
+                    if losses
+                    else Decimal("0")
+                )
 
                 largest_win = Decimal(max(wins)) if wins else Decimal("0")
                 largest_loss = Decimal(min(losses)) if losses else Decimal("0")
@@ -505,7 +513,9 @@ class ProductionDatabaseManager:
                 gross_profit = sum(wins) if wins else Decimal("0")
                 gross_loss = abs(sum(losses)) if losses else Decimal("0")
 
-                profit_factor = gross_profit / gross_loss if gross_loss > 0 else Decimal("0")
+                profit_factor = (
+                    gross_profit / gross_loss if gross_loss > 0 else Decimal("0")
+                )
 
                 # Kelly Criterion calculation
                 if avg_loss != 0:

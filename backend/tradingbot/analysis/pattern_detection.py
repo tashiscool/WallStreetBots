@@ -46,7 +46,9 @@ class TechnicalIndicators:
             return None
 
         try:
-            deltas = [float(prices[i]) - float(prices[i - 1]) for i in range(1, len(prices))]
+            deltas = [
+                float(prices[i]) - float(prices[i - 1]) for i in range(1, len(prices))
+            ]
 
             gains = [max(0, delta) for delta in deltas]
             losses = [max(0, -delta) for delta in deltas]
@@ -108,7 +110,8 @@ class TechnicalIndicators:
                 "upper": Decimal(str(round(upper_band, 4))),
                 "middle": Decimal(str(round(sma, 4))),
                 "lower": Decimal(str(round(lower_band, 4))),
-                "position": (float(prices[-1]) - lower_band) / (upper_band - lower_band),
+                "position": (float(prices[-1]) - lower_band)
+                / (upper_band - lower_band),
             }
 
         except Exception as e:
@@ -123,7 +126,9 @@ class TechnicalIndicators:
 
         try:
             recent_volume = volumes[-1]
-            avg_volume = statistics.mean(volumes[-period - 1 : -1])  # Exclude current day
+            avg_volume = statistics.mean(
+                volumes[-period - 1 : -1]
+            )  # Exclude current day
 
             if avg_volume == 0:
                 return None
@@ -215,7 +220,9 @@ class WSBDipDetector:
             logger.error(f"Error detecting WSB dip pattern for {ticker}: {e}")
             return None
 
-    def _analyze_recent_run(self, closes: list[Decimal], highs: list[Decimal]) -> dict[str, Any]:
+    def _analyze_recent_run(
+        self, closes: list[Decimal], highs: list[Decimal]
+    ) -> dict[str, Any]:
         """Analyze recent price run to identify 'big run' setup."""
         try:
             # Look for highest high in last 10 days
@@ -257,7 +264,9 @@ class WSBDipDetector:
             logger.error(f"Error analyzing recent run: {e}")
             return {"valid_run": False}
 
-    def _analyze_current_dip(self, closes: list[Decimal], highs: list[Decimal]) -> dict[str, Any]:
+    def _analyze_current_dip(
+        self, closes: list[Decimal], highs: list[Decimal]
+    ) -> dict[str, Any]:
         """Analyze current dip from recent high."""
         try:
             # Find recent high
@@ -272,7 +281,8 @@ class WSBDipDetector:
             valid_dip = (
                 dip_percentage >= self.min_dip_percentage
                 and days_since_high <= self.max_dip_age_days
-                and current_price < recent_high * Decimal("0.98")  # At least 2% below high
+                and current_price
+                < recent_high * Decimal("0.98")  # At least 2% below high
             )
 
             return {
@@ -298,12 +308,15 @@ class WSBDipDetector:
             # Volume trend (increasing volume during dip suggests selling exhaustion)
             recent_volume_avg = statistics.mean(volumes[-3:])
             prior_volume_avg = statistics.mean(volumes[-10:-3])
-            volume_trend = recent_volume_avg / prior_volume_avg if prior_volume_avg > 0 else 1.0
+            volume_trend = (
+                recent_volume_avg / prior_volume_avg if prior_volume_avg > 0 else 1.0
+            )
 
             return {
                 "volume_spike": volume_spike,
                 "volume_trend": volume_trend,
-                "high_volume": volume_spike and volume_spike >= self.volume_spike_threshold,
+                "high_volume": volume_spike
+                and volume_spike >= self.volume_spike_threshold,
             }
 
         except Exception as e:
@@ -380,7 +393,9 @@ class WSBDipDetector:
             strength += 1
         if technical_analysis.get("below_lower_bb", False):
             strength += 1
-        if technical_analysis.get("price_vs_sma20", 1.0) < 0.95:  # 5% below 20 - day SMA
+        if (
+            technical_analysis.get("price_vs_sma20", 1.0) < 0.95
+        ):  # 5% below 20 - day SMA
             strength += 1
 
         return min(10, strength)

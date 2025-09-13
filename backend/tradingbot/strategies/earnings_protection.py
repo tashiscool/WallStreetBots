@@ -39,7 +39,9 @@ class EarningsEvent:
 class EarningsProtectionStrategy:
     ticker: str
     strategy_name: str
-    strategy_type: str  # "deep_itm", "calendar_spread", "ratio_spread", "protective_hedge"
+    strategy_type: (
+        str  # "deep_itm", "calendar_spread", "ratio_spread", "protective_hedge"
+    )
     earnings_date: date
 
     # Strategy specifics
@@ -144,7 +146,9 @@ class EarningsProtectionScanner:
                     iv_historical = self.estimate_historical_iv(ticker)
 
                     # Assess IV crush risk
-                    iv_premium = iv_current / iv_historical if iv_historical > 0 else 1.0
+                    iv_premium = (
+                        iv_current / iv_historical if iv_historical > 0 else 1.0
+                    )
                     if iv_premium > 2.0:
                         crush_risk = "extreme"
                     elif iv_premium > 1.5:
@@ -175,7 +179,9 @@ class EarningsProtectionScanner:
 
         return sorted(events, key=lambda x: x.days_until_earnings)
 
-    def estimate_earnings_move(self, ticker: str, days_to_earnings: int) -> tuple[float, float]:
+    def estimate_earnings_move(
+        self, ticker: str, days_to_earnings: int
+    ) -> tuple[float, float]:
         """Estimate expected move and current IV from options."""
         try:
             stock = yf.Ticker(ticker)
@@ -223,7 +229,9 @@ class EarningsProtectionScanner:
             atm_call["strike"].iloc[0]
 
             # Rough IV estimate using simplified formula
-            days_to_exp = (datetime.strptime(best_expiry, "%Y-%m-%d").date() - date.today()).days
+            days_to_exp = (
+                datetime.strptime(best_expiry, "%Y-%m-%d").date() - date.today()
+            ).days
             time_factor = math.sqrt(days_to_exp / 365) if days_to_exp > 0 else 0.1
 
             if time_factor > 0:
@@ -254,7 +262,9 @@ class EarningsProtectionScanner:
         except Exception:
             return 0.25
 
-    def create_deep_itm_strategy(self, event: EarningsEvent) -> EarningsProtectionStrategy | None:
+    def create_deep_itm_strategy(
+        self, event: EarningsEvent
+    ) -> EarningsProtectionStrategy | None:
         """Create deep ITM call strategy (less IV sensitive)."""
         try:
             ticker = event.ticker
@@ -282,7 +292,9 @@ class EarningsProtectionScanner:
 
             # Target deep ITM call (15 - 20% ITM)
             target_strike = spot * 0.85  # 15% ITM
-            deep_call = calls.iloc[(calls["strike"] - target_strike).abs().argsort()[:1]]
+            deep_call = calls.iloc[
+                (calls["strike"] - target_strike).abs().argsort()[:1]
+            ]
 
             if deep_call.empty:
                 return None
@@ -372,8 +384,12 @@ class EarningsProtectionScanner:
             back_calls = back_chain.calls
 
             # Find ATM strike in both chains
-            front_atm = front_calls.iloc[(front_calls["strike"] - spot).abs().argsort()[:1]]
-            back_atm = back_calls.iloc[(back_calls["strike"] - spot).abs().argsort()[:1]]
+            front_atm = front_calls.iloc[
+                (front_calls["strike"] - spot).abs().argsort()[:1]
+            ]
+            back_atm = back_calls.iloc[
+                (back_calls["strike"] - spot).abs().argsort()[:1]
+            ]
 
             if front_atm.empty or back_atm.empty:
                 return None
@@ -456,7 +472,9 @@ class EarningsProtectionScanner:
             put_strike = spot * 0.95  # 5% OTM put
 
             # Find closest strikes
-            call_option = calls.iloc[(calls["strike"] - call_strike).abs().argsort()[:1]]
+            call_option = calls.iloc[
+                (calls["strike"] - call_strike).abs().argsort()[:1]
+            ]
             put_option = puts.iloc[(puts["strike"] - put_strike).abs().argsort()[:1]]
 
             if call_option.empty or put_option.empty:
@@ -557,7 +575,9 @@ class EarningsProtectionScanner:
         if not strategies:
             return "📊 No earnings protection strategies found."
 
-        output = f"\n🛡️  EARNINGS IV CRUSH PROTECTION STRATEGIES ({len(strategies)} found)\n"
+        output = (
+            f"\n🛡️  EARNINGS IV CRUSH PROTECTION STRATEGIES ({len(strategies)} found)\n"
+        )
         output += " = " * 80 + "\n"
 
         for i, strategy in enumerate(strategies, 1):
@@ -568,11 +588,15 @@ class EarningsProtectionScanner:
             output += f"   Cost: ${strategy.net_debit:.2f} | Max Loss: ${strategy.max_loss:.2f}\n"
             output += f"   IV Sensitivity: {strategy.iv_sensitivity:.1%} | Risk: {strategy.risk_level.upper()}\n"
 
-            output += f"   Profit Scenarios: Up 5%: ${strategy.profit_if_up_5pct:.2f} | "
+            output += (
+                f"   Profit Scenarios: Up 5%: ${strategy.profit_if_up_5pct:.2f} | "
+            )
             output += f"Flat: ${strategy.profit_if_flat:.2f} | Down 5%: ${strategy.profit_if_down_5pct:.2f}\n"
 
             if strategy.breakeven_points:
-                breakevens = ", ".join([f"${be: .2f}" for be in strategy.breakeven_points])
+                breakevens = ", ".join(
+                    [f"${be: .2f}" for be in strategy.breakeven_points]
+                )
                 output += f"   Break - evens: {breakevens}\n"
 
         output += "\n" + " = " * 80
@@ -603,7 +627,9 @@ def main():
     parser.add_argument(
         "--days - ahead", type=int, default=14, help="Days ahead to scan for earnings"
     )
-    parser.add_argument("--output", choices=["json", "text"], default="text", help="Output format")
+    parser.add_argument(
+        "--output", choices=["json", "text"], default="text", help="Output format"
+    )
     parser.add_argument(
         "--max - iv - sensitivity",
         type=float,

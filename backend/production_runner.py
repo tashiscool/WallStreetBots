@@ -96,7 +96,9 @@ class ProductionTradingRunner:
 
         # Validate risk settings for live trading
         if not self.args.paper:
-            if self.config.risk.max_position_risk > MAX_POSITION_RISK_LIVE_TRADING:  # 5% max
+            if (
+                self.config.risk.max_position_risk > MAX_POSITION_RISK_LIVE_TRADING
+            ):  # 5% max
                 errors.append("Risk: max_position_risk  >  5% for live trading")
 
             if self.config.risk.account_size <= 0:
@@ -210,7 +212,9 @@ class ProductionTradingRunner:
             # Start production trading
             paper_trading = self.args.paper
             self.logger.info(f"Starting production trading (paper={paper_trading})...")
-            if not await phase4_manager.start_production_trading(paper_trading=paper_trading):
+            if not await phase4_manager.start_production_trading(
+                paper_trading=paper_trading
+            ):
                 msg = "Failed to start production trading"
                 raise ValueError(msg)
 
@@ -312,8 +316,12 @@ Examples:
 
     # Trading mode
     mode_group = parser.add_mutually_exclusive_group(required=True)
-    mode_group.add_argument("--paper", action="store_true", help="Run in paper trading mode (safe)")
-    mode_group.add_argument("--live", action="store_true", help="Run with real money (DANGEROUS)")
+    mode_group.add_argument(
+        "--paper", action="store_true", help="Run in paper trading mode (safe)"
+    )
+    mode_group.add_argument(
+        "--live", action="store_true", help="Run with real money (DANGEROUS)"
+    )
 
     # Strategy selection
     strategy_group = parser.add_mutually_exclusive_group(required=True)
@@ -353,7 +361,9 @@ Examples:
         help="Logging level",
     )
     parser.add_argument(
-        "--dry - run", action="store_true", help="Show what would be done without executing"
+        "--dry - run",
+        action="store_true",
+        help="Show what would be done without executing",
     )
 
     args = parser.parse_args()

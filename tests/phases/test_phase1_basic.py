@@ -39,11 +39,15 @@ def test_configuration():
 
     # Test config creation
     config = ProductionConfig()
-    print(f"✅ Created production config with account size: ${config.risk.account_size:,.0f}")
+    print(
+        f"✅ Created production config with account size: ${config.risk.account_size:,.0f}"
+    )
 
     # Test config validation
     errors = config.validate()
-    print(f"✅ Config validation found {len(errors)} errors (expected for empty config)")
+    print(
+        f"✅ Config validation found {len(errors)} errors (expected for empty config)"
+    )
 
     # Test config loading from file
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -54,7 +58,9 @@ def test_configuration():
     try:
         config_manager = ConfigManager(config_file)
         loaded_config = config_manager.load_config()
-        print(f"✅ Loaded config with account size: ${loaded_config.risk.account_size:,.0f}")
+        print(
+            f"✅ Loaded config with account size: ${loaded_config.risk.account_size:,.0f}"
+        )
         print(f"✅ Max position risk: {loaded_config.risk.max_position_risk:.1%}")
     finally:
         os.unlink(config_file)
@@ -79,7 +85,9 @@ def test_logging():
     context = {"ticker": "AAPL", "strategy": "test"}
 
     result = error_handler.handle_error(error, context)
-    print(f"✅ Error handling working: {result['error_type']} - {result['error_message']}")
+    print(
+        f"✅ Error handling working: {result['error_type']} - {result['error_message']}"
+    )
 
     # Test circuit breaker
     circuit_breaker = CircuitBreaker(failure_threshold=2, timeout=1.0)

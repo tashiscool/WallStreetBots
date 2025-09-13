@@ -17,9 +17,14 @@ from decimal import Decimal
 from typing import Any
 
 from ...core.trading_interface import OrderSide, OrderType
-from ..core.production_integration import ProductionIntegrationManager, ProductionTradeSignal
+from ..core.production_integration import (
+    ProductionIntegrationManager,
+    ProductionTradeSignal,
+)
 from ..data.production_data_integration import EarningsEvent
-from ..data.production_data_integration import ReliableDataProvider as ProductionDataProvider
+from ..data.production_data_integration import (
+    ReliableDataProvider as ProductionDataProvider,
+)
 
 
 @dataclass
@@ -61,7 +66,9 @@ class ProductionEarningsProtection:
 
         # Strategy parameters
         self.max_position_size = config.get("max_position_size", 0.15)  # 15%
-        self.iv_percentile_threshold = config.get("iv_percentile_threshold", 70)  # 70th percentile
+        self.iv_percentile_threshold = config.get(
+            "iv_percentile_threshold", 70
+        )  # 70th percentile
         self.min_implied_move = config.get("min_implied_move", 0.04)  # 4%
         self.max_days_to_earnings = config.get("max_days_to_earnings", 7)  # 7 days
         self.min_days_to_earnings = config.get("min_days_to_earnings", 1)  # 1 day
@@ -82,7 +89,9 @@ class ProductionEarningsProtection:
 
         try:
             # Get upcoming earnings
-            earnings_events = await self.data_provider.get_earnings_calendar(14)  # Next 14 days
+            earnings_events = await self.data_provider.get_earnings_calendar(
+                14
+            )  # Next 14 days
 
             for event in earnings_events:
                 try:
@@ -105,7 +114,9 @@ class ProductionEarningsProtection:
             self.logger.error(f"Error in scan_for_earnings_signals: {e}")
             return []
 
-    async def _analyze_earnings_opportunity(self, event: EarningsEvent) -> EarningsSignal | None:
+    async def _analyze_earnings_opportunity(
+        self, event: EarningsEvent
+    ) -> EarningsSignal | None:
         """Analyze earnings opportunity for protection strategy."""
         try:
             # Check if earnings is within our time window
@@ -122,7 +133,9 @@ class ProductionEarningsProtection:
                 return None
 
             # Calculate implied move
-            implied_move = event.implied_move or await self._calculate_implied_move(event.ticker)
+            implied_move = event.implied_move or await self._calculate_implied_move(
+                event.ticker
+            )
             if implied_move < self.min_implied_move:
                 return None
 
@@ -132,7 +145,9 @@ class ProductionEarningsProtection:
                 return None
 
             # Determine best strategy
-            strategy_type = await self._select_strategy(event.ticker, iv_percentile, implied_move)
+            strategy_type = await self._select_strategy(
+                event.ticker, iv_percentile, implied_move
+            )
             if not strategy_type:
                 return None
 
@@ -155,7 +170,9 @@ class ProductionEarningsProtection:
                 confidence=confidence,
                 metadata={
                     "days_to_earnings": days_to_earnings,
-                    "estimated_eps": float(event.estimated_eps) if event.estimated_eps else None,
+                    "estimated_eps": float(event.estimated_eps)
+                    if event.estimated_eps
+                    else None,
                     "revenue_estimate": float(event.revenue_estimate)
                     if event.revenue_estimate
                     else None,
@@ -164,7 +181,9 @@ class ProductionEarningsProtection:
             )
 
         except Exception as e:
-            self.logger.error(f"Error analyzing earnings opportunity for {event.ticker}: {e}")
+            self.logger.error(
+                f"Error analyzing earnings opportunity for {event.ticker}: {e}"
+            )
             return None
 
     async def _calculate_implied_move(self, ticker: str) -> Decimal:
@@ -307,7 +326,8 @@ class ProductionEarningsProtection:
                 price=float(signal.current_price),
                 trade_type=trade_type,
                 risk_amount=signal.risk_amount,
-                expected_return=signal.risk_amount * Decimal("0.5"),  # Conservative target
+                expected_return=signal.risk_amount
+                * Decimal("0.5"),  # Conservative target
                 metadata={
                     "signal_type": "earnings_protection",
                     "strategy_type": signal.strategy_type,
@@ -352,7 +372,8 @@ class ProductionEarningsProtection:
             current_data = await self.data_provider.get_current_price(position.ticker)
             if current_data:
                 price_change = float(
-                    (current_data.price - position.current_price) / position.current_price
+                    (current_data.price - position.current_price)
+                    / position.current_price
                 )
                 if price_change >= 0.25:  # 25% profit target
                     return "profit_target"

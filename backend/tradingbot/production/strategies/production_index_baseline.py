@@ -17,8 +17,13 @@ from decimal import Decimal
 from typing import Any
 
 from ...core.trading_interface import OrderSide, OrderType
-from ..core.production_integration import ProductionIntegrationManager, ProductionTradeSignal
-from ..data.production_data_integration import ReliableDataProvider as ProductionDataProvider
+from ..core.production_integration import (
+    ProductionIntegrationManager,
+    ProductionTradeSignal,
+)
+from ..data.production_data_integration import (
+    ReliableDataProvider as ProductionDataProvider,
+)
 
 
 @dataclass
@@ -74,7 +79,9 @@ class ProductionIndexBaseline:
 
         # Strategy parameters
         self.benchmarks = config.get("benchmarks", ["SPY", "VTI", "QQQ", "IWM", "DIA"])
-        self.target_allocation = config.get("target_allocation", 0.80)  # 80% in baseline
+        self.target_allocation = config.get(
+            "target_allocation", 0.80
+        )  # 80% in baseline
         self.rebalance_threshold = config.get("rebalance_threshold", 0.05)  # 5% drift
         self.tax_loss_threshold = config.get("tax_loss_threshold", -0.10)  # -10% loss
 
@@ -96,7 +103,9 @@ class ProductionIndexBaseline:
         try:
             for benchmark in self.benchmarks:
                 try:
-                    comparison = await self._calculate_benchmark_comparison(benchmark, period_days)
+                    comparison = await self._calculate_benchmark_comparison(
+                        benchmark, period_days
+                    )
                     if comparison:
                         comparisons[benchmark] = comparison
                         self.logger.info(
@@ -106,7 +115,9 @@ class ProductionIndexBaseline:
                             f"Sharpe: {comparison.sharpe_ratio:.2f}"
                         )
                 except Exception as e:
-                    self.logger.error(f"Error calculating comparison for {benchmark}: {e}")
+                    self.logger.error(
+                        f"Error calculating comparison for {benchmark}: {e}"
+                    )
                     continue
 
             return comparisons
@@ -134,7 +145,9 @@ class ProductionIndexBaseline:
             benchmark_return = float((end_price - start_price) / start_price)
 
             # Calculate strategy return (simplified - would use actual strategy performance)
-            strategy_return = await self._calculate_strategy_return(benchmark, period_days)
+            strategy_return = await self._calculate_strategy_return(
+                benchmark, period_days
+            )
 
             # Calculate alpha
             alpha = strategy_return - benchmark_return
@@ -149,7 +162,9 @@ class ProductionIndexBaseline:
             volatility = await self._calculate_volatility(historical_data)
 
             # Calculate win rate and trades (simplified)
-            win_rate, total_trades = await self._calculate_trade_metrics(benchmark, period_days)
+            win_rate, total_trades = await self._calculate_trade_metrics(
+                benchmark, period_days
+            )
 
             return BaselineComparison(
                 ticker=benchmark,
@@ -166,17 +181,23 @@ class ProductionIndexBaseline:
             )
 
         except Exception as e:
-            self.logger.error(f"Error calculating benchmark comparison for {benchmark}: {e}")
+            self.logger.error(
+                f"Error calculating benchmark comparison for {benchmark}: {e}"
+            )
             return None
 
-    async def _calculate_strategy_return(self, benchmark: str, period_days: int) -> float:
+    async def _calculate_strategy_return(
+        self, benchmark: str, period_days: int
+    ) -> float:
         """Calculate strategy return (simplified)."""
         try:
             # In production, this would calculate actual strategy performance
             # For now, use a simplified model based on benchmark performance
 
             # Get benchmark data
-            historical_data = await self.data_provider.get_historical_data(benchmark, period_days)
+            historical_data = await self.data_provider.get_historical_data(
+                benchmark, period_days
+            )
             if len(historical_data) < period_days:
                 return 0.0
 
@@ -198,7 +219,9 @@ class ProductionIndexBaseline:
         """Calculate Sharpe ratio."""
         try:
             # Get historical data
-            historical_data = await self.data_provider.get_historical_data(benchmark, period_days)
+            historical_data = await self.data_provider.get_historical_data(
+                benchmark, period_days
+            )
             if len(historical_data) < 30:
                 return 0.0
 
@@ -284,7 +307,9 @@ class ProductionIndexBaseline:
             self.logger.error(f"Error calculating volatility: {e}")
             return 0.0
 
-    async def _calculate_trade_metrics(self, benchmark: str, period_days: int) -> tuple[float, int]:
+    async def _calculate_trade_metrics(
+        self, benchmark: str, period_days: int
+    ) -> tuple[float, int]:
         """Calculate win rate and total trades."""
         try:
             # Simplified trade metrics
@@ -312,7 +337,10 @@ class ProductionIndexBaseline:
             current_allocation = await self._calculate_current_allocation()
 
             # Check if rebalancing is needed
-            if abs(current_allocation - self.target_allocation) > self.rebalance_threshold:
+            if (
+                abs(current_allocation - self.target_allocation)
+                > self.rebalance_threshold
+            ):
                 signal = await self._create_rebalance_signal(current_allocation)
                 if signal:
                     signals.append(signal)
@@ -347,7 +375,9 @@ class ProductionIndexBaseline:
             self.logger.error(f"Error calculating current allocation: {e}")
             return 0.0
 
-    async def _create_rebalance_signal(self, current_allocation: float) -> BaselineSignal | None:
+    async def _create_rebalance_signal(
+        self, current_allocation: float
+    ) -> BaselineSignal | None:
         """Create rebalancing signal."""
         try:
             # Determine which benchmark to buy / sell
@@ -459,7 +489,8 @@ class ProductionIndexBaseline:
                 price=float(signal.current_price),
                 trade_type="stock",
                 risk_amount=signal.risk_amount,
-                expected_return=signal.risk_amount * Decimal("0.1"),  # Conservative 10% target
+                expected_return=signal.risk_amount
+                * Decimal("0.1"),  # Conservative 10% target
                 metadata={
                     "signal_type": signal.signal_type,
                     "target_allocation": signal.target_allocation,

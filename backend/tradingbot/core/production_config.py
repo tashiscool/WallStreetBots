@@ -157,13 +157,21 @@ class AlertConfig:
 
         if self.enable_email:
             if not self.email_smtp_server:
-                errors.append("Email SMTP server is required when email alerts are enabled")
+                errors.append(
+                    "Email SMTP server is required when email alerts are enabled"
+                )
             if not self.email_username:
-                errors.append("Email username is required when email alerts are enabled")
+                errors.append(
+                    "Email username is required when email alerts are enabled"
+                )
             if not self.email_password:
-                errors.append("Email password is required when email alerts are enabled")
+                errors.append(
+                    "Email password is required when email alerts are enabled"
+                )
             if not self.email_recipients:
-                errors.append("Email recipients list cannot be empty when email alerts are enabled")
+                errors.append(
+                    "Email recipients list cannot be empty when email alerts are enabled"
+                )
 
         return errors
 
@@ -292,7 +300,9 @@ class ConfigManager:
                     file_config = json.load(f)
                 config = self._merge_config(config, file_config)
             except Exception as e:
-                self.logger.warning(f"Could not load config file {self.config_file}: {e}")
+                self.logger.warning(
+                    f"Could not load config file {self.config_file}: {e}"
+                )
 
         # Override with environment variables - THIS IS WHERE REAL CONFIG HAPPENS
         config = self._load_from_env(config)
@@ -319,7 +329,8 @@ class ConfigManager:
                 "news_api_key", base_config.data_providers.news_api_key
             )
             base_config.data_providers.alpha_vantage_api_key = dp_config.get(
-                "alpha_vantage_api_key", base_config.data_providers.alpha_vantage_api_key
+                "alpha_vantage_api_key",
+                base_config.data_providers.alpha_vantage_api_key,
             )
 
         # Broker
@@ -419,13 +430,21 @@ class ConfigManager:
         # Database
         if "database" in file_config:
             db_config = file_config["database"]
-            base_config.database.engine = db_config.get("engine", base_config.database.engine)
+            base_config.database.engine = db_config.get(
+                "engine", base_config.database.engine
+            )
             base_config.database.host = db_config.get("host", base_config.database.host)
             base_config.database.port = db_config.get("port", base_config.database.port)
             base_config.database.name = db_config.get("name", base_config.database.name)
-            base_config.database.username = db_config.get("username", base_config.database.username)
-            base_config.database.password = db_config.get("password", base_config.database.password)
-            base_config.database.ssl_mode = db_config.get("ssl_mode", base_config.database.ssl_mode)
+            base_config.database.username = db_config.get(
+                "username", base_config.database.username
+            )
+            base_config.database.password = db_config.get(
+                "password", base_config.database.password
+            )
+            base_config.database.ssl_mode = db_config.get(
+                "ssl_mode", base_config.database.ssl_mode
+            )
 
         return base_config
 
@@ -449,11 +468,15 @@ class ConfigManager:
         )
 
         # Broker
-        config.broker.alpaca_api_key = os.getenv("ALPACA_API_KEY", config.broker.alpaca_api_key)
+        config.broker.alpaca_api_key = os.getenv(
+            "ALPACA_API_KEY", config.broker.alpaca_api_key
+        )
         config.broker.alpaca_secret_key = os.getenv(
             "ALPACA_SECRET_KEY", config.broker.alpaca_secret_key
         )
-        config.broker.alpaca_base_url = os.getenv("ALPACA_BASE_URL", config.broker.alpaca_base_url)
+        config.broker.alpaca_base_url = os.getenv(
+            "ALPACA_BASE_URL", config.broker.alpaca_base_url
+        )
         config.broker.ibkr_host = os.getenv("IBKR_HOST", config.broker.ibkr_host)
         config.broker.ibkr_port = int(os.getenv("IBKR_PORT", config.broker.ibkr_port))
         config.broker.ibkr_client_id = int(
@@ -464,12 +487,18 @@ class ConfigManager:
         config.risk.max_position_risk = float(
             os.getenv("MAX_POSITION_RISK", config.risk.max_position_risk)
         )
-        config.risk.max_total_risk = float(os.getenv("MAX_TOTAL_RISK", config.risk.max_total_risk))
-        config.risk.max_drawdown = float(os.getenv("MAX_DRAWDOWN", config.risk.max_drawdown))
+        config.risk.max_total_risk = float(
+            os.getenv("MAX_TOTAL_RISK", config.risk.max_total_risk)
+        )
+        config.risk.max_drawdown = float(
+            os.getenv("MAX_DRAWDOWN", config.risk.max_drawdown)
+        )
         config.risk.max_correlation = float(
             os.getenv("MAX_CORRELATION", config.risk.max_correlation)
         )
-        config.risk.account_size = float(os.getenv("ACCOUNT_SIZE", config.risk.account_size))
+        config.risk.account_size = float(
+            os.getenv("ACCOUNT_SIZE", config.risk.account_size)
+        )
         config.risk.default_commission = float(
             os.getenv("DEFAULT_COMMISSION", config.risk.default_commission)
         )
@@ -480,8 +509,12 @@ class ConfigManager:
         # Trading
         universe_str = os.getenv("TRADING_UNIVERSE", "")
         if universe_str:
-            config.trading.universe = [ticker.strip() for ticker in universe_str.split(",")]
-        config.trading.scan_interval = int(os.getenv("SCAN_INTERVAL", config.trading.scan_interval))
+            config.trading.universe = [
+                ticker.strip() for ticker in universe_str.split(",")
+            ]
+        config.trading.scan_interval = int(
+            os.getenv("SCAN_INTERVAL", config.trading.scan_interval)
+        )
         config.trading.max_concurrent_trades = int(
             os.getenv("MAX_CONCURRENT_TRADES", config.trading.max_concurrent_trades)
         )
@@ -493,19 +526,27 @@ class ConfigManager:
         )
 
         # Alerts
-        config.alerts.enable_slack = os.getenv("ENABLE_SLACK", "false").lower() == "true"
+        config.alerts.enable_slack = (
+            os.getenv("ENABLE_SLACK", "false").lower() == "true"
+        )
         config.alerts.slack_webhook_url = os.getenv(
             "SLACK_WEBHOOK_URL", config.alerts.slack_webhook_url
         )
-        config.alerts.enable_email = os.getenv("ENABLE_EMAIL", "false").lower() == "true"
+        config.alerts.enable_email = (
+            os.getenv("ENABLE_EMAIL", "false").lower() == "true"
+        )
         config.alerts.email_smtp_server = os.getenv(
             "EMAIL_SMTP_SERVER", config.alerts.email_smtp_server
         )
         config.alerts.email_smtp_port = int(
             os.getenv("EMAIL_SMTP_PORT", config.alerts.email_smtp_port)
         )
-        config.alerts.email_username = os.getenv("EMAIL_USERNAME", config.alerts.email_username)
-        config.alerts.email_password = os.getenv("EMAIL_PASSWORD", config.alerts.email_password)
+        config.alerts.email_username = os.getenv(
+            "EMAIL_USERNAME", config.alerts.email_username
+        )
+        config.alerts.email_password = os.getenv(
+            "EMAIL_PASSWORD", config.alerts.email_password
+        )
         email_recipients_str = os.getenv("EMAIL_RECIPIENTS", "")
         if email_recipients_str:
             config.alerts.email_recipients = [

@@ -11,7 +11,10 @@ from typing import Any
 from ...options.pricing_engine import RealOptionsPricingEngine
 from ...options.smart_selection import SmartOptionsSelector
 from ...risk.real_time_risk_manager import RealTimeRiskManager
-from ..core.production_integration import ProductionIntegrationManager, ProductionTradeSignal
+from ..core.production_integration import (
+    ProductionIntegrationManager,
+    ProductionTradeSignal,
+)
 from ..data.production_data_integration import ReliableDataProvider
 
 
@@ -64,9 +67,13 @@ class ProductionLottoScanner:
         # Configuration
         self.max_risk_pct = config.get("max_risk_pct", 0.01)  # 1% max risk per play
         self.max_concurrent_positions = config.get("max_concurrent_positions", 3)
-        self.profit_targets = config.get("profit_targets", [300, 500, 800])  # 3x, 5x, 8x
+        self.profit_targets = config.get(
+            "profit_targets", [300, 500, 800]
+        )  # 3x, 5x, 8x
         self.stop_loss_pct = config.get("stop_loss_pct", 0.50)  # 50% stop loss
-        self.min_win_probability = config.get("min_win_probability", 0.15)  # 15% minimum
+        self.min_win_probability = config.get(
+            "min_win_probability", 0.15
+        )  # 15% minimum
         self.max_dte = config.get("max_dte", 5)  # Max 5 days to expiry
 
         # Watchlists
@@ -196,9 +203,13 @@ class ProductionLottoScanner:
 
                 # Check profit targets (scale out)
                 if pnl_pct >= 3.0:  # 300% gain
-                    await self._close_position(position_id, "profit_target_300", 0.5)  # Close 50%
+                    await self._close_position(
+                        position_id, "profit_target_300", 0.5
+                    )  # Close 50%
                 elif pnl_pct >= 5.0:  # 500% gain
-                    await self._close_position(position_id, "profit_target_500", 1.0)  # Close all
+                    await self._close_position(
+                        position_id, "profit_target_500", 1.0
+                    )  # Close all
 
                 # Check stop loss
                 elif pnl_pct <= -self.stop_loss_pct:
@@ -244,14 +255,17 @@ class ProductionLottoScanner:
 
             # Rank opportunities by risk - adjusted expected value
             opportunities.sort(
-                key=lambda x: x.win_probability * x.potential_return / (1 + x.risk_score),
+                key=lambda x: x.win_probability
+                * x.potential_return
+                / (1 + x.risk_score),
                 reverse=True,
             )
 
             # Take best opportunity if it meets criteria
             best_opp = opportunities[0]
             if (
-                best_opp.win_probability >= self.min_win_probability and best_opp.risk_score <= 8.0
+                best_opp.win_probability >= self.min_win_probability
+                and best_opp.risk_score <= 8.0
             ):  # Max risk score of 8
                 await self._execute_lotto_trade(best_opp)
 
@@ -282,7 +296,9 @@ class ProductionLottoScanner:
                         continue
 
                     # Get options chain
-                    chain = await self.options_selector.get_options_chain(ticker, expiry)
+                    chain = await self.options_selector.get_options_chain(
+                        ticker, expiry
+                    )
                     if not chain:
                         continue
 
@@ -293,7 +309,10 @@ class ProductionLottoScanner:
                     call_strike = current_price * (1 + expected_move * 0.5)
                     put_strike = current_price * (1 - expected_move * 0.5)
 
-                    for option_type, target_strike in [("call", call_strike), ("put", put_strike)]:
+                    for option_type, target_strike in [
+                        ("call", call_strike),
+                        ("put", put_strike),
+                    ]:
                         opp = await self._evaluate_option_opportunity(
                             ticker,
                             expiry,
@@ -336,7 +355,9 @@ class ProductionLottoScanner:
                         continue
 
                     # Find best expiry for earnings play
-                    expiry = await self._find_best_earnings_expiry(ticker, earnings_date)
+                    expiry = await self._find_best_earnings_expiry(
+                        ticker, earnings_date
+                    )
                     if not expiry:
                         continue
 
@@ -344,11 +365,12 @@ class ProductionLottoScanner:
                     call_strike = current_price * (1 + expected_move)
                     put_strike = current_price * (1 - expected_move)
 
-                    catalyst = (
-                        f"Earnings {earnings_date.strftime('%m/%d')} {event.get('time', 'AMC')}"
-                    )
+                    catalyst = f"Earnings {earnings_date.strftime('%m/%d')} {event.get('time', 'AMC')}"
 
-                    for option_type, target_strike in [("call", call_strike), ("put", put_strike)]:
+                    for option_type, target_strike in [
+                        ("call", call_strike),
+                        ("put", put_strike),
+                    ]:
                         opp = await self._evaluate_option_opportunity(
                             ticker,
                             expiry,
@@ -386,18 +408,22 @@ class ProductionLottoScanner:
                     volume_ratio = await self._get_volume_ratio(ticker)
                     price_momentum = await self._get_price_momentum(ticker)
 
-                    if volume_ratio > 3.0 and abs(price_momentum) > 0.03:  # 3x volume+3% move
-                        current_price = await self.data_provider.get_current_price(ticker)
+                    if (
+                        volume_ratio > 3.0 and abs(price_momentum) > 0.03
+                    ):  # 3x volume+3% move
+                        current_price = await self.data_provider.get_current_price(
+                            ticker
+                        )
                         if not current_price:
                             continue
 
                         # Use weekly expiry for catalyst plays
                         expiry = await self._get_weekly_expiry()
-                        expected_move = min(0.20, abs(price_momentum) * 2)  # 2x current move
+                        expected_move = min(
+                            0.20, abs(price_momentum) * 2
+                        )  # 2x current move
 
-                        catalyst = (
-                            f"Unusual activity (V: {volume_ratio:.1f}x, P: {price_momentum:+.1%})"
-                        )
+                        catalyst = f"Unusual activity (V: {volume_ratio:.1f}x, P: {price_momentum:+.1%})"
 
                         # Directional play based on momentum
                         if price_momentum > 0:
@@ -476,7 +502,9 @@ class ProductionLottoScanner:
                 return None
 
             # Calculate metrics
-            days_to_expiry = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
+            days_to_expiry = (
+                datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()
+            ).days
 
             if option_type == "call":
                 breakeven = strike + mid_price
@@ -585,7 +613,9 @@ class ProductionLottoScanner:
         except Exception as e:
             self.logger.error(f"Error executing lotto trade: {e}")
 
-    async def _close_position(self, position_id: str, reason: str, close_pct: float = 1.0):
+    async def _close_position(
+        self, position_id: str, reason: str, close_pct: float = 1.0
+    ):
         """Close a lotto position."""
         try:
             if position_id not in self.active_positions:
@@ -693,7 +723,10 @@ class ProductionLottoScanner:
                 return 0.02  # 2% default
 
             # Calculate daily volatility
-            returns = [(prices[i] - prices[i - 1]) / prices[i - 1] for i in range(1, len(prices))]
+            returns = [
+                (prices[i] - prices[i - 1]) / prices[i - 1]
+                for i in range(1, len(prices))
+            ]
             daily_vol = (sum(r * r for r in returns) / len(returns)) ** 0.5
 
             # Scale for intraday (roughly 0.6x daily)
@@ -732,7 +765,9 @@ class ProductionLottoScanner:
 
         return [e for e in mock_earnings if e["date"] >= today]
 
-    async def _find_best_earnings_expiry(self, ticker: str, earnings_date: date) -> str | None:
+    async def _find_best_earnings_expiry(
+        self, ticker: str, earnings_date: date
+    ) -> str | None:
         """Find best expiry for earnings play."""
         # Look for expiry within 3 days after earnings
         earnings_date + timedelta(days=1)
@@ -767,7 +802,9 @@ class ProductionLottoScanner:
                 return None
 
             options_list = (
-                chain.get("calls", []) if option_type == "call" else chain.get("puts", [])
+                chain.get("calls", [])
+                if option_type == "call"
+                else chain.get("puts", [])
             )
 
             for option in options_list:

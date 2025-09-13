@@ -231,7 +231,9 @@ class EarningsDataProvider:
                 params = {
                     "apikey": self.api_key,
                     "from": datetime.now().strftime("%Y-%m-%d"),
-                    "to": (datetime.now() + timedelta(days=days_ahead)).strftime("%Y-%m-%d"),
+                    "to": (datetime.now() + timedelta(days=days_ahead)).strftime(
+                        "%Y-%m-%d"
+                    ),
                 }
 
                 async with session.get(url, params=params) as response:
@@ -262,7 +264,9 @@ class EarningsDataProvider:
             self.logger.error(f"Error fetching earnings data: {e}")
             return []
 
-    async def get_earnings_history(self, ticker: str, limit: int = 4) -> list[EarningsEvent]:
+    async def get_earnings_history(
+        self, ticker: str, limit: int = 4
+    ) -> list[EarningsEvent]:
         """Get historical earnings data."""
         try:
             async with aiohttp.ClientSession() as session:
@@ -312,14 +316,18 @@ class NewsDataProvider:
         self.base_url = "https: //newsapi.org / v2"
         self.logger = logging.getLogger(__name__)
 
-    async def get_ticker_news(self, ticker: str, days_back: int = 1) -> list[dict[str, Any]]:
+    async def get_ticker_news(
+        self, ticker: str, days_back: int = 1
+    ) -> list[dict[str, Any]]:
         """Get recent news for ticker."""
         try:
             async with aiohttp.ClientSession() as session:
                 url = f"{self.base_url}/everything"
                 params = {
                     "q": ticker,
-                    "from": (datetime.now() - timedelta(days=days_back)).strftime("%Y-%m-%d"),
+                    "from": (datetime.now() - timedelta(days=days_back)).strftime(
+                        "%Y-%m-%d"
+                    ),
                     "sortBy": "publishedAt",
                     "apiKey": self.api_key,
                     "pageSize": 20,
@@ -344,8 +352,22 @@ class NewsDataProvider:
                 return {"score": 0.0, "confidence": 0.0}
 
             # Simple sentiment analysis (in production, use proper NLP)
-            positive_words = ["bullish", "growth", "beat", "exceed", "strong", "positive"]
-            negative_words = ["bearish", "decline", "miss", "weak", "negative", "concern"]
+            positive_words = [
+                "bullish",
+                "growth",
+                "beat",
+                "exceed",
+                "strong",
+                "positive",
+            ]
+            negative_words = [
+                "bearish",
+                "decline",
+                "miss",
+                "weak",
+                "negative",
+                "concern",
+            ]
 
             total_score = 0.0
             total_articles = len(news)
@@ -367,7 +389,9 @@ class NewsDataProvider:
 
             return {
                 "score": avg_score,
-                "confidence": min(total_articles / 10.0, 1.0),  # Confidence based on article count
+                "confidence": min(
+                    total_articles / 10.0, 1.0
+                ),  # Confidence based on article count
             }
         except Exception as e:
             self.logger.error(f"Error analyzing sentiment for {ticker}: {e}")
@@ -431,7 +455,9 @@ class UnifiedDataProvider:
         """Get options data from Polygon."""
         return await self.polygon.get_options_chain(ticker, expiry_date)
 
-    async def get_earnings_data(self, ticker: str, days_ahead: int = 7) -> list[EarningsEvent]:
+    async def get_earnings_data(
+        self, ticker: str, days_ahead: int = 7
+    ) -> list[EarningsEvent]:
         """Get earnings data from FMP."""
         return await self.earnings.get_upcoming_earnings(days_ahead)
 

@@ -69,7 +69,9 @@ class SPXSpreadPosition:
     net_theta: float = 0.0
     net_vega: float = 0.0
 
-    def update_pricing(self, long_option_data: OptionsData, short_option_data: OptionsData):
+    def update_pricing(
+        self, long_option_data: OptionsData, short_option_data: OptionsData
+    ):
         """Update spread pricing with current option data."""
         # Calculate current spread value
         long_value = long_option_data.ask
@@ -78,14 +80,24 @@ class SPXSpreadPosition:
         self.current_value = (short_value - long_value) * self.quantity * 100
 
         # Calculate P & L
-        self.unrealized_pnl = (self.net_credit * self.quantity * 100) - self.current_value
+        self.unrealized_pnl = (
+            self.net_credit * self.quantity * 100
+        ) - self.current_value
         self.profit_pct = self.unrealized_pnl / (self.net_credit * self.quantity * 100)
 
         # Update Greeks
-        self.net_delta = (short_option_data.delta - long_option_data.delta) * self.quantity * 100
-        self.net_gamma = (short_option_data.gamma - long_option_data.gamma) * self.quantity * 100
-        self.net_theta = (short_option_data.theta - long_option_data.theta) * self.quantity * 100
-        self.net_vega = (short_option_data.vega - long_option_data.vega) * self.quantity * 100
+        self.net_delta = (
+            (short_option_data.delta - long_option_data.delta) * self.quantity * 100
+        )
+        self.net_gamma = (
+            (short_option_data.gamma - long_option_data.gamma) * self.quantity * 100
+        )
+        self.net_theta = (
+            (short_option_data.theta - long_option_data.theta) * self.quantity * 100
+        )
+        self.net_vega = (
+            (short_option_data.vega - long_option_data.vega) * self.quantity * 100
+        )
 
         self.last_update = datetime.now()
 
@@ -186,9 +198,13 @@ class CMEDataProvider:
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
-        self.base_url = "https: //www.cmegroup.com / CmeWS / mvc / ProductSlate / V2 / List"
+        self.base_url = (
+            "https: //www.cmegroup.com / CmeWS / mvc / ProductSlate / V2 / List"
+        )
 
-    async def get_spx_options(self, expiry_date: str | None = None) -> list[OptionsData]:
+    async def get_spx_options(
+        self, expiry_date: str | None = None
+    ) -> list[OptionsData]:
         """Get SPX options data from CME."""
         try:
             # In production, would integrate with CME API
@@ -359,7 +375,9 @@ class ProductionSPXSpreads:
             self.candidates = candidates[:5]  # Top 5 candidates
 
             self.logger.info(f"Found {len(self.candidates)} SPX spread candidates")
-            self.metrics.record_metric("spx_spread_candidates_found", len(self.candidates))
+            self.metrics.record_metric(
+                "spx_spread_candidates_found", len(self.candidates)
+            )
 
             return self.candidates
 
@@ -382,10 +400,14 @@ class ProductionSPXSpreads:
                 continue
 
             for long_option in put_options:
-                if long_option.strike >= short_option.strike:  # Long strike must be lower
+                if (
+                    long_option.strike >= short_option.strike
+                ):  # Long strike must be lower
                     continue
 
-                if short_option.strike - long_option.strike > 50:  # Max 50 - point width
+                if (
+                    short_option.strike - long_option.strike > 50
+                ):  # Max 50 - point width
                     continue
 
                 # Calculate spread metrics
@@ -394,7 +416,9 @@ class ProductionSPXSpreads:
                     continue
 
                 max_profit = net_credit * 100
-                max_loss = (short_option.strike - long_option.strike) * 100 - net_credit * 100
+                max_loss = (
+                    short_option.strike - long_option.strike
+                ) * 100 - net_credit * 100
                 profit_loss_ratio = max_profit / max_loss if max_loss > 0 else 0
 
                 # Filter by minimum profit / loss ratio
@@ -460,7 +484,9 @@ class ProductionSPXSpreads:
             short_result = await self.trading.execute_trade(short_signal)
 
             if short_result.status.value != "filled":
-                self.logger.error(f"Short option trade failed: {short_result.error_message}")
+                self.logger.error(
+                    f"Short option trade failed: {short_result.error_message}"
+                )
                 return False
 
             # Execute long option trade (buy put)
@@ -478,7 +504,9 @@ class ProductionSPXSpreads:
             long_result = await self.trading.execute_trade(long_signal)
 
             if long_result.status.value != "filled":
-                self.logger.error(f"Long option trade failed: {long_result.error_message}")
+                self.logger.error(
+                    f"Long option trade failed: {long_result.error_message}"
+                )
                 # Try to close the short position
                 await self._close_short_position(short_signal, short_result)
                 return False
@@ -646,7 +674,10 @@ class ProductionSPXSpreads:
 
             long_result = await self.trading.execute_trade(long_close_signal)
 
-            if short_result.status.value == "filled" and long_result.status.value == "filled":
+            if (
+                short_result.status.value == "filled"
+                and long_result.status.value == "filled"
+            ):
                 # Update position
                 position.status = SPXSpreadStatus.CLOSED
 
@@ -670,7 +701,9 @@ class ProductionSPXSpreads:
     async def get_portfolio_summary(self) -> dict[str, Any]:
         """Get SPX spreads portfolio summary."""
         total_pnl = sum(pos.unrealized_pnl for pos in self.positions.values())
-        total_credit = sum(pos.net_credit * pos.quantity * 100 for pos in self.positions.values())
+        total_credit = sum(
+            pos.net_credit * pos.quantity * 100 for pos in self.positions.values()
+        )
 
         summary = {
             "total_positions": len(self.positions),
@@ -722,7 +755,9 @@ class ProductionSPXSpreads:
                 self.logger.info("SPX spreads portfolio summary", **summary)
 
                 # Record metrics
-                self.metrics.record_metric("spx_spreads_total_pnl", summary["total_pnl"])
+                self.metrics.record_metric(
+                    "spx_spreads_total_pnl", summary["total_pnl"]
+                )
                 self.metrics.record_metric(
                     "spx_spreads_active_positions", summary["total_positions"]
                 )

@@ -6,10 +6,12 @@ from typing import Literal, Optional
 try:
     from pydantic_settings import BaseSettings
     from pydantic import Field, field_validator
+
     PYDANTIC_V2 = True
 except ImportError:
     try:
         from pydantic import BaseSettings, Field, validator as field_validator
+
         PYDANTIC_V2 = False
     except ImportError:
         # Fallback - simple settings without validation
@@ -24,11 +26,13 @@ except ImportError:
         def field_validator(*args, **kwargs):
             def decorator(func):
                 return func
+
             return decorator
 
         PYDANTIC_V2 = False
 
 StrategyProfile = Literal["research_2024", "wsb_2025"]
+
 
 class AppSettings(BaseSettings):
     # Broker/API
@@ -62,6 +66,7 @@ class AppSettings(BaseSettings):
         env_file_encoding = "utf-8"
 
     if PYDANTIC_V2:
+
         @field_validator("alpaca_api_key", "alpaca_secret_key")
         @classmethod
         def _no_placeholders(cls, v: str) -> str:
@@ -69,11 +74,13 @@ class AppSettings(BaseSettings):
                 raise ValueError("API keys missing or look like placeholders.")
             return v
     else:
+
         @field_validator("alpaca_api_key", "alpaca_secret_key")
         def _no_placeholders(cls, v: str) -> str:
             if not v or "your_" in v.lower() or "test" in v.lower():
                 raise ValueError("API keys missing or look like placeholders.")
             return v
+
 
 def load_settings() -> AppSettings:
     return AppSettings()

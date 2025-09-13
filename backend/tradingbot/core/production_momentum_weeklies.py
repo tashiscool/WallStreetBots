@@ -147,13 +147,19 @@ class MomentumAnalyzer:
         current_price = prices[-1]
 
         # 1 - day momentum
-        price_change_1d = (current_price - prices[-2]) / prices[-2] if len(prices) >= 2 else 0.0
+        price_change_1d = (
+            (current_price - prices[-2]) / prices[-2] if len(prices) >= 2 else 0.0
+        )
 
         # 5 - day momentum
-        price_change_5d = (current_price - prices[-6]) / prices[-6] if len(prices) >= 6 else 0.0
+        price_change_5d = (
+            (current_price - prices[-6]) / prices[-6] if len(prices) >= 6 else 0.0
+        )
 
         # 20 - day momentum
-        price_change_20d = (current_price - prices[-21]) / prices[-21] if len(prices) >= 21 else 0.0
+        price_change_20d = (
+            (current_price - prices[-21]) / prices[-21] if len(prices) >= 21 else 0.0
+        )
 
         return {"1d": price_change_1d, "5d": price_change_5d, "20d": price_change_20d}
 
@@ -251,7 +257,9 @@ class MomentumAnalyzer:
 
         # Price momentum component (40% weight)
         price_momentum = (
-            momentum_data["1d"] * 0.4 + momentum_data["5d"] * 0.3 + momentum_data["20d"] * 0.3
+            momentum_data["1d"] * 0.4
+            + momentum_data["5d"] * 0.3
+            + momentum_data["20d"] * 0.3
         )
         score += min(max(price_momentum * 10, -1), 1) * 0.4
 
@@ -341,7 +349,9 @@ class WeeklyOptionsProvider:
         self.logger = logger
         self.options_cache = {}
 
-    async def get_weekly_options(self, ticker: str, days_to_expiry: int = 7) -> list[WeeklyOption]:
+    async def get_weekly_options(
+        self, ticker: str, days_to_expiry: int = 7
+    ) -> list[WeeklyOption]:
         """Get weekly options for ticker."""
         try:
             # Mock implementation - in production, integrate with real options API
@@ -349,7 +359,9 @@ class WeeklyOptionsProvider:
 
             # Generate mock weekly options
             options = []
-            strikes = [current_price * (1 + i * 0.05) for i in range(-4, 5)]  # ±20% strikes
+            strikes = [
+                current_price * (1 + i * 0.05) for i in range(-4, 5)
+            ]  # ±20% strikes
 
             for strike in strikes:
                 # Call option
@@ -400,7 +412,10 @@ class WeeklyOptionsProvider:
             return []
 
     def find_best_option(
-        self, options: list[WeeklyOption], momentum_signal: MomentumSignal, current_price: float
+        self,
+        options: list[WeeklyOption],
+        momentum_signal: MomentumSignal,
+        current_price: float,
     ) -> WeeklyOption | None:
         """Find best option based on momentum signal."""
         try:
@@ -410,7 +425,9 @@ class WeeklyOptionsProvider:
             # Filter options based on momentum signal
             if momentum_signal in [MomentumSignal.STRONG_BUY, MomentumSignal.BUY]:
                 # Look for call options or bullish spreads
-                call_options = [opt for opt in options if opt.option_type == WeeklyOptionType.CALL]
+                call_options = [
+                    opt for opt in options if opt.option_type == WeeklyOptionType.CALL
+                ]
                 if call_options:
                     # Find option with strike closest to current price
                     best_option = min(
@@ -420,7 +437,9 @@ class WeeklyOptionsProvider:
 
             elif momentum_signal in [MomentumSignal.STRONG_SELL, MomentumSignal.SELL]:
                 # Look for put options or bearish spreads
-                put_options = [opt for opt in options if opt.option_type == WeeklyOptionType.PUT]
+                put_options = [
+                    opt for opt in options if opt.option_type == WeeklyOptionType.PUT
+                ]
                 if put_options:
                     # Find option with strike closest to current price
                     best_option = min(
@@ -476,12 +495,16 @@ class MomentumWeekliesStrategy:
             for ticker in universe:
                 try:
                     # Get historical data
-                    historical_data = await self.data.get_historical_data(ticker, days=50)
+                    historical_data = await self.data.get_historical_data(
+                        ticker, days=50
+                    )
                     if not historical_data or len(historical_data) < 20:
                         continue
 
                     # Perform momentum analysis
-                    momentum_data = await self._perform_momentum_analysis(ticker, historical_data)
+                    momentum_data = await self._perform_momentum_analysis(
+                        ticker, historical_data
+                    )
                     if not momentum_data:
                         continue
 
@@ -518,14 +541,18 @@ class MomentumWeekliesStrategy:
             self.logger.error(f"Error scanning for momentum opportunities: {e}")
             return []
 
-    async def execute_momentum_trade(self, candidate: MomentumCandidate) -> MomentumPosition | None:
+    async def execute_momentum_trade(
+        self, candidate: MomentumCandidate
+    ) -> MomentumPosition | None:
         """Execute momentum trading position."""
         try:
             self.logger.info(f"Executing momentum trade for {candidate.ticker}")
 
             # Check if we already have a position
             if candidate.ticker in self.active_positions:
-                self.logger.warning(f"Already have momentum position for {candidate.ticker}")
+                self.logger.warning(
+                    f"Already have momentum position for {candidate.ticker}"
+                )
                 return None
 
             # Check position limits
@@ -534,9 +561,13 @@ class MomentumWeekliesStrategy:
                 return None
 
             # Get weekly options
-            weekly_options = await self.options_provider.get_weekly_options(candidate.ticker)
+            weekly_options = await self.options_provider.get_weekly_options(
+                candidate.ticker
+            )
             if not weekly_options:
-                self.logger.warning(f"No weekly options available for {candidate.ticker}")
+                self.logger.warning(
+                    f"No weekly options available for {candidate.ticker}"
+                )
                 return None
 
             # Find best option
@@ -570,7 +601,9 @@ class MomentumWeekliesStrategy:
             return position
 
         except Exception as e:
-            self.logger.error(f"Error executing momentum trade for {candidate.ticker}: {e}")
+            self.logger.error(
+                f"Error executing momentum trade for {candidate.ticker}: {e}"
+            )
             return None
 
     async def monitor_momentum_positions(self) -> dict[str, Any]:
@@ -634,9 +667,13 @@ class MomentumWeekliesStrategy:
             # Calculate momentum metrics
             price_momentum = self.momentum_analyzer.calculate_price_momentum(prices)
             volume_momentum = self.momentum_analyzer.calculate_volume_momentum(volumes)
-            technical_momentum = self.momentum_analyzer.calculate_technical_momentum(prices)
+            technical_momentum = self.momentum_analyzer.calculate_technical_momentum(
+                prices
+            )
             moving_averages = self.momentum_analyzer.calculate_moving_averages(prices)
-            bollinger_position = self.momentum_analyzer.calculate_bollinger_position(prices)
+            bollinger_position = self.momentum_analyzer.calculate_bollinger_position(
+                prices
+            )
 
             # Calculate scores
             momentum_score = self.momentum_analyzer.calculate_momentum_score(
@@ -646,10 +683,16 @@ class MomentumWeekliesStrategy:
             volume_score = min(volume_momentum["ratio"] / 2.0, 1.0)
             technical_score = (
                 technical_momentum["rsi"] / 100.0
-                + (1 if technical_momentum["macd"] > technical_momentum["macd_signal"] else 0)
+                + (
+                    1
+                    if technical_momentum["macd"] > technical_momentum["macd_signal"]
+                    else 0
+                )
             ) / 2.0
 
-            overall_score = momentum_score * 0.5 + volume_score * 0.3 + technical_score * 0.2
+            overall_score = (
+                momentum_score * 0.5 + volume_score * 0.3 + technical_score * 0.2
+            )
 
             momentum_data = MomentumData(
                 ticker=ticker,
@@ -762,7 +805,9 @@ class MomentumWeekliesStrategy:
         # Simplified position sizing - in production, use proper risk management
         risk_per_share = abs(entry_price - stop_loss)
         max_risk_amount = 500.0  # $500 max risk per position
-        position_size = int(max_risk_amount / risk_per_share) if risk_per_share > 0 else 100
+        position_size = (
+            int(max_risk_amount / risk_per_share) if risk_per_share > 0 else 100
+        )
         return min(position_size, 500)  # Cap at 500 shares
 
     async def _update_position_data(self, position: MomentumPosition):
@@ -776,13 +821,17 @@ class MomentumWeekliesStrategy:
 
                 # Update days to expiry
                 if position.expiry_date:
-                    position.days_to_expiry = (position.expiry_date - datetime.now()).days
+                    position.days_to_expiry = (
+                        position.expiry_date - datetime.now()
+                    ).days
 
                 # Recalculate P & L
                 position.unrealized_pnl = self._calculate_position_pnl(position)
 
         except Exception as e:
-            self.logger.error(f"Error updating position data for {position.ticker}: {e}")
+            self.logger.error(
+                f"Error updating position data for {position.ticker}: {e}"
+            )
 
     def _calculate_position_pnl(self, position: MomentumPosition) -> float:
         """Calculate position P & L."""
@@ -840,7 +889,9 @@ class MomentumWeekliesStrategy:
         # Check for approaching max hold days
         days_held = (datetime.now() - position.entry_date).days
         if days_held >= self.max_hold_days - 1:
-            alerts.append(f"Approaching max hold days for {position.ticker}: {days_held} days")
+            alerts.append(
+                f"Approaching max hold days for {position.ticker}: {days_held} days"
+            )
 
         return alerts
 
@@ -859,9 +910,12 @@ class MomentumWeekliesStrategy:
     async def get_strategy_status(self) -> dict[str, Any]:
         """Get current strategy status."""
         try:
-            total_pnl = sum(pos.unrealized_pnl for pos in self.active_positions.values())
+            total_pnl = sum(
+                pos.unrealized_pnl for pos in self.active_positions.values()
+            )
             total_exposure = sum(
-                pos.quantity * pos.current_price for pos in self.active_positions.values()
+                pos.quantity * pos.current_price
+                for pos in self.active_positions.values()
             )
 
             return {

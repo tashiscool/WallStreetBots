@@ -161,8 +161,8 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
             trend_direction="bearish",
         )
 
-        entry_score_death, exit_score_death = self.tracker.calculate_entry_exit_timing_scores(
-            recent_death_cross, 94.0
+        entry_score_death, exit_score_death = (
+            self.tracker.calculate_entry_exit_timing_scores(recent_death_cross, 94.0)
         )
 
         self.assertLess(entry_score_death, 30)  # Should be low
@@ -203,7 +203,8 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         prices = growth_trend + volatility
 
         self.mock_growth_data = pd.DataFrame(
-            {"Close": prices, "Volume": np.random.randint(1000000, 5000000, 500)}, index=dates
+            {"Close": prices, "Volume": np.random.randint(1000000, 5000000, 500)},
+            index=dates,
         )
 
     @patch("backend.tradingbot.strategies.leaps_tracker.yf.Ticker")
@@ -440,11 +441,15 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         ]
 
         # Sort by composite score (default)
-        candidates_by_composite = sorted(candidates, key=lambda x: x.composite_score, reverse=True)
+        candidates_by_composite = sorted(
+            candidates, key=lambda x: x.composite_score, reverse=True
+        )
         self.assertEqual(candidates_by_composite[0].ticker, "GOOGL")  # Higher composite
 
         # Sort by timing score
-        candidates_by_timing = sorted(candidates, key=lambda x: x.entry_timing_score, reverse=True)
+        candidates_by_timing = sorted(
+            candidates, key=lambda x: x.entry_timing_score, reverse=True
+        )
         self.assertEqual(candidates_by_timing[0].ticker, "AAPL")  # Better timing
 
 
@@ -593,7 +598,9 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
 
         # Should filter out despite good fundamentals
         timing_filter_threshold = 40.0
-        passes_timing_filter = poor_timing_candidate.entry_timing_score >= timing_filter_threshold
+        passes_timing_filter = (
+            poor_timing_candidate.entry_timing_score >= timing_filter_threshold
+        )
 
         self.assertFalse(passes_timing_filter)  # Should fail timing filter
         self.assertIn("Recent death cross", poor_timing_candidate.risk_factors)
@@ -608,20 +615,30 @@ class TestLEAPSDisplayEnhancements(unittest.TestCase):
         # Excellent timing
         excellent_timing_score = 85.0
         timing_icon = (
-            "🟢" if excellent_timing_score > 70 else "🟡" if excellent_timing_score > 50 else "🔴"
+            "🟢"
+            if excellent_timing_score > 70
+            else "🟡"
+            if excellent_timing_score > 50
+            else "🔴"
         )
         self.assertEqual(timing_icon, "🟢")
 
         # Moderate timing
         moderate_timing_score = 60.0
         timing_icon = (
-            "🟢" if moderate_timing_score > 70 else "🟡" if moderate_timing_score > 50 else "🔴"
+            "🟢"
+            if moderate_timing_score > 70
+            else "🟡"
+            if moderate_timing_score > 50
+            else "🔴"
         )
         self.assertEqual(timing_icon, "🟡")
 
         # Poor timing
         poor_timing_score = 30.0
-        timing_icon = "🟢" if poor_timing_score > 70 else "🟡" if poor_timing_score > 50 else "🔴"
+        timing_icon = (
+            "🟢" if poor_timing_score > 70 else "🟡" if poor_timing_score > 50 else "🔴"
+        )
         self.assertEqual(timing_icon, "🔴")
 
     def test_cross_type_indicators(self):

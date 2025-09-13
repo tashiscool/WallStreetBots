@@ -26,13 +26,31 @@ class PipelineTestCase(unittest.TestCase):
         actions = pipeline.rebalance()
         actions = [a.__dict__() for a in actions]
         self.assertIn(
-            {"order_type": "M", "transaction_type": "B", "ticker": "TSLA", "quantity": 2}, actions
+            {
+                "order_type": "M",
+                "transaction_type": "B",
+                "ticker": "TSLA",
+                "quantity": 2,
+            },
+            actions,
         )
         self.assertIn(
-            {"order_type": "M", "transaction_type": "B", "ticker": "AAPL", "quantity": 2}, actions
+            {
+                "order_type": "M",
+                "transaction_type": "B",
+                "ticker": "AAPL",
+                "quantity": 2,
+            },
+            actions,
         )
         self.assertIn(
-            {"order_type": "M", "transaction_type": "S", "ticker": "MSFT", "quantity": 4}, actions
+            {
+                "order_type": "M",
+                "transaction_type": "S",
+                "ticker": "MSFT",
+                "quantity": 4,
+            },
+            actions,
         )
 
     def test_case_2(self):
@@ -40,10 +58,22 @@ class PipelineTestCase(unittest.TestCase):
         actions = pipeline.rebalance()
         actions = [a.__dict__() for a in actions]
         self.assertIn(
-            {"order_type": "M", "transaction_type": "B", "ticker": "AAPL", "quantity": 2}, actions
+            {
+                "order_type": "M",
+                "transaction_type": "B",
+                "ticker": "AAPL",
+                "quantity": 2,
+            },
+            actions,
         )
         self.assertIn(
-            {"order_type": "M", "transaction_type": "S", "ticker": "MSFT", "quantity": 2}, actions
+            {
+                "order_type": "M",
+                "transaction_type": "S",
+                "ticker": "MSFT",
+                "quantity": 2,
+            },
+            actions,
         )
 
     def test_case_3(self):
@@ -51,10 +81,22 @@ class PipelineTestCase(unittest.TestCase):
         actions = pipeline.rebalance()
         actions = [a.__dict__() for a in actions]
         self.assertIn(
-            {"order_type": "M", "transaction_type": "S", "ticker": "AAPL", "quantity": 3}, actions
+            {
+                "order_type": "M",
+                "transaction_type": "S",
+                "ticker": "AAPL",
+                "quantity": 3,
+            },
+            actions,
         )
         self.assertIn(
-            {"order_type": "M", "transaction_type": "B", "ticker": "MSFT", "quantity": 3}, actions
+            {
+                "order_type": "M",
+                "transaction_type": "B",
+                "ticker": "MSFT",
+                "quantity": 3,
+            },
+            actions,
         )
 
 

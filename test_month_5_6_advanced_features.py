@@ -53,7 +53,11 @@ async def test_advanced_ml_models():
         # 1. Initialize Multi - Agent Risk Coordinator
         print("\n1. Initializing Multi - Agent Risk Coordinator...")
 
-        risk_limits = {"max_total_var": 0.05, "max_total_cvar": 0.07, "max_concentration": 0.30}
+        risk_limits = {
+            "max_total_var": 0.05,
+            "max_total_cvar": 0.07,
+            "max_concentration": 0.30,
+        }
 
         coordinator = MultiAgentRiskCoordinator(
             risk_limits=risk_limits,
@@ -90,7 +94,9 @@ async def test_advanced_ml_models():
         }
 
         # Get ensemble action
-        ensemble_action = await coordinator.get_ensemble_action(portfolio_data, market_data)
+        ensemble_action = await coordinator.get_ensemble_action(
+            portfolio_data, market_data
+        )
 
         print("✅ Risk Environment tested")
         print(f"   Ensemble Action: {ensemble_action.action_type}")
@@ -128,7 +134,9 @@ async def test_advanced_ml_models():
         )
 
         # Update agents
-        await coordinator.update_agents(portfolio_data, market_data, ensemble_action, reward)
+        await coordinator.update_agents(
+            portfolio_data, market_data, ensemble_action, reward
+        )
 
         print("✅ Agent learning tested")
         print(f"   Reward: {reward.total_reward:.3f}")
@@ -177,7 +185,10 @@ async def test_multi_asset_risk():
         print("\n1. Initializing Multi - Asset Risk Manager...")
 
         risk_manager = MultiAssetRiskManager(
-            base_currency="USD", enable_crypto=True, enable_forex=True, enable_commodities=True
+            base_currency="USD",
+            enable_crypto=True,
+            enable_forex=True,
+            enable_commodities=True,
         )
 
         print("✅ Multi - Asset Risk Manager initialized")
@@ -216,7 +227,10 @@ async def test_multi_asset_risk():
             100000,
             110000,
             "USD",
-            risk_factors={RiskFactor.CURRENCY_RISK: 0.7, RiskFactor.INTEREST_RATE_RISK: 0.3},
+            risk_factors={
+                RiskFactor.CURRENCY_RISK: 0.7,
+                RiskFactor.INTEREST_RATE_RISK: 0.3,
+            },
             volatility=0.15,
             liquidity_score=0.95,
         )
@@ -228,14 +242,19 @@ async def test_multi_asset_risk():
             10,
             18000,
             "USD",
-            risk_factors={RiskFactor.COMMODITY_RISK: 0.6, RiskFactor.CURRENCY_RISK: 0.2},
+            risk_factors={
+                RiskFactor.COMMODITY_RISK: 0.6,
+                RiskFactor.CURRENCY_RISK: 0.2,
+            },
             volatility=0.20,
             liquidity_score=0.85,
         )
 
         print("✅ Multi - asset positions added")
         print(f"   Total positions: {len(risk_manager.positions)}")
-        print(f"   Asset classes: { {pos.asset_class for pos in risk_manager.positions.values()} }")
+        print(
+            f"   Asset classes: { {pos.asset_class for pos in risk_manager.positions.values()} }"
+        )
 
         # 3. Calculate Cross - Asset Correlations
         print("\n3. Calculating Cross - Asset Correlations...")
@@ -244,13 +263,23 @@ async def test_multi_asset_risk():
         dates = pd.date_range(end=datetime.now(), periods=252, freq="D")
 
         market_data = {
-            "AAPL": pd.DataFrame({"Close": 150 + np.random.normal(0, 5, 252)}, index=dates),
-            "BTC": pd.DataFrame({"Close": 40000 + np.random.normal(0, 2000, 252)}, index=dates),
-            "EURUSD": pd.DataFrame({"Close": 1.1 + np.random.normal(0, 0.02, 252)}, index=dates),
-            "GOLD": pd.DataFrame({"Close": 1800 + np.random.normal(0, 50, 252)}, index=dates),
+            "AAPL": pd.DataFrame(
+                {"Close": 150 + np.random.normal(0, 5, 252)}, index=dates
+            ),
+            "BTC": pd.DataFrame(
+                {"Close": 40000 + np.random.normal(0, 2000, 252)}, index=dates
+            ),
+            "EURUSD": pd.DataFrame(
+                {"Close": 1.1 + np.random.normal(0, 0.02, 252)}, index=dates
+            ),
+            "GOLD": pd.DataFrame(
+                {"Close": 1800 + np.random.normal(0, 50, 252)}, index=dates
+            ),
         }
 
-        correlations = await risk_manager.calculate_cross_asset_correlations(market_data)
+        correlations = await risk_manager.calculate_cross_asset_correlations(
+            market_data
+        )
 
         print("✅ Cross - asset correlations calculated")
         print(f"   Correlations calculated: {len(correlations)}")
@@ -351,7 +380,9 @@ async def test_regulatory_compliance():
             "concentration_risk": 0.35,
         }
 
-        checks = await compliance_manager.run_compliance_checks(portfolio_data, risk_metrics)
+        checks = await compliance_manager.run_compliance_checks(
+            portfolio_data, risk_metrics
+        )
 
         print("✅ Compliance checks completed")
         print(f"   Checks run: {len(checks)}")
@@ -473,7 +504,9 @@ async def test_advanced_analytics():
         returns = np.random.normal(0.001, 0.02, 252)  # Daily returns
         risk_free_rate = 0.02 / 252  # Daily risk - free rate
 
-        sharpe_ratio = (np.mean(returns) - risk_free_rate) / np.std(returns) * np.sqrt(252)
+        sharpe_ratio = (
+            (np.mean(returns) - risk_free_rate) / np.std(returns) * np.sqrt(252)
+        )
 
         print(f"✅ Sharpe Ratio calculated: {sharpe_ratio:.3f}")
 
@@ -498,7 +531,9 @@ async def test_advanced_analytics():
         # Sortino Ratio (downside deviation)
         downside_returns = returns[returns < 0]
         downside_deviation = np.std(downside_returns) * np.sqrt(252)
-        sortino_ratio = annual_return / downside_deviation if downside_deviation > 0 else 0
+        sortino_ratio = (
+            annual_return / downside_deviation if downside_deviation > 0 else 0
+        )
 
         # Calmar Ratio (return / max drawdown)
         calmar_ratio = annual_return / abs(max_drawdown) if max_drawdown != 0 else 0
@@ -546,8 +581,11 @@ async def test_advanced_analytics():
             "calmar_ratio": calmar_ratio,
             "var_95": np.percentile(returns, 5),
             "var_99": np.percentile(returns, 1),
-            "skewness": np.mean((returns - np.mean(returns)) ** 3) / (np.std(returns) ** 3),
-            "kurtosis": np.mean((returns - np.mean(returns)) ** 4) / (np.std(returns) ** 4) - 3,
+            "skewness": np.mean((returns - np.mean(returns)) ** 3)
+            / (np.std(returns) ** 3),
+            "kurtosis": np.mean((returns - np.mean(returns)) ** 4)
+            / (np.std(returns) ** 4)
+            - 3,
         }
 
         print("✅ Portfolio analytics calculated")
@@ -631,7 +669,9 @@ async def test_automated_rebalancing():
 
         # Calculate optimal portfolio metrics
         optimal_return = np.dot(optimal_weights, expected_returns)
-        optimal_variance = np.dot(optimal_weights, np.dot(covariance_matrix, optimal_weights))
+        optimal_variance = np.dot(
+            optimal_weights, np.dot(covariance_matrix, optimal_weights)
+        )
         optimal_volatility = np.sqrt(optimal_variance)
         optimal_sharpe = optimal_return / optimal_volatility
 

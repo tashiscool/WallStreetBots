@@ -10,8 +10,12 @@ class Credential(models.Model):
     ALPACA_ID_MAX_LENGTH = 100
     ALPACA_KEY_MAX_LENGTH = 100
     # Fields
-    user = models.OneToOneField(User, help_text="Associated user", on_delete=models.CASCADE)
-    alpaca_id = models.CharField(max_length=ALPACA_ID_MAX_LENGTH, help_text="Enter your Alpaca id")
+    user = models.OneToOneField(
+        User, help_text="Associated user", on_delete=models.CASCADE
+    )
+    alpaca_id = models.CharField(
+        max_length=ALPACA_ID_MAX_LENGTH, help_text="Enter your Alpaca id"
+    )
     alpaca_key = models.CharField(
         max_length=ALPACA_KEY_MAX_LENGTH, help_text="Enter your Alpaca key"
     )
@@ -30,9 +34,14 @@ class BotInstance(models.Model):
 
     name = models.CharField(max_length=100, blank=False, help_text="Bot Name")
     portfolio = models.OneToOneField(
-        Portfolio, blank=True, help_text="Associated portfolio", on_delete=models.CASCADE
+        Portfolio,
+        blank=True,
+        help_text="Associated portfolio",
+        on_delete=models.CASCADE,
     )
-    user = models.ForeignKey(User, help_text="Associated user", on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, help_text="Associated user", on_delete=models.CASCADE
+    )
     bot = None  # To Be Completed
 
     # Metadata

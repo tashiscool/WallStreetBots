@@ -43,13 +43,16 @@ class BlackScholesCalculator:
         Returns:
             Call option price per share (multiply by 100 for contract value)
         """
-        if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
+        if any(
+            val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]
+        ):
             raise ValueError("Spot, strike, time to expiry, and IV must be positive")
 
         # Calculate d1 and d2
         d1 = (
             math.log(spot / strike)
-            + (risk_free_rate - dividend_yield + 0.5 * implied_volatility**2) * time_to_expiry_years
+            + (risk_free_rate - dividend_yield + 0.5 * implied_volatility**2)
+            * time_to_expiry_years
         ) / (implied_volatility * math.sqrt(time_to_expiry_years))
 
         d2 = d1 - implied_volatility * math.sqrt(time_to_expiry_years)
@@ -73,17 +76,20 @@ class BlackScholesCalculator:
         implied_volatility: float,
     ) -> float:
         """Calculate option delta (price sensitivity to underlying movement)."""
-        if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
+        if any(
+            val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]
+        ):
             return 0.0
 
         d1 = (
             math.log(spot / strike)
-            + (risk_free_rate - dividend_yield + 0.5 * implied_volatility**2) * time_to_expiry_years
+            + (risk_free_rate - dividend_yield + 0.5 * implied_volatility**2)
+            * time_to_expiry_years
         ) / (implied_volatility * math.sqrt(time_to_expiry_years))
 
-        return math.exp(-dividend_yield * time_to_expiry_years) * BlackScholesCalculator._norm_cdf(
-            d1
-        )
+        return math.exp(
+            -dividend_yield * time_to_expiry_years
+        ) * BlackScholesCalculator._norm_cdf(d1)
 
     @staticmethod
     def put_price(
@@ -95,12 +101,15 @@ class BlackScholesCalculator:
         implied_volatility: float,
     ) -> float:
         """Calculate Black - Scholes put option price per share."""
-        if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
+        if any(
+            val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]
+        ):
             raise ValueError("Spot, strike, time to expiry, and IV must be positive")
 
         d1 = (
             math.log(spot / strike)
-            + (risk_free_rate - dividend_yield + 0.5 * implied_volatility**2) * time_to_expiry_years
+            + (risk_free_rate - dividend_yield + 0.5 * implied_volatility**2)
+            * time_to_expiry_years
         ) / (implied_volatility * math.sqrt(time_to_expiry_years))
 
         d2 = d1 - implied_volatility * math.sqrt(time_to_expiry_years)
@@ -123,12 +132,15 @@ class BlackScholesCalculator:
         implied_volatility: float,
     ) -> float:
         """Calculate option gamma (delta sensitivity to underlying movement)."""
-        if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
+        if any(
+            val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]
+        ):
             return 0.0
 
         d1 = (
             math.log(spot / strike)
-            + (risk_free_rate - dividend_yield + 0.5 * implied_volatility**2) * time_to_expiry_years
+            + (risk_free_rate - dividend_yield + 0.5 * implied_volatility**2)
+            * time_to_expiry_years
         ) / (implied_volatility * math.sqrt(time_to_expiry_years))
 
         # Standard normal PDF
@@ -150,12 +162,15 @@ class BlackScholesCalculator:
         implied_volatility: float,
     ) -> float:
         """Calculate option theta (time decay)."""
-        if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
+        if any(
+            val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]
+        ):
             return 0.0
 
         d1 = (
             math.log(spot / strike)
-            + (risk_free_rate - dividend_yield + 0.5 * implied_volatility**2) * time_to_expiry_years
+            + (risk_free_rate - dividend_yield + 0.5 * implied_volatility**2)
+            * time_to_expiry_years
         ) / (implied_volatility * math.sqrt(time_to_expiry_years))
 
         d2 = d1 - implied_volatility * math.sqrt(time_to_expiry_years)
@@ -192,12 +207,15 @@ class BlackScholesCalculator:
         implied_volatility: float,
     ) -> float:
         """Calculate option vega (volatility sensitivity)."""
-        if any(val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]):
+        if any(
+            val <= 0 for val in [spot, strike, time_to_expiry_years, implied_volatility]
+        ):
             return 0.0
 
         d1 = (
             math.log(spot / strike)
-            + (risk_free_rate - dividend_yield + 0.5 * implied_volatility**2) * time_to_expiry_years
+            + (risk_free_rate - dividend_yield + 0.5 * implied_volatility**2)
+            * time_to_expiry_years
         ) / (implied_volatility * math.sqrt(time_to_expiry_years))
 
         # Standard normal PDF
@@ -502,7 +520,9 @@ class OptionsTradeCalculator:
                 )
 
                 new_premium_per_contract = new_premium_per_share * 100
-                pnl_per_contract = new_premium_per_contract - trade_calc.estimated_premium
+                pnl_per_contract = (
+                    new_premium_per_contract - trade_calc.estimated_premium
+                )
                 total_pnl = pnl_per_contract * trade_calc.recommended_contracts
                 roi = (
                     (pnl_per_contract / trade_calc.estimated_premium)
@@ -584,7 +604,9 @@ if __name__ == "__main__":  # Test the calculator
 
     # Scenario analysis
     scenarios = calculator.scenario_analysis(
-        trade, spot_moves=[-0.05, -0.03, 0.00, 0.03, 0.05, 0.08], implied_volatility=0.28
+        trade,
+        spot_moves=[-0.05, -0.03, 0.00, 0.03, 0.05, 0.08],
+        implied_volatility=0.28,
     )
 
     print("\n=== SCENARIO ANALYSIS ===")

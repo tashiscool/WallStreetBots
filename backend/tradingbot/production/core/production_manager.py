@@ -70,7 +70,9 @@ class ProductionConfig:
 
     # Alert settings
     enable_alerts: bool = True
-    alert_channels: list[str] = field(default_factory=lambda: ["email", "slack", "desktop"])
+    alert_channels: list[str] = field(
+        default_factory=lambda: ["email", "slack", "desktop"]
+    )
 
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -92,7 +94,10 @@ class ProductionManager:
 
         # Initialize core components
         self.integration_manager = create_production_integration(
-            config.alpaca_api_key, config.alpaca_secret_key, config.paper_trading, config.user_id
+            config.alpaca_api_key,
+            config.alpaca_secret_key,
+            config.paper_trading,
+            config.user_id,
         )
 
         self.data_provider = create_production_data_provider(
@@ -121,7 +126,10 @@ class ProductionManager:
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            handlers=[logging.FileHandler("production_manager.log"), logging.StreamHandler()],
+            handlers=[
+                logging.FileHandler("production_manager.log"),
+                logging.StreamHandler(),
+            ],
         )
 
     def _initialize_strategies(self):
@@ -144,8 +152,10 @@ class ProductionManager:
 
             # Initialize Momentum Weeklies
             if "momentum_weeklies" in self.config.enabled_strategies:
-                self.strategies["momentum_weeklies"] = create_production_momentum_weeklies(
-                    self.integration_manager, strategy_config
+                self.strategies["momentum_weeklies"] = (
+                    create_production_momentum_weeklies(
+                        self.integration_manager, strategy_config
+                    )
                 )
 
             # Additional strategies would be initialized here
@@ -235,7 +245,9 @@ class ProductionManager:
             # Validate market hours
             market_open = await self.data_provider.is_market_open()
             if not market_open:
-                self.logger.warning("Market is closed - system will wait for market open")
+                self.logger.warning(
+                    "Market is closed - system will wait for market open"
+                )
 
             self.logger.info("✅ Configuration validation passed")
             return True
@@ -255,7 +267,8 @@ class ProductionManager:
 
             # Ensure portfolio exists
             portfolio, _created = Portfolio.objects.get_or_create(
-                user=user, defaults={"name": "Production Portfolio", "cash": Decimal("0.00")}
+                user=user,
+                defaults={"name": "Production Portfolio", "cash": Decimal("0.00")},
             )
 
             # Sync portfolio with Alpaca
@@ -360,7 +373,9 @@ class ProductionManager:
             for strategy_name, strategy in self.strategies.items():
                 if not strategy.is_running:
                     await self.integration_manager.alert_system.send_alert(
-                        "STRATEGY_ERROR", "HIGH", f"Strategy {strategy_name} is not running"
+                        "STRATEGY_ERROR",
+                        "HIGH",
+                        f"Strategy {strategy_name} is not running",
                     )
 
         except Exception as e:
@@ -396,8 +411,12 @@ class ProductionManager:
         try:
             self.logger.warning("Closing all positions...")
 
-            for _position_key, position in list(self.integration_manager.active_positions.items()):
-                await self.integration_manager.execute_exit_trade(position, "emergency_close")
+            for _position_key, position in list(
+                self.integration_manager.active_positions.items()
+            ):
+                await self.integration_manager.execute_exit_trade(
+                    position, "emergency_close"
+                )
 
             self.logger.info("All positions closed")
 
@@ -408,7 +427,9 @@ class ProductionManager:
         """Generate final performance report."""
         try:
             report = {
-                "session_start": self.start_time.isoformat() if self.start_time else None,
+                "session_start": self.start_time.isoformat()
+                if self.start_time
+                else None,
                 "session_end": datetime.now().isoformat(),
                 "total_runtime": (datetime.now() - self.start_time).total_seconds()
                 if self.start_time
@@ -419,8 +440,10 @@ class ProductionManager:
 
             # Save report
             import aiofiles
+
             async with aiofiles.open(
-                f"production_report_{datetime.now().strftime('%Y % m % d_ % H % M % S')}.json", "w"
+                f"production_report_{datetime.now().strftime('%Y % m % d_ % H % M % S')}.json",
+                "w",
             ) as f:
                 await f.write(json.dumps(report, indent=2, default=str))
 
@@ -434,10 +457,13 @@ class ProductionManager:
         return {
             "is_running": self.is_running,
             "start_time": self.start_time.isoformat() if self.start_time else None,
-            "last_heartbeat": self.last_heartbeat.isoformat() if self.last_heartbeat else None,
+            "last_heartbeat": self.last_heartbeat.isoformat()
+            if self.last_heartbeat
+            else None,
             "active_strategies": len(self.strategies),
             "strategy_status": {
-                name: strategy.get_strategy_status() for name, strategy in self.strategies.items()
+                name: strategy.get_strategy_status()
+                for name, strategy in self.strategies.items()
             },
             "performance_metrics": self.performance_metrics,
             "configuration": {

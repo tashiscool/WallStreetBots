@@ -32,7 +32,9 @@ class TestEndToEndTrading:
         # Mock data provider
         mock_data_provider = Mock()
         mock_data_provider.is_market_open = AsyncMock(return_value=True)
-        mock_data_provider.get_current_price = AsyncMock(return_value=Mock(price=Decimal("150.00")))
+        mock_data_provider.get_current_price = AsyncMock(
+            return_value=Mock(price=Decimal("150.00"))
+        )
         mock_data_provider.get_price_history = AsyncMock(
             return_value=[
                 Decimal("100.00"),
@@ -65,7 +67,9 @@ class TestEndToEndTrading:
 
         # Mock integration manager
         mock_integration = Mock()
-        mock_integration.get_portfolio_value = AsyncMock(return_value=Decimal("100000.00"))
+        mock_integration.get_portfolio_value = AsyncMock(
+            return_value=Decimal("100000.00")
+        )
         mock_integration.execute_trade = AsyncMock(
             return_value={
                 "order_id": "test_order_123",
@@ -90,7 +94,9 @@ class TestEndToEndTrading:
         mock_account.buying_power = Decimal("50000.00")
         mock_account.portfolio_value = Decimal("100000.00")
         mock_broker.get_account = AsyncMock(return_value=mock_account)
-        mock_broker.validate_api = Mock(return_value=(True, "API validation successful"))
+        mock_broker.validate_api = Mock(
+            return_value=(True, "API validation successful")
+        )
 
         # Set the broker manager on the integration manager
         mock_integration.alpaca_manager = mock_broker
@@ -150,15 +156,21 @@ class TestEndToEndTrading:
     @pytest.mark.asyncio
     async def test_error_recovery_flow(self, mock_trading_system):
         """Test error recovery mechanisms."""
-        from backend.tradingbot.error_handling import DataProviderError, TradingErrorRecoveryManager
+        from backend.tradingbot.error_handling import (
+            DataProviderError,
+            TradingErrorRecoveryManager,
+        )
 
         # Create recovery manager
         recovery_manager = TradingErrorRecoveryManager(
-            trading_system=mock_trading_system["strategy_manager"], config={"max_retry_attempts": 2}
+            trading_system=mock_trading_system["strategy_manager"],
+            config={"max_retry_attempts": 2},
         )
 
         # Simulate data provider error
-        data_error = DataProviderError("Test data provider failure", provider="test_provider")
+        data_error = DataProviderError(
+            "Test data provider failure", provider="test_provider"
+        )
 
         # Handle error
         recovery_action = await recovery_manager.handle_trading_error(data_error)
@@ -270,7 +282,9 @@ class TestEndToEndTrading:
         data_provider.switch_to_backup = AsyncMock()
 
         # Simulate primary source failure
-        data_provider.get_current_price = AsyncMock(side_effect=Exception("Primary source failed"))
+        data_provider.get_current_price = AsyncMock(
+            side_effect=Exception("Primary source failed")
+        )
 
         # Switch to backup
         await data_provider.switch_to_backup()

@@ -97,7 +97,9 @@ class RiskDashboard2025:
         market_data = portfolio.get("market_data", {})
 
         # Calculate core risk metrics
-        var_1d, var_5d, cvar_99 = self._calculate_core_risk_metrics(positions, market_data)
+        var_1d, var_5d, cvar_99 = self._calculate_core_risk_metrics(
+            positions, market_data
+        )
 
         # Calculate advanced metrics
         tail_expectation = self._calculate_tail_expectation(positions)
@@ -205,7 +207,9 @@ class RiskDashboard2025:
         elif sentiment < -0.2:
             return self.portfolio_value * 0.05  # 5% risk for negative sentiment
         else:
-            return self.portfolio_value * 0.02  # 2% risk for neutral / positive sentiment
+            return (
+                self.portfolio_value * 0.02
+            )  # 2% risk for neutral / positive sentiment
 
     def _calculate_options_flow_risk(self, market_data: dict) -> float:
         """Calculate options flow risk."""
@@ -228,7 +232,9 @@ class RiskDashboard2025:
         risk_score = social_volume * abs(social_sentiment)
         return self.portfolio_value * risk_score * 0.1  # Scale to portfolio
 
-    def _calculate_factor_risk_breakdown(self, positions: list[dict]) -> dict[str, float]:
+    def _calculate_factor_risk_breakdown(
+        self, positions: list[dict]
+    ) -> dict[str, float]:
         """Calculate factor risk breakdown."""
         # Simplified factor risk calculation
         factors = {
@@ -263,11 +269,14 @@ class RiskDashboard2025:
             stress_report = self.stress_tester.run_comprehensive_stress_test(portfolio)
 
             # Get worst case P & L
-            worst_pnl = min(result.portfolio_pnl for result in stress_report.results.values())
+            worst_pnl = min(
+                result.portfolio_pnl for result in stress_report.results.values()
+            )
 
             # Get scenario analysis
             scenario_analysis = {
-                scenario: result.portfolio_pnl for scenario, result in stress_report.results.items()
+                scenario: result.portfolio_pnl
+                for scenario, result in stress_report.results.items()
             }
 
             return worst_pnl, scenario_analysis
@@ -285,7 +294,9 @@ class RiskDashboard2025:
         positions = portfolio.get("positions", [])
         market_data = portfolio.get("market_data", {})
 
-        var_1d, _var_5d, _cvar_99 = self._calculate_core_risk_metrics(positions, market_data)
+        var_1d, _var_5d, _cvar_99 = self._calculate_core_risk_metrics(
+            positions, market_data
+        )
         concentration_risk = self._calculate_concentration_risk(positions)
 
         # Check VaR limits
@@ -299,7 +310,10 @@ class RiskDashboard2025:
             )
 
         # Check concentration limits
-        if concentration_risk > self.risk_limits["max_concentration"] * self.portfolio_value:
+        if (
+            concentration_risk
+            > self.risk_limits["max_concentration"] * self.portfolio_value
+        ):
             self._add_alert(
                 alert_type="CONCENTRATION_BREACH",
                 severity="MEDIUM",
@@ -346,11 +360,17 @@ class RiskDashboard2025:
     ) -> dict[str, float]:
         """Calculate risk limit utilization percentages."""
         return {
-            "var_1d": (var_1d / (self.risk_limits["max_var_1d"] * self.portfolio_value)) * 100,
-            "var_5d": (var_5d / (self.risk_limits["max_var_5d"] * self.portfolio_value)) * 100,
-            "cvar_99": (cvar_99 / (self.risk_limits["max_cvar_99"] * self.portfolio_value)) * 100,
+            "var_1d": (var_1d / (self.risk_limits["max_var_1d"] * self.portfolio_value))
+            * 100,
+            "var_5d": (var_5d / (self.risk_limits["max_var_5d"] * self.portfolio_value))
+            * 100,
+            "cvar_99": (
+                cvar_99 / (self.risk_limits["max_cvar_99"] * self.portfolio_value)
+            )
+            * 100,
             "concentration": (
-                concentration_risk / (self.risk_limits["max_concentration"] * self.portfolio_value)
+                concentration_risk
+                / (self.risk_limits["max_concentration"] * self.portfolio_value)
             )
             * 100,
         }
@@ -367,18 +387,27 @@ class RiskDashboard2025:
             "risk_metrics": {
                 "var_1d": {
                     "value": risk_summary.var_1d,
-                    "percentage": (risk_summary.var_1d / risk_summary.portfolio_value) * 100,
-                    "limit_utilization": risk_summary.risk_limit_utilization.get("var_1d", 0),
+                    "percentage": (risk_summary.var_1d / risk_summary.portfolio_value)
+                    * 100,
+                    "limit_utilization": risk_summary.risk_limit_utilization.get(
+                        "var_1d", 0
+                    ),
                 },
                 "var_5d": {
                     "value": risk_summary.var_5d,
-                    "percentage": (risk_summary.var_5d / risk_summary.portfolio_value) * 100,
-                    "limit_utilization": risk_summary.risk_limit_utilization.get("var_5d", 0),
+                    "percentage": (risk_summary.var_5d / risk_summary.portfolio_value)
+                    * 100,
+                    "limit_utilization": risk_summary.risk_limit_utilization.get(
+                        "var_5d", 0
+                    ),
                 },
                 "cvar_99": {
                     "value": risk_summary.cvar_99,
-                    "percentage": (risk_summary.cvar_99 / risk_summary.portfolio_value) * 100,
-                    "limit_utilization": risk_summary.risk_limit_utilization.get("cvar_99", 0),
+                    "percentage": (risk_summary.cvar_99 / risk_summary.portfolio_value)
+                    * 100,
+                    "limit_utilization": risk_summary.risk_limit_utilization.get(
+                        "cvar_99", 0
+                    ),
                 },
             },
             # Advanced metrics

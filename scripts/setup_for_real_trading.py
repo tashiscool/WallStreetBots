@@ -69,7 +69,9 @@ def install_dependencies():
         # Create virtual environment if it doesn't exist
         if not os.path.exists("venv"):
             print("Creating virtual environment...")
-            subprocess.run([sys.executable, "-m", "venv", "venv"], check=True, shell=False)  # noqa: S603
+            subprocess.run(
+                [sys.executable, "-m", "venv", "venv"], check=True, shell=False
+            )  # noqa: S603
             print("✅ Virtual environment created")
 
         # Determine pip path
@@ -82,11 +84,17 @@ def install_dependencies():
 
         # Upgrade pip
         print("Upgrading pip...")
-        subprocess.run([python_path, "-m", "pip", "install", "--upgrade", "pip"], check=True, shell=False)  # noqa: S603
+        subprocess.run(
+            [python_path, "-m", "pip", "install", "--upgrade", "pip"],
+            check=True,
+            shell=False,
+        )  # noqa: S603
 
         # Install requirements
         print("Installing requirements...")
-        subprocess.run([pip_path, "install", "-r", "requirements.txt"], check=True, shell=False)  # noqa: S603
+        subprocess.run(
+            [pip_path, "install", "-r", "requirements.txt"], check=True, shell=False
+        )  # noqa: S603
 
         print("✅ All dependencies installed successfully")
 
@@ -137,11 +145,18 @@ def run_tests():
 
         print("Running all tests...")
         result = subprocess.run(  # noqa: S603
-            [python_path, "-m", "pytest", "backend / tradingbot/", "-v", "--tb = short"],
+            [
+                python_path,
+                "-m",
+                "pytest",
+                "backend / tradingbot/",
+                "-v",
+                "--tb = short",
+            ],
             check=False,
             capture_output=True,
             text=True,
-            shell=False
+            shell=False,
         )
 
         if result.returncode == 0:

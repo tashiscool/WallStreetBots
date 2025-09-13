@@ -106,7 +106,10 @@ class TradingInterface:
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            handlers=[logging.FileHandler("trading_interface.log"), logging.StreamHandler()],
+            handlers=[
+                logging.FileHandler("trading_interface.log"),
+                logging.StreamHandler(),
+            ],
         )
 
     async def execute_trade(self, signal: TradeSignal) -> TradeResult:
@@ -157,7 +160,9 @@ class TradingInterface:
             trade_result = TradeResult(
                 trade_id=trade_id,
                 signal=signal,
-                status=TradeStatus.FILLED if broker_result["success"] else TradeStatus.REJECTED,
+                status=TradeStatus.FILLED
+                if broker_result["success"]
+                else TradeStatus.REJECTED,
                 filled_quantity=broker_result.get("filled_quantity", 0),
                 filled_price=broker_result.get("filled_price"),
                 commission=broker_result.get("commission", 0.0),
@@ -192,7 +197,10 @@ class TradingInterface:
             )
 
             return TradeResult(
-                trade_id=trade_id, signal=signal, status=TradeStatus.REJECTED, error_message=str(e)
+                trade_id=trade_id,
+                signal=signal,
+                status=TradeStatus.REJECTED,
+                error_message=str(e),
             )
 
     async def validate_signal(self, signal: TradeSignal) -> dict[str, Any]:

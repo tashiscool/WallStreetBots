@@ -265,7 +265,11 @@ class EarningsProtectionStrategy:
                 days_to_earnings = (event.event_date - datetime.now()).days
 
                 # Filter by days to earnings
-                if not (self.min_days_to_earnings <= days_to_earnings <= self.max_days_to_earnings):
+                if not (
+                    self.min_days_to_earnings
+                    <= days_to_earnings
+                    <= self.max_days_to_earnings
+                ):
                     continue
 
                 # Get IV analysis
@@ -307,7 +311,9 @@ class EarningsProtectionStrategy:
                 )
 
                 # Determine recommended strategy
-                strategy = self._recommend_strategy(iv_analysis, expected_move, days_to_earnings)
+                strategy = self._recommend_strategy(
+                    iv_analysis, expected_move, days_to_earnings
+                )
 
                 candidate = EarningsCandidate(
                     ticker=event.ticker,
@@ -329,7 +335,9 @@ class EarningsProtectionStrategy:
             # Sort by earnings score
             candidates.sort(key=lambda x: x.earnings_score, reverse=True)
 
-            self.logger.info(f"Found {len(candidates)} earnings protection opportunities")
+            self.logger.info(
+                f"Found {len(candidates)} earnings protection opportunities"
+            )
             return candidates
 
         except Exception as e:
@@ -345,22 +353,31 @@ class EarningsProtectionStrategy:
 
             # Check if we already have a position
             if candidate.ticker in self.active_positions:
-                self.logger.warning(f"Already have earnings position for {candidate.ticker}")
+                self.logger.warning(
+                    f"Already have earnings position for {candidate.ticker}"
+                )
                 return None
 
             # Check portfolio exposure
             if not self._check_portfolio_exposure(candidate):
-                self.logger.warning(f"Portfolio exposure limit reached for {candidate.ticker}")
+                self.logger.warning(
+                    f"Portfolio exposure limit reached for {candidate.ticker}"
+                )
                 return None
 
             # Execute strategy based on recommendation
             if candidate.strategy_recommended == EarningsStrategy.DEEP_ITM_PROTECTION:
                 position = await self._execute_deep_itm_protection(candidate)
-            elif candidate.strategy_recommended == EarningsStrategy.CALENDAR_SPREAD_PROTECTION:
+            elif (
+                candidate.strategy_recommended
+                == EarningsStrategy.CALENDAR_SPREAD_PROTECTION
+            ):
                 position = await self._execute_calendar_spread_protection(candidate)
             elif candidate.strategy_recommended == EarningsStrategy.PROTECTIVE_HEDGE:
                 position = await self._execute_protective_hedge(candidate)
-            elif candidate.strategy_recommended == EarningsStrategy.VOLATILITY_ARBITRAGE:
+            elif (
+                candidate.strategy_recommended == EarningsStrategy.VOLATILITY_ARBITRAGE
+            ):
                 position = await self._execute_volatility_arbitrage(candidate)
             else:
                 self.logger.error(f"Unknown strategy: {candidate.strategy_recommended}")
@@ -368,12 +385,16 @@ class EarningsProtectionStrategy:
 
             if position:
                 self.active_positions[candidate.ticker] = position
-                self.logger.info(f"Created earnings protection position for {candidate.ticker}")
+                self.logger.info(
+                    f"Created earnings protection position for {candidate.ticker}"
+                )
 
             return position
 
         except Exception as e:
-            self.logger.error(f"Error executing earnings protection for {candidate.ticker}: {e}")
+            self.logger.error(
+                f"Error executing earnings protection for {candidate.ticker}: {e}"
+            )
             return None
 
     async def monitor_earnings_positions(self) -> dict[str, Any]:
@@ -429,13 +450,17 @@ class EarningsProtectionStrategy:
             self.logger.error(f"Error monitoring earnings positions: {e}")
             return {"error": str(e)}
 
-    def _calculate_expected_move(self, price: float, iv: float, days_to_expiry: int) -> float:
+    def _calculate_expected_move(
+        self, price: float, iv: float, days_to_expiry: int
+    ) -> float:
         """Calculate expected move based on IV and time to expiry."""
         time_to_expiry = days_to_expiry / 365.0
         expected_move = price * iv * math.sqrt(time_to_expiry)
         return expected_move
 
-    def _calculate_protection_cost(self, price: float, iv: float, days_to_expiry: int) -> float:
+    def _calculate_protection_cost(
+        self, price: float, iv: float, days_to_expiry: int
+    ) -> float:
         """Calculate protection cost as percentage of stock price."""
         # Simplified calculation - in production, use real options pricing
         time_to_expiry = days_to_expiry / 365.0
@@ -516,7 +541,9 @@ class EarningsProtectionStrategy:
     def _check_portfolio_exposure(self, candidate: EarningsCandidate) -> bool:
         """Check if portfolio exposure limits are respected."""
         # Calculate current earnings exposure
-        current_exposure = sum(pos.protection_level for pos in self.active_positions.values())
+        current_exposure = sum(
+            pos.protection_level for pos in self.active_positions.values()
+        )
 
         # Add new position exposure
         new_exposure = candidate.protection_ratio
@@ -580,7 +607,9 @@ class EarningsProtectionStrategy:
                 max_profit=candidate.expected_move * candidate.current_price * 100,
             )
 
-            self.logger.info(f"Executed calendar spread protection for {candidate.ticker}")
+            self.logger.info(
+                f"Executed calendar spread protection for {candidate.ticker}"
+            )
             return position
 
         except Exception as e:
@@ -664,10 +693,14 @@ class EarningsProtectionStrategy:
                 position.unrealized_pnl = self._calculate_position_pnl(position)
 
                 # Update days to earnings
-                position.days_to_earnings = (position.earnings_date - datetime.now()).days
+                position.days_to_earnings = (
+                    position.earnings_date - datetime.now()
+                ).days
 
         except Exception as e:
-            self.logger.error(f"Error updating position data for {position.ticker}: {e}")
+            self.logger.error(
+                f"Error updating position data for {position.ticker}: {e}"
+            )
 
     def _calculate_position_pnl(self, position: EarningsPosition) -> float:
         """Calculate position P & L."""
@@ -704,7 +737,9 @@ class EarningsProtectionStrategy:
 
         # Check for high IV exposure
         if abs(position.vega_exposure) > 0.1:
-            alerts.append(f"High vega exposure for {position.ticker}: {position.vega_exposure:.3f}")
+            alerts.append(
+                f"High vega exposure for {position.ticker}: {position.vega_exposure:.3f}"
+            )
 
         return alerts
 
@@ -750,8 +785,12 @@ class EarningsProtectionStrategy:
     async def get_strategy_status(self) -> dict[str, Any]:
         """Get current strategy status."""
         try:
-            total_pnl = sum(pos.unrealized_pnl for pos in self.active_positions.values())
-            total_exposure = sum(pos.protection_level for pos in self.active_positions.values())
+            total_pnl = sum(
+                pos.unrealized_pnl for pos in self.active_positions.values()
+            )
+            total_exposure = sum(
+                pos.protection_level for pos in self.active_positions.values()
+            )
 
             return {
                 "active_positions": len(self.active_positions),

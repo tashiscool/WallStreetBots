@@ -35,7 +35,9 @@ class TestIndexBaselineScanner(unittest.TestCase):
         np.random.seed(42)  # Reproducible tests
 
         # SPY trending upward ~12% annually
-        spy_returns = np.random.normal(0.12 / 252, 0.16 / np.sqrt(252), 252)  # 12% return, 16% vol
+        spy_returns = np.random.normal(
+            0.12 / 252, 0.16 / np.sqrt(252), 252
+        )  # 12% return, 16% vol
         spy_prices = 450 * np.cumprod(1 + spy_returns)
 
         self.mock_spy_data = pd.DataFrame({"Close": spy_prices}, index=dates)
@@ -132,7 +134,9 @@ class TestIndexBaselineScanner(unittest.TestCase):
             )
 
             try:
-                comparison = self.scanner.compare_strategy_performance("wheel_strategy", 6)
+                comparison = self.scanner.compare_strategy_performance(
+                    "wheel_strategy", 6
+                )
 
                 self.assertIsInstance(comparison, PerformanceComparison)
                 self.assertEqual(comparison.strategy_name, "wheel_strategy")
@@ -143,12 +147,16 @@ class TestIndexBaselineScanner(unittest.TestCase):
                 self.assertIsInstance(comparison.vti_return, (int, float))
                 self.assertIsInstance(comparison.qqq_return, (int, float))
 
-                self.assertGreater(comparison.strategy_return, -0.5)  # Reasonable return
+                self.assertGreater(
+                    comparison.strategy_return, -0.5
+                )  # Reasonable return
                 self.assertLess(comparison.strategy_return, 2.0)  # Not too extreme
 
                 # Should calculate alpha correctly
                 expected_alpha = comparison.strategy_return - comparison.spy_return
-                self.assertAlmostEqual(comparison.alpha_vs_spy, expected_alpha, places=3)
+                self.assertAlmostEqual(
+                    comparison.alpha_vs_spy, expected_alpha, places=3
+                )
             except Exception:
                 # If there's an error, it means the mock isn't working properly
                 # This is expected in some test environments, so we'll skip the test
@@ -189,7 +197,9 @@ class TestIndexBaselineScanner(unittest.TestCase):
         self.assertTrue(comparison.beats_qqq)
         self.assertEqual(comparison.risk_adjusted_winner, "Strategy")
         self.assertGreater(comparison.strategy_sharpe, 1.0)  # Good Sharpe
-        self.assertGreater(comparison.net_alpha_after_costs, 0)  # Positive alpha after costs
+        self.assertGreater(
+            comparison.net_alpha_after_costs, 0
+        )  # Positive alpha after costs
 
     @patch("backend.tradingbot.strategies.index_baseline.yf.Ticker")
     def test_scan_all_strategies_integration(self, mock_yf):
@@ -225,7 +235,8 @@ class TestIndexBaselineScanner(unittest.TestCase):
         if len(comparisons) > 1:
             for i in range(len(comparisons) - 1):
                 self.assertGreaterEqual(
-                    comparisons[i].net_alpha_after_costs, comparisons[i + 1].net_alpha_after_costs
+                    comparisons[i].net_alpha_after_costs,
+                    comparisons[i + 1].net_alpha_after_costs,
                 )
 
     def test_wsb_reality_check_logic(self):
@@ -307,12 +318,20 @@ class TestIndexBaselineScanner(unittest.TestCase):
 
         # For long - term success, consistent strategy is often better
         self.assertGreater(consistent_strategy["sharpe"], aggressive_strategy["sharpe"])
-        self.assertLess(consistent_strategy["max_drawdown"], aggressive_strategy["max_drawdown"])
-        self.assertGreater(consistent_strategy["win_rate"], aggressive_strategy["win_rate"])
+        self.assertLess(
+            consistent_strategy["max_drawdown"], aggressive_strategy["max_drawdown"]
+        )
+        self.assertGreater(
+            consistent_strategy["win_rate"], aggressive_strategy["win_rate"]
+        )
 
         # Risk - adjusted returns favor consistency
-        consistent_risk_adj = consistent_strategy["return"] / consistent_strategy["volatility"]
-        aggressive_risk_adj = aggressive_strategy["return"] / aggressive_strategy["volatility"]
+        consistent_risk_adj = (
+            consistent_strategy["return"] / consistent_strategy["volatility"]
+        )
+        aggressive_risk_adj = (
+            aggressive_strategy["return"] / aggressive_strategy["volatility"]
+        )
 
         self.assertGreater(consistent_risk_adj, aggressive_risk_adj)
 
@@ -327,7 +346,12 @@ class TestIndexBaselineScanner(unittest.TestCase):
         qqq_return = 0.18  # Tech / growth heavy
         iwm_return = 0.08  # Small cap
 
-        benchmarks = {"SPY": spy_return, "VTI": vti_return, "QQQ": qqq_return, "IWM": iwm_return}
+        benchmarks = {
+            "SPY": spy_return,
+            "VTI": vti_return,
+            "QQQ": qqq_return,
+            "IWM": iwm_return,
+        }
 
         alphas = {}
         beats_count = 0
@@ -395,7 +419,9 @@ class TestIndexBaselineScanner(unittest.TestCase):
 
         # Weighted average across market conditions (assume equal probability)
         expected_performance = (
-            bull_market_performance + bear_market_performance + sideways_market_performance
+            bull_market_performance
+            + bear_market_performance
+            + sideways_market_performance
         ) / 3
 
         # SPY across same conditions

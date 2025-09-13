@@ -28,14 +28,22 @@ from ...analytics.market_regime_adapter import (
     RegimeAdaptationConfig,
     StrategyAdaptation,
 )
-from ..data.production_data_integration import ReliableDataProvider as ProductionDataProvider
+from ..data.production_data_integration import (
+    ReliableDataProvider as ProductionDataProvider,
+)
 from ..strategies.production_debit_spreads import create_production_debit_spreads
-from ..strategies.production_earnings_protection import create_production_earnings_protection
+from ..strategies.production_earnings_protection import (
+    create_production_earnings_protection,
+)
 from ..strategies.production_index_baseline import create_production_index_baseline
 from ..strategies.production_leaps_tracker import create_production_leaps_tracker
 from ..strategies.production_lotto_scanner import create_production_lotto_scanner
-from ..strategies.production_momentum_weeklies import create_production_momentum_weeklies
-from ..strategies.production_spx_credit_spreads import create_production_spx_credit_spreads
+from ..strategies.production_momentum_weeklies import (
+    create_production_momentum_weeklies,
+)
+from ..strategies.production_spx_credit_spreads import (
+    create_production_spx_credit_spreads,
+)
 from ..strategies.production_swing_trading import create_production_swing_trading
 from ..strategies.production_wheel_strategy import create_production_wheel_strategy
 from ..strategies.production_wsb_dip_bot import create_production_wsb_dip_bot
@@ -164,7 +172,14 @@ def _preset_defaults(profile: StrategyProfile) -> dict[str, StrategyConfig]:
                     "assignment_acceptance": True,
                     "covered_call_delta": 0.20,
                     "portfolio_allocation": 0.40,
-                    "diversified_watchlist": ["SPY", "QQQ", "AAPL", "MSFT", "GOOGL", "AMZN"],
+                    "diversified_watchlist": [
+                        "SPY",
+                        "QQQ",
+                        "AAPL",
+                        "MSFT",
+                        "GOOGL",
+                        "AMZN",
+                    ],
                     "avoid_earnings": True,
                     "min_liquidity_score": 0.7,
                     "fundamental_screen": True,
@@ -350,13 +365,30 @@ def _preset_defaults(profile: StrategyProfile) -> dict[str, StrategyConfig]:
         # 64% US VC to AI, $364B Big Tech capex, MIT ROI study, M & A deregulation
 
         # AI Infrastructure (beneficiaries of $364B Big Tech capex)
-        ai_infra_core = ["SPY", "QQQ", "SMH", "SOXX", "NVDA", "AVGO", "AMAT", "LRCX", "INTC", "MU"]
+        ai_infra_core = [
+            "SPY",
+            "QQQ",
+            "SMH",
+            "SOXX",
+            "NVDA",
+            "AVGO",
+            "AMAT",
+            "LRCX",
+            "INTC",
+            "MU",
+        ]
         # M & A targets with high $/employee potential (Ferguson FTC, competition EO revoked)
         ma_targets = ["XLF", "KRE", "IBB", "JETS", "XLE", "XLU", "XLRE"]
         # Israeli tech (13.4B exits, $300M median, 45% premiums)
         israeli_tech = ["CYBR", "S", "CHKP", "NICE", "MNDY", "WIX", "FROG"]
         # Bubble candidates (P / S  > 35 threshold, overvaluation indicators)
-        bubble_watch = ["PLTR", "SMCI", "ARM", "COIN", "MSTR"]  # PLTR P / S  > 100 validated
+        bubble_watch = [
+            "PLTR",
+            "SMCI",
+            "ARM",
+            "COIN",
+            "MSTR",
+        ]  # PLTR P / S  > 100 validated
 
         return {
             "wsb_dip_bot": StrategyConfig(
@@ -403,7 +435,11 @@ def _preset_defaults(profile: StrategyProfile) -> dict[str, StrategyConfig]:
                     # Bubble hedging
                     "ai_bubble_hedge": True,
                     "overvaluation_threshold": 35,  # P / S ratio trigger
-                    "bubble_indicators": ["insider_selling", "margin_debt", "options_skew"],
+                    "bubble_indicators": [
+                        "insider_selling",
+                        "margin_debt",
+                        "options_skew",
+                    ],
                 },
             ),
             "index_baseline": StrategyConfig(
@@ -482,7 +518,8 @@ def _preset_defaults(profile: StrategyProfile) -> dict[str, StrategyConfig]:
                 0.12,
                 "high",
                 {
-                    "watchlist": ai_infra_core + ma_targets,  # Infra focus, avoid pure AI apps
+                    "watchlist": ai_infra_core
+                    + ma_targets,  # Infra focus, avoid pure AI apps
                     "max_positions": 10,
                     "min_dte": 10,
                     "max_dte": 35,
@@ -530,7 +567,8 @@ def _preset_defaults(profile: StrategyProfile) -> dict[str, StrategyConfig]:
                 0.04,
                 "high",
                 {
-                    "watchlist": ai_infra_core + israeli_tech,  # AI infra + Israeli M & A targets
+                    "watchlist": ai_infra_core
+                    + israeli_tech,  # AI infra + Israeli M & A targets
                     "max_positions": 6,
                     "max_expiry_days": 25,
                     "min_strength_score": 48.0,
@@ -679,7 +717,8 @@ def _preset_defaults(profile: StrategyProfile) -> dict[str, StrategyConfig]:
                     "target_dte_range": (30, 45),  # 30 - 45 DTE per analysis
                     "target_delta_range": (0.15, 0.25),  # 15 - 25 delta per source
                     "avoid_earnings": True,
-                    "diversified_watchlist": ai_infra_core + ma_targets[:4],  # AI infra + megacaps
+                    "diversified_watchlist": ai_infra_core
+                    + ma_targets[:4],  # AI infra + megacaps
                     "profit_target": 0.50,
                     "max_positions": 12,
                     "avoid_tariff_decision_weeks": True,
@@ -1080,10 +1119,15 @@ class ProductionStrategyManager:
 
         # Initialize core components
         self.integration_manager = ProductionIntegrationManager(
-            config.alpaca_api_key, config.alpaca_secret_key, config.paper_trading, config.user_id
+            config.alpaca_api_key,
+            config.alpaca_secret_key,
+            config.paper_trading,
+            config.user_id,
         )
 
-        self.data_provider = ProductionDataProvider(config.alpaca_api_key, config.alpaca_secret_key)
+        self.data_provider = ProductionDataProvider(
+            config.alpaca_api_key, config.alpaca_secret_key
+        )
 
         # Initialize strategies
         self.strategies: dict[str, Any] = {}
@@ -1093,7 +1137,7 @@ class ProductionStrategyManager:
         self.is_running = False
         self.start_time: datetime | None = None
         self.last_heartbeat: datetime | None = None
-        
+
         # Task management
         self.tasks: list[asyncio.Task] = []
 
@@ -1131,7 +1175,9 @@ class ProductionStrategyManager:
             "price_per_employee_threshold": 5000000,  # $5M+ per employee
         }
 
-        self.logger.info(f"ProductionStrategyManager initialized with profile: {config.profile}")
+        self.logger.info(
+            f"ProductionStrategyManager initialized with profile: {config.profile}"
+        )
 
     def _initialize_strategies(self):
         """Initialize all enabled strategies."""
@@ -1152,21 +1198,29 @@ class ProductionStrategyManager:
                             enabled=strategy_config.enabled,
                             max_position_size=strategy_config.max_position_size,
                             risk_tolerance=strategy_config.risk_tolerance,
-                            parameters=self._sanitize_parameters(strategy_config.parameters),
+                            parameters=self._sanitize_parameters(
+                                strategy_config.parameters
+                            ),
                         )
-                        strategy = self._create_strategy(strategy_name, sanitized_config)
+                        strategy = self._create_strategy(
+                            strategy_name, sanitized_config
+                        )
                         if strategy:
                             self.strategies[strategy_name] = strategy
                             self.logger.info(f"Initialized strategy: {strategy_name}")
                     except Exception as e:
-                        self.logger.error(f"Failed to initialize strategy {strategy_name}: {e}")
+                        self.logger.error(
+                            f"Failed to initialize strategy {strategy_name}: {e}"
+                        )
 
             self.logger.info(f"Initialized {len(self.strategies)} strategies")
 
         except Exception as e:
             self.logger.error(f"Error initializing strategies: {e}")
 
-    def _create_strategy(self, strategy_name: str, config: StrategyConfig) -> Any | None:
+    def _create_strategy(
+        self, strategy_name: str, config: StrategyConfig
+    ) -> Any | None:
         """Create individual strategy instance."""
         try:
             if strategy_name == "wsb_dip_bot":
@@ -1220,7 +1274,9 @@ class ProductionStrategyManager:
     def _validate_range(self, name: str, val: float, lo: float, hi: float) -> float:
         """Validate parameter ranges with clamping and logging."""
         if not isinstance(val, int | float) or not (lo <= float(val) <= hi):
-            self.logger.warning(f"Parameter {name} out of range [{lo},{hi}]: {val}. Clamping.")
+            self.logger.warning(
+                f"Parameter {name} out of range [{lo},{hi}]: {val}. Clamping."
+            )
             return max(lo, min(hi, float(val))) if isinstance(val, int | float) else lo
         return float(val)
 
@@ -1241,7 +1297,9 @@ class ProductionStrategyManager:
                 "stop_loss_multiple", out["stop_loss_multiple"], 1.0, 5.0
             )
         if "vix_filter" in out:
-            out["vix_filter"] = self._validate_range("vix_filter", out["vix_filter"], 10, 60)
+            out["vix_filter"] = self._validate_range(
+                "vix_filter", out["vix_filter"], 10, 60
+            )
         if "ai_exposure_limit" in out:
             out["ai_exposure_limit"] = self._validate_range(
                 "ai_exposure_limit", out["ai_exposure_limit"], 0.0, 0.50
@@ -1343,7 +1401,9 @@ class ProductionStrategyManager:
             # Validate market hours (optional - strategies can run outside market hours)
             market_open = await self.data_provider.is_market_open()
             if not market_open:
-                self.logger.warning("Market is closed - strategies will wait for market open")
+                self.logger.warning(
+                    "Market is closed - strategies will wait for market open"
+                )
 
             self.logger.info("System state validation passed")
             return True
@@ -1415,7 +1475,9 @@ class ProductionStrategyManager:
                     if hasattr(strategy, "monitor_positions"):
                         await strategy.monitor_positions()
                 except Exception as e:
-                    self.logger.error(f"Error monitoring positions for {strategy_name}: {e}")
+                    self.logger.error(
+                        f"Error monitoring positions for {strategy_name}: {e}"
+                    )
 
         except Exception as e:
             self.logger.error(f"Error in monitor_all_positions: {e}")
@@ -1460,7 +1522,9 @@ class ProductionStrategyManager:
             for strategy_name, strategy in self.strategies.items():
                 try:
                     if hasattr(strategy, "get_strategy_status"):
-                        strategy_performance[strategy_name] = strategy.get_strategy_status()
+                        strategy_performance[strategy_name] = (
+                            strategy.get_strategy_status()
+                        )
                 except Exception as e:
                     self.logger.error(f"Error getting status for {strategy_name}: {e}")
 
@@ -1555,7 +1619,10 @@ class ProductionStrategyManager:
             if (
                 not self.current_regime_adaptation
                 or adaptation.regime != self.current_regime_adaptation.regime
-                or abs(adaptation.confidence - self.current_regime_adaptation.confidence) > 0.1
+                or abs(
+                    adaptation.confidence - self.current_regime_adaptation.confidence
+                )
+                > 0.1
             ):
                 self.current_regime_adaptation = adaptation
                 await self._apply_regime_adaptation(adaptation)
@@ -1568,7 +1635,9 @@ class ProductionStrategyManager:
                     f"(confidence: {adaptation.confidence:.1%})",
                 )
 
-                self.logger.info(f"Applied regime adaptation: {adaptation.regime.value}")
+                self.logger.info(
+                    f"Applied regime adaptation: {adaptation.regime.value}"
+                )
 
         except Exception as e:
             self.logger.error(f"Error updating regime adaptation: {e}")
@@ -1578,7 +1647,9 @@ class ProductionStrategyManager:
         try:
             # Get portfolio value history from integration manager
             # This would need to be implemented in integration manager
-            portfolio_history = await self.integration_manager.get_portfolio_history(days=180)
+            portfolio_history = await self.integration_manager.get_portfolio_history(
+                days=180
+            )
 
             if len(portfolio_history) < 2:
                 return []
@@ -1691,7 +1762,9 @@ class ProductionStrategyManager:
                         )
 
                 except Exception as e:
-                    self.logger.error(f"Error applying adaptation to {strategy_name}: {e}")
+                    self.logger.error(
+                        f"Error applying adaptation to {strategy_name}: {e}"
+                    )
 
         except Exception as e:
             self.logger.error(f"Error applying regime adaptation: {e}")
@@ -1753,7 +1826,9 @@ class ProductionStrategyManager:
         return {
             "is_running": self.is_running,
             "start_time": self.start_time.isoformat() if self.start_time else None,
-            "last_heartbeat": self.last_heartbeat.isoformat() if self.last_heartbeat else None,
+            "last_heartbeat": self.last_heartbeat.isoformat()
+            if self.last_heartbeat
+            else None,
             "active_strategies": len(self.strategies),
             "strategy_status": {
                 name: strategy.get_strategy_status()

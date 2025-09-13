@@ -5,7 +5,9 @@ from .portfoliomanager import PortfolioManager
 
 
 class MonteCarloPortfolioUpdate(PortfolioManager):
-    def __init__(self, portfolio, metric, data_fetcher, simulation_itr=10000, buffer=0.05):
+    def __init__(
+        self, portfolio, metric, data_fetcher, simulation_itr=10000, buffer=0.05
+    ):
         """Args:
         portfolio: portfolio dictionary contains cash and stocks with qty
         metric: metric object, the metric which the portfolio algorithm optimizes on
@@ -43,11 +45,18 @@ class MonteCarloPortfolioUpdate(PortfolioManager):
             portfolios.loc[i, stocks] = weights
             portfolios.loc[i, "Sharpe Ratio"] = self.metric.apply(weights)
         # get the maximum sharpe ratio
-        best = portfolios[portfolios["Sharpe Ratio"] == portfolios["Sharpe Ratio"].max()]
+        best = portfolios[
+            portfolios["Sharpe Ratio"] == portfolios["Sharpe Ratio"].max()
+        ]
         # convert to stock qty dict and return
         PostP = {}
         for ticker in stocks:
             w = float(best.loc[:, ticker])
-            qty = w * self.total_portfolio_value * (1 - self.buffer) / self.price_dict[ticker]
+            qty = (
+                w
+                * self.total_portfolio_value
+                * (1 - self.buffer)
+                / self.price_dict[ticker]
+            )
             PostP[ticker] = round(qty, 2)
         return PostP

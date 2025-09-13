@@ -75,7 +75,9 @@ class MetricsCollector:
 
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
-        self.metrics = defaultdict(lambda: deque(maxlen=10000))  # Store last 10k metrics per name
+        self.metrics = defaultdict(
+            lambda: deque(maxlen=10000)
+        )  # Store last 10k metrics per name
         self.counters = defaultdict(float)
         self.gauges = defaultdict(float)
         self.histograms = defaultdict(list)
@@ -103,7 +105,9 @@ class MetricsCollector:
         except Exception as e:
             self.logger.error(f"Error recording metric: {e}")
 
-    def get_metric_value(self, name: str, metric_type: MetricType = MetricType.GAUGE) -> float:
+    def get_metric_value(
+        self, name: str, metric_type: MetricType = MetricType.GAUGE
+    ) -> float:
         """Get current metric value."""
         try:
             if metric_type == MetricType.COUNTER:
@@ -189,7 +193,9 @@ class AlertManager:
         except Exception as e:
             self.logger.error(f"Error removing alert rule: {e}")
 
-    def register_alert_handler(self, level: AlertLevel, handler: Callable[[Alert], None]):
+    def register_alert_handler(
+        self, level: AlertLevel, handler: Callable[[Alert], None]
+    ):
         """Register an alert handler for a specific level."""
         try:
             if level not in self.alert_handlers:
@@ -211,7 +217,10 @@ class AlertManager:
                 # Check cooldown
                 if rule.last_triggered:
                     time_since_triggered = datetime.now() - rule.last_triggered
-                    if time_since_triggered.total_seconds() < rule.cooldown_minutes * 60:
+                    if (
+                        time_since_triggered.total_seconds()
+                        < rule.cooldown_minutes * 60
+                    ):
                         continue
 
                 # Evaluate rule condition
@@ -332,7 +341,9 @@ class SystemMonitor:
                 return
 
             self.monitoring_active = True
-            self.monitoring_thread = threading.Thread(target=self._monitoring_loop, daemon=True)
+            self.monitoring_thread = threading.Thread(
+                target=self._monitoring_loop, daemon=True
+            )
             self.monitoring_thread.start()
 
             self.logger.info("System monitoring started")
@@ -488,7 +499,9 @@ class AlertHandlers:
         """Send alert to Slack."""
         try:
             # Mock Slack integration - in production, use actual Slack webhook
-            self.logger.info(f"SLACK ALERT [{alert.level.value.upper()}]: {alert.message}")
+            self.logger.info(
+                f"SLACK ALERT [{alert.level.value.upper()}]: {alert.message}"
+            )
 
         except Exception as e:
             self.logger.error(f"Error sending Slack alert: {e}")
@@ -497,7 +510,9 @@ class AlertHandlers:
         """Send alert via email."""
         try:
             # Mock email integration - in production, use actual SMTP
-            self.logger.info(f"EMAIL ALERT [{alert.level.value.upper()}]: {alert.message}")
+            self.logger.info(
+                f"EMAIL ALERT [{alert.level.value.upper()}]: {alert.message}"
+            )
 
         except Exception as e:
             self.logger.error(f"Error sending email alert: {e}")
@@ -506,7 +521,9 @@ class AlertHandlers:
         """Send alert to webhook."""
         try:
             # Mock webhook integration - in production, use actual HTTP request
-            self.logger.info(f"WEBHOOK ALERT [{alert.level.value.upper()}]: {alert.message}")
+            self.logger.info(
+                f"WEBHOOK ALERT [{alert.level.value.upper()}]: {alert.message}"
+            )
 
         except Exception as e:
             self.logger.error(f"Error sending webhook alert: {e}")
@@ -549,7 +566,9 @@ class MonitoringDashboard:
         """Get system health metrics."""
         try:
             cpu_usage = self.metrics_collector.get_metric_value("system.cpu.usage")
-            memory_usage = self.metrics_collector.get_metric_value("system.memory.usage")
+            memory_usage = self.metrics_collector.get_metric_value(
+                "system.memory.usage"
+            )
             disk_usage = self.metrics_collector.get_metric_value("system.disk.usage")
 
             health_status = "healthy"
@@ -572,9 +591,15 @@ class MonitoringDashboard:
     def _get_trading_metrics(self) -> dict[str, Any]:
         """Get trading metrics."""
         try:
-            portfolio_value = self.metrics_collector.get_metric_value("trading.portfolio.value")
-            position_count = self.metrics_collector.get_metric_value("trading.positions.count")
-            daily_trades = self.metrics_collector.get_metric_value("trading.trades.today")
+            portfolio_value = self.metrics_collector.get_metric_value(
+                "trading.portfolio.value"
+            )
+            position_count = self.metrics_collector.get_metric_value(
+                "trading.positions.count"
+            )
+            daily_trades = self.metrics_collector.get_metric_value(
+                "trading.trades.today"
+            )
             daily_pnl = self.metrics_collector.get_metric_value("trading.pnl.daily")
 
             return {
@@ -646,10 +671,18 @@ class MonitoringDashboard:
         try:
             # Get metrics for last hour
             cpu_stats = self.metrics_collector.get_metric_stats("system.cpu.usage", 60)
-            memory_stats = self.metrics_collector.get_metric_stats("system.memory.usage", 60)
-            portfolio_stats = self.metrics_collector.get_metric_stats("trading.portfolio.value", 60)
+            memory_stats = self.metrics_collector.get_metric_stats(
+                "system.memory.usage", 60
+            )
+            portfolio_stats = self.metrics_collector.get_metric_stats(
+                "trading.portfolio.value", 60
+            )
 
-            return {"cpu": cpu_stats, "memory": memory_stats, "portfolio": portfolio_stats}
+            return {
+                "cpu": cpu_stats,
+                "memory": memory_stats,
+                "portfolio": portfolio_stats,
+            }
 
         except Exception as e:
             self.logger.error(f"Error getting performance metrics: {e}")
@@ -670,7 +703,9 @@ class Phase4Monitoring:
             self.metrics_collector, self.alert_manager, config, logger
         )
         self.alert_handlers = AlertHandlers(logger)
-        self.dashboard = MonitoringDashboard(self.metrics_collector, self.alert_manager, logger)
+        self.dashboard = MonitoringDashboard(
+            self.metrics_collector, self.alert_manager, logger
+        )
 
         # Setup default alert rules
         self._setup_default_alert_rules()

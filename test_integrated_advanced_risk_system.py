@@ -20,7 +20,9 @@ import pandas as pd
 # Add project path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from backend.tradingbot.risk.integrated_advanced_risk_manager import create_integrated_risk_system
+from backend.tradingbot.risk.integrated_advanced_risk_manager import (
+    create_integrated_risk_system,
+)
 
 
 def generate_test_data():
@@ -35,7 +37,9 @@ def generate_test_data():
     for symbol in symbols:
         # Generate realistic price movements
         if symbol == "BTC":
-            returns = np.random.normal(0.001, 0.05, len(dates))  # High volatility crypto
+            returns = np.random.normal(
+                0.001, 0.05, len(dates)
+            )  # High volatility crypto
         elif symbol == "EURUSD":
             returns = np.random.normal(0.0002, 0.008, len(dates))  # Lower vol forex
         else:
@@ -104,7 +108,9 @@ async def test_comprehensive_risk_assessment():
         market_data, positions = generate_test_data()
 
         # Run comprehensive assessment
-        results = await risk_system.comprehensive_risk_assessment(positions, market_data)
+        results = await risk_system.comprehensive_risk_assessment(
+            positions, market_data
+        )
 
         print("✅ Comprehensive risk assessment completed")
         print(f"   Timestamp: {results.get('timestamp')}")

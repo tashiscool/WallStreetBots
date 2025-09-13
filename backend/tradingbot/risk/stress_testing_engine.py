@@ -164,7 +164,9 @@ class StressTesting2025:
             print(f"Testing scenario: {scenario.name}")
 
             try:
-                scenario_result = self._simulate_portfolio_under_stress(portfolio, scenario)
+                scenario_result = self._simulate_portfolio_under_stress(
+                    portfolio, scenario
+                )
                 results[scenario_name] = scenario_result
 
                 if not scenario_result.passed:
@@ -231,7 +233,9 @@ class StressTesting2025:
         recovery_time = self._estimate_recovery_time(scenario, max_drawdown)
 
         # Check if scenario passes risk limits
-        passed, failure_reason = self._check_risk_limits(total_pnl, max_drawdown, recovery_time)
+        passed, failure_reason = self._check_risk_limits(
+            total_pnl, max_drawdown, recovery_time
+        )
 
         risk_metrics = {
             "portfolio_pnl_pct": (total_pnl / total_value) * 100,
@@ -252,7 +256,9 @@ class StressTesting2025:
             failure_reason=failure_reason,
         )
 
-    def _get_strategy_sensitivity(self, strategy_name: str, scenario: StressScenario) -> float:
+    def _get_strategy_sensitivity(
+        self, strategy_name: str, scenario: StressScenario
+    ) -> float:
         """Get strategy sensitivity to stress scenario."""
         # Strategy - specific sensitivities to different market shocks
         sensitivities = {
@@ -296,7 +302,12 @@ class StressTesting2025:
 
         strategy_sens = sensitivities.get(
             strategy_name,
-            {"equity_market": 1.0, "volatility": 1.0, "liquidity": 0.5, "sector_rotation": 0.5},
+            {
+                "equity_market": 1.0,
+                "volatility": 1.0,
+                "liquidity": 0.5,
+                "sector_rotation": 0.5,
+            },
         )
 
         # Calculate weighted sensitivity based on scenario shocks
@@ -306,12 +317,16 @@ class StressTesting2025:
         for shock_type, shock_magnitude in scenario.market_shock.items():
             if shock_type in strategy_sens:
                 weight = abs(shock_magnitude)
-                total_sensitivity += strategy_sens[shock_type] * shock_magnitude * weight
+                total_sensitivity += (
+                    strategy_sens[shock_type] * shock_magnitude * weight
+                )
                 total_weight += weight
 
         return total_sensitivity / total_weight if total_weight > 0 else 0.0
 
-    def _estimate_recovery_time(self, scenario: StressScenario, max_drawdown: float) -> int:
+    def _estimate_recovery_time(
+        self, scenario: StressScenario, max_drawdown: float
+    ) -> int:
         """Estimate recovery time based on scenario and drawdown."""
         base_recovery = scenario.recovery_days
 

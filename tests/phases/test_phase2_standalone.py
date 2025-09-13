@@ -139,7 +139,9 @@ class SpreadPosition:
     unrealized_pnl: float = 0.0
     profit_pct: float = 0.0
     entry_date: datetime = field(default_factory=datetime.now)
-    expiry_date: datetime = field(default_factory=lambda: datetime.now() + timedelta(days=30))
+    expiry_date: datetime = field(
+        default_factory=lambda: datetime.now() + timedelta(days=30)
+    )
     last_update: datetime = field(default_factory=datetime.now)
     net_delta: float = 0.0
     net_gamma: float = 0.0
@@ -230,9 +232,13 @@ class QuantLibPricer:
 
             # Calculate Greeks
             delta = (
-                self._normal_cdf(d1) if option_type.lower() == "call" else self._normal_cdf(d1) - 1
+                self._normal_cdf(d1)
+                if option_type.lower() == "call"
+                else self._normal_cdf(d1) - 1
             )
-            gamma = self._normal_pdf(d1) / (spot_price * volatility * math.sqrt(time_to_expiry))
+            gamma = self._normal_pdf(d1) / (
+                spot_price * volatility * math.sqrt(time_to_expiry)
+            )
             theta = -spot_price * self._normal_pdf(d1) * volatility / (
                 2 * math.sqrt(time_to_expiry)
             ) - risk_free_rate * strike_price * math.exp(
@@ -240,7 +246,13 @@ class QuantLibPricer:
             ) * self._normal_cdf(d2)
             vega = spot_price * self._normal_pdf(d1) * math.sqrt(time_to_expiry)
 
-            return {"price": price, "delta": delta, "gamma": gamma, "theta": theta, "vega": vega}
+            return {
+                "price": price,
+                "delta": delta,
+                "gamma": gamma,
+                "theta": theta,
+                "vega": vega,
+            }
 
         except Exception as e:
             self.logger.error(f"Black - Scholes calculation error: {e}")
@@ -334,13 +346,19 @@ class PerformanceCalculator:
             }
 
         # Daily return
-        daily_return = (prices[-1] - prices[-2]) / prices[-2] if len(prices) >= 2 else 0.0
+        daily_return = (
+            (prices[-1] - prices[-2]) / prices[-2] if len(prices) >= 2 else 0.0
+        )
 
         # Weekly return (5 trading days)
-        weekly_return = (prices[-1] - prices[-6]) / prices[-6] if len(prices) >= 6 else 0.0
+        weekly_return = (
+            (prices[-1] - prices[-6]) / prices[-6] if len(prices) >= 6 else 0.0
+        )
 
         # Monthly return (20 trading days)
-        monthly_return = (prices[-1] - prices[-21]) / prices[-21] if len(prices) >= 21 else 0.0
+        monthly_return = (
+            (prices[-1] - prices[-21]) / prices[-21] if len(prices) >= 21 else 0.0
+        )
 
         # YTD return (simplified)
         ytd_return = (prices[-1] - prices[0]) / prices[0] if len(prices) > 0 else 0.0
@@ -365,7 +383,9 @@ class PerformanceCalculator:
         variance = sum((r - mean_return) ** 2 for r in returns) / (len(returns) - 1)
         return math.sqrt(variance)
 
-    def calculate_sharpe_ratio(self, returns: list, risk_free_rate: float = 0.02) -> float:
+    def calculate_sharpe_ratio(
+        self, returns: list, risk_free_rate: float = 0.02
+    ) -> float:
         """Calculate Sharpe ratio."""
         if len(returns) < 2:
             return 0.0
@@ -395,7 +415,9 @@ class PerformanceCalculator:
 
         return max_dd
 
-    def calculate_alpha_beta(self, strategy_returns: list, benchmark_returns: list) -> tuple:
+    def calculate_alpha_beta(
+        self, strategy_returns: list, benchmark_returns: list
+    ) -> tuple:
         """Calculate alpha and beta."""
         if len(strategy_returns) != len(benchmark_returns) or len(strategy_returns) < 2:
             return 0.0, 1.0
@@ -409,9 +431,9 @@ class PerformanceCalculator:
             for s, b in zip(strategy_returns, benchmark_returns, strict=False)
         ) / len(strategy_returns)
 
-        benchmark_variance = sum((b - benchmark_mean) ** 2 for b in benchmark_returns) / len(
-            benchmark_returns
-        )
+        benchmark_variance = sum(
+            (b - benchmark_mean) ** 2 for b in benchmark_returns
+        ) / len(benchmark_returns)
 
         if benchmark_variance == 0:
             return 0.0, 1.0
@@ -721,7 +743,9 @@ class TestIndexBaseline(unittest.TestCase):
         strategy_returns = [0.01, 0.02, -0.01, 0.015, 0.005]
         benchmark_returns = [0.008, 0.018, -0.012, 0.012, 0.003]
 
-        alpha, beta = calculator.calculate_alpha_beta(strategy_returns, benchmark_returns)
+        alpha, beta = calculator.calculate_alpha_beta(
+            strategy_returns, benchmark_returns
+        )
 
         self.assertIsInstance(alpha, float)
         self.assertIsInstance(beta, float)

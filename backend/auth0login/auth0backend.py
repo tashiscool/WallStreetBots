@@ -12,7 +12,10 @@ class Auth0(BaseOAuth2):
     SCOPE_SEPARATOR = " "
     ACCESS_TOKEN_METHOD = "POST"  # noqa: S105
     REDIRECT_STATE = False
-    EXTRA_DATA: ClassVar[list[tuple[str, str]]] = [("picture", "picture"), ("email", "email")]
+    EXTRA_DATA: ClassVar[list[tuple[str, str]]] = [
+        ("picture", "picture"),
+        ("email", "email"),
+    ]
 
     def authorization_url(self):
         return "https: //" + self.setting("DOMAIN") + "/authorize"
@@ -27,11 +30,17 @@ class Auth0(BaseOAuth2):
     def get_user_details(self, response):
         # Obtain JWT and the keys to validate the signature
         id_token = response.get("id_token")
-        jwks = request.urlopen("https: //" + self.setting("DOMAIN") + "/.well - known / jwks.json")  # noqa: S310
-        issuer = "https: //" + self.setting("DOMAIN") + "/"
+        jwks = request.urlopen(  # noqa: S310
+            "https://" + self.setting("DOMAIN") + "/.well-known/jwks.json"
+        )
+        issuer = "https://" + self.setting("DOMAIN") + "/"
         audience = self.setting("KEY")  # CLIENT_ID
         payload = jwt.decode(
-            id_token, jwks.read(), algorithms=["RS256"], audience=audience, issuer=issuer
+            id_token,
+            jwks.read(),
+            algorithms=["RS256"],
+            audience=audience,
+            issuer=issuer,
         )
 
         return {

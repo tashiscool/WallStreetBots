@@ -2,7 +2,9 @@ import time
 
 
 def retry(
-    tries: int = 3, delay: float = 0.5, exceptions: tuple[type[BaseException], ...] = (Exception,)
+    tries: int = 3,
+    delay: float = 0.5,
+    exceptions: tuple[type[BaseException], ...] = (Exception,),
 ):
     def deco(fn):
         def wrap(*args, **kwargs):

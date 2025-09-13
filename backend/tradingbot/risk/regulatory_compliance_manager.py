@@ -166,7 +166,9 @@ class RegulatoryComplianceManager:
         # Load default compliance rules
         self._load_default_compliance_rules()
 
-        self.logger.info(f"Regulatory Compliance Manager initialized for {primary_authority}")
+        self.logger.info(
+            f"Regulatory Compliance Manager initialized for {primary_authority}"
+        )
 
     def _init_compliance_database(self):
         """Initialize compliance database."""
@@ -390,7 +392,9 @@ class RegulatoryComplianceManager:
 
             for rule in self.compliance_rules.values():
                 if rule.is_active:
-                    check = await self._run_compliance_check(rule, portfolio_data, risk_metrics)
+                    check = await self._run_compliance_check(
+                        rule, portfolio_data, risk_metrics
+                    )
                     if check:
                         checks.append(check)
                         self.compliance_checks.append(check)
@@ -410,7 +414,10 @@ class RegulatoryComplianceManager:
                     entity_type="portfolio",
                     entity_id="main",
                     old_values={},
-                    new_values={"checks_run": len(checks), "violations": self.violation_count},
+                    new_values={
+                        "checks_run": len(checks),
+                        "violations": self.violation_count,
+                    },
                     reason="Scheduled compliance check",
                 )
 
@@ -433,13 +440,18 @@ class RegulatoryComplianceManager:
         """Run individual compliance check."""
         try:
             # Get current value based on rule type
-            current_value = await self._get_current_value(rule, portfolio_data, risk_metrics)
+            current_value = await self._get_current_value(
+                rule, portfolio_data, risk_metrics
+            )
 
             if current_value is None:
                 return None
 
             # Check compliance
-            if rule.rule_type in (ComplianceRule.POSITION_LIMITS, ComplianceRule.RISK_LIMITS):
+            if rule.rule_type in (
+                ComplianceRule.POSITION_LIMITS,
+                ComplianceRule.RISK_LIMITS,
+            ):
                 is_compliant = current_value <= rule.threshold
             elif rule.rule_type == ComplianceRule.CAPITAL_REQUIREMENTS:
                 is_compliant = current_value >= rule.threshold
@@ -626,7 +638,11 @@ class RegulatoryComplianceManager:
             self.logger.error(f"Error logging audit trail: {e}")
 
     async def generate_regulatory_report(
-        self, report_type: str, period_start: datetime, period_end: datetime, data: dict[str, Any]
+        self,
+        report_type: str,
+        period_start: datetime,
+        period_end: datetime,
+        data: dict[str, Any],
     ) -> str:
         """Generate regulatory report.
 
@@ -650,7 +666,9 @@ class RegulatoryComplianceManager:
                 "period_start": period_start.isoformat(),
                 "period_end": period_end.isoformat(),
                 "generated_date": datetime.now().isoformat(),
-                "data": serialize_datetime(data),  # Serialize any datetime objects in data
+                "data": serialize_datetime(
+                    data
+                ),  # Serialize any datetime objects in data
             }
 
             # Store in database
@@ -710,7 +728,9 @@ class RegulatoryComplianceManager:
             # Count by status
             status_counts = {}
             for status in ComplianceStatus:
-                status_counts[status.value] = len([c for c in recent_checks if c.status == status])
+                status_counts[status.value] = len(
+                    [c for c in recent_checks if c.status == status]
+                )
 
             # Get critical violations
             critical_violations = [
@@ -720,7 +740,9 @@ class RegulatoryComplianceManager:
             summary = {
                 "authority": self.primary_authority.value,
                 "total_rules": len(self.compliance_rules),
-                "active_rules": len([r for r in self.compliance_rules.values() if r.is_active]),
+                "active_rules": len(
+                    [r for r in self.compliance_rules.values() if r.is_active]
+                ),
                 "checks_run": self.check_count,
                 "violations": self.violation_count,
                 "last_check": self.last_compliance_check.isoformat()
@@ -751,7 +773,9 @@ class RegulatoryComplianceManager:
             # Calculate portfolio metrics
             total_value = sum(pos.get("value", 0) for pos in positions.values())
             max_position = (
-                max(pos.get("value", 0) for pos in positions.values()) if positions else 0
+                max(pos.get("value", 0) for pos in positions.values())
+                if positions
+                else 0
             )
             concentration_risk = max_position / total_value if total_value > 0 else 0
 
@@ -765,7 +789,11 @@ class RegulatoryComplianceManager:
                         )
 
             # Determine compliance status
-            status = ComplianceStatus.NON_COMPLIANT if violations else ComplianceStatus.COMPLIANT
+            status = (
+                ComplianceStatus.NON_COMPLIANT
+                if violations
+                else ComplianceStatus.COMPLIANT
+            )
 
             # Generate remediation actions if needed
             remediation_actions = []
@@ -786,7 +814,10 @@ class RegulatoryComplianceManager:
                 threshold_value=0.2,  # Default position limit
                 deviation=max(0, concentration_risk - 0.2),
                 severity="high" if violations else "low",
-                details={"violations": violations, "concentration_risk": concentration_risk},
+                details={
+                    "violations": violations,
+                    "concentration_risk": concentration_risk,
+                },
                 remediation_actions=remediation_actions,
             )
 
@@ -802,7 +833,10 @@ class RegulatoryComplianceManager:
                 deviation=0.0,
                 severity="critical",
                 details={"error": str(e)},
-                remediation_actions=["Review system configuration", "Check data integrity"],
+                remediation_actions=[
+                    "Review system configuration",
+                    "Check data integrity",
+                ],
             )
 
     def add_compliance_rule(self, rule: ComplianceRuleDefinition):
@@ -818,7 +852,10 @@ class RegulatoryComplianceManager:
                     entity_type="compliance_rule",
                     entity_id=rule.rule_id,
                     old_values={},
-                    new_values={"rule_id": rule.rule_id, "description": rule.description},
+                    new_values={
+                        "rule_id": rule.rule_id,
+                        "description": rule.description,
+                    },
                     reason="Added new compliance rule",
                 )
             )
@@ -851,7 +888,10 @@ class RegulatoryComplianceManager:
                     action="update_rule",
                     entity_type="compliance_rule",
                     entity_id=rule_id,
-                    old_values={"threshold": old_rule.threshold, "severity": old_rule.severity},
+                    old_values={
+                        "threshold": old_rule.threshold,
+                        "severity": old_rule.severity,
+                    },
                     new_values=updates,
                     reason="Updated compliance rule",
                 )
@@ -891,7 +931,9 @@ if __name__ == "__main__":
         }
 
         # Run compliance checks
-        checks = await compliance_manager.run_compliance_checks(portfolio_data, risk_metrics)
+        checks = await compliance_manager.run_compliance_checks(
+            portfolio_data, risk_metrics
+        )
 
         print(f"Ran {len(checks)} compliance checks")
         for check in checks:

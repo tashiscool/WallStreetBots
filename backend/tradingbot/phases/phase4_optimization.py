@@ -73,7 +73,10 @@ class StrategyOptimizer:
     """Strategy optimization engine."""
 
     def __init__(
-        self, backtest_engine: BacktestEngine, config: ConfigManager, logger: ProductionLogger
+        self,
+        backtest_engine: BacktestEngine,
+        config: ConfigManager,
+        logger: ProductionLogger,
     ):
         self.backtest_engine = backtest_engine
         self.config = config
@@ -86,7 +89,9 @@ class StrategyOptimizer:
     ) -> OptimizationResult:
         """Optimize strategy parameters."""
         try:
-            self.logger.info(f"Starting optimization using {optimization_config.method.value}")
+            self.logger.info(
+                f"Starting optimization using {optimization_config.method.value}"
+            )
 
             start_time = datetime.now()
             all_results = []
@@ -96,9 +101,13 @@ class StrategyOptimizer:
             elif optimization_config.method == OptimizationMethod.RANDOM_SEARCH:
                 all_results = await self._random_search(strategy, optimization_config)
             elif optimization_config.method == OptimizationMethod.GENETIC_ALGORITHM:
-                all_results = await self._genetic_algorithm(strategy, optimization_config)
+                all_results = await self._genetic_algorithm(
+                    strategy, optimization_config
+                )
             else:
-                raise ValueError(f"Unsupported optimization method: {optimization_config.method}")
+                raise ValueError(
+                    f"Unsupported optimization method: {optimization_config.method}"
+                )
 
             # Find best result
             best_result = max(all_results, key=lambda x: x[1])
@@ -131,7 +140,9 @@ class StrategyOptimizer:
         results = []
 
         # Generate all parameter combinations
-        parameter_combinations = self._generate_parameter_combinations(config.parameter_ranges)
+        parameter_combinations = self._generate_parameter_combinations(
+            config.parameter_ranges
+        )
 
         # Limit combinations if too many
         if len(parameter_combinations) > config.max_iterations:
@@ -139,7 +150,9 @@ class StrategyOptimizer:
 
         for i, params in enumerate(parameter_combinations):
             try:
-                self.logger.info(f"Grid search iteration {i + 1}/{len(parameter_combinations)}")
+                self.logger.info(
+                    f"Grid search iteration {i + 1}/{len(parameter_combinations)}"
+                )
 
                 # Update strategy parameters
                 await self._update_strategy_parameters(strategy, params)
@@ -168,7 +181,9 @@ class StrategyOptimizer:
 
         for i in range(config.max_iterations):
             try:
-                self.logger.info(f"Random search iteration {i + 1}/{config.max_iterations}")
+                self.logger.info(
+                    f"Random search iteration {i + 1}/{config.max_iterations}"
+                )
 
                 # Generate random parameters
                 params = self._generate_random_parameters(config.parameter_ranges)
@@ -199,7 +214,9 @@ class StrategyOptimizer:
         results = []
 
         # Initialize population
-        population = self._initialize_population(config.parameter_ranges, config.population_size)
+        population = self._initialize_population(
+            config.parameter_ranges, config.population_size
+        )
 
         for generation in range(config.max_iterations // config.population_size):
             try:
@@ -209,7 +226,9 @@ class StrategyOptimizer:
 
                 # Evaluate population
                 for individual in population:
-                    params = self._individual_to_parameters(individual, config.parameter_ranges)
+                    params = self._individual_to_parameters(
+                        individual, config.parameter_ranges
+                    )
 
                     # Update strategy parameters
                     await self._update_strategy_parameters(strategy, params)
@@ -230,7 +249,8 @@ class StrategyOptimizer:
 
                 # Select elite
                 elite = [
-                    individual for individual, score, _ in generation_results[: config.elite_size]
+                    individual
+                    for individual, score, _ in generation_results[: config.elite_size]
                 ]
 
                 # Generate new population
@@ -243,7 +263,9 @@ class StrategyOptimizer:
 
                     # Crossover
                     if secrets.randbelow(1000) / 1000.0 < config.crossover_rate:
-                        child1, child2 = self._crossover(parent1, parent2, config.parameter_ranges)
+                        child1, child2 = self._crossover(
+                            parent1, parent2, config.parameter_ranges
+                        )
                         new_population.extend([child1, child2])
                     else:
                         new_population.extend([parent1, parent2])
@@ -251,12 +273,16 @@ class StrategyOptimizer:
                 # Mutation
                 for i in range(len(new_population)):
                     if secrets.randbelow(1000) / 1000.0 < config.mutation_rate:
-                        new_population[i] = self._mutate(new_population[i], config.parameter_ranges)
+                        new_population[i] = self._mutate(
+                            new_population[i], config.parameter_ranges
+                        )
 
                 population = new_population[: config.population_size]
 
             except Exception as e:
-                self.logger.error(f"Error in genetic algorithm generation {generation + 1}: {e}")
+                self.logger.error(
+                    f"Error in genetic algorithm generation {generation + 1}: {e}"
+                )
                 continue
 
         return results
@@ -280,7 +306,11 @@ class StrategyOptimizer:
                 values = [
                     param_range.min_value + i * param_range.step
                     for i in range(
-                        int((param_range.max_value - param_range.min_value) / param_range.step) + 1
+                        int(
+                            (param_range.max_value - param_range.min_value)
+                            / param_range.step
+                        )
+                        + 1
                     )
                 ]
             elif param_range.param_type == "bool":
@@ -298,7 +328,9 @@ class StrategyOptimizer:
 
         return combinations
 
-    def _generate_random_parameters(self, parameter_ranges: list[ParameterRange]) -> dict[str, Any]:
+    def _generate_random_parameters(
+        self, parameter_ranges: list[ParameterRange]
+    ) -> dict[str, Any]:
         """Generate random parameters."""
         params = {}
 
@@ -329,10 +361,14 @@ class StrategyOptimizer:
             for param_range in parameter_ranges:
                 if param_range.param_type == "int":
                     individual.append(
-                        secrets.randbelow(int(param_range.min_value), int(param_range.max_value))
+                        secrets.randbelow(
+                            int(param_range.min_value), int(param_range.max_value)
+                        )
                     )
                 elif param_range.param_type == "float":
-                    individual.append(random.uniform(param_range.min_value, param_range.max_value))  # noqa: S311
+                    individual.append(
+                        random.uniform(param_range.min_value, param_range.max_value)
+                    )  # noqa: S311
                 elif param_range.param_type == "bool":
                     individual.append(secrets.choice([0.0, 1.0]))
                 else:
@@ -375,7 +411,10 @@ class StrategyOptimizer:
         return winner[0]
 
     def _crossover(
-        self, parent1: list[float], parent2: list[float], parameter_ranges: list[ParameterRange]
+        self,
+        parent1: list[float],
+        parent2: list[float],
+        parameter_ranges: list[ParameterRange],
     ) -> tuple[list[float], list[float]]:
         """Crossover operation for genetic algorithm."""
         child1 = []
@@ -398,13 +437,17 @@ class StrategyOptimizer:
         mutated = individual.copy()
 
         for i, param_range in enumerate(parameter_ranges):
-            if secrets.randbelow(1000) / 1000.0 < 0.1:  # 10% mutation rate per parameter
+            if (
+                secrets.randbelow(1000) / 1000.0 < 0.1
+            ):  # 10% mutation rate per parameter
                 if param_range.param_type == "int":
                     mutated[i] = secrets.randbelow(
                         int(param_range.min_value), int(param_range.max_value)
                     )
                 elif param_range.param_type == "float":
-                    mutated[i] = random.uniform(param_range.min_value, param_range.max_value)  # noqa: S311
+                    mutated[i] = random.uniform(
+                        param_range.min_value, param_range.max_value
+                    )  # noqa: S311
                 elif param_range.param_type == "bool":
                     mutated[i] = secrets.choice([0.0, 1.0])
 
@@ -473,7 +516,9 @@ class OptimizationAnalyzer:
                     "win_rate": f"{result.best_results.win_rate:.2%}",
                     "profit_factor": f"{result.best_results.profit_factor:.2f}",
                 },
-                "parameter_sensitivity": self._analyze_parameter_sensitivity(result.all_results),
+                "parameter_sensitivity": self._analyze_parameter_sensitivity(
+                    result.all_results
+                ),
                 "convergence_analysis": self._analyze_convergence(result.all_results),
             }
 

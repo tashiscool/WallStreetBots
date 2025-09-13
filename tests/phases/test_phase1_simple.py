@@ -14,7 +14,11 @@ from datetime import datetime
 from enum import Enum
 
 # Test the core components that don't require external dependencies
-from backend.tradingbot.core.data_providers import EarningsEvent, MarketData, OptionsData
+from backend.tradingbot.core.data_providers import (
+    EarningsEvent,
+    MarketData,
+    OptionsData,
+)
 from backend.tradingbot.core.production_config import (
     BrokerConfig,
     ConfigManager,
@@ -43,7 +47,12 @@ class TestProductionConfig(unittest.TestCase):
 
         # Store original environment variables
         self.original_env = {}
-        env_vars_to_save = ["ALPACA_API_KEY", "ALPACA_SECRET_KEY", "IEX_API_KEY", "POLYGON_API_KEY"]
+        env_vars_to_save = [
+            "ALPACA_API_KEY",
+            "ALPACA_SECRET_KEY",
+            "IEX_API_KEY",
+            "POLYGON_API_KEY",
+        ]
         for var in env_vars_to_save:
             if var in os.environ:
                 self.original_env[var] = os.environ[var]
@@ -365,6 +374,7 @@ class TestTradingInterface(unittest.TestCase):
 
     def test_trade_signal_creation(self):
         """Test trade signal creation."""
+
         # Import the enums directly to avoid dependency issues
         class OrderType(Enum):
             MARKET = "market"
@@ -414,6 +424,7 @@ class TestTradingInterface(unittest.TestCase):
 
     def test_trade_result_creation(self):
         """Test trade result creation."""
+
         # Import the enums directly to avoid dependency issues
         class OrderType(Enum):
             MARKET = "market"

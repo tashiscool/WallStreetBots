@@ -75,7 +75,9 @@ class TestEarningsProtectionScanner(unittest.TestCase):
 
     def test_earnings_move_estimation(self):
         """Test earnings move estimation from straddle pricing."""
-        with patch("backend.tradingbot.strategies.earnings_protection.yf.Ticker") as mock_yf:
+        with patch(
+            "backend.tradingbot.strategies.earnings_protection.yf.Ticker"
+        ) as mock_yf:
             mock_ticker = Mock()
 
             # Mock options chain
@@ -123,7 +125,9 @@ class TestEarningsProtectionScanner(unittest.TestCase):
 
     def test_deep_itm_strategy_creation(self):
         """Test deep ITM call strategy creation."""
-        with patch("backend.tradingbot.strategies.earnings_protection.yf.Ticker") as mock_yf:
+        with patch(
+            "backend.tradingbot.strategies.earnings_protection.yf.Ticker"
+        ) as mock_yf:
             mock_ticker = Mock()
 
             # Mock options chain with ITM calls
@@ -150,7 +154,9 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             if strategy:
                 self.assertIsInstance(strategy, EarningsProtectionStrategy)
                 self.assertEqual(strategy.strategy_type, "deep_itm")
-                self.assertLess(strategy.strikes[0], self.mock_earnings_event.current_price)  # ITM
+                self.assertLess(
+                    strategy.strikes[0], self.mock_earnings_event.current_price
+                )  # ITM
                 self.assertLess(strategy.iv_sensitivity, 0.5)  # Lower IV sensitivity
                 self.assertGreater(
                     strategy.profit_if_up_5pct, strategy.profit_if_flat
@@ -158,30 +164,41 @@ class TestEarningsProtectionScanner(unittest.TestCase):
 
     def test_calendar_spread_strategy_creation(self):
         """Test calendar spread strategy creation."""
-        with patch("backend.tradingbot.strategies.earnings_protection.yf.Ticker") as mock_yf:
+        with patch(
+            "backend.tradingbot.strategies.earnings_protection.yf.Ticker"
+        ) as mock_yf:
             mock_ticker = Mock()
 
             # Mock two different expiries
             front_calls = self.mock_calls_data.copy()  # Before earnings
             back_calls = self.mock_calls_data.copy()  # After earnings
-            back_calls["bid"] = back_calls["bid"] + 1.0  # Higher premium for longer expiry
+            back_calls["bid"] = (
+                back_calls["bid"] + 1.0
+            )  # Higher premium for longer expiry
             back_calls["ask"] = back_calls["ask"] + 1.0
 
             mock_ticker.option_chain.side_effect = [
                 Mock(calls=front_calls, puts=pd.DataFrame()),  # Front month
                 Mock(calls=back_calls, puts=pd.DataFrame()),  # Back month
             ]
-            mock_ticker.options = ["2024 - 12 - 06", "2024 - 12 - 20"]  # Before and after earnings
+            mock_ticker.options = [
+                "2024 - 12 - 06",
+                "2024 - 12 - 20",
+            ]  # Before and after earnings
 
             mock_yf.return_value = mock_ticker
 
-            strategy = self.scanner.create_calendar_spread_strategy(self.mock_earnings_event)
+            strategy = self.scanner.create_calendar_spread_strategy(
+                self.mock_earnings_event
+            )
 
             if strategy:
                 self.assertIsInstance(strategy, EarningsProtectionStrategy)
                 self.assertEqual(strategy.strategy_type, "calendar_spread")
                 self.assertEqual(len(strategy.strikes), 2)
-                self.assertEqual(strategy.strikes[0], strategy.strikes[1])  # Same strike
+                self.assertEqual(
+                    strategy.strikes[0], strategy.strikes[1]
+                )  # Same strike
                 self.assertEqual(len(strategy.expiry_dates), 2)
                 self.assertLess(strategy.iv_sensitivity, 0.3)  # Low IV sensitivity
                 self.assertGreater(
@@ -190,7 +207,9 @@ class TestEarningsProtectionScanner(unittest.TestCase):
 
     def test_protective_hedge_strategy_creation(self):
         """Test protective hedge strategy creation."""
-        with patch("backend.tradingbot.strategies.earnings_protection.yf.Ticker") as mock_yf:
+        with patch(
+            "backend.tradingbot.strategies.earnings_protection.yf.Ticker"
+        ) as mock_yf:
             mock_ticker = Mock()
 
             mock_chain = Mock()
@@ -201,7 +220,9 @@ class TestEarningsProtectionScanner(unittest.TestCase):
 
             mock_yf.return_value = mock_ticker
 
-            strategy = self.scanner.create_protective_hedge_strategy(self.mock_earnings_event)
+            strategy = self.scanner.create_protective_hedge_strategy(
+                self.mock_earnings_event
+            )
 
             if strategy:
                 self.assertIsInstance(strategy, EarningsProtectionStrategy)
@@ -302,7 +323,9 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         mock_ticker.info = {"shortName": "Apple Inc."}
 
         # Mock stock history
-        mock_ticker.history.return_value = pd.DataFrame({"Close": [150.0]}, index=[datetime.now()])
+        mock_ticker.history.return_value = pd.DataFrame(
+            {"Close": [150.0]}, index=[datetime.now()]
+        )
 
         # Mock options data
         mock_chain = Mock()
@@ -315,7 +338,9 @@ class TestEarningsProtectionScanner(unittest.TestCase):
 
         # Mock earnings estimation to return high IV crush risk
         with (
-            patch.object(self.scanner, "estimate_earnings_move", return_value=(0.08, 0.50)),
+            patch.object(
+                self.scanner, "estimate_earnings_move", return_value=(0.08, 0.50)
+            ),
             patch.object(self.scanner, "estimate_historical_iv", return_value=0.25),
         ):
             strategies = self.scanner.scan_earnings_protection()
@@ -327,9 +352,12 @@ class TestEarningsProtectionScanner(unittest.TestCase):
                 strategy = strategies[0]
                 self.assertIsInstance(strategy, EarningsProtectionStrategy)
                 self.assertIn(
-                    strategy.strategy_type, ["deep_itm", "calendar_spread", "protective_hedge"]
+                    strategy.strategy_type,
+                    ["deep_itm", "calendar_spread", "protective_hedge"],
                 )
-                self.assertLess(strategy.iv_sensitivity, 0.8)  # Should have some protection
+                self.assertLess(
+                    strategy.iv_sensitivity, 0.8
+                )  # Should have some protection
 
     def test_wsb_earnings_avoidance_principles(self):
         """Test adherence to WSB earnings avoidance principles."""
@@ -408,7 +436,9 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         max_contracts = int(max_earnings_risk / (strategy.max_loss * 100))
 
         self.assertGreater(max_contracts, 0)
-        self.assertLess(max_contracts * strategy.max_loss * 100, account_size * 0.025)  # Max 2.5%
+        self.assertLess(
+            max_contracts * strategy.max_loss * 100, account_size * 0.025
+        )  # Max 2.5%
 
 
 class TestEarningsProtectionCalculations(unittest.TestCase):
@@ -446,7 +476,9 @@ class TestEarningsProtectionCalculations(unittest.TestCase):
 
         # Calendar spread P & L
         spread_cost = back_premium_before - front_premium_before  # Debit
-        spread_value_after = back_premium_after - front_premium_after  # Value after crush
+        spread_value_after = (
+            back_premium_after - front_premium_after
+        )  # Value after crush
 
         profit = spread_value_after - spread_cost
 
@@ -456,8 +488,24 @@ class TestEarningsProtectionCalculations(unittest.TestCase):
     def test_expected_move_vs_actual_move_analysis(self):
         """Test analysis showing expected moves are often overestimated."""
         # Historical analysis: expected moves vs actual moves
-        expected_moves = [0.08, 0.12, 0.06, 0.10, 0.15, 0.09, 0.11]  # From straddle pricing
-        actual_moves = [0.04, 0.08, 0.03, 0.05, 0.09, 0.06, 0.07]  # Historical actual moves
+        expected_moves = [
+            0.08,
+            0.12,
+            0.06,
+            0.10,
+            0.15,
+            0.09,
+            0.11,
+        ]  # From straddle pricing
+        actual_moves = [
+            0.04,
+            0.08,
+            0.03,
+            0.05,
+            0.09,
+            0.06,
+            0.07,
+        ]  # Historical actual moves
 
         # Calculate overestimation
         overestimations = [
@@ -465,10 +513,14 @@ class TestEarningsProtectionCalculations(unittest.TestCase):
         ]
         avg_overestimation = sum(overestimations) / len(overestimations)
 
-        self.assertGreater(avg_overestimation, 0)  # Expected moves typically overestimated
+        self.assertGreater(
+            avg_overestimation, 0
+        )  # Expected moves typically overestimated
 
         # This supports WSB thesis that earnings options are usually overpriced
-        overestimation_pct = avg_overestimation / (sum(expected_moves) / len(expected_moves))
+        overestimation_pct = avg_overestimation / (
+            sum(expected_moves) / len(expected_moves)
+        )
         self.assertGreater(overestimation_pct, 0.2)  # At least 20% overestimation
 
 

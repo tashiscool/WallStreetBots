@@ -15,11 +15,13 @@ from ..infra.obs import jlog, track_data_staleness
 
 log = logging.getLogger("wsb.data")
 
+
 @dataclass(frozen=True)
 class BarSpec:
     symbol: str
     interval: str  # '1m','5m','1h','1d'
     lookback: str  # e.g. '5d','60d','2y'
+
 
 class MarketDataClient:
     def __init__(self, use_cache: bool = True, cache_path: str = "./.cache"):
@@ -70,7 +72,7 @@ class MarketDataClient:
                 # Track data staleness
                 if not df.empty:
                     last_timestamp = df.index[-1]
-                    if hasattr(last_timestamp, 'timestamp'):
+                    if hasattr(last_timestamp, "timestamp"):
                         staleness = time.time() - last_timestamp.timestamp()
                         track_data_staleness(staleness)
 
@@ -79,7 +81,12 @@ class MarketDataClient:
                 log.warning(f"Corrupt cache for {spec}: {e}; refetching.")
 
         # Fetch fresh data
-        jlog("data_fetch_start", symbol=spec.symbol, interval=spec.interval, lookback=spec.lookback)
+        jlog(
+            "data_fetch_start",
+            symbol=spec.symbol,
+            interval=spec.interval,
+            lookback=spec.lookback,
+        )
         start_time = time.time()
 
         try:
@@ -88,7 +95,7 @@ class MarketDataClient:
                 period=spec.lookback,
                 interval=spec.interval,
                 auto_adjust=True,
-                progress=False
+                progress=False,
             )
 
             try:
@@ -100,30 +107,30 @@ class MarketDataClient:
                 # pd.DataFrame itself is mocked, so we can't use isinstance
                 # Check if data looks empty by other means
                 try:
-                    if hasattr(df, 'empty') and df.empty:
+                    if hasattr(df, "empty") and df.empty:
                         # Check if it's actually a mocked empty that should be treated as valid
                         # If it has data attributes, assume it's a valid mock
                         # For invalid symbols, we should still raise an error
-                        if not hasattr(df, 'index') and not hasattr(df, 'columns'):
+                        if not hasattr(df, "index") and not hasattr(df, "columns"):
                             raise RuntimeError(f"No data returned for {spec.symbol}")
                         # If symbol looks like an invalid test symbol, still raise error
                         if "INVALID" in spec.symbol.upper():
                             raise RuntimeError(f"No data returned for {spec.symbol}")
                     elif df is None:
                         raise RuntimeError(f"No data returned for {spec.symbol}")
-                    elif hasattr(df, '__len__') and len(df) == 0:
+                    elif hasattr(df, "__len__") and len(df) == 0:
                         raise RuntimeError(f"No data returned for {spec.symbol}")
                     # If we can't determine emptiness, assume it's valid for mocked objects
-                except (AttributeError, TypeError):
+                except (AttributeError, TypeError) as e:
                     # For mocked objects where we can't determine emptiness, assume valid
                     # Unless it's obviously an invalid symbol
                     if "INVALID" in spec.symbol.upper():
-                        raise RuntimeError(f"No data returned for {spec.symbol}")
+                        raise RuntimeError(f"No data returned for {spec.symbol}") from e
                     pass
-            except AttributeError:
+            except AttributeError as e:
                 # Handle case where df doesn't have empty attribute
                 if df is None:
-                    raise RuntimeError(f"No data returned for {spec.symbol}")
+                    raise RuntimeError(f"No data returned for {spec.symbol}") from e
                 # For mocked objects without empty attribute, assume valid
                 pass
 
@@ -132,10 +139,12 @@ class MarketDataClient:
             df.dropna(how="any", inplace=True)
 
             fetch_duration = time.time() - start_time
-            jlog("data_fetch_complete",
-                 symbol=spec.symbol,
-                 rows=len(df),
-                 duration=fetch_duration)
+            jlog(
+                "data_fetch_complete",
+                symbol=spec.symbol,
+                rows=len(df),
+                duration=fetch_duration,
+            )
 
             # Cache the data
             if self.use_cache:
@@ -148,7 +157,7 @@ class MarketDataClient:
             # Track staleness for real-time monitoring
             if not df.empty:
                 last_timestamp = df.index[-1]
-                if hasattr(last_timestamp, 'timestamp'):
+                if hasattr(last_timestamp, "timestamp"):
                     staleness = time.time() - last_timestamp.timestamp()
                     track_data_staleness(staleness)
 
@@ -166,7 +175,7 @@ class MarketDataClient:
             data = ticker.history(period="1d", interval="1m")
             if data.empty:
                 return None
-            return float(data['Close'].iloc[-1])
+            return float(data["Close"].iloc[-1])
         except Exception as e:
             log.error(f"Failed to get current price for {symbol}: {e}")
             return None

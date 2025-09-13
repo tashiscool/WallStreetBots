@@ -11,7 +11,11 @@ from ..core.data_providers import create_data_provider
 from ..core.production_config import ProductionConfig, create_config_manager
 from ..core.production_debit_spreads import create_debit_spreads_strategy
 from ..core.production_index_baseline import create_index_baseline_strategy
-from ..core.production_logging import ErrorHandler, MetricsCollector, create_production_logger
+from ..core.production_logging import (
+    ErrorHandler,
+    MetricsCollector,
+    create_production_logger,
+)
 from ..core.production_spx_spreads import create_spx_spreads_strategy
 from ..core.production_wheel_strategy import create_wheel_strategy
 from ..core.trading_interface import create_trading_interface
@@ -52,7 +56,9 @@ class Phase2StrategyManager:
 
         try:
             # Initialize core components
-            self.data_provider = create_data_provider(self.config.data_providers.__dict__)
+            self.data_provider = create_data_provider(
+                self.config.data_providers.__dict__
+            )
 
             # Create flat config for trading interface
             trading_config = {
@@ -122,7 +128,9 @@ class Phase2StrategyManager:
                 return False
 
             self.logger.info(f"Strategy {strategy_name} started successfully")
-            self.metrics.record_metric("strategy_started", 1, {"strategy": strategy_name})
+            self.metrics.record_metric(
+                "strategy_started", 1, {"strategy": strategy_name}
+            )
 
             return True
 
@@ -141,7 +149,9 @@ class Phase2StrategyManager:
             self.strategy_status[strategy_name] = False
 
             self.logger.info(f"Strategy {strategy_name} stopped")
-            self.metrics.record_metric("strategy_stopped", 1, {"strategy": strategy_name})
+            self.metrics.record_metric(
+                "strategy_stopped", 1, {"strategy": strategy_name}
+            )
 
             return True
 
@@ -156,7 +166,9 @@ class Phase2StrategyManager:
         status = {
             "timestamp": datetime.now().isoformat(),
             "strategies": self.strategy_status.copy(),
-            "active_count": sum(1 for active in self.strategy_status.values() if active),
+            "active_count": sum(
+                1 for active in self.strategy_status.values() if active
+            ),
         }
 
         return status
@@ -309,7 +321,8 @@ async def main():
 
 if __name__ == "__main__":  # Setup logging
     logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     # Run Phase 2 integration

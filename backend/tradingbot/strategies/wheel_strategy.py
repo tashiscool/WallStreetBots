@@ -126,7 +126,9 @@ class WheelStrategy:
             try:
                 with open(self.portfolio_file) as f:
                     data = json.load(f)
-                    self.positions = [WheelPosition(**pos) for pos in data.get("positions", [])]
+                    self.positions = [
+                        WheelPosition(**pos) for pos in data.get("positions", [])
+                    ]
             except Exception as e:
                 print(f"Error loading portfolio: {e}")
                 self.positions = []
@@ -311,14 +313,18 @@ class WheelStrategy:
             if puts.empty:
                 return None, None, 0.0, 0.0, 0.0, 0.0
 
-            best_put = puts.iloc[(puts["strike"] - target_put_strike).abs().argsort()[:1]]
+            best_put = puts.iloc[
+                (puts["strike"] - target_put_strike).abs().argsort()[:1]
+            ]
             if best_put.empty:
                 return None, None, 0.0, 0.0, 0.0, 0.0
 
             put_strike = int(best_put["strike"].iloc[0])
             put_premium = (best_put["bid"].iloc[0] + best_put["ask"].iloc[0]) / 2
             put_delta = (
-                abs(best_put.get("delta", [0.3]).iloc[0]) if "delta" in best_put.columns else 0.3
+                abs(best_put.get("delta", [0.3]).iloc[0])
+                if "delta" in best_put.columns
+                else 0.3
             )
 
             # Target call strike: 5 - 10% OTM (above current price)
@@ -328,17 +334,28 @@ class WheelStrategy:
             if calls.empty:
                 return put_strike, None, put_premium, put_delta, 0.0, 0.0
 
-            best_call = calls.iloc[(calls["strike"] - target_call_strike).abs().argsort()[:1]]
+            best_call = calls.iloc[
+                (calls["strike"] - target_call_strike).abs().argsort()[:1]
+            ]
             if best_call.empty:
                 return put_strike, None, put_premium, put_delta, 0.0, 0.0
 
             call_strike = int(best_call["strike"].iloc[0])
             call_premium = (best_call["bid"].iloc[0] + best_call["ask"].iloc[0]) / 2
             call_delta = (
-                best_call.get("delta", [0.3]).iloc[0] if "delta" in best_call.columns else 0.3
+                best_call.get("delta", [0.3]).iloc[0]
+                if "delta" in best_call.columns
+                else 0.3
             )
 
-            return put_strike, call_strike, put_premium, put_delta, call_premium, call_delta
+            return (
+                put_strike,
+                call_strike,
+                put_premium,
+                put_delta,
+                call_premium,
+                call_delta,
+            )
 
         except Exception:
             return None, None, 0.0, 0.0, 0.0, 0.0
@@ -407,9 +424,14 @@ class WheelStrategy:
                     continue
 
                 # Find optimal strikes
-                put_strike, call_strike, put_premium, put_delta, call_premium, call_delta = (
-                    self.find_optimal_strikes(ticker, current_price, expiry)
-                )
+                (
+                    put_strike,
+                    call_strike,
+                    put_premium,
+                    put_delta,
+                    call_premium,
+                    call_delta,
+                ) = self.find_optimal_strikes(ticker, current_price, expiry)
 
                 if not put_strike or put_premium < 0.20:  # Minimum premium threshold
                     continue
@@ -420,19 +442,26 @@ class WheelStrategy:
                     call_delta = 0.3
 
                 # Calculate estimated wheel returns
-                days_to_expiry = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
+                days_to_expiry = (
+                    datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()
+                ).days
 
                 # Annualized put premium return
-                put_annual_return = (put_premium / put_strike) * (365 / days_to_expiry) * 100
+                put_annual_return = (
+                    (put_premium / put_strike) * (365 / days_to_expiry) * 100
+                )
 
                 # If assigned, annualized call premium return
-                call_annual_return = (call_premium / current_price) * (365 / days_to_expiry) * 100
+                call_annual_return = (
+                    (call_premium / current_price) * (365 / days_to_expiry) * 100
+                )
 
                 # Conservative wheel return estimate (weighted by assignment probability)
                 assignment_prob = abs(put_delta)  # Rough approximation
                 wheel_annual_return = (
                     put_annual_return * (1 - assignment_prob)
-                    + (put_annual_return + call_annual_return + dividend_yield) * assignment_prob
+                    + (put_annual_return + call_annual_return + dividend_yield)
+                    * assignment_prob
                 )
 
                 volatility_score = min(100, iv_rank + 20)  # IV rank + buffer
@@ -499,7 +528,9 @@ class WheelStrategy:
                 current_price = stock.history(period="1d")["Close"].iloc[-1]
                 pos.current_price = current_price
 
-                if pos.position_type == "assigned_shares":  # Calculate unrealized P & L on shares
+                if (
+                    pos.position_type == "assigned_shares"
+                ):  # Calculate unrealized P & L on shares
                     pos.unrealized_pnl = (current_price - pos.avg_cost) * pos.shares
 
                 elif pos.strike and pos.expiry:
@@ -510,9 +541,13 @@ class WheelStrategy:
 
                     # Estimate assignment risk
                     if pos.position_type == "cash_secured_put":
-                        pos.assignment_risk = max(0, (pos.strike - current_price) / current_price)
+                        pos.assignment_risk = max(
+                            0, (pos.strike - current_price) / current_price
+                        )
                     else:  # covered call
-                        pos.assignment_risk = max(0, (current_price - pos.strike) / pos.strike)
+                        pos.assignment_risk = max(
+                            0, (current_price - pos.strike) / pos.strike
+                        )
 
                 # Calculate annualized return
                 if pos.days_to_expiry and pos.days_to_expiry > 0:
@@ -532,7 +567,9 @@ class WheelStrategy:
 
         self.save_portfolio()
 
-    def format_candidates(self, candidates: list[WheelCandidate], limit: int = 15) -> str:
+    def format_candidates(
+        self, candidates: list[WheelCandidate], limit: int = 15
+    ) -> str:
         """Format wheel candidates for display."""
         if not candidates:
             return "🔍 No suitable wheel candidates found."
@@ -544,14 +581,14 @@ class WheelStrategy:
             assignment_risk = f"{abs(cand.put_delta): .0%}"
 
             output += f"\n{i}. {cand.ticker} - {cand.company_name}\n"
-            output += f"   Current: ${cand.current_price:.2f} | IV Rank: {cand.iv_rank:.0f}\n"
+            output += (
+                f"   Current: ${cand.current_price:.2f} | IV Rank: {cand.iv_rank:.0f}\n"
+            )
             output += f"   SELL ${cand.put_strike} PUT: ${cand.put_premium:.2f} premium (Δ{cand.put_delta: .2f})\n"
             output += f"   IF ASSIGNED, SELL ${cand.call_strike} CALL: ${cand.call_premium:.2f} premium + n"
             output += f"   Estimated Annual Return: {cand.wheel_annual_return:.1f}%\n"
             output += f"   Dividend Yield: {cand.dividend_yield:.1f}% | Assignment Risk: {assignment_risk}\n"
-            output += (
-                f"   Quality: {cand.quality_score:.0f} | Liquidity: {cand.liquidity_score:.0f}\n"
-            )
+            output += f"   Quality: {cand.quality_score:.0f} | Liquidity: {cand.liquidity_score:.0f}\n"
 
             if cand.risk_factors:
                 output += f"   ⚠️  Risks: {', '.join(cand.risk_factors)}\n"
@@ -607,7 +644,9 @@ class WheelStrategy:
                 )
 
                 output += f"{put.ticker} ${put.strike} PUT exp {put.expiry} {risk_indicator}\n"
-                output += f"  Premium: ${put.premium_collected:.2f} | {days_left}d left + n"
+                output += (
+                    f"  Premium: ${put.premium_collected:.2f} | {days_left}d left + n"
+                )
                 output += f"  Assignment risk: {put.assignment_risk:.1%}\n + n"
 
         if shares:
@@ -618,7 +657,9 @@ class WheelStrategy:
 
                 output += f"{share_pos.ticker}: {share_pos.shares} shares @ ${share_pos.avg_cost: .2f} {pnl_indicator}\n"
                 output += f"  Current: ${share_pos.current_price:.2f} | P & L: ${share_pos.unrealized_pnl:.0f}\n"
-                output += f"  Total premium: ${share_pos.total_premium_collected:.2f}\n + n"
+                output += (
+                    f"  Total premium: ${share_pos.total_premium_collected:.2f}\n + n"
+                )
 
         if calls:
             output += "COVERED CALLS: \n"
@@ -634,7 +675,9 @@ class WheelStrategy:
                 )
 
                 output += f"{call.ticker} ${call.strike} CALL exp {call.expiry} {risk_indicator}\n"
-                output += f"  Premium: ${call.premium_collected:.2f} | {days_left}d left + n"
+                output += (
+                    f"  Premium: ${call.premium_collected:.2f} | {days_left}d left + n"
+                )
                 output += f"  Call - away risk: {call.assignment_risk:.1%}\n + n"
 
         return output
@@ -645,9 +688,13 @@ def main():
     parser.add_argument(
         "command", choices=["scan", "portfolio", "update"], help="Command to execute"
     )
-    parser.add_argument("--output", choices=["json", "text"], default="text", help="Output format")
+    parser.add_argument(
+        "--output", choices=["json", "text"], default="text", help="Output format"
+    )
     parser.add_argument("--limit", type=int, default=15, help="Maximum results to show")
-    parser.add_argument("--min - return", type=float, default=8.0, help="Minimum annual return %%")
+    parser.add_argument(
+        "--min - return", type=float, default=8.0, help="Minimum annual return %%"
+    )
     parser.add_argument("--save-csv", type=str, help="Save results to CSV file")
 
     args = parser.parse_args()
@@ -671,7 +718,11 @@ def main():
             print(f"💾 Saved {len(candidates)} candidates to {args.save_csv}")
 
         if args.output == "json":
-            print(json.dumps([asdict(c) for c in candidates[: args.limit]], indent=2, default=str))
+            print(
+                json.dumps(
+                    [asdict(c) for c in candidates[: args.limit]], indent=2, default=str
+                )
+            )
         else:
             print(wheel.format_candidates(candidates, args.limit))
 

@@ -72,7 +72,7 @@ class AdvancedVaREngine:
             confidence_levels = [0.95, 0.99, 0.999]
         if methods is None:
             methods = ["parametric", "historical", "monte_carlo"]
-            
+
         if len(returns) < self.min_data_points:
             raise ValueError(
                 f"Insufficient data: need at least {self.min_data_points} observations"
@@ -87,7 +87,9 @@ class AdvancedVaREngine:
                     key = f"{method}_{int(conf_level * 100)}"
                     results[key] = var_result
                 except Exception as e:
-                    print(f"Warning: Failed to calculate {method} VaR at {conf_level}: {e}")
+                    print(
+                        f"Warning: Failed to calculate {method} VaR at {conf_level}: {e}"
+                    )
                     continue
 
         return VaRSuite(
@@ -111,7 +113,9 @@ class AdvancedVaREngine:
         else:
             raise ValueError(f"Unknown VaR method: {method}")
 
-    def _parametric_var(self, returns: np.ndarray, confidence_level: float) -> VaRResult:
+    def _parametric_var(
+        self, returns: np.ndarray, confidence_level: float
+    ) -> VaRResult:
         """Parametric VaR using normal distribution assumption."""
         mean_return = np.mean(returns)
         std_return = np.std(returns, ddof=1)
@@ -135,7 +139,9 @@ class AdvancedVaREngine:
             },
         )
 
-    def _historical_var(self, returns: np.ndarray, confidence_level: float) -> VaRResult:
+    def _historical_var(
+        self, returns: np.ndarray, confidence_level: float
+    ) -> VaRResult:
         """Historical simulation VaR."""
         # Sort returns in ascending order
         sorted_returns = np.sort(returns)
@@ -214,7 +220,9 @@ class AdvancedVaREngine:
             shape, _loc, scale = stats.genpareto.fit(excesses, floc=0)
 
             # Calculate VaR using GPD
-            var_return = threshold + scale * ((1 - confidence_level) ** (-shape) - 1) / shape
+            var_return = (
+                threshold + scale * ((1 - confidence_level) ** (-shape) - 1) / shape
+            )
             var_value = abs(var_return) * self.portfolio_value
 
             return VaRResult(
@@ -234,7 +242,9 @@ class AdvancedVaREngine:
             # Fallback to historical if EVT fails
             return self._historical_var(returns, confidence_level)
 
-    def calculate_cvar(self, returns: np.ndarray, confidence_level: float = 0.95) -> float:
+    def calculate_cvar(
+        self, returns: np.ndarray, confidence_level: float = 0.95
+    ) -> float:
         """Calculate Conditional Value at Risk (Expected Shortfall)."""
         # Get VaR first
         var_result = self._historical_var(returns, confidence_level)
@@ -246,7 +256,9 @@ class AdvancedVaREngine:
 
         return abs(cvar)
 
-    def detect_regime_and_adjust(self, returns: np.ndarray, lookback_days: int = 60) -> dict:
+    def detect_regime_and_adjust(
+        self, returns: np.ndarray, lookback_days: int = 60
+    ) -> dict:
         """Simple regime detection based on volatility."""
         returns[-lookback_days:] if len(returns) > lookback_days else returns
 
@@ -300,7 +312,9 @@ if __name__ == "__main__":  # Generate sample returns data
     print(" = " * 50)
     summary = var_suite.get_summary()
     for key, result in summary.items():
-        print(f"{key: 20}: ${result['var_value']:8.2f} ({result['var_percentage']: 5.2f}%)")
+        print(
+            f"{key: 20}: ${result['var_value']:8.2f} ({result['var_percentage']: 5.2f}%)"
+        )
 
     # Calculate CVaR
     cvar_95 = var_engine.calculate_cvar(sample_returns, 0.95)

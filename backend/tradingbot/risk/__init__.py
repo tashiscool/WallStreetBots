@@ -19,7 +19,11 @@ except ImportError:
 
 # Import production-ready risk engine
 try:
-    from .engine import RiskEngine as ProductionRiskEngine, RiskLimits as ProductionRiskLimits
+    from .engine import (
+        RiskEngine as ProductionRiskEngine,
+        RiskLimits as ProductionRiskLimits,
+    )
+
     PRODUCTION_RISK_AVAILABLE = True
 except ImportError:
     PRODUCTION_RISK_AVAILABLE = False
@@ -91,16 +95,19 @@ try:
         sector_cap_check,
         simple_corr_guard,
     )
+
     PORTFOLIO_RULES_AVAILABLE = True
 except ImportError:
     PORTFOLIO_RULES_AVAILABLE = False
 
 # Add portfolio rules if available
 if PORTFOLIO_RULES_AVAILABLE:
-    __all__.extend([
-        "sector_cap_check",
-        "simple_corr_guard",
-    ])
+    __all__.extend(
+        [
+            "sector_cap_check",
+            "simple_corr_guard",
+        ]
+    )
 
 # Version information
 __version__ = "2025.1.0"

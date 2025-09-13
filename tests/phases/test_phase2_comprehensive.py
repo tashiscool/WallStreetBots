@@ -169,7 +169,13 @@ class TestWheelStrategy(unittest.TestCase):
         # Mock options data
         mock_options_data = [
             Mock(
-                strike=145.0, option_type="put", bid=2.0, ask=2.2, delta=-0.3, theta=-0.05, vega=0.1
+                strike=145.0,
+                option_type="put",
+                bid=2.0,
+                ask=2.2,
+                delta=-0.3,
+                theta=-0.05,
+                vega=0.1,
             )
         ]
         mock_data_instance.get_options_data = AsyncMock(return_value=mock_options_data)
@@ -533,7 +539,9 @@ class TestIndexBaseline(unittest.TestCase):
         strategy_returns = [0.01, 0.02, -0.01, 0.015, 0.005]
         benchmark_returns = [0.008, 0.018, -0.012, 0.012, 0.003]
 
-        alpha, beta = calculator.calculate_alpha_beta(strategy_returns, benchmark_returns)
+        alpha, beta = calculator.calculate_alpha_beta(
+            strategy_returns, benchmark_returns
+        )
 
         self.assertIsInstance(alpha, float)
         self.assertIsInstance(beta, float)
@@ -550,10 +558,19 @@ class TestPhase2Integration(unittest.TestCase):
 
         # Create test configuration
         test_config = {
-            "data_providers": {"iex_api_key": "test_key", "polygon_api_key": "test_key"},
-            "broker": {"alpaca_api_key": "test_key", "alpaca_secret_key": "test_secret"},
+            "data_providers": {
+                "iex_api_key": "test_key",
+                "polygon_api_key": "test_key",
+            },
+            "broker": {
+                "alpaca_api_key": "test_key",
+                "alpaca_secret_key": "test_secret",
+            },
             "risk": {"max_position_risk": 0.10, "account_size": 100000.0},
-            "trading": {"universe": ["AAPL", "MSFT", "GOOGL"], "max_concurrent_trades": 5},
+            "trading": {
+                "universe": ["AAPL", "MSFT", "GOOGL"],
+                "max_concurrent_trades": 5,
+            },
         }
 
         with open(self.config_file, "w") as f:
@@ -590,7 +607,9 @@ class TestPhase2Integration(unittest.TestCase):
     @patch("backend.tradingbot.phase2_integration.create_data_provider")
     @patch("backend.tradingbot.phase2_integration.create_config_manager")
     @patch("backend.tradingbot.phase2_integration.create_production_logger")
-    async def test_phase2_strategy_manager(self, mock_logger, mock_config, mock_data, mock_trading):
+    async def test_phase2_strategy_manager(
+        self, mock_logger, mock_config, mock_data, mock_trading
+    ):
         """Test Phase 2 strategy manager."""
         # Mock the factory functions
         mock_trading.return_value = Mock()
@@ -730,7 +749,9 @@ class TestPhase2EndToEnd(unittest.TestCase):
     def test_spx_spreads_workflow(self):
         """Test complete SPX spreads workflow."""
         # Create SPX spreads strategy
-        ProductionSPXSpreads(self.mock_trading, self.mock_data, self.mock_config, self.mock_logger)
+        ProductionSPXSpreads(
+            self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
+        )
 
         # Test candidate creation
         candidate = SPXSpreadCandidate(

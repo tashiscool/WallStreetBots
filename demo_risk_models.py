@@ -24,7 +24,12 @@ CONCENTRATION_LIMIT = 100
 sys.path.append(os.path.join(os.path.dirname(__file__), "backend"))
 
 # Import risk management modules
-from tradingbot.risk import AdvancedVaREngine, MLRiskPredictor, RiskDashboard2025, StressTesting2025
+from tradingbot.risk import (
+    AdvancedVaREngine,
+    MLRiskPredictor,
+    RiskDashboard2025,
+    StressTesting2025,
+)
 
 
 def create_realistic_portfolio():
@@ -32,11 +37,36 @@ def create_realistic_portfolio():
     return {
         "total_value": 500000.0,  # $500K portfolio
         "positions": [
-            {"ticker": "AAPL", "value": 75000, "quantity": 300, "strategy": "wsb_dip_bot"},
-            {"ticker": "TSLA", "value": 100000, "quantity": 200, "strategy": "momentum_weeklies"},
-            {"ticker": "SPY", "value": 150000, "quantity": 300, "strategy": "index_baseline"},
-            {"ticker": "QQQ", "value": 100000, "quantity": 250, "strategy": "earnings_protection"},
-            {"ticker": "NVDA", "value": 75000, "quantity": 100, "strategy": "leaps_tracker"},
+            {
+                "ticker": "AAPL",
+                "value": 75000,
+                "quantity": 300,
+                "strategy": "wsb_dip_bot",
+            },
+            {
+                "ticker": "TSLA",
+                "value": 100000,
+                "quantity": 200,
+                "strategy": "momentum_weeklies",
+            },
+            {
+                "ticker": "SPY",
+                "value": 150000,
+                "quantity": 300,
+                "strategy": "index_baseline",
+            },
+            {
+                "ticker": "QQQ",
+                "value": 100000,
+                "quantity": 250,
+                "strategy": "earnings_protection",
+            },
+            {
+                "ticker": "NVDA",
+                "value": 75000,
+                "quantity": 100,
+                "strategy": "leaps_tracker",
+            },
         ],
         "strategies": {
             "wsb_dip_bot": {"exposure": 0.15, "risk_tier": "aggressive"},
@@ -263,16 +293,23 @@ def demo_risk_dashboard():
 
     # Stress test summary
     print("\nStress Test Summary: ")
-    print(f"  Worst Case P & L: ${dashboard_data['stress_tests']['worst_case_pnl']:,.0f}")
-    print(f"  Scenarios Tested: {len(dashboard_data['stress_tests']['scenario_analysis'])}")
+    print(
+        f"  Worst Case P & L: ${dashboard_data['stress_tests']['worst_case_pnl']:,.0f}"
+    )
+    print(
+        f"  Scenarios Tested: {len(dashboard_data['stress_tests']['scenario_analysis'])}"
+    )
 
     # Alerts
     print(f"\nRisk Alerts ({len(dashboard_data['alerts'])} active): ")
     if dashboard_data["alerts"]:
         for alert in dashboard_data["alerts"]:
-            severity_icon = {"LOW": "🟡", "MEDIUM": "🟠", "HIGH": "🔴", "CRITICAL": "🚨"}.get(
-                alert["severity"], "⚪"
-            )
+            severity_icon = {
+                "LOW": "🟡",
+                "MEDIUM": "🟠",
+                "HIGH": "🔴",
+                "CRITICAL": "🚨",
+            }.get(alert["severity"], "⚪")
             print(f"  {severity_icon} {alert['severity']}: {alert['message']}")
             print(f"    → {alert['recommended_action']}")
     else:
@@ -328,7 +365,9 @@ def demo_risk_management_workflow():
     # VaR - based recommendations
     var_95 = var_suite.results.get("historical_95")
     if var_95 and var_95.var_value > portfolio["total_value"] * 0.03:
-        recommendations.append("Consider reducing position sizes - VaR exceeds 3% threshold")
+        recommendations.append(
+            "Consider reducing position sizes - VaR exceeds 3% threshold"
+        )
 
     # Stress test recommendations
     if stress_report.compliance_status == "NON_COMPLIANT":
@@ -338,11 +377,15 @@ def demo_risk_management_workflow():
 
     # ML - based recommendations
     if risk_prediction.risk_score > RISK_SCORE_HIGH:
-        recommendations.append("High risk environment detected - consider defensive positioning")
+        recommendations.append(
+            "High risk environment detected - consider defensive positioning"
+        )
 
     # Dashboard recommendations
     if dashboard_data["risk_limits"]["concentration"] > CONCENTRATION_LIMIT:
-        recommendations.append("Concentration risk exceeds limits - diversify positions")
+        recommendations.append(
+            "Concentration risk exceeds limits - diversify positions"
+        )
 
     print("Actionable Recommendations: ")
     for i, rec in enumerate(recommendations, 1):
@@ -368,7 +411,9 @@ def main():
 
         print("\n + n🎉 Demo completed successfully!")
         print("\nKey Features Demonstrated: ")
-        print("✅ Multi - method VaR calculation (Parametric, Historical, Monte Carlo, EVT)")
+        print(
+            "✅ Multi - method VaR calculation (Parametric, Historical, Monte Carlo, EVT)"
+        )
         print("✅ FCA - compliant stress testing with 6 regulatory scenarios")
         print("✅ Machine learning risk prediction and regime detection")
         print("✅ Real - time risk monitoring dashboard with alerts")

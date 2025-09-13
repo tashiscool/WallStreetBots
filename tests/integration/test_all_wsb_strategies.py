@@ -76,7 +76,9 @@ def test_module_imports():
             scanner_class = getattr(module, class_name)
             scanner_class()
             results[module_name] = "✅ SUCCESS"
-            print(f"✅ {module_name:20} - Successfully imported and instantiated {class_name}")
+            print(
+                f"✅ {module_name:20} - Successfully imported and instantiated {class_name}"
+            )
         except Exception as e:
             results[module_name] = f"❌ FAILED: {e!s}"
             print(f"❌ {module_name:20} - Failed: {e!s}")
@@ -205,7 +207,9 @@ def test_basic_functionality():
         functionality_results["leaps_tracker"] = (
             "✅ Basic functionality verified (Enhanced with MA crosses)"
         )
-        print("✅ leaps_tracker        - Basic functionality verified (Enhanced with MA crosses)")
+        print(
+            "✅ leaps_tracker        - Basic functionality verified (Enhanced with MA crosses)"
+        )
 
     except Exception as e:
         functionality_results["leaps_tracker"] = f"❌ FAILED: {e!s}"
@@ -237,7 +241,8 @@ def run_all_comprehensive_tests():
                 "failures": len(result.failures),
                 "errors": len(result.errors),
                 "success_rate": (
-                    (result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun
+                    (result.testsRun - len(result.failures) - len(result.errors))
+                    / result.testsRun
                 )
                 * 100
                 if result.testsRun > 0
@@ -262,7 +267,8 @@ def run_all_comprehensive_tests():
                 "failures": len(result.failures),
                 "errors": len(result.errors),
                 "success_rate": (
-                    (result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun
+                    (result.testsRun - len(result.failures) - len(result.errors))
+                    / result.testsRun
                 )
                 * 100
                 if result.testsRun > 0
@@ -287,7 +293,8 @@ def run_all_comprehensive_tests():
                 "failures": len(result.failures),
                 "errors": len(result.errors),
                 "success_rate": (
-                    (result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun
+                    (result.testsRun - len(result.failures) - len(result.errors))
+                    / result.testsRun
                 )
                 * 100
                 if result.testsRun > 0
@@ -312,7 +319,8 @@ def run_all_comprehensive_tests():
                 "failures": len(result.failures),
                 "errors": len(result.errors),
                 "success_rate": (
-                    (result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun
+                    (result.testsRun - len(result.failures) - len(result.errors))
+                    / result.testsRun
                 )
                 * 100
                 if result.testsRun > 0
@@ -337,7 +345,8 @@ def run_all_comprehensive_tests():
                 "failures": len(result.failures),
                 "errors": len(result.errors),
                 "success_rate": (
-                    (result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun
+                    (result.testsRun - len(result.failures) - len(result.errors))
+                    / result.testsRun
                 )
                 * 100
                 if result.testsRun > 0
@@ -354,7 +363,12 @@ def run_all_comprehensive_tests():
 
 
 def generate_comprehensive_report(
-    import_results, functionality_results, test_results, total_tests, total_failures, total_errors
+    import_results,
+    functionality_results,
+    test_results,
+    total_tests,
+    total_failures,
+    total_errors,
 ):
     """Generate comprehensive test report."""
     print("\n" + " = " * 80)
@@ -400,7 +414,9 @@ def generate_comprehensive_report(
 
     total_modules = len(import_results)
     successful_imports = len([r for r in import_results.values() if "SUCCESS" in r])
-    successful_functionality = len([r for r in functionality_results.values() if "SUCCESS" in r])
+    successful_functionality = len(
+        [r for r in functionality_results.values() if "SUCCESS" in r]
+    )
 
     overall_success_rate = (
         ((total_tests - total_failures - total_errors) / total_tests) * 100
@@ -464,9 +480,14 @@ def generate_comprehensive_report(
 
     for strategy_key, strategy_name in wsb_strategies.items():
         if strategy_key in import_results and "SUCCESS" in import_results[strategy_key]:
-            if strategy_key in test_results and "error" not in test_results[strategy_key]:
+            if (
+                strategy_key in test_results
+                and "error" not in test_results[strategy_key]
+            ):
                 success_rate = test_results[strategy_key]["success_rate"]
-                status = "✅" if success_rate >= 90 else "⚠️" if success_rate >= 70 else "❌"
+                status = (
+                    "✅" if success_rate >= 90 else "⚠️" if success_rate >= 70 else "❌"
+                )
                 print(f"{status} {strategy_name}")
                 print(f"   └─ {success_rate: .1f}% test success rate")
             else:
@@ -499,7 +520,9 @@ def main():
         functionality_results = test_basic_functionality()
 
         # Run comprehensive tests
-        test_results, total_tests, total_failures, total_errors = run_all_comprehensive_tests()
+        test_results, total_tests, total_failures, total_errors = (
+            run_all_comprehensive_tests()
+        )
 
         # Generate comprehensive report
         readiness = generate_comprehensive_report(

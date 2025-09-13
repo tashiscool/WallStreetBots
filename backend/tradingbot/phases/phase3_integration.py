@@ -58,7 +58,9 @@ class Phase3StrategyManager:
         # Initialize data provider and trading interface
         self.data_provider = UnifiedDataProvider(self.logger)
         self.trading_interface = TradingInterface(
-            alpaca_api_key=TEST_API_KEY, alpaca_secret_key=TEST_SECRET_KEY, paper_trading=True
+            alpaca_api_key=TEST_API_KEY,
+            alpaca_secret_key=TEST_SECRET_KEY,
+            paper_trading=True,
         )
 
         # Initialize Phase 3 strategies
@@ -127,14 +129,20 @@ class Phase3StrategyManager:
                     f"Found {len(earnings_opportunities)} earnings protection opportunities"
                 )
             except Exception as e:
-                self.logger.error(f"Error scanning earnings protection opportunities: {e}")
+                self.logger.error(
+                    f"Error scanning earnings protection opportunities: {e}"
+                )
                 opportunities["earnings_protection"] = []
 
             # Scan swing trading opportunities
             try:
-                swing_opportunities = await self.swing_trading.scan_for_swing_opportunities()
+                swing_opportunities = (
+                    await self.swing_trading.scan_for_swing_opportunities()
+                )
                 opportunities["swing_trading"] = swing_opportunities
-                self.logger.info(f"Found {len(swing_opportunities)} swing trading opportunities")
+                self.logger.info(
+                    f"Found {len(swing_opportunities)} swing trading opportunities"
+                )
             except Exception as e:
                 self.logger.error(f"Error scanning swing trading opportunities: {e}")
                 opportunities["swing_trading"] = []
@@ -149,29 +157,41 @@ class Phase3StrategyManager:
                     f"Found {len(momentum_opportunities)} momentum weeklies opportunities"
                 )
             except Exception as e:
-                self.logger.error(f"Error scanning momentum weeklies opportunities: {e}")
+                self.logger.error(
+                    f"Error scanning momentum weeklies opportunities: {e}"
+                )
                 opportunities["momentum_weeklies"] = []
 
             # Scan lotto scanner opportunities
             try:
-                lotto_opportunities = await self.lotto_scanner.scan_for_lotto_opportunities()
+                lotto_opportunities = (
+                    await self.lotto_scanner.scan_for_lotto_opportunities()
+                )
                 opportunities["lotto_scanner"] = lotto_opportunities
-                self.logger.info(f"Found {len(lotto_opportunities)} lotto scanner opportunities")
+                self.logger.info(
+                    f"Found {len(lotto_opportunities)} lotto scanner opportunities"
+                )
             except Exception as e:
                 self.logger.error(f"Error scanning lotto scanner opportunities: {e}")
                 opportunities["lotto_scanner"] = []
 
             # Scan LEAPS tracker opportunities
             try:
-                leaps_opportunities = await self.leaps_tracker.scan_for_leaps_opportunities()
+                leaps_opportunities = (
+                    await self.leaps_tracker.scan_for_leaps_opportunities()
+                )
                 opportunities["leaps_tracker"] = leaps_opportunities
-                self.logger.info(f"Found {len(leaps_opportunities)} LEAPS tracker opportunities")
+                self.logger.info(
+                    f"Found {len(leaps_opportunities)} LEAPS tracker opportunities"
+                )
             except Exception as e:
                 self.logger.error(f"Error scanning LEAPS tracker opportunities: {e}")
                 opportunities["leaps_tracker"] = []
 
             total_opportunities = sum(len(opps) for opps in opportunities.values())
-            self.logger.info(f"Total Phase 3 opportunities found: {total_opportunities}")
+            self.logger.info(
+                f"Total Phase 3 opportunities found: {total_opportunities}"
+            )
 
             return opportunities
 
@@ -192,28 +212,40 @@ class Phase3StrategyManager:
             if "earnings_protection" in opportunities:
                 try:
                     earnings_trades = []
-                    for candidate in opportunities["earnings_protection"][:3]:  # Limit to top 3
-                        trade = await self.earnings_protection.execute_earnings_protection(
-                            candidate
+                    for candidate in opportunities["earnings_protection"][
+                        :3
+                    ]:  # Limit to top 3
+                        trade = (
+                            await self.earnings_protection.execute_earnings_protection(
+                                candidate
+                            )
                         )
                         if trade:
                             earnings_trades.append(trade)
                     executed_trades["earnings_protection"] = earnings_trades
-                    self.logger.info(f"Executed {len(earnings_trades)} earnings protection trades")
+                    self.logger.info(
+                        f"Executed {len(earnings_trades)} earnings protection trades"
+                    )
                 except Exception as e:
-                    self.logger.error(f"Error executing earnings protection trades: {e}")
+                    self.logger.error(
+                        f"Error executing earnings protection trades: {e}"
+                    )
                     executed_trades["earnings_protection"] = []
 
             # Execute swing trading trades
             if "swing_trading" in opportunities:
                 try:
                     swing_trades = []
-                    for candidate in opportunities["swing_trading"][:5]:  # Limit to top 5
+                    for candidate in opportunities["swing_trading"][
+                        :5
+                    ]:  # Limit to top 5
                         trade = await self.swing_trading.execute_swing_trade(candidate)
                         if trade:
                             swing_trades.append(trade)
                     executed_trades["swing_trading"] = swing_trades
-                    self.logger.info(f"Executed {len(swing_trades)} swing trading trades")
+                    self.logger.info(
+                        f"Executed {len(swing_trades)} swing trading trades"
+                    )
                 except Exception as e:
                     self.logger.error(f"Error executing swing trading trades: {e}")
                     executed_trades["swing_trading"] = []
@@ -222,12 +254,18 @@ class Phase3StrategyManager:
             if "momentum_weeklies" in opportunities:
                 try:
                     momentum_trades = []
-                    for candidate in opportunities["momentum_weeklies"][:5]:  # Limit to top 5
-                        trade = await self.momentum_weeklies.execute_momentum_trade(candidate)
+                    for candidate in opportunities["momentum_weeklies"][
+                        :5
+                    ]:  # Limit to top 5
+                        trade = await self.momentum_weeklies.execute_momentum_trade(
+                            candidate
+                        )
                         if trade:
                             momentum_trades.append(trade)
                     executed_trades["momentum_weeklies"] = momentum_trades
-                    self.logger.info(f"Executed {len(momentum_trades)} momentum weeklies trades")
+                    self.logger.info(
+                        f"Executed {len(momentum_trades)} momentum weeklies trades"
+                    )
                 except Exception as e:
                     self.logger.error(f"Error executing momentum weeklies trades: {e}")
                     executed_trades["momentum_weeklies"] = []
@@ -236,12 +274,16 @@ class Phase3StrategyManager:
             if "lotto_scanner" in opportunities:
                 try:
                     lotto_trades = []
-                    for candidate in opportunities["lotto_scanner"][:3]:  # Limit to top 3
+                    for candidate in opportunities["lotto_scanner"][
+                        :3
+                    ]:  # Limit to top 3
                         trade = await self.lotto_scanner.execute_lotto_trade(candidate)
                         if trade:
                             lotto_trades.append(trade)
                     executed_trades["lotto_scanner"] = lotto_trades
-                    self.logger.info(f"Executed {len(lotto_trades)} lotto scanner trades")
+                    self.logger.info(
+                        f"Executed {len(lotto_trades)} lotto scanner trades"
+                    )
                 except Exception as e:
                     self.logger.error(f"Error executing lotto scanner trades: {e}")
                     executed_trades["lotto_scanner"] = []
@@ -250,12 +292,16 @@ class Phase3StrategyManager:
             if "leaps_tracker" in opportunities:
                 try:
                     leaps_trades = []
-                    for candidate in opportunities["leaps_tracker"][:3]:  # Limit to top 3
+                    for candidate in opportunities["leaps_tracker"][
+                        :3
+                    ]:  # Limit to top 3
                         trade = await self.leaps_tracker.execute_leaps_trade(candidate)
                         if trade:
                             leaps_trades.append(trade)
                     executed_trades["leaps_tracker"] = leaps_trades
-                    self.logger.info(f"Executed {len(leaps_trades)} LEAPS tracker trades")
+                    self.logger.info(
+                        f"Executed {len(leaps_trades)} LEAPS tracker trades"
+                    )
                 except Exception as e:
                     self.logger.error(f"Error executing LEAPS tracker trades: {e}")
                     executed_trades["leaps_tracker"] = []
@@ -278,11 +324,15 @@ class Phase3StrategyManager:
 
             # Monitor earnings protection positions
             try:
-                earnings_monitoring = await self.earnings_protection.monitor_earnings_positions()
+                earnings_monitoring = (
+                    await self.earnings_protection.monitor_earnings_positions()
+                )
                 monitoring_results["earnings_protection"] = earnings_monitoring
                 self.logger.info("Earnings protection positions monitored")
             except Exception as e:
-                self.logger.error(f"Error monitoring earnings protection positions: {e}")
+                self.logger.error(
+                    f"Error monitoring earnings protection positions: {e}"
+                )
                 monitoring_results["earnings_protection"] = {"error": str(e)}
 
             # Monitor swing trading positions
@@ -296,7 +346,9 @@ class Phase3StrategyManager:
 
             # Monitor momentum weeklies positions
             try:
-                momentum_monitoring = await self.momentum_weeklies.monitor_momentum_positions()
+                momentum_monitoring = (
+                    await self.momentum_weeklies.monitor_momentum_positions()
+                )
                 monitoring_results["momentum_weeklies"] = momentum_monitoring
                 self.logger.info("Momentum weeklies positions monitored")
             except Exception as e:
@@ -452,16 +504,24 @@ class Phase3StrategyManager:
 
             # Calculate totals
             total_strategies = len(strategy_status)
-            active_strategies = sum(1 for status in strategy_status.values() if status.is_active)
-            total_positions = sum(status.active_positions for status in strategy_status.values())
+            active_strategies = sum(
+                1 for status in strategy_status.values() if status.is_active
+            )
+            total_positions = sum(
+                status.active_positions for status in strategy_status.values()
+            )
             total_pnl = sum(status.total_pnl for status in strategy_status.values())
-            total_exposure = sum(status.total_exposure for status in strategy_status.values())
+            total_exposure = sum(
+                status.total_exposure for status in strategy_status.values()
+            )
 
             # Collect risk alerts
             risk_alerts = []
             for strategy_name, status in strategy_status.items():
                 if status.total_pnl < -1000:  # Large loss threshold
-                    risk_alerts.append(f"Large loss in {strategy_name}: ${status.total_pnl:.2f}")
+                    risk_alerts.append(
+                        f"Large loss in {strategy_name}: ${status.total_pnl:.2f}"
+                    )
                 if status.total_exposure > 50000:  # High exposure threshold
                     risk_alerts.append(
                         f"High exposure in {strategy_name}: ${status.total_exposure:.2f}"
@@ -553,5 +613,7 @@ async def create_phase3_data_provider(logger: ProductionLogger) -> UnifiedDataPr
 async def create_phase3_trading_interface(logger: ProductionLogger) -> TradingInterface:
     """Create Phase 3 trading interface."""
     return TradingInterface(
-        alpaca_api_key=TEST_API_KEY, alpaca_secret_key=TEST_SECRET_KEY, paper_trading=True
+        alpaca_api_key=TEST_API_KEY,
+        alpaca_secret_key=TEST_SECRET_KEY,
+        paper_trading=True,
     )

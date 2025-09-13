@@ -139,17 +139,23 @@ class RiskIntegrationManager:
             self.last_calculation = datetime.now()
 
             # Calculate portfolio returns
-            portfolio_returns = self._calculate_portfolio_returns(positions, market_data)
+            portfolio_returns = self._calculate_portfolio_returns(
+                positions, market_data
+            )
 
             if portfolio_returns is None or len(portfolio_returns) < 30:
                 self.logger.warning("Insufficient data for risk calculation")
                 return self.current_metrics
 
             # Calculate VaR / CVaR using multiple methods
-            var_metrics = await self._calculate_var_metrics(portfolio_returns, portfolio_value)
+            var_metrics = await self._calculate_var_metrics(
+                portfolio_returns, portfolio_value
+            )
 
             # Calculate concentration risk
-            concentration_risk = self._calculate_concentration_risk(positions, portfolio_value)
+            concentration_risk = self._calculate_concentration_risk(
+                positions, portfolio_value
+            )
 
             # Calculate Greeks risk
             greeks_risk = self._calculate_greeks_risk(positions, portfolio_value)
@@ -233,13 +239,17 @@ class RiskIntegrationManager:
                             prev_date = data.index[data.index < date]
                             if len(prev_date) > 0:
                                 prev_price = data.loc[prev_date[-1], "Close"]
-                                daily_return += (price / prev_price - 1) * pos.get("value", 0)
+                                daily_return += (price / prev_price - 1) * pos.get(
+                                    "value", 0
+                                )
                                 total_weight += pos.get("value", 0)
 
                 if total_weight > 0:
                     portfolio_returns.append(daily_return / total_weight)
 
-            return pd.Series(portfolio_returns, index=common_dates[-len(portfolio_returns) :])
+            return pd.Series(
+                portfolio_returns, index=common_dates[-len(portfolio_returns) :]
+            )
 
         except Exception as e:
             self.logger.error(f"Error calculating portfolio returns: {e}")
@@ -325,7 +335,9 @@ class RiskIntegrationManager:
 
         return max_weight
 
-    def _calculate_greeks_risk(self, positions: dict[str, dict], portfolio_value: float) -> float:
+    def _calculate_greeks_risk(
+        self, positions: dict[str, dict], portfolio_value: float
+    ) -> float:
         """Calculate Greeks risk (delta, gamma, vega exposure)."""
         if not positions or portfolio_value <= 0:
             return 0.0
@@ -360,7 +372,8 @@ class RiskIntegrationManager:
             # Calculate score based on worst case scenario
             if stress_results and "scenarios" in stress_results:
                 worst_case = min(
-                    scenario.get("p_and_l", 0) for scenario in stress_results["scenarios"].values()
+                    scenario.get("p_and_l", 0)
+                    for scenario in stress_results["scenarios"].values()
                 )
                 return abs(worst_case) / portfolio_value if portfolio_value > 0 else 0.0
 
@@ -441,7 +454,9 @@ class RiskIntegrationManager:
 
         # Check ML risk score
         if ml_score > 0.8:  # High risk threshold
-            alerts.append(f"ML risk score {ml_score: .2%} indicates high risk environment")
+            alerts.append(
+                f"ML risk score {ml_score: .2%} indicates high risk environment"
+            )
             within_limits = False
 
         return within_limits, alerts
@@ -474,7 +489,11 @@ class RiskIntegrationManager:
             self.logger.error(f"Error updating dashboard: {e}")
 
     async def get_risk_adjusted_position_size(
-        self, strategy_name: str, symbol: str, base_position_size: float, portfolio_value: float
+        self,
+        strategy_name: str,
+        symbol: str,
+        base_position_size: float,
+        portfolio_value: float,
     ) -> float:
         """Calculate risk - adjusted position size based on current risk metrics.
 
@@ -492,7 +511,10 @@ class RiskIntegrationManager:
             adjusted_size = base_position_size
 
             # Reduce size if portfolio risk is high
-            if self.current_metrics.portfolio_var > self.risk_limits.max_total_var * 0.8:
+            if (
+                self.current_metrics.portfolio_var
+                > self.risk_limits.max_total_var * 0.8
+            ):
                 risk_factor = 0.5  # Reduce by 50%
                 adjusted_size *= risk_factor
                 self.logger.info(
@@ -500,7 +522,10 @@ class RiskIntegrationManager:
                 )
 
             # Reduce size if concentration risk is high
-            if self.current_metrics.concentration_risk > self.risk_limits.max_concentration * 0.8:
+            if (
+                self.current_metrics.concentration_risk
+                > self.risk_limits.max_concentration * 0.8
+            ):
                 concentration_factor = 0.7  # Reduce by 30%
                 adjusted_size *= concentration_factor
                 self.logger.info(
@@ -534,7 +559,11 @@ class RiskIntegrationManager:
             return base_position_size
 
     async def should_allow_trade(
-        self, strategy_name: str, symbol: str, trade_value: float, portfolio_value: float
+        self,
+        strategy_name: str,
+        symbol: str,
+        trade_value: float,
+        portfolio_value: float,
     ) -> tuple[bool, str]:
         """Determine if a trade should be allowed based on risk limits.
 

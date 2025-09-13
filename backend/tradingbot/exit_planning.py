@@ -186,7 +186,9 @@ class ExitStrategy:
             current_theoretical_price = 0.01
             current_delta = 0.0
 
-        current_roi = (current_theoretical_price - position.entry_premium) / position.entry_premium
+        current_roi = (
+            current_theoretical_price - position.entry_premium
+        ) / position.entry_premium
 
         # Check each exit level
         for exit_level in self.default_exit_levels:
@@ -477,18 +479,31 @@ class ScenarioAnalyzer:
             )
 
         except (ValueError, ZeroDivisionError):
-            new_premium = max(0, new_spot - position.strike) if new_spot > position.strike else 0.01
+            new_premium = (
+                max(0, new_spot - position.strike)
+                if new_spot > position.strike
+                else 0.01
+            )
             new_delta = 1.0 if new_spot > position.strike else 0.0
 
         # Calculate P & L metrics
         position_value = new_premium * position.contracts
         pnl_per_contract = new_premium - position.entry_premium
         total_pnl = pnl_per_contract * position.contracts
-        roi = pnl_per_contract / position.entry_premium if position.entry_premium > 0 else 0
+        roi = (
+            pnl_per_contract / position.entry_premium
+            if position.entry_premium > 0
+            else 0
+        )
 
         # Estimate impact components
         time_decay_impact = self._estimate_time_decay_impact(
-            position, current_spot, current_iv, days_forward, risk_free_rate, dividend_yield
+            position,
+            current_spot,
+            current_iv,
+            days_forward,
+            risk_free_rate,
+            dividend_yield,
         )
 
         vega_impact = self._estimate_vega_impact(
@@ -509,9 +524,7 @@ class ScenarioAnalyzer:
         # Determine recommended action
         if exit_signals:
             strongest_signal = max(exit_signals, key=lambda x: x.strength.value)
-            recommended_action = (
-                f"{strongest_signal.reason.value}: {strongest_signal.position_fraction:.0%}"
-            )
+            recommended_action = f"{strongest_signal.reason.value}: {strongest_signal.position_fraction:.0%}"
         elif roi > 0.5:
             recommended_action = "HOLD - profitable position"
         elif roi < -0.3:
@@ -552,7 +565,12 @@ class ScenarioAnalyzer:
             current_dte = position.days_to_expiry / 365.0
             current_premium = (
                 self.bs_calc.call_price(
-                    spot, position.strike, current_dte, risk_free_rate, dividend_yield, iv
+                    spot,
+                    position.strike,
+                    current_dte,
+                    risk_free_rate,
+                    dividend_yield,
+                    iv,
                 )
                 * 100
             )
@@ -561,7 +579,12 @@ class ScenarioAnalyzer:
             future_dte = max(1, position.days_to_expiry - days_forward) / 365.0
             future_premium = (
                 self.bs_calc.call_price(
-                    spot, position.strike, future_dte, risk_free_rate, dividend_yield, iv
+                    spot,
+                    position.strike,
+                    future_dte,
+                    risk_free_rate,
+                    dividend_yield,
+                    iv,
                 )
                 * 100
             )
@@ -569,7 +592,9 @@ class ScenarioAnalyzer:
             return future_premium - current_premium
 
         except (ValueError, ZeroDivisionError):
-            return -days_forward * position.entry_premium * 0.02  # Rough 2% per day estimate
+            return (
+                -days_forward * position.entry_premium * 0.02
+            )  # Rough 2% per day estimate
 
     def _estimate_vega_impact(
         self,
@@ -605,7 +630,12 @@ class ScenarioAnalyzer:
             new_iv = max(0.01, current_iv + iv_change)
             new_premium = (
                 self.bs_calc.call_price(
-                    spot, position.strike, time_to_expiry, risk_free_rate, dividend_yield, new_iv
+                    spot,
+                    position.strike,
+                    time_to_expiry,
+                    risk_free_rate,
+                    dividend_yield,
+                    new_iv,
                 )
                 * 100
             )
@@ -630,7 +660,9 @@ class ScenarioAnalyzer:
 
         # Calculate expected value
         total_scenarios = len(scenarios)
-        expected_roi = sum(s.roi for s in scenarios) / total_scenarios if scenarios else 0
+        expected_roi = (
+            sum(s.roi for s in scenarios) / total_scenarios if scenarios else 0
+        )
 
         plan = {
             "summary": {
@@ -651,7 +683,9 @@ class ScenarioAnalyzer:
             },
             "key_scenarios": {
                 "best_case": max(scenarios, key=lambda x: x.roi) if scenarios else None,
-                "worst_case": min(scenarios, key=lambda x: x.roi) if scenarios else None,
+                "worst_case": min(scenarios, key=lambda x: x.roi)
+                if scenarios
+                else None,
                 "base_case": next(
                     (s for s in scenarios if "Current" in s.scenario_name),
                     scenarios[0] if scenarios else None,
@@ -674,7 +708,9 @@ class ScenarioAnalyzer:
             plan["recommendations"].append("High downside risk - consider stop loss")
 
         if plan["risk_assessment"]["upside_potential"] > 1.0:
-            plan["recommendations"].append("Significant upside potential - consider holding")
+            plan["recommendations"].append(
+                "Significant upside potential - consider holding"
+            )
 
         return plan
 
@@ -702,7 +738,10 @@ if __name__ == "__main__":  # Test the exit planning system
     exit_strategy = ExitStrategy()
 
     exit_signals = exit_strategy.analyze_exit_conditions(
-        position=sample_position, current_spot=215.0, current_iv=0.28, days_since_entry=3
+        position=sample_position,
+        current_spot=215.0,
+        current_iv=0.28,
+        days_since_entry=3,
     )
 
     print("Current Exit Signals: ")
@@ -719,7 +758,9 @@ if __name__ == "__main__":  # Test the exit planning system
         position=sample_position, current_spot=215.0, current_iv=0.28
     )
 
-    print(f"\n{'Scenario':<20} {'Spot':<8} {'Premium':<8} {'P & L':<10} {'ROI':<8} {'Action':<20}")
+    print(
+        f"\n{'Scenario':<20} {'Spot':<8} {'Premium':<8} {'P & L':<10} {'ROI':<8} {'Action':<20}"
+    )
     print("-" * 80)
 
     for scenario in scenarios:

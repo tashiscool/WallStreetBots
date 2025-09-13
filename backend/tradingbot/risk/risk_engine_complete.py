@@ -68,7 +68,12 @@ def _z(alpha: float) -> float:
         4.374664141464968e00,
         2.938163982698783e00,
     ]
-    d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e00, 3.754408661907416e00]
+    d = [
+        7.784695709041462e-03,
+        3.224671290700398e-01,
+        2.445134137142996e00,
+        3.754408661907416e00,
+    ]
     plow = 0.02425
     phigh = 1 - plow
     if p < plow:
@@ -78,9 +83,9 @@ def _z(alpha: float) -> float:
         )
     if phigh < p:
         q = math.sqrt(-2 * math.log(1 - p))
-        return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / (
-            (((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1
-        )
+        return -(
+            ((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]
+        ) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1)
     q = p - 0.5
     r = q * q
     return (
@@ -134,7 +139,9 @@ def var_parametric(
     return float(-(mu + zq * sigma))
 
 
-def cvar_parametric(returns: pd.Series, alpha: float = 0.99, use_student_t: bool = False) -> float:
+def cvar_parametric(
+    returns: pd.Series, alpha: float = 0.99, use_student_t: bool = False
+) -> float:
     r = _validate_series(returns)
     mu, sigma = float(r.mean()), float(r.std(ddof=1))
     if sigma == 0.0:
@@ -230,10 +237,26 @@ def rolling_var_exceptions(
 def stress_test_scenarios() -> dict[str, dict[str, float]]:
     """Return predefined stress test scenarios."""
     return {
-        "2008_crisis": {"equity_shock": -0.50, "vol_shock": 2.0, "correlation_breakdown": 0.9},
-        "flash_crash": {"equity_shock": -0.20, "vol_shock": 3.0, "liquidity_dry_up": 0.8},
-        "covid_pandemic": {"equity_shock": -0.35, "vol_shock": 2.5, "sector_rotation": 0.4},
-        "interest_rate_shock": {"rate_shock": 0.03, "bond_shock": -0.15, "equity_shock": -0.20},
+        "2008_crisis": {
+            "equity_shock": -0.50,
+            "vol_shock": 2.0,
+            "correlation_breakdown": 0.9,
+        },
+        "flash_crash": {
+            "equity_shock": -0.20,
+            "vol_shock": 3.0,
+            "liquidity_dry_up": 0.8,
+        },
+        "covid_pandemic": {
+            "equity_shock": -0.35,
+            "vol_shock": 2.5,
+            "sector_rotation": 0.4,
+        },
+        "interest_rate_shock": {
+            "rate_shock": 0.03,
+            "bond_shock": -0.15,
+            "equity_shock": -0.20,
+        },
     }
 
 
@@ -307,8 +330,12 @@ def calculate_greeks_risk(
         "vega_pnl": total_vega_pnl,
         "total_greeks_pnl": total_delta_pnl + total_gamma_pnl + total_vega_pnl,
         "total_value": total_value,
-        "delta_pnl_pct": (total_delta_pnl / total_value * 100) if total_value > 0 else 0,
-        "gamma_pnl_pct": (total_gamma_pnl / total_value * 100) if total_value > 0 else 0,
+        "delta_pnl_pct": (total_delta_pnl / total_value * 100)
+        if total_value > 0
+        else 0,
+        "gamma_pnl_pct": (total_gamma_pnl / total_value * 100)
+        if total_value > 0
+        else 0,
         "vega_pnl_pct": (total_vega_pnl / total_value * 100) if total_value > 0 else 0,
     }
 
@@ -342,7 +369,9 @@ def calculate_strategy_risk_budget(
 ) -> dict[str, dict[str, float]]:
     """Calculate risk budget allocation across strategies."""
     budget = {}
-    total_exposure = sum(strategy.get("exposure", 0) for strategy in strategies.values())
+    total_exposure = sum(
+        strategy.get("exposure", 0) for strategy in strategies.values()
+    )
 
     for name, strategy in strategies.items():
         exposure = strategy.get("exposure", 0)
@@ -365,13 +394,20 @@ if __name__ == "__main__":
     s = pd.Series(np.random.standard_t(df=5, size=1500) * 0.01)
     print("Hist VaR(99%): ", var_historical(s, 0.99))
     print("Hist CVaR(99%): ", cvar_historical(s, 0.99))
-    print("Param VaR(99%, CF): ", var_parametric(s, 0.99, use_student_t=True, cornish_fisher=True))
+    print(
+        "Param VaR(99%, CF): ",
+        var_parametric(s, 0.99, use_student_t=True, cornish_fisher=True),
+    )
     print("Param CVaR(99%, t): ", cvar_parametric(s, 0.99, use_student_t=True))
 
     # Portfolio Monte Carlo (3 assets)
     mu = np.array([0.0003, 0.0002, 0.0001])
     cov = np.array(
-        [[0.0001, 0.00003, 0.00002], [0.00003, 0.0002, 0.00004], [0.00002, 0.00004, 0.00015]]
+        [
+            [0.0001, 0.00003, 0.00002],
+            [0.00003, 0.0002, 0.00004],
+            [0.00002, 0.00004, 0.00015],
+        ]
     )
     w = np.array([0.5, 0.3, 0.2])
     v, cv = var_cvar_mc(mu, cov, w, alpha=0.99, n_paths=100000, student_t=True, df=5)

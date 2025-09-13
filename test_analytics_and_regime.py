@@ -19,11 +19,18 @@ import numpy as np
 # Add the backend to Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), "backend"))
 
-from backend.tradingbot.analytics.advanced_analytics import AdvancedAnalytics, analyze_performance
-from backend.tradingbot.analytics.market_regime_adapter import adapt_strategies_to_market
+from backend.tradingbot.analytics.advanced_analytics import (
+    AdvancedAnalytics,
+    analyze_performance,
+)
+from backend.tradingbot.analytics.market_regime_adapter import (
+    adapt_strategies_to_market,
+)
 
 
-def generate_sample_returns(days: int = 252, annual_return: float = 0.08, volatility: float = 0.15):
+def generate_sample_returns(
+    days: int = 252, annual_return: float = 0.08, volatility: float = 0.15
+):
     """Generate sample portfolio returns."""
     # Generate random returns with specified characteristics
     daily_return = annual_return / 252
@@ -182,7 +189,9 @@ async def test_market_regime_adaptation():
         "earnings_risk": True,
     }
 
-    adaptation = await adapt_strategies_to_market(sideways_market_data, current_positions)
+    adaptation = await adapt_strategies_to_market(
+        sideways_market_data, current_positions
+    )
 
     print(f"Regime: {adaptation.regime.value}")
     print(f"Confidence: {adaptation.confidence:.1%}")
@@ -228,8 +237,12 @@ def test_integration_with_production():
         print(
             f"   - Market Regime Adaptation: {'Enabled' if config.enable_market_regime_adaptation else 'Disabled'}"
         )
-        print(f"   - Analytics Update Interval: {config.analytics_update_interval} seconds")
-        print(f"   - Regime Adaptation Interval: {config.regime_adaptation_interval} seconds")
+        print(
+            f"   - Analytics Update Interval: {config.analytics_update_interval} seconds"
+        )
+        print(
+            f"   - Regime Adaptation Interval: {config.regime_adaptation_interval} seconds"
+        )
         print(f"   - Strategy Profile: {config.profile}")
 
         # Note: We would create the ProductionStrategyManager here, but it requires
@@ -261,9 +274,15 @@ async def main():
 
         print("\n🎉 ALL TESTS COMPLETED SUCCESSFULLY!")
         print("\n📊 FEATURE SUMMARY: ")
-        print("✅ Advanced Analytics: Sharpe ratio, max drawdown, comprehensive metrics")
-        print("✅ Market Regime Detection: Bull / Bear / Sideways regime identification")
-        print("✅ Strategy Adaptation: Dynamic parameter adjustment based on market regime")
+        print(
+            "✅ Advanced Analytics: Sharpe ratio, max drawdown, comprehensive metrics"
+        )
+        print(
+            "✅ Market Regime Detection: Bull / Bear / Sideways regime identification"
+        )
+        print(
+            "✅ Strategy Adaptation: Dynamic parameter adjustment based on market regime"
+        )
         print("✅ Production Integration: Ready for WallStreetBots production system")
 
         print("\n🔧 INTEGRATION NOTES: ")

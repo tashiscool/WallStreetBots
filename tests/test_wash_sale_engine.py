@@ -25,7 +25,7 @@ class TestWashSaleEngine(unittest.TestCase):
         realized, disallowed = self.engine.realize(sell)
 
         self.assertEqual(realized, 1000.0)  # $10 profit * 100 shares
-        self.assertEqual(disallowed, 0.0)    # No wash sale
+        self.assertEqual(disallowed, 0.0)  # No wash sale
 
     def test_partial_lot_matching(self):
         """Test partial lot matching."""

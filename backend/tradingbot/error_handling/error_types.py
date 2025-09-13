@@ -10,7 +10,10 @@ class TradingError(Exception):
     """Base exception for all trading - related errors."""
 
     def __init__(
-        self, message: str, error_code: str | None = None, context: dict[str, Any] | None = None
+        self,
+        message: str,
+        error_code: str | None = None,
+        context: dict[str, Any] | None = None,
     ):
         super().__init__(message)
         self.message = message
@@ -23,7 +26,10 @@ class DataProviderError(TradingError):
     """Error related to data provider failures."""
 
     def __init__(
-        self, message: str, provider: str | None = None, context: dict[str, Any] | None = None
+        self,
+        message: str,
+        provider: str | None = None,
+        context: dict[str, Any] | None = None,
     ):
         super().__init__(message, "DATA_PROVIDER_ERROR", context)
         self.provider = provider
@@ -33,7 +39,10 @@ class BrokerConnectionError(TradingError):
     """Error related to broker API connection issues."""
 
     def __init__(
-        self, message: str, broker: str | None = None, context: dict[str, Any] | None = None
+        self,
+        message: str,
+        broker: str | None = None,
+        context: dict[str, Any] | None = None,
     ):
         super().__init__(message, "BROKER_CONNECTION_ERROR", context)
         self.broker = broker
@@ -58,7 +67,10 @@ class PositionReconciliationError(TradingError):
     """Critical error when position reconciliation fails."""
 
     def __init__(
-        self, message: str, discrepancies: list | None = None, context: dict[str, Any] | None = None
+        self,
+        message: str,
+        discrepancies: list | None = None,
+        context: dict[str, Any] | None = None,
     ):
         super().__init__(message, "POSITION_RECONCILIATION_ERROR", context)
         self.discrepancies = discrepancies or []

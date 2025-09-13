@@ -45,7 +45,12 @@ class RegimeAdaptationConfig:
     # Strategy selection by regime
     enabled_strategies_by_regime: dict[str, list[str]] = field(
         default_factory=lambda: {
-            "bull": ["wsb_dip_bot", "momentum_weeklies", "debit_spreads", "leaps_tracker"],
+            "bull": [
+                "wsb_dip_bot",
+                "momentum_weeklies",
+                "debit_spreads",
+                "leaps_tracker",
+            ],
             "bear": ["spx_credit_spreads", "wheel_strategy"],
             "sideways": ["wheel_strategy", "spx_credit_spreads", "index_baseline"],
             "undefined": ["index_baseline"],
@@ -145,7 +150,9 @@ class MarketRegimeAdapter:
             # Store in history
             self.indicator_history.append(indicators)
             if len(self.indicator_history) > self.max_history_length:
-                self.indicator_history = self.indicator_history[-self.max_history_length :]
+                self.indicator_history = self.indicator_history[
+                    -self.max_history_length :
+                ]
 
             # Need at least 2 data points for comparison
             if len(self.indicator_history) < 2:
@@ -186,7 +193,9 @@ class MarketRegimeAdapter:
             return MarketRegime.UNDEFINED
 
     async def generate_strategy_adaptation(
-        self, market_data: dict[str, Any], current_positions: dict[str, Any] | None = None
+        self,
+        market_data: dict[str, Any],
+        current_positions: dict[str, Any] | None = None,
     ) -> StrategyAdaptation:
         """Generate strategy adaptation based on current market regime.
 
@@ -215,20 +224,26 @@ class MarketRegimeAdapter:
             max_risk = self._get_max_risk(regime)
 
             # Determine strategy selection
-            recommended_strategies = self.config.enabled_strategies_by_regime.get(regime.value, [])
+            recommended_strategies = self.config.enabled_strategies_by_regime.get(
+                regime.value, []
+            )
             all_strategies = set()
             for strategies in self.config.enabled_strategies_by_regime.values():
                 all_strategies.update(strategies)
             disabled_strategies = list(all_strategies - set(recommended_strategies))
 
             # Calculate parameter adjustments
-            parameter_adjustments = self._calculate_parameter_adjustments(regime, market_data)
+            parameter_adjustments = self._calculate_parameter_adjustments(
+                regime, market_data
+            )
 
             # Risk management adjustments
             stop_loss_adj, take_profit_adj = self._calculate_risk_adjustments(regime)
 
             # Timing adjustments
-            entry_delay, exit_urgency = self._calculate_timing_adjustments(regime, market_data)
+            entry_delay, exit_urgency = self._calculate_timing_adjustments(
+                regime, market_data
+            )
 
             # Create adaptation
             adaptation = StrategyAdaptation(
@@ -260,7 +275,9 @@ class MarketRegimeAdapter:
             self.logger.error(f"Error generating strategy adaptation: {e}")
             return self._create_default_adaptation(MarketRegime.UNDEFINED)
 
-    def _extract_indicators(self, market_data: dict[str, Any]) -> TechnicalIndicators | None:
+    def _extract_indicators(
+        self, market_data: dict[str, Any]
+    ) -> TechnicalIndicators | None:
         """Extract technical indicators from market data."""
         try:
             # Handle different market data formats
@@ -370,7 +387,9 @@ class MarketRegimeAdapter:
         # Check cooldown period
         if self.last_regime_change:
             time_since_change = datetime.now() - self.last_regime_change
-            if time_since_change < timedelta(hours=self.config.regime_change_cooldown_hours):
+            if time_since_change < timedelta(
+                hours=self.config.regime_change_cooldown_hours
+            ):
                 return False
 
         return True
@@ -472,7 +491,9 @@ class MarketRegimeAdapter:
 
         return entry_delay, exit_urgency
 
-    def _generate_adaptation_reason(self, regime: MarketRegime, market_data: dict[str, Any]) -> str:
+    def _generate_adaptation_reason(
+        self, regime: MarketRegime, market_data: dict[str, Any]
+    ) -> str:
         """Generate human - readable reason for adaptation."""
         reasons = []
 
@@ -513,7 +534,11 @@ class MarketRegimeAdapter:
     def get_adaptation_summary(self) -> dict[str, Any]:
         """Get current adaptation summary."""
         if not self.adaptation_history:
-            return {"status": "no_adaptations", "current_regime": "undefined", "confidence": 0.0}
+            return {
+                "status": "no_adaptations",
+                "current_regime": "undefined",
+                "confidence": 0.0,
+            }
 
         current = self.adaptation_history[-1]
         return {

@@ -112,7 +112,9 @@ class ProductionLogger:
         console_handler.setLevel(getattr(logging, log_level.upper()))
 
         # Setup formatter
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         file_handler.setFormatter(formatter)
         console_handler.setFormatter(formatter)
 
@@ -242,7 +244,9 @@ def retry_with_backoff(
             stop=stop_after_attempt(max_attempts),
             wait=wait_exponential(multiplier=base_delay, min=base_delay, max=max_delay),
             retry=retry_if_exception_type(exceptions),
-            before_sleep=before_sleep_log(logging.getLogger(func.__module__), logging.WARNING),
+            before_sleep=before_sleep_log(
+                logging.getLogger(func.__module__), logging.WARNING
+            ),
         )
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -252,7 +256,9 @@ def retry_with_backoff(
             stop=stop_after_attempt(max_attempts),
             wait=wait_exponential(multiplier=base_delay, min=base_delay, max=max_delay),
             retry=retry_if_exception_type(exceptions),
-            before_sleep=before_sleep_log(logging.getLogger(func.__module__), logging.WARNING),
+            before_sleep=before_sleep_log(
+                logging.getLogger(func.__module__), logging.WARNING
+            ),
         )
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
@@ -371,7 +377,9 @@ class HealthChecker:
                     "timestamp": self.last_check_time.isoformat(),
                 }
 
-                self.logger.info(f"Health check {name}: {'healthy' if result else 'unhealthy'}")
+                self.logger.info(
+                    f"Health check {name}: {'healthy' if result else 'unhealthy'}"
+                )
 
             except Exception as e:
                 results[name] = {
@@ -391,7 +399,9 @@ class HealthChecker:
             return "unknown"
 
         unhealthy_count = sum(
-            1 for check in self.health_status.values() if check["status"] in ["unhealthy", "error"]
+            1
+            for check in self.health_status.values()
+            if check["status"] in ["unhealthy", "error"]
         )
 
         if unhealthy_count == 0:
@@ -410,18 +420,26 @@ class MetricsCollector:
         self.metrics: dict[str, list[dict[str, Any]]] = {}
         self.max_metrics_per_type = 1000
 
-    def record_metric(self, metric_name: str, value: float, tags: dict[str, str] | None = None):
+    def record_metric(
+        self, metric_name: str, value: float, tags: dict[str, str] | None = None
+    ):
         """Record a metric value."""
         if metric_name not in self.metrics:
             self.metrics[metric_name] = []
 
-        metric_data = {"value": value, "timestamp": datetime.now().isoformat(), "tags": tags or {}}
+        metric_data = {
+            "value": value,
+            "timestamp": datetime.now().isoformat(),
+            "tags": tags or {},
+        }
 
         self.metrics[metric_name].append(metric_data)
 
         # Keep only recent metrics
         if len(self.metrics[metric_name]) > self.max_metrics_per_type:
-            self.metrics[metric_name] = self.metrics[metric_name][-self.max_metrics_per_type :]
+            self.metrics[metric_name] = self.metrics[metric_name][
+                -self.max_metrics_per_type :
+            ]
 
         self.logger.debug(
             f"Recorded metric {metric_name}: {value}",
@@ -430,7 +448,9 @@ class MetricsCollector:
             tags=tags,
         )
 
-    def get_metric_summary(self, metric_name: str, window_minutes: int = 60) -> dict[str, Any]:
+    def get_metric_summary(
+        self, metric_name: str, window_minutes: int = 60
+    ) -> dict[str, Any]:
         """Get metric summary for specified time window."""
         if metric_name not in self.metrics:
             return {}
@@ -478,7 +498,9 @@ def create_error_handler(logger: ProductionLogger) -> ErrorHandler:
     return ErrorHandler(logger)
 
 
-def create_circuit_breaker(failure_threshold: int = 5, timeout: float = 60.0) -> CircuitBreaker:
+def create_circuit_breaker(
+    failure_threshold: int = 5, timeout: float = 60.0
+) -> CircuitBreaker:
     """Create circuit breaker."""
     return CircuitBreaker(failure_threshold, timeout)
 

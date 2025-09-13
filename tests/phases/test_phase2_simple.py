@@ -128,7 +128,9 @@ class SpreadPosition:
     unrealized_pnl: float = 0.0
     profit_pct: float = 0.0
     entry_date: datetime = field(default_factory=datetime.now)
-    expiry_date: datetime = field(default_factory=lambda: datetime.now() + timedelta(days=30))
+    expiry_date: datetime = field(
+        default_factory=lambda: datetime.now() + timedelta(days=30)
+    )
     last_update: datetime = field(default_factory=datetime.now)
     net_delta: float = 0.0
     net_gamma: float = 0.0
@@ -247,8 +249,12 @@ def test_wheel_strategy():
         premium_received=200.0,
     )
 
-    print(f"✅ Wheel Position: {position.ticker} {position.stage.value} @ ${position.strike_price}")
-    print(f"   Premium: ${position.premium_received}, P & L: ${position.unrealized_pnl}")
+    print(
+        f"✅ Wheel Position: {position.ticker} {position.stage.value} @ ${position.strike_price}"
+    )
+    print(
+        f"   Premium: ${position.premium_received}, P & L: ${position.unrealized_pnl}"
+    )
 
     # Test P & L calculation
     pnl = position.calculate_unrealized_pnl()
@@ -339,8 +345,12 @@ def test_index_baseline():
     )
 
     print(f"✅ Benchmark: {benchmark.ticker} @ ${benchmark.current_price}")
-    print(f"   Daily: {benchmark.daily_return:.1%}, Annual: {benchmark.annual_return:.1%}")
-    print(f"   Sharpe: {benchmark.sharpe_ratio:.2f}, Max DD: {benchmark.max_drawdown:.1%}")
+    print(
+        f"   Daily: {benchmark.daily_return:.1%}, Annual: {benchmark.annual_return:.1%}"
+    )
+    print(
+        f"   Sharpe: {benchmark.sharpe_ratio:.2f}, Max DD: {benchmark.max_drawdown:.1%}"
+    )
 
     # Test Strategy Performance
     performance = StrategyPerformance(
@@ -364,8 +374,12 @@ def test_index_baseline():
     )
 
     print(f"✅ Strategy Performance: {performance.strategy_name}")
-    print(f"   Return: {performance.total_return:.1%}, Win Rate: {performance.win_rate:.1%}")
-    print(f"   Trades: {performance.total_trades}, Profit Factor: {performance.profit_factor:.1f}")
+    print(
+        f"   Return: {performance.total_return:.1%}, Win Rate: {performance.win_rate:.1%}"
+    )
+    print(
+        f"   Trades: {performance.total_trades}, Profit Factor: {performance.profit_factor:.1f}"
+    )
 
     print("✅ Index Baseline components working correctly + n")
 
@@ -378,7 +392,10 @@ def test_phase2_integration():
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         test_config = {
             "risk": {"max_position_risk": 0.10, "account_size": 100000.0},
-            "trading": {"universe": ["AAPL", "MSFT", "GOOGL"], "max_concurrent_trades": 5},
+            "trading": {
+                "universe": ["AAPL", "MSFT", "GOOGL"],
+                "max_concurrent_trades": 5,
+            },
         }
         json.dump(test_config, f)
         config_file = f.name

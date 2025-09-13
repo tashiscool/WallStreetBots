@@ -43,14 +43,21 @@ class WallStreetBotsLauncher:
 
         if missing_files:
             print(f"❌ Missing required files: {', '.join(missing_files)}")
-            print("   Make sure you're running this from the WallStreetBots root directory")
+            print(
+                "   Make sure you're running this from the WallStreetBots root directory"
+            )
             return False
 
         # Check Python
         python_exe = self.get_python_executable()
         try:
             result = subprocess.run(  # noqa: S603
-                [python_exe, "--version"], check=False, capture_output=True, text=True, timeout=10, shell=False
+                [python_exe, "--version"],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=10,
+                shell=False,
             )
             if result.returncode == 0:
                 print(f"✅ Python: {result.stdout.strip()}")
@@ -83,7 +90,7 @@ class WallStreetBotsLauncher:
                 [python_exe, "-m", "pip", "install", "--upgrade", "pip"],
                 check=True,
                 cwd=self.base_dir,
-                shell=False
+                shell=False,
             )
 
             # Install requirements
@@ -91,7 +98,7 @@ class WallStreetBotsLauncher:
                 [python_exe, "-m", "pip", "install", "-r", "requirements.txt"],
                 check=True,
                 cwd=self.base_dir,
-                shell=False
+                shell=False,
             )
 
             print("✅ Dependencies installed successfully")
@@ -136,8 +143,16 @@ class WallStreetBotsLauncher:
                 # Set environment variable to disable paper trading
                 env["WALLSTREETBOTS_REAL_MONEY"] = "true"
 
-            print(f"🚀 Starting {'Real Money' if real_money else 'Paper'} Trading Bot...")
-            subprocess.run([python_exe, "simple_bot.py"], check=False, cwd=self.base_dir, env=env, shell=False)  # noqa: S603
+            print(
+                f"🚀 Starting {'Real Money' if real_money else 'Paper'} Trading Bot..."
+            )
+            subprocess.run(
+                [python_exe, "simple_bot.py"],
+                check=False,
+                cwd=self.base_dir,
+                env=env,
+                shell=False,
+            )  # noqa: S603
 
         except KeyboardInterrupt:
             print("\n🛑 Bot stopped by user")
@@ -161,7 +176,13 @@ class WallStreetBotsLauncher:
             env["DJANGO_SETTINGS_MODULE"] = "backend.settings"
 
             print(f"🧪 Running {test_type} tests...")
-            subprocess.run([python_exe, test_file], check=False, cwd=self.base_dir, env=env, shell=False)  # noqa: S603
+            subprocess.run(
+                [python_exe, test_file],
+                check=False,
+                cwd=self.base_dir,
+                env=env,
+                shell=False,
+            )  # noqa: S603
 
         except subprocess.CalledProcessError as e:
             print(f"❌ Tests failed: {e}")
@@ -177,7 +198,11 @@ class WallStreetBotsLauncher:
             print("🔧 Starting Django development server...")
             print("   Access admin at: http://localhost: 8000 / admin/")
             subprocess.run(  # noqa: S603
-                [python_exe, "manage.py", "runserver"], check=False, cwd=self.base_dir, env=env, shell=False
+                [python_exe, "manage.py", "runserver"],
+                check=False,
+                cwd=self.base_dir,
+                env=env,
+                shell=False,
             )
 
         except KeyboardInterrupt:
@@ -195,7 +220,11 @@ class WallStreetBotsLauncher:
 
             print("📊 Running Risk Models Demo...")
             subprocess.run(  # noqa: S603
-                [python_exe, "demo_risk_models.py"], check=False, cwd=self.base_dir, env=env, shell=False
+                [python_exe, "demo_risk_models.py"],
+                check=False,
+                cwd=self.base_dir,
+                env=env,
+                shell=False,
             )
 
         except subprocess.CalledProcessError as e:
@@ -257,7 +286,9 @@ class WallStreetBotsLauncher:
             print("\n❌ Environment check failed!")
             if is_interactive:
                 try:
-                    response = input("Would you like to try installing dependencies? (y / n): ")
+                    response = input(
+                        "Would you like to try installing dependencies? (y / n): "
+                    )
                     if response.lower() == "y":
                         if not self.install_dependencies():
                             print("❌ Setup failed. Exiting.")
@@ -291,7 +322,9 @@ class WallStreetBotsLauncher:
                 elif arg == "--demo":
                     self.run_demo_risk_models()
                 elif arg == "--help":
-                    print("\nUse the interactive launcher: python3 run_wallstreetbots.py")
+                    print(
+                        "\nUse the interactive launcher: python3 run_wallstreetbots.py"
+                    )
                 else:
                     print(f"Unknown argument: {arg}")
             else:

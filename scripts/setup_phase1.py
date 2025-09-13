@@ -63,7 +63,17 @@ def create_config_files():
             "default_slippage": 0.002,
         },
         "trading": {
-            "universe": ["AAPL", "MSFT", "GOOGL", "GOOG", "META", "NVDA", "AVGO", "AMD", "TSLA"],
+            "universe": [
+                "AAPL",
+                "MSFT",
+                "GOOGL",
+                "GOOG",
+                "META",
+                "NVDA",
+                "AVGO",
+                "AMD",
+                "TSLA",
+            ],
             "scan_interval": 300,
             "max_concurrent_trades": 10,
             "enable_paper_trading": True,
@@ -258,7 +268,9 @@ def install_dependencies():
     print("📦 Installing Phase 1 dependencies...")
 
     # Install requirements
-    result = run_command("pip install -r requirements_phase1.txt", "Installing Python dependencies")
+    result = run_command(
+        "pip install -r requirements_phase1.txt", "Installing Python dependencies"
+    )
 
     if result is None:
         print("❌ Failed to install dependencies")

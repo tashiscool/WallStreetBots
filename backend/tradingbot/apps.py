@@ -19,7 +19,9 @@ def create_portfolio_dictionary(user):
     # }
     result["stocks"] = {}
     for stock_instance in stock_instances:
-        result["stocks"][stock_instance.stock.company.ticker] = float(stock_instance.quantity)
+        result["stocks"][stock_instance.stock.company.ticker] = float(
+            stock_instance.quantity
+        )
     return result
 
 

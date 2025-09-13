@@ -75,7 +75,9 @@ class MomentumWeekliesScanner:
         days_until_friday = (4 - today.weekday()) % 7  # Friday = 4
         if days_until_friday == 0:  # If today is Friday
             days_until_friday = 7
-        elif days_until_friday <= DAYS_THRESHOLD_EARLY_WEEK:  # If Mon / Tue, use this Friday
+        elif (
+            days_until_friday <= DAYS_THRESHOLD_EARLY_WEEK
+        ):  # If Mon / Tue, use this Friday
             pass
         else:  # Wed / Thu, use next Friday
             days_until_friday += 7
@@ -162,7 +164,9 @@ class MomentumWeekliesScanner:
             current_price = prices[-1]
 
             # Calculate resistance level (highest high in past 3 days)
-            resistance = np.max(prices[-100:-10])  # Exclude very recent to avoid false signals
+            resistance = np.max(
+                prices[-100:-10]
+            )  # Exclude very recent to avoid false signals
 
             # Check if breaking above resistance with volume
             if current_price > resistance * 1.002:  # 0.2% above resistance
@@ -201,11 +205,15 @@ class MomentumWeekliesScanner:
             current_price = stock.history(period="1d")["Close"].iloc[-1]
 
             # Rough weekly premium estimate for OTM calls
-            days_to_exp = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
+            days_to_exp = (
+                datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()
+            ).days
             time_value = max(0.5, 5.0 - days_to_exp * 0.3)  # Rough time value
 
             if strike > current_price:  # OTM
-                otm_discount = max(0.1, 1.0 - (strike - current_price) / current_price * 10)
+                otm_discount = max(
+                    0.1, 1.0 - (strike - current_price) / current_price * 10
+                )
                 return time_value * otm_discount
             else:  # ITM
                 intrinsic = current_price - strike
@@ -227,7 +235,9 @@ class MomentumWeekliesScanner:
                 has_volume_spike, vol_multiple = self.detect_volume_spike(ticker)
 
                 # Check for reversal pattern
-                has_reversal, _pattern_type, bounce_pct = self.detect_reversal_pattern(ticker)
+                has_reversal, _pattern_type, bounce_pct = self.detect_reversal_pattern(
+                    ticker
+                )
 
                 # Check for breakout
                 has_breakout, breakout_strength = self.detect_breakout_momentum(ticker)
@@ -246,14 +256,24 @@ class MomentumWeekliesScanner:
                     if has_breakout:
                         signal_type = "breakout"
                         momentum = breakout_strength
-                        risk = "medium" if vol_multiple < VOL_MULTIPLE_HIGH_RISK else "high"
+                        risk = (
+                            "medium"
+                            if vol_multiple < VOL_MULTIPLE_HIGH_RISK
+                            else "high"
+                        )
                     else:
                         signal_type = "bullish_reversal"
                         momentum = bounce_pct
-                        risk = "low" if vol_multiple < VOL_MULTIPLE_MEDIUM_RISK else "medium"
+                        risk = (
+                            "low"
+                            if vol_multiple < VOL_MULTIPLE_MEDIUM_RISK
+                            else "medium"
+                        )
 
                     # Target strike: 2 - 5% OTM depending on momentum strength
-                    if momentum > STRONG_MOMENTUM_THRESHOLD:  # Strong momentum - closer to money
+                    if (
+                        momentum > STRONG_MOMENTUM_THRESHOLD
+                    ):  # Strong momentum - closer to money
                         otm_pct = 0.02
                     elif momentum > MEDIUM_MOMENTUM_THRESHOLD:
                         otm_pct = 0.03
@@ -263,10 +283,14 @@ class MomentumWeekliesScanner:
                     target_strike = round(current_price * (1 + otm_pct))
 
                     # Get premium estimate
-                    premium = self.get_weekly_option_premium(ticker, target_strike, weekly_expiry)
+                    premium = self.get_weekly_option_premium(
+                        ticker, target_strike, weekly_expiry
+                    )
 
                     # Exit targets
-                    exit_target = current_price * (1 + otm_pct + 0.02)  # 2% above strike
+                    exit_target = current_price * (
+                        1 + otm_pct + 0.02
+                    )  # 2% above strike
                     stop_loss = current_price * 0.985  # 1.5% stop
 
                     signal = MomentumSignal(
@@ -311,7 +335,9 @@ class MomentumWeekliesScanner:
             output += f"   Current: ${signal.current_price:.2f}\n"
             output += f"   Volume Spike: {signal.volume_spike:.1f}x + n"
             output += f"   Momentum: {signal.price_momentum:.2%}\n"
-            output += f"   Target Strike: ${signal.target_strike} ({signal.weekly_expiry})\n"
+            output += (
+                f"   Target Strike: ${signal.target_strike} ({signal.weekly_expiry})\n"
+            )
             output += f"   Premium Est: ${signal.premium_estimate:.2f}\n"
             output += f"   Exit Target: ${signal.exit_target:.2f}\n"
             output += f"   Stop Loss: ${signal.stop_loss:.2f}\n"
@@ -327,12 +353,19 @@ class MomentumWeekliesScanner:
 
 def main():
     parser = argparse.ArgumentParser(description="WSB Momentum Weeklies Scanner")
-    parser.add_argument("--output", choices=["json", "text"], default="text", help="Output format")
     parser.add_argument(
-        "--min - volume-spike", type=float, default=3.0, help="Minimum volume spike multiple"
+        "--output", choices=["json", "text"], default="text", help="Output format"
     )
     parser.add_argument(
-        "--continuous", action="store_true", help="Run continuous scanning (5 - minute intervals)"
+        "--min - volume-spike",
+        type=float,
+        default=3.0,
+        help="Minimum volume spike multiple",
+    )
+    parser.add_argument(
+        "--continuous",
+        action="store_true",
+        help="Run continuous scanning (5 - minute intervals)",
     )
 
     args = parser.parse_args()
@@ -347,7 +380,11 @@ def main():
 
                 if signals:
                     if args.output == "json":
-                        print(json.dumps([asdict(s) for s in signals], indent=2, default=str))
+                        print(
+                            json.dumps(
+                                [asdict(s) for s in signals], indent=2, default=str
+                            )
+                        )
                     else:
                         print(scanner.format_signals_output(signals))
                 else:

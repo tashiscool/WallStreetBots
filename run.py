@@ -3,6 +3,7 @@
 WallStreetBots Production CLI
 Robust launcher for trading strategies with safety controls.
 """
+
 from __future__ import annotations
 import sys
 import os
@@ -27,6 +28,7 @@ try:
 except ImportError:
     # Fallback to simple settings
     from backend.tradingbot.config.simple_settings import load_settings, StrategyProfile
+
     ValidationError = ValueError
 from backend.tradingbot.data.client import MarketDataClient, BarSpec
 from backend.tradingbot.risk.engine import RiskEngine, RiskLimits
@@ -35,9 +37,10 @@ from backend.tradingbot.infra.obs import metrics as obs_metrics
 
 app = typer.Typer(
     add_completion=False,
-    help="WallStreetBots - Production trading system with safety controls"
+    help="WallStreetBots - Production trading system with safety controls",
 )
 console = Console()
+
 
 @app.command()
 def status():
@@ -51,10 +54,17 @@ def status():
         table.add_column("Value", style="green")
 
         table.add_row("Profile", settings.profile)
-        table.add_row("Paper Trading", "✅ ENABLED" if settings.alpaca_paper else "❌ LIVE MODE")
+        table.add_row(
+            "Paper Trading", "✅ ENABLED" if settings.alpaca_paper else "❌ LIVE MODE"
+        )
         table.add_row("Dry Run", "✅ ENABLED" if settings.dry_run else "❌ DISABLED")
-        table.add_row("Advanced Analytics", "✅" if settings.enable_advanced_analytics else "❌")
-        table.add_row("Market Regime Adapt", "✅" if settings.enable_market_regime_adaptation else "❌")
+        table.add_row(
+            "Advanced Analytics", "✅" if settings.enable_advanced_analytics else "❌"
+        )
+        table.add_row(
+            "Market Regime Adapt",
+            "✅" if settings.enable_market_regime_adaptation else "❌",
+        )
         table.add_row("Max Total Risk", f"{settings.max_total_risk:.1%}")
         table.add_row("Max Position Size", f"{settings.max_position_size:.1%}")
 
@@ -62,16 +72,20 @@ def status():
 
         # Safety warnings
         if not settings.alpaca_paper:
-            console.print(Panel(
-                "⚠️  LIVE TRADING MODE ENABLED ⚠️\nReal money at risk!",
-                style="bold red"
-            ))
+            console.print(
+                Panel(
+                    "⚠️  LIVE TRADING MODE ENABLED ⚠️\nReal money at risk!",
+                    style="bold red",
+                )
+            )
 
         if not settings.dry_run:
-            console.print(Panel(
-                "🔥 DRY RUN DISABLED 🔥\nOrders will be executed!",
-                style="bold yellow"
-            ))
+            console.print(
+                Panel(
+                    "🔥 DRY RUN DISABLED 🔥\nOrders will be executed!",
+                    style="bold yellow",
+                )
+            )
 
     except ValidationError as e:
         console.print(f"❌ Configuration error: {e}", style="bold red")
@@ -79,6 +93,7 @@ def status():
     except Exception as e:
         console.print(f"❌ Status check failed: {e}", style="bold red")
         raise typer.Exit(1) from e
+
 
 @app.command()
 def validate():
@@ -107,7 +122,7 @@ def validate():
         console.print("🔍 Testing risk engine...")
         risk_limits = RiskLimits(
             max_total_risk=settings.max_total_risk,
-            max_position_size=settings.max_position_size
+            max_position_size=settings.max_position_size,
         )
         risk_engine = RiskEngine(risk_limits)
 
@@ -128,15 +143,18 @@ def validate():
         console.print(f"❌ System validation failed: {e}", style="bold red")
         raise typer.Exit(1) from e
 
+
 @app.command()
 def bars(
     symbol: str = typer.Argument(..., help="Stock symbol (e.g., AAPL, SPY)"),
     interval: str = typer.Option("1d", help="Bar interval (1m, 5m, 1h, 1d)"),
-    lookback: str = typer.Option("30d", help="Lookback period (5d, 30d, 1y)")
+    lookback: str = typer.Option("30d", help="Lookback period (5d, 30d, 1y)"),
 ):
     """Fetch and display market data bars"""
     try:
-        console.print(f"📊 Fetching {symbol} data ({interval} bars, {lookback} lookback)...")
+        console.print(
+            f"📊 Fetching {symbol} data ({interval} bars, {lookback} lookback)..."
+        )
 
         data_client = MarketDataClient()
         spec = BarSpec(symbol.upper(), interval, lookback)
@@ -151,16 +169,23 @@ def bars(
         console.print(data.tail(10).to_string())
 
         # Basic stats
-        if 'close' in data.columns:
-            current_price = data['close'].iloc[-1]
-            price_change = data['close'].iloc[-1] - data['close'].iloc[-2] if len(data) > 1 else 0
-            pct_change = (price_change / data['close'].iloc[-2]) * 100 if len(data) > 1 and data['close'].iloc[-2] != 0 else 0
+        if "close" in data.columns:
+            current_price = data["close"].iloc[-1]
+            price_change = (
+                data["close"].iloc[-1] - data["close"].iloc[-2] if len(data) > 1 else 0
+            )
+            pct_change = (
+                (price_change / data["close"].iloc[-2]) * 100
+                if len(data) > 1 and data["close"].iloc[-2] != 0
+                else 0
+            )
 
             console.print(f"\n💰 Current: ${current_price:.2f} ({pct_change:+.2f}%)")
 
     except Exception as e:
         console.print(f"❌ Failed to fetch data: {e}", style="bold red")
         raise typer.Exit(1) from e
+
 
 @app.command()
 def metrics():
@@ -192,6 +217,7 @@ def metrics():
         console.print(f"❌ Failed to get metrics: {e}", style="bold red")
         raise typer.Exit(1) from e
 
+
 @app.command()
 def market():
     """Check if market is currently open"""
@@ -206,11 +232,13 @@ def market():
         console.print(f"❌ Failed to check market status: {e}", style="bold red")
         raise typer.Exit(1) from e
 
+
 @app.command()
 def version():
     """Show version information"""
     console.print("WallStreetBots v0.1.0")
     console.print("Production-ready algorithmic trading system")
+
 
 if __name__ == "__main__":
     app()

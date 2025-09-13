@@ -23,9 +23,7 @@ class TestComplianceGuard(unittest.TestCase):
         """High equity accounts should pass PDT checks."""
         # Should not raise with equity >= $25k
         self.guard.check_pdt(
-            account_equity=50_000.0,
-            pending_day_trades_count=5,
-            now=dt.datetime.now()
+            account_equity=50_000.0, pending_day_trades_count=5, now=dt.datetime.now()
         )
 
     def test_pdt_check_low_equity_violation(self):
@@ -34,15 +32,13 @@ class TestComplianceGuard(unittest.TestCase):
             self.guard.check_pdt(
                 account_equity=10_000.0,
                 pending_day_trades_count=4,
-                now=dt.datetime.now()
+                now=dt.datetime.now(),
             )
 
     def test_pdt_check_low_equity_safe(self):
         """Low equity accounts with < 4 day trades should pass."""
         self.guard.check_pdt(
-            account_equity=10_000.0,
-            pending_day_trades_count=3,
-            now=dt.datetime.now()
+            account_equity=10_000.0, pending_day_trades_count=3, now=dt.datetime.now()
         )
 
     def test_halt_check(self):
@@ -105,7 +101,9 @@ class TestComplianceGuard(unittest.TestCase):
         calendar = SessionCalendar()
 
         # Test regular session (1:30 PM UTC = 9:30 AM ET)
-        regular_time = dt.datetime(2025, 1, 15, 15, 0, tzinfo=dt.timezone.utc)  # 3 PM UTC
+        regular_time = dt.datetime(
+            2025, 1, 15, 15, 0, tzinfo=dt.timezone.utc
+        )  # 3 PM UTC
         self.assertEqual(calendar.session(regular_time), "regular")
 
         # Test pre-market (10:00 AM UTC = 6:00 AM ET)

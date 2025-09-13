@@ -23,8 +23,13 @@ RANDOM_THRESHOLD_30_PERCENT = 0.3
 # Add the project root to the Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from backend.tradingbot.risk.risk_aware_strategy_wrapper import create_risk_aware_strategy
-from backend.tradingbot.risk.risk_integration_manager import RiskIntegrationManager, RiskLimits
+from backend.tradingbot.risk.risk_aware_strategy_wrapper import (
+    create_risk_aware_strategy,
+)
+from backend.tradingbot.risk.risk_integration_manager import (
+    RiskIntegrationManager,
+    RiskLimits,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -39,10 +44,14 @@ class MockStrategy:
     def __init__(self, name: str):
         self.name = name
 
-    async def analyze_market(self, symbol: str, market_data: dict[str, Any]) -> dict[str, Any]:
+    async def analyze_market(
+        self, symbol: str, market_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """Mock market analysis."""
         return {
-            "signal": "buy" if np.random.random() > RANDOM_THRESHOLD_50_PERCENT else "sell",
+            "signal": "buy"
+            if np.random.random() > RANDOM_THRESHOLD_50_PERCENT
+            else "sell",
             "confidence": np.random.random(),
             "symbol": symbol,
         }
@@ -55,7 +64,9 @@ class MockStrategy:
         if np.random.random() > RANDOM_THRESHOLD_30_PERCENT:  # 70% chance of signal
             signals.append(
                 {
-                    "action": "buy" if np.random.random() > RANDOM_THRESHOLD_50_PERCENT else "sell",
+                    "action": "buy"
+                    if np.random.random() > RANDOM_THRESHOLD_50_PERCENT
+                    else "sell",
                     "quantity": np.random.randint(10, 100),
                     "symbol": symbol,
                     "confidence": np.random.random(),
@@ -92,9 +103,27 @@ async def test_risk_integration_standalone():
 
         # Simulate portfolio positions
         positions = {
-            "AAPL": {"qty": 100, "value": 15000, "delta": 0.6, "gamma": 0.01, "vega": 0.5},
-            "SPY": {"qty": 50, "value": 20000, "delta": 0.5, "gamma": 0.005, "vega": 0.3},
-            "TSLA": {"qty": 25, "value": 5000, "delta": 0.8, "gamma": 0.02, "vega": 0.8},
+            "AAPL": {
+                "qty": 100,
+                "value": 15000,
+                "delta": 0.6,
+                "gamma": 0.01,
+                "vega": 0.5,
+            },
+            "SPY": {
+                "qty": 50,
+                "value": 20000,
+                "delta": 0.5,
+                "gamma": 0.005,
+                "vega": 0.3,
+            },
+            "TSLA": {
+                "qty": 25,
+                "value": 5000,
+                "delta": 0.8,
+                "gamma": 0.02,
+                "vega": 0.8,
+            },
         }
 
         # Simulate market data
@@ -203,7 +232,9 @@ async def test_risk_integration_standalone():
         mock_earnings_strategy = MockStrategy("earnings_protection")
 
         # Create risk - aware wrappers
-        risk_aware_wsb = create_risk_aware_strategy(mock_wsb_strategy, risk_manager, "wsb_dip_bot")
+        risk_aware_wsb = create_risk_aware_strategy(
+            mock_wsb_strategy, risk_manager, "wsb_dip_bot"
+        )
         risk_aware_earnings = create_risk_aware_strategy(
             mock_earnings_strategy, risk_manager, "earnings_protection"
         )
@@ -220,7 +251,9 @@ async def test_risk_integration_standalone():
             print(f"     Reason: {wsb_result['reason']}")
 
         # Test Earnings Protection trade
-        earnings_result = await risk_aware_earnings.execute_trade("SPY", "buy", 50, 400.0)
+        earnings_result = await risk_aware_earnings.execute_trade(
+            "SPY", "buy", 50, 400.0
+        )
         print(f"   Earnings Protection trade: {earnings_result['success']}")
         if not earnings_result["success"]:
             print(f"     Reason: {earnings_result['reason']}")
@@ -245,7 +278,9 @@ async def test_risk_integration_standalone():
         utilization = risk_summary["utilization"]
         print(f"   VaR Utilization: {utilization['var_utilization']:.1%}")
         print(f"   CVaR Utilization: {utilization['cvar_utilization']:.1%}")
-        print(f"   Concentration Utilization: {utilization['concentration_utilization']:.1%}")
+        print(
+            f"   Concentration Utilization: {utilization['concentration_utilization']:.1%}"
+        )
         print(f"   Greeks Utilization: {utilization['greeks_utilization']:.1%}")
 
         # 8. Test Strategy Risk Status
@@ -329,7 +364,9 @@ async def main():
     success = await test_risk_integration_standalone()
 
     if success:
-        print("\n🎯 All tests passed! Risk - strategy integration is working correctly.")
+        print(
+            "\n🎯 All tests passed! Risk - strategy integration is working correctly."
+        )
         print("\nNext steps for Month 3 - 4: ")
         print("1. Integrate with real broker data")
         print("2. Connect to live market feeds")

@@ -31,7 +31,11 @@ class NaiveHMMPortfolioUpdate(PortfolioManager):
         self.end = end
         self.HMMdatafetcher = HMMdatafetcher
         self.HMM = HMM
-        self.num_hidden_states, self.covar_type, self.n_iter = num_hidden_states, covar_type, n_iter
+        self.num_hidden_states, self.covar_type, self.n_iter = (
+            num_hidden_states,
+            covar_type,
+            n_iter,
+        )
         self.utils()
 
     def utils(self):

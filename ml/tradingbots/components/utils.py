@@ -22,7 +22,11 @@ class DataFetcher:
 class AlpacaFetcher(DataFetcher):
     """wrapper around Alpaca API."""
 
-    TIMESTEP = {"MINUTE": TimeFrame.Minute, "HOUR": TimeFrame.Hour, "DAY": TimeFrame.Day}
+    TIMESTEP = {
+        "MINUTE": TimeFrame.Minute,
+        "HOUR": TimeFrame.Hour,
+        "DAY": TimeFrame.Day,
+    }
 
     def __init__(self, AlpacaID, AlpacaKey):
         super().__init__()
@@ -38,7 +42,9 @@ class AlpacaFetcher(DataFetcher):
         prices, _ = self.api.get_bar(ticker, TimeFrame.Minute, start, end)
         return prices[0]
 
-    def get_past_price(self, ticker, timestep, start, end, price_type="close", adjustment="all"):
+    def get_past_price(
+        self, ticker, timestep, start, end, price_type="close", adjustment="all"
+    ):
         timestep = self.TIMESTEP[timestep]
         prices, times = self.api.get_bar(
             ticker, timestep, start, end, price_type=price_type, adjustment=adjustment

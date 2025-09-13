@@ -465,7 +465,9 @@ class TestEarningsProtection(unittest.TestCase):
         self.assertEqual(candidate.days_to_earnings, 5)
         self.assertEqual(candidate.iv_rank, 0.8)
         self.assertEqual(candidate.earnings_score, 0.8)
-        self.assertEqual(candidate.strategy_recommended, EarningsStrategy.DEEP_ITM_PROTECTION)
+        self.assertEqual(
+            candidate.strategy_recommended, EarningsStrategy.DEEP_ITM_PROTECTION
+        )
 
 
 class TestSwingTrading(unittest.TestCase):
@@ -794,7 +796,9 @@ class TestPhase3EndToEnd(unittest.TestCase):
         )
 
         self.assertEqual(candidate.earnings_score, 0.8)
-        self.assertEqual(candidate.strategy_recommended, EarningsStrategy.DEEP_ITM_PROTECTION)
+        self.assertEqual(
+            candidate.strategy_recommended, EarningsStrategy.DEEP_ITM_PROTECTION
+        )
 
     def test_swing_trading_workflow(self):
         """Test complete swing trading workflow."""

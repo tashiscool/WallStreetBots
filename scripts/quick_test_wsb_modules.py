@@ -216,7 +216,9 @@ def test_basic_functionality():
             trend_direction="bullish",
         )
 
-        entry_score, exit_score = tracker.calculate_entry_exit_timing_scores(ma_cross, 112.0)
+        entry_score, exit_score = tracker.calculate_entry_exit_timing_scores(
+            ma_cross, 112.0
+        )
         assert 0 <= entry_score <= 100
         assert 0 <= exit_score <= 100
 
@@ -237,7 +239,9 @@ def generate_summary(import_results, functionality_results):
 
     total_modules = len(import_results)
     successful_imports = len([r for r in import_results.values() if "SUCCESS" in r])
-    functional_modules = len([r for r in functionality_results.values() if "FUNCTIONAL" in r])
+    functional_modules = len(
+        [r for r in functionality_results.values() if "FUNCTIONAL" in r]
+    )
 
     print("📊 RESULTS: ")
     print(f"   Total WSB Strategy Modules: {total_modules}")
@@ -252,16 +256,23 @@ def generate_summary(import_results, functionality_results):
     all_modules = set(list(import_results.keys()) + list(functionality_results.keys()))
     for module in sorted(all_modules):
         import_status = "✅" if "SUCCESS" in import_results.get(module, "") else "❌"
-        func_status = "✅" if "FUNCTIONAL" in functionality_results.get(module, "") else "❌"
+        func_status = (
+            "✅" if "FUNCTIONAL" in functionality_results.get(module, "") else "❌"
+        )
         enhanced = "(Enhanced)" if "Enhanced" in import_results.get(module, "") else ""
-        print(f"   {module: 20} {import_status} Import  {func_status} Function  {enhanced}")
+        print(
+            f"   {module: 20} {import_status} Import  {func_status} Function  {enhanced}"
+        )
 
     # Overall assessment
     if successful_imports == total_modules and functional_modules == total_modules:
         status = "🎉 ALL SYSTEMS GO!"
         description = "All WSB strategy modules are working correctly"
         readiness = "READY"
-    elif successful_imports >= total_modules * 0.8 and functional_modules >= total_modules * 0.8:
+    elif (
+        successful_imports >= total_modules * 0.8
+        and functional_modules >= total_modules * 0.8
+    ):
         status = "✅ MOSTLY WORKING"
         description = "Most modules working, minor issues"
         readiness = "MOSTLY_READY"

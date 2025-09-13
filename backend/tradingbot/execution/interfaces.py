@@ -7,6 +7,7 @@ OrderSide = Literal["buy", "sell"]
 OrderType = Literal["market", "limit"]
 TimeInForce = Literal["day", "gtc", "ioc", "fok"]
 
+
 @dataclass(frozen=True)
 class OrderRequest:
     client_order_id: str
@@ -17,12 +18,14 @@ class OrderRequest:
     time_in_force: TimeInForce = "day"
     limit_price: Optional[float] = None
 
+
 @dataclass(frozen=True)
 class OrderAck:
     client_order_id: str
     broker_order_id: Optional[str]
     accepted: bool
     reason: Optional[str] = None
+
 
 @dataclass(frozen=True)
 class OrderFill:
@@ -31,6 +34,7 @@ class OrderFill:
     avg_price: float
     filled_qty: float
     status: Literal["partially_filled", "filled", "canceled", "rejected"]
+
 
 class ExecutionClient:
     """Abstract broker execution contract."""

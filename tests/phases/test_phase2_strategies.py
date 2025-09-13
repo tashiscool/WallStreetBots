@@ -430,10 +430,19 @@ class TestPhase2Integration(unittest.TestCase):
 
         # Create test configuration
         test_config = {
-            "data_providers": {"iex_api_key": "test_key", "polygon_api_key": "test_key"},
-            "broker": {"alpaca_api_key": "test_key", "alpaca_secret_key": "test_secret"},
+            "data_providers": {
+                "iex_api_key": "test_key",
+                "polygon_api_key": "test_key",
+            },
+            "broker": {
+                "alpaca_api_key": "test_key",
+                "alpaca_secret_key": "test_secret",
+            },
             "risk": {"max_position_risk": 0.10, "account_size": 100000.0},
-            "trading": {"universe": ["AAPL", "MSFT", "GOOGL"], "max_concurrent_trades": 5},
+            "trading": {
+                "universe": ["AAPL", "MSFT", "GOOGL"],
+                "max_concurrent_trades": 5,
+            },
         }
 
         with open(self.config_file, "w") as f:

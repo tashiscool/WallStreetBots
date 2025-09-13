@@ -22,7 +22,9 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 TEST_API_KEY = "test_key_not_real"
 TEST_SECRET_KEY = "test_secret_not_real"
 
-from backend.tradingbot.production.core.production_strategy_manager import StrategyProfile
+from backend.tradingbot.production.core.production_strategy_manager import (
+    StrategyProfile,
+)
 from backend.tradingbot.risk.risk_integrated_production_manager import (
     RiskIntegratedConfig,
     RiskIntegratedProductionManager,
@@ -88,9 +90,27 @@ async def test_risk_strategy_integration():
 
         # Simulate portfolio positions
         positions = {
-            "AAPL": {"qty": 100, "value": 15000, "delta": 0.6, "gamma": 0.01, "vega": 0.5},
-            "SPY": {"qty": 50, "value": 20000, "delta": 0.5, "gamma": 0.005, "vega": 0.3},
-            "TSLA": {"qty": 25, "value": 5000, "delta": 0.8, "gamma": 0.02, "vega": 0.8},
+            "AAPL": {
+                "qty": 100,
+                "value": 15000,
+                "delta": 0.6,
+                "gamma": 0.01,
+                "vega": 0.5,
+            },
+            "SPY": {
+                "qty": 50,
+                "value": 20000,
+                "delta": 0.5,
+                "gamma": 0.005,
+                "vega": 0.3,
+            },
+            "TSLA": {
+                "qty": 25,
+                "value": 5000,
+                "delta": 0.8,
+                "gamma": 0.02,
+                "vega": 0.8,
+            },
         }
 
         # Simulate market data
@@ -210,7 +230,9 @@ async def test_risk_strategy_integration():
         utilization = risk_summary["utilization"]
         print(f"   VaR Utilization: {utilization['var_utilization']:.1%}")
         print(f"   CVaR Utilization: {utilization['cvar_utilization']:.1%}")
-        print(f"   Concentration Utilization: {utilization['concentration_utilization']:.1%}")
+        print(
+            f"   Concentration Utilization: {utilization['concentration_utilization']:.1%}"
+        )
         print(f"   Greeks Utilization: {utilization['greeks_utilization']:.1%}")
 
         # 7. Test Strategy Integration (Simulated)
@@ -220,7 +242,9 @@ async def test_risk_strategy_integration():
         print("   Simulating strategy trade execution...")
 
         # Test WSB Dip Bot trade
-        wsb_result = await manager.execute_strategy_trade("wsb_dip_bot", "AAPL", "buy", 100, 150.0)
+        wsb_result = await manager.execute_strategy_trade(
+            "wsb_dip_bot", "AAPL", "buy", 100, 150.0
+        )
         print(f"   WSB Dip Bot trade: {wsb_result['success']}")
         if not wsb_result["success"]:
             print(f"     Reason: {wsb_result['reason']}")
@@ -239,12 +263,18 @@ async def test_risk_strategy_integration():
         system_status = await manager.get_system_status()
 
         print("✅ System Status Retrieved: ")
-        print(f"   Risk Management Enabled: {system_status['risk_management']['enabled']}")
-        print(f"   Monitoring Active: {system_status['risk_management']['monitoring_active']}")
+        print(
+            f"   Risk Management Enabled: {system_status['risk_management']['enabled']}"
+        )
+        print(
+            f"   Monitoring Active: {system_status['risk_management']['monitoring_active']}"
+        )
         print(f"   Within Limits: {system_status['risk_management']['within_limits']}")
 
         if system_status["risk_management"]["alerts"]:
-            print(f"   Active Alerts: {len(system_status['risk_management']['alerts'])}")
+            print(
+                f"   Active Alerts: {len(system_status['risk_management']['alerts'])}"
+            )
             for alert in system_status["risk_management"]["alerts"]:
                 print(f"     - {alert}")
 
@@ -253,7 +283,9 @@ async def test_risk_strategy_integration():
 
         risk_performance = system_status["risk_performance"]
         print(f"   Risk Calculations: {risk_performance['risk_calculations_count']}")
-        print(f"   Trades Blocked by Risk: {risk_performance['trades_blocked_by_risk']}")
+        print(
+            f"   Trades Blocked by Risk: {risk_performance['trades_blocked_by_risk']}"
+        )
         print(f"   Risk Adjustments Made: {risk_performance['risk_adjustments_made']}")
 
         # 10. Test Risk Limits Update
@@ -273,7 +305,9 @@ async def test_risk_strategy_integration():
         print("✅ Risk limits updated to more conservative settings")
 
         # Test trade with new limits
-        test_result = await manager.execute_strategy_trade("wsb_dip_bot", "TSLA", "buy", 200, 200.0)
+        test_result = await manager.execute_strategy_trade(
+            "wsb_dip_bot", "TSLA", "buy", 200, 200.0
+        )
         print(f"   Trade with new limits: {test_result['success']}")
         if not test_result["success"]:
             print(f"     Reason: {test_result['reason']}")
@@ -311,7 +345,9 @@ async def main():
     success = await test_risk_strategy_integration()
 
     if success:
-        print("\n🎯 All tests passed! Risk - strategy integration is working correctly.")
+        print(
+            "\n🎯 All tests passed! Risk - strategy integration is working correctly."
+        )
         print("\nNext steps for Month 3 - 4: ")
         print("1. Integrate with real broker data")
         print("2. Connect to live market feeds")

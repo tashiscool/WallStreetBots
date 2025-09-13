@@ -23,7 +23,7 @@ class TestOptionsAssignmentRisk(unittest.TestCase):
             underlying="AAPL",
             strike=180.0,
             right="C",
-            expiry=self.today
+            expiry=self.today,
         )
 
         self.call_otm = OptionContract(
@@ -31,7 +31,7 @@ class TestOptionsAssignmentRisk(unittest.TestCase):
             underlying="AAPL",
             strike=200.0,
             right="C",
-            expiry=self.today
+            expiry=self.today,
         )
 
         self.put_itm = OptionContract(
@@ -39,7 +39,7 @@ class TestOptionsAssignmentRisk(unittest.TestCase):
             underlying="AAPL",
             strike=200.0,
             right="P",
-            expiry=self.today
+            expiry=self.today,
         )
 
     def test_auto_exercise_calls_itm(self):
@@ -68,7 +68,9 @@ class TestOptionsAssignmentRisk(unittest.TestCase):
         self.assertFalse(auto_exercise_likely(self.call_itm, underlying))
 
         # Should trigger with lower threshold
-        self.assertTrue(auto_exercise_likely(self.call_itm, underlying, threshold=0.001))
+        self.assertTrue(
+            auto_exercise_likely(self.call_itm, underlying, threshold=0.001)
+        )
 
     def test_auto_exercise_non_expiry(self):
         """Auto-exercise should only apply on expiry date."""
@@ -78,7 +80,7 @@ class TestOptionsAssignmentRisk(unittest.TestCase):
             underlying="AAPL",
             strike=180.0,
             right="C",
-            expiry=self.tomorrow
+            expiry=self.tomorrow,
         )
 
         underlying = UnderlyingState(price=185.0)
@@ -90,9 +92,7 @@ class TestOptionsAssignmentRisk(unittest.TestCase):
         """Early assignment risk should increase before ex-dividend."""
         # Deep ITM call with ex-div tomorrow
         underlying = UnderlyingState(
-            price=200.0,
-            next_ex_div_date=self.tomorrow,
-            div_amount=2.0
+            price=200.0, next_ex_div_date=self.tomorrow, div_amount=2.0
         )
 
         call_deep_itm = OptionContract(
@@ -100,7 +100,7 @@ class TestOptionsAssignmentRisk(unittest.TestCase):
             underlying="AAPL",
             strike=180.0,
             right="C",
-            expiry=dt.date(2025, 3, 21)
+            expiry=dt.date(2025, 3, 21),
         )
 
         # Should indicate early assignment risk
@@ -109,18 +109,14 @@ class TestOptionsAssignmentRisk(unittest.TestCase):
     def test_early_assignment_risk_no_dividend(self):
         """No early assignment risk without dividend."""
         # Deep ITM call with no dividend
-        underlying = UnderlyingState(
-            price=200.0,
-            next_ex_div_date=None,
-            div_amount=0.0
-        )
+        underlying = UnderlyingState(price=200.0, next_ex_div_date=None, div_amount=0.0)
 
         call_deep_itm = OptionContract(
             symbol="AAPL 2025-03-21 180 C",
             underlying="AAPL",
             strike=180.0,
             right="C",
-            expiry=dt.date(2025, 3, 21)
+            expiry=dt.date(2025, 3, 21),
         )
 
         # Should not indicate early assignment risk
@@ -129,9 +125,7 @@ class TestOptionsAssignmentRisk(unittest.TestCase):
     def test_early_assignment_risk_puts(self):
         """Puts should not have early assignment risk around ex-div."""
         underlying = UnderlyingState(
-            price=150.0,
-            next_ex_div_date=self.tomorrow,
-            div_amount=2.0
+            price=150.0, next_ex_div_date=self.tomorrow, div_amount=2.0
         )
 
         put_deep_itm = OptionContract(
@@ -139,7 +133,7 @@ class TestOptionsAssignmentRisk(unittest.TestCase):
             underlying="AAPL",
             strike=200.0,
             right="P",
-            expiry=dt.date(2025, 3, 21)
+            expiry=dt.date(2025, 3, 21),
         )
 
         # Puts should not have early assignment risk for dividends
@@ -175,7 +169,7 @@ class TestOptionsAssignmentRisk(unittest.TestCase):
             underlying="AAPL",
             strike=180.0,
             right="C",
-            expiry=self.tomorrow
+            expiry=self.tomorrow,
         )
 
         underlying = UnderlyingState(price=180.0)

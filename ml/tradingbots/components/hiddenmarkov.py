@@ -15,7 +15,9 @@ class APImanager:  # API manager for Alpaca
         self.SECRET_KEY = SECRET_KEY
         self.api = tradeapi.REST(API_KEY, SECRET_KEY, self.BASE_URL, api_version="v2")
 
-    def get_bar(self, symbol, timestep, start, end, price_type="close", adjustment="all"):
+    def get_bar(
+        self, symbol, timestep, start, end, price_type="close", adjustment="all"
+    ):
         """Get a list of prices from latest to oldest with a timestep.
 
         Args:
@@ -30,7 +32,9 @@ class APImanager:  # API manager for Alpaca
           - a list of time associated with each price
         """
         try:
-            bars = self.api.get_bars(symbol, timestep, start, end, adjustment=adjustment).df
+            bars = self.api.get_bars(
+                symbol, timestep, start, end, adjustment=adjustment
+            ).df
             if bars.empty:
                 return [], []
             # print(bars)
@@ -100,14 +104,20 @@ class DataManager:
 
     def get_data(self, adjustment, open):
         if open:
-            start_date_open = datetime.strptime(self.start_date, "%Y-%m-%d").date() + timedelta(
-                days=1
-            )
-            end_date_open = datetime.strptime(self.end_date, "%Y-%m-%d").date() + timedelta(days=1)
+            start_date_open = datetime.strptime(
+                self.start_date, "%Y-%m-%d"
+            ).date() + timedelta(days=1)
+            end_date_open = datetime.strptime(
+                self.end_date, "%Y-%m-%d"
+            ).date() + timedelta(days=1)
             str_start_date_open = start_date_open.strftime("%Y-%m-%d")
             str_end_date_open = end_date_open.strftime("%Y-%m-%d")
             df = self.api.api.get_bars(
-                self.ticker, TimeFrame.Day, str_start_date_open, str_end_date_open, adjustment
+                self.ticker,
+                TimeFrame.Day,
+                str_start_date_open,
+                str_end_date_open,
+                adjustment,
             ).df[["open"]]  # get data
 
             df["timestamp"] = df.index
@@ -115,18 +125,25 @@ class DataManager:
             df["date"] = df["timestamp"].dt.date  # get date column
 
             true_start_date = max(
-                datetime.strptime(str_start_date_open, "%Y-%m-%d").date(), df["date"].iloc[0]
+                datetime.strptime(str_start_date_open, "%Y-%m-%d").date(),
+                df["date"].iloc[0],
             )
             true_end_date = min(
                 datetime.strptime(str_end_date_open, "%Y-%m-%d").date(),
                 df["date"].iloc[df.shape[0] - 1],
             )
 
-            true_df = df[(df["date"] >= true_start_date) & (df["date"] <= true_end_date)]
+            true_df = df[
+                (df["date"] >= true_start_date) & (df["date"] <= true_end_date)
+            ]
             return true_df
         else:
             df = self.api.api.get_bars(
-                self.ticker, TimeFrame.Minute, self.start_date, self.end_date, adjustment
+                self.ticker,
+                TimeFrame.Minute,
+                self.start_date,
+                self.end_date,
+                adjustment,
             ).df[["close"]]  # get data
 
             df["timestamp"] = df.index
@@ -134,14 +151,17 @@ class DataManager:
             df["date"] = df["timestamp"].dt.date  # get date column
 
             true_start_date = max(
-                datetime.strptime(self.start_date, "%Y-%m-%d").date(), df["date"].iloc[0]
+                datetime.strptime(self.start_date, "%Y-%m-%d").date(),
+                df["date"].iloc[0],
             )
             true_end_date = min(
                 datetime.strptime(self.end_date, "%Y-%m-%d").date(),
                 df["date"].iloc[df.shape[0] - 1],
             )
 
-            true_df = df[(df["date"] >= true_start_date) & (df["date"] <= true_end_date)]
+            true_df = df[
+                (df["date"] >= true_start_date) & (df["date"] <= true_end_date)
+            ]
             return true_df
 
     def align_data(self, adjustment):
@@ -158,7 +178,10 @@ class DataManager:
 
         if new_open["date"][0] == new_close["date"][0]:
             new_open = new_open.iloc[1:]
-        if new_open["date"][new_open.shape[0] - 1] == new_close["date"][new_close.shape[0] - 1]:
+        if (
+            new_open["date"][new_open.shape[0] - 1]
+            == new_close["date"][new_close.shape[0] - 1]
+        ):
             new_close = new_close.iloc[:-1]
 
         self.open = new_open
@@ -239,7 +262,9 @@ class HMM:
             # pred.append(float(model.means_[next_hid]))
             pred.append(
                 self.data.first_day[i]
-                + float(np.random.normal(self.mean[next_hid], self.var[next_hid][0][0], 1))
+                + float(
+                    np.random.normal(self.mean[next_hid], self.var[next_hid][0][0], 1)
+                )
             )
 
         self.pred = pred
@@ -252,7 +277,9 @@ class HMM:
             j += list(self.data.close["date"].value_counts())[i]
             last_data = self.data.close["close"][j] + self.data.first_day[i]
             pred_trend = self.pred[i] > last_data  # new_open['open'][i - 1]
-            true_trend = self.data.open["open"][i] > last_data  # new_open['open'][i - 1]
+            true_trend = (
+                self.data.open["open"][i] > last_data
+            )  # new_open['open'][i - 1]
             if pred_trend == true_trend:
                 c += 1
             if true_trend:

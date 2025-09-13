@@ -115,7 +115,9 @@ def bs_call_price(
     if any(val <= 0 for val in [spot, strike, t_years, iv]):
         raise ValueError("Invalid BS parameters")
 
-    d1 = (math.log(spot / strike) + (r - q + 0.5 * iv * iv) * t_years) / (iv * math.sqrt(t_years))
+    d1 = (math.log(spot / strike) + (r - q + 0.5 * iv * iv) * t_years) / (
+        iv * math.sqrt(t_years)
+    )
     d2 = d1 - iv * math.sqrt(t_years)
 
     call_value = spot * math.exp(-q * t_years) * _norm_cdf(d1) - strike * math.exp(
@@ -238,7 +240,9 @@ def fetch_current_price(ticker: str) -> dict[str, float] | None:
         return None
 
 
-def get_options_chain_data(ticker: str, expiry: str, target_strike: float) -> dict | None:
+def get_options_chain_data(
+    ticker: str, expiry: str, target_strike: float
+) -> dict | None:
     """Get real options chain data for specific expiry and strike."""
     try:
         ticker_obj = yf.Ticker(ticker)
@@ -254,12 +258,18 @@ def get_options_chain_data(ticker: str, expiry: str, target_strike: float) -> di
 
         return {
             "strike": float(closest_option["strike"]),
-            "bid": float(closest_option["bid"]) if not pd.isna(closest_option["bid"]) else 0.0,
-            "ask": float(closest_option["ask"]) if not pd.isna(closest_option["ask"]) else 0.0,
+            "bid": float(closest_option["bid"])
+            if not pd.isna(closest_option["bid"])
+            else 0.0,
+            "ask": float(closest_option["ask"])
+            if not pd.isna(closest_option["ask"])
+            else 0.0,
             "last_price": float(closest_option["lastPrice"])
             if not pd.isna(closest_option["lastPrice"])
             else 0.0,
-            "volume": int(closest_option["volume"]) if not pd.isna(closest_option["volume"]) else 0,
+            "volume": int(closest_option["volume"])
+            if not pd.isna(closest_option["volume"])
+            else 0,
             "open_interest": int(closest_option["openInterest"])
             if not pd.isna(closest_option["openInterest"])
             else 0,
@@ -294,7 +304,9 @@ def detect_eod_signal(
         day_change = (today["Close"] / yesterday["Close"]) - 1.0
 
         # Check if it's a hard dip
-        if day_change > dip_pct:  # dip_pct is negative, so this checks if decline is big enough
+        if (
+            day_change > dip_pct
+        ):  # dip_pct is negative, so this checks if decline is big enough
             return None
 
         # Check for big run in prior period (ending yesterday)
@@ -399,7 +411,9 @@ def create_exact_clone_plan(
         expiry_date = nearest_expiry(available_expiries, target_dte)
 
         if expiry_date:
-            actual_dte = (datetime.strptime(expiry_date, "%Y-%m-%d").date() - date.today()).days
+            actual_dte = (
+                datetime.strptime(expiry_date, "%Y-%m-%d").date() - date.today()
+            ).days
     except Exception:
         # Fallback to synthetic expiry
         expiry_date = (date.today() + timedelta(days=target_dte)).isoformat()
@@ -447,7 +461,9 @@ def create_exact_clone_plan(
 
     # Position sizing (exact clone style-high deployment)
     deploy_capital = account_size * deploy_pct
-    contracts = int(deploy_capital / premium_per_contract) if premium_per_contract > 0 else 0
+    contracts = (
+        int(deploy_capital / premium_per_contract) if premium_per_contract > 0 else 0
+    )
     total_cost = contracts * premium_per_contract
 
     # Risk calculations
@@ -525,7 +541,9 @@ def run_eod_scan(
                 print(
                     f"      Premium: ${plan.premium_per_contract:.2f} per contract ({plan.pricing_source})"
                 )
-                print(f"      Position: {plan.contracts:,} contracts=${plan.total_cost: ,.0f}")
+                print(
+                    f"      Position: {plan.contracts:,} contracts=${plan.total_cost: ,.0f}"
+                )
                 print(f"      Risk: {plan.ruin_risk_percentage:.1f}% of account")
                 print(f"      Leverage: {plan.effective_leverage:.1f}x")
                 print(f"      Breakeven: ${plan.breakeven_at_expiry:.2f}")
@@ -607,7 +625,9 @@ def run_intraday_scan(
                         )
 
                         print("   📋 TRADE PLAN: ")
-                        print(f"      Strike: ${plan.strike} ({plan.otm_percentage: .1%} OTM)")
+                        print(
+                            f"      Strike: ${plan.strike} ({plan.otm_percentage: .1%} OTM)"
+                        )
                         print(f"      Expiry: {plan.expiry_date} ({plan.dte_days} DTE)")
                         print(
                             f"      Premium: ${plan.premium_per_contract:.2f} per contract ({plan.pricing_source})"
@@ -615,7 +635,9 @@ def run_intraday_scan(
                         print(
                             f"      Position: {plan.contracts:,} contracts=${plan.total_cost: ,.0f}"
                         )
-                        print(f"      Risk: {plan.ruin_risk_percentage:.1f}% of account")
+                        print(
+                            f"      Risk: {plan.ruin_risk_percentage:.1f}% of account"
+                        )
                         print(f"      Leverage: {plan.effective_leverage:.1f}x")
                         print(
                             f"      Exit targets: ${plan.exit_3x_target:.2f} (3x) | ${plan.exit_4x_target: .2f} (4x)"
@@ -672,7 +694,9 @@ def write_results(results: ScanResults, output_prefix: str) -> None:
         "scan_summary": asdict(results),
         "total_signals": len(results.signals),
         "total_capital_at_risk": sum(p.total_cost for p in results.trade_plans),
-        "average_risk_per_trade": sum(p.ruin_risk_percentage for p in results.trade_plans)
+        "average_risk_per_trade": sum(
+            p.ruin_risk_percentage for p in results.trade_plans
+        )
         / len(results.trade_plans)
         if results.trade_plans
         else 0,
@@ -723,7 +747,10 @@ Examples:
 
     # Account sizing
     parser.add_argument(
-        "--account - size", type=float, default=500000.0, help="Total account size in dollars"
+        "--account - size",
+        type=float,
+        default=500000.0,
+        help="Total account size in dollars",
     )
     parser.add_argument(
         "--deploy - pct",
@@ -755,18 +782,30 @@ Examples:
 
     # Signal parameters
     parser.add_argument(
-        "--run - lookback", type=int, default=RUN_LOOKBACK, help="Days to look back for big run"
+        "--run - lookback",
+        type=int,
+        default=RUN_LOOKBACK,
+        help="Days to look back for big run",
     )
     parser.add_argument(
-        "--run - pct", type=float, default=RUN_PCT, help="Minimum run percentage to qualify"
+        "--run - pct",
+        type=float,
+        default=RUN_PCT,
+        help="Minimum run percentage to qualify",
     )
     parser.add_argument(
-        "--dip - pct", type=float, default=DIP_PCT, help="Minimum dip percentage (negative)"
+        "--dip - pct",
+        type=float,
+        default=DIP_PCT,
+        help="Minimum dip percentage (negative)",
     )
 
     # Output
     parser.add_argument(
-        "--output - prefix", type=str, default="hard_dip_scan", help="Prefix for output files"
+        "--output - prefix",
+        type=str,
+        default="hard_dip_scan",
+        help="Prefix for output files",
     )
 
     args = parser.parse_args()

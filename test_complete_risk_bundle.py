@@ -68,7 +68,8 @@ class TestCompleteRiskBundle(unittest.TestCase):
             self.risk_engine.portfolio_data[symbol] = {
                 "data": hist_data,
                 "weight": self.test_weights[self.test_symbols.index(symbol)],
-                "bid_ask_spread": 0.001 + np.random.random() * 0.002,  # 0.1 - 0.3% spread
+                "bid_ask_spread": 0.001
+                + np.random.random() * 0.002,  # 0.1 - 0.3% spread
                 "returns": hist_data["Close"].pct_change().dropna(),
             }
 
@@ -93,7 +94,12 @@ class TestCompleteRiskBundle(unittest.TestCase):
         self.assertIn("monte_carlo", var_methods)
 
         # VaR should be positive (loss values)
-        for method in ["historical", "parametric_normal", "parametric_t", "monte_carlo"]:
+        for method in [
+            "historical",
+            "parametric_normal",
+            "parametric_t",
+            "monte_carlo",
+        ]:
             self.assertGreater(var_methods[method], 0)
             self.assertLess(var_methods[method], 1)  # Should be reasonable
 
@@ -211,7 +217,9 @@ def run_comprehensive_test_suite():
         print("   ✅ Comprehensive risk reporting")
 
     else:
-        print(f"❌ TESTS FAILED: {len(result.failures)} failures, {len(result.errors)} errors")
+        print(
+            f"❌ TESTS FAILED: {len(result.failures)} failures, {len(result.errors)} errors"
+        )
 
     print(" = " * 60)
     return result.wasSuccessful()

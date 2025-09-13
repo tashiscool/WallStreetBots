@@ -51,8 +51,12 @@ class TechnicalIndicators:
 
     def __post_init__(self):
         """Calculate derived indicators."""
-        self.distance_from_20ema = (self.price - self.ema_20) / self.price if self.price > 0 else 0
-        self.distance_from_50ema = (self.price - self.ema_50) / self.price if self.price > 0 else 0
+        self.distance_from_20ema = (
+            (self.price - self.ema_20) / self.price if self.price > 0 else 0
+        )
+        self.distance_from_50ema = (
+            (self.price - self.ema_50) / self.price if self.price > 0 else 0
+        )
 
 
 @dataclass
@@ -140,7 +144,9 @@ class TechnicalAnalysis:
         true_ranges = []
         for i in range(1, len(closes)):
             tr = max(
-                highs[i] - lows[i], abs(highs[i] - closes[i - 1]), abs(lows[i] - closes[i - 1])
+                highs[i] - lows[i],
+                abs(highs[i] - closes[i - 1]),
+                abs(lows[i] - closes[i - 1]),
             )
             true_ranges.append(tr)
 
@@ -237,7 +243,9 @@ class MarketRegimeFilter:
         4. Still above 50 - EMA (regime intact)
         """
         # Previous day was red (approximated by significant decline)
-        prev_day_red = indicators.price < prev_indicators.price * 0.998  # At least 0.2% decline
+        prev_day_red = (
+            indicators.price < prev_indicators.price * 0.998
+        )  # At least 0.2% decline
 
         # Near 20 - EMA (within 1% or touching)
         near_20ema = (
@@ -246,7 +254,9 @@ class MarketRegimeFilter:
         )
 
         # RSI in pullback range
-        rsi_in_range = self.rsi_pullback_min <= indicators.rsi_14 <= self.rsi_pullback_max
+        rsi_in_range = (
+            self.rsi_pullback_min <= indicators.rsi_14 <= self.rsi_pullback_max
+        )
 
         # Still above 50 - EMA (trend intact)
         above_50ema = indicators.price > indicators.ema_50
@@ -344,7 +354,9 @@ class SignalGenerator:
                     current_indicators, previous_indicators
                 )
 
-                return MarketSignal(SignalType.BUY, confidence, regime, reasoning=reasoning)
+                return MarketSignal(
+                    SignalType.BUY, confidence, regime, reasoning=reasoning
+                )
             else:
                 reasoning.append("Pullback setup present but awaiting reversal trigger")
                 return MarketSignal(SignalType.HOLD, 0.3, regime, reasoning=reasoning)

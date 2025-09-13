@@ -102,7 +102,9 @@ class BacktestEngine:
     async def run_backtest(self, strategy, config: BacktestConfig) -> BacktestResults:
         """Run comprehensive backtest."""
         try:
-            self.logger.info(f"Starting backtest from {config.start_date} to {config.end_date}")
+            self.logger.info(
+                f"Starting backtest from {config.start_date} to {config.end_date}"
+            )
 
             # Initialize backtesting state
             self._initialize_backtest(config)
@@ -175,9 +177,9 @@ class BacktestEngine:
             # Mock current price update
             current_price = position["entry_price"] * (1 + 0.001)  # 0.1% daily return
             position["current_price"] = current_price
-            position["unrealized_pnl"] = (current_price - position["entry_price"]) * position[
-                "quantity"
-            ]
+            position["unrealized_pnl"] = (
+                current_price - position["entry_price"]
+            ) * position["quantity"]
             total_value += position["unrealized_pnl"]
 
         self.portfolio_value = total_value
@@ -241,7 +243,9 @@ class BacktestEngine:
         except Exception as e:
             self.logger.error(f"Error processing signal: {e}")
 
-    async def _execute_buy(self, ticker: str, quantity: int, price: float, config: BacktestConfig):
+    async def _execute_buy(
+        self, ticker: str, quantity: int, price: float, config: BacktestConfig
+    ):
         """Execute buy order."""
         try:
             # Check if we have enough cash
@@ -288,7 +292,9 @@ class BacktestEngine:
         except Exception as e:
             self.logger.error(f"Error executing buy order: {e}")
 
-    async def _execute_sell(self, ticker: str, quantity: int, price: float, config: BacktestConfig):
+    async def _execute_sell(
+        self, ticker: str, quantity: int, price: float, config: BacktestConfig
+    ):
         """Execute sell order."""
         try:
             if ticker not in self.positions:
@@ -348,9 +354,9 @@ class BacktestEngine:
             # Mock price update
             current_price = position["entry_price"] * (1 + 0.001)  # 0.1% daily return
             position["current_price"] = current_price
-            position["unrealized_pnl"] = (current_price - position["entry_price"]) * position[
-                "quantity"
-            ]
+            position["unrealized_pnl"] = (
+                current_price - position["entry_price"]
+            ) * position["quantity"]
             position["days_held"] = (self.current_date - position["entry_date"]).days
 
     async def _check_exit_conditions(self, config: BacktestConfig):
@@ -361,12 +367,16 @@ class BacktestEngine:
 
             # Check stop loss
             if current_price <= entry_price * (1 - config.stop_loss_pct):
-                await self._execute_sell(ticker, position["quantity"], current_price, config)
+                await self._execute_sell(
+                    ticker, position["quantity"], current_price, config
+                )
                 continue
 
             # Check take profit
             if current_price >= entry_price * (1 + config.take_profit_pct):
-                await self._execute_sell(ticker, position["quantity"], current_price, config)
+                await self._execute_sell(
+                    ticker, position["quantity"], current_price, config
+                )
                 continue
 
     async def _calculate_results(self, config: BacktestConfig) -> BacktestResults:
@@ -379,14 +389,20 @@ class BacktestEngine:
             win_rate = winning_trades / total_trades if total_trades > 0 else 0
 
             # Return metrics
-            total_return = (self.portfolio_value - config.initial_capital) / config.initial_capital
+            total_return = (
+                self.portfolio_value - config.initial_capital
+            ) / config.initial_capital
             years = (config.end_date - config.start_date).days / 365.25
-            annualized_return = (1 + total_return) ** (1 / years) - 1 if years > 0 else 0
+            annualized_return = (
+                (1 + total_return) ** (1 / years) - 1 if years > 0 else 0
+            )
 
             # Risk metrics
             volatility = 0.15  # Mock volatility
             sharpe_ratio = (
-                (annualized_return - config.risk_free_rate) / volatility if volatility > 0 else 0
+                (annualized_return - config.risk_free_rate) / volatility
+                if volatility > 0
+                else 0
             )
 
             # Drawdown calculation
@@ -404,7 +420,9 @@ class BacktestEngine:
             # Profit factor
             gross_profit = sum(t.net_pnl for t in self.trades if t.net_pnl > 0)
             gross_loss = abs(sum(t.net_pnl for t in self.trades if t.net_pnl < 0))
-            profit_factor = gross_profit / gross_loss if gross_loss > 0 else float("inf")
+            profit_factor = (
+                gross_profit / gross_loss if gross_loss > 0 else float("inf")
+            )
 
             # Trade statistics
             avg_win = (

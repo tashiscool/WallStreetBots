@@ -60,7 +60,9 @@ class AlpacaManager:
                 )
 
                 # Initialize data client
-                self.data_client = StockHistoricalDataClient(api_key=API_KEY, secret_key=SECRET_KEY)
+                self.data_client = StockHistoricalDataClient(
+                    api_key=API_KEY, secret_key=SECRET_KEY
+                )
             except Exception as e:
                 # If authentication fails, fall back to mock mode
                 print(f"Alpaca authentication failed, using mock mode: {e}")
@@ -93,13 +95,21 @@ class AlpacaManager:
             account = self.trading_client.get_account()
             if account:
                 mode = "PAPER" if self.paper_trading else "LIVE"
-                return True, f"API validated - {mode} mode, Account status: {account.status}"
+                return (
+                    True,
+                    f"API validated - {mode} mode, Account status: {account.status}",
+                )
             return False, "Failed to get account info"
         except Exception as e:
             return False, f"API validation failed: {e!s}"
 
     def get_bar(
-        self, symbol: str, timestep: str, start: datetime, end: datetime, price_type: str = "close"
+        self,
+        symbol: str,
+        timestep: str,
+        start: datetime,
+        end: datetime,
+        price_type: str = "close",
     ) -> tuple[list[float], list[datetime]]:
         """Get historical price data.
 
@@ -287,7 +297,10 @@ class AlpacaManager:
                 )
             else:
                 order_data = MarketOrderRequest(
-                    symbol=symbol, qty=quantity, side=OrderSide.BUY, time_in_force=TimeInForce.GTC
+                    symbol=symbol,
+                    qty=quantity,
+                    side=OrderSide.BUY,
+                    time_in_force=TimeInForce.GTC,
                 )
 
             order = self.trading_client.submit_order(order_data=order_data)
@@ -300,7 +313,9 @@ class AlpacaManager:
                 "side": order.side,
                 "order_type": order.order_type,
                 "limit_price": float(order.limit_price) if order.limit_price else None,
-                "filled_price": float(order.filled_avg_price) if order.filled_avg_price else None,
+                "filled_price": float(order.filled_avg_price)
+                if order.filled_avg_price
+                else None,
             }
 
         except Exception as e:
@@ -335,7 +350,10 @@ class AlpacaManager:
                 )
             else:
                 order_data = MarketOrderRequest(
-                    symbol=symbol, qty=quantity, side=OrderSide.SELL, time_in_force=TimeInForce.GTC
+                    symbol=symbol,
+                    qty=quantity,
+                    side=OrderSide.SELL,
+                    time_in_force=TimeInForce.GTC,
                 )
 
             order = self.trading_client.submit_order(order_data=order_data)
@@ -348,7 +366,9 @@ class AlpacaManager:
                 "side": order.side,
                 "order_type": order.order_type,
                 "limit_price": float(order.limit_price) if order.limit_price else None,
-                "filled_price": float(order.filled_avg_price) if order.filled_avg_price else None,
+                "filled_price": float(order.filled_avg_price)
+                if order.filled_avg_price
+                else None,
             }
 
         except Exception as e:
@@ -378,7 +398,9 @@ class AlpacaManager:
         """
         try:
             # Construct option symbol
-            option_symbol = self._construct_option_symbol(symbol, expiry, option_type, strike)
+            option_symbol = self._construct_option_symbol(
+                symbol, expiry, option_type, strike
+            )
 
             if limit_price:
                 order_data = LimitOrderRequest(
@@ -390,7 +412,10 @@ class AlpacaManager:
                 )
             else:
                 order_data = MarketOrderRequest(
-                    symbol=option_symbol, qty=qty, side=OrderSide.BUY, time_in_force=TimeInForce.GTC
+                    symbol=option_symbol,
+                    qty=qty,
+                    side=OrderSide.BUY,
+                    time_in_force=TimeInForce.GTC,
                 )
 
             order = self.trading_client.submit_order(order_data=order_data)
@@ -402,7 +427,9 @@ class AlpacaManager:
                 "qty": int(order.qty),
                 "side": order.side,
                 "limit_price": float(order.limit_price) if order.limit_price else None,
-                "filled_price": float(order.filled_avg_price) if order.filled_avg_price else None,
+                "filled_price": float(order.filled_avg_price)
+                if order.filled_avg_price
+                else None,
             }
 
         except Exception as e:
@@ -431,7 +458,9 @@ class AlpacaManager:
             Order response dictionary
         """
         try:
-            option_symbol = self._construct_option_symbol(symbol, expiry, option_type, strike)
+            option_symbol = self._construct_option_symbol(
+                symbol, expiry, option_type, strike
+            )
 
             if limit_price:
                 order_data = LimitOrderRequest(
@@ -458,13 +487,17 @@ class AlpacaManager:
                 "qty": int(order.qty),
                 "side": order.side,
                 "limit_price": float(order.limit_price) if order.limit_price else None,
-                "filled_price": float(order.filled_avg_price) if order.filled_avg_price else None,
+                "filled_price": float(order.filled_avg_price)
+                if order.filled_avg_price
+                else None,
             }
 
         except Exception as e:
             return {"error": f"Failed to sell option: {e!s}"}
 
-    def place_stop_loss(self, symbol: str, quantity: int, stop_price: float) -> dict[str, Any]:
+    def place_stop_loss(
+        self, symbol: str, quantity: int, stop_price: float
+    ) -> dict[str, Any]:
         """Place stop loss order.
 
         Args:
@@ -554,8 +587,12 @@ class AlpacaManager:
                         "side": order.side,
                         "order_type": order.order_type,
                         "status": order.status,
-                        "limit_price": float(order.limit_price) if order.limit_price else None,
-                        "stop_price": float(order.stop_price) if order.stop_price else None,
+                        "limit_price": float(order.limit_price)
+                        if order.limit_price
+                        else None,
+                        "stop_price": float(order.stop_price)
+                        if order.stop_price
+                        else None,
                         "filled_price": float(order.filled_avg_price)
                         if order.filled_avg_price
                         else None,
@@ -608,7 +645,11 @@ class AlpacaManager:
             return True  # Assume closed on error for safety
 
     def _construct_option_symbol(
-        self, underlying: str, expiry: str | None, option_type: str, strike: float | None
+        self,
+        underlying: str,
+        expiry: str | None,
+        option_type: str,
+        strike: float | None,
     ) -> str:
         """Construct option symbol in OCC format.
 
@@ -691,7 +732,9 @@ class AlpacaManager:
         """
         try:
             if not start:
-                start = datetime.now() - timedelta(days=limit if timeframe == "1Day" else 30)
+                start = datetime.now() - timedelta(
+                    days=limit if timeframe == "1Day" else 30
+                )
             if not end:
                 end = datetime.now()
 

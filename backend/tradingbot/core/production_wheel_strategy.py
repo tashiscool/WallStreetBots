@@ -228,7 +228,9 @@ class ProductionWheelStrategy:
                         )
 
                 except Exception as e:
-                    self.error_handler.handle_error(e, {"ticker": ticker, "operation": "scan"})
+                    self.error_handler.handle_error(
+                        e, {"ticker": ticker, "operation": "scan"}
+                    )
                     continue
 
             # Sort by wheel score
@@ -267,7 +269,9 @@ class ProductionWheelStrategy:
                 return None
 
             # Calculate IV rank (simplified)
-            iv_rank = sum(opt.implied_volatility for opt in suitable_puts) / len(suitable_puts)
+            iv_rank = sum(opt.implied_volatility for opt in suitable_puts) / len(
+                suitable_puts
+            )
             iv_rank = min(iv_rank, 1.0)
 
             # Calculate premiums
@@ -293,7 +297,9 @@ class ProductionWheelStrategy:
             return candidate
 
         except Exception as e:
-            self.error_handler.handle_error(e, {"ticker": ticker, "operation": "analyze"})
+            self.error_handler.handle_error(
+                e, {"ticker": ticker, "operation": "analyze"}
+            )
             return None
 
     def _find_suitable_puts(
@@ -348,7 +354,9 @@ class ProductionWheelStrategy:
                 return False
 
             # Calculate position size
-            position_size = self._calculate_position_size(candidate.ticker, best_put.strike)
+            position_size = self._calculate_position_size(
+                candidate.ticker, best_put.strike
+            )
             if position_size <= 0:
                 self.logger.error(f"Invalid position size for {candidate.ticker}")
                 return False
@@ -391,7 +399,9 @@ class ProductionWheelStrategy:
                     quantity=position_size,
                 )
 
-                self.metrics.record_metric("wheel_trades_executed", 1, {"ticker": candidate.ticker})
+                self.metrics.record_metric(
+                    "wheel_trades_executed", 1, {"ticker": candidate.ticker}
+                )
 
                 return True
             else:
@@ -430,7 +440,9 @@ class ProductionWheelStrategy:
             shares_per_contract = 100
 
             # Calculate max contracts
-            max_contracts = int(max_position_value / (strike_price * shares_per_contract))
+            max_contracts = int(
+                max_position_value / (strike_price * shares_per_contract)
+            )
 
             # Limit to reasonable size
             max_contracts = min(max_contracts, 10)
@@ -438,7 +450,9 @@ class ProductionWheelStrategy:
             return max(1, max_contracts)
 
         except Exception as e:
-            self.error_handler.handle_error(e, {"ticker": ticker, "operation": "position_sizing"})
+            self.error_handler.handle_error(
+                e, {"ticker": ticker, "operation": "position_sizing"}
+            )
             return 1
 
     async def manage_positions(self):
@@ -499,7 +513,9 @@ class ProductionWheelStrategy:
 
         if options_data:
             # Find suitable call options
-            suitable_calls = self._find_suitable_calls(options_data, position.current_price)
+            suitable_calls = self._find_suitable_calls(
+                options_data, position.current_price
+            )
 
             if suitable_calls:
                 # Sell covered call
@@ -508,7 +524,9 @@ class ProductionWheelStrategy:
     async def _manage_covered_call(self, position: WheelPosition):
         """Manage covered call position."""
         # Check for profit target
-        profit_pct = position.unrealized_pnl / (position.premium_received + position.premium_paid)
+        profit_pct = position.unrealized_pnl / (
+            position.premium_received + position.premium_paid
+        )
 
         if profit_pct >= self.profit_target:
             # Close position at profit target
@@ -541,7 +559,9 @@ class ProductionWheelStrategy:
 
         return suitable_calls[:3]  # Top 3 suitable calls
 
-    async def _sell_covered_call(self, position: WheelPosition, call_option: OptionsData):
+    async def _sell_covered_call(
+        self, position: WheelPosition, call_option: OptionsData
+    ):
         """Sell covered call."""
         try:
             # Create trade signal
@@ -563,7 +583,9 @@ class ProductionWheelStrategy:
                 position.stage = WheelStage.COVERED_CALL
                 position.option_type = "call"
                 position.strike_price = call_option.strike
-                position.premium_paid = trade_result.filled_price * position.quantity * 100
+                position.premium_paid = (
+                    trade_result.filled_price * position.quantity * 100
+                )
 
                 self.logger.info(
                     f"Covered call sold: {position.ticker}",
@@ -571,7 +593,9 @@ class ProductionWheelStrategy:
                     premium=position.premium_paid,
                 )
 
-                self.metrics.record_metric("covered_calls_sold", 1, {"ticker": position.ticker})
+                self.metrics.record_metric(
+                    "covered_calls_sold", 1, {"ticker": position.ticker}
+                )
 
         except Exception as e:
             self.error_handler.handle_error(
@@ -605,7 +629,9 @@ class ProductionWheelStrategy:
                     pnl=position.unrealized_pnl,
                 )
 
-                self.metrics.record_metric("wheel_positions_closed", 1, {"ticker": position.ticker})
+                self.metrics.record_metric(
+                    "wheel_positions_closed", 1, {"ticker": position.ticker}
+                )
 
                 # Remove from active positions
                 if position.ticker in self.positions:
@@ -693,7 +719,9 @@ class ProductionWheelStrategy:
 
                 # Record metrics
                 self.metrics.record_metric("wheel_total_pnl", summary["total_pnl"])
-                self.metrics.record_metric("wheel_active_positions", summary["total_positions"])
+                self.metrics.record_metric(
+                    "wheel_active_positions", summary["total_positions"]
+                )
 
                 # Wait for next scan
                 await asyncio.sleep(self.scan_interval.total_seconds())

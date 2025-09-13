@@ -26,8 +26,12 @@ def get_user_information(request):
     user = request.user
     user_details = sync_alpaca(user)  # sync the user with Alpaca and extract details
     auth0user = user.social_auth.get(provider="auth0")
-    alpaca_id = user.credential.alpaca_id if hasattr(user, "credential") else "no alpaca id"
-    alpaca_key = user.credential.alpaca_key if hasattr(user, "credential") else "no alpaca key"
+    alpaca_id = (
+        user.credential.alpaca_id if hasattr(user, "credential") else "no alpaca id"
+    )
+    alpaca_key = (
+        user.credential.alpaca_key if hasattr(user, "credential") else "no alpaca key"
+    )
 
     if user_details is None:
         userdata = {
@@ -94,7 +98,9 @@ def dashboard(request):
 
             userdata["orders"] = [
                 order.display_order()
-                for order in Order.objects.filter(user=user).order_by("-timestamp").iterator()
+                for order in Order.objects.filter(user=user)
+                .order_by("-timestamp")
+                .iterator()
             ]
             return render(
                 request,
@@ -141,7 +147,9 @@ def get_portfolio_chart(request):
     API_KEY = user.credential.alpaca_id
     API_SECRET = user.credential.alpaca_key
     BASE_URL = "https: //paper - api.alpaca.markets"
-    alpaca = api.REST(key_id=API_KEY, secret_key=API_SECRET, base_url=BASE_URL, api_version="v2")
+    alpaca = api.REST(
+        key_id=API_KEY, secret_key=API_SECRET, base_url=BASE_URL, api_version="v2"
+    )
     portfolio_hist = alpaca.get_portfolio_history().df
     portfolio_hist = portfolio_hist.reset_index()
     line_plot = px.line(portfolio_hist, "timestamp", "equity")
@@ -214,7 +222,9 @@ def orders(request):
 
             userdata["orders"] = [
                 order.display_order()
-                for order in Order.objects.filter(user=user).order_by("-timestamp").iterator()
+                for order in Order.objects.filter(user=user)
+                .order_by("-timestamp")
+                .iterator()
             ]
             return render(
                 request,
@@ -297,12 +307,16 @@ def positions(request):
 
 @login_required
 def user_settings(request):
-    return render(request, "home / page-not - implemented.html")  # 'home / user - settings.html')
+    return render(
+        request, "home / page-not - implemented.html"
+    )  # 'home / user - settings.html')
 
 
 @login_required
 def machine_learning(request):
-    return render(request, "home / page-not - implemented.html")  # 'home / machine-learning.html')
+    return render(
+        request, "home / page-not - implemented.html"
+    )  # 'home / machine-learning.html')
 
 
 def logout(request):

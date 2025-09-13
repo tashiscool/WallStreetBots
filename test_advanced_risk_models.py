@@ -16,7 +16,12 @@ warnings.filterwarnings("ignore")
 sys.path.append(os.path.join(os.path.dirname(__file__), "backend"))
 
 # Import risk management modules
-from tradingbot.risk import AdvancedVaREngine, MLRiskPredictor, RiskDashboard2025, StressTesting2025
+from tradingbot.risk import (
+    AdvancedVaREngine,
+    MLRiskPredictor,
+    RiskDashboard2025,
+    StressTesting2025,
+)
 
 
 def generate_sample_data():
@@ -75,7 +80,9 @@ def test_var_engine():
     print("-" * 40)
     summary = var_suite.get_summary()
     for key, result in summary.items():
-        print(f"{key: 20}: ${result['var_value']:8,.0f} ({result['var_percentage']: 5.2f}%)")
+        print(
+            f"{key: 20}: ${result['var_value']:8,.0f} ({result['var_percentage']: 5.2f}%)"
+        )
 
     # Test CVaR calculation
     cvar_95 = var_engine.calculate_cvar(returns, 0.95)
@@ -126,7 +133,9 @@ def test_stress_testing():
     print("\nScenario Results: ")
     for scenario_name, result in report.results.items():
         status = "✅ PASSED" if result.passed else "❌ FAILED"
-        print(f"  {scenario_name: 25} {status: 10} P & L: ${result.portfolio_pnl: 8,.0f}")
+        print(
+            f"  {scenario_name: 25} {status: 10} P & L: ${result.portfolio_pnl: 8,.0f}"
+        )
 
     print("\nRecommendations: ")
     for i, rec in enumerate(report.recommendations, 1):
@@ -232,14 +241,21 @@ def test_risk_dashboard():
         print(f"  {factor}: ${value:,.0f}")
 
     print("\nStress Test Results: ")
-    print(f"  Worst Case P & L: ${dashboard_data['stress_tests']['worst_case_pnl']:,.0f}")
-    print(f"  Scenarios Tested: {len(dashboard_data['stress_tests']['scenario_analysis'])}")
+    print(
+        f"  Worst Case P & L: ${dashboard_data['stress_tests']['worst_case_pnl']:,.0f}"
+    )
+    print(
+        f"  Scenarios Tested: {len(dashboard_data['stress_tests']['scenario_analysis'])}"
+    )
 
     print(f"\nActive Alerts: {len(dashboard_data['alerts'])}")
     for alert in dashboard_data["alerts"]:
-        severity_icon = {"LOW": "🟡", "MEDIUM": "🟠", "HIGH": "🔴", "CRITICAL": "🚨"}.get(
-            alert["severity"], "⚪"
-        )
+        severity_icon = {
+            "LOW": "🟡",
+            "MEDIUM": "🟠",
+            "HIGH": "🔴",
+            "CRITICAL": "🚨",
+        }.get(alert["severity"], "⚪")
         print(f"  {severity_icon} {alert['severity']}: {alert['message']}")
         print(f"    Action: {alert['recommended_action']}")
 

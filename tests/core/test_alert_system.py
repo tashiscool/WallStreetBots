@@ -321,7 +321,9 @@ class TestExecutionChecklistManager(unittest.TestCase):
 
     def test_monitoring_checklist_creation(self):
         """Test creation of monitoring checklist."""
-        checklist = self.checklist_manager.create_monitoring_checklist("trade_456", "GOOGL")
+        checklist = self.checklist_manager.create_monitoring_checklist(
+            "trade_456", "GOOGL"
+        )
         self.assertEqual(checklist.ticker, "GOOGL")
         self.assertEqual(checklist.checklist_type, "monitoring")
         self.assertGreater(len(checklist.items), 3)
@@ -337,11 +339,15 @@ class TestExecutionChecklistManager(unittest.TestCase):
 
     def test_checklist_completion(self):
         """Test checklist item completion."""
-        checklist = self.checklist_manager.create_monitoring_checklist("trade_123", "SPY")
+        checklist = self.checklist_manager.create_monitoring_checklist(
+            "trade_123", "SPY"
+        )
         checklist_id = checklist.trade_id
 
         # Complete an item
-        result = self.checklist_manager.complete_item(checklist_id, 1, "Market regime verified")
+        result = self.checklist_manager.complete_item(
+            checklist_id, 1, "Market regime verified"
+        )
         self.assertTrue(result)
 
         checklist = self.checklist_manager.checklists[checklist_id]
@@ -383,7 +389,9 @@ class TestAlertUtilities(unittest.TestCase):
         mock_response.ok = True
         mock_post.return_value = mock_response
 
-        with patch.dict(os.environ, {"ALERT_SLACK_WEBHOOK": "https://hooks.slack.com / test"}):
+        with patch.dict(
+            os.environ, {"ALERT_SLACK_WEBHOOK": "https://hooks.slack.com / test"}
+        ):
             result = send_slack("Test message")
             self.assertTrue(result)
             mock_post.assert_called_once()
@@ -393,7 +401,9 @@ class TestAlertUtilities(unittest.TestCase):
         """Test Slack message sending failure."""
         mock_post.side_effect = Exception("Network error")
 
-        with patch.dict(os.environ, {"ALERT_SLACK_WEBHOOK": "https://hooks.slack.com / test"}):
+        with patch.dict(
+            os.environ, {"ALERT_SLACK_WEBHOOK": "https://hooks.slack.com / test"}
+        ):
             result = send_slack("Test message")
             self.assertFalse(result)
 
@@ -528,7 +538,11 @@ def run_alert_system_tests():
     print(f"Errors: {len(result.errors)}")
 
     success_rate = (
-        ((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun) * 100
+        (
+            (result.testsRun - len(result.failures) - len(result.errors))
+            / result.testsRun
+        )
+        * 100
         if result.testsRun > 0
         else 0
     )

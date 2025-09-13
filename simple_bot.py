@@ -88,7 +88,9 @@ class SimpleTradingBot:
                 portfolio_value = (
                     self.manager.integration_manager.alpaca_manager.get_account_value()
                 )
-                portfolio_str = f"${portfolio_value: ,.2f}" if portfolio_value else "Unknown"
+                portfolio_str = (
+                    f"${portfolio_value: ,.2f}" if portfolio_value else "Unknown"
+                )
             except Exception:
                 portfolio_str = "Unknown"
 

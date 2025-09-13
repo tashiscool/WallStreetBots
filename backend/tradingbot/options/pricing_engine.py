@@ -139,7 +139,9 @@ class BlackScholesEngine:
                 "QQQ": Decimal("0.006"),
             }
 
-            dividend_yield = dividend_yields.get(ticker, Decimal("0.015"))  # Default 1.5%
+            dividend_yield = dividend_yields.get(
+                ticker, Decimal("0.015")
+            )  # Default 1.5%
             self.dividend_yield_cache[ticker] = dividend_yield
             return dividend_yield
 
@@ -147,11 +149,15 @@ class BlackScholesEngine:
             logger.warning(f"Failed to get dividend yield for {ticker}: {e}")
             return Decimal("0.015")  # Default 1.5%
 
-    def _d1(self, S: float, K: float, T: float, r: float, q: float, sigma: float) -> float:
+    def _d1(
+        self, S: float, K: float, T: float, r: float, q: float, sigma: float
+    ) -> float:
         """Calculate d1 parameter for Black - Scholes."""
         if T <= 0 or sigma <= 0:
             return 0.0
-        return (math.log(S / K) + (r - q + 0.5 * sigma * sigma) * T) / (sigma * math.sqrt(T))
+        return (math.log(S / K) + (r - q + 0.5 * sigma * sigma) * T) / (
+            sigma * math.sqrt(T)
+        )
 
     def _d2(self, d1: float, sigma: float, T: float) -> float:
         """Calculate d2 parameter for Black - Scholes."""
@@ -187,7 +193,9 @@ class BlackScholesEngine:
             d1 = self._d1(S, K, T, r, q, sigma)
             d2 = self._d2(d1, sigma, T)
 
-            call_price = S * math.exp(-q * T) * norm.cdf(d1) - K * math.exp(-r * T) * norm.cdf(d2)
+            call_price = S * math.exp(-q * T) * norm.cdf(d1) - K * math.exp(
+                -r * T
+            ) * norm.cdf(d2)
 
             return Decimal(str(max(0.01, call_price)))  # Minimum $0.01
 
@@ -224,7 +232,9 @@ class BlackScholesEngine:
             d1 = self._d1(S, K, T, r, q, sigma)
             d2 = self._d2(d1, sigma, T)
 
-            put_price = K * math.exp(-r * T) * norm.cdf(-d2) - S * math.exp(-q * T) * norm.cdf(-d1)
+            put_price = K * math.exp(-r * T) * norm.cdf(-d2) - S * math.exp(
+                -q * T
+            ) * norm.cdf(-d1)
 
             return Decimal(str(max(0.01, put_price)))  # Minimum $0.01
 
@@ -254,7 +264,9 @@ class BlackScholesEngine:
 
             if T <= 0:
                 return {
-                    "delta": Decimal("1.00" if option_type == "call" and S > K else "0.00"),
+                    "delta": Decimal(
+                        "1.00" if option_type == "call" and S > K else "0.00"
+                    ),
                     "gamma": Decimal("0.00"),
                     "theta": Decimal("0.00"),
                     "vega": Decimal("0.00"),
@@ -273,7 +285,9 @@ class BlackScholesEngine:
             gamma = (math.exp(-q * T) * norm.pdf(d1)) / (S * sigma * math.sqrt(T))
 
             # Theta
-            first_term = -(S * norm.pdf(d1) * sigma * math.exp(-q * T)) / (2 * math.sqrt(T))
+            first_term = -(S * norm.pdf(d1) * sigma * math.exp(-q * T)) / (
+                2 * math.sqrt(T)
+            )
             if option_type.lower() == "call":
                 second_term = r * K * math.exp(-r * T) * norm.cdf(d2)
                 third_term = -q * S * math.exp(-q * T) * norm.cdf(d1)
@@ -284,7 +298,9 @@ class BlackScholesEngine:
             theta = (first_term - second_term + third_term) / 365  # Per day
 
             # Vega (same for calls and puts)
-            vega = S * math.exp(-q * T) * norm.pdf(d1) * math.sqrt(T) / 100  # Per 1% vol change
+            vega = (
+                S * math.exp(-q * T) * norm.pdf(d1) * math.sqrt(T) / 100
+            )  # Per 1% vol change
 
             return {
                 "delta": Decimal(str(round(delta, 4))),
@@ -440,7 +456,9 @@ class RealOptionsPricingEngine:
                     option_type="call",
                     bid=Decimal(str(row["bid"])) if row["bid"] > 0 else None,
                     ask=Decimal(str(row["ask"])) if row["ask"] > 0 else None,
-                    last=Decimal(str(row["lastPrice"])) if row["lastPrice"] > 0 else None,
+                    last=Decimal(str(row["lastPrice"]))
+                    if row["lastPrice"] > 0
+                    else None,
                     volume=int(row["volume"]) if not math.isnan(row["volume"]) else 0,
                     open_interest=int(row["openInterest"])
                     if not math.isnan(row["openInterest"])
@@ -460,7 +478,9 @@ class RealOptionsPricingEngine:
                     option_type="put",
                     bid=Decimal(str(row["bid"])) if row["bid"] > 0 else None,
                     ask=Decimal(str(row["ask"])) if row["ask"] > 0 else None,
-                    last=Decimal(str(row["lastPrice"])) if row["lastPrice"] > 0 else None,
+                    last=Decimal(str(row["lastPrice"]))
+                    if row["lastPrice"] > 0
+                    else None,
                     volume=int(row["volume"]) if not math.isnan(row["volume"]) else 0,
                     open_interest=int(row["openInterest"])
                     if not math.isnan(row["openInterest"])
@@ -523,8 +543,12 @@ class RealOptionsPricingEngine:
 
                         # Bid - ask spread score (tighter is better)
                         if contract.bid and contract.ask:
-                            spread_pct = float(contract.bid_ask_spread / contract.mid_price)
-                            spread_score = max(0, 5 - spread_pct * 100)  # Penalize wide spreads
+                            spread_pct = float(
+                                contract.bid_ask_spread / contract.mid_price
+                            )
+                            spread_score = max(
+                                0, 5 - spread_pct * 100
+                            )  # Penalize wide spreads
                             score += spread_score
 
                         # For WSB dip bot, prefer slightly OTM calls

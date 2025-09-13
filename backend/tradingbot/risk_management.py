@@ -143,7 +143,9 @@ class PortfolioRisk:
 
     def __post_init__(self):
         self.cash_utilization = (
-            self.total_positions_value / self.account_value if self.account_value > 0 else 0
+            self.total_positions_value / self.account_value
+            if self.account_value > 0
+            else 0
         )
         self.risk_utilization = (
             self.total_risk_amount / self.account_value if self.account_value > 0 else 0
@@ -244,7 +246,9 @@ class PositionSizer:
         results = {}
 
         # 1. Fixed fractional sizing based on risk tier
-        max_risk_amount = account_value * self.risk_params.risk_tiers.get(risk_tier, 0.10)
+        max_risk_amount = account_value * self.risk_params.risk_tiers.get(
+            risk_tier, 0.10
+        )
         fixed_fractional_contracts = int(max_risk_amount / premium_per_contract)
 
         # 2. Kelly Criterion sizing
@@ -270,7 +274,10 @@ class PositionSizer:
 
         # Take the minimum of all methods for safety
         recommended_contracts = min(
-            fixed_fractional_contracts, kelly_contracts, confidence_contracts, iv_adjusted_contracts
+            fixed_fractional_contracts,
+            kelly_contracts,
+            confidence_contracts,
+            iv_adjusted_contracts,
         )
 
         # Ensure we don't exceed absolute limits
@@ -356,13 +363,19 @@ class RiskManager:
             )
 
         total_positions_value = sum(
-            pos.current_value for pos in self.positions if pos.status == PositionStatus.OPEN
+            pos.current_value
+            for pos in self.positions
+            if pos.status == PositionStatus.OPEN
         )
         total_risk_amount = sum(
-            pos.current_risk for pos in self.positions if pos.status == PositionStatus.OPEN
+            pos.current_risk
+            for pos in self.positions
+            if pos.status == PositionStatus.OPEN
         )
         unrealized_pnl = sum(
-            pos.unrealized_pnl for pos in self.positions if pos.status == PositionStatus.OPEN
+            pos.unrealized_pnl
+            for pos in self.positions
+            if pos.status == PositionStatus.OPEN
         )
 
         # Calculate account value (this should come from broker API)
@@ -390,7 +403,9 @@ class RiskManager:
         )
         portfolio_risk = self.calculate_portfolio_risk()
         return (
-            ticker_value / portfolio_risk.account_value if portfolio_risk.account_value > 0 else 0
+            ticker_value / portfolio_risk.account_value
+            if portfolio_risk.account_value > 0
+            else 0
         )
 
     def _calculate_concentrations(self) -> dict[str, float]:
@@ -463,7 +478,9 @@ class RiskManager:
         """Generate comprehensive risk report."""
         portfolio_risk = self.calculate_portfolio_risk()
 
-        open_positions = [pos for pos in self.positions if pos.status == PositionStatus.OPEN]
+        open_positions = [
+            pos for pos in self.positions if pos.status == PositionStatus.OPEN
+        ]
 
         report = {
             "portfolio_metrics": {
@@ -476,13 +493,17 @@ class RiskManager:
             },
             "position_summary": {
                 "total_positions": len(open_positions),
-                "avg_days_to_expiry": np.mean([pos.days_to_expiry for pos in open_positions])
+                "avg_days_to_expiry": np.mean(
+                    [pos.days_to_expiry for pos in open_positions]
+                )
                 if open_positions
                 else 0,
                 "positions_at_profit": len(
                     [pos for pos in open_positions if pos.unrealized_pnl > 0]
                 ),
-                "positions_at_loss": len([pos for pos in open_positions if pos.unrealized_pnl < 0]),
+                "positions_at_loss": len(
+                    [pos for pos in open_positions if pos.unrealized_pnl < 0]
+                ),
             },
             "risk_alerts": [],
             "recommendations": [],
@@ -578,7 +599,9 @@ if __name__ == "__main__":  # Test the risk management system
     risk_report = risk_manager.generate_risk_report()
     print("\nRisk Report Summary: ")
     print(f"Account Value: ${risk_report['portfolio_metrics']['account_value']:,.0f}")
-    print(f"Risk Utilization: {risk_report['portfolio_metrics']['risk_utilization_pct']:.1f}%")
+    print(
+        f"Risk Utilization: {risk_report['portfolio_metrics']['risk_utilization_pct']:.1f}%"
+    )
 
     if risk_report["risk_alerts"]:
         print("Risk Alerts: ")

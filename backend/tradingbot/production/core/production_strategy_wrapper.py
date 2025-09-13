@@ -131,7 +131,9 @@ class ProductionStrategyWrapper:
                 await asyncio.sleep(30)  # 30 - second cycle
 
             except Exception as e:
-                self.logger.error(f"Error in monitoring loop for {self.strategy_name}: {e}")
+                self.logger.error(
+                    f"Error in monitoring loop for {self.strategy_name}: {e}"
+                )
                 await asyncio.sleep(60)  # Wait longer on error
 
     async def _run_strategy_scan(self):
@@ -154,7 +156,9 @@ class ProductionStrategyWrapper:
                 await self._check_exit_conditions(position)
 
         except Exception as e:
-            self.logger.error(f"Error monitoring positions for {self.strategy_name}: {e}")
+            self.logger.error(
+                f"Error monitoring positions for {self.strategy_name}: {e}"
+            )
 
     async def _check_exit_conditions(self, position):
         """Check exit conditions for position."""
@@ -163,15 +167,23 @@ class ProductionStrategyWrapper:
 
             # Check stop loss
             if position.stop_loss:
-                if (position.position_type == "long" and current_price <= position.stop_loss) or (
-                    position.position_type == "short" and current_price >= position.stop_loss
+                if (
+                    position.position_type == "long"
+                    and current_price <= position.stop_loss
+                ) or (
+                    position.position_type == "short"
+                    and current_price >= position.stop_loss
                 ):
                     await self._execute_exit(position, "stop_loss")
 
             # Check take profit
             if position.take_profit:
-                if (position.position_type == "long" and current_price >= position.take_profit) or (
-                    position.position_type == "short" and current_price <= position.take_profit
+                if (
+                    position.position_type == "long"
+                    and current_price >= position.take_profit
+                ) or (
+                    position.position_type == "short"
+                    and current_price <= position.take_profit
                 ):
                     await self._execute_exit(position, "take_profit")
 
@@ -185,7 +197,9 @@ class ProductionStrategyWrapper:
             exit_signal = ProductionTradeSignal(
                 strategy_name=self.strategy_name,
                 ticker=position.ticker,
-                side=OrderSide.SELL if position.position_type == "long" else OrderSide.BUY,
+                side=OrderSide.SELL
+                if position.position_type == "long"
+                else OrderSide.BUY,
                 order_type=OrderType.MARKET,
                 quantity=position.quantity,
                 price=float(position.current_price),
@@ -261,14 +275,18 @@ class ProductionStrategyWrapper:
                 "take_profit_multiplier": self.config.take_profit_multiplier,
             },
             "performance": self.performance_metrics,
-            "last_scan_time": self.last_scan_time.isoformat() if self.last_scan_time else None,
+            "last_scan_time": self.last_scan_time.isoformat()
+            if self.last_scan_time
+            else None,
         }
 
 
 class ProductionWSBDipBot(ProductionStrategyWrapper):
     """Production wrapper for WSB Dip Bot strategy."""
 
-    def __init__(self, integration_manager: ProductionIntegrationManager, config: StrategyConfig):
+    def __init__(
+        self, integration_manager: ProductionIntegrationManager, config: StrategyConfig
+    ):
         super().__init__("wsb_dip_bot", integration_manager, config)
 
         # WSB - specific parameters
@@ -371,7 +389,9 @@ class ProductionWSBDipBot(ProductionStrategyWrapper):
 class ProductionMomentumWeeklies(ProductionStrategyWrapper):
     """Production wrapper for Momentum Weeklies strategy."""
 
-    def __init__(self, integration_manager: ProductionIntegrationManager, config: StrategyConfig):
+    def __init__(
+        self, integration_manager: ProductionIntegrationManager, config: StrategyConfig
+    ):
         super().__init__("momentum_weeklies", integration_manager, config)
 
         # Momentum - specific parameters
@@ -437,7 +457,8 @@ class ProductionMomentumWeeklies(ProductionStrategyWrapper):
                     price=float(current_price),
                     trade_type="stock",
                     risk_amount=risk_amount,
-                    expected_return=risk_amount * Decimal(str(self.config.take_profit_multiplier)),
+                    expected_return=risk_amount
+                    * Decimal(str(self.config.take_profit_multiplier)),
                     metadata={"pattern": "momentum_breakout"},
                 )
 

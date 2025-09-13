@@ -188,7 +188,9 @@ class TestLiveDipScanner(unittest.TestCase):
     async def test_scan_universe_error_handling(self, mock_sleep):
         """Test universe scanning error handling."""
         with patch.object(
-            self.scanner.dip_detector, "scan_for_dips", side_effect=Exception("Network error")
+            self.scanner.dip_detector,
+            "scan_for_dips",
+            side_effect=Exception("Network error"),
         ):
             signals = await self.scanner.scan_universe()
             self.assertEqual(len(signals), 0)  # Should return empty list on error
@@ -302,7 +304,9 @@ class TestLiveDipScannerIntegration(unittest.TestCase):
 
         with (
             patch.object(
-                self.scanner.dip_detector, "scan_for_dips", return_value=[mock_dip_signal]
+                self.scanner.dip_detector,
+                "scan_for_dips",
+                return_value=[mock_dip_signal],
             ),
             patch.object(self.scanner, "is_market_open", return_value=True),
             patch.object(self.scanner, "is_optimal_entry_time", return_value=True),
@@ -413,7 +417,11 @@ def run_dip_scanner_tests():
     print(f"Errors: {len(result.errors)}")
 
     success_rate = (
-        ((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun) * 100
+        (
+            (result.testsRun - len(result.failures) - len(result.errors))
+            / result.testsRun
+        )
+        * 100
         if result.testsRun > 0
         else 0
     )

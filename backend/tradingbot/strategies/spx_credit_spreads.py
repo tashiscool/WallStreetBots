@@ -24,7 +24,9 @@ except ImportError as e:
 @dataclass
 class CreditSpreadOpportunity:
     ticker: str
-    strategy_type: str  # "put_credit_spread", "call_credit_spread", "iron_condor", "strangle"
+    strategy_type: (
+        str  # "put_credit_spread", "call_credit_spread", "iron_condor", "strangle"
+    )
     expiry_date: str
     dte: int  # Days to expiry (0 for 0DTE)
 
@@ -116,7 +118,9 @@ class SPXCreditSpreadsScanner:
 
         return None
 
-    def estimate_iv_from_expected_move(self, ticker: str, expected_move_pct: float) -> float:
+    def estimate_iv_from_expected_move(
+        self, ticker: str, expected_move_pct: float
+    ) -> float:
         """Estimate IV from expected daily move."""
         try:
             # Convert daily expected move to annual IV
@@ -152,13 +156,20 @@ class SPXCreditSpreadsScanner:
             return 0.015  # Default fallback
 
     def find_target_delta_strike(
-        self, ticker: str, expiry: str, option_type: str, target_delta: float, spot_price: float
+        self,
+        ticker: str,
+        expiry: str,
+        option_type: str,
+        target_delta: float,
+        spot_price: float,
     ) -> tuple[float | None, float, float]:
         """Find strike closest to target delta."""
         try:
             if ticker == "SPX":  # Use SPY options as proxy for SPX (similar behavior)
                 options_ticker = "SPY"
-                multiplier = spot_price / yf.Ticker("SPY").history(period="1d")["Close"].iloc[-1]
+                multiplier = (
+                    spot_price / yf.Ticker("SPY").history(period="1d")["Close"].iloc[-1]
+                )
             else:
                 options_ticker = ticker
                 multiplier = 1.0
@@ -202,7 +213,9 @@ class SPXCreditSpreadsScanner:
                 actual_delta = 0.0
 
                 iv_estimate = 0.20  # Default IV for estimation
-                time_to_exp = 1 / 365 if expiry == date.today().strftime("%Y-%m-%d") else 7 / 365
+                time_to_exp = (
+                    1 / 365 if expiry == date.today().strftime("%Y-%m-%d") else 7 / 365
+                )
 
                 for _, option in options_df.iterrows():
                     strike_adj = option["strike"] * multiplier
@@ -233,7 +246,11 @@ class SPXCreditSpreadsScanner:
             return None, 0.0, 0.0
 
     def calculate_spread_metrics(
-        self, short_strike: float, long_strike: float, short_premium: float, long_premium: float
+        self,
+        short_strike: float,
+        long_strike: float,
+        short_premium: float,
+        long_premium: float,
     ) -> tuple[float, float, float]:
         """Calculate spread metrics."""
         spread_width = abs(short_strike - long_strike)
@@ -270,7 +287,9 @@ class SPXCreditSpreadsScanner:
                 expected_move_pct = self.get_expected_move(ticker)
                 spot_price * expected_move_pct
 
-                print(f"  📊 {ticker}: ${spot_price:.2f}, Expected move: ±{expected_move_pct:.1%}")
+                print(
+                    f"  📊 {ticker}: ${spot_price:.2f}, Expected move: ±{expected_move_pct:.1%}"
+                )
 
                 # 1. PUT CREDIT SPREADS (bullish / neutral)
                 put_short_strike, put_short_delta, put_short_premium = (
@@ -281,7 +300,9 @@ class SPXCreditSpreadsScanner:
 
                 if put_short_strike:
                     # Long strike is typically 5 - 10 points below short strike
-                    spread_width = min(10, max(5, spot_price * 0.02))  # 2% of underlying
+                    spread_width = min(
+                        10, max(5, spot_price * 0.02)
+                    )  # 2% of underlying
                     put_long_strike = put_short_strike - spread_width
 
                     # Get long put premium
@@ -294,12 +315,19 @@ class SPXCreditSpreadsScanner:
                     )
 
                     if put_long_premium > 0:
-                        net_credit, max_profit, max_loss = self.calculate_spread_metrics(
-                            put_short_strike, put_long_strike, put_short_premium, put_long_premium
+                        net_credit, max_profit, max_loss = (
+                            self.calculate_spread_metrics(
+                                put_short_strike,
+                                put_long_strike,
+                                put_short_premium,
+                                put_long_premium,
+                            )
                         )
 
                         if net_credit > 0.10:  # Minimum viable credit
-                            prob_profit = 100 - (put_short_delta * 100)  # Rough approximation
+                            prob_profit = 100 - (
+                                put_short_delta * 100
+                            )  # Rough approximation
                             profit_target = net_credit * self.profit_target_pct
 
                             opportunity = CreditSpreadOpportunity(
@@ -342,11 +370,13 @@ class SPXCreditSpreadsScanner:
                     )
 
                     if call_long_premium > 0:
-                        net_credit, max_profit, max_loss = self.calculate_spread_metrics(
-                            call_short_strike,
-                            call_long_strike,
-                            call_short_premium,
-                            call_long_premium,
+                        net_credit, max_profit, max_loss = (
+                            self.calculate_spread_metrics(
+                                call_short_strike,
+                                call_long_strike,
+                                call_short_premium,
+                                call_long_premium,
+                            )
                         )
 
                         if net_credit > 0.10:
@@ -417,7 +447,8 @@ class SPXCreditSpreadsScanner:
 
         # Sort by profit potential and probability
         opportunities.sort(
-            key=lambda x: x.prob_profit * (x.max_profit / max(x.max_loss, 0.01)), reverse=True
+            key=lambda x: x.prob_profit * (x.max_profit / max(x.max_loss, 0.01)),
+            reverse=True,
         )
 
         return opportunities
@@ -427,7 +458,9 @@ class SPXCreditSpreadsScanner:
         if not opportunities:
             return "🎯 No credit spread opportunities found."
 
-        output = f"\n🎯 SPX / SPY CREDIT SPREAD OPPORTUNITIES ({len(opportunities)} found)\n"
+        output = (
+            f"\n🎯 SPX / SPY CREDIT SPREAD OPPORTUNITIES ({len(opportunities)} found)\n"
+        )
         output += " = " * 80 + "\n"
 
         for i, opp in enumerate(opportunities, 1):
@@ -435,17 +468,19 @@ class SPXCreditSpreadsScanner:
                 strategy_desc = f"IRON CONDOR: {opp.put_short_strike:.0f}P / {opp.call_short_strike: .0f}C short"
             else:
                 direction = "PUT" if "put" in opp.strategy_type else "CALL"
-                strategy_desc = f"{direction} SPREAD: {opp.short_strike:.0f}/{opp.long_strike: .0f}"
+                strategy_desc = (
+                    f"{direction} SPREAD: {opp.short_strike:.0f}/{opp.long_strike: .0f}"
+                )
 
             risk_reward = opp.max_profit / opp.max_loss if opp.max_loss > 0 else 0
 
             output += f"\n{i}. {opp.ticker} {opp.dte}DTE - {strategy_desc}\n"
             output += f"   Underlying: ${opp.underlying_price:.2f} | Expected move: ±{opp.expected_move:.1%}\n"
             output += f"   Net Credit: ${opp.net_credit:.2f} | Max Profit: ${opp.max_profit:.2f}\n"
-            output += f"   Max Loss: ${opp.max_loss:.2f} | Risk / Reward: {risk_reward:.2f}\n"
             output += (
-                f"   Prob Profit: {opp.prob_profit:.0f}% | 25% Target: ${opp.profit_target:.2f}\n"
+                f"   Max Loss: ${opp.max_loss:.2f} | Risk / Reward: {risk_reward:.2f}\n"
             )
+            output += f"   Prob Profit: {opp.prob_profit:.0f}% | 25% Target: ${opp.profit_target:.2f}\n"
 
             if opp.break_even_upper != float("inf"):
                 output += f"   Break - evens: ${opp.break_even_lower:.2f} - ${opp.break_even_upper: .2f}\n"
@@ -472,14 +507,23 @@ class SPXCreditSpreadsScanner:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="SPX / SPY 0DTE Credit Spreads Scanner")
-    parser.add_argument("--dte", type=int, default=0, help="Days to expiration (0 for same day)")
-    parser.add_argument("--output", choices=["json", "text"], default="text", help="Output format")
+    parser = argparse.ArgumentParser(
+        description="SPX / SPY 0DTE Credit Spreads Scanner"
+    )
+    parser.add_argument(
+        "--dte", type=int, default=0, help="Days to expiration (0 for same day)"
+    )
+    parser.add_argument(
+        "--output", choices=["json", "text"], default="text", help="Output format"
+    )
     parser.add_argument(
         "--min - credit", type=float, default=0.10, help="Minimum net credit required"
     )
     parser.add_argument(
-        "--target - delta", type=float, default=0.30, help="Target delta for short strikes"
+        "--target - delta",
+        type=float,
+        default=0.30,
+        help="Target delta for short strikes",
     )
 
     args = parser.parse_args()

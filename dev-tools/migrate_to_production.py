@@ -160,7 +160,9 @@ class ProductionMigration:
 
             except Exception as e:
                 self.migration_stats["errors"] += 1
-                self.logger.error(f"Error creating strategy {strategy_data['name']}: {e}")
+                self.logger.error(
+                    f"Error creating strategy {strategy_data['name']}: {e}"
+                )
 
     async def migrate_portfolios(self):
         """Migrate portfolio data from JSON files."""
@@ -208,7 +210,9 @@ class ProductionMigration:
 
             except Exception as e:
                 self.migration_stats["errors"] += 1
-                self.logger.error(f"Error creating risk limits for {strategy.name}: {e}")
+                self.logger.error(
+                    f"Error creating risk limits for {strategy.name}: {e}"
+                )
 
     async def create_default_configurations(self):
         """Create default system configurations."""
@@ -286,7 +290,9 @@ class ProductionMigration:
 
             except Exception as e:
                 self.migration_stats["errors"] += 1
-                self.logger.error(f"Error creating configuration {config_data['key']}: {e}")
+                self.logger.error(
+                    f"Error creating configuration {config_data['key']}: {e}"
+                )
 
     async def generate_migration_report(self):
         """Generate migration report."""
@@ -336,11 +342,15 @@ class Command(BaseCommand):
         # Validate configuration
         errors = config.validate()
         if errors:
-            self.stdout.write(self.style.ERROR(f"Configuration errors: {', '.join(errors)}"))
+            self.stdout.write(
+                self.style.ERROR(f"Configuration errors: {', '.join(errors)}")
+            )
             return
 
         if options["dry_run"]:
-            self.stdout.write(self.style.WARNING("Dry run mode-no changes will be made"))
+            self.stdout.write(
+                self.style.WARNING("Dry run mode-no changes will be made")
+            )
             return
 
         # Run migration

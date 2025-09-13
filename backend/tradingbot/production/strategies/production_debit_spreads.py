@@ -62,7 +62,9 @@ class ProductionDebitSpreads:
     - Time-based exits before expiration week
     """
 
-    def __init__(self, integration_manager, data_provider: ReliableDataProvider, config: dict):
+    def __init__(
+        self, integration_manager, data_provider: ReliableDataProvider, config: dict
+    ):
         self.strategy_name = "debit_spreads"
         self.integration_manager = integration_manager
         self.data_provider = data_provider
@@ -231,7 +233,9 @@ class ProductionDebitSpreads:
             self.logger.error(f"Error calculating IV rank for {ticker}: {e}")
             return 50.0
 
-    async def get_options_chain(self, ticker: str, expiry: str) -> dict[str, Any] | None:
+    async def get_options_chain(
+        self, ticker: str, expiry: str
+    ) -> dict[str, Any] | None:
         """Get filtered options chain for expiry."""
         try:
             # Get options data from data provider
@@ -252,7 +256,9 @@ class ProductionDebitSpreads:
                 if (volume >= 10 or open_interest >= 50) and bid > 0.05 and ask > 0.05:
                     call["mid"] = (bid + ask) / 2
                     call["spread"] = ask - bid
-                    call["spread_pct"] = call["spread"] / call["mid"] if call["mid"] > 0 else 1.0
+                    call["spread_pct"] = (
+                        call["spread"] / call["mid"] if call["mid"] > 0 else 1.0
+                    )
 
                     if call["spread_pct"] < 0.3:  # Reasonable bid - ask spread
                         filtered_calls.append(call)
@@ -279,7 +285,9 @@ class ProductionDebitSpreads:
         max_long_strike = spot * 1.10  # Max 10% OTM
 
         suitable_calls = [
-            call for call in calls if min_long_strike <= call["strike"] <= max_long_strike
+            call
+            for call in calls
+            if min_long_strike <= call["strike"] <= max_long_strike
         ]
 
         if len(suitable_calls) < 2:
@@ -293,7 +301,9 @@ class ProductionDebitSpreads:
 
                 # Find matching short call
                 short_calls = [
-                    call for call in suitable_calls if abs(call["strike"] - short_strike) < 0.01
+                    call
+                    for call in suitable_calls
+                    if abs(call["strike"] - short_strike) < 0.01
                 ]
 
                 if not short_calls:
@@ -322,8 +332,12 @@ class ProductionDebitSpreads:
                     prob_profit = max(0.1, 0.6 - distance_ratio * 3)
 
                 # Volume / liquidity score
-                long_vol = long_call.get("volume", 0) + long_call.get("open_interest", 0)
-                short_vol = short_call.get("volume", 0) + short_call.get("open_interest", 0)
+                long_vol = long_call.get("volume", 0) + long_call.get(
+                    "open_interest", 0
+                )
+                short_vol = short_call.get("volume", 0) + short_call.get(
+                    "open_interest", 0
+                )
                 volume_score = min(long_vol, short_vol) / 1000
                 volume_score = max(0, min(1, volume_score))
 
@@ -381,7 +395,9 @@ class ProductionDebitSpreads:
         opportunities.sort(key=lambda x: x.confidence, reverse=True)
         return opportunities[:3]  # Top 3 per ticker
 
-    def estimate_iv_from_price(self, S: float, K: float, T: float, market_price: float) -> float:
+    def estimate_iv_from_price(
+        self, S: float, K: float, T: float, market_price: float
+    ) -> float:
         """Estimate implied volatility using Newton - Raphson."""
         try:
             iv = 0.25  # Initial guess
@@ -390,7 +406,9 @@ class ProductionDebitSpreads:
                 price, _delta = self.black_scholes_call(S, K, T, 0.04, iv)
 
                 # Calculate vega
-                d1 = (math.log(S / K) + (0.04 + 0.5 * iv * iv) * T) / (iv * math.sqrt(T))
+                d1 = (math.log(S / K) + (0.04 + 0.5 * iv * iv) * T) / (
+                    iv * math.sqrt(T)
+                )
                 vega = S * math.sqrt(T) * self.norm_cdf(d1) * math.exp(-0.04 * T)
 
                 if abs(vega) < 1e-6:
@@ -470,7 +488,9 @@ class ProductionDebitSpreads:
                             all_opportunities.append(spread)
 
                     if spreads:
-                        self.logger.info(f"Found {len(spreads)} spread opportunities for {ticker}")
+                        self.logger.info(
+                            f"Found {len(spreads)} spread opportunities for {ticker}"
+                        )
 
             except Exception as e:
                 self.logger.error(f"Error scanning {ticker}: {e}")
@@ -503,7 +523,9 @@ class ProductionDebitSpreads:
                 quantity=contracts,
                 option_type="CALL",
                 strike_price=Decimal(str(opportunity.long_strike)),
-                expiration_date=datetime.strptime(opportunity.expiry_date, "%Y-%m-%d").date(),
+                expiration_date=datetime.strptime(
+                    opportunity.expiry_date, "%Y-%m-%d"
+                ).date(),
                 premium=Decimal(str(opportunity.long_premium)),
                 confidence=opportunity.confidence,
                 strategy_name=self.strategy_name,
@@ -527,7 +549,9 @@ class ProductionDebitSpreads:
                 quantity=contracts,
                 option_type="CALL",
                 strike_price=Decimal(str(opportunity.short_strike)),
-                expiration_date=datetime.strptime(opportunity.expiry_date, "%Y-%m-%d").date(),
+                expiration_date=datetime.strptime(
+                    opportunity.expiry_date, "%Y-%m-%d"
+                ).date(),
                 premium=Decimal(str(opportunity.short_premium)),
                 confidence=opportunity.confidence,
                 strategy_name=self.strategy_name,
@@ -545,8 +569,12 @@ class ProductionDebitSpreads:
             )
 
             # Execute both legs
-            long_success = await self.integration_manager.execute_trade_signal(long_signal)
-            short_success = await self.integration_manager.execute_trade_signal(short_signal)
+            long_success = await self.integration_manager.execute_trade_signal(
+                long_signal
+            )
+            short_success = await self.integration_manager.execute_trade_signal(
+                short_signal
+            )
 
             if long_success and short_success:
                 # Track position
@@ -562,7 +590,9 @@ class ProductionDebitSpreads:
                     "breakeven": opportunity.breakeven,
                     "profit_target": opportunity.max_profit * self.profit_target,
                     "stop_loss": opportunity.net_debit * self.stop_loss,
-                    "expiry_date": datetime.strptime(opportunity.expiry_date, "%Y-%m-%d").date(),
+                    "expiry_date": datetime.strptime(
+                        opportunity.expiry_date, "%Y-%m-%d"
+                    ).date(),
                     "confidence": opportunity.confidence,
                 }
 
@@ -582,7 +612,9 @@ class ProductionDebitSpreads:
             return False
 
         except Exception as e:
-            self.logger.error(f"Error executing spread trade for {opportunity.ticker}: {e}")
+            self.logger.error(
+                f"Error executing spread trade for {opportunity.ticker}: {e}"
+            )
             return False
 
     async def manage_positions(self):
@@ -635,7 +667,9 @@ class ProductionDebitSpreads:
                     exit_reason = "STOP_LOSS"
 
                 # Time-based exit
-                elif (position["expiry_date"] - date.today()).days <= self.time_exit_dte:
+                elif (
+                    position["expiry_date"] - date.today()
+                ).days <= self.time_exit_dte:
                     should_exit = True
                     exit_reason = "TIME_EXIT"
 
@@ -678,11 +712,11 @@ class ProductionDebitSpreads:
                     )
 
                     # Execute exits
-                    long_exit_success = await self.integration_manager.execute_trade_signal(
-                        long_exit
+                    long_exit_success = (
+                        await self.integration_manager.execute_trade_signal(long_exit)
                     )
-                    short_exit_success = await self.integration_manager.execute_trade_signal(
-                        short_exit
+                    short_exit_success = (
+                        await self.integration_manager.execute_trade_signal(short_exit)
                     )
 
                     if long_exit_success and short_exit_success:
@@ -694,7 +728,9 @@ class ProductionDebitSpreads:
                         )
 
                         positions_to_remove.append(i)
-                        self.logger.info(f"Spread position closed: {ticker} {exit_reason}")
+                        self.logger.info(
+                            f"Spread position closed: {ticker} {exit_reason}"
+                        )
 
             except Exception as e:
                 self.logger.error(f"Error managing position {i}: {e}")

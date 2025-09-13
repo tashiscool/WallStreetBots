@@ -178,7 +178,9 @@ class TestBlackScholesEngine:
 
         # Put - call parity: C - P=S - K * e ^ (-r * T)
         left_side = call_price - put_price
-        right_side = spot - strike * Decimal(str(math.exp(-float(risk_free_rate) * time_to_expiry)))
+        right_side = spot - strike * Decimal(
+            str(math.exp(-float(risk_free_rate) * time_to_expiry))
+        )
 
         # Should be equal within small tolerance
         assert abs(float(left_side - right_side)) < 0.01
@@ -203,7 +205,12 @@ class TestBlackScholesEngine:
 
         # Expired OTM call should be worthless
         otm_call_price = await self.bs_engine.black_scholes_call(
-            Decimal("90"), strike, time_to_expiry, risk_free_rate, dividend_yield, volatility
+            Decimal("90"),
+            strike,
+            time_to_expiry,
+            risk_free_rate,
+            dividend_yield,
+            volatility,
         )
 
         # For expired OTM options, should be at least the minimum or intrinsic value
@@ -238,7 +245,13 @@ class TestBlackScholesEngine:
         volatility = Decimal("0.20")
 
         greeks = await self.bs_engine.calculate_greeks(
-            spot, strike, time_to_expiry, risk_free_rate, dividend_yield, volatility, "call"
+            spot,
+            strike,
+            time_to_expiry,
+            risk_free_rate,
+            dividend_yield,
+            volatility,
+            "call",
         )
 
         assert "delta" in greeks
@@ -269,7 +282,13 @@ class TestBlackScholesEngine:
         volatility = Decimal("0.20")
 
         greeks = await self.bs_engine.calculate_greeks(
-            spot, strike, time_to_expiry, risk_free_rate, dividend_yield, volatility, "put"
+            spot,
+            strike,
+            time_to_expiry,
+            risk_free_rate,
+            dividend_yield,
+            volatility,
+            "put",
         )
 
         # Put delta should be negative
@@ -689,7 +708,10 @@ class TestOptionsContract:
         future_date = date.today() + timedelta(days=30)
 
         contract = OptionsContract(
-            ticker="AAPL", strike=Decimal("200"), expiry_date=future_date, option_type="call"
+            ticker="AAPL",
+            strike=Decimal("200"),
+            expiry_date=future_date,
+            option_type="call",
         )
 
         # Should be approximately 30 days

@@ -17,7 +17,12 @@ from typing import TYPE_CHECKING
 
 import requests
 
-from .market_regime import MarketSignal, SignalGenerator, SignalType, TechnicalIndicators
+from .market_regime import (
+    MarketSignal,
+    SignalGenerator,
+    SignalType,
+    TechnicalIndicators,
+)
 from .options_calculator import OptionsTradeCalculator, TradeCalculation
 
 if TYPE_CHECKING:
@@ -223,7 +228,11 @@ class DesktopAlertHandler(AlertHandler):
             # Use osascript on macOS for desktop notifications
             message = f"{alert.title}: {alert.message}"
             subprocess.run(  # noqa: S603 - Safe subprocess call for desktop notifications
-                ["osascript", "-e", f'display notification "{message}" with title "Trading Alert"'],
+                [
+                    "osascript",
+                    "-e",
+                    f'display notification "{message}" with title "Trading Alert"',
+                ],
                 check=True,
                 capture_output=True,
                 timeout=5,
@@ -231,7 +240,11 @@ class DesktopAlertHandler(AlertHandler):
             )
             logging.info(f"DESKTOP ALERT: {alert.title} - {alert.message}")
             return True
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+        except (
+            subprocess.CalledProcessError,
+            subprocess.TimeoutExpired,
+            FileNotFoundError,
+        ) as e:
             # In test environments or systems without osascript, just log and return True
             logging.info(f"Desktop notification not available (expected in tests): {e}")
             return True  # Return True for tests
@@ -368,7 +381,8 @@ class TradingAlertSystem:
         if signal.signal_type == SignalType.BUY:
             self._create_entry_signal_alert(ticker, signal, current_indicators)
         elif (
-            signal.signal_type == SignalType.HOLD and "setup" in " ".join(signal.reasoning).lower()
+            signal.signal_type == SignalType.HOLD
+            and "setup" in " ".join(signal.reasoning).lower()
         ):
             self._create_setup_alert(ticker, signal, current_indicators)
 
@@ -425,7 +439,9 @@ class TradingAlertSystem:
 
         self.send_alert(alert)
 
-    def create_exit_alert(self, ticker: str, exit_signals: list[ExitSignal], position_data: dict):
+    def create_exit_alert(
+        self, ticker: str, exit_signals: list[ExitSignal], position_data: dict
+    ):
         """Create exit - related alerts."""
         if not exit_signals:
             return
@@ -490,16 +506,23 @@ class ExecutionChecklistManager:
         trade_id = f"{ticker}_{datetime.now().strftime('%Y % m % d_ % H % M % S')}"
 
         items = [
-            ChecklistItem(1, f"Verify bull regime: {ticker}  >  50 - EMA, 50 - EMA  >  200 - EMA"),
+            ChecklistItem(
+                1, f"Verify bull regime: {ticker}  >  50 - EMA, 50 - EMA  >  200 - EMA"
+            ),
             ChecklistItem(2, "Confirm pullback setup: RSI 35 - 50, near 20 - EMA"),
-            ChecklistItem(3, "Verify reversal trigger: Price  >  20 - EMA and previous high"),
+            ChecklistItem(
+                3, "Verify reversal trigger: Price  >  20 - EMA and previous high"
+            ),
             ChecklistItem(4, "Check earnings calendar: No earnings within ±7 days"),
             ChecklistItem(5, "Verify no major macro events today"),
             ChecklistItem(
-                6, f"Calculate position size: Max {trade_calc.account_risk_pct:.1f}% of account"
+                6,
+                f"Calculate position size: Max {trade_calc.account_risk_pct:.1f}% of account",
             ),
             ChecklistItem(7, "Check option liquidity: Bid - ask spread  <  10%"),
-            ChecklistItem(8, "Set stop loss level: Exit if premium drops to 50% of entry"),
+            ChecklistItem(
+                8, "Set stop loss level: Exit if premium drops to 50% of entry"
+            ),
             ChecklistItem(9, "Set profit targets: 100%, 200%, 250% gains"),
             ChecklistItem(
                 10,
@@ -516,14 +539,18 @@ class ExecutionChecklistManager:
         self.checklists[trade_id] = checklist
         return trade_id
 
-    def create_monitoring_checklist(self, trade_id: str, ticker: str) -> ExecutionChecklist:
+    def create_monitoring_checklist(
+        self, trade_id: str, ticker: str
+    ) -> ExecutionChecklist:
         """Create daily monitoring checklist."""
         items = [
             ChecklistItem(1, f"Check {ticker} price action vs. key EMAs"),
             ChecklistItem(2, "Monitor option premium and delta changes"),
             ChecklistItem(3, "Verify bull regime still intact (50 - EMA support)"),
             ChecklistItem(4, "Check for profit target hits (100%, 200%, 250%)"),
-            ChecklistItem(5, "Assess stop loss conditions (50% loss or 50 - EMA break)"),
+            ChecklistItem(
+                5, "Assess stop loss conditions (50% loss or 50 - EMA break)"
+            ),
             ChecklistItem(6, "Review days to expiry and time decay impact"),
             ChecklistItem(7, "Check for upcoming earnings or macro events"),
             ChecklistItem(8, "Update exit plan based on current scenario analysis"),
@@ -532,7 +559,10 @@ class ExecutionChecklistManager:
         monitoring_id = f"{trade_id}_monitoring_{datetime.now().strftime('%Y % m % d')}"
 
         checklist = ExecutionChecklist(
-            trade_id=monitoring_id, ticker=ticker, checklist_type="monitoring", items=items
+            trade_id=monitoring_id,
+            ticker=ticker,
+            checklist_type="monitoring",
+            items=items,
         )
 
         self.checklists[monitoring_id] = checklist
@@ -555,7 +585,9 @@ class ExecutionChecklistManager:
             ChecklistItem(10, "Plan next potential setup if position closed"),
         ]
 
-        exit_id = f"{trade_id}_exit_{datetime.now().strftime('%Y % m % d_ % H % M % S')}"
+        exit_id = (
+            f"{trade_id}_exit_{datetime.now().strftime('%Y % m % d_ % H % M % S')}"
+        )
 
         checklist = ExecutionChecklist(
             trade_id=exit_id, ticker=ticker, checklist_type="exit", items=items
@@ -697,8 +729,12 @@ if __name__ == "__main__":  # Test the alert system
     print(f"Completion: {checklist.completion_percentage:.1f}%")
 
     # Complete first few items
-    checklist_manager.complete_item(checklist_id, 1, "Verified: GOOGL  >  50 - EMA confirmed")
-    checklist_manager.complete_item(checklist_id, 2, "RSI at 42, touched 20 - EMA support")
+    checklist_manager.complete_item(
+        checklist_id, 1, "Verified: GOOGL  >  50 - EMA confirmed"
+    )
+    checklist_manager.complete_item(
+        checklist_id, 2, "RSI at 42, touched 20 - EMA support"
+    )
 
     updated_checklist = checklist_manager.get_checklist(checklist_id)
     print(f"Updated completion: {updated_checklist.completion_percentage:.1f}%")

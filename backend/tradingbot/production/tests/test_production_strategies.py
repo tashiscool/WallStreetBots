@@ -38,7 +38,10 @@ from ..core.production_strategy_manager import (
     StrategyConfig,
 )
 from ..data.production_data_integration import EarningsEvent
-from ..strategies.production_earnings_protection import EarningsSignal, ProductionEarningsProtection
+from ..strategies.production_earnings_protection import (
+    EarningsSignal,
+    ProductionEarningsProtection,
+)
 from ..strategies.production_index_baseline import ProductionIndexBaseline
 from ..strategies.production_wsb_dip_bot import DipSignal, ProductionWSBDipBot
 
@@ -50,7 +53,9 @@ class TestProductionWSBDipBot:
     def mock_integration(self):
         """Mock ProductionIntegrationManager."""
         mock_integration = Mock()
-        mock_integration.get_portfolio_value = AsyncMock(return_value=Decimal("100000.00"))
+        mock_integration.get_portfolio_value = AsyncMock(
+            return_value=Decimal("100000.00")
+        )
         mock_integration.get_current_price = AsyncMock(return_value=Decimal("150.00"))
         mock_integration.execute_trade = AsyncMock()
         mock_integration.execute_trade.return_value.status.value = "FILLED"
@@ -109,7 +114,9 @@ class TestProductionWSBDipBot:
             ]
         )
         mock_provider.get_volatility = AsyncMock(return_value=Decimal("0.30"))
-        mock_provider.get_current_price = AsyncMock(return_value=Mock(price=Decimal("115.00")))
+        mock_provider.get_current_price = AsyncMock(
+            return_value=Mock(price=Decimal("115.00"))
+        )
         mock_provider.get_options_chain = AsyncMock(return_value=[])
         return mock_provider
 
@@ -139,14 +146,20 @@ class TestProductionWSBDipBot:
             print(
                 f"Signal detected: run={signal.run_percentage:.2%}, dip={signal.dip_percentage: .2%}, confidence={signal.confidence: .2f}"
             )
-            assert signal.run_percentage >= RUN_PERCENTAGE_THRESHOLD  # 20% run (advanced algorithm requirement)
-            assert signal.dip_percentage >= DIP_PERCENTAGE_THRESHOLD  # 5% dip (advanced algorithm requirement)
+            assert (
+                signal.run_percentage >= RUN_PERCENTAGE_THRESHOLD
+            )  # 20% run (advanced algorithm requirement)
+            assert (
+                signal.dip_percentage >= DIP_PERCENTAGE_THRESHOLD
+            )  # 5% dip (advanced algorithm requirement)
             assert signal.confidence > 0
         else:
             # If no signal, let's check what the algorithm is seeing
             print("No signal detected - checking algorithm logic...")
             # For now, just ensure the method doesn't crash
-            assert signal is None or signal is not None  # Always true, just testing execution
+            assert (
+                signal is None or signal is not None
+            )  # Always true, just testing execution
 
     @pytest.mark.asyncio
     async def test_trade_execution(self, wsb_dip_bot):
@@ -186,7 +199,9 @@ class TestProductionEarningsProtection:
     def mock_integration(self):
         """Mock ProductionIntegrationManager."""
         mock_integration = Mock()
-        mock_integration.get_portfolio_value = AsyncMock(return_value=Decimal("100000.00"))
+        mock_integration.get_portfolio_value = AsyncMock(
+            return_value=Decimal("100000.00")
+        )
         mock_integration.execute_trade = AsyncMock()
         mock_integration.execute_trade.return_value.status.value = "FILLED"
         mock_integration.active_positions = {}
@@ -210,7 +225,9 @@ class TestProductionEarningsProtection:
                 )
             ]
         )
-        mock_provider.get_current_price = AsyncMock(return_value=Mock(price=Decimal("150.00")))
+        mock_provider.get_current_price = AsyncMock(
+            return_value=Mock(price=Decimal("150.00"))
+        )
         mock_provider.get_volatility = AsyncMock(return_value=Decimal("0.30"))
         # Mock the IV percentile calculation to return high value
         mock_provider._calculate_iv_percentile = AsyncMock(return_value=75.0)
@@ -227,7 +244,9 @@ class TestProductionEarningsProtection:
             "min_days_to_earnings": 1,
             "preferred_strategies": ["deep_itm", "calendar_spread"],
         }
-        return ProductionEarningsProtection(mock_integration, mock_data_provider, config)
+        return ProductionEarningsProtection(
+            mock_integration, mock_data_provider, config
+        )
 
     @pytest.mark.asyncio
     async def test_earnings_signal_detection(self, earnings_protection):
@@ -242,7 +261,11 @@ class TestProductionEarningsProtection:
         if len(signals) > 0:
             signal = signals[0]
             assert signal.ticker == "AAPL"
-            assert signal.strategy_type in ["deep_itm", "calendar_spread", "protective_hedge"]
+            assert signal.strategy_type in [
+                "deep_itm",
+                "calendar_spread",
+                "protective_hedge",
+            ]
             assert signal.confidence > 0
 
     @pytest.mark.asyncio
@@ -272,7 +295,9 @@ class TestProductionEarningsProtection:
 
         assert status["strategy_name"] == "earnings_protection"
         assert "parameters" in status
-        assert status["parameters"]["iv_percentile_threshold"] == IV_PERCENTILE_THRESHOLD
+        assert (
+            status["parameters"]["iv_percentile_threshold"] == IV_PERCENTILE_THRESHOLD
+        )
 
 
 class TestProductionIndexBaseline:
@@ -282,8 +307,12 @@ class TestProductionIndexBaseline:
     def mock_integration(self):
         """Mock ProductionIntegrationManager."""
         mock_integration = Mock()
-        mock_integration.get_portfolio_value = AsyncMock(return_value=Decimal("100000.00"))
-        mock_integration.get_position_value = AsyncMock(return_value=Decimal("50000.00"))
+        mock_integration.get_portfolio_value = AsyncMock(
+            return_value=Decimal("100000.00")
+        )
+        mock_integration.get_position_value = AsyncMock(
+            return_value=Decimal("50000.00")
+        )
         mock_integration.execute_trade = AsyncMock()
         mock_integration.execute_trade.return_value.status.value = "FILLED"
         mock_integration.active_positions = {}
@@ -301,7 +330,9 @@ class TestProductionIndexBaseline:
             historical_data.append(Mock(price=Decimal("400.00") + Decimal(str(i))))
 
         mock_provider.get_historical_data = AsyncMock(return_value=historical_data)
-        mock_provider.get_current_price = AsyncMock(return_value=Mock(price=Decimal("415.00")))
+        mock_provider.get_current_price = AsyncMock(
+            return_value=Mock(price=Decimal("415.00"))
+        )
         return mock_provider
 
     @pytest.fixture
@@ -388,7 +419,10 @@ class TestProductionStrategyManager:
             user_id=1,
             strategies={
                 "wsb_dip_bot": StrategyConfig(
-                    name="wsb_dip_bot", enabled=True, max_position_size=0.20, risk_tolerance="high"
+                    name="wsb_dip_bot",
+                    enabled=True,
+                    max_position_size=0.20,
+                    risk_tolerance="high",
                 ),
                 "earnings_protection": StrategyConfig(
                     name="earnings_protection",
@@ -505,10 +539,12 @@ class TestProductionStrategyIntegration:
                                 True,
                                 "OK",
                             )
-                            mock_integration.return_value.get_portfolio_value = AsyncMock(
-                                return_value=Decimal("100000.00")
+                            mock_integration.return_value.get_portfolio_value = (
+                                AsyncMock(return_value=Decimal("100000.00"))
                             )
-                            mock_data.return_value.is_market_open = AsyncMock(return_value=True)
+                            mock_data.return_value.is_market_open = AsyncMock(
+                                return_value=True
+                            )
 
                             # Mock strategy instances
                             mock_wsb_instance = Mock()
@@ -542,7 +578,9 @@ class TestProductionStrategyIntegration:
                             manager = ProductionStrategyManager(config)
 
                             # Start strategies
-                            manager._validate_system_state = AsyncMock(return_value=True)
+                            manager._validate_system_state = AsyncMock(
+                                return_value=True
+                            )
                             success = await manager.start_all_strategies()
 
                             # Verify strategies started
@@ -557,7 +595,9 @@ class TestProductionStrategyIntegration:
 
                             # Verify system status
                             status = manager.get_system_status()
-                            assert status["active_strategies"] == EXPECTED_STRATEGY_COUNT
+                            assert (
+                                status["active_strategies"] == EXPECTED_STRATEGY_COUNT
+                            )
                             assert status["is_running"] is True
 
 

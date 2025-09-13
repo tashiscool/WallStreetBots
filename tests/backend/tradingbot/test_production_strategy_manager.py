@@ -63,7 +63,9 @@ class TestProductionStrategyManager:
         return mock_provider
 
     @pytest.fixture
-    def strategy_manager(self, mock_config, mock_integration_manager, mock_data_provider):
+    def strategy_manager(
+        self, mock_config, mock_integration_manager, mock_data_provider
+    ):
         """Create strategy manager with mocks."""
         with (
             patch(
@@ -112,7 +114,9 @@ class TestProductionStrategyManager:
             ),
         ):
             # Mock strategy creation to avoid import errors during testing
-            with patch.object(ProductionStrategyManager, "_create_strategy", return_value=None):
+            with patch.object(
+                ProductionStrategyManager, "_create_strategy", return_value=None
+            ):
                 manager = ProductionStrategyManager(mock_config)
 
                 # Expected strategy names
@@ -133,7 +137,9 @@ class TestProductionStrategyManager:
         mock_wsb.return_value = mock_strategy
 
         # Create strategy config
-        config = StrategyConfig(name="wsb_dip_bot", enabled=True, parameters={"test": "value"})
+        config = StrategyConfig(
+            name="wsb_dip_bot", enabled=True, parameters={"test": "value"}
+        )
 
         # Test creation
         strategy = strategy_manager._create_strategy("wsb_dip_bot", config)
@@ -200,7 +206,9 @@ class TestProductionStrategyManager:
         mock_strategy = Mock()
         mock_leaps.return_value = mock_strategy
 
-        config = StrategyConfig(name="leaps_tracker", enabled=True, parameters={"min_dte": 365})
+        config = StrategyConfig(
+            name="leaps_tracker", enabled=True, parameters={"min_dte": 365}
+        )
 
         strategy = strategy_manager._create_strategy("leaps_tracker", config)
 
@@ -233,7 +241,9 @@ class TestProductionStrategyManager:
         mock_spx.return_value = mock_strategy
 
         config = StrategyConfig(
-            name="spx_credit_spreads", enabled=True, parameters={"target_short_delta": 0.30}
+            name="spx_credit_spreads",
+            enabled=True,
+            parameters={"target_short_delta": 0.30},
         )
 
         strategy = strategy_manager._create_strategy("spx_credit_spreads", config)
@@ -281,7 +291,10 @@ class TestProductionStrategyManager:
         self, strategy_manager, mock_integration_manager, mock_data_provider
     ):
         """Test successful system state validation."""
-        mock_integration_manager.alpaca_manager.validate_api.return_value = (True, "Success")
+        mock_integration_manager.alpaca_manager.validate_api.return_value = (
+            True,
+            "Success",
+        )
         mock_integration_manager.get_portfolio_value.return_value = 50000.0
         mock_data_provider.is_market_open.return_value = True
 
@@ -293,7 +306,10 @@ class TestProductionStrategyManager:
         self, strategy_manager, mock_integration_manager
     ):
         """Test system validation fails on Alpaca API validation."""
-        mock_integration_manager.alpaca_manager.validate_api.return_value = (False, "API Error")
+        mock_integration_manager.alpaca_manager.validate_api.return_value = (
+            False,
+            "API Error",
+        )
 
         result = await strategy_manager._validate_system_state()
         assert not result
@@ -303,8 +319,13 @@ class TestProductionStrategyManager:
         self, strategy_manager, mock_integration_manager
     ):
         """Test system validation fails on insufficient account size."""
-        mock_integration_manager.alpaca_manager.validate_api.return_value = (True, "Success")
-        mock_integration_manager.get_portfolio_value.return_value = 500.0  # Below $1000 minimum
+        mock_integration_manager.alpaca_manager.validate_api.return_value = (
+            True,
+            "Success",
+        )
+        mock_integration_manager.get_portfolio_value.return_value = (
+            500.0  # Below $1000 minimum
+        )
 
         result = await strategy_manager._validate_system_state()
         assert not result
@@ -318,7 +339,10 @@ class TestProductionStrategyManager:
         mock_strategy2 = Mock()
         mock_strategy2.run_strategy = AsyncMock()
 
-        strategy_manager.strategies = {"strategy1": mock_strategy1, "strategy2": mock_strategy2}
+        strategy_manager.strategies = {
+            "strategy1": mock_strategy1,
+            "strategy2": mock_strategy2,
+        }
 
         # Mock validation
         strategy_manager._validate_system_state = AsyncMock(return_value=True)
@@ -381,7 +405,7 @@ class TestProductionStrategyManager:
         # Use test constants instead of hardcoded strings
         TEST_API_KEY = "test_key"
         TEST_SECRET_KEY = "test_secret"  # noqa: S105
-        
+
         config = ProductionStrategyManagerConfig(
             alpaca_api_key=TEST_API_KEY,
             alpaca_secret_key=TEST_SECRET_KEY,
@@ -485,7 +509,10 @@ class TestIntegrationScenarios:
         ):
             # Mock successful initialization
             mock_integration = Mock()
-            mock_integration.alpaca_manager.validate_api.return_value = (True, "Success")
+            mock_integration.alpaca_manager.validate_api.return_value = (
+                True,
+                "Success",
+            )
             mock_integration.get_portfolio_value = AsyncMock(return_value=100000.0)
             MockIntegration.return_value = mock_integration
 
@@ -556,7 +583,10 @@ class TestIntegrationScenarios:
         ):
             # Test API failure scenario
             mock_integration = Mock()
-            mock_integration.alpaca_manager.validate_api.return_value = (False, "API Error")
+            mock_integration.alpaca_manager.validate_api.return_value = (
+                False,
+                "API Error",
+            )
             MockIntegration.return_value = mock_integration
 
             mock_data = Mock()
@@ -569,8 +599,13 @@ class TestIntegrationScenarios:
             assert not validation_result
 
             # Test insufficient account size
-            mock_integration.alpaca_manager.validate_api.return_value = (True, "Success")
-            mock_integration.get_portfolio_value = AsyncMock(return_value=500.0)  # Below minimum
+            mock_integration.alpaca_manager.validate_api.return_value = (
+                True,
+                "Success",
+            )
+            mock_integration.get_portfolio_value = AsyncMock(
+                return_value=500.0
+            )  # Below minimum
 
             validation_result = await manager._validate_system_state()
             assert not validation_result
@@ -640,7 +675,9 @@ if __name__ == "__main__":
         print("\n" + " = " * 50)
         print("✅ BASIC TESTS COMPLETED SUCCESSFULLY")
         print("\nTo run full test suite with pytest: ")
-        print("  pytest tests / backend / tradingbot / test_production_strategy_manager.py -v")
+        print(
+            "  pytest tests / backend / tradingbot / test_production_strategy_manager.py -v"
+        )
 
     except Exception as e:
         print(f"\n❌ BASIC TESTS FAILED: {e}")

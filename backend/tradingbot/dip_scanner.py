@@ -50,7 +50,11 @@ class LiveDipScanner:
     def is_optimal_entry_time(self) -> bool:
         """Check if it's optimal time for entries."""
         now = datetime.now().time()
-        return self.market_hours.optimal_entry_start <= now <= self.market_hours.optimal_entry_end
+        return (
+            self.market_hours.optimal_entry_start
+            <= now
+            <= self.market_hours.optimal_entry_end
+        )
 
     async def start_scanning(self):
         """Start the live scanning loop."""
@@ -120,7 +124,9 @@ class LiveDipScanner:
         for ticker in self.dip_detector.universe:
             # Generate sample data for testing
             # Replace with actual API calls
-            base_price = {"GOOGL": 207.0, "AAPL": 175.0, "MSFT": 285.0}.get(ticker, 200.0)
+            base_price = {"GOOGL": 207.0, "AAPL": 175.0, "MSFT": 285.0}.get(
+                ticker, 200.0
+            )
 
             # Simulate dip conditions occasionally
             import secrets  # More secure random
@@ -201,7 +207,9 @@ class LiveDipScanner:
         # In production, get actual option prices from broker
         intrinsic = max(0, current_spot - position.strike)
         time_decay_factor = max(0.1, position.days_to_expiry / 30.0)  # Rough time decay
-        estimated_premium = intrinsic + (position.entry_premium * 0.3 * time_decay_factor)
+        estimated_premium = intrinsic + (
+            position.entry_premium * 0.3 * time_decay_factor
+        )
 
         # Boost premium if stock moved up significantly
         price_move = (current_spot - position.spot_price) / position.spot_price
@@ -215,7 +223,9 @@ class LiveDipScanner:
         # Check exit conditions
         exit_condition = self.system.check_exit_conditions(
             current_premium=estimated_premium,
-            current_delta=0.5 if current_spot > position.strike else 0.3,  # Rough delta estimate
+            current_delta=0.5
+            if current_spot > position.strike
+            else 0.3,  # Rough delta estimate
         )
 
         if exit_condition:
@@ -295,7 +305,9 @@ class LiveDipScanner:
 
         return processed_signals
 
-    def update_daily_stats(self, opportunities_found: int = 0, trades_executed: int = 0):
+    def update_daily_stats(
+        self, opportunities_found: int = 0, trades_executed: int = 0
+    ):
         """Update daily statistics."""
         self.opportunities_found_today += opportunities_found
         self.trades_executed_today += trades_executed
@@ -330,7 +342,9 @@ class LiveDipScanner:
             "is_market_open": self.is_market_open(),
             "market_open": self.is_market_open(),  # Alias for backward compatibility
             "is_optimal_entry_time": self.is_optimal_entry_time(),
-            "last_scan_time": self.last_scan_time.isoformat() if self.last_scan_time else None,
+            "last_scan_time": self.last_scan_time.isoformat()
+            if self.last_scan_time
+            else None,
             "opportunities_found_today": self.opportunities_found_today,
             "trades_executed_today": self.trades_executed_today,
             "system_status": self.system.get_system_status(),
@@ -428,9 +442,13 @@ if __name__ == "__main__":  # Test the scanner system
         # Final status
         final_status = bot.get_full_status()
         print("\n=== FINAL STATUS ===")
-        print(f"Current Capital: ${final_status['system_status']['current_capital']:,.0f}")
+        print(
+            f"Current Capital: ${final_status['system_status']['current_capital']:,.0f}"
+        )
         print(f"Total Return: {final_status['system_status']['total_return']:+.1f}%")
-        print(f"Trades Today: {final_status['scanner_status']['trades_executed_today']}")
+        print(
+            f"Trades Today: {final_status['scanner_status']['trades_executed_today']}"
+        )
 
     # Run the test
     asyncio.run(test_dip_scanner())

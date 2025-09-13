@@ -9,9 +9,19 @@ import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime
 
-from .alert_system import AlertPriority, AlertType, ExecutionChecklistManager, TradingAlertSystem
+from .alert_system import (
+    AlertPriority,
+    AlertType,
+    ExecutionChecklistManager,
+    TradingAlertSystem,
+)
 from .exit_planning import ExitSignal, ExitStrategy, ScenarioAnalyzer
-from .market_regime import MarketSignal, SignalGenerator, SignalType, TechnicalIndicators
+from .market_regime import (
+    MarketSignal,
+    SignalGenerator,
+    SignalType,
+    TechnicalIndicators,
+)
 from .options_calculator import OptionsTradeCalculator, TradeCalculation
 from .risk_management import Position, RiskManager, RiskParameters
 
@@ -92,7 +102,8 @@ class IntegratedTradingSystem:
 
         # Setup logging
         logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            level=logging.INFO,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
         self.logger = logging.getLogger(__name__)
 
@@ -214,7 +225,9 @@ class IntegratedTradingSystem:
                 )
 
                 # Process signal
-                await self._process_signal(ticker, signal, current_indicators, market_data[ticker])
+                await self._process_signal(
+                    ticker, signal, current_indicators, market_data[ticker]
+                )
 
             except Exception as e:
                 self.logger.error(f"Error scanning {ticker}: {e}")
@@ -234,19 +247,28 @@ class IntegratedTradingSystem:
         )
 
     async def _process_signal(
-        self, ticker: str, signal: MarketSignal, indicators: TechnicalIndicators, market_data: dict
+        self,
+        ticker: str,
+        signal: MarketSignal,
+        indicators: TechnicalIndicators,
+        market_data: dict,
     ):
         """Process trading signal and generate appropriate actions."""
         if signal.signal_type == SignalType.BUY and signal.confidence > 0.7:
             await self._handle_buy_signal(ticker, signal, indicators, market_data)
 
         elif (
-            signal.signal_type == SignalType.HOLD and "setup" in " ".join(signal.reasoning).lower()
+            signal.signal_type == SignalType.HOLD
+            and "setup" in " ".join(signal.reasoning).lower()
         ):
             await self._handle_setup_signal(ticker, signal, indicators)
 
     async def _handle_buy_signal(
-        self, ticker: str, signal: MarketSignal, indicators: TechnicalIndicators, market_data: dict
+        self,
+        ticker: str,
+        signal: MarketSignal,
+        indicators: TechnicalIndicators,
+        market_data: dict,
     ):
         """Handle buy signal - calculate trade and send alerts."""
         try:
@@ -262,14 +284,18 @@ class IntegratedTradingSystem:
             # Check if trade passes risk management
             if self._validate_trade_risk(trade_calc):
                 # Create execution checklist
-                checklist_id = self.checklist_manager.create_entry_checklist(ticker, trade_calc)
+                checklist_id = self.checklist_manager.create_entry_checklist(
+                    ticker, trade_calc
+                )
 
                 # Send alert
                 await self._send_entry_alert(ticker, signal, trade_calc, checklist_id)
 
                 self.logger.info(f"🚀 BUY SIGNAL generated for {ticker}")
             else:
-                self.logger.warning(f"❌ Trade for {ticker} rejected by risk management")
+                self.logger.warning(
+                    f"❌ Trade for {ticker} rejected by risk management"
+                )
 
         except Exception as e:
             self.logger.error(f"Error handling buy signal for {ticker}: {e}")
@@ -289,7 +315,10 @@ class IntegratedTradingSystem:
                 title=f"⚠️ SETUP: {ticker}",
                 message="Pullback setup detected. Monitor for reversal trigger.\n"
                 f"Price: ${indicators.price:.2f} | RSI: {indicators.rsi_14:.0f}",
-                data={"signal_confidence": signal.confidence, "reasoning": signal.reasoning},
+                data={
+                    "signal_confidence": signal.confidence,
+                    "reasoning": signal.reasoning,
+                },
             )
 
             self.alert_system.send_alert(alert)
@@ -313,7 +342,11 @@ class IntegratedTradingSystem:
         return True
 
     async def _send_entry_alert(
-        self, ticker: str, signal: MarketSignal, trade_calc: TradeCalculation, checklist_id: str
+        self,
+        ticker: str,
+        signal: MarketSignal,
+        trade_calc: TradeCalculation,
+        checklist_id: str,
     ):
         """Send entry signal alert."""
         if not self.config.enable_alerts:
@@ -344,7 +377,9 @@ class IntegratedTradingSystem:
 
     async def _monitor_existing_positions(self, market_data: dict):
         """Monitor existing positions for exit signals."""
-        open_positions = [pos for pos in self.risk_manager.positions if pos.status.value == "open"]
+        open_positions = [
+            pos for pos in self.risk_manager.positions if pos.status.value == "open"
+        ]
 
         for position in open_positions:
             ticker = position.ticker
@@ -369,12 +404,16 @@ class IntegratedTradingSystem:
 
                 # Run scenario analysis periodically
                 if datetime.now().hour in [9, 12, 15]:  # 9am, 12pm, 3pm ET
-                    await self._run_position_scenario_analysis(position, current_price, current_iv)
+                    await self._run_position_scenario_analysis(
+                        position, current_price, current_iv
+                    )
 
             except Exception as e:
                 self.logger.error(f"Error monitoring position {ticker}: {e}")
 
-    async def _handle_exit_signals(self, position: Position, exit_signals: list[ExitSignal]):
+    async def _handle_exit_signals(
+        self, position: Position, exit_signals: list[ExitSignal]
+    ):
         """Handle exit signals for a position."""
         strongest_signal = max(exit_signals, key=lambda x: x.strength.value)
 
@@ -387,9 +426,13 @@ class IntegratedTradingSystem:
 
         # Send exit alert
         if self.config.enable_alerts:
-            self.alert_system.create_exit_alert(position.ticker, exit_signals, asdict(position))
+            self.alert_system.create_exit_alert(
+                position.ticker, exit_signals, asdict(position)
+            )
 
-        self.logger.info(f"🎯 EXIT SIGNAL for {position.ticker}: {strongest_signal.reason.value}")
+        self.logger.info(
+            f"🎯 EXIT SIGNAL for {position.ticker}: {strongest_signal.reason.value}"
+        )
 
     async def _run_position_scenario_analysis(
         self, position: Position, current_spot: float, current_iv: float
@@ -428,7 +471,11 @@ class IntegratedTradingSystem:
 
             # Update state
             self.state.active_positions = len(
-                [pos for pos in self.risk_manager.positions if pos.status.value == "open"]
+                [
+                    pos
+                    for pos in self.risk_manager.positions
+                    if pos.status.value == "open"
+                ]
             )
             self.state.total_portfolio_risk = portfolio_risk.risk_utilization
 
@@ -523,7 +570,9 @@ if __name__ == "__main__":  # Test the integrated system
         status = system.get_portfolio_status()
         print("\nPortfolio Status: ")
         print(f"  Active Positions: {status['system_state']['active_positions']}")
-        print(f"  Risk Utilization: {status['system_state']['total_portfolio_risk']:.1%}")
+        print(
+            f"  Risk Utilization: {status['system_state']['total_portfolio_risk']:.1%}"
+        )
 
         # Run one scan cycle
         print("\nRunning single scan cycle...")

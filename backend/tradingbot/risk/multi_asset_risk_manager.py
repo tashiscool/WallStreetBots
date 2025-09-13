@@ -189,7 +189,9 @@ class MultiAssetRiskManager:
             # Update asset class weights
             await self._update_asset_class_weights()
 
-            self.logger.info(f"Added position: {symbol} ({asset_class}) - ${value: ,.0f}")
+            self.logger.info(
+                f"Added position: {symbol} ({asset_class}) - ${value: ,.0f}"
+            )
 
         except Exception as e:
             self.logger.error(f"Error adding position {symbol}: {e}")
@@ -228,7 +230,9 @@ class MultiAssetRiskManager:
             # Update correlation matrix
             await self._update_correlation_matrix()
 
-            self.logger.info(f"Calculated {len(correlations)} cross - asset correlations")
+            self.logger.info(
+                f"Calculated {len(correlations)} cross - asset correlations"
+            )
 
             return correlations
 
@@ -313,7 +317,9 @@ class MultiAssetRiskManager:
                         else:
                             corr_matrix[i, j] = 0.0  # Default correlation
 
-            self.correlation_matrix = pd.DataFrame(corr_matrix, index=assets, columns=assets)
+            self.correlation_matrix = pd.DataFrame(
+                corr_matrix, index=assets, columns=assets
+            )
 
             self.logger.info(f"Updated correlation matrix: {n_assets}x{n_assets}")
 
@@ -342,7 +348,9 @@ class MultiAssetRiskManager:
 
             for asset_class in AssetClass:
                 class_positions = [
-                    pos for pos in self.positions.values() if pos.asset_class == asset_class
+                    pos
+                    for pos in self.positions.values()
+                    if pos.asset_class == asset_class
                 ]
 
                 if class_positions:
@@ -417,7 +425,9 @@ class MultiAssetRiskManager:
             if total_value == 0:
                 return 0.0
 
-            weighted_vol = sum(pos.volatility * pos.value for pos in positions) / total_value
+            weighted_vol = (
+                sum(pos.volatility * pos.value for pos in positions) / total_value
+            )
 
             # Calculate VaR (simplified)
             z_score = 2.33 if confidence_level == 0.99 else 1.96  # Simplified
@@ -521,7 +531,9 @@ class MultiAssetRiskManager:
 
             # Count non - base currency positions
             non_base_positions = [
-                pos for pos in self.positions.values() if pos.currency != self.base_currency
+                pos
+                for pos in self.positions.values()
+                if pos.currency != self.base_currency
             ]
 
             if not non_base_positions:
@@ -567,7 +579,9 @@ class MultiAssetRiskManager:
             asset_count = len(self.positions)
             asset_classes = len({pos.asset_class for pos in self.positions.values()})
 
-            diversification_ratio = asset_classes / asset_count if asset_count > 0 else 0.0
+            diversification_ratio = (
+                asset_classes / asset_count if asset_count > 0 else 0.0
+            )
 
             return diversification_ratio
 
@@ -588,7 +602,9 @@ class MultiAssetRiskManager:
             # Calculate weights by asset class
             for asset_class in AssetClass:
                 class_value = sum(
-                    pos.value for pos in self.positions.values() if pos.asset_class == asset_class
+                    pos.value
+                    for pos in self.positions.values()
+                    if pos.asset_class == asset_class
                 )
                 self.asset_class_weights[asset_class] = class_value / total_value
 
@@ -641,7 +657,9 @@ class MultiAssetRiskManager:
                 "timestamp": self.last_calculation,
                 "calculation_count": self.calculation_count,
                 "total_positions": len(self.positions),
-                "asset_classes": list({pos.asset_class for pos in self.positions.values()}),
+                "asset_classes": list(
+                    {pos.asset_class for pos in self.positions.values()}
+                ),
                 "asset_class_weights": self.asset_class_weights,
                 "risk_metrics": {
                     "total_var": metrics.total_var,
@@ -669,38 +687,75 @@ if __name__ == "__main__":
     async def test_multi_asset_risk():
         # Initialize multi - asset risk manager
         risk_manager = MultiAssetRiskManager(
-            base_currency="USD", enable_crypto=True, enable_forex=True, enable_commodities=True
+            base_currency="USD",
+            enable_crypto=True,
+            enable_forex=True,
+            enable_commodities=True,
         )
 
         # Add sample positions
         await risk_manager.add_position(
-            "AAPL", AssetClass.EQUITY, 100, 15000, "USD", volatility=0.25, liquidity_score=0.9
+            "AAPL",
+            AssetClass.EQUITY,
+            100,
+            15000,
+            "USD",
+            volatility=0.25,
+            liquidity_score=0.9,
         )
 
         await risk_manager.add_position(
-            "BTC", AssetClass.CRYPTO, 0.5, 20000, "USD", volatility=0.60, liquidity_score=0.8
+            "BTC",
+            AssetClass.CRYPTO,
+            0.5,
+            20000,
+            "USD",
+            volatility=0.60,
+            liquidity_score=0.8,
         )
 
         await risk_manager.add_position(
-            "EURUSD", AssetClass.FOREX, 100000, 110000, "USD", volatility=0.15, liquidity_score=0.95
+            "EURUSD",
+            AssetClass.FOREX,
+            100000,
+            110000,
+            "USD",
+            volatility=0.15,
+            liquidity_score=0.95,
         )
 
         await risk_manager.add_position(
-            "GOLD", AssetClass.COMMODITY, 10, 18000, "USD", volatility=0.20, liquidity_score=0.85
+            "GOLD",
+            AssetClass.COMMODITY,
+            10,
+            18000,
+            "USD",
+            volatility=0.20,
+            liquidity_score=0.85,
         )
 
         # Simulate market data
         dates = pd.date_range(end=datetime.now(), periods=252, freq="D")
 
         market_data = {
-            "AAPL": pd.DataFrame({"Close": 150 + np.random.normal(0, 5, 252)}, index=dates),
-            "BTC": pd.DataFrame({"Close": 40000 + np.random.normal(0, 2000, 252)}, index=dates),
-            "EURUSD": pd.DataFrame({"Close": 1.1 + np.random.normal(0, 0.02, 252)}, index=dates),
-            "GOLD": pd.DataFrame({"Close": 1800 + np.random.normal(0, 50, 252)}, index=dates),
+            "AAPL": pd.DataFrame(
+                {"Close": 150 + np.random.normal(0, 5, 252)}, index=dates
+            ),
+            "BTC": pd.DataFrame(
+                {"Close": 40000 + np.random.normal(0, 2000, 252)}, index=dates
+            ),
+            "EURUSD": pd.DataFrame(
+                {"Close": 1.1 + np.random.normal(0, 0.02, 252)}, index=dates
+            ),
+            "GOLD": pd.DataFrame(
+                {"Close": 1800 + np.random.normal(0, 50, 252)}, index=dates
+            ),
         }
 
         # Calculate correlations
-        correlations = await risk_manager.calculate_cross_asset_correlations(market_data)
+        correlations = await risk_manager.calculate_cross_asset_correlations(
+            market_data
+        )
         print(f"Calculated {len(correlations)} correlations")
 
         # Calculate multi - asset VaR

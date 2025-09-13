@@ -38,7 +38,9 @@ class OrderForm(forms.Form):
     ]
     ticker = forms.CharField(help_text="Stock ticker")
     order_type = forms.ChoiceField(choices=ORDERTYPES, help_text="Order Type")
-    transaction_type = forms.ChoiceField(choices=TRANSACTIONTYPES, help_text="Transaction Type")
+    transaction_type = forms.ChoiceField(
+        choices=TRANSACTIONTYPES, help_text="Transaction Type"
+    )
     quantity = forms.DecimalField(decimal_places=2, help_text="Quantity")
     time_in_force = forms.ChoiceField(choices=TIMEINFORCE, help_text="Time in force")
 
@@ -81,7 +83,9 @@ class StrategyForm(forms.Form):
             "HMM model prediction + Sharpe ratio Monte Carlo simulation",
         ),  # TODO
     ]
-    strategy = forms.ChoiceField(choices=STRATEGY, help_text="Portfolio Rebalancing Strategy")
+    strategy = forms.ChoiceField(
+        choices=STRATEGY, help_text="Portfolio Rebalancing Strategy"
+    )
 
     def clean(self):
         # print('inside: ', type(self.cleaned_data), self.cleaned_data)

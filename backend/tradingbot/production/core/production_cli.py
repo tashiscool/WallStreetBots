@@ -44,7 +44,9 @@ class ProductionCLI:
                 user_id=args.user_id,
                 max_position_size=args.max_position_size,
                 max_total_risk=args.max_total_risk,
-                enabled_strategies=args.strategies.split(",") if args.strategies else None,
+                enabled_strategies=args.strategies.split(",")
+                if args.strategies
+                else None,
             )
 
             # Create manager
@@ -122,8 +124,12 @@ class ProductionCLI:
             print(" = " * 50)
             print(f"📊 Total Positions: {portfolio_summary.get('total_positions', 0)}")
             print(f"📈 Total Trades: {portfolio_summary.get('total_trades', 0)}")
-            print(f"💚 Unrealized P & L: ${portfolio_summary.get('total_unrealized_pnl', 0): .2f}")
-            print(f"💵 Realized P & L: ${portfolio_summary.get('total_realized_pnl', 0): .2f}")
+            print(
+                f"💚 Unrealized P & L: ${portfolio_summary.get('total_unrealized_pnl', 0): .2f}"
+            )
+            print(
+                f"💵 Realized P & L: ${portfolio_summary.get('total_realized_pnl', 0): .2f}"
+            )
 
             positions = portfolio_summary.get("active_positions", [])
             if positions:
@@ -161,7 +167,9 @@ class ProductionCLI:
                 metadata={"manual_trade": True},
             )
 
-            print(f"🎯 Executing {args.side.upper()} {args.quantity} {args.ticker} @ ${args.price}")
+            print(
+                f"🎯 Executing {args.side.upper()} {args.quantity} {args.ticker} @ ${args.price}"
+            )
 
             # Execute trade
             result = await self.manager.integration_manager.execute_trade(signal)
@@ -198,7 +206,9 @@ class ProductionCLI:
             print(f"  • {strategy}")
 
         print("\n💡 Usage: ")
-        print("  python production_cli.py start --strategies wsb_dip_bot,momentum_weeklies")
+        print(
+            "  python production_cli.py start --strategies wsb_dip_bot,momentum_weeklies"
+        )
 
 
 def main():
@@ -218,12 +228,20 @@ def main():
     )
     start_parser.add_argument("--user - id", type=int, default=1, help="Django user ID")
     start_parser.add_argument(
-        "--max - position - size", type=float, default=0.20, help="Max position size (0.20 = 20%)"
+        "--max - position - size",
+        type=float,
+        default=0.20,
+        help="Max position size (0.20 = 20%)",
     )
     start_parser.add_argument(
-        "--max - total - risk", type=float, default=0.50, help="Max total risk (0.50 = 50%)"
+        "--max - total - risk",
+        type=float,
+        default=0.50,
+        help="Max total risk (0.50 = 50%)",
     )
-    start_parser.add_argument("--strategies", help="Comma - separated list of strategies to enable")
+    start_parser.add_argument(
+        "--strategies", help="Comma - separated list of strategies to enable"
+    )
 
     # Status command
     subparsers.add_parser("status", help="Show system status")

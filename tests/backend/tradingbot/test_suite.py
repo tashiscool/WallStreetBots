@@ -26,7 +26,12 @@ from backend.tradingbot.options_calculator import (
     TradeCalculation,
     validate_successful_trade,
 )
-from backend.tradingbot.risk_management import KellyCalculator, Position, PositionSizer, RiskManager
+from backend.tradingbot.risk_management import (
+    KellyCalculator,
+    Position,
+    PositionSizer,
+    RiskManager,
+)
 from backend.tradingbot.trading_system import IntegratedTradingSystem, TradingConfig
 
 
@@ -177,7 +182,9 @@ class TestMarketRegime(unittest.TestCase):
             low=207.0,  # Low touched 20 - EMA
         )
 
-        has_setup = self.regime_filter.detect_pullback_setup(current_indicators, prev_indicators)
+        has_setup = self.regime_filter.detect_pullback_setup(
+            current_indicators, prev_indicators
+        )
         self.assertTrue(has_setup)
 
     def test_buy_signal_generation(self):
@@ -205,7 +212,9 @@ class TestMarketRegime(unittest.TestCase):
         )
         current_indicators.ema_20_slope = 0.002
 
-        signal = self.signal_generator.generate_signal(current_indicators, prev_indicators)
+        signal = self.signal_generator.generate_signal(
+            current_indicators, prev_indicators
+        )
 
         # Should generate hold signal (pullback setup but no reversal trigger)
         self.assertEqual(signal.signal_type, SignalType.HOLD)
@@ -328,7 +337,9 @@ class TestExitPlanning(unittest.TestCase):
         )
 
         # Should detect profit target hit
-        profit_signals = [sig for sig in exit_signals if sig.reason == ExitReason.PROFIT_TARGET]
+        profit_signals = [
+            sig for sig in exit_signals if sig.reason == ExitReason.PROFIT_TARGET
+        ]
         self.assertGreater(len(profit_signals), 0)
 
     def test_scenario_analysis(self):
@@ -409,7 +420,9 @@ class TestAlertSystem(unittest.TestCase):
         )
 
         # Create entry checklist
-        checklist_id = self.checklist_manager.create_entry_checklist("GOOGL", trade_calc)
+        checklist_id = self.checklist_manager.create_entry_checklist(
+            "GOOGL", trade_calc
+        )
         checklist = self.checklist_manager.get_checklist(checklist_id)
 
         # Should have created checklist with multiple items
@@ -431,7 +444,9 @@ class TestIntegratedSystem(unittest.TestCase):
 
     def setUp(self):
         self.config = TradingConfig(
-            account_size=500000, max_position_risk_pct=0.10, target_tickers=["GOOGL", "AAPL"]
+            account_size=500000,
+            max_position_risk_pct=0.10,
+            target_tickers=["GOOGL", "AAPL"],
         )
         self.system = IntegratedTradingSystem(self.config)
 
@@ -515,7 +530,9 @@ class TestHistoricalValidation(unittest.TestCase):
 
         # Our system should recommend much lower risk
         self.assertLess(our_risk_pct, original_risk_pct * 0.5)  # At least 50% less risk
-        self.assertLess(our_contracts, original_contracts * 0.5)  # Much smaller position
+        self.assertLess(
+            our_contracts, original_contracts * 0.5
+        )  # Much smaller position
 
         # But should still capture significant upside if the trade worked
         if original_exit_premium > original_entry_premium:
@@ -525,7 +542,9 @@ class TestHistoricalValidation(unittest.TestCase):
             our_theoretical_roi = our_theoretical_profit / our_cost
 
             # Should still achieve excellent returns with much less risk
-            self.assertGreater(our_theoretical_roi, 1.0)  # Should still be  > 100% return
+            self.assertGreater(
+                our_theoretical_roi, 1.0
+            )  # Should still be  > 100% return
 
 
 def run_comprehensive_test():

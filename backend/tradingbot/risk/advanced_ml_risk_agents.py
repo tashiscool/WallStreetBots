@@ -110,7 +110,9 @@ class RiskEnvironment:
 
         self.logger.info("Risk Environment initialized")
 
-    def get_state(self, portfolio_data: dict[str, Any], market_data: dict[str, Any]) -> RiskState:
+    def get_state(
+        self, portfolio_data: dict[str, Any], market_data: dict[str, Any]
+    ) -> RiskState:
         """Get current risk state.
 
         Args:
@@ -184,7 +186,9 @@ class RiskEnvironment:
         """Get available action space."""
         return list(RiskActionType)
 
-    def execute_action(self, action: RiskAction, portfolio_data: dict[str, Any]) -> RiskReward:
+    def execute_action(
+        self, action: RiskAction, portfolio_data: dict[str, Any]
+    ) -> RiskReward:
         """Execute risk management action and calculate reward.
 
         Args:
@@ -199,13 +203,17 @@ class RiskEnvironment:
             risk_reduction = self._calculate_risk_reduction(action, portfolio_data)
 
             # Calculate performance impact
-            performance_impact = self._calculate_performance_impact(action, portfolio_data)
+            performance_impact = self._calculate_performance_impact(
+                action, portfolio_data
+            )
 
             # Calculate compliance score
             compliance_score = self._calculate_compliance_score(action, portfolio_data)
 
             # Calculate total reward
-            total_reward = 0.4 * risk_reduction + 0.3 * performance_impact + 0.3 * compliance_score
+            total_reward = (
+                0.4 * risk_reduction + 0.3 * performance_impact + 0.3 * compliance_score
+            )
 
             reward = RiskReward(
                 risk_reduction=risk_reduction,
@@ -222,7 +230,9 @@ class RiskEnvironment:
             if total_reward > 0:
                 self.successful_actions += 1
 
-            self.logger.info(f"Action executed: {action.action_type}, Reward: {total_reward:.3f}")
+            self.logger.info(
+                f"Action executed: {action.action_type}, Reward: {total_reward:.3f}"
+            )
 
             return reward
 
@@ -460,7 +470,9 @@ class PPORiskAgent:
         market_regime = state_vector[5:8]
 
         # Initialize action probabilities
-        action_probs = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.5])  # Default: mostly no action
+        action_probs = np.array(
+            [0.1, 0.1, 0.1, 0.1, 0.1, 0.5]
+        )  # Default: mostly no action
 
         # Adjust based on risk level
         if portfolio_var > 0.05:  # High VaR
@@ -502,7 +514,9 @@ class PPORiskAgent:
         try:
             # Convert to arrays
             state_vectors = np.array([self._state_to_vector(s) for s in states])
-            action_indices = np.array([list(RiskActionType).index(a.action_type) for a in actions])
+            action_indices = np.array(
+                [list(RiskActionType).index(a.action_type) for a in actions]
+            )
             reward_values = np.array([r.total_reward for r in rewards])
 
             # Calculate advantages (simplified)
@@ -789,7 +803,9 @@ class DDPGRiskAgent:
             state_vectors = np.array([self._state_to_vector(s) for s in states])
             action_values = np.array([a.expected_impact for a in actions])
             reward_values = np.array([r.total_reward for r in rewards])
-            next_state_vectors = np.array([self._state_to_vector(s) for s in next_states])
+            next_state_vectors = np.array(
+                [self._state_to_vector(s) for s in next_states]
+            )
 
             # Calculate target Q - values
             target_q_values = reward_values + self.gamma * self._get_target_q_values(
@@ -797,7 +813,9 @@ class DDPGRiskAgent:
             )
 
             # Update critic
-            critic_loss = self._update_critic(state_vectors, action_values, target_q_values)
+            critic_loss = self._update_critic(
+                state_vectors, action_values, target_q_values
+            )
 
             # Update actor
             actor_loss = self._update_actor(state_vectors)
@@ -922,7 +940,9 @@ class MultiAgentRiskCoordinator:
         self.ensemble_decisions = []
         self.coordination_history = []
 
-        self.logger.info(f"Multi - agent coordinator initialized with {len(self.agents)} agents")
+        self.logger.info(
+            f"Multi - agent coordinator initialized with {len(self.agents)} agents"
+        )
 
     async def get_ensemble_action(
         self, portfolio_data: dict[str, Any], market_data: dict[str, Any]
@@ -1135,7 +1155,11 @@ class MultiAgentRiskCoordinator:
 
 # Example usage and testing
 if __name__ == "__main__":  # Initialize multi - agent coordinator
-    risk_limits = {"max_total_var": 0.05, "max_total_cvar": 0.07, "max_concentration": 0.30}
+    risk_limits = {
+        "max_total_var": 0.05,
+        "max_total_cvar": 0.07,
+        "max_concentration": 0.30,
+    }
 
     coordinator = MultiAgentRiskCoordinator(
         risk_limits=risk_limits, enable_ppo=True, enable_ddpg=True

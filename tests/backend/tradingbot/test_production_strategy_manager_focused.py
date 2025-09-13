@@ -31,7 +31,10 @@ def test_strategy_manager_initialization():
     print("Testing ProductionStrategyManager initialization...")
 
     config = ProductionStrategyManagerConfig(
-        alpaca_api_key=TEST_API_KEY, alpaca_secret_key=TEST_SECRET_KEY, paper_trading=True, user_id=1
+        alpaca_api_key=TEST_API_KEY,
+        alpaca_secret_key=TEST_SECRET_KEY,
+        paper_trading=True,
+        user_id=1,
     )
 
     with (
@@ -108,7 +111,10 @@ def test_create_strategy_method_exists():
     print("Testing _create_strategy method...")
 
     config = ProductionStrategyManagerConfig(
-        alpaca_api_key=TEST_API_KEY, alpaca_secret_key=TEST_SECRET_KEY, paper_trading=True, user_id=1
+        alpaca_api_key=TEST_API_KEY,
+        alpaca_secret_key=TEST_SECRET_KEY,
+        paper_trading=True,
+        user_id=1,
     )
 
     with (
@@ -138,7 +144,10 @@ async def test_async_methods_exist():
     print("Testing async methods exist...")
 
     config = ProductionStrategyManagerConfig(
-        alpaca_api_key=TEST_API_KEY, alpaca_secret_key=TEST_SECRET_KEY, paper_trading=True, user_id=1
+        alpaca_api_key=TEST_API_KEY,
+        alpaca_secret_key=TEST_SECRET_KEY,
+        paper_trading=True,
+        user_id=1,
     )
 
     with (
@@ -171,7 +180,9 @@ async def test_async_methods_exist():
         from unittest.mock import AsyncMock
 
         # Mock the async methods properly
-        manager.integration_manager.get_portfolio_value = AsyncMock(return_value=50000.0)
+        manager.integration_manager.get_portfolio_value = AsyncMock(
+            return_value=50000.0
+        )
         manager.data_provider.is_market_open = AsyncMock(return_value=True)
 
         # This should not raise an exception
@@ -186,7 +197,10 @@ def test_strategy_factory_methods_mapping():
     print("Testing strategy factory methods mapping...")
 
     config = ProductionStrategyManagerConfig(
-        alpaca_api_key=TEST_API_KEY, alpaca_secret_key=TEST_SECRET_KEY, paper_trading=True, user_id=1
+        alpaca_api_key=TEST_API_KEY,
+        alpaca_secret_key=TEST_SECRET_KEY,
+        paper_trading=True,
+        user_id=1,
     )
 
     # Test strategy names that should be supported

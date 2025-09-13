@@ -1,10 +1,10 @@
 """Tests for the risk engine with kill-switch functionality"""
+
 import pytest
 from backend.tradingbot.risk.engine import RiskEngine, RiskLimits
 
 
 class TestRiskEngine:
-
     def test_var_cvar_basic(self):
         """Test VaR and CVaR calculations"""
         limits = RiskLimits(max_total_risk=0.3, max_position_size=0.1)
@@ -62,12 +62,16 @@ class TestRiskEngine:
         # Test new peak
         engine.update_peak(110000)
         dd = engine.drawdown(105000)
-        assert abs(dd - (5000/110000)) < 0.001  # ~4.5% drawdown
+        assert abs(dd - (5000 / 110000)) < 0.001  # ~4.5% drawdown
 
     def test_posttrade_check_normal(self):
         """Test post-trade check with normal conditions"""
-        limits = RiskLimits(max_total_risk=0.3, max_position_size=0.1,
-                          max_drawdown=0.2, kill_switch_dd=0.25)
+        limits = RiskLimits(
+            max_total_risk=0.3,
+            max_position_size=0.1,
+            max_drawdown=0.2,
+            kill_switch_dd=0.25,
+        )
         engine = RiskEngine(limits)
 
         engine.update_peak(100000)
@@ -80,8 +84,12 @@ class TestRiskEngine:
 
     def test_posttrade_check_max_drawdown(self):
         """Test post-trade check fails with excessive drawdown"""
-        limits = RiskLimits(max_total_risk=0.3, max_position_size=0.1,
-                          max_drawdown=0.2, kill_switch_dd=0.25)
+        limits = RiskLimits(
+            max_total_risk=0.3,
+            max_position_size=0.1,
+            max_drawdown=0.2,
+            kill_switch_dd=0.25,
+        )
         engine = RiskEngine(limits)
 
         engine.update_peak(100000)
@@ -91,8 +99,12 @@ class TestRiskEngine:
 
     def test_kill_switch_activation(self):
         """Test kill switch activation and blocking"""
-        limits = RiskLimits(max_total_risk=0.3, max_position_size=0.1,
-                          max_drawdown=0.2, kill_switch_dd=0.25)
+        limits = RiskLimits(
+            max_total_risk=0.3,
+            max_position_size=0.1,
+            max_drawdown=0.2,
+            kill_switch_dd=0.25,
+        )
         engine = RiskEngine(limits)
 
         engine.update_peak(100000)
@@ -106,8 +118,12 @@ class TestRiskEngine:
 
     def test_kill_switch_reset(self):
         """Test manual kill switch reset"""
-        limits = RiskLimits(max_total_risk=0.3, max_position_size=0.1,
-                          max_drawdown=0.2, kill_switch_dd=0.25)
+        limits = RiskLimits(
+            max_total_risk=0.3,
+            max_position_size=0.1,
+            max_drawdown=0.2,
+            kill_switch_dd=0.25,
+        )
         engine = RiskEngine(limits)
 
         # Activate kill switch

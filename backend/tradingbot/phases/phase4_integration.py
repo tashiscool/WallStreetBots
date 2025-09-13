@@ -168,7 +168,9 @@ class Phase4IntegrationManager:
         CRITICAL: This must complete successfully before any trading.
         """
         try:
-            self.logger.info("🚀 Initializing complete WallStreetBots production system...")
+            self.logger.info(
+                "🚀 Initializing complete WallStreetBots production system..."
+            )
             self.system_status = SystemStatus.INITIALIZING
 
             # Step 1: Initialize database
@@ -259,7 +261,9 @@ class Phase4IntegrationManager:
                 return False
 
         except Exception as e:
-            self.error_handler.handle_error(e, {"operation": "_initialize_data_provider"})
+            self.error_handler.handle_error(
+                e, {"operation": "_initialize_data_provider"}
+            )
             return False
 
     async def _initialize_trading_interface(self) -> bool:
@@ -281,14 +285,18 @@ class Phase4IntegrationManager:
             # Test trading interface
             account_info = await self.trading_interface.get_account()
             if account_info:
-                self.logger.info("✅ Trading interface initialized and tested successfully")
+                self.logger.info(
+                    "✅ Trading interface initialized and tested successfully"
+                )
                 return True
             else:
                 self.logger.error("❌ Trading interface test failed")
                 return False
 
         except Exception as e:
-            self.error_handler.handle_error(e, {"operation": "_initialize_trading_interface"})
+            self.error_handler.handle_error(
+                e, {"operation": "_initialize_trading_interface"}
+            )
             return False
 
     async def _initialize_phase_managers(self) -> bool:
@@ -308,7 +316,9 @@ class Phase4IntegrationManager:
             return True
 
         except Exception as e:
-            self.error_handler.handle_error(e, {"operation": "_initialize_phase_managers"})
+            self.error_handler.handle_error(
+                e, {"operation": "_initialize_phase_managers"}
+            )
             return False
 
     async def _initialize_phase4_components(self) -> bool:
@@ -317,16 +327,22 @@ class Phase4IntegrationManager:
             self.logger.info("Initializing Phase 4 components...")
 
             # Initialize backtest engine
-            self.backtest_engine = create_production_backtest_engine(self.config, self.database)
+            self.backtest_engine = create_production_backtest_engine(
+                self.config, self.database
+            )
 
             # Initialize high - risk orchestrator
-            self.high_risk_orchestrator = create_high_risk_orchestrator(self.config, self.database)
+            self.high_risk_orchestrator = create_high_risk_orchestrator(
+                self.config, self.database
+            )
 
             self.logger.info("✅ Phase 4 components initialized successfully")
             return True
 
         except Exception as e:
-            self.error_handler.handle_error(e, {"operation": "_initialize_phase4_components"})
+            self.error_handler.handle_error(
+                e, {"operation": "_initialize_phase4_components"}
+            )
             return False
 
     async def validate_all_strategies(self, force_revalidation: bool = False) -> bool:
@@ -372,10 +388,14 @@ class Phase4IntegrationManager:
 
                     if strategy_passed:
                         self.validation_results[strategy_name] = backtest_results
-                        self.logger.info(f"✅ Strategy validation PASSED: {strategy_name}")
+                        self.logger.info(
+                            f"✅ Strategy validation PASSED: {strategy_name}"
+                        )
                         validation_summary[strategy_name] = "PASSED"
                     else:
-                        self.logger.warning(f"❌ Strategy validation FAILED: {strategy_name}")
+                        self.logger.warning(
+                            f"❌ Strategy validation FAILED: {strategy_name}"
+                        )
                         validation_summary[strategy_name] = "FAILED"
                         validation_passed = False
 
@@ -399,10 +419,14 @@ class Phase4IntegrationManager:
                     self.logger.info(f"   ❌ {strategy}: {result}")
 
             if validation_passed:
-                self.logger.info("🎉 ALL STRATEGIES VALIDATED SUCCESSFULLY - READY FOR PRODUCTION")
+                self.logger.info(
+                    "🎉 ALL STRATEGIES VALIDATED SUCCESSFULLY - READY FOR PRODUCTION"
+                )
                 self.system_status = SystemStatus.READY
             else:
-                self.logger.error("⚠️ STRATEGY VALIDATION FAILED - SYSTEM NOT READY FOR PRODUCTION")
+                self.logger.error(
+                    "⚠️ STRATEGY VALIDATION FAILED - SYSTEM NOT READY FOR PRODUCTION"
+                )
                 self.system_status = SystemStatus.ERROR
 
             return validation_passed
@@ -413,7 +437,10 @@ class Phase4IntegrationManager:
             return False
 
     async def _evaluate_strategy_performance(
-        self, strategy_name: str, results: StrategyBacktestResults, allocation: StrategyAllocation
+        self,
+        strategy_name: str,
+        results: StrategyBacktestResults,
+        allocation: StrategyAllocation,
     ) -> bool:
         """Evaluate if strategy performance meets minimum standards."""
         try:
@@ -442,7 +469,9 @@ class Phase4IntegrationManager:
 
             # Win rate check (minimum 30%)
             winrate_ok = results.win_rate >= Decimal("0.30")
-            checks.append(("Win Rate", winrate_ok, f"{results.win_rate: .1%}  >=  30.0%"))
+            checks.append(
+                ("Win Rate", winrate_ok, f"{results.win_rate: .1%}  >=  30.0%")
+            )
 
             # Minimum trades check
             trades_ok = results.total_trades >= 20
@@ -450,7 +479,9 @@ class Phase4IntegrationManager:
 
             # Positive alpha check
             alpha_ok = results.alpha >= Decimal("0.00")
-            checks.append(("Alpha vs SPY", alpha_ok, f"{results.alpha: .2%}  >=  0.00%"))
+            checks.append(
+                ("Alpha vs SPY", alpha_ok, f"{results.alpha: .2%}  >=  0.00%")
+            )
 
             # Log detailed checks
             self.logger.info(f"   Performance evaluation for {strategy_name}: ")
@@ -465,7 +496,11 @@ class Phase4IntegrationManager:
 
         except Exception as e:
             self.error_handler.handle_error(
-                e, {"strategy": strategy_name, "operation": "_evaluate_strategy_performance"}
+                e,
+                {
+                    "strategy": strategy_name,
+                    "operation": "_evaluate_strategy_performance",
+                },
             )
             return False
 
@@ -474,11 +509,15 @@ class Phase4IntegrationManager:
         CRITICAL: Only starts if all validations pass.
         """
         try:
-            self.logger.info(f"🚀 Starting production trading (paper_trading={paper_trading})...")
+            self.logger.info(
+                f"🚀 Starting production trading (paper_trading={paper_trading})..."
+            )
 
             # Safety check: Ensure system is ready
             if self.system_status != SystemStatus.READY:
-                raise Exception(f"System not ready for trading. Status: {self.system_status}")
+                raise Exception(
+                    f"System not ready for trading. Status: {self.system_status}"
+                )
 
             # Safety check: Ensure strategies are validated
             if not self.validation_results:
@@ -490,7 +529,10 @@ class Phase4IntegrationManager:
 
             # Start strategies based on allocations
             for strategy_name, allocation in self.strategy_allocations.items():
-                if not allocation.enabled or strategy_name not in self.validation_results:
+                if (
+                    not allocation.enabled
+                    or strategy_name not in self.validation_results
+                ):
                     continue
 
                 try:
@@ -507,7 +549,9 @@ class Phase4IntegrationManager:
             self.tasks.append(task)
 
             mode_str = "PAPER TRADING" if paper_trading else "LIVE TRADING"
-            self.logger.info(f"🎉 Production system started successfully in {mode_str} mode")
+            self.logger.info(
+                f"🎉 Production system started successfully in {mode_str} mode"
+            )
             self.logger.info(f"   Active strategies: {len(self.active_strategies)}")
             self.logger.info(
                 f"   Total allocation: {sum(a.allocation_percentage for a in self.strategy_allocations.values() if a.enabled):.1%}"
@@ -516,7 +560,9 @@ class Phase4IntegrationManager:
             return True
 
         except Exception as e:
-            self.error_handler.handle_error(e, {"operation": "start_production_trading"})
+            self.error_handler.handle_error(
+                e, {"operation": "start_production_trading"}
+            )
             self.system_status = SystemStatus.ERROR
             return False
 
@@ -586,7 +632,9 @@ class Phase4IntegrationManager:
                             f"Daily P & L: {health_check.daily_pnl:.2f}"
                         )
                     else:
-                        self.logger.warning(f"System health issue: {health_check.overall_status}")
+                        self.logger.warning(
+                            f"System health issue: {health_check.overall_status}"
+                        )
 
                     # Check for alerts
                     if health_check.alerts:
@@ -596,20 +644,30 @@ class Phase4IntegrationManager:
                     # Record metrics
                     self.metrics.record_metric(
                         "system_health_score",
-                        1.0 if health_check.overall_status == SystemStatus.RUNNING else 0.0,
+                        1.0
+                        if health_check.overall_status == SystemStatus.RUNNING
+                        else 0.0,
                     )
-                    self.metrics.record_metric("active_strategies", health_check.active_strategies)
+                    self.metrics.record_metric(
+                        "active_strategies", health_check.active_strategies
+                    )
                     self.metrics.record_metric(
                         "total_account_risk", float(health_check.total_account_risk)
                     )
-                    self.metrics.record_metric("daily_pnl", float(health_check.daily_pnl))
+                    self.metrics.record_metric(
+                        "daily_pnl", float(health_check.daily_pnl)
+                    )
 
                     # Sleep for 1 minute
                     await asyncio.sleep(60)
 
                 except Exception as e:
-                    self.error_handler.handle_error(e, {"operation": "_monitoring_loop"})
-                    await asyncio.sleep(60)  # Continue monitoring even if there's an error
+                    self.error_handler.handle_error(
+                        e, {"operation": "_monitoring_loop"}
+                    )
+                    await asyncio.sleep(
+                        60
+                    )  # Continue monitoring even if there's an error
 
         except Exception as e:
             self.error_handler.handle_error(e, {"operation": "_monitoring_loop"})
@@ -680,7 +738,9 @@ class Phase4IntegrationManager:
             if health_check.daily_pnl < -self.config.risk.account_size * Decimal(
                 "0.03"
             ):  # 3% daily loss
-                health_check.alerts.append(f"Significant daily loss: {health_check.daily_pnl:.2f}")
+                health_check.alerts.append(
+                    f"Significant daily loss: {health_check.daily_pnl:.2f}"
+                )
 
             # Overall system status
             if (
@@ -696,7 +756,9 @@ class Phase4IntegrationManager:
             return health_check
 
         except Exception as e:
-            self.error_handler.handle_error(e, {"operation": "perform_system_health_check"})
+            self.error_handler.handle_error(
+                e, {"operation": "perform_system_health_check"}
+            )
             return SystemHealthCheck(
                 overall_status=SystemStatus.ERROR, alerts=["Health check system error"]
             )
@@ -715,7 +777,9 @@ class Phase4IntegrationManager:
                     try:
                         await asyncio.wait_for(strategy_info["task"], timeout=30.0)
                     except TimeoutError:
-                        self.logger.warning(f"Strategy {strategy_name} did not stop gracefully")
+                        self.logger.warning(
+                            f"Strategy {strategy_name} did not stop gracefully"
+                        )
                     except asyncio.CancelledError:
                         pass
 
@@ -744,7 +808,9 @@ class Phase4IntegrationManager:
                 positions = await self.database.get_active_positions()
                 for position in positions:
                     await self.trading_interface.sell_stock(
-                        ticker=position.ticker, quantity=position.quantity, order_type="market"
+                        ticker=position.ticker,
+                        quantity=position.quantity,
+                        order_type="market",
                     )
                     self.logger.critical(f"Emergency position close: {position.ticker}")
             except Exception as e:
@@ -811,7 +877,8 @@ def create_phase4_integration_manager(
 async def main():
     """Standalone Phase 4 integration demonstration."""
     logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     manager = create_phase4_integration_manager()

@@ -3,6 +3,7 @@ Implements real earnings calendar integration with implied volatility analysis.
 """
 
 import logging
+import random
 import statistics
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta

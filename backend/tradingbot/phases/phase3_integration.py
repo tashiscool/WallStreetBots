@@ -2,6 +2,10 @@
 Integrates all Phase 3 strategies with existing infrastructure.
 """
 
+# Test constants
+TEST_API_KEY = "test_key"
+TEST_SECRET_KEY = "test_secret"
+
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any

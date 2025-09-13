@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from django import forms
 
 # from django.core.exceptions import ValidationError
@@ -19,18 +21,18 @@ class CredentialForm(forms.Form):
 class OrderForm(forms.Form):
     """manual orders from user."""
 
-    ORDERTYPES = [
+    ORDERTYPES: ClassVar[list[tuple[str, str]]] = [
         ("M", "Market"),
         # ('L', 'Limit'),
         # ('S', 'Stop'),
         # ('ST', 'Stop Limit'),
         # ('T', 'Trailing Stop'),
     ]
-    TRANSACTIONTYPES = [
+    TRANSACTIONTYPES: ClassVar[list[tuple[str, str]]] = [
         ("B", "Buy"),
         ("S", "Sell"),
     ]
-    TIMEINFORCE = [
+    TIMEINFORCE: ClassVar[list[tuple[str, str]]] = [
         ("day", "Day"),
         ("gtc", "Good Until Canceled"),
     ]

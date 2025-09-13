@@ -388,7 +388,7 @@ class RegulatoryComplianceManager:
         try:
             checks = []
 
-            for _rule_id, rule in self.compliance_rules.items():
+            for rule in self.compliance_rules.values():
                 if rule.is_active:
                     check = await self._run_compliance_check(rule, portfolio_data, risk_metrics)
                     if check:
@@ -757,7 +757,7 @@ class RegulatoryComplianceManager:
 
             # Check against position limit rules
             violations = []
-            for _rule_id, rule in self.compliance_rules.items():
+            for rule in self.compliance_rules.values():
                 if rule.rule_type == ComplianceRule.POSITION_LIMITS:
                     if concentration_risk > rule.threshold:
                         violations.append(

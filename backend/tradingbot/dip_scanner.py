@@ -5,6 +5,7 @@ Continuously scans for hard dip opportunities across mega - cap universe.
 import asyncio
 import json
 import logging
+import random
 from dataclasses import dataclass
 from datetime import datetime, time
 

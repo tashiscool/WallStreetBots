@@ -1,69 +1,241 @@
-[tool.ruff.lint]
-# Only show real issues, not style preferences
-select = [
-    # Security issues
-    "S106", "S105", "S301", "S310", "S603", "S605", "S311",
-    # Logic bugs
-    "E722", "B017", "F811", "B904", "RUF006",
-    # Performance issues
-    "RUF006",
-    # Critical naming issues that cause bugs
-    "E741",  # Ambiguous variable name
-    "B020",  # Loop variable overrides iterator
-    "PLR1704",  # Redefined argument from local
-    "PLW2901",  # Redefined loop name
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wallstreetbots"
+version = "0.1.0"
+description = "WSB-style strategy bots (dip-after-run, momentum weeklies, spreads, leaps, wheel)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "pandas>=2.2.0,<3.0.0",
+  "numpy>=1.26.0,<2.3.0",
+  "yfinance>=0.2.65,<0.3.0",
+  "pytz>=2025.2,<2026.0",
+  "requests>=2.32.0,<3.0.0"
 ]
 
-# Ignore style-only rules
-ignore = [
-    # Style preferences
-    "PLR2004",  # Magic value comparisons
-    "D205",     # Missing blank line after summary
-    "Q000",     # Bad quotes in inline string
-    "W293",     # Blank line with whitespace
-    "W291",     # Trailing whitespace
-    "D212",     # Multi-line summary first line
-    "D415",     # Missing terminal punctuation
-    "PLC0415",  # Import outside top-level
-    "E402",     # Module import not at top
-    "F401",     # Unused imports
-    "N806",     # Non-lowercase variable in function
-    "N803",     # Invalid argument name
-    "N801",     # Invalid class name
-    "N802",     # Invalid function name
-    "PLR0911",  # Too many return statements
-    "SIM102",   # Collapsible if
-    "SIM108",   # If-else block instead of if-exp
-    "SIM117",   # Multiple with statements
-    "SIM103",   # Needless bool
-    "UP006",    # Non-pep585-annotation
-    "UP035",    # Deprecated import
-    "UP015",    # Redundant open modes
-    "F541",     # F-string missing placeholders
-    "RUF001",   # Ambiguous unicode character string
-    "RUF059",   # Unused unpacked variable
-    "S608",     # Hardcoded SQL expression
-    "S108",     # Hardcoded temp file
-    "S113",     # Request without timeout
-    "S602",     # Subprocess popen with shell equals true
-    "SIM115",   # Open file with context handler
-    "D106",     # Undocumented public nested class
-    "D417",     # Undocumented param
-    "PLE0118",  # Load before global declaration
-    "PLW0603",  # Global statement
-    "S103",     # Bad file permissions
-    "S110",     # Try-except-pass
-    "S112",     # Try-except-continue
-    "B007",     # Unused loop control variable
-    "B018",     # Useless expression
-    "RUF012",   # Mutable class default
-    "ARG001",   # Unused function argument
-    "ARG002",   # Unused method argument
+[project.optional-dependencies]
+django = [
+    "Django>=4.2.0,<5.0.0",
+    "django-cors-headers>=4.6.0",
+    "djangorestframework>=3.15.0",
+    "psycopg2-binary>=2.9.10",
+    "asgiref>=3.8.0",
+    "sqlparse>=0.5.0",
+    "social-auth-app-django>=5.5.0",
+    "django-admin-interface>=0.30.0",
+    "python-jose>=3.3.0",
+    "dj-config-url>=0.1.1",
 ]
+broker = [
+    "alpaca-py>=0.42.0",
+]
+ml = [
+    "hmmlearn>=0.3.0",
+    "plotly>=6.3.0",
+]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-cov>=6.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.1.0",
+    "mypy>=1.13.0",
+]
+
+[project.scripts]
+wsb-dip-bot = "wsb_dip_bot:main"
+momentum-weeklies = "momentum_weeklies:main"
+debit-spreads = "debit_spreads:main"
+leaps-tracker = "leaps_tracker:main"
+lotto-scanner = "lotto_scanner:main"
+wheel-strategy = "wheel_strategy:main"
+
+[project.urls]
+Homepage = "https://github.com/tashiscool/WallStreetBots"
+Repository = "https://github.com/tashiscool/WallStreetBots"
+Issues = "https://github.com/tashiscool/WallStreetBots/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["backend*", "ml*", "scripts*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "*.txt", "*.yaml", "*.yml"]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+DJANGO_SETTINGS_MODULE = "backend.settings"
 
 [tool.ruff]
+# Exclude directories
+exclude = [
+    ".bzr", ".direnv", ".eggs", ".git", ".git-rewrite", ".hg",
+    ".mypy_cache", ".nox", ".pants.d", ".pytype", ".ruff_cache",
+    ".svn", ".tox", ".venv", "__pypackages__", "_build", "buck-out",
+    "build", "dist", "node_modules", "venv", "migrations",
+]
+
 # Line length
-line-length = 100
+line-length = 88
+indent-width = 4
 
 # Target Python version
-target-version = "py311"
+target-version = "py312"
+
+[tool.ruff.lint]
+# Enable comprehensive bug-finding rules
+select = [
+    # Pyflakes - Logic bugs and undefined names
+    "F",      # All pyflakes rules (undefined names, unused imports, etc)
+
+    # Pycodestyle errors - Syntax and indentation issues
+    "E9",     # Runtime syntax errors
+    "E71",    # Indentation issues
+    "E72",    # Bare except clauses
+
+    # Bugbear - Common bug patterns
+    "B",      # flake8-bugbear (mutable defaults, zip without strict, etc)
+
+    # Security vulnerabilities
+    "S1",     # Potential security vulnerabilities (hardcoded passwords, etc)
+    "S3",     # Security issues with XML/HTML parsing
+    "S6",     # Security issues with subprocess calls
+    "S7",     # Security issues with SQL
+
+    # Pylint critical errors
+    "PLE",    # Pylint errors (syntax errors, undefined vars)
+    "PLW0120", # else clause on loop without break
+    "PLW0602", # Global variable undefined at module level
+    "PLW2901", # Redefined loop name
+    "PLR1704", # Redefined argument from local
+    "PLR1711", # Useless return statement
+    "PLR1722", # Use sys.exit() instead of exit()
+
+    # Ruff-specific bug patterns
+    "RUF0",   # Ruff-specific bug patterns
+
+    # Import sorting critical issues
+    "I00",    # Import errors that cause runtime failures
+
+    # Comprehension bugs
+    "C4",     # flake8-comprehensions (inefficient comprehensions)
+
+    # Boolean trap bugs
+    "FBT003", # Boolean positional values in function call
+
+    # Async/await bugs
+    "ASYNC",  # Common async/await mistakes
+
+    # Type checking bugs
+    "TCH",    # Type checking issues that cause runtime errors
+
+    # Performance bugs that cause hangs/crashes
+    "PERF1",  # Performance issues that can cause problems
+
+    # Critical naming that causes confusion/bugs
+    "E741",   # Ambiguous variable names (l, O, I)
+    "E743",   # Ambiguous function names
+]
+
+# Ignore style-only rules that don't represent actual bugs
+ignore = [
+    # Import organization (often needed for specific order)
+    "I001",     # Unsorted imports
+    "F401",     # Unused imports
+
+    # Style preferences that don't affect functionality
+    "FBT001",   # Boolean argument in function definition
+    "FBT002",   # Boolean default value in function definition
+
+    # Exception handling styles that are sometimes necessary
+    "S110",     # Try-except-pass (sometimes needed)
+    "S112",     # Try-except-continue (sometimes needed)
+
+    # Variable/argument patterns that are sometimes needed
+    "B018",     # Useless expression (sometimes needed for side effects)
+    "B007",     # Unused loop control variable
+    "RUF059",   # Unused unpacked variable
+
+    # Security rules that are context-dependent
+    "S108",     # Hardcoded temp file (sometimes appropriate)
+    "S608",     # Hardcoded SQL expression (sometimes needed)
+    "S607",     # Start process with partial path (sometimes needed)
+
+    # Load patterns that can be intentional
+    "PLE0118",  # Load before global declaration (sometimes needed)
+
+    # Unicode handling (sometimes needed)
+    "RUF001",   # Ambiguous unicode character (sometimes international)
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+# Tests can use assertions and some security patterns
+"tests/**/*" = [
+    "S101",    # Use of assert detected
+    "PLR2004", # Magic value used in comparison
+    "S106",    # Possible hardcoded password
+]
+
+# Scripts can use print and some patterns
+"scripts/**/*" = ["T201"]
+
+# Config files can have magic values
+"**/settings.py" = ["PLR2004"]
+"**/config.py" = ["PLR2004"]

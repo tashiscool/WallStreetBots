@@ -1,10 +1,6 @@
 """Production Integration Tests
 Comprehensive tests for production - ready trading system.
 
-# Test constants
-TEST_API_KEY = "test_key"
-TEST_SECRET_KEY = "test_secret"
-
 This module tests the complete production integration:
 - AlpacaManager connection to strategies
 - Django models integration
@@ -32,6 +28,10 @@ from ..core.production_integration import (
 from ..core.production_manager import ProductionConfig, ProductionManager
 from ..core.production_strategy_wrapper import ProductionWSBDipBot, StrategyConfig
 from ..data.production_data_integration import ReliableDataProvider as ProductionDataProvider
+
+# Test constants
+TEST_API_KEY = "test_key"
+TEST_SECRET_KEY = "test_secret"
 
 
 class TestProductionIntegration:

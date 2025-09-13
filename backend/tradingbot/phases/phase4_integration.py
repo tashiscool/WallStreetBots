@@ -736,7 +736,7 @@ class Phase4IntegrationManager:
             self.logger.critical("🚨 EMERGENCY SHUTDOWN INITIATED")
 
             # Stop all strategies immediately
-            for _strategy_name, strategy_info in self.active_strategies.items():
+            for strategy_info in self.active_strategies.values():
                 strategy_info["task"].cancel()
 
             # Close all positions if possible

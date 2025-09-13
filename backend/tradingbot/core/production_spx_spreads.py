@@ -679,7 +679,7 @@ class ProductionSPXSpreads:
             "positions": [],
         }
 
-        for _position_key, position in self.positions.items():
+        for position in self.positions.values():
             summary["positions"].append(
                 {
                     "spread_type": position.spread_type.value,

@@ -292,7 +292,7 @@ class MarketRegimeAdapter:
                     )
 
             # Fallback: create indicators from any available price data
-            for _symbol, data in market_data.items():
+            for data in market_data.values():
                 if isinstance(data, dict) and "price" in data:
                     price = float(data["price"])
                     return create_sample_indicators(

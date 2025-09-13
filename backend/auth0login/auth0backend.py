@@ -1,3 +1,4 @@
+from typing import ClassVar
 from urllib import request
 
 from jose import jwt
@@ -11,7 +12,7 @@ class Auth0(BaseOAuth2):
     SCOPE_SEPARATOR = " "
     ACCESS_TOKEN_METHOD = "POST"  # noqa: S105
     REDIRECT_STATE = False
-    EXTRA_DATA = [("picture", "picture"), ("email", "email")]
+    EXTRA_DATA: ClassVar[list[tuple[str, str]]] = [("picture", "picture"), ("email", "email")]
 
     def authorization_url(self):
         return "https: //" + self.setting("DOMAIN") + "/authorize"

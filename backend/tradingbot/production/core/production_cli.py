@@ -62,8 +62,8 @@ class ProductionCLI:
 
                 # Keep running until interrupted
                 try:
-                    while True:
-                        await asyncio.sleep(1)
+                    shutdown_event = asyncio.Event()
+                    await shutdown_event.wait()
                 except KeyboardInterrupt:
                     print("\n🛑 Shutdown signal received...")
                     await self.manager.stop_production_system()

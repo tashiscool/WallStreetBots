@@ -412,7 +412,7 @@ class StressTesting2025:
         total_risk = 0.0
         total_weight = 0.0
 
-        for _scenario_name, result in results.items():
+        for result in results.values():
             # Risk score based on P & L impact and probability
             pnl_impact = abs(result.portfolio_pnl)
             probability = result.risk_metrics.get("scenario_probability", 0.01)

@@ -203,7 +203,7 @@ class ProductionManager:
             self.is_running = False
 
             # Stop all strategies
-            for _strategy_name, strategy in self.strategies.items():
+            for strategy in self.strategies.values():
                 await strategy.stop_strategy()
 
             # Close all positions (optional - depends on strategy)
@@ -418,10 +418,11 @@ class ProductionManager:
             }
 
             # Save report
-            with open(
+            import aiofiles
+            async with aiofiles.open(
                 f"production_report_{datetime.now().strftime('%Y % m % d_ % H % M % S')}.json", "w"
             ) as f:
-                json.dump(report, f, indent=2, default=str)
+                await f.write(json.dumps(report, indent=2, default=str))
 
             self.logger.info("Final report generated")
 

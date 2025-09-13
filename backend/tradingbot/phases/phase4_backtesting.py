@@ -171,7 +171,7 @@ class BacktestEngine:
         """Update portfolio value based on current positions."""
         total_value = self.cash
 
-        for _ticker, position in self.positions.items():
+        for position in self.positions.values():
             # Mock current price update
             current_price = position["entry_price"] * (1 + 0.001)  # 0.1% daily return
             position["current_price"] = current_price
@@ -344,7 +344,7 @@ class BacktestEngine:
 
     async def _update_positions(self):
         """Update position tracking."""
-        for _ticker, position in self.positions.items():
+        for position in self.positions.values():
             # Mock price update
             current_price = position["entry_price"] * (1 + 0.001)  # 0.1% daily return
             position["current_price"] = current_price

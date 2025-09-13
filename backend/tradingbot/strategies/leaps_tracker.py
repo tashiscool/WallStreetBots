@@ -556,7 +556,7 @@ class LEAPSTracker:
 
         print("🔍 Scanning secular growth themes for LEAPS opportunities...")
 
-        for _theme_key, theme in self.secular_themes.items():
+        for theme in self.secular_themes.values():
             print(f"\n📈 Analyzing {theme.theme}...")
 
             for ticker in theme.tickers:

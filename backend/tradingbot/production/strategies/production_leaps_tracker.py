@@ -536,7 +536,7 @@ class ProductionLEAPSTracker:
 
         self.logger.info("Scanning secular growth themes for LEAPS opportunities")
 
-        for _theme_key, theme in self.secular_themes.items():
+        for theme in self.secular_themes.values():
             self.logger.info(f"Analyzing {theme.theme}")
 
             for ticker in theme.tickers:

@@ -1,10 +1,6 @@
 """Production Strategies Integration Tests
 Comprehensive tests for production - ready trading strategies.
 
-# Test constants
-TEST_API_KEY = "test_key"
-TEST_SECRET_KEY = "test_secret"
-
 This module tests the complete production strategy integration:
 - WSB Dip Bot with real data integration
 - Earnings Protection with live earnings calendar
@@ -20,6 +16,10 @@ from decimal import Decimal
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+
+# Test constants
+TEST_API_KEY = "test_key"
+TEST_SECRET_KEY = "test_secret"
 
 # Constants for test data generation and validation
 BUILD_UP_DAYS = 20
@@ -322,7 +322,7 @@ class TestProductionIndexBaseline:
 
         # Should calculate performance for benchmarks
         assert len(performance) > 0
-        for _benchmark, comparison in performance.items():
+        for comparison in performance.values():
             assert comparison.benchmark_return is not None
             assert comparison.alpha is not None
             assert comparison.sharpe_ratio is not None

@@ -55,8 +55,8 @@ class AdvancedVaREngine:
     def calculate_var_suite(
         self,
         returns: np.ndarray,
-        confidence_levels: list[float] = [0.95, 0.99, 0.999],
-        methods: list[str] = ["parametric", "historical", "monte_carlo"],
+        confidence_levels: list[float] | None = None,
+        methods: list[str] | None = None,
     ) -> VaRSuite:
         """Calculate comprehensive VaR using 2025 best practices.
 
@@ -68,6 +68,11 @@ class AdvancedVaREngine:
         Returns:
             VaRSuite with results from all methods and confidence levels
         """
+        if confidence_levels is None:
+            confidence_levels = [0.95, 0.99, 0.999]
+        if methods is None:
+            methods = ["parametric", "historical", "monte_carlo"]
+            
         if len(returns) < self.min_data_points:
             raise ValueError(
                 f"Insufficient data: need at least {self.min_data_points} observations"

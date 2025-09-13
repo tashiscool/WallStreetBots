@@ -595,7 +595,8 @@ def main():
     
     wheel=WheelStrategy()
     
-    if args.command== 'scan':candidates = wheel.scan_wheel_candidates()
+    if args.command== 'scan':
+        candidates = wheel.scan_wheel_candidates()
         
         # Filter by minimum return
         candidates = [c for c in candidates if c.wheel_annual_return >= args.min_return]
@@ -617,7 +618,8 @@ def main():
             
     elif args.command== 'portfolio':print(wheel.format_portfolio())
         
-    elif args.command== 'update':wheel.update_positions()
+    elif args.command== 'update':
+        wheel.update_positions()
         print("✅ Wheel portfolio updated successfully")
 
 

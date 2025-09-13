@@ -813,7 +813,8 @@ def main():
     
     tracker=LEAPSTracker()
     
-    if args.command== 'scan':candidates = tracker.scan_secular_winners()
+    if args.command== 'scan':
+        candidates = tracker.scan_secular_winners()
         
         # Filter by minimum score
         candidates = [c for c in candidates if c.composite_score >= args.min_score]
@@ -839,7 +840,8 @@ def main():
             
     elif args.command== 'portfolio':print(tracker.format_portfolio())
         
-    elif args.command== 'update':tracker.update_positions()
+    elif args.command== 'update':
+        tracker.update_positions()
         print("✅ Portfolio updated successfully")
 
 

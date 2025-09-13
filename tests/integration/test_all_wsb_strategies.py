@@ -464,7 +464,8 @@ def main():
         print(f"Traceback: {traceback.format_exc()}")
         return "CRITICAL"
 
-if __name__== "__main__":readiness_status = main()
+if __name__== "__main__":
+    readiness_status = main()
     
     # Exit with appropriate code
     exit_codes = {

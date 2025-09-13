@@ -712,8 +712,8 @@ class RegulatoryComplianceManager:
             self.logger.error(f"Error getting compliance summary: {e}")
             return {"error":str(e)}
     
-    def check_position_compliance(self, positions: Dict[str, Any]) -> 'ComplianceCheck':"""
-        Check position compliance against rules
+    def check_position_compliance(self, positions: Dict[str, Any]) -> 'ComplianceCheck':
+        """Check position compliance against rules
         
         Args:
             positions: Dictionary of positions to check
@@ -827,7 +827,8 @@ class RegulatoryComplianceManager:
 
 
 # Example usage and testing
-if __name__== "__main__":async def test_regulatory_compliance():
+if __name__== "__main__":
+    async def test_regulatory_compliance():
         # Initialize compliance manager
         compliance_manager=RegulatoryComplianceManager(
             primary_authority=RegulatoryAuthority.FCA,

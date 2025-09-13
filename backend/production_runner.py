@@ -250,7 +250,8 @@ class ProductionTradingRunner:
                 )
                 await strategy.run()
             
-            elif strategy_name== 'wsb_dip_bot':strategy = create_wsb_dip_bot_strategy(
+            elif strategy_name== 'wsb_dip_bot':
+                strategy = create_wsb_dip_bot_strategy(
                     self.trading_interface,
                     self.data_provider,
                     self.config,

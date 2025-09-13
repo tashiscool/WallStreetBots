@@ -494,7 +494,8 @@ def main():
     
     scanner=SwingTradingScanner()
     
-    if args.command== 'scan':signals = scanner.scan_swing_opportunities()
+    if args.command== 'scan':
+        signals = scanner.scan_swing_opportunities()
         
         # Filter by minimum strength
         signals = [s for s in signals if s.strength_score >= args.min_strength]
@@ -504,7 +505,8 @@ def main():
         else:
             print(scanner.format_signals(signals))
     
-    elif args.command== 'monitor':exit_signals = scanner.monitor_active_trades()
+    elif args.command== 'monitor':
+        exit_signals = scanner.monitor_active_trades()
         
         if exit_signals:
             print("\n🚨 SWING TRADE EXIT SIGNALS:")
@@ -513,7 +515,8 @@ def main():
         else:
             print("📊 No active trades to monitor")
     
-    elif args.command== 'continuous':print("🔄 Starting continuous swing scanning (Ctrl+C to stop)...")
+    elif args.command== 'continuous':
+        print("🔄 Starting continuous swing scanning (Ctrl+C to stop)...")
         try:
             while True:
                 print(f"\n⏰ {datetime.now().strftime('%H:%M:%S')} - Scanning...")

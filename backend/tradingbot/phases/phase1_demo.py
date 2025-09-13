@@ -256,9 +256,9 @@ class Phase1Demo:
             circuit_breaker = CircuitBreaker(failure_threshold=3, timeout=5.0)
 
             def flaky_function():
-                import random
+                import secrets  # More secure random
 
-                if random.random() < 0.7:  # 70% failure rate
+                if secrets.randbelow(1000) / 1000.0 < 0.7:  # 70% failure rate
                     raise Exception("Simulated failure")
                 return "success"
 

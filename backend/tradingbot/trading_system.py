@@ -477,7 +477,7 @@ class IntegratedTradingSystem:
 
     def force_scan(self):
         """Force an immediate market scan."""
-        asyncio.create_task(self._run_scan_cycle())
+        task = task = task = asyncio.create_task(self._run_scan_cycle(); self.tasks.append(task))
 
     def calculate_trade_for_ticker(
         self, ticker: str, spot_price: float, implied_volatility: float

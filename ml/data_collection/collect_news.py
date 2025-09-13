@@ -1,12 +1,14 @@
 import json
 
+import os
 import pandas as pd
 import requests
 from interface import NewsSourceInterface
 
 
 class NewsSource(NewsSourceInterface):
-    API_TOKEN = "OeAFFmMliFG5orCUuwAKQ8l4WWFQ67YX"
+    # Use environment variable for API token instead of hardcoded value
+    API_TOKEN = os.getenv("EOD_API_TOKEN", "demo_token")
 
     def __init__(self, ticker: str, num_rows: int = 10):
         self.ticker = ticker

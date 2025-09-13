@@ -2,6 +2,10 @@
 """Test Risk - Strategy Integration
 Demonstrates Month 3 - 4: Integration with WallStreetBots.
 
+# Test constants
+TEST_API_KEY = "test_key"
+TEST_SECRET_KEY = "test_secret"
+
 This script tests the integration of sophisticated risk models with trading strategies:
 - Real - time risk assessment during trading
 - Automated risk controls and position sizing
@@ -54,8 +58,8 @@ async def test_risk_strategy_integration():
 
         # Create configuration
         config = RiskIntegratedConfig(
-            alpaca_api_key="test_key",
-            alpaca_secret_key="test_secret",
+            alpaca_api_key=TEST_API_KEY,
+            alpaca_secret_key=TEST_SECRET_KEY,
             paper_trading=True,
             profile=StrategyProfile.research_2024,
             risk_limits=risk_limits,

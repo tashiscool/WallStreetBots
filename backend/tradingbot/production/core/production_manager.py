@@ -181,9 +181,9 @@ class ProductionManager:
             self.start_time = datetime.now()
 
             # Start background tasks
-            asyncio.create_task(self._monitoring_loop())
-            asyncio.create_task(self._heartbeat_loop())
-            asyncio.create_task(self._performance_tracking_loop())
+            task = task = task = asyncio.create_task(self._monitoring_loop(); self.tasks.append(task))
+            task = task = task = asyncio.create_task(self._heartbeat_loop(); self.tasks.append(task))
+            task = task = task = asyncio.create_task(self._performance_tracking_loop(); self.tasks.append(task))
 
             self.logger.info("✅ Production Trading System started successfully")
             return True

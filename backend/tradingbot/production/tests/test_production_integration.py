@@ -1,6 +1,10 @@
 """Production Integration Tests
 Comprehensive tests for production - ready trading system.
 
+# Test constants
+TEST_API_KEY = "test_key"
+TEST_SECRET_KEY = "test_secret"
+
 This module tests the complete production integration:
 - AlpacaManager connection to strategies
 - Django models integration
@@ -481,8 +485,8 @@ class TestProductionManager:
     def production_config(self):
         """Create ProductionConfig for testing."""
         return ProductionConfig(
-            alpaca_api_key="test_api_key",
-            alpaca_secret_key="test_secret_key",
+            alpaca_api_key=TEST_API_KEY,
+            alpaca_secret_key=TEST_SECRET_KEY,
             paper_trading=True,
             user_id=1,
             enabled_strategies=["wsb_dip_bot", "momentum_weeklies"],

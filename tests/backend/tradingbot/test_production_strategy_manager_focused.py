@@ -3,6 +3,10 @@
 Tests the core functionality we just implemented.
 """
 
+# Test constants
+TEST_API_KEY = "test_key"
+TEST_SECRET_KEY = "test_secret"
+
 import asyncio
 import os
 import sys
@@ -27,7 +31,7 @@ def test_strategy_manager_initialization():
     print("Testing ProductionStrategyManager initialization...")
 
     config = ProductionStrategyManagerConfig(
-        alpaca_api_key="test_key", alpaca_secret_key="test_secret", paper_trading=True, user_id=1
+        alpaca_api_key=TEST_API_KEY, alpaca_secret_key=TEST_SECRET_KEY, paper_trading=True, user_id=1
     )
 
     with (
@@ -79,14 +83,14 @@ def test_production_strategy_manager_config_dataclass():
     print("Testing ProductionStrategyManagerConfig dataclass...")
 
     config = ProductionStrategyManagerConfig(
-        alpaca_api_key="test_key_123",
-        alpaca_secret_key="test_secret_456",
+        alpaca_api_key=TEST_API_KEY,
+        alpaca_secret_key=TEST_SECRET_KEY,
         paper_trading=True,
         user_id=42,
     )
 
-    assert config.alpaca_api_key == "test_key_123"
-    assert config.alpaca_secret_key == "test_secret_456"
+    assert config.alpaca_api_key == TEST_API_KEY
+    assert config.alpaca_secret_key == TEST_SECRET_KEY
     assert config.paper_trading
     assert config.user_id == 42
 
@@ -104,7 +108,7 @@ def test_create_strategy_method_exists():
     print("Testing _create_strategy method...")
 
     config = ProductionStrategyManagerConfig(
-        alpaca_api_key="test_key", alpaca_secret_key="test_secret", paper_trading=True, user_id=1
+        alpaca_api_key=TEST_API_KEY, alpaca_secret_key=TEST_SECRET_KEY, paper_trading=True, user_id=1
     )
 
     with (
@@ -134,7 +138,7 @@ async def test_async_methods_exist():
     print("Testing async methods exist...")
 
     config = ProductionStrategyManagerConfig(
-        alpaca_api_key="test_key", alpaca_secret_key="test_secret", paper_trading=True, user_id=1
+        alpaca_api_key=TEST_API_KEY, alpaca_secret_key=TEST_SECRET_KEY, paper_trading=True, user_id=1
     )
 
     with (
@@ -182,7 +186,7 @@ def test_strategy_factory_methods_mapping():
     print("Testing strategy factory methods mapping...")
 
     config = ProductionStrategyManagerConfig(
-        alpaca_api_key="test_key", alpaca_secret_key="test_secret", paper_trading=True, user_id=1
+        alpaca_api_key=TEST_API_KEY, alpaca_secret_key=TEST_SECRET_KEY, paper_trading=True, user_id=1
     )
 
     # Test strategy names that should be supported

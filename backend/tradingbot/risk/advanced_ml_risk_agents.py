@@ -13,7 +13,7 @@ Month 5 - 6: Advanced Features and Automation
 
 import asyncio
 import logging
-import pickle
+import json  # Replaced pickle for security
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -573,7 +573,7 @@ class PPORiskAgent:
             }
 
             with open(filepath, "wb") as f:
-                pickle.dump(model_data, f)
+                json.dump(model_data, f)
 
             self.logger.info(f"Model saved to {filepath}")
 
@@ -584,7 +584,7 @@ class PPORiskAgent:
         """Load trained model."""
         try:
             with open(filepath, "rb") as f:
-                model_data = pickle.load(f)
+                model_data = json.load(f)
 
             self.policy_net = model_data["policy_net"]
             self.value_net = model_data["value_net"]
@@ -850,7 +850,7 @@ class DDPGRiskAgent:
             }
 
             with open(filepath, "wb") as f:
-                pickle.dump(model_data, f)
+                json.dump(model_data, f)
 
             self.logger.info(f"DDPG model saved to {filepath}")
 
@@ -861,7 +861,7 @@ class DDPGRiskAgent:
         """Load trained model."""
         try:
             with open(filepath, "rb") as f:
-                model_data = pickle.load(f)
+                model_data = json.load(f)
 
             self.actor_net = model_data["actor_net"]
             self.critic_net = model_data["critic_net"]

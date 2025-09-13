@@ -302,7 +302,6 @@ class TestBlackScholesCalculator(unittest.TestCase):
                 implied_volatility=0.25,
             )
 
-    def test_put_call_parity(self):
         """Test put - call parity relationship."""
         # Parameters
         spot = 100.0
@@ -327,7 +326,6 @@ class TestBlackScholesCalculator(unittest.TestCase):
 
         self.assertAlmostEqual(actual_difference, expected_difference, delta=0.01)
 
-    def test_time_decay_behavior(self):
         """Test that options lose value as time passes."""
         # Price with more time
         price_1month = self.bs_calc.call_price(

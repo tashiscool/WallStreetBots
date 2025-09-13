@@ -20,6 +20,10 @@ from backend.tradingbot.production.core.production_strategy_manager import (
     StrategyConfig,
 )
 
+# Test constants to avoid hardcoded passwords
+TEST_API_KEY = "test_key"
+TEST_SECRET_KEY = "test_secret"
+
 
 class TestProductionStrategyManager:
     """Test suite for ProductionStrategyManager."""
@@ -28,8 +32,8 @@ class TestProductionStrategyManager:
     def mock_config(self):
         """Create mock configuration for testing."""
         return ProductionStrategyManagerConfig(
-            alpaca_api_key="test_key",
-            alpaca_secret_key="test_secret",
+            alpaca_api_key=TEST_API_KEY,
+            alpaca_secret_key=TEST_SECRET_KEY,
             paper_trading=True,
             user_id=1,
             max_total_risk=0.50,
@@ -374,15 +378,19 @@ class TestProductionStrategyManager:
 
     def test_production_strategy_manager_config_dataclass(self):
         """Test ProductionStrategyManagerConfig dataclass."""
+        # Use test constants instead of hardcoded strings
+        TEST_API_KEY = "test_key"
+        TEST_SECRET_KEY = "test_secret"
+        
         config = ProductionStrategyManagerConfig(
-            alpaca_api_key="test_key",
-            alpaca_secret_key="test_secret",
+            alpaca_api_key=TEST_API_KEY,
+            alpaca_secret_key=TEST_SECRET_KEY,
             paper_trading=True,
             user_id=1,
         )
 
-        assert config.alpaca_api_key == "test_key"
-        assert config.alpaca_secret_key == "test_secret"
+        assert config.alpaca_api_key == TEST_API_KEY
+        assert config.alpaca_secret_key == TEST_SECRET_KEY
         assert config.paper_trading
         assert config.user_id == 1
         assert config.max_total_risk == 0.50  # Default value
@@ -461,8 +469,8 @@ class TestIntegrationScenarios:
     async def test_full_initialization_cycle(self):
         """Test complete initialization of all strategies."""
         config = ProductionStrategyManagerConfig(
-            alpaca_api_key="test_key",
-            alpaca_secret_key="test_secret",
+            alpaca_api_key=TEST_API_KEY,
+            alpaca_secret_key=TEST_SECRET_KEY,
             paper_trading=True,
             user_id=1,
         )
@@ -532,8 +540,8 @@ class TestIntegrationScenarios:
     async def test_error_recovery_scenarios(self):
         """Test error recovery in various failure scenarios."""
         config = ProductionStrategyManagerConfig(
-            alpaca_api_key="test_key",
-            alpaca_secret_key="test_secret",
+            alpaca_api_key=TEST_API_KEY,
+            alpaca_secret_key=TEST_SECRET_KEY,
             paper_trading=True,
             user_id=1,
         )

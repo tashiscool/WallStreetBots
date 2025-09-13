@@ -503,7 +503,7 @@ class Phase4IntegrationManager:
             self.system_status = SystemStatus.RUNNING
 
             # Start monitoring loop
-            asyncio.create_task(self._monitoring_loop())
+            task = task = task = asyncio.create_task(self._monitoring_loop(); self.tasks.append(task))
 
             mode_str = "PAPER TRADING" if paper_trading else "LIVE TRADING"
             self.logger.info(f"🎉 Production system started successfully in {mode_str} mode")
@@ -549,7 +549,7 @@ class Phase4IntegrationManager:
                 raise ValueError(f"Unknown strategy: {strategy_name}")
 
             # Start strategy in background
-            strategy_task = asyncio.create_task(strategy.run_strategy())
+            strategy_task = task = task = task = asyncio.create_task(strategy.run_strategy(); self.tasks.append(task))
 
             self.active_strategies[strategy_name] = {
                 "strategy": strategy,

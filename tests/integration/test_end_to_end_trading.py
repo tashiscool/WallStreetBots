@@ -1,5 +1,9 @@
 """End - to - End Trading Integration Tests.
 
+# Test constants
+TEST_API_KEY = "test_key"
+TEST_SECRET_KEY = "test_secret"
+
 Comprehensive integration tests that validate the entire trading flow from signal generation
 to order execution and position management.
 """
@@ -93,8 +97,8 @@ class TestEndToEndTrading:
 
         # Create strategy manager
         config = ProductionStrategyManagerConfig(
-            alpaca_api_key="test_key",
-            alpaca_secret_key="test_secret",
+            alpaca_api_key=TEST_API_KEY,
+            alpaca_secret_key=TEST_SECRET_KEY,
             paper_trading=True,
             user_id=1,
             max_total_risk=0.50,

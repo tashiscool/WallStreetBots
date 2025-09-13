@@ -188,7 +188,6 @@ class EmailAlertHandler(AlertHandler):
     def __init__(self, smtp_config: dict):
         self.smtp_config = smtp_config
 
-    def send_alert(self, alert: Alert) -> bool:
         """Send email alert using send_email function."""
         from .alert_system import send_email
 
@@ -222,11 +221,12 @@ class DesktopAlertHandler(AlertHandler):
         try:
             # Use osascript on macOS for desktop notifications
             message = f"{alert.title}: {alert.message}"
-            subprocess.run(
+            subprocess.run(  # noqa: S603 - Safe subprocess call for desktop notifications
                 ["osascript", "-e", f'display notification "{message}" with title "Trading Alert"'],
                 check=True,
                 capture_output=True,
                 timeout=5,
+                shell=False,  # Explicitly disable shell for security
             )
             logging.info(f"DESKTOP ALERT: {alert.title} - {alert.message}")
             return True
@@ -264,7 +264,6 @@ class TradingAlertSystem:
         """Register an alert handler for a channel."""
         self.handlers[channel] = handler
 
-    def send_alert(self, alert: Alert) -> dict[AlertChannel, bool]:
         """Send alert through configured channels."""
         results = {}
 
@@ -282,17 +281,17 @@ class TradingAlertSystem:
             alert.alert_type, [AlertChannel.DESKTOP]
         )
 
-        for channel in channels:
-            handler = self.handlers.get(channel)
+        for alert_channel in channels:
+            handler = self.handlers.get(alert_channel)
             if handler:
                 try:
                     success = handler.send_alert(alert)
-                    results[channel] = success
+                    results[alert_channel] = success
                 except Exception as e:
-                    logging.error(f"Failed to send alert via {channel}: {e}")
-                    results[channel] = False
+                    logging.error(f"Failed to send alert via {alert_channel}: {e}")
+                    results[alert_channel] = False
             else:
-                logging.warning(f"No handler registered for channel: {channel}")
+                logging.warning(f"No handler registered for channel: {alert_channel}")
                 results[channel] = False
 
         # Store alert in history
@@ -369,17 +368,17 @@ class TradingAlertSystem:
             alert.alert_type, [AlertChannel.DESKTOP]
         )
 
-        for channel in channels:
-            handler = self.handlers.get(channel)
+        for alert_channel in channels:
+            handler = self.handlers.get(alert_channel)
             if handler:
                 try:
                     success = handler.send_alert(alert)
-                    results[channel] = success
+                    results[alert_channel] = success
                 except Exception as e:
-                    logging.error(f"Failed to send alert via {channel}: {e}")
-                    results[channel] = False
+                    logging.error(f"Failed to send alert via {alert_channel}: {e}")
+                    results[alert_channel] = False
             else:
-                logging.warning(f"No handler registered for channel: {channel}")
+                logging.warning(f"No handler registered for channel: {alert_channel}")
                 results[channel] = False
 
         # Store alert in history

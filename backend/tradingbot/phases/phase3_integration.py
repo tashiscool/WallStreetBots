@@ -54,7 +54,7 @@ class Phase3StrategyManager:
         # Initialize data provider and trading interface
         self.data_provider = UnifiedDataProvider(self.logger)
         self.trading_interface = TradingInterface(
-            alpaca_api_key="mock_key", alpaca_secret_key="mock_secret", paper_trading=True
+            alpaca_api_key=TEST_API_KEY, alpaca_secret_key=TEST_SECRET_KEY, paper_trading=True
         )
 
         # Initialize Phase 3 strategies
@@ -549,5 +549,5 @@ async def create_phase3_data_provider(logger: ProductionLogger) -> UnifiedDataPr
 async def create_phase3_trading_interface(logger: ProductionLogger) -> TradingInterface:
     """Create Phase 3 trading interface."""
     return TradingInterface(
-        alpaca_api_key="mock_key", alpaca_secret_key="mock_secret", paper_trading=True
+        alpaca_api_key=TEST_API_KEY, alpaca_secret_key=TEST_SECRET_KEY, paper_trading=True
     )

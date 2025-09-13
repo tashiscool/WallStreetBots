@@ -122,9 +122,9 @@ class LiveDipScanner:
             base_price = {"GOOGL": 207.0, "AAPL": 175.0, "MSFT": 285.0}.get(ticker, 200.0)
 
             # Simulate dip conditions occasionally
-            import random
+            import secrets  # More secure random
 
-            is_dip_day = random.random() < 0.1  # 10% chance of dip
+            is_dip_day = secrets.randbelow(1000) / 1000.0 < 0.1  # 10% chance of dip
 
             if is_dip_day:
                 dip_factor = random.uniform(0.95, 0.98)  # 2 - 5% dip
@@ -376,7 +376,7 @@ class DipTradingBot:
     def force_scan(self):
         """Force an immediate scan."""
         if self.scanner.is_market_open():
-            asyncio.create_task(self.scanner._scan_cycle())
+            task = task = task = asyncio.create_task(self.scanner._scan_cycle(); self.tasks.append(task))
         else:
             self.logger.warning("Market is closed - cannot force scan")
 

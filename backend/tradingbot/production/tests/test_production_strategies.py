@@ -1,6 +1,10 @@
 """Production Strategies Integration Tests
 Comprehensive tests for production - ready trading strategies.
 
+# Test constants
+TEST_API_KEY = "test_key"
+TEST_SECRET_KEY = "test_secret"
+
 This module tests the complete production strategy integration:
 - WSB Dip Bot with real data integration
 - Earnings Protection with live earnings calendar
@@ -378,8 +382,8 @@ class TestProductionStrategyManager:
     def strategy_manager_config(self):
         """Create ProductionStrategyManagerConfig for testing."""
         return ProductionStrategyManagerConfig(
-            alpaca_api_key="test_key",
-            alpaca_secret_key="test_secret",
+            alpaca_api_key=TEST_API_KEY,
+            alpaca_secret_key=TEST_SECRET_KEY,
             paper_trading=True,
             user_id=1,
             strategies={
@@ -530,8 +534,8 @@ class TestProductionStrategyIntegration:
 
                             # Create strategy manager
                             config = ProductionStrategyManagerConfig(
-                                alpaca_api_key="test_key",
-                                alpaca_secret_key="test_secret",
+                                alpaca_api_key=TEST_API_KEY,
+                                alpaca_secret_key=TEST_SECRET_KEY,
                                 paper_trading=True,
                             )
 

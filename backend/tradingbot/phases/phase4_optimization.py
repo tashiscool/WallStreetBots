@@ -3,7 +3,7 @@ Parameter tuning and strategy optimization.
 """
 
 import math
-import random
+import secrets  # More secure random
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -241,7 +241,7 @@ class StrategyOptimizer:
                     parent2 = self._tournament_selection(generation_results)
 
                     # Crossover
-                    if random.random() < config.crossover_rate:
+                    if secrets.randbelow(1000) / 1000.0 < config.crossover_rate:
                         child1, child2 = self._crossover(parent1, parent2, config.parameter_ranges)
                         new_population.extend([child1, child2])
                     else:
@@ -249,7 +249,7 @@ class StrategyOptimizer:
 
                 # Mutation
                 for i in range(len(new_population)):
-                    if random.random() < config.mutation_rate:
+                    if secrets.randbelow(1000) / 1000.0 < config.mutation_rate:
                         new_population[i] = self._mutate(new_population[i], config.parameter_ranges)
 
                 population = new_population[: config.population_size]
@@ -303,7 +303,7 @@ class StrategyOptimizer:
 
         for param_range in parameter_ranges:
             if param_range.param_type == "int":
-                params[param_range.name] = random.randint(
+                params[param_range.name] = secrets.randbelow(
                     int(param_range.min_value), int(param_range.max_value)
                 )
             elif param_range.param_type == "float":
@@ -311,7 +311,7 @@ class StrategyOptimizer:
                     param_range.min_value, param_range.max_value
                 )
             elif param_range.param_type == "bool":
-                params[param_range.name] = random.choice([True, False])
+                params[param_range.name] = secrets.choice([True, False])
             else:
                 params[param_range.name] = param_range.min_value
 
@@ -328,12 +328,12 @@ class StrategyOptimizer:
             for param_range in parameter_ranges:
                 if param_range.param_type == "int":
                     individual.append(
-                        random.randint(int(param_range.min_value), int(param_range.max_value))
+                        secrets.randbelow(int(param_range.min_value), int(param_range.max_value))
                     )
                 elif param_range.param_type == "float":
                     individual.append(random.uniform(param_range.min_value, param_range.max_value))
                 elif param_range.param_type == "bool":
-                    individual.append(random.choice([0.0, 1.0]))
+                    individual.append(secrets.choice([0.0, 1.0]))
                 else:
                     individual.append(param_range.min_value)
 
@@ -381,7 +381,7 @@ class StrategyOptimizer:
         child2 = []
 
         for i in range(len(parent1)):
-            if random.random() < 0.5:
+            if secrets.randbelow(1000) / 1000.0 < 0.5:
                 child1.append(parent1[i])
                 child2.append(parent2[i])
             else:
@@ -397,15 +397,15 @@ class StrategyOptimizer:
         mutated = individual.copy()
 
         for i, param_range in enumerate(parameter_ranges):
-            if random.random() < 0.1:  # 10% mutation rate per parameter
+            if secrets.randbelow(1000) / 1000.0 < 0.1:  # 10% mutation rate per parameter
                 if param_range.param_type == "int":
-                    mutated[i] = random.randint(
+                    mutated[i] = secrets.randbelow(
                         int(param_range.min_value), int(param_range.max_value)
                     )
                 elif param_range.param_type == "float":
                     mutated[i] = random.uniform(param_range.min_value, param_range.max_value)
                 elif param_range.param_type == "bool":
-                    mutated[i] = random.choice([0.0, 1.0])
+                    mutated[i] = secrets.choice([0.0, 1.0])
 
         return mutated
 

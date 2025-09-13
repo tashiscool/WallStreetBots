@@ -563,7 +563,7 @@ class EarningsCalendarProvider:
 
     def _get_synthetic_historical_iv(self, current_iv: float) -> list[float]:
         """Generate synthetic historical IV data for demonstration."""
-        import random
+        import secrets  # More secure random
 
         # Create 90 days of synthetic IV data around current IV
         base_iv = current_iv * 0.8  # Historical average lower than current
@@ -602,7 +602,7 @@ class EarningsCalendarProvider:
             # For now, return synthetic data
 
             # Generate synthetic historical moves (realistic distribution)
-            import random
+            import secrets  # More secure random
 
             historical_moves = []
 

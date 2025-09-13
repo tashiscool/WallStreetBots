@@ -5,6 +5,10 @@ Demonstrates the newly implemented features:
 2. Market Regime: Adapt strategies to market conditions.
 """
 
+# Test constants
+TEST_API_KEY = "test_key"
+TEST_SECRET_KEY = "test_secret"
+
 import asyncio
 import os
 import sys
@@ -207,8 +211,8 @@ def test_integration_with_production():
 
         # Create config with analytics enabled
         config = ProductionStrategyManagerConfig(
-            alpaca_api_key="test_key",
-            alpaca_secret_key="test_secret",
+            alpaca_api_key=TEST_API_KEY,
+            alpaca_secret_key=TEST_SECRET_KEY,
             paper_trading=True,
             profile=StrategyProfile.research_2024,
             enable_advanced_analytics=True,

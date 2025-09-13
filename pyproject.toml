@@ -140,8 +140,11 @@ select = [
     "E71",    # Indentation issues
     "E72",    # Bare except clauses
 
-    # Bugbear - Common bug patterns
-    "B",      # flake8-bugbear (mutable defaults, zip without strict, etc)
+    # Bugbear - Common bug patterns (excluding style preferences)
+    "B006",   # Mutable argument defaults (critical bug)
+    "B017",   # Assert raises Exception (critical bug)
+    "B020",   # Loop variable overrides iterator (critical bug)
+    "B904",   # Raise without from inside except (critical bug)
 
     # Security vulnerabilities
     "S1",     # Potential security vulnerabilities (hardcoded passwords, etc)
@@ -167,8 +170,7 @@ select = [
     # Comprehension bugs
     "C4",     # flake8-comprehensions (inefficient comprehensions)
 
-    # Boolean trap bugs
-    "FBT003", # Boolean positional values in function call
+    # Boolean trap bugs (FBT003 moved to ignore - style preference)
 
     # Async/await bugs
     "ASYNC",  # Common async/await mistakes
@@ -193,6 +195,7 @@ ignore = [
     # Style preferences that don't affect functionality
     "FBT001",   # Boolean argument in function definition
     "FBT002",   # Boolean default value in function definition
+    "FBT003",   # Boolean positional values in function call (style preference)
 
     # Exception handling styles that are sometimes necessary
     "S110",     # Try-except-pass (sometimes needed)
@@ -252,3 +255,11 @@ max-complexity = 10
 # Config files can have magic values
 "**/settings.py" = ["PLR2004"]
 "**/config.py" = ["PLR2004"]
+
+# Django models and forms can have class-level list attributes
+"**/models.py" = [
+    "RUF012",  # Django model Meta.ordering and choice fields are expected patterns
+]
+"**/forms.py" = [
+    "RUF012",  # Django form choice fields are expected patterns
+]

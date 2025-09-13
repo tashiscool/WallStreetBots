@@ -364,7 +364,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         self.assertIn("GPU compute", ai_theme.growth_drivers)
 
         # Each theme should have reasonable time horizons
-        for _theme_key, theme in self.tracker.secular_themes.items():
+        for theme in self.tracker.secular_themes.values():
             self.assertIsInstance(theme.time_horizon, str)
             self.assertIn("years", theme.time_horizon)
             self.assertGreater(len(theme.tickers), 3)  # Multiple stocks per theme

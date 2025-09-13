@@ -308,7 +308,7 @@ class IndexBaselineScanner:
         for comp in comparisons: 
             strategy_display=comp.strategy_name.replace('_', ' ').title()[: 18]
             return_pct=f"{comp.strategy_return: .1%}"
-            alpha_pct=f"{comp.net_alpha_after_costs: +.1%}"
+            alpha_pct=f"{comp.net_alpha_after_costs:+.1%}"
             sharpe_str=f"{comp.strategy_sharpe: .2f}"
             beats_spy="YES" if comp.beats_spy else "NO"
             winner=comp.risk_adjusted_winner

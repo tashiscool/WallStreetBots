@@ -757,7 +757,7 @@ class LEAPSTracker:
         output += f"Total Positions: {len(self.positions)}\n"
         output += f"Total Cost Basis: ${total_cost:,.0f}\n"
         output += f"Current Value: ${total_value:,.0f}\n"
-        output += f"Unrealized P & L: ${total_pnl:,.0f} ({total_pnl_pct: +.1f}%)\n\n"
+        output += f"Unrealized P & L: ${total_pnl:,.0f} ({total_pnl_pct:+.1f}%)\n\n"
         
         # Sort by P & L percentage
         sorted_positions=sorted(self.positions, key=lambda x: x.unrealized_pct, reverse=True)
@@ -779,7 +779,7 @@ class LEAPSTracker:
             output += f"{pos.ticker} ${pos.strike} Call {pos.expiry_date} {status}\n"
             output += f"  Entry: ${pos.entry_premium:.2f} @ ${pos.spot_at_entry: .2f} ({pos.days_held}d ago)\n"
             output += f"  Current: ${pos.current_premium:.2f} @ ${pos.current_spot: .2f} (Δ{pos.delta: .2f})\n"
-            output += f"  P & L: ${pos.unrealized_pnl:,.0f} ({pos.unrealized_pct: +.1f}%) | {pos.days_to_expiry}d left\n\n"
+            output += f"  P & L: ${pos.unrealized_pnl:,.0f} ({pos.unrealized_pct:+.1f}%) | {pos.days_to_expiry}d left\n\n"
         
         # Scale - out recommendations
         scale_recommendations=[pos for pos in self.positions 

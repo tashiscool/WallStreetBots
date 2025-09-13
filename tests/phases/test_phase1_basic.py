@@ -140,7 +140,7 @@ def test_data_structures():
         previous_close=147.5,
         timestamp=datetime.now()
     )
-    print(f"✅ Market data: {market_data.ticker} @ ${market_data.price: .2f} ({market_data.change_percent: +.2%})")
+    print(f"✅ Market data: {market_data.ticker} @ ${market_data.price:.2f} ({market_data.change_percent:+.2%})")
     
     # Test options data
     options_data=OptionsData(

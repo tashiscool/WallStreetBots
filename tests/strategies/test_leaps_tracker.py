@@ -663,8 +663,8 @@ class TestLEAPSDisplayEnhancements(unittest.TestCase):
         self.assertAlmostEqual(ratio_200, 1.07, places=2)  # 7% above 200 SMA
         
         # Display formatting
-        ratio_50_display=f"{ratio_50: .2f}x"
-        ratio_200_display=f"{ratio_200: .2f}x"
+        ratio_50_display=f"{ratio_50:.2f}x"
+        ratio_200_display=f"{ratio_200:.2f}x"
         
         self.assertEqual(ratio_50_display, "1.03x")
         self.assertEqual(ratio_200_display, "1.07x")

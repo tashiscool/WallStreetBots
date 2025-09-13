@@ -72,10 +72,10 @@ def test_module_imports():
             scanner_class=getattr(module, class_name)
             scanner=scanner_class()
             results[module_name]="✅ SUCCESS"
-            print(f"✅ {module_name: 20} - Successfully imported and instantiated {class_name}")
+            print(f"✅ {module_name:20} - Successfully imported and instantiated {class_name}")
         except Exception as e: 
             results[module_name]=f"❌ FAILED: {str(e)}"
-            print(f"❌ {module_name: 20} - Failed: {str(e)}")
+            print(f"❌ {module_name:20} - Failed: {str(e)}")
     
     return results
 

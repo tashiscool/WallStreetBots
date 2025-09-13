@@ -416,7 +416,7 @@ def test_exact_clone_math():
 
     # Compare
     print("\nComparison: ")
-    print(f"  Contract difference: {contracts - original_contracts:,} ({((contracts / original_contracts)-1)*100: +.1f}%)")
+    print(f"  Contract difference: {contracts - original_contracts:,} ({((contracts / original_contracts)-1)*100:+.1f}%)")
     print(f"  Cost difference: ${actual_cost - original_cost:,.0f}")
     print(f"  Risk reduction: {95 - risk_pct:.1f} percentage points")
 

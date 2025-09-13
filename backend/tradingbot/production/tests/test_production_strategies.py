@@ -17,9 +17,9 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-# Test constants
-TEST_API_KEY = "test_key"
-TEST_SECRET_KEY = "test_secret"
+# Test constants - not real credentials
+TEST_API_KEY = "test_key_not_real"
+TEST_SECRET_KEY = "test_secret_not_real"
 
 # Constants for test data generation and validation
 BUILD_UP_DAYS = 20

@@ -29,9 +29,9 @@ from ..core.production_manager import ProductionConfig, ProductionManager
 from ..core.production_strategy_wrapper import ProductionWSBDipBot, StrategyConfig
 from ..data.production_data_integration import ReliableDataProvider as ProductionDataProvider
 
-# Test constants
-TEST_API_KEY = "test_key"
-TEST_SECRET_KEY = "test_secret"
+# Test constants - not real credentials
+TEST_API_KEY = "test_key_not_real"
+TEST_SECRET_KEY = "test_secret_not_real"
 
 
 class TestProductionIntegration:

@@ -35,6 +35,10 @@ from ..strategies.production_swing_trading import ProductionSwingTrading, create
 from ..strategies.production_spx_credit_spreads import ProductionSPXCreditSpreads, create_production_spx_credit_spreads
 from ..strategies.production_lotto_scanner import ProductionLottoScanner, create_production_lotto_scanner
 
+# Import advanced analytics and market regime adaptation
+from ...analytics.advanced_analytics import AdvancedAnalytics, PerformanceMetrics
+from ...analytics.market_regime_adapter import MarketRegimeAdapter, RegimeAdaptationConfig, StrategyAdaptation
+
 
 class StrategyProfile(str, Enum):
     research_2024="research_2024"
@@ -73,9 +77,15 @@ class ProductionStrategyManagerConfig:
     
     # Alert settings
     enable_alerts: bool = True
-    
+
     # NEW: choose a preset
     profile: StrategyProfile = StrategyProfile.research_2024
+
+    # Advanced analytics settings
+    enable_advanced_analytics: bool = True
+    enable_market_regime_adaptation: bool = True
+    analytics_update_interval: int = 3600  # seconds
+    regime_adaptation_interval: int = 1800  # seconds
 
 
 def _preset_defaults(profile: StrategyProfile) -> Dict[str, StrategyConfig]:
@@ -603,6 +613,21 @@ class ProductionStrategyManager:
         
         # Performance tracking
         self.performance_metrics: Dict[str, Any] = {}
+
+        # Advanced analytics and market regime adaptation
+        self.advanced_analytics = None
+        self.market_regime_adapter = None
+        self.current_regime_adaptation: Optional[StrategyAdaptation] = None
+        self.analytics_history: List[PerformanceMetrics] = []
+
+        if self.config.enable_advanced_analytics:
+            self.advanced_analytics = AdvancedAnalytics(risk_free_rate=0.02)
+            self.logger.info("Advanced analytics enabled")
+
+        if self.config.enable_market_regime_adaptation:
+            regime_config = RegimeAdaptationConfig()
+            self.market_regime_adapter = MarketRegimeAdapter(regime_config)
+            self.logger.info("Market regime adaptation enabled")
         
         # Bubble-aware and M&A overlays (optional for strategies to read)
         self.bubble_aware_adjustments={
@@ -772,6 +797,12 @@ class ProductionStrategyManager:
                 asyncio.create_task(self._monitoring_loop())
                 asyncio.create_task(self._heartbeat_loop())
                 asyncio.create_task(self._performance_tracking_loop())
+
+                # Start advanced analytics and regime adaptation tasks
+                if self.config.enable_advanced_analytics:
+                    asyncio.create_task(self._analytics_loop())
+                if self.config.enable_market_regime_adaptation:
+                    asyncio.create_task(self._regime_adaptation_loop())
                 
                 self.logger.info(f"Started {started_count} strategies successfully")
                 return True
@@ -948,7 +979,273 @@ class ProductionStrategyManager:
             
         except Exception as e:
             self.logger.error(f"Error updating performance metrics: {e}")
-    
+
+    async def _analytics_loop(self):
+        """Advanced analytics calculation loop"""
+        while self.is_running:
+            try:
+                await self._calculate_advanced_analytics()
+                await asyncio.sleep(self.config.analytics_update_interval)
+            except Exception as e:
+                self.logger.error(f"Error in analytics loop: {e}")
+                await asyncio.sleep(300)
+
+    async def _regime_adaptation_loop(self):
+        """Market regime adaptation loop"""
+        while self.is_running:
+            try:
+                await self._update_regime_adaptation()
+                await asyncio.sleep(self.config.regime_adaptation_interval)
+            except Exception as e:
+                self.logger.error(f"Error in regime adaptation loop: {e}")
+                await asyncio.sleep(300)
+
+    async def _calculate_advanced_analytics(self):
+        """Calculate comprehensive performance analytics"""
+        try:
+            if not self.advanced_analytics:
+                return
+
+            # Get portfolio returns data
+            portfolio_returns = await self._get_portfolio_returns()
+            benchmark_returns = await self._get_benchmark_returns()
+
+            if len(portfolio_returns) < 30:  # Need minimum data
+                self.logger.info("Insufficient data for analytics calculation")
+                return
+
+            # Calculate comprehensive metrics
+            metrics = self.advanced_analytics.calculate_comprehensive_metrics(
+                returns=portfolio_returns,
+                benchmark_returns=benchmark_returns,
+                start_date=self.start_time,
+                end_date=datetime.now()
+            )
+
+            # Store in history
+            self.analytics_history.append(metrics)
+            if len(self.analytics_history) > 100:  # Keep last 100 calculations
+                self.analytics_history = self.analytics_history[-100:]
+
+            # Generate and log analytics report
+            report = self.advanced_analytics.generate_analytics_report(metrics)
+            self.logger.info("Advanced analytics updated")
+
+            # Send alert for significant changes
+            if len(self.analytics_history) > 1:
+                await self._check_analytics_alerts(metrics)
+
+        except Exception as e:
+            self.logger.error(f"Error calculating advanced analytics: {e}")
+
+    async def _update_regime_adaptation(self):
+        """Update market regime adaptation"""
+        try:
+            if not self.market_regime_adapter:
+                return
+
+            # Get current market data
+            market_data = await self._get_market_data_for_regime()
+            current_positions = await self._get_current_positions()
+
+            # Generate strategy adaptation
+            adaptation = await self.market_regime_adapter.generate_strategy_adaptation(
+                market_data=market_data,
+                current_positions=current_positions
+            )
+
+            # Check if adaptation changed
+            if (not self.current_regime_adaptation or
+                adaptation.regime != self.current_regime_adaptation.regime or
+                abs(adaptation.confidence - self.current_regime_adaptation.confidence) > 0.1):
+
+                self.current_regime_adaptation = adaptation
+                await self._apply_regime_adaptation(adaptation)
+
+                # Send regime change alert
+                await self.integration_manager.alert_system.send_alert(
+                    "REGIME_CHANGE",
+                    "MEDIUM",
+                    f"Market regime: {adaptation.regime.value} "
+                    f"(confidence: {adaptation.confidence:.1%})"
+                )
+
+                self.logger.info(f"Applied regime adaptation: {adaptation.regime.value}")
+
+        except Exception as e:
+            self.logger.error(f"Error updating regime adaptation: {e}")
+
+    async def _get_portfolio_returns(self) -> List[float]:
+        """Get portfolio returns for analytics"""
+        try:
+            # Get portfolio value history from integration manager
+            # This would need to be implemented in integration manager
+            portfolio_history = await self.integration_manager.get_portfolio_history(days=180)
+
+            if len(portfolio_history) < 2:
+                return []
+
+            # Calculate daily returns
+            returns = []
+            for i in range(1, len(portfolio_history)):
+                prev_value = portfolio_history[i-1]['value']
+                curr_value = portfolio_history[i]['value']
+                if prev_value > 0:
+                    daily_return = (curr_value - prev_value) / prev_value
+                    returns.append(daily_return)
+
+            return returns
+
+        except Exception as e:
+            self.logger.error(f"Error getting portfolio returns: {e}")
+            return []
+
+    async def _get_benchmark_returns(self) -> List[float]:
+        """Get benchmark returns (SPY) for comparison"""
+        try:
+            # Get SPY data for benchmark comparison
+            spy_data = await self.data_provider.get_historical_data('SPY', days=180)
+
+            if len(spy_data) < 2:
+                return []
+
+            # Calculate daily returns
+            returns = []
+            for i in range(1, len(spy_data)):
+                prev_price = spy_data[i-1].price
+                curr_price = spy_data[i].price
+                if prev_price > 0:
+                    daily_return = (curr_price - prev_price) / prev_price
+                    returns.append(daily_return)
+
+            return returns
+
+        except Exception as e:
+            self.logger.error(f"Error getting benchmark returns: {e}")
+            return []
+
+    async def _get_market_data_for_regime(self) -> Dict[str, Any]:
+        """Get market data for regime detection"""
+        try:
+            # Get key market indicators
+            market_data = {}
+
+            # Get SPY data (primary indicator)
+            spy_data = await self.data_provider.get_current_price('SPY')
+            if spy_data:
+                market_data['SPY'] = {
+                    'price': spy_data.price,
+                    'volume': getattr(spy_data, 'volume', 1000000),
+                    'high': getattr(spy_data, 'high', spy_data.price * 1.01),
+                    'low': getattr(spy_data, 'low', spy_data.price * 0.99)
+                }
+
+            # Add volatility indicator
+            vix_data = await self.data_provider.get_current_price('VIX')
+            if vix_data:
+                market_data['volatility'] = float(vix_data.price) / 100.0
+
+            return market_data
+
+        except Exception as e:
+            self.logger.error(f"Error getting market data for regime: {e}")
+            return {}
+
+    async def _get_current_positions(self) -> Dict[str, Any]:
+        """Get current positions for regime adaptation"""
+        try:
+            return await self.integration_manager.get_all_positions()
+        except Exception as e:
+            self.logger.error(f"Error getting current positions: {e}")
+            return {}
+
+    async def _apply_regime_adaptation(self, adaptation: StrategyAdaptation):
+        """Apply regime adaptation to strategies"""
+        try:
+            # Update strategy parameters based on regime adaptation
+            for strategy_name, strategy in self.strategies.items():
+                try:
+                    # Check if strategy should be enabled/disabled
+                    if strategy_name in adaptation.disabled_strategies:
+                        if hasattr(strategy, 'set_enabled'):
+                            await strategy.set_enabled(False)
+                        self.logger.info(f"Disabled strategy {strategy_name} for regime {adaptation.regime.value}")
+
+                    elif strategy_name in adaptation.recommended_strategies:
+                        if hasattr(strategy, 'set_enabled'):
+                            await strategy.set_enabled(True)
+
+                        # Apply parameter adjustments
+                        if hasattr(strategy, 'update_parameters'):
+                            regime_params = {
+                                'position_multiplier': adaptation.position_size_multiplier,
+                                'max_risk': adaptation.max_risk_per_trade,
+                                'stop_loss_adjustment': adaptation.stop_loss_adjustment,
+                                'take_profit_adjustment': adaptation.take_profit_adjustment,
+                                **adaptation.parameter_adjustments
+                            }
+                            await strategy.update_parameters(regime_params)
+
+                        self.logger.info(f"Updated strategy {strategy_name} for regime {adaptation.regime.value}")
+
+                except Exception as e:
+                    self.logger.error(f"Error applying adaptation to {strategy_name}: {e}")
+
+        except Exception as e:
+            self.logger.error(f"Error applying regime adaptation: {e}")
+
+    async def _check_analytics_alerts(self, metrics: PerformanceMetrics):
+        """Check for analytics-based alerts"""
+        try:
+            # Check for significant performance changes
+            if len(self.analytics_history) > 1:
+                prev_metrics = self.analytics_history[-2]
+
+                # Check for significant drawdown increase
+                if metrics.max_drawdown > prev_metrics.max_drawdown * 1.5:
+                    await self.integration_manager.alert_system.send_alert(
+                        "DRAWDOWN_ALERT",
+                        "HIGH",
+                        f"Max drawdown increased to {metrics.max_drawdown:.2%}"
+                    )
+
+                # Check for Sharpe ratio degradation
+                if metrics.sharpe_ratio < prev_metrics.sharpe_ratio * 0.7:
+                    await self.integration_manager.alert_system.send_alert(
+                        "PERFORMANCE_ALERT",
+                        "MEDIUM",
+                        f"Sharpe ratio declined to {metrics.sharpe_ratio:.2f}"
+                    )
+
+        except Exception as e:
+            self.logger.error(f"Error checking analytics alerts: {e}")
+
+    def get_advanced_analytics_summary(self) -> Dict[str, Any]:
+        """Get advanced analytics summary"""
+        if not self.analytics_history:
+            return {'status': 'no_data'}
+
+        latest_metrics = self.analytics_history[-1]
+        return {
+            'status': 'active',
+            'total_return': latest_metrics.total_return,
+            'annualized_return': latest_metrics.annualized_return,
+            'sharpe_ratio': latest_metrics.sharpe_ratio,
+            'max_drawdown': latest_metrics.max_drawdown,
+            'volatility': latest_metrics.volatility,
+            'win_rate': latest_metrics.win_rate,
+            'var_95': latest_metrics.var_95,
+            'last_updated': latest_metrics.period_end.isoformat(),
+            'trading_days': latest_metrics.trading_days
+        }
+
+    def get_regime_adaptation_summary(self) -> Dict[str, Any]:
+        """Get regime adaptation summary"""
+        if not self.market_regime_adapter:
+            return {'status': 'disabled'}
+
+        return self.market_regime_adapter.get_adaptation_summary()
+
     def get_system_status(self) -> Dict[str, Any]:
         """Get current system status"""
         return {
@@ -965,8 +1262,12 @@ class ProductionStrategyManager:
                 'paper_trading':self.config.paper_trading,
                 'max_total_risk':self.config.max_total_risk,
                 'max_position_size':self.config.max_position_size,
-                'enabled_strategies':list(self.strategies.keys())
-            }
+                'enabled_strategies':list(self.strategies.keys()),
+                'advanced_analytics_enabled': self.config.enable_advanced_analytics,
+                'market_regime_adaptation_enabled': self.config.enable_market_regime_adaptation
+            },
+            'advanced_analytics': self.get_advanced_analytics_summary(),
+            'market_regime': self.get_regime_adaptation_summary()
         }
     
     def get_strategy_performance(self, strategy_name: str) -> Optional[Dict[str, Any]]:

@@ -17,6 +17,17 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+# Constants for test data generation and validation
+BUILD_UP_DAYS = 20
+PEAK_PERIOD_DAYS = 25
+RUN_PERCENTAGE_THRESHOLD = 0.20
+DIP_PERCENTAGE_THRESHOLD = 0.05
+RUN_THRESHOLD_VALUE = 0.10
+DIP_THRESHOLD_VALUE = -0.03
+IV_PERCENTILE_THRESHOLD = 70
+TARGET_ALLOCATION_VALUE = 0.80
+EXPECTED_STRATEGY_COUNT = 3
+
 from ..core.production_strategy_manager import (
     ProductionStrategyManager,
     ProductionStrategyManagerConfig,
@@ -57,11 +68,11 @@ class TestProductionWSBDipBot:
         # Generate 30 days of data with a clear dip - after - run pattern
         base_price = 100.00
         for i in range(30):
-            if i < 20:
+            if i < BUILD_UP_DAYS:
                 # Build up to a run (20% gain over 20 days)
                 price = base_price + (i * 0.8)  # Gradual increase
                 volume = 1000000 + (i * 50000)  # Gradual volume increase
-            elif i < 25:
+            elif i < PEAK_PERIOD_DAYS:
                 # Peak period (days 20 - 24)
                 price = base_price + 16.0  # Peak at ~116
                 volume = 2000000
@@ -124,8 +135,8 @@ class TestProductionWSBDipBot:
             print(
                 f"Signal detected: run={signal.run_percentage:.2%}, dip={signal.dip_percentage: .2%}, confidence={signal.confidence: .2f}"
             )
-            assert signal.run_percentage >= 0.20  # 20% run (advanced algorithm requirement)
-            assert signal.dip_percentage >= 0.05  # 5% dip (advanced algorithm requirement)
+            assert signal.run_percentage >= RUN_PERCENTAGE_THRESHOLD  # 20% run (advanced algorithm requirement)
+            assert signal.dip_percentage >= DIP_PERCENTAGE_THRESHOLD  # 5% dip (advanced algorithm requirement)
             assert signal.confidence > 0
         else:
             # If no signal, let's check what the algorithm is seeing
@@ -160,8 +171,8 @@ class TestProductionWSBDipBot:
 
         assert status["strategy_name"] == "wsb_dip_bot"
         assert "parameters" in status
-        assert status["parameters"]["run_threshold"] == 0.10
-        assert status["parameters"]["dip_threshold"] == -0.03
+        assert status["parameters"]["run_threshold"] == RUN_THRESHOLD_VALUE
+        assert status["parameters"]["dip_threshold"] == DIP_THRESHOLD_VALUE
 
 
 class TestProductionEarningsProtection:
@@ -257,7 +268,7 @@ class TestProductionEarningsProtection:
 
         assert status["strategy_name"] == "earnings_protection"
         assert "parameters" in status
-        assert status["parameters"]["iv_percentile_threshold"] == 70
+        assert status["parameters"]["iv_percentile_threshold"] == IV_PERCENTILE_THRESHOLD
 
 
 class TestProductionIndexBaseline:
@@ -327,7 +338,7 @@ class TestProductionIndexBaseline:
 
         assert status["strategy_name"] == "index_baseline"
         assert "parameters" in status
-        assert status["parameters"]["target_allocation"] == 0.80
+        assert status["parameters"]["target_allocation"] == TARGET_ALLOCATION_VALUE
 
 
 class TestProductionStrategyManager:
@@ -403,7 +414,7 @@ class TestProductionStrategyManager:
             ):
                 manager = ProductionStrategyManager(strategy_manager_config)
 
-                assert len(manager.strategies) == 3
+                assert len(manager.strategies) == EXPECTED_STRATEGY_COUNT
                 assert "wsb_dip_bot" in manager.strategies
                 assert "earnings_protection" in manager.strategies
                 assert "index_baseline" in manager.strategies
@@ -450,7 +461,7 @@ class TestProductionStrategyManager:
                 status = manager.get_system_status()
 
                 assert status["is_running"] is True
-                assert status["active_strategies"] == 3
+                assert status["active_strategies"] == EXPECTED_STRATEGY_COUNT
                 assert "wsb_dip_bot" in status["strategy_status"]
                 assert "earnings_protection" in status["strategy_status"]
                 assert "index_baseline" in status["strategy_status"]
@@ -533,7 +544,7 @@ class TestProductionStrategyIntegration:
                             # Verify strategies started
                             assert success is True
                             assert manager.is_running is True
-                            assert len(manager.strategies) == 3
+                            assert len(manager.strategies) == EXPECTED_STRATEGY_COUNT
 
                             # Verify strategy methods were called
                             mock_wsb_instance.run_strategy.assert_called_once()
@@ -542,7 +553,7 @@ class TestProductionStrategyIntegration:
 
                             # Verify system status
                             status = manager.get_system_status()
-                            assert status["active_strategies"] == 3
+                            assert status["active_strategies"] == EXPECTED_STRATEGY_COUNT
                             assert status["is_running"] is True
 
 

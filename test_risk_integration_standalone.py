@@ -16,6 +16,10 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+# Constants for random thresholds
+RANDOM_THRESHOLD_50_PERCENT = 0.5
+RANDOM_THRESHOLD_30_PERCENT = 0.3
+
 # Add the project root to the Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -38,7 +42,7 @@ class MockStrategy:
     async def analyze_market(self, symbol: str, market_data: dict[str, Any]) -> dict[str, Any]:
         """Mock market analysis."""
         return {
-            "signal": "buy" if np.random.random() > 0.5 else "sell",
+            "signal": "buy" if np.random.random() > RANDOM_THRESHOLD_50_PERCENT else "sell",
             "confidence": np.random.random(),
             "symbol": symbol,
         }
@@ -48,10 +52,10 @@ class MockStrategy:
     ) -> list[dict[str, Any]]:
         """Mock signal generation."""
         signals = []
-        if np.random.random() > 0.3:  # 70% chance of signal
+        if np.random.random() > RANDOM_THRESHOLD_30_PERCENT:  # 70% chance of signal
             signals.append(
                 {
-                    "action": "buy" if np.random.random() > 0.5 else "sell",
+                    "action": "buy" if np.random.random() > RANDOM_THRESHOLD_50_PERCENT else "sell",
                     "quantity": np.random.randint(10, 100),
                     "symbol": symbol,
                     "confidence": np.random.random(),

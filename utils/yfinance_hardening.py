@@ -1,5 +1,8 @@
 import yfinance as yf
 
+# Constants for data validation
+MIN_DAILY_DATA_POINTS = 2
+
 
 def safe_mid(bid: float, ask: float, last: float) -> float:
     if bid > 0 and ask > 0:
@@ -16,7 +19,7 @@ def safe_mid(bid: float, ask: float, last: float) -> float:
 def fetch_last_and_prior_close(ticker: str):
     tkr = yf.Ticker(ticker)
     dailies = tkr.history(period="7d", interval="1d")
-    if dailies is None or len(dailies) < 2:
+    if dailies is None or len(dailies) < MIN_DAILY_DATA_POINTS:
         return None
     prior_close = float(dailies["Close"].iloc[-2])
     intraday = tkr.history(period="2d", interval="5m")

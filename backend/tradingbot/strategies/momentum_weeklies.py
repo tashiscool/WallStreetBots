@@ -10,6 +10,18 @@ import time
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
 
+# Constants for momentum strategy
+DAYS_THRESHOLD_EARLY_WEEK = 2
+VOLATILITY_MULTIPLE_THRESHOLD = 3.0
+MIN_DATA_POINTS_SHORT = 20
+MIN_DATA_POINTS_RECENT = 24
+BOUNCE_PERCENTAGE_THRESHOLD = 0.015
+MIN_DATA_POINTS_MEDIUM = 50
+VOL_MULTIPLE_HIGH_RISK = 5
+VOL_MULTIPLE_MEDIUM_RISK = 4
+STRONG_MOMENTUM_THRESHOLD = 0.03
+MEDIUM_MOMENTUM_THRESHOLD = 0.02
+
 try:
     import numpy as np
     import pandas as pd
@@ -63,7 +75,7 @@ class MomentumWeekliesScanner:
         days_until_friday = (4 - today.weekday()) % 7  # Friday = 4
         if days_until_friday == 0:  # If today is Friday
             days_until_friday = 7
-        elif days_until_friday <= 2:  # If Mon / Tue, use this Friday
+        elif days_until_friday <= DAYS_THRESHOLD_EARLY_WEEK:  # If Mon / Tue, use this Friday
             pass
         else:  # Wed / Thu, use next Friday
             days_until_friday += 7
@@ -90,7 +102,7 @@ class MomentumWeekliesScanner:
                 return False, 0.0
 
             vol_multiple = current_vol / avg_vol
-            return vol_multiple >= 3.0, vol_multiple
+            return vol_multiple >= VOLATILITY_MULTIPLE_THRESHOLD, vol_multiple
 
         except Exception:
             return False, 0.0
@@ -100,7 +112,7 @@ class MomentumWeekliesScanner:
         try:
             stock = yf.Ticker(ticker)
             data = stock.history(period="2d", interval="5m")
-            if len(data) < 20:
+            if len(data) < MIN_DATA_POINTS_SHORT:
                 return False, "insufficient_data", 0.0
 
             # Get recent price action
@@ -111,7 +123,7 @@ class MomentumWeekliesScanner:
 
             # Look for V - shaped reversal in last 2 hours (24 5 - min bars)
             recent_prices = prices[-24:]
-            if len(recent_prices) < 24:
+            if len(recent_prices) < MIN_DATA_POINTS_RECENT:
                 return False, "insufficient_recent_data", 0.0
 
             # Find the low point in recent action
@@ -126,7 +138,7 @@ class MomentumWeekliesScanner:
             # 2. Low occurred in first half of window (early decline, late recovery)
             # 3. Current price  >  recent average
             if (
-                bounce_pct >= 0.015
+                bounce_pct >= BOUNCE_PERCENTAGE_THRESHOLD
                 and low_idx < len(recent_prices) * 0.6
                 and current_price > np.mean(recent_prices[-12:])
             ):
@@ -142,7 +154,7 @@ class MomentumWeekliesScanner:
         try:
             stock = yf.Ticker(ticker)
             data = stock.history(period="5d", interval="15m")
-            if len(data) < 50:
+            if len(data) < MIN_DATA_POINTS_MEDIUM:
                 return False, 0.0
 
             prices = data["Close"].values
@@ -234,16 +246,16 @@ class MomentumWeekliesScanner:
                     if has_breakout:
                         signal_type = "breakout"
                         momentum = breakout_strength
-                        risk = "medium" if vol_multiple < 5 else "high"
+                        risk = "medium" if vol_multiple < VOL_MULTIPLE_HIGH_RISK else "high"
                     else:
                         signal_type = "bullish_reversal"
                         momentum = bounce_pct
-                        risk = "low" if vol_multiple < 4 else "medium"
+                        risk = "low" if vol_multiple < VOL_MULTIPLE_MEDIUM_RISK else "medium"
 
                     # Target strike: 2 - 5% OTM depending on momentum strength
-                    if momentum > 0.03:  # Strong momentum - closer to money
+                    if momentum > STRONG_MOMENTUM_THRESHOLD:  # Strong momentum - closer to money
                         otm_pct = 0.02
-                    elif momentum > 0.02:
+                    elif momentum > MEDIUM_MOMENTUM_THRESHOLD:
                         otm_pct = 0.03
                     else:
                         otm_pct = 0.05

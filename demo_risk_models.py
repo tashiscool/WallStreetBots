@@ -12,6 +12,14 @@ import numpy as np
 
 warnings.filterwarnings("ignore")
 
+# Constants for risk modeling
+NORMAL_MARKET_DAYS = 100
+HIGH_VOLATILITY_DAYS = 150
+MIN_PARTS_COUNT = 2
+RISK_THRESHOLD_HIGH = 80
+RISK_SCORE_HIGH = 70
+CONCENTRATION_LIMIT = 100
+
 # Add the backend directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), "backend"))
 
@@ -70,9 +78,9 @@ def demo_var_analysis():
     # Add some correlation and regime changes
     returns = []
     for i in range(n_days):
-        if i < 100:  # First 100 days: normal market
+        if i < NORMAL_MARKET_DAYS:  # First 100 days: normal market
             daily_return = np.random.normal(base_return, base_vol)
-        elif i < 150:  # Next 50 days: high volatility
+        elif i < HIGH_VOLATILITY_DAYS:  # Next 50 days: high volatility
             daily_return = np.random.normal(base_return, base_vol * 1.5)
         else:  # Last 102 days: crisis period
             daily_return = np.random.normal(base_return * 0.5, base_vol * 2.0)
@@ -97,7 +105,7 @@ def demo_var_analysis():
         # Handle different key formats
         if "_" in key:
             parts = key.split("_")
-            if len(parts) >= 2:
+            if len(parts) >= MIN_PARTS_COUNT:
                 method = parts[0]
                 conf = parts[-1]  # Last part is confidence level
                 conf_pct = int(conf)
@@ -231,7 +239,7 @@ def demo_risk_dashboard():
     # Core risk metrics
     print("\nCore Risk Metrics: ")
     for metric, data in dashboard_data["risk_metrics"].items():
-        status = "⚠️" if data["limit_utilization"] > 80 else "✅"
+        status = "⚠️" if data["limit_utilization"] > RISK_THRESHOLD_HIGH else "✅"
         print(
             f"  {status} {metric.upper(): 8}: ${data['value']:8,.0f} ({data['percentage']: 5.1f}%) - {data['limit_utilization']: 5.1f}% of limit"
         )
@@ -273,7 +281,7 @@ def demo_risk_dashboard():
     # Risk limit utilization
     print("\nRisk Limit Utilization: ")
     for limit, utilization in dashboard_data["risk_limits"].items():
-        status = "⚠️" if utilization > 80 else "✅"
+        status = "⚠️" if utilization > RISK_THRESHOLD_HIGH else "✅"
         print(f"  {status} {limit: 15}: {utilization: 5.1f}%")
 
     return dashboard, dashboard_data
@@ -329,11 +337,11 @@ def demo_risk_management_workflow():
         )
 
     # ML - based recommendations
-    if risk_prediction.risk_score > 70:
+    if risk_prediction.risk_score > RISK_SCORE_HIGH:
         recommendations.append("High risk environment detected - consider defensive positioning")
 
     # Dashboard recommendations
-    if dashboard_data["risk_limits"]["concentration"] > 100:
+    if dashboard_data["risk_limits"]["concentration"] > CONCENTRATION_LIMIT:
         recommendations.append("Concentration risk exceeds limits - diversify positions")
 
     print("Actionable Recommendations: ")

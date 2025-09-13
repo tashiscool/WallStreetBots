@@ -27,6 +27,12 @@ import logging
 import os
 import sys
 
+# Constants
+MAX_POSITION_RISK_LIVE_TRADING = 0.05  # 5% max for live trading
+PHASE_2 = 2
+PHASE_3 = 3
+PHASE_4 = 4
+
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "backend", "tradingbot"))
 
@@ -90,7 +96,7 @@ class ProductionTradingRunner:
 
         # Validate risk settings for live trading
         if not self.args.paper:
-            if self.config.risk.max_position_risk > 0.05:  # 5% max
+            if self.config.risk.max_position_risk > MAX_POSITION_RISK_LIVE_TRADING:  # 5% max
                 errors.append("Risk: max_position_risk  >  5% for live trading")
 
             if self.config.risk.account_size <= 0:
@@ -117,11 +123,11 @@ class ProductionTradingRunner:
 
     async def run_phase(self, phase: int) -> None:
         """Run specific phase strategies."""
-        if phase == 2:
+        if phase == PHASE_2:
             await self._run_phase_2()
-        elif phase == 3:
+        elif phase == PHASE_3:
             await self._run_phase_3()
-        elif phase == 4:
+        elif phase == PHASE_4:
             await self._run_phase_4()
         else:
             msg = f"Invalid phase: {phase}"

@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Standalone Test for Risk - Strategy Integration
 Demonstrates Month 3 - 4: Integration with WallStreetBots
@@ -93,7 +93,7 @@ async def test_risk_integration_standalone():
         }
         
         # Simulate market data
-        dates = pd.date_range(end=datetime.now(), periods = 252, freq = 'D')
+        dates = pd.date_range(end=datetime.now(), periods=252, freq='D')
         returns = np.random.normal(0, 0.02, 252)
         prices = 100 * np.cumprod(1 + returns)
         
@@ -104,21 +104,21 @@ async def test_risk_integration_standalone():
                 'Low': prices * 0.98,
                 'Close': prices,
                 'Volume': np.random.randint(1000000, 5000000, 252)
-            }, index = dates),
+            }, index=dates),
             'SPY': pd.DataFrame({
                 'Open': prices * 0.99,
                 'High': prices * 1.01,
                 'Low': prices * 0.99,
                 'Close': prices,
                 'Volume': np.random.randint(5000000, 10000000, 252)
-            }, index = dates),
+            }, index=dates),
             'TSLA': pd.DataFrame({
                 'Open': prices * 0.95,
                 'High': prices * 1.05,
                 'Low': prices * 0.95,
                 'Close': prices,
                 'Volume': np.random.randint(2000000, 8000000, 252)
-            }, index = dates)
+            }, index=dates)
         }
         
         portfolio_value = 100000.0
@@ -269,9 +269,9 @@ async def test_risk_integration_standalone():
         )
         print(f"   Trade with disabled risk management: {disabled_result['success']}")
         
-        # Re - enable risk management
+        # Re-enable risk management
         risk_aware_wsb.enable_risk_management()
-        print("   Risk management re - enabled for WSB strategy")
+        print("   Risk management re-enabled for WSB strategy")
         
         # 10. Test Multiple Risk Calculations
         print("\n10. Testing Multiple Risk Calculations...")
@@ -281,8 +281,8 @@ async def test_risk_integration_standalone():
             risk_metrics = await risk_manager.calculate_portfolio_risk(
                 positions, market_data, portfolio_value
             )
-            print(f"   Calculation {i + 1}: VaR = {risk_metrics.portfolio_var:.2%}, "
-                  f"CVaR = {risk_metrics.portfolio_cvar: .2%}, "
+            print(f"   Calculation {i + 1}: VaR={risk_metrics.portfolio_var:.2%}, "
+                  f"CVaR={risk_metrics.portfolio_cvar: .2%}, "
                   f"Within limits: {risk_metrics.within_limits}")
         
         print("\n🎉 Risk - Strategy Integration Test Completed Successfully!")

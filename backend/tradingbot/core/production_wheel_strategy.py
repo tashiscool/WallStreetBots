@@ -53,31 +53,31 @@ class WheelPosition:
     strike_price: float
     expiry_date: datetime
     premium_received: float
-    premium_paid: float = 0.0
+    premium_paid: float=0.0
     
     # Timing
-    entry_date: datetime = field(default_factory=datetime.now)
-    last_update: datetime = field(default_factory=datetime.now)
+    entry_date: datetime=field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
     
     # Metadata
     days_to_expiry: int = 0
-    delta: float = 0.0
-    theta: float = 0.0
-    iv_rank: float = 0.0
+    delta: float=0.0
+    theta: float=0.0
+    iv_rank: float=0.0
     
     def update_pricing(self, market_data: MarketData, options_data: List[OptionsData]):
         """Update position with current market data"""
-        self.current_price = market_data.price
-        self.unrealized_pnl = self.calculate_unrealized_pnl()
-        self.last_update = datetime.now()
+        self.current_price=market_data.price
+        self.unrealized_pnl=self.calculate_unrealized_pnl()
+        self.last_update=datetime.now()
         
         # Update option Greeks if available
         for option in options_data: 
             if (option.strike ==  self.strike_price and 
                 option.option_type  ==  self.option_type and
                 option.expiry_date  ==  self.expiry_date.strftime('%Y-%m-%d')): 
-                self.delta = option.delta
-                self.theta = option.theta
+                self.delta=option.delta
+                self.theta=option.theta
                 break
     
     def calculate_unrealized_pnl(self)->float: 
@@ -88,22 +88,22 @@ class WheelPosition:
                 return self.premium_received
             else: 
                 # Loss if assigned (stock drops below strike)
-                loss = (self.strike_price - self.current_price) * self.quantity
+                loss = (self.strike_price-self.current_price) * self.quantity
                 return self.premium_received - loss
         
         elif self.stage ==  WheelStage.ASSIGNED_STOCK: 
             # For assigned stock, profit / loss based on stock movement
-            stock_pnl = (self.current_price - self.entry_price) * self.quantity
+            stock_pnl = (self.current_price-self.entry_price) * self.quantity
             return stock_pnl + self.premium_received
         
         elif self.stage ==  WheelStage.COVERED_CALL: 
             # For covered calls, profit if stock stays below strike
-            stock_pnl = (self.current_price - self.entry_price) * self.quantity
+            stock_pnl = (self.current_price-self.entry_price) * self.quantity
             call_pnl = self.premium_received - self.premium_paid
             
             if self.current_price  >=  self.strike_price: 
                 # Call will be assigned, stock sold at strike
-                assignment_pnl = (self.strike_price - self.entry_price) * self.quantity
+                assignment_pnl = (self.strike_price-self.entry_price) * self.quantity
                 return assignment_pnl + call_pnl
             else: 
                 # Call expires worthless
@@ -114,7 +114,7 @@ class WheelPosition:
     def calculate_days_to_expiry(self)->int: 
         """Calculate days to expiry"""
         if self.expiry_date: 
-            delta = self.expiry_date - datetime.now()
+            delta = self.expiry_date-datetime.now()
             return max(0, delta.days)
         return 0
 
@@ -126,21 +126,21 @@ class WheelCandidate:
     current_price: float
     volatility_rank: float
     earnings_date: Optional[datetime] = None
-    earnings_risk: float = 0.0
+    earnings_risk: float=0.0
     
     # Technical indicators
-    rsi: float = 50.0
-    support_level: float = 0.0
-    resistance_level: float = 0.0
+    rsi: float=50.0
+    support_level: float=0.0
+    resistance_level: float=0.0
     
     # Option metrics
-    put_premium: float = 0.0
-    call_premium: float = 0.0
-    iv_rank: float = 0.0
+    put_premium: float=0.0
+    call_premium: float=0.0
+    iv_rank: float=0.0
     
     # Scoring
-    wheel_score: float = 0.0
-    risk_score: float = 0.0
+    wheel_score: float=0.0
+    risk_score: float=0.0
     
     def calculate_wheel_score(self)->float: 
         """Calculate wheel strategy score"""
@@ -162,7 +162,7 @@ class WheelCandidate:
         if 30  <=  self.rsi  <=  70: 
             score += 0.1
         
-        self.wheel_score = max(0.0, min(1.0, score))
+        self.wheel_score=max(0.0, min(1.0, score))
         return self.wheel_score
 
 
@@ -178,15 +178,15 @@ class ProductionWheelStrategy:
         self.data = data_provider
         self.config = config
         self.logger = logger
-        self.error_handler = ErrorHandler(logger)
-        self.metrics = MetricsCollector(logger)
+        self.error_handler=ErrorHandler(logger)
+        self.metrics=MetricsCollector(logger)
         
         # Strategy parameters
-        self.max_positions = config.trading.max_concurrent_trades
-        self.max_position_size = config.risk.max_position_risk
-        self.target_delta = 0.30  # Target delta for puts
-        self.profit_target = 0.50  # Close at 50% profit
-        self.roll_threshold = 0.20  # Roll at 20% loss
+        self.max_positions=config.trading.max_concurrent_trades
+        self.max_position_size=config.risk.max_position_risk
+        self.target_delta=0.30  # Target delta for puts
+        self.profit_target=0.50  # Close at 50% profit
+        self.roll_threshold=0.20  # Roll at 20% loss
         
         # Position tracking
         self.positions: Dict[str, WheelPosition] = {}
@@ -194,7 +194,7 @@ class ProductionWheelStrategy:
         
         # Strategy state
         self.last_scan_time: Optional[datetime] = None
-        self.scan_interval = timedelta(minutes=30)
+        self.scan_interval=timedelta(minutes=30)
         
         self.logger.info("Wheel Strategy initialized", 
                         max_positions = self.max_positions,
@@ -224,9 +224,9 @@ class ProductionWheelStrategy:
                     continue
             
             # Sort by wheel score
-            candidates.sort(key=lambda x: x.wheel_score, reverse = True)
+            candidates.sort(key=lambda x: x.wheel_score, reverse=True)
             
-            self.candidates = candidates[: 10]  # Top 10 candidates
+            self.candidates=candidates[: 10]  # Top 10 candidates
             
             self.logger.info(f"Found {len(self.candidates)} wheel candidates")
             self.metrics.record_metric("wheel_candidates_found", len(self.candidates))
@@ -266,19 +266,18 @@ class ProductionWheelStrategy:
             put_premium = sum(opt.bid for opt in suitable_puts) / len(suitable_puts)
             
             # Check for earnings
-            earnings_events = await self.data.get_earnings_data(ticker, days_ahead = 30)
+            earnings_events = await self.data.get_earnings_data(ticker, days_ahead=30)
             earnings_risk = 0.0
             if earnings_events: 
                 earnings_risk = 0.3  # High risk if earnings within 30 days
             
             candidate = WheelCandidate(
-                ticker = ticker,
+                ticker=ticker,
                 current_price = market_data.price,
-                volatility_rank = volatility_rank,
-                earnings_risk = earnings_risk,
-                put_premium = put_premium,
-                iv_rank = iv_rank
-            )
+                volatility_rank=volatility_rank,
+                earnings_risk=earnings_risk,
+                put_premium=put_premium,
+                iv_rank = iv_rank)
             
             candidate.calculate_wheel_score()
             
@@ -350,7 +349,7 @@ class ProductionWheelStrategy:
                 ticker = candidate.ticker,
                 side = OrderSide.SELL,  # Selling puts
                 order_type = OrderType.LIMIT,
-                quantity = position_size,
+                quantity=position_size,
                 limit_price = best_put.bid,
                 reason = f"Wheel strategy: Sell {best_put.strike} put",
                 confidence = candidate.wheel_score
@@ -364,7 +363,7 @@ class ProductionWheelStrategy:
                     ticker = candidate.ticker,
                     stage = WheelStage.CASH_SECURED_PUT,
                     status = WheelStatus.ACTIVE,
-                    quantity = position_size,
+                    quantity=position_size,
                     entry_price = market_data.price,
                     current_price = market_data.price,
                     option_type = "put",
@@ -399,7 +398,7 @@ class ProductionWheelStrategy:
             return None
         
         # Select put with best premium / risk ratio
-        best_put = max(suitable_puts, key = lambda x: x.bid)
+        best_put = max(suitable_puts, key=lambda x: x.bid)
         return best_put
     
     def _calculate_position_size(self, ticker: str, strike_price: float)->int:
@@ -540,10 +539,10 @@ class ProductionWheelStrategy:
             trade_result = await self.trading.execute_trade(signal)
             
             if trade_result.status.value ==  "filled": # Update position
-                position.stage = WheelStage.COVERED_CALL
-                position.option_type = "call"
-                position.strike_price = call_option.strike
-                position.premium_paid = trade_result.filled_price * position.quantity * 100
+                position.stage=WheelStage.COVERED_CALL
+                position.option_type="call"
+                position.strike_price=call_option.strike
+                position.premium_paid=trade_result.filled_price * position.quantity * 100
                 
                 self.logger.info(f"Covered call sold: {position.ticker}",
                                strike = call_option.strike,
@@ -572,11 +571,11 @@ class ProductionWheelStrategy:
             trade_result = await self.trading.execute_trade(signal)
             
             if trade_result.status.value ==  "filled": # Update position
-                position.status = WheelStatus.CLOSED
-                position.stage = WheelStage.CLOSED_POSITION
+                position.status=WheelStatus.CLOSED
+                position.stage=WheelStage.CLOSED_POSITION
                 
                 self.logger.info(f"Wheel position closed: {position.ticker}",
-                               reason = reason,
+                               reason=reason,
                                pnl = position.unrealized_pnl)
                 
                 self.metrics.record_metric("wheel_positions_closed", 1, {"ticker": position.ticker})
@@ -607,7 +606,7 @@ class ProductionWheelStrategy:
             
             await self.execute_wheel_trade(candidate)
             
-            self.logger.info(f"Wheel position rolled: {position.ticker}", reason = reason)
+            self.logger.info(f"Wheel position rolled: {position.ticker}", reason=reason)
             
         except Exception as e: 
             self.error_handler.handle_error(e, {"ticker": position.ticker, "operation": "roll_position"})

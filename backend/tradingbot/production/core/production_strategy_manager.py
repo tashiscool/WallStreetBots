@@ -52,8 +52,8 @@ class StrategyConfig:
     """Configuration for individual strategy"""
     name: str
     enabled: bool = True
-    max_position_size: float = 0.20
-    risk_tolerance: str = "medium"  # "low", "medium", "high"
+    max_position_size: float=0.20
+    risk_tolerance: str="medium"  # "low", "medium", "high"
     parameters: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -69,8 +69,8 @@ class ProductionStrategyManagerConfig:
     strategies: Dict[str, StrategyConfig] = field(default_factory=dict)
     
     # Risk management
-    max_total_risk: float = 0.50  # 50% max total risk
-    max_position_size: float = 0.20  # 20% max per position
+    max_total_risk: float=0.50  # 50% max total risk
+    max_position_size: float=0.20  # 20% max per position
     
     # Data settings
     data_refresh_interval: int = 30  # seconds
@@ -79,7 +79,7 @@ class ProductionStrategyManagerConfig:
     enable_alerts: bool = True
 
     # NEW: choose a preset
-    profile: StrategyProfile = StrategyProfile.research_2024
+    profile: StrategyProfile=StrategyProfile.research_2024
 
     # Advanced analytics settings
     enable_advanced_analytics: bool = True
@@ -193,7 +193,7 @@ def _preset_defaults(profile: StrategyProfile)->Dict[str, StrategyConfig]:
                 'target_multiplier': 2.2,                    # Reduced from 3.0 due to bubble risk
                 'delta_target': 0.45,
                 'wsb_sentiment_weight': 0.25,
-                # Bubble - aware controls
+                # Bubble-aware controls
                 'ai_exposure_limit': 0.15,                   # Cap AI exposure at 15%
                 'avoid_post_gap_hours': 2,                   # Skip euphoric gaps
                 'news_resolution_required': True,            # Wait for policy clarity
@@ -245,7 +245,7 @@ def _preset_defaults(profile: StrategyProfile)->Dict[str, StrategyConfig]:
                 'assignment_acceptance': True,
                 'covered_call_delta': 0.20,
                 'portfolio_allocation': 0.35,
-                'diversified_watchlist': ai_infra_core + ['AAPL','MSFT','GOOGL'],
+                'diversified_watchlist': ai_infra_core+['AAPL','MSFT','GOOGL'],
                 'avoid_earnings': True,
                 'min_liquidity_score': 0.7,
                 'fundamental_screen': True,
@@ -272,7 +272,7 @@ def _preset_defaults(profile: StrategyProfile)->Dict[str, StrategyConfig]:
                 'ma_premium_target': 0.25                   # 25% typical premium
             }),
             'debit_spreads': StrategyConfig('debit_spreads', True, 0.12, 'high', {
-                'watchlist': ai_infra_core + ma_targets,     # Infra focus, avoid pure AI apps
+                'watchlist': ai_infra_core+ma_targets,     # Infra focus, avoid pure AI apps
                 'max_positions': 10,
                 'min_dte': 10,
                 'max_dte': 35,
@@ -308,7 +308,7 @@ def _preset_defaults(profile: StrategyProfile)->Dict[str, StrategyConfig]:
                 'avoid_ai_apps': True                       # Skip app - layer names
             }),
             'swing_trading': StrategyConfig('swing_trading', True, 0.04, 'high', {
-                'watchlist': ai_infra_core + israeli_tech,   # AI infra + Israeli M & A targets
+                'watchlist': ai_infra_core+israeli_tech,   # AI infra + Israeli M & A targets
                 'max_positions': 6,
                 'max_expiry_days': 25,
                 'min_strength_score': 48.0,
@@ -340,7 +340,7 @@ def _preset_defaults(profile: StrategyProfile)->Dict[str, StrategyConfig]:
                 'min_option_volume': 100,
                 'min_option_oi': 50,
                 'double_stop_loss_protection': True,
-                'vix_filter': 25,                           # Skip regime - shift days
+                'vix_filter': 25,                           # Skip regime-shift days
                 'avoid_earnings_days': True,
                 # Volatility harvesting overlay
                 'trump_volatility_mode': True,
@@ -383,7 +383,7 @@ def _preset_defaults(profile: StrategyProfile)->Dict[str, StrategyConfig]:
                 'target_dte_range': (28,35),          # Longer DTE for policy volatility
                 'profit_target_pct': 0.50,            # 50% take profit
                 'stop_loss_multiple': 2.2,            # 2.2x stop per source
-                'vix_filter': 25,                     # Skip regime - shift days
+                'vix_filter': 25,                     # Skip regime-shift days
                 'entry_time_preference': 'morning',    # Morning entries preferred
                 'roll_at_dte': 21,
                 'max_positions': 8,                   # Reduced from WSB profile
@@ -404,7 +404,7 @@ def _preset_defaults(profile: StrategyProfile)->Dict[str, StrategyConfig]:
                 'target_dte_range': (30,45),         # 30 - 45 DTE per analysis
                 'target_delta_range': (0.15,0.25),   # 15 - 25 delta per source
                 'avoid_earnings': True,
-                'diversified_watchlist': ai_infra_core + ma_targets[:4],  # AI infra + megacaps
+                'diversified_watchlist': ai_infra_core+ma_targets[:4],  # AI infra + megacaps
                 'profit_target': 0.50,
                 'max_positions': 12,
                 'avoid_tariff_decision_weeks': True,
@@ -417,12 +417,12 @@ def _preset_defaults(profile: StrategyProfile)->Dict[str, StrategyConfig]:
                 'min_days_to_earnings': 2,
                 'preferred_strategies': ['reverse_iron_condor','tight_strangle'],  # Tight RICs when IV high
                 'prefer_strangle_when_iv_high': True,
-                'exit_before_announcement': True,     # Take profits pre - announce if IV extreme
+                'exit_before_announcement': True,     # Take profits pre-announce if IV extreme
                 'guidance_risk_filter': True,         # Only on material guidance risk
                 'supply_chain_exposure_weight': 1.5   # Focus on supply - chain / policy exposure
             }),
             'debit_spreads': StrategyConfig('debit_spreads', True, 0.15, 'high', {
-                'watchlist': ai_infra_core + ma_targets,  # Infra / equipment focus, avoid pure AI apps
+                'watchlist': ai_infra_core+ma_targets,  # Infra / equipment focus, avoid pure AI apps
                 'max_positions': 10,
                 'min_dte': 14, 'max_dte': 35,
                 'min_risk_reward': 1.2,
@@ -445,7 +445,7 @@ def _preset_defaults(profile: StrategyProfile)->Dict[str, StrategyConfig]:
                 'avoid_pure_ai_apps': True           # Avoid app - layer names
             }),
             'swing_trading': StrategyConfig('swing_trading', True, 0.05, 'high', {
-                'watchlist': ai_infra_core + israeli_tech,
+                'watchlist': ai_infra_core+israeli_tech,
                 'max_positions': 6,
                 'max_expiry_days': 1,                # Day - only or sub - 24h holds
                 'min_strength_score': 50.0,
@@ -454,7 +454,7 @@ def _preset_defaults(profile: StrategyProfile)->Dict[str, StrategyConfig]:
                 'profit_targets': [25,50,100],       # Quicker profit taking
                 'stop_loss_pct': 60,                 # Wider stops with tiny size
                 'max_hold_hours': 18,                # Sub - 24h holds
-                'news_catalyst_required': True,      # Require volume + catalyst
+                'news_catalyst_required': True,      # Require volume+catalyst
                 'overnight_headline_risk_filter': True
             }),
             'wsb_dip_bot': StrategyConfig('wsb_dip_bot', True, 0.15, 'medium', {  # Reduced from WSB
@@ -554,20 +554,20 @@ def _preset_defaults(profile: StrategyProfile)->Dict[str, StrategyConfig]:
 def _apply_profile_risk_overrides(cfg: ProductionStrategyManagerConfig):
     """Tighten / loosen top - level risk based on profile."""
     if cfg.profile ==  StrategyProfile.wsb_2025: 
-        cfg.max_total_risk = 0.65
-        cfg.max_position_size = 0.30
+        cfg.max_total_risk=0.65
+        cfg.max_position_size=0.30
         cfg.data_refresh_interval = 10
     elif cfg.profile  ==  StrategyProfile.trump_2025: 
-        cfg.max_total_risk = 0.55      # Moderate risk for policy volatility
-        cfg.max_position_size = 0.25   # Slightly higher than research
+        cfg.max_total_risk=0.55      # Moderate risk for policy volatility
+        cfg.max_position_size=0.25   # Slightly higher than research
         cfg.data_refresh_interval = 20  # Between WSB and research
     elif cfg.profile  ==  StrategyProfile.bubble_aware_2025: 
-        cfg.max_total_risk = 0.45      # Conservative due to bubble risk
-        cfg.max_position_size = 0.20   # Keep position sizes controlled
+        cfg.max_total_risk=0.45      # Conservative due to bubble risk
+        cfg.max_position_size=0.20   # Keep position sizes controlled
         cfg.data_refresh_interval = 30  # Standard refresh rate
     else: 
-        cfg.max_total_risk = 0.50
-        cfg.max_position_size = 0.20
+        cfg.max_total_risk=0.50
+        cfg.max_position_size=0.20
         cfg.data_refresh_interval = 30
 
 
@@ -576,7 +576,7 @@ class ProductionStrategyManager:
     Production Strategy Manager
     
     Orchestrates all production - ready strategies: 
-    - Manages strategy lifecycle (start / stop/monitor)
+    - Manages strategy lifecycle (start / stop / monitor)
     - Coordinates risk management across strategies
     - Provides unified performance tracking
     - Handles strategy communication and alerts
@@ -584,9 +584,9 @@ class ProductionStrategyManager:
     
     def __init__(self, config: ProductionStrategyManagerConfig):
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
-        # Apply profile - specific risk overrides
+        # Apply profile-specific risk overrides
         _apply_profile_risk_overrides(self.config)
         
         # Initialize core components
@@ -621,23 +621,23 @@ class ProductionStrategyManager:
         self.analytics_history: List[PerformanceMetrics] = []
 
         if self.config.enable_advanced_analytics: 
-            self.advanced_analytics = AdvancedAnalytics(risk_free_rate=0.02)
+            self.advanced_analytics=AdvancedAnalytics(risk_free_rate=0.02)
             self.logger.info("Advanced analytics enabled")
 
         if self.config.enable_market_regime_adaptation: 
             regime_config = RegimeAdaptationConfig()
-            self.market_regime_adapter = MarketRegimeAdapter(regime_config)
+            self.market_regime_adapter=MarketRegimeAdapter(regime_config)
             self.logger.info("Market regime adaptation enabled")
         
-        # Bubble - aware and M & A overlays (optional for strategies to read)
-        self.bubble_aware_adjustments = {
+        # Bubble-aware and M & A overlays (optional for strategies to read)
+        self.bubble_aware_adjustments={
             'ai_exposure_limit': 0.15,
             'overvaluation_short_bias': 0.05,
             'ma_speculation_boost': 1.3,
             'volatility_harvest_mode': True
         }
         
-        self.ma_speculation = {
+        self.ma_speculation={
             'regulatory_relaxation_weight': 1.5,
             'antitrust_probability': 0.30,
             'deal_premium_target': 0.25,
@@ -791,7 +791,7 @@ class ProductionStrategyManager:
             
             if started_count  >  0: 
                 self.is_running = True
-                self.start_time = datetime.now()
+                self.start_time=datetime.now()
                 
                 # Start monitoring tasks
                 asyncio.create_task(self._monitoring_loop())
@@ -833,7 +833,7 @@ class ProductionStrategyManager:
         """Validate system state before starting"""
         try: 
             # Validate Alpaca connection
-            success, message = self.integration_manager.alpaca_manager.validate_api()
+            success, message=self.integration_manager.alpaca_manager.validate_api()
             if not success: 
                 self.logger.error(f"Alpaca validation failed: {message}")
                 return False
@@ -880,7 +880,7 @@ class ProductionStrategyManager:
         """Heartbeat loop for system monitoring"""
         while self.is_running: 
             try: 
-                self.last_heartbeat = datetime.now()
+                self.last_heartbeat=datetime.now()
                 
                 # Send heartbeat alert
                 if self.config.enable_alerts: 
@@ -969,7 +969,7 @@ class ProductionStrategyManager:
                     self.logger.error(f"Error getting status for {strategy_name}: {e}")
             
             # Update metrics
-            self.performance_metrics = {
+            self.performance_metrics={
                 'timestamp': datetime.now().isoformat(),
                 'system_uptime': (datetime.now() - self.start_time).total_seconds() if self.start_time else 0,
                 'portfolio': portfolio_summary,
@@ -1016,8 +1016,8 @@ class ProductionStrategyManager:
 
             # Calculate comprehensive metrics
             metrics = self.advanced_analytics.calculate_comprehensive_metrics(
-                returns = portfolio_returns,
-                benchmark_returns = benchmark_returns,
+                returns=portfolio_returns,
+                benchmark_returns=benchmark_returns,
                 start_date = self.start_time,
                 end_date = datetime.now()
             )
@@ -1025,7 +1025,7 @@ class ProductionStrategyManager:
             # Store in history
             self.analytics_history.append(metrics)
             if len(self.analytics_history)  >  100:  # Keep last 100 calculations
-                self.analytics_history = self.analytics_history[-100: ]
+                self.analytics_history=self.analytics_history[-100: ]
 
             # Generate and log analytics report
             report = self.advanced_analytics.generate_analytics_report(metrics)
@@ -1050,14 +1050,13 @@ class ProductionStrategyManager:
 
             # Generate strategy adaptation
             adaptation = await self.market_regime_adapter.generate_strategy_adaptation(
-                market_data = market_data,
-                current_positions = current_positions
-            )
+                market_data=market_data,
+                current_positions = current_positions)
 
             # Check if adaptation changed
             if (not self.current_regime_adaptation or
                 adaptation.regime  !=  self.current_regime_adaptation.regime or
-                abs(adaptation.confidence - self.current_regime_adaptation.confidence)  >  0.1): 
+                abs(adaptation.confidence-self.current_regime_adaptation.confidence)  >  0.1): 
 
                 self.current_regime_adaptation = adaptation
                 await self._apply_regime_adaptation(adaptation)
@@ -1091,7 +1090,7 @@ class ProductionStrategyManager:
                 prev_value = portfolio_history[i - 1]['value']
                 curr_value = portfolio_history[i]['value']
                 if prev_value  >  0: 
-                    daily_return = (curr_value - prev_value) / prev_value
+                    daily_return = (curr_value-prev_value) / prev_value
                     returns.append(daily_return)
 
             return returns
@@ -1104,7 +1103,7 @@ class ProductionStrategyManager:
         """Get benchmark returns (SPY) for comparison"""
         try: 
             # Get SPY data for benchmark comparison
-            spy_data = await self.data_provider.get_historical_data('SPY', days = 180)
+            spy_data = await self.data_provider.get_historical_data('SPY', days=180)
 
             if len(spy_data)  <  2: 
                 return []
@@ -1115,7 +1114,7 @@ class ProductionStrategyManager:
                 prev_price = spy_data[i - 1].price
                 curr_price = spy_data[i].price
                 if prev_price  >  0: 
-                    daily_return = (curr_price - prev_price) / prev_price
+                    daily_return = (curr_price-prev_price) / prev_price
                     returns.append(daily_return)
 
             return returns

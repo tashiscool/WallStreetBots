@@ -30,7 +30,7 @@ class Auth0(BaseOAuth2):
         jwks = request.urlopen('https: //' + self.setting('DOMAIN') + '/.well - known / jwks.json')
         issuer = 'https: //' + self.setting('DOMAIN') + '/'
         audience = self.setting('KEY')  # CLIENT_ID
-        payload = jwt.decode(id_token, jwks.read(), algorithms = ['RS256'], audience = audience, issuer = issuer)
+        payload = jwt.decode(id_token, jwks.read(), algorithms=['RS256'], audience=audience, issuer=issuer)
 
         return {'username': payload['nickname'],
                 'first_name': payload['name'],

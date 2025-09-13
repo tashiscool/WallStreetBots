@@ -40,9 +40,9 @@ class RecoveryContext:
     
     def __post_init__(self): 
         if self.recovery_actions_taken is None: 
-            self.recovery_actions_taken = []
+            self.recovery_actions_taken=[]
         if self.system_state is None: 
-            self.system_state = {}
+            self.system_state={}
 
 
 class TradingErrorRecoveryManager: 
@@ -57,21 +57,21 @@ class TradingErrorRecoveryManager:
     - Unknown errors: Log and continue with caution
     """
     
-    def __init__(self, trading_system = None, alert_system = None, config: Dict[str, Any] = None): 
+    def __init__(self, trading_system=None, alert_system=None, config: Dict[str, Any] = None): 
         self.trading_system = trading_system
         self.alert_system = alert_system
         self.config = config or {}
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Recovery configuration
-        self.max_retry_attempts = config.get('max_retry_attempts', 3)
-        self.retry_delay_seconds = config.get('retry_delay_seconds', 5)
-        self.emergency_halt_threshold = config.get('emergency_halt_threshold', 5)  # Max critical errors before halt
+        self.max_retry_attempts=config.get('max_retry_attempts', 3)
+        self.retry_delay_seconds=config.get('retry_delay_seconds', 5)
+        self.emergency_halt_threshold=config.get('emergency_halt_threshold', 5)  # Max critical errors before halt
         
         # Error tracking
-        self.error_counts = {}
-        self.last_error_times = {}
-        self.recovery_history = []
+        self.error_counts={}
+        self.last_error_times={}
+        self.recovery_history=[]
         
         self.logger.info("TradingErrorRecoveryManager initialized")
     
@@ -88,11 +88,11 @@ class TradingErrorRecoveryManager:
         """
         try: 
             # Set timestamp on error
-            error.timestamp = datetime.now()
+            error.timestamp=datetime.now()
             
             # Create recovery context
             recovery_context = RecoveryContext(
-                error = error,
+                error=error,
                 timestamp = error.timestamp,
                 retry_count = self.error_counts.get(type(error).__name__, 0),
                 system_state = context or {}
@@ -123,21 +123,21 @@ class TradingErrorRecoveryManager:
         """Determine appropriate recovery action based on error type"""
         
         if isinstance(error, DataProviderError): 
-            # Data feed issue - switch to backup source
+            # Data feed issue-switch to backup source
             if context.retry_count  <  self.max_retry_attempts: 
                 return RecoveryAction.RETRY_WITH_BACKUP
             else: 
                 return RecoveryAction.SWITCH_TO_PAPER_TRADING
         
         elif isinstance(error, BrokerConnectionError): 
-            # Broker API issue - pause trading temporarily
+            # Broker API issue-pause trading temporarily
             if context.retry_count  <  self.max_retry_attempts: 
                 return RecoveryAction.PAUSE_AND_RETRY
             else: 
                 return RecoveryAction.SWITCH_TO_PAPER_TRADING
         
         elif isinstance(error, InsufficientFundsError): 
-            # Account issue - reduce position sizes
+            # Account issue-reduce position sizes
             return RecoveryAction.CONTINUE_WITH_REDUCED_SIZE
         
         elif isinstance(error, PositionReconciliationError): 
@@ -187,13 +187,13 @@ class TradingErrorRecoveryManager:
             await self.trading_system.data_provider.switch_to_backup()
         self.logger.info("Switched to backup data source")
     
-    async def _pause_trading_temporarily(self, duration_minutes: int = 5):
+    async def _pause_trading_temporarily(self, duration_minutes: int=5):
         """Pause trading temporarily"""
         if self.trading_system: 
             await self.trading_system.pause_trading(duration_minutes)
         self.logger.info(f"Trading paused for {duration_minutes} minutes")
     
-    async def _reduce_position_sizes(self, reduction_factor: float = 0.5):
+    async def _reduce_position_sizes(self, reduction_factor: float=0.5):
         """Reduce position sizes"""
         if self.trading_system: 
             await self.trading_system.reduce_position_sizes(reduction_factor)
@@ -244,7 +244,7 @@ class TradingErrorRecoveryManager:
         
         # Keep only last 100 recovery actions
         if len(self.recovery_history)  >  100: 
-            self.recovery_history = self.recovery_history[-100: ]
+            self.recovery_history=self.recovery_history[-100: ]
     
     def get_error_statistics(self)->Dict[str, Any]: 
         """Get error statistics and recovery history"""

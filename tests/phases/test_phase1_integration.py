@@ -34,10 +34,10 @@ class TestTradingInterface(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.mock_broker = Mock()
-        self.mock_risk_manager = Mock()
-        self.mock_alert_system = Mock()
-        self.config = {
+        self.mock_broker=Mock()
+        self.mock_risk_manager=Mock()
+        self.mock_alert_system=Mock()
+        self.config={
             'max_position_risk': 0.10,
             'max_total_risk': 0.30,
             'account_size': 100000.0,
@@ -74,8 +74,8 @@ class TestTradingInterface(unittest.TestCase):
     async def test_risk_limit_check(self, mock_price, mock_account): 
         """Test risk limit checking"""
         # Setup mocks
-        mock_account.return_value = {'equity': 100000.0}
-        mock_price.return_value = 150.0
+        mock_account.return_value={'equity': 100000.0}
+        mock_price.return_value=150.0
         
         signal = TradeSignal(
             strategy_name = "test_strategy",
@@ -96,8 +96,8 @@ class TestTradingInterface(unittest.TestCase):
     async def test_risk_limit_exceeded(self, mock_price, mock_account): 
         """Test risk limit exceeded scenario"""
         # Setup mocks
-        mock_account.return_value = {'equity': 10000.0}  # Small account
-        mock_price.return_value = 150.0
+        mock_account.return_value={'equity': 10000.0}  # Small account
+        mock_price.return_value=150.0
         
         signal = TradeSignal(
             strategy_name = "test_strategy",
@@ -153,14 +153,14 @@ class TestDataProviders(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.config = {
+        self.config={
             'iex_api_key': 'test_key',
             'polygon_api_key': 'test_key',
             'fmp_api_key': 'test_key',
             'news_api_key': 'test_key'
         }
         
-        self.data_provider = UnifiedDataProvider(self.config)
+        self.data_provider=UnifiedDataProvider(self.config)
     
     @patch('aiohttp.ClientSession.get')
     async def test_market_data_fetch(self, mock_get): 
@@ -197,7 +197,7 @@ class TestDataProviders(unittest.TestCase):
         mock_response.json = AsyncMock(return_value=[
             {
                 'symbol': 'AAPL',
-                'date': '2024 - 01-15',
+                'date': '2024 - 01 - 15',
                 'time': 'AMC',
                 'epsEstimated': 2.10
             }
@@ -218,11 +218,11 @@ class TestConfigurationManagement(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.temp_dir = tempfile.mkdtemp()
-        self.config_file = os.path.join(self.temp_dir, "test_config.json")
+        self.temp_dir=tempfile.mkdtemp()
+        self.config_file=os.path.join(self.temp_dir, "test_config.json")
 
         # Store original environment variables
-        self.original_env = {}
+        self.original_env={}
         env_vars_to_save = ['ALPACA_API_KEY', 'ALPACA_SECRET_KEY', 'IEX_API_KEY', 'POLYGON_API_KEY']
         for var in env_vars_to_save: 
             if var in os.environ: 
@@ -324,16 +324,16 @@ class TestProductionLogging(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.logger = ProductionLogger("test_logger", "DEBUG")
-        self.error_handler = ErrorHandler(self.logger)
+        self.logger=ProductionLogger("test_logger", "DEBUG")
+        self.error_handler=ErrorHandler(self.logger)
     
     def test_logging(self): 
         """Test logging functionality"""
         # Test different log levels
-        self.logger.info("Test info message", test_param = "value")
-        self.logger.warning("Test warning message", test_param = "value")
-        self.logger.error("Test error message", test_param = "value")
-        self.logger.debug("Test debug message", test_param = "value")
+        self.logger.info("Test info message", test_param="value")
+        self.logger.warning("Test warning message", test_param="value")
+        self.logger.error("Test error message", test_param="value")
+        self.logger.debug("Test debug message", test_param="value")
     
     def test_error_handling(self): 
         """Test error handling"""
@@ -349,7 +349,7 @@ class TestProductionLogging(unittest.TestCase):
     
     def test_circuit_breaker(self): 
         """Test circuit breaker functionality"""
-        circuit_breaker = CircuitBreaker(failure_threshold=2, timeout = 1.0)
+        circuit_breaker = CircuitBreaker(failure_threshold=2, timeout=1.0)
         
         # Test successful calls
         def success_func(): 
@@ -368,7 +368,7 @@ class TestProductionLogging(unittest.TestCase):
             circuit_breaker.call(failure_func)
         self.assertEqual(circuit_breaker.state, "CLOSED")
         
-        # Second failure - should open circuit
+        # Second failure-should open circuit
         with self.assertRaises(Exception): 
             circuit_breaker.call(failure_func)
         self.assertEqual(circuit_breaker.state, "OPEN")
@@ -381,7 +381,7 @@ class TestProductionLogging(unittest.TestCase):
         """Test retry decorator"""
         call_count = 0
         
-        @retry_with_backoff(max_attempts=3, exceptions = (ValueError,), base_delay = 0.01)
+        @retry_with_backoff(max_attempts=3, exceptions=(ValueError,), base_delay=0.01)
         def flaky_function(): 
             nonlocal call_count
             call_count += 1
@@ -408,8 +408,8 @@ class TestHealthChecker(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.logger = ProductionLogger("test_health", "DEBUG")
-        self.health_checker = HealthChecker(self.logger)
+        self.logger=ProductionLogger("test_health", "DEBUG")
+        self.health_checker=HealthChecker(self.logger)
     
     def test_health_check_registration(self): 
         """Test health check registration"""
@@ -452,8 +452,8 @@ class TestMetricsCollector(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.logger = ProductionLogger("test_metrics", "DEBUG")
-        self.metrics_collector = MetricsCollector(self.logger)
+        self.logger=ProductionLogger("test_metrics", "DEBUG")
+        self.metrics_collector=MetricsCollector(self.logger)
     
     def test_metric_recording(self): 
         """Test metric recording"""
@@ -483,8 +483,8 @@ class TestIntegration(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.temp_dir = tempfile.mkdtemp()
-        self.config_file = os.path.join(self.temp_dir, "integration_config.json")
+        self.temp_dir=tempfile.mkdtemp()
+        self.config_file=os.path.join(self.temp_dir, "integration_config.json")
         
         # Create integration test configuration
         test_config = {
@@ -566,13 +566,12 @@ class TestIntegration(unittest.TestCase):
         invalid_database = DatabaseConfig()
         
         invalid_config_obj = ProductionConfig(
-            data_providers = invalid_data_providers,
-            broker = invalid_broker,
-            risk = invalid_risk,
-            trading = invalid_trading,
-            alerts = invalid_alerts,
-            database = invalid_database
-        )
+            data_providers=invalid_data_providers,
+            broker=invalid_broker,
+            risk=invalid_risk,
+            trading=invalid_trading,
+            alerts=invalid_alerts,
+            database = invalid_database)
         
         errors = invalid_config_obj.validate()
         self.assertTrue(len(errors)  >  0)  # Should have validation errors for missing keys

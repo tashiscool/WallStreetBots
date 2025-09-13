@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Comprehensive Test Suite Runner for All WSB Strategy Modules
 Tests all newly created WSB trading strategies and verifies functionality
@@ -180,12 +180,12 @@ def test_basic_functionality():
         # Test MovingAverageCross dataclass
         ma_cross = MovingAverageCross(
             cross_type = "golden_cross",
-            cross_date = None,
-            days_since_cross = None,
+            cross_date=None,
+            days_since_cross=None,
             sma_50 = 100.0,
             sma_200 = 95.0,
-            price_above_50sma = True,
-            price_above_200sma = True,
+            price_above_50sma=True,
+            price_above_200sma=True,
             cross_strength = 50.0,
             trend_direction = "bullish"
         )
@@ -356,8 +356,8 @@ def generate_comprehensive_report(import_results, functionality_results, test_re
     overall_success_rate = ((total_tests - total_failures - total_errors) / total_tests) * 100 if total_tests  >  0 else 0
     
     print(f"Total Modules:           {total_modules}")
-    print(f"Successful Imports:      {successful_imports}/{total_modules} ({(successful_imports / total_modules)*100: .1f}%)")
-    print(f"Functional Modules:      {successful_functionality}/{total_modules} ({(successful_functionality / total_modules)*100: .1f}%)")
+    print(f"Successful Imports:      {successful_imports}/{total_modules} ({(successful_imports / total_modules) * 100: .1f}%)")
+    print(f"Functional Modules:      {successful_functionality}/{total_modules} ({(successful_functionality / total_modules) * 100: .1f}%)")
     print(f"Total Tests Run:         {total_tests}")
     print(f"Total Failures:          {total_failures}")
     print(f"Total Errors:            {total_errors}")
@@ -441,7 +441,7 @@ def main():
         functionality_results = test_basic_functionality()
         
         # Run comprehensive tests
-        test_results, total_tests, total_failures, total_errors = run_all_comprehensive_tests()
+        test_results, total_tests, total_failures, total_errors=run_all_comprehensive_tests()
         
         # Generate comprehensive report
         readiness = generate_comprehensive_report(

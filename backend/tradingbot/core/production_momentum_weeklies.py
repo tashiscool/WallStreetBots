@@ -68,7 +68,7 @@ class MomentumData:
     volume_score: float
     technical_score: float
     overall_score: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -89,7 +89,7 @@ class WeeklyOption:
     gamma: float
     theta: float
     vega: float
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -106,7 +106,7 @@ class MomentumCandidate:
     risk_reward_ratio: float
     position_size: int
     recommended_option: Optional[WeeklyOption] = None
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -125,8 +125,8 @@ class MomentumPosition:
     entry_date: datetime
     expiry_date: Optional[datetime] = None
     days_to_expiry: int = 0
-    last_update: datetime = field(default_factory=datetime.now)
-    status: str = "active"
+    last_update: datetime=field(default_factory=datetime.now)
+    status: str="active"
 
 
 class MomentumAnalyzer: 
@@ -143,13 +143,13 @@ class MomentumAnalyzer:
         current_price = prices[-1]
         
         # 1 - day momentum
-        price_change_1d = (current_price - prices[-2]) / prices[-2] if len(prices)  >=  2 else 0.0
+        price_change_1d = (current_price-prices[-2]) / prices[-2] if len(prices)  >=  2 else 0.0
         
         # 5 - day momentum
-        price_change_5d = (current_price - prices[-6]) / prices[-6] if len(prices)  >=  6 else 0.0
+        price_change_5d = (current_price-prices[-6]) / prices[-6] if len(prices)  >=  6 else 0.0
         
         # 20 - day momentum
-        price_change_20d = (current_price - prices[-21]) / prices[-21] if len(prices)  >=  21 else 0.0
+        price_change_20d = (current_price-prices[-21]) / prices[-21] if len(prices)  >=  21 else 0.0
         
         return {
             "1d": price_change_1d,
@@ -165,10 +165,10 @@ class MomentumAnalyzer:
         current_volume = volumes[-1]
         
         # 1 - day volume change
-        volume_change_1d = (current_volume - volumes[-2]) / volumes[-2] if len(volumes)  >=  2 and volumes[-2]  >  0 else 0.0
+        volume_change_1d = (current_volume-volumes[-2]) / volumes[-2] if len(volumes)  >=  2 and volumes[-2]  >  0 else 0.0
         
         # 5 - day volume change
-        volume_change_5d = (current_volume - volumes[-6]) / volumes[-6] if len(volumes)  >=  6 and volumes[-6]  >  0 else 0.0
+        volume_change_5d = (current_volume-volumes[-6]) / volumes[-6] if len(volumes)  >=  6 and volumes[-6]  >  0 else 0.0
         
         # Volume ratio (current vs 20 - day average)
         avg_volume_20d = sum(volumes[-20: ]) / 20
@@ -189,7 +189,7 @@ class MomentumAnalyzer:
         rsi = self._calculate_rsi(prices)
         
         # MACD calculation
-        macd, macd_signal, macd_histogram = self._calculate_macd(prices)
+        macd, macd_signal, macd_histogram=self._calculate_macd(prices)
         
         return {
             "rsi": rsi,
@@ -218,7 +218,7 @@ class MomentumAnalyzer:
             "ema_26": ema_26
         }
     
-    def calculate_bollinger_position(self, prices: List[float], period: int = 20, std_dev: float = 2.0)->float:
+    def calculate_bollinger_position(self, prices: List[float], period: int=20, std_dev: float=2.0)->float:
         """Calculate position within Bollinger Bands"""
         if len(prices)  <  period: 
             return 0.5
@@ -226,7 +226,7 @@ class MomentumAnalyzer:
         recent_prices = prices[-period: ]
         sma = sum(recent_prices) / period
         
-        variance = sum((price - sma) ** 2 for price in recent_prices) / period
+        variance = sum((price-sma) ** 2 for price in recent_prices) / period
         std = math.sqrt(variance)
         
         upper_band = sma + (std_dev * std)
@@ -271,11 +271,11 @@ class MomentumAnalyzer:
         if momentum_data["macd_histogram"]  >  0: 
             macd_score += 0.1
         
-        score += rsi_score + macd_score
+        score += rsi_score+macd_score
         
         return max(0.0, min(1.0, score))
     
-    def _calculate_rsi(self, prices: List[float], period: int = 14)->float:
+    def _calculate_rsi(self, prices: List[float], period: int=14)->float:
         """Calculate RSI"""
         if len(prices)  <  period + 1: 
             return 50.0
@@ -294,7 +294,7 @@ class MomentumAnalyzer:
         rsi = 100 - (100 / (1 + rs))
         return rsi
     
-    def _calculate_macd(self, prices: List[float], fast: int = 12, slow: int = 26, signal: int = 9)->Tuple[float, float, float]: 
+    def _calculate_macd(self, prices: List[float], fast: int=12, slow: int=26, signal: int=9)->Tuple[float, float, float]: 
         """Calculate MACD"""
         if len(prices)  <  slow: 
             return 0.0, 0.0, 0.0
@@ -331,9 +331,9 @@ class WeeklyOptionsProvider:
     
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
-        self.options_cache = {}
+        self.options_cache={}
     
-    async def get_weekly_options(self, ticker: str, days_to_expiry: int = 7)->List[WeeklyOption]:
+    async def get_weekly_options(self, ticker: str, days_to_expiry: int=7)->List[WeeklyOption]:
         """Get weekly options for ticker"""
         try: 
             # Mock implementation - in production, integrate with real options API
@@ -346,11 +346,11 @@ class WeeklyOptionsProvider:
             for strike in strikes: 
                 # Call option
                 call_option = WeeklyOption(
-                    ticker = ticker,
+                    ticker=ticker,
                     option_type = WeeklyOptionType.CALL,
-                    strike_price = strike,
+                    strike_price=strike,
                     expiry_date = datetime.now() + timedelta(days=days_to_expiry),
-                    days_to_expiry = days_to_expiry,
+                    days_to_expiry=days_to_expiry,
                     bid_price = max(0.01, strike * 0.02),
                     ask_price = max(0.02, strike * 0.025),
                     mid_price = max(0.015, strike * 0.0225),
@@ -366,11 +366,11 @@ class WeeklyOptionsProvider:
                 
                 # Put option
                 put_option = WeeklyOption(
-                    ticker = ticker,
+                    ticker=ticker,
                     option_type = WeeklyOptionType.PUT,
-                    strike_price = strike,
+                    strike_price=strike,
                     expiry_date = datetime.now() + timedelta(days=days_to_expiry),
-                    days_to_expiry = days_to_expiry,
+                    days_to_expiry=days_to_expiry,
                     bid_price = max(0.01, strike * 0.02),
                     ask_price = max(0.02, strike * 0.025),
                     mid_price = max(0.015, strike * 0.0225),
@@ -405,7 +405,7 @@ class WeeklyOptionsProvider:
                 call_options = [opt for opt in options if opt.option_type  ==  WeeklyOptionType.CALL]
                 if call_options: 
                     # Find option with strike closest to current price
-                    best_option = min(call_options, key = lambda x: abs(x.strike_price - current_price))
+                    best_option = min(call_options, key=lambda x: abs(x.strike_price-current_price))
                     return best_option
             
             elif momentum_signal in [MomentumSignal.STRONG_SELL, MomentumSignal.SELL]: 
@@ -413,7 +413,7 @@ class WeeklyOptionsProvider:
                 put_options = [opt for opt in options if opt.option_type  ==  WeeklyOptionType.PUT]
                 if put_options: 
                     # Find option with strike closest to current price
-                    best_option = min(put_options, key = lambda x: abs(x.strike_price - current_price))
+                    best_option = min(put_options, key=lambda x: abs(x.strike_price-current_price))
                     return best_option
             
             return None
@@ -435,18 +435,18 @@ class MomentumWeekliesStrategy:
         self.data = data_provider
         self.config = config
         self.logger = logger
-        self.momentum_analyzer = MomentumAnalyzer(logger)
-        self.options_provider = WeeklyOptionsProvider(logger)
-        self.active_positions = {}
-        self.momentum_candidates = {}
+        self.momentum_analyzer=MomentumAnalyzer(logger)
+        self.options_provider=WeeklyOptionsProvider(logger)
+        self.active_positions={}
+        self.momentum_candidates={}
         
         # Strategy parameters
         self.max_positions = 15
-        self.max_position_size = 0.03  # 3% of portfolio per position
-        self.min_momentum_score = 0.6
+        self.max_position_size=0.03  # 3% of portfolio per position
+        self.min_momentum_score=0.6
         self.max_hold_days = 7  # Weekly options
-        self.stop_loss_pct = 0.15  # 15% stop loss for options
-        self.take_profit_pct = 0.30  # 30% take profit for options
+        self.stop_loss_pct=0.15  # 15% stop loss for options
+        self.take_profit_pct=0.30  # 30% take profit for options
         
         self.logger.info("MomentumWeekliesStrategy initialized")
     
@@ -462,7 +462,7 @@ class MomentumWeekliesStrategy:
             for ticker in universe: 
                 try: 
                     # Get historical data
-                    historical_data = await self.data.get_historical_data(ticker, days = 50)
+                    historical_data = await self.data.get_historical_data(ticker, days=50)
                     if not historical_data or len(historical_data)  <  20: 
                         continue
                     
@@ -495,7 +495,7 @@ class MomentumWeekliesStrategy:
                     continue
             
             # Sort by overall score
-            candidates.sort(key=lambda x: x.momentum_data.overall_score, reverse = True)
+            candidates.sort(key=lambda x: x.momentum_data.overall_score, reverse=True)
             
             self.logger.info(f"Found {len(candidates)} momentum opportunities")
             return candidates
@@ -636,8 +636,8 @@ class MomentumWeekliesStrategy:
             overall_score = (momentum_score * 0.5 + volume_score * 0.3 + technical_score * 0.2)
             
             momentum_data = MomentumData(
-                ticker = ticker,
-                current_price = current_price,
+                ticker=ticker,
+                current_price=current_price,
                 price_change_1d = price_momentum["1d"],
                 price_change_5d = price_momentum["5d"],
                 price_change_20d = price_momentum["20d"],
@@ -652,12 +652,11 @@ class MomentumWeekliesStrategy:
                 sma_50 = moving_averages["sma_50"],
                 ema_12 = moving_averages["ema_12"],
                 ema_26 = moving_averages["ema_26"],
-                bollinger_position = bollinger_position,
-                momentum_score = momentum_score,
-                volume_score = volume_score,
-                technical_score = technical_score,
-                overall_score = overall_score
-            )
+                bollinger_position=bollinger_position,
+                momentum_score=momentum_score,
+                volume_score=volume_score,
+                technical_score=technical_score,
+                overall_score = overall_score)
             
             return momentum_data
             
@@ -707,8 +706,8 @@ class MomentumWeekliesStrategy:
                 stop_loss = entry_price * (1 + self.stop_loss_pct)
             
             # Calculate risk / reward ratio
-            risk = abs(entry_price - stop_loss)
-            reward = abs(target_price - entry_price)
+            risk = abs(entry_price-stop_loss)
+            reward = abs(target_price-entry_price)
             risk_reward_ratio = reward / risk if risk  >  0 else 0
             
             # Calculate position size
@@ -718,17 +717,16 @@ class MomentumWeekliesStrategy:
             confidence = momentum_data.overall_score
             
             candidate = MomentumCandidate(
-                ticker = ticker,
-                momentum_data = momentum_data,
-                signal = signal,
-                momentum_type = momentum_type,
-                confidence = confidence,
-                entry_price = entry_price,
-                target_price = target_price,
-                stop_loss = stop_loss,
-                risk_reward_ratio = risk_reward_ratio,
-                position_size = position_size
-            )
+                ticker=ticker,
+                momentum_data=momentum_data,
+                signal=signal,
+                momentum_type=momentum_type,
+                confidence=confidence,
+                entry_price=entry_price,
+                target_price=target_price,
+                stop_loss=stop_loss,
+                risk_reward_ratio=risk_reward_ratio,
+                position_size = position_size)
             
             return candidate
             
@@ -739,7 +737,7 @@ class MomentumWeekliesStrategy:
     def _calculate_position_size(self, entry_price: float, stop_loss: float)->int:
         """Calculate position size based on risk"""
         # Simplified position sizing - in production, use proper risk management
-        risk_per_share = abs(entry_price - stop_loss)
+        risk_per_share = abs(entry_price-stop_loss)
         max_risk_amount = 500.0  # $500 max risk per position
         position_size = int(max_risk_amount / risk_per_share) if risk_per_share  >  0 else 100
         return min(position_size, 500)  # Cap at 500 shares
@@ -750,15 +748,15 @@ class MomentumWeekliesStrategy:
             # Get current market data
             market_data = await self.data.get_market_data(position.ticker)
             if market_data: 
-                position.current_price = market_data.price
-                position.last_update = datetime.now()
+                position.current_price=market_data.price
+                position.last_update=datetime.now()
                 
                 # Update days to expiry
                 if position.expiry_date: 
-                    position.days_to_expiry = (position.expiry_date - datetime.now()).days
+                    position.days_to_expiry=(position.expiry_date-datetime.now()).days
                 
                 # Recalculate P & L
-                position.unrealized_pnl = self._calculate_position_pnl(position)
+                position.unrealized_pnl=self._calculate_position_pnl(position)
             
         except Exception as e: 
             self.logger.error(f"Error updating position data for {position.ticker}: {e}")
@@ -767,11 +765,11 @@ class MomentumWeekliesStrategy:
         """Calculate position P & L"""
         # Simplified P & L calculation for options
         if position.position_type ==  "option": # Mock option P & L calculation
-            price_change = position.current_price - position.entry_price
+            price_change = position.current_price-position.entry_price
             return price_change * position.quantity * 100  # Options are per 100 shares
         else: 
             # Stock P & L calculation
-            return (position.current_price - position.entry_price) * position.quantity
+            return (position.current_price-position.entry_price) * position.quantity
     
     def _check_exit_conditions(self, position: MomentumPosition)->Optional[str]:
         """Check for exit conditions"""

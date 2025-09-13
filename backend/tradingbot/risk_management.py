@@ -32,14 +32,14 @@ class RiskParameters:
     """Risk management configuration"""
 
     # Account - level risk limits
-    max_single_position_risk: float = 0.15      # Never risk more than 15% on single trade
-    recommended_position_risk: float = 0.10     # Recommended 10% per position
-    max_total_risk: float = 0.30                # Max 30% of account at risk across all positions
-    max_concentration_per_ticker: float = 0.20  # Max 20% in any single ticker
+    max_single_position_risk: float=0.15      # Never risk more than 15% on single trade
+    recommended_position_risk: float=0.10     # Recommended 10% per position
+    max_total_risk: float=0.30                # Max 30% of account at risk across all positions
+    max_concentration_per_ticker: float=0.20  # Max 20% in any single ticker
 
     # Kelly Criterion limits
-    max_kelly_fraction: float = 0.50            # Never exceed 50% Kelly (typically use 25% Kelly)
-    kelly_multiplier: float = 0.25              # Use quarter Kelly for safety
+    max_kelly_fraction: float=0.50            # Never exceed 50% Kelly (typically use 25% Kelly)
+    kelly_multiplier: float=0.25              # Use quarter Kelly for safety
 
     # Position sizing tiers
     risk_tiers: Dict[str, float] = field(default_factory=lambda: {
@@ -49,17 +49,17 @@ class RiskParameters:
     })
 
     # Stop loss and take profit levels
-    max_loss_per_position: float = 0.50         # Stop at 50% loss
+    max_loss_per_position: float=0.50         # Stop at 50% loss
     profit_take_levels: List[float] = field(default_factory=lambda: [1.0, 2.0, 2.5])  # 100%, 200%, 250%
-    trailing_stop_trigger: float = 1.0          # Start trailing after 100% gain
-    trailing_stop_distance: float = 0.25        # Trail 25% behind peak
+    trailing_stop_trigger: float=1.0          # Start trailing after 100% gain
+    trailing_stop_distance: float=0.25        # Trail 25% behind peak
 
-    # Time - based risk controls
+    # Time-based risk controls
     max_position_hold_days: int = 45            # Force exit before expiry
     earnings_blackout_days: int = 7             # No new positions ±7 days from earnings
 
     # Correlation limits
-    max_correlated_exposure: float = 0.25       # Max 25% in highly correlated positions
+    max_correlated_exposure: float=0.25       # Max 25% in highly correlated positions
 
 
 @dataclass
@@ -77,29 +77,29 @@ class Position:
     current_value: float                # Current position value
     stop_loss_level: float              # Stop loss price per contract
     profit_targets: List[float]         # Profit target levels
-    status: PositionStatus = PositionStatus.OPEN
+    status: PositionStatus=PositionStatus.OPEN
 
     # Risk metrics
-    initial_risk: float = 0.0           # Initial $ at risk
-    current_risk: float = 0.0           # Current $ at risk
-    unrealized_pnl: float = 0.0         # Current P & L
-    max_profit: float = 0.0             # Peak profit achieved
+    initial_risk: float=0.0           # Initial $ at risk
+    current_risk: float=0.0           # Current $ at risk
+    unrealized_pnl: float=0.0         # Current P & L
+    max_profit: float=0.0             # Peak profit achieved
 
     def __post_init__(self): 
-        self.total_cost = self.contracts * self.entry_premium
-        self.current_value = self.contracts * self.current_premium
-        self.initial_risk = self.total_cost
-        self.current_risk = max(0, self.total_cost - self.current_value)
-        self.unrealized_pnl = self.current_value - self.total_cost
+        self.total_cost=self.contracts * self.entry_premium
+        self.current_value=self.contracts * self.current_premium
+        self.initial_risk=self.total_cost
+        self.current_risk=max(0, self.total_cost - self.current_value)
+        self.unrealized_pnl=self.current_value-self.total_cost
 
         # Set default stop loss at 50% of premium
         if self.stop_loss_level  ==  0: 
-            self.stop_loss_level = self.entry_premium * 0.50
+            self.stop_loss_level=self.entry_premium * 0.50
 
     @property
     def days_to_expiry(self)->int: 
         """Calculate days remaining to expiry"""
-        return max(0, (self.expiry_date - datetime.now()).days)
+        return max(0, (self.expiry_date-datetime.now()).days)
 
     @property
     def unrealized_roi(self)->float: 
@@ -109,12 +109,12 @@ class Position:
     def update_current_premium(self, new_premium: float):
         """Update position with current market premium"""
         self.current_premium = new_premium
-        self.current_value = self.contracts * new_premium
-        self.unrealized_pnl = self.current_value - self.total_cost
+        self.current_value=self.contracts * new_premium
+        self.unrealized_pnl=self.current_value-self.total_cost
 
         # Track peak profit for trailing stops
         if self.unrealized_pnl  >  self.max_profit: 
-            self.max_profit = self.unrealized_pnl
+            self.max_profit=self.unrealized_pnl
 
 
 @dataclass
@@ -127,16 +127,16 @@ class PortfolioRisk:
     unrealized_pnl: float
 
     # Risk percentages
-    cash_utilization: float = 0.0       # % of account in positions
-    risk_utilization: float = 0.0       # % of account at risk
+    cash_utilization: float=0.0       # % of account in positions
+    risk_utilization: float=0.0       # % of account at risk
 
     # Concentration metrics
     ticker_concentrations: Dict[str, float] = field(default_factory=dict)
     sector_concentrations: Dict[str, float] = field(default_factory=dict)
 
     def __post_init__(self): 
-        self.cash_utilization = self.total_positions_value / self.account_value if self.account_value  >  0 else 0
-        self.risk_utilization = self.total_risk_amount / self.account_value if self.account_value  >  0 else 0
+        self.cash_utilization=self.total_positions_value / self.account_value if self.account_value  >  0 else 0
+        self.risk_utilization=self.total_risk_amount / self.account_value if self.account_value  >  0 else 0
 
 
 class KellyCalculator: 
@@ -163,7 +163,7 @@ class KellyCalculator:
             return 0.0
 
         # Kelly formula: f*=(bp - q) / b
-        # where b = avg_win_pct / avg_loss_pct, p = win_prob, q = loss_prob
+        # where b=avg_win_pct / avg_loss_pct, p=win_prob, q = loss_prob
         b = avg_win_pct / avg_loss_pct
         p = win_probability
         q = 1 - p
@@ -212,19 +212,19 @@ class KellyCalculator:
 class PositionSizer: 
     """Advanced position sizing with multiple risk models"""
 
-    def __init__(self, risk_params: RiskParameters = None):
-        self.risk_params = risk_params or RiskParameters()
-        self.kelly_calc = KellyCalculator()
+    def __init__(self, risk_params: RiskParameters=None):
+        self.risk_params=risk_params or RiskParameters()
+        self.kelly_calc=KellyCalculator()
 
     def calculate_position_size(
         self,
         account_value: float,
         setup_confidence: float,  # 0 to 1
         premium_per_contract: float,
-        expected_win_rate: float = 0.60,  # Default from successful track record
-        expected_avg_win: float = 1.50,   # Average 150% gain on winners
-        expected_avg_loss: float = 0.45,  # Average 45% loss on losers (stop loss)
-        risk_tier: str = 'moderate'
+        expected_win_rate: float=0.60,  # Default from successful track record
+        expected_avg_win: float=1.50,   # Average 150% gain on winners
+        expected_avg_loss: float=0.45,  # Average 45% loss on losers (stop loss)
+        risk_tier: str='moderate'
     )->Dict: 
         """
         Calculate optimal position size using multiple methods
@@ -251,7 +251,7 @@ class PositionSizer:
         kelly_risk_amount = account_value * safe_kelly_fraction
         kelly_contracts = int(kelly_risk_amount / premium_per_contract)
 
-        # 3. Confidence - adjusted sizing
+        # 3. Confidence-adjusted sizing
         confidence_adjusted_risk = max_risk_amount * setup_confidence
         confidence_contracts = int(confidence_adjusted_risk / premium_per_contract)
 
@@ -309,9 +309,9 @@ class PositionSizer:
 class RiskManager: 
     """Comprehensive risk management system"""
 
-    def __init__(self, risk_params: RiskParameters = None):
-        self.risk_params = risk_params or RiskParameters()
-        self.position_sizer = PositionSizer(risk_params)
+    def __init__(self, risk_params: RiskParameters=None):
+        self.risk_params=risk_params or RiskParameters()
+        self.position_sizer=PositionSizer(risk_params)
         self.positions: List[Position] = []
 
     def add_position(self, position: Position)->bool:
@@ -344,16 +344,16 @@ class RiskManager:
 
         return True
 
-    def calculate_portfolio_risk(self, additional_risk: float = 0)->PortfolioRisk:
+    def calculate_portfolio_risk(self, additional_risk: float=0)->PortfolioRisk:
         """Calculate current portfolio risk metrics"""
         if not self.positions: 
             # Assume some baseline account value for empty portfolio
             account_value = 500000.0  # This should come from account data
             return PortfolioRisk(
-                account_value = account_value,
-                total_cash = account_value,
-                total_positions_value = additional_risk,
-                total_risk_amount = additional_risk,
+                account_value=account_value,
+                total_cash=account_value,
+                total_positions_value=additional_risk,
+                total_risk_amount=additional_risk,
                 unrealized_pnl = 0.0
             )
 
@@ -363,19 +363,18 @@ class RiskManager:
 
         # Calculate account value (this should come from broker API)
         account_value = 500000.0  # Placeholder
-        total_cash = account_value - total_positions_value
+        total_cash = account_value-total_positions_value
 
         # Calculate concentrations
         ticker_concentrations = self._calculate_concentrations()
 
         return PortfolioRisk(
-            account_value = account_value,
-            total_cash = total_cash,
-            total_positions_value = total_positions_value + additional_risk,
+            account_value=account_value,
+            total_cash=total_cash,
+            total_positions_value = total_positions_value+additional_risk,
             total_risk_amount = total_risk_amount + additional_risk,
-            unrealized_pnl = unrealized_pnl,
-            ticker_concentrations = ticker_concentrations
-        )
+            unrealized_pnl=unrealized_pnl,
+            ticker_concentrations = ticker_concentrations)
 
     def _calculate_ticker_exposure(self, ticker: str)->float:
         """Calculate current exposure to a specific ticker"""
@@ -412,12 +411,12 @@ class RiskManager:
             if position.status  !=  PositionStatus.OPEN: 
                 continue
 
-            # Price - based stop loss
+            # Price-based stop loss
             if position.current_premium  <=  position.stop_loss_level: 
                 positions_to_stop.append(position)
                 continue
 
-            # Time - based stop loss
+            # Time-based stop loss
             if position.days_to_expiry  <=  7:  # Force exit 1 week before expiry
                 positions_to_stop.append(position)
                 continue
@@ -508,9 +507,9 @@ if __name__ ==  "__main__": # Test the risk management system
     premium = 4.70
 
     sizing = sizer.calculate_position_size(
-        account_value = account_value,
+        account_value=account_value,
         setup_confidence = 0.8,  # High confidence setup
-        premium_per_contract = premium,
+        premium_per_contract=premium,
         risk_tier = 'moderate'
     )
 
@@ -530,7 +529,7 @@ if __name__ ==  "__main__": # Test the risk management system
         {'return_pct': 1.20},  # 120% win
     ]
 
-    kelly_fraction, stats = kelly_calc.calculate_from_historical_trades(sample_trades)
+    kelly_fraction, stats=kelly_calc.calculate_from_historical_trades(sample_trades)
     print("\nKelly Analysis from Historical Trades: ")
     print(f"Win rate: {stats['win_probability']:.1%}")
     print(f"Average win: {stats['avg_win_pct']:.1%}")

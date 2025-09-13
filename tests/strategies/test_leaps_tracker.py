@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Comprehensive Test Suite for Enhanced LEAPS Tracker WSB Strategy Module
 Tests all components including golden / death cross timing signals
@@ -25,10 +25,10 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
 
     def setUp(self): 
         """Set up test fixtures"""
-        self.tracker = LEAPSTracker()
+        self.tracker=LEAPSTracker()
         
         # Create mock price data with golden cross pattern
-        dates = pd.date_range(start='2024 - 01-01', periods = 250, freq = 'D')
+        dates = pd.date_range(start='2024 - 01 - 01', periods=250, freq='D')
         np.random.seed(42)
         
         # Create price series with golden cross
@@ -40,9 +40,9 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         prices[180: 200] = np.linspace(prices[179], prices[200], 20)  # Setup phase
         prices[200: ] = prices[200:] + np.linspace(0, 10, 50)  # Post - cross surge
         
-        self.mock_price_data = pd.DataFrame({
+        self.mock_price_data=pd.DataFrame({
             'Close': prices
-        }, index = dates)
+        }, index=dates)
         
     def test_moving_average_calculation(self): 
         """Test moving average calculation accuracy"""
@@ -63,14 +63,14 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         self.assertIsInstance(sma_5, (int, float))
         self.assertIsInstance(expected_sma_5, (int, float))
         
-        self.assertAlmostEqual(sma_5, expected_sma_5, places = 2)
+        self.assertAlmostEqual(sma_5, expected_sma_5, places=2)
         self.assertGreater(sma_5, 105)  # Should be above base
         
     @patch('backend.tradingbot.strategies.leaps_tracker.yf.Ticker')
     def test_golden_cross_detection(self, mock_yf): 
         """Test golden cross detection algorithm"""
         mock_ticker = Mock()
-        mock_ticker.history.return_value = self.mock_price_data
+        mock_ticker.history.return_value=self.mock_price_data
         mock_yf.return_value = mock_ticker
         
         ma_cross = self.tracker.analyze_moving_average_cross("AAPL")
@@ -137,13 +137,13 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
             days_since_cross = 15,
             sma_50 = 110.0,
             sma_200 = 105.0,
-            price_above_50sma = True,
-            price_above_200sma = True,
+            price_above_50sma=True,
+            price_above_200sma=True,
             cross_strength = 50.0,
             trend_direction = "bullish"
         )
         
-        entry_score, exit_score = self.tracker.calculate_entry_exit_timing_scores(
+        entry_score, exit_score=self.tracker.calculate_entry_exit_timing_scores(
             recent_golden_cross, 112.0
         )
         
@@ -157,13 +157,13 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
             days_since_cross = 10,
             sma_50 = 95.0,
             sma_200 = 100.0,
-            price_above_50sma = False,
-            price_above_200sma = False,
+            price_above_50sma=False,
+            price_above_200sma=False,
             cross_strength = 40.0,
             trend_direction = "bearish"
         )
         
-        entry_score_death, exit_score_death = self.tracker.calculate_entry_exit_timing_scores(
+        entry_score_death, exit_score_death=self.tracker.calculate_entry_exit_timing_scores(
             recent_death_cross, 94.0
         )
         
@@ -193,10 +193,10 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
 
     def setUp(self): 
         """Set up test fixtures"""
-        self.tracker = LEAPSTracker()
+        self.tracker=LEAPSTracker()
         
         # Mock historical data for trend analysis
-        dates = pd.date_range(start='2024 - 01-01', periods = 500, freq = 'D')
+        dates = pd.date_range(start='2024 - 01 - 01', periods=500, freq='D')
         np.random.seed(42)
         
         # Create secular growth stock pattern
@@ -204,28 +204,28 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         volatility = np.random.normal(0, 3, 500)
         prices = growth_trend + volatility
         
-        self.mock_growth_data = pd.DataFrame({
+        self.mock_growth_data=pd.DataFrame({
             'Close': prices,
             'Volume': np.random.randint(1000000, 5000000, 500)
-        }, index = dates)
+        }, index=dates)
         
     @patch('backend.tradingbot.strategies.leaps_tracker.yf.Ticker')
     def test_enhanced_candidate_creation(self, mock_yf): 
         """Test LEAPS candidate creation with timing signals"""
         mock_ticker = Mock()
-        mock_ticker.history.return_value = self.mock_growth_data
-        mock_ticker.info = {
+        mock_ticker.history.return_value=self.mock_growth_data
+        mock_ticker.info={
             'shortName': 'Test Growth Co',
             'revenueGrowth': 0.25,      # 25% revenue growth
             'profitMargins': 0.15,      # 15% profit margins
             'returnOnEquity': 0.20,     # 20% ROE
             'debtToEquity': 25          # Reasonable debt
         }
-        mock_ticker.options = ['2025 - 01-17', '2025 - 06-20']  # LEAPS expiries
+        mock_ticker.options=['2025 - 01 - 17', '2025 - 06 - 20']  # LEAPS expiries
         
         # Mock options chain
         mock_chain = Mock()
-        mock_chain.calls = pd.DataFrame({
+        mock_chain.calls=pd.DataFrame({
             'strike': [160, 170, 180],
             'bid': [8.0, 5.0, 3.0],
             'ask': [8.5, 5.5, 3.5],
@@ -244,8 +244,8 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
                 days_since_cross = 25,
                 sma_50 = 145.0,
                 sma_200 = 140.0,
-                price_above_50sma = True,
-                price_above_200sma = True,
+                price_above_50sma=True,
+                price_above_200sma=True,
                 cross_strength = 60.0,
                 trend_direction = "bullish"
             )
@@ -280,7 +280,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         
         expected_score = (75 * 0.25 + 70 * 0.20 + 80 * 0.20 + 60 * 0.15 + 85 * 0.20)
         
-        self.assertAlmostEqual(composite_score, expected_score, places = 1)
+        self.assertAlmostEqual(composite_score, expected_score, places=1)
         self.assertGreater(composite_score, 70)  # Should be strong with good timing
         
         # Compare with poor timing
@@ -303,8 +303,8 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
             days_since_cross = 20,
             sma_50 = 95.0,
             sma_200 = 100.0,
-            price_above_50sma = False,
-            price_above_200sma = False,
+            price_above_50sma=False,
+            price_above_200sma=False,
             cross_strength = 45.0,
             trend_direction = "bearish"
         )
@@ -343,12 +343,12 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         
         for expiry in valid_leaps: 
             exp_date = datetime.strptime(expiry, "%Y-%m-%d").date()
-            days_out = (exp_date - today).days
+            days_out = (exp_date-today).days
             self.assertGreaterEqual(days_out, 365)  # At least 12 months
             
         for expiry in invalid_expiries: 
             exp_date = datetime.strptime(expiry, "%Y-%m-%d").date()
-            days_out = (exp_date - today).days
+            days_out = (exp_date-today).days
             self.assertLess(days_out, 365)  # Less than 12 months
             
     def test_secular_theme_classification(self): 
@@ -383,7 +383,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
                 momentum_score = 65.0,
                 valuation_score = 60.0,
                 composite_score = 68.0,
-                expiry_date = "2025 - 01-17",
+                expiry_date = "2025 - 01 - 17",
                 recommended_strike = 170,
                 premium_estimate = 12.0,
                 break_even = 182.0,
@@ -391,10 +391,10 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
                 target_return_3y = 80.0,
                 risk_factors = [],
                 ma_cross_signal = MovingAverageCross(
-                    cross_type = "golden_cross", cross_date = date.today()-timedelta(days=20),
-                    days_since_cross = 20, sma_50 = 148.0, sma_200 = 145.0,
-                    price_above_50sma = True, price_above_200sma = True,
-                    cross_strength = 55.0, trend_direction = "bullish"
+                    cross_type = "golden_cross", cross_date=date.today() - timedelta(days=20),
+                    days_since_cross = 20, sma_50=148.0, sma_200=145.0,
+                    price_above_50sma=True, price_above_200sma=True,
+                    cross_strength = 55.0, trend_direction="bullish"
                 ),
                 entry_timing_score = 85.0,  # Excellent timing
                 exit_timing_score = 25.0
@@ -409,7 +409,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
                 momentum_score = 70.0,
                 valuation_score = 65.0,
                 composite_score = 72.0,
-                expiry_date = "2025 - 01-17",
+                expiry_date = "2025 - 01 - 17",
                 recommended_strike = 160,
                 premium_estimate = 15.0,
                 break_even = 175.0,
@@ -417,10 +417,10 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
                 target_return_3y = 90.0,
                 risk_factors = [],
                 ma_cross_signal = MovingAverageCross(
-                    cross_type = "neutral", cross_date = None,
-                    days_since_cross = None, sma_50 = 138.0, sma_200 = 135.0,
-                    price_above_50sma = True, price_above_200sma = True,
-                    cross_strength = 25.0, trend_direction = "bullish"
+                    cross_type = "neutral", cross_date=None,
+                    days_since_cross=None, sma_50=138.0, sma_200=135.0,
+                    price_above_50sma=True, price_above_200sma=True,
+                    cross_strength = 25.0, trend_direction="bullish"
                 ),
                 entry_timing_score = 60.0,  # Moderate timing
                 exit_timing_score = 40.0
@@ -428,11 +428,11 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         ]
         
         # Sort by composite score (default)
-        candidates_by_composite = sorted(candidates, key = lambda x: x.composite_score, reverse = True)
+        candidates_by_composite = sorted(candidates, key=lambda x: x.composite_score, reverse=True)
         self.assertEqual(candidates_by_composite[0].ticker, "GOOGL")  # Higher composite
         
         # Sort by timing score  
-        candidates_by_timing = sorted(candidates, key = lambda x: x.entry_timing_score, reverse = True)
+        candidates_by_timing = sorted(candidates, key=lambda x: x.entry_timing_score, reverse=True)
         self.assertEqual(candidates_by_timing[0].ticker, "AAPL")  # Better timing
 
 
@@ -440,7 +440,7 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
     """Test LEAPS portfolio management with timing signals"""
 
     def setUp(self): 
-        self.tracker = LEAPSTracker()
+        self.tracker=LEAPSTracker()
         
     def test_position_timing_analysis(self): 
         """Test timing analysis for existing positions"""
@@ -449,7 +449,7 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
             ticker = "TSLA",
             theme = "Electric Mobility",
             entry_date = date.today() - timedelta(days=60),
-            expiry_date = "2025 - 06-20",
+            expiry_date = "2025 - 06 - 20",
             strike = 250,
             entry_premium = 25.0,
             current_premium = 35.0,  # Profitable
@@ -463,8 +463,8 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
             days_held = 60,
             days_to_expiry = 200,
             delta = 0.6,
-            profit_target_hit = False,
-            stop_loss_hit = False,
+            profit_target_hit=False,
+            stop_loss_hit=False,
             scale_out_level = 0
         )
         
@@ -475,14 +475,14 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
             days_since_cross = 5,
             sma_50 = 215.0,
             sma_200 = 225.0,
-            price_above_50sma = True,   # Still above 50 but cross happened
-            price_above_200sma = False, # Below 200 now
+            price_above_50sma=True,   # Still above 50 but cross happened
+            price_above_200sma=False, # Below 200 now
             cross_strength = 50.0,
             trend_direction = "bearish"
         )
         
         # Exit timing score should be high despite profits
-        entry_score, exit_score = self.tracker.calculate_entry_exit_timing_scores(
+        entry_score, exit_score=self.tracker.calculate_entry_exit_timing_scores(
             death_cross_signal, position.current_spot
         )
         
@@ -492,13 +492,13 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
         # Should consider exit even with 40% profit due to timing
         
     def test_scale_out_with_timing_signals(self): 
-        """Test scale - out recommendations enhanced with timing"""
+        """Test scale-out recommendations enhanced with timing"""
         # Position with good profits + golden cross continuation
         position = LEAPSPosition(
             ticker = "NVDA",
             theme = "AI Revolution", 
             entry_date = date.today() - timedelta(days=90),
-            expiry_date = "2025 - 01-17",
+            expiry_date = "2025 - 01 - 17",
             strike = 400,
             entry_premium = 30.0,
             current_premium = 75.0,  # 150% gain (2.5x)
@@ -512,8 +512,8 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
             days_held = 90,
             days_to_expiry = 120,
             delta = 0.75,
-            profit_target_hit = True,  # Hit 2x target
-            stop_loss_hit = False,
+            profit_target_hit=True,  # Hit 2x target
+            stop_loss_hit=False,
             scale_out_level = 0  # Haven't scaled out yet
         )
         
@@ -524,13 +524,13 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
             days_since_cross = 45,
             sma_50 = 510.0,
             sma_200 = 490.0,
-            price_above_50sma = True,
-            price_above_200sma = True,
+            price_above_50sma=True,
+            price_above_200sma=True,
             cross_strength = 65.0,
             trend_direction = "bullish"
         )
         
-        entry_score, exit_score = self.tracker.calculate_entry_exit_timing_scores(
+        entry_score, exit_score=self.tracker.calculate_entry_exit_timing_scores(
             golden_cross_signal, position.current_spot
         )
         
@@ -557,7 +557,7 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
             momentum_score = 75.0,
             valuation_score = 70.0,
             composite_score = 78.0,  # High score
-            expiry_date = "2025 - 01-17",
+            expiry_date = "2025 - 01 - 17",
             recommended_strike = 350,
             premium_estimate = 25.0,
             break_even = 375.0,
@@ -570,8 +570,8 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
                 days_since_cross = 10,
                 sma_50 = 295.0,
                 sma_200 = 305.0,
-                price_above_50sma = True,
-                price_above_200sma = False,
+                price_above_50sma=True,
+                price_above_200sma=False,
                 cross_strength = 40.0,
                 trend_direction = "bearish"
             ),
@@ -615,9 +615,9 @@ class TestLEAPSDisplayEnhancements(unittest.TestCase):
             cross_type = "golden_cross",
             cross_date = date.today() - timedelta(days=20),
             days_since_cross = 20,
-            sma_50 = 110.0, sma_200 = 105.0,
-            price_above_50sma = True, price_above_200sma = True,
-            cross_strength = 60.0, trend_direction = "bullish"
+            sma_50 = 110.0, sma_200=105.0,
+            price_above_50sma=True, price_above_200sma=True,
+            cross_strength = 60.0, trend_direction="bullish"
         )
         
         if golden_cross.cross_type ==  "golden_cross": 
@@ -635,9 +635,9 @@ class TestLEAPSDisplayEnhancements(unittest.TestCase):
             cross_type = "death_cross",
             cross_date = date.today() - timedelta(days=15),
             days_since_cross = 15,
-            sma_50 = 95.0, sma_200 = 100.0,
-            price_above_50sma = False, price_above_200sma = False,
-            cross_strength = 45.0, trend_direction = "bearish"
+            sma_50 = 95.0, sma_200=100.0,
+            price_above_50sma=False, price_above_200sma=False,
+            cross_strength = 45.0, trend_direction="bearish"
         )
         
         if death_cross.cross_type ==  "death_cross": 
@@ -659,8 +659,8 @@ class TestLEAPSDisplayEnhancements(unittest.TestCase):
         ratio_50 = current_price / sma_50
         ratio_200 = current_price / sma_200
         
-        self.assertAlmostEqual(ratio_50, 1.03, places = 2)   # 3% above 50 SMA
-        self.assertAlmostEqual(ratio_200, 1.07, places = 2)  # 7% above 200 SMA
+        self.assertAlmostEqual(ratio_50, 1.03, places=2)   # 3% above 50 SMA
+        self.assertAlmostEqual(ratio_200, 1.07, places=2)  # 7% above 200 SMA
         
         # Display formatting
         ratio_50_display = f"{ratio_50:.2f}x"

@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Comprehensive Test Suite for Index Baseline Comparison WSB Strategy Module
 Tests all components of the SPY / VTI baseline performance comparison system
@@ -25,35 +25,35 @@ class TestIndexBaselineScanner(unittest.TestCase):
 
     def setUp(self): 
         """Set up test fixtures"""
-        self.scanner = IndexBaselineScanner()
+        self.scanner=IndexBaselineScanner()
         
         # Mock historical price data for baselines
-        dates = pd.date_range(start='2024 - 01-01', periods = 252, freq = 'D')
+        dates = pd.date_range(start='2024 - 01 - 01', periods=252, freq='D')
         np.random.seed(42)  # Reproducible tests
         
         # SPY trending upward ~12% annually
         spy_returns = np.random.normal(0.12 / 252, 0.16 / np.sqrt(252), 252)  # 12% return, 16% vol
         spy_prices = 450 * np.cumprod(1 + spy_returns)
         
-        self.mock_spy_data = pd.DataFrame({
+        self.mock_spy_data=pd.DataFrame({
             'Close': spy_prices
-        }, index = dates)
+        }, index=dates)
         
         # VTI similar but slightly different
         vti_returns = np.random.normal(0.11 / 252, 0.15 / np.sqrt(252), 252)
         vti_prices = 220 * np.cumprod(1 + vti_returns)
         
-        self.mock_vti_data = pd.DataFrame({
+        self.mock_vti_data=pd.DataFrame({
             'Close': vti_prices
-        }, index = dates)
+        }, index=dates)
         
         # QQQ more volatile, higher returns
         qqq_returns = np.random.normal(0.15 / 252, 0.22 / np.sqrt(252), 252)
         qqq_prices = 380 * np.cumprod(1 + qqq_returns)
         
-        self.mock_qqq_data = pd.DataFrame({
+        self.mock_qqq_data=pd.DataFrame({
             'Close': qqq_prices
-        }, index = dates)
+        }, index=dates)
         
     def test_scanner_initialization(self): 
         """Test scanner initializes correctly"""
@@ -70,9 +70,9 @@ class TestIndexBaselineScanner(unittest.TestCase):
         # Mock yfinance responses for each ticker
         def mock_ticker_response(ticker): 
             mock_ticker = Mock()
-            if ticker ==  "SPY": mock_ticker.history.return_value = self.mock_spy_data
-            elif ticker  ==  "VTI": mock_ticker.history.return_value = self.mock_vti_data
-            elif ticker  ==  "QQQ": mock_ticker.history.return_value = self.mock_qqq_data
+            if ticker ==  "SPY": mock_ticker.history.return_value=self.mock_spy_data
+            elif ticker  ==  "VTI": mock_ticker.history.return_value=self.mock_vti_data
+            elif ticker  ==  "QQQ": mock_ticker.history.return_value=self.mock_qqq_data
             return mock_ticker
         
         mock_yf.side_effect = mock_ticker_response
@@ -84,7 +84,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         except KeyError: 
             # If there's a KeyError, it means the mock isn't working properly
             # This is expected in some test environments, so we'll skip the test
-            self.skipTest("Mock setup issue - skipping test")
+            self.skipTest("Mock setup issue-skipping test")
         
         baselines = self.scanner.get_baseline_performance(6)  # 6 months
         
@@ -149,11 +149,11 @@ class TestIndexBaselineScanner(unittest.TestCase):
                 
                 # Should calculate alpha correctly
                 expected_alpha = comparison.strategy_return - comparison.spy_return
-                self.assertAlmostEqual(comparison.alpha_vs_spy, expected_alpha, places = 3)
+                self.assertAlmostEqual(comparison.alpha_vs_spy, expected_alpha, places=3)
             except Exception: 
                 # If there's an error, it means the mock isn't working properly
                 # This is expected in some test environments, so we'll skip the test
-                self.skipTest("Mock setup issue - skipping test")
+                self.skipTest("Mock setup issue-skipping test")
             
     def test_risk_adjusted_performance_metrics(self): 
         """Test Sharpe ratio and risk - adjusted comparisons"""
@@ -176,9 +176,9 @@ class TestIndexBaselineScanner(unittest.TestCase):
             strategy_volatility = 0.15,
             spy_volatility = 0.16,
             information_ratio_spy = 7.0,  # Very good IR
-            beats_spy = True,
-            beats_vti = True,
-            beats_qqq = True,
+            beats_spy=True,
+            beats_vti=True,
+            beats_qqq=True,
             risk_adjusted_winner = "Strategy",
             trading_costs_drag = 0.02,    # 2% cost drag
             net_alpha_after_costs = 0.12  # 12% net alpha
@@ -198,9 +198,9 @@ class TestIndexBaselineScanner(unittest.TestCase):
         # Mock baseline performance with proper data structure
         def mock_ticker_response(ticker): 
             mock_ticker = Mock()
-            if ticker ==  "SPY": mock_ticker.history.return_value = self.mock_spy_data
-            elif ticker  ==  "VTI": mock_ticker.history.return_value = self.mock_vti_data
-            elif ticker  ==  "QQQ": mock_ticker.history.return_value = self.mock_qqq_data
+            if ticker ==  "SPY": mock_ticker.history.return_value=self.mock_spy_data
+            elif ticker  ==  "VTI": mock_ticker.history.return_value=self.mock_vti_data
+            elif ticker  ==  "QQQ": mock_ticker.history.return_value=self.mock_qqq_data
             return mock_ticker
         
         mock_yf.side_effect = mock_ticker_response
@@ -216,7 +216,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         except Exception: 
             # If there's an error, it means the mock isn't working properly
             # This is expected in some test environments, so we'll skip the test
-            self.skipTest("Mock setup issue - skipping test")
+            self.skipTest("Mock setup issue-skipping test")
         
         # Should be sorted by net alpha
         if len(comparisons)  >  1: 
@@ -249,9 +249,9 @@ class TestIndexBaselineScanner(unittest.TestCase):
             strategy_volatility = 0.22,    # Higher vol than SPY
             spy_volatility = 0.16,
             information_ratio_spy = -0.5,  # Negative IR
-            beats_spy = False,
-            beats_vti = False,
-            beats_qqq = False,
+            beats_spy=False,
+            beats_vti=False,
+            beats_qqq=False,
             risk_adjusted_winner = "SPY",
             trading_costs_drag = 0.03,
             net_alpha_after_costs = -0.10  # Negative net alpha
@@ -374,9 +374,9 @@ class TestIndexBaselineScanner(unittest.TestCase):
                 strategy_volatility = 0.12,
                 spy_volatility = 0.16,
                 information_ratio_spy = 2.0,
-                beats_spy = True,
-                beats_vti = True,
-                beats_qqq = True,
+                beats_spy=True,
+                beats_vti=True,
+                beats_qqq=True,
                 risk_adjusted_winner = "Strategy",
                 trading_costs_drag = 0.015,
                 net_alpha_after_costs = 0.065
@@ -396,13 +396,13 @@ class TestIndexBaselineScanner(unittest.TestCase):
     def test_long_term_performance_considerations(self): 
         """Test long - term performance analysis considerations"""
         
-        # Market conditions change - strategies may stop working
+        # Market conditions change-strategies may stop working
         bull_market_performance = 0.25   # Great in bull market
         bear_market_performance = -0.15  # Poor in bear market
         sideways_market_performance = 0.05  # Mediocre in sideways market
         
         # Weighted average across market conditions (assume equal probability)
-        expected_performance = (bull_market_performance + bear_market_performance + sideways_market_performance) / 3
+        expected_performance = (bull_market_performance+bear_market_performance+sideways_market_performance) / 3
         
         # SPY across same conditions
         spy_bull = 0.15
@@ -412,7 +412,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         
         # Strategy should ideally outperform across cycles
         if expected_performance  >  spy_expected: 
-            cycle_alpha = expected_performance - spy_expected
+            cycle_alpha = expected_performance-spy_expected
             self.assertGreater(cycle_alpha, 0)
         else: 
             # If doesn't outperform across cycles, maybe stick with SPY
@@ -428,7 +428,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         # All gains taxed as short - term
         after_tax_return = gross_return * (1 - short_term_cap_gains_rate)
         
-        # SPY buy - and-hold (long - term capital gains)
+        # SPY buy - and - hold (long - term capital gains)
         spy_gross_return = 0.12
         long_term_cap_gains_rate = 0.20  # 20% long - term rate
         spy_after_tax_return = spy_gross_return * (1 - long_term_cap_gains_rate)

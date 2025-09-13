@@ -34,16 +34,16 @@ class TestWheelStrategy(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.mock_trading = Mock()
-        self.mock_data = Mock()
-        self.mock_config = Mock()
-        self.mock_logger = Mock()
+        self.mock_trading=Mock()
+        self.mock_data=Mock()
+        self.mock_config=Mock()
+        self.mock_logger=Mock()
         
         # Setup mock config
         self.mock_config.trading.max_concurrent_trades = 5
-        self.mock_config.risk.max_position_risk = 0.10
-        self.mock_config.risk.account_size = 100000.0
-        self.mock_config.trading.universe = ["AAPL", "MSFT", "GOOGL"]
+        self.mock_config.risk.max_position_risk=0.10
+        self.mock_config.risk.account_size=100000.0
+        self.mock_config.trading.universe=["AAPL", "MSFT", "GOOGL"]
         
         self.wheel_strategy = ProductionWheelStrategy(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
@@ -110,7 +110,7 @@ class TestWheelStrategy(unittest.TestCase):
         self.assertEqual(pnl, 200.0)  # Full premium if stock stays above strike
         
         # Cash secured put - loss scenario
-        position.current_price = 140.0  # Stock below strike
+        position.current_price=140.0  # Stock below strike
         pnl = position.calculate_unrealized_pnl()
         expected_loss = (145.0 - 140.0) * 100  # $500 loss
         expected_pnl = 200.0 - expected_loss  # Premium - loss
@@ -122,16 +122,16 @@ class TestDebitSpreads(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.mock_trading = Mock()
-        self.mock_data = Mock()
-        self.mock_config = Mock()
-        self.mock_logger = Mock()
+        self.mock_trading=Mock()
+        self.mock_data=Mock()
+        self.mock_config=Mock()
+        self.mock_logger=Mock()
         
         # Setup mock config
         self.mock_config.trading.max_concurrent_trades = 5
-        self.mock_config.risk.max_position_risk = 0.10
-        self.mock_config.risk.account_size = 100000.0
-        self.mock_config.trading.universe = ["AAPL", "MSFT", "GOOGL"]
+        self.mock_config.risk.max_position_risk=0.10
+        self.mock_config.risk.account_size=100000.0
+        self.mock_config.trading.universe=["AAPL", "MSFT", "GOOGL"]
         
         self.debit_spreads = ProductionDebitSpreads(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
@@ -217,15 +217,15 @@ class TestSPXSpreads(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.mock_trading = Mock()
-        self.mock_data = Mock()
-        self.mock_config = Mock()
-        self.mock_logger = Mock()
+        self.mock_trading=Mock()
+        self.mock_data=Mock()
+        self.mock_config=Mock()
+        self.mock_logger=Mock()
         
         # Setup mock config
         self.mock_config.trading.max_concurrent_trades = 5
-        self.mock_config.risk.max_position_risk = 0.10
-        self.mock_config.risk.account_size = 100000.0
+        self.mock_config.risk.max_position_risk=0.10
+        self.mock_config.risk.account_size=100000.0
         
         self.spx_spreads = ProductionSPXSpreads(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
@@ -296,10 +296,10 @@ class TestIndexBaseline(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.mock_trading = Mock()
-        self.mock_data = Mock()
-        self.mock_config = Mock()
-        self.mock_logger = Mock()
+        self.mock_trading=Mock()
+        self.mock_data=Mock()
+        self.mock_config=Mock()
+        self.mock_logger=Mock()
         
         self.index_baseline = ProductionIndexBaseline(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
@@ -408,8 +408,8 @@ class TestPhase2Integration(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.temp_dir = tempfile.mkdtemp()
-        self.config_file = os.path.join(self.temp_dir, "test_config.json")
+        self.temp_dir=tempfile.mkdtemp()
+        self.config_file=os.path.join(self.temp_dir, "test_config.json")
         
         # Create test configuration
         test_config = {

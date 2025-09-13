@@ -27,7 +27,7 @@ class TestBlackScholesEngine:
     
     def setup_method(self): 
         """Set up test fixtures"""
-        self.bs_engine = BlackScholesEngine()
+        self.bs_engine=BlackScholesEngine()
     
     @pytest.mark.asyncio
     async def test_get_risk_free_rate(self): 
@@ -81,7 +81,7 @@ class TestBlackScholesEngine:
         
         d2 = self.bs_engine._d2(d1, sigma, T)
         
-        # d2 = d1 - sigma * sqrt(T)
+        # d2=d1 - sigma * sqrt(T)
         expected_d2 = d1 - sigma * math.sqrt(T)
         assert abs(d2 - expected_d2)  <  1e-10
         assert d2  <  d1  # d2 should always be less than d1
@@ -152,7 +152,7 @@ class TestBlackScholesEngine:
         assert isinstance(put_price, Decimal)
         
         # ITM put should have price  >  intrinsic value
-        intrinsic_value = strike - spot  # $10
+        intrinsic_value = strike-spot  # $10
         assert put_price  >  intrinsic_value
         
         # Should be reasonable value
@@ -160,7 +160,7 @@ class TestBlackScholesEngine:
     
     @pytest.mark.asyncio
     async def test_black_scholes_put_call_parity(self): 
-        """Test put - call parity: C - P = S - K * e ^ (-r * T)"""
+        """Test put - call parity: C - P=S - K * e ^ (-r * T)"""
         spot = Decimal('100')
         strike = Decimal('100')  # ATM
         time_to_expiry = 0.25
@@ -176,12 +176,12 @@ class TestBlackScholesEngine:
             spot, strike, time_to_expiry, risk_free_rate, dividend_yield, volatility
         )
         
-        # Put - call parity: C - P = S - K * e ^ (-r * T)
-        left_side = call_price - put_price
+        # Put - call parity: C - P=S - K * e ^ (-r * T)
+        left_side = call_price-put_price
         right_side = spot - strike * Decimal(str(math.exp(-float(risk_free_rate) * time_to_expiry)))
         
         # Should be equal within small tolerance
-        assert abs(float(left_side - right_side))  <  0.01
+        assert abs(float(left_side-right_side))  <  0.01
     
     @pytest.mark.asyncio
     async def test_expired_option_pricing(self): 
@@ -199,7 +199,7 @@ class TestBlackScholesEngine:
         )
         
         expected_intrinsic = spot - strike
-        assert abs(float(call_price - expected_intrinsic))  <  0.01
+        assert abs(float(call_price-expected_intrinsic))  <  0.01
         
         # Expired OTM call should be worthless
         otm_call_price = await self.bs_engine.black_scholes_call(
@@ -225,7 +225,7 @@ class TestBlackScholesEngine:
         
         # With zero volatility, should default to intrinsic value
         intrinsic_value = max(Decimal('0'), spot - strike)
-        assert abs(float(call_price - intrinsic_value))  <  0.01
+        assert abs(float(call_price-intrinsic_value))  <  0.01
     
     @pytest.mark.asyncio
     async def test_calculate_greeks(self): 
@@ -287,7 +287,7 @@ class TestRealOptionsPricingEngine:
     
     def setup_method(self): 
         """Set up test fixtures"""
-        self.pricing_engine = RealOptionsPricingEngine()
+        self.pricing_engine=RealOptionsPricingEngine()
     
     @pytest.mark.asyncio
     async def test_get_implied_volatility_known_ticker(self): 
@@ -357,7 +357,7 @@ class TestRealOptionsPricingEngine:
         )
         
         # Deep ITM call should be worth at least intrinsic value
-        intrinsic_value = current_price - strike  # $45
+        intrinsic_value = current_price-strike  # $45
         assert theoretical_price  >  intrinsic_value
         assert theoretical_price  <  current_price  # But not more than stock price
     
@@ -375,8 +375,8 @@ class TestRealOptionsPricingEngine:
         )
         
         # Expired ITM call should equal intrinsic value
-        intrinsic_value = current_price - strike
-        assert abs(float(theoretical_price - intrinsic_value))  <  0.01
+        intrinsic_value = current_price-strike
+        assert abs(float(theoretical_price-intrinsic_value))  <  0.01
     
     @pytest.mark.asyncio
     async def test_calculate_theoretical_price_put(self): 
@@ -391,8 +391,8 @@ class TestRealOptionsPricingEngine:
             ticker, strike, expiry_date, option_type, current_price
         )
         
-        # ITM put should have intrinsic value + time value
-        intrinsic_value = strike - current_price  # $5
+        # ITM put should have intrinsic value+time value
+        intrinsic_value = strike-current_price  # $5
         assert theoretical_price  >  intrinsic_value
         assert 5  <  float(theoretical_price)  <  15
     
@@ -537,7 +537,7 @@ class TestRealOptionsPricingEngine:
     async def test_get_options_chain_yahoo_failure(self, mock_ticker): 
         """Test handling of Yahoo Finance API failure"""
         # Mock Yahoo Finance to raise exception
-        mock_ticker.side_effect = Exception("API Error")
+        mock_ticker.side_effect=Exception("API Error")
         
         expiry_date = datetime(2024, 1, 19)
         options = await self.pricing_engine.get_options_chain_yahoo('AAPL', expiry_date)
@@ -554,7 +554,7 @@ class TestRealOptionsPricingEngine:
         # Mock some options data
         self.pricing_engine.get_options_chain_yahoo = AsyncMock(return_value=[
             OptionsContract(
-                ticker = ticker,
+                ticker=ticker,
                 strike = Decimal('200'),
                 expiry_date = date.today() + timedelta(days=30),
                 option_type = 'call',
@@ -564,7 +564,7 @@ class TestRealOptionsPricingEngine:
                 open_interest = 5000
             ),
             OptionsContract(
-                ticker = ticker,
+                ticker=ticker,
                 strike = Decimal('205'),
                 expiry_date = date.today() + timedelta(days=30),
                 option_type = 'call',
@@ -576,7 +576,7 @@ class TestRealOptionsPricingEngine:
         ])
         
         optimal_option = await self.pricing_engine.find_optimal_option(
-            ticker, current_price, min_dte = 25, max_dte = 35, option_type = 'call'
+            ticker, current_price, min_dte=25, max_dte=35, option_type='call'
         )
         
         assert optimal_option is not None
@@ -584,7 +584,7 @@ class TestRealOptionsPricingEngine:
         assert optimal_option.option_type  ==  'call'
         
         # Should prefer the OTM option (3 - 8% OTM gets bonus points)
-        # $200 strike = 2.6% OTM, $205 strike = 5.1% OTM (gets bonus)
+        # $200 strike=2.6% OTM, $205 strike=5.1% OTM (gets bonus)
         assert optimal_option.strike ==  Decimal('205')
     
     @pytest.mark.asyncio
@@ -596,7 +596,7 @@ class TestRealOptionsPricingEngine:
         # Mock illiquid options that shouldn't be selected
         self.pricing_engine.get_options_chain_yahoo = AsyncMock(return_value=[
             OptionsContract(
-                ticker = ticker,
+                ticker=ticker,
                 strike = Decimal('200'),
                 expiry_date = date.today() + timedelta(days=30),
                 option_type = 'call',
@@ -608,7 +608,7 @@ class TestRealOptionsPricingEngine:
         ])
         
         optimal_option = await self.pricing_engine.find_optimal_option(
-            ticker, current_price, min_dte = 25, max_dte = 35, option_type = 'call'
+            ticker, current_price, min_dte=25, max_dte=35, option_type='call'
         )
         
         # Should return None if no options meet criteria
@@ -686,7 +686,7 @@ class TestOptionsContract:
         contract = OptionsContract(
             ticker = 'AAPL',
             strike = Decimal('200'),
-            expiry_date = future_date,
+            expiry_date=future_date,
             option_type = 'call'
         )
         
@@ -717,7 +717,7 @@ class TestIntegration:
         option_type = 'call'
         current_price = Decimal('195')
         
-        # This should work end - to-end
+        # This should work end - to - end
         theoretical_price = await engine.calculate_theoretical_price(
             ticker, strike, expiry_date, option_type, current_price
         )
@@ -743,9 +743,9 @@ class TestIntegration:
         volatility = Decimal('0.20')
         
         # Override engine parameters for controlled test
-        engine.bs_engine.get_risk_free_rate = AsyncMock(return_value=risk_free_rate)
-        engine.bs_engine.get_dividend_yield = AsyncMock(return_value=dividend_yield)
-        engine.get_implied_volatility = AsyncMock(return_value=volatility)
+        engine.bs_engine.get_risk_free_rate=AsyncMock(return_value=risk_free_rate)
+        engine.bs_engine.get_dividend_yield=AsyncMock(return_value=dividend_yield)
+        engine.get_implied_volatility=AsyncMock(return_value=volatility)
         
         call_price = await engine.calculate_theoretical_price(
             'TEST', strike, expiry_date, 'call', spot
@@ -757,7 +757,7 @@ class TestIntegration:
         
         # For ATM options with these parameters, call and put should be similar
         # (due to put - call parity with no dividends)
-        price_difference = abs(float(call_price - put_price))
+        price_difference = abs(float(call_price-put_price))
         assert price_difference  <  1.5  # Allow for some numerical differences
         
         # Both should be reasonable values

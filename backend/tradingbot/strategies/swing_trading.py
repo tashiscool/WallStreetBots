@@ -1,7 +1,7 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 WSB Strategy: Enhanced Breakout Swing Trading
-Fast profit - taking swing trades with same - day exit discipline
+Fast profit - taking swing trades with same-day exit discipline
 Based on WSB successful swing trading patterns with ≤30 day expiries
 """
 
@@ -35,7 +35,7 @@ class SwingSignal:
     target_strike: int
     target_expiry: str
     option_premium: float
-    max_hold_hours: int  # WSB rule: same - day exits preferred
+    max_hold_hours: int  # WSB rule: same-day exits preferred
     profit_target_1: float  # 25% profit
     profit_target_2: float  # 50% profit  
     profit_target_3: float  # 100% profit
@@ -52,7 +52,7 @@ class ActiveSwingTrade:
     unrealized_pnl: float
     unrealized_pct: float
     hours_held: float
-    hit_profit_target: int  # 0 = none, 1 = 25%, 2 = 50%, 3 = 100%
+    hit_profit_target: int  # 0=none, 1=25%, 2=50%, 3 = 100%
     should_exit: bool
     exit_reason: str
 
@@ -60,7 +60,7 @@ class ActiveSwingTrade:
 class SwingTradingScanner: 
     def __init__(self): 
         # Focus on liquid, high - beta names for swing trading
-        self.swing_tickers = [
+        self.swing_tickers=[
             # Mega caps with options liquidity
             "SPY", "QQQ", "IWM", "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META",
             
@@ -79,7 +79,7 @@ class SwingTradingScanner:
             stock = yf.Ticker(ticker)
             
             # Get intraday data for breakout detection
-            data = stock.history(period="5d", interval = "15m")
+            data = stock.history(period="5d", interval="15m")
             if len(data)  <  50: 
                 return False, 0.0, 0.0
             
@@ -110,7 +110,7 @@ class SwingTradingScanner:
             # 3. Strong momentum in last few bars
             
             volume_multiple = current_volume / avg_volume if avg_volume  >  0 else 0
-            breakout_strength = (current_price - key_resistance) / key_resistance
+            breakout_strength = (current_price-key_resistance) / key_resistance
             
             recent_momentum = (prices[-1] - prices[-5]) / prices[-5]  # Last 5 bars
             
@@ -132,7 +132,7 @@ class SwingTradingScanner:
         """Detect strong momentum continuation patterns"""
         try: 
             stock = yf.Ticker(ticker)
-            data = stock.history(period="2d", interval = "5m")
+            data = stock.history(period="2d", interval="5m")
             
             if len(data)  <  30: 
                 return False, 0.0
@@ -167,7 +167,7 @@ class SwingTradingScanner:
         """Detect oversold bounce setups"""
         try: 
             stock = yf.Ticker(ticker)
-            data = stock.history(period="3d", interval = "15m")
+            data = stock.history(period="3d", interval="15m")
             
             if len(data)  <  40: 
                 return False, "insufficient_data", 0.0
@@ -180,7 +180,7 @@ class SwingTradingScanner:
             
             # Look for bounce from oversold levels
             recent_low = min(lows[-20: ])  # 20 - period low
-            bounce_strength = (current_price - recent_low) / recent_low
+            bounce_strength = (current_price-recent_low) / recent_low
             
             # Volume spike on bounce
             current_vol = volumes[-3: ].mean()
@@ -188,7 +188,7 @@ class SwingTradingScanner:
             vol_spike = current_vol / avg_vol if avg_vol  >  0 else 1
             
             # RSI - like oversold condition (simplified)
-            up_moves = sum(1 for i in range(len(prices)-10, len(prices)-1) if prices[i + 1]  >  prices[i])
+            up_moves = sum(1 for i in range(len(prices) - 10, len(prices) - 1) if prices[i + 1]  >  prices[i])
             down_moves = 10 - up_moves
             
             if (bounce_strength  >  0.015 and  # 1.5% bounce from low
@@ -202,7 +202,7 @@ class SwingTradingScanner:
         except Exception: 
             return False, "error", 0.0
     
-    def get_optimal_expiry(self, max_days: int = 30)->str:
+    def get_optimal_expiry(self, max_days: int=30)->str:
         """Get optimal expiry (WSB rule: ≤30 days for swing trades)"""
         today = date.today()
         
@@ -262,10 +262,10 @@ class SwingTradingScanner:
             time_premium = max(0.5, current_price * 0.08 * (days_to_exp / 21))
             
             if strike  >  current_price:  # OTM
-                otm_discount = max(0.2, 1 - (strike - current_price) / current_price * 5)
+                otm_discount = max(0.2, 1 - (strike-current_price) / current_price * 5)
                 return time_premium * otm_discount
             else:  # ITM
-                intrinsic = current_price - strike
+                intrinsic = current_price-strike
                 return intrinsic + time_premium * 0.5
                 
         except: 
@@ -281,7 +281,7 @@ class SwingTradingScanner:
         for ticker in self.swing_tickers: 
             try: 
                 stock = yf.Ticker(ticker)
-                hist = stock.history(period="1d", interval = "1m")
+                hist = stock.history(period="1d", interval="1m")
                 
                 if hist.empty: 
                     continue
@@ -292,17 +292,17 @@ class SwingTradingScanner:
                 signals_found = []
                 
                 # 1. Breakout detection
-                is_breakout, resistance_level, breakout_strength = self.detect_breakout(ticker)
+                is_breakout, resistance_level, breakout_strength=self.detect_breakout(ticker)
                 if is_breakout: 
                     signals_found.append(("breakout", breakout_strength, resistance_level))
                 
                 # 2. Momentum continuation
-                is_momentum, momentum_strength = self.detect_momentum_continuation(ticker)
+                is_momentum, momentum_strength=self.detect_momentum_continuation(ticker)
                 if is_momentum: 
                     signals_found.append(("momentum", momentum_strength, current_price))
                 
                 # 3. Reversal setup
-                is_reversal, reversal_type, reversal_strength = self.detect_reversal_setup(ticker)
+                is_reversal, reversal_type, reversal_strength=self.detect_reversal_setup(ticker)
                 if is_reversal: 
                     signals_found.append(("reversal", reversal_strength, current_price))
                 
@@ -326,7 +326,7 @@ class SwingTradingScanner:
                         continue
                     
                     # Calculate targets
-                    profit_25, profit_50, profit_100, stop_loss = self.calculate_option_targets(
+                    profit_25, profit_50, profit_100, stop_loss=self.calculate_option_targets(
                         current_price, target_strike, premium
                     )
                     
@@ -339,23 +339,22 @@ class SwingTradingScanner:
                         risk_level = "high"
                     
                     signal = SwingSignal(
-                        ticker = ticker,
+                        ticker=ticker,
                         signal_time = datetime.now(),
-                        signal_type = signal_type,
-                        entry_price = current_price,
-                        breakout_level = ref_level,
+                        signal_type=signal_type,
+                        entry_price=current_price,
+                        breakout_level=ref_level,
                         volume_confirmation = 2.0,  # Simplified
-                        strength_score = strength,
-                        target_strike = target_strike,
-                        target_expiry = expiry,
-                        option_premium = premium,
-                        max_hold_hours = max_hold_hours,
-                        profit_target_1 = profit_25,
-                        profit_target_2 = profit_50,
-                        profit_target_3 = profit_100,
-                        stop_loss = stop_loss,
-                        risk_level = risk_level
-                    )
+                        strength_score=strength,
+                        target_strike=target_strike,
+                        target_expiry=expiry,
+                        option_premium=premium,
+                        max_hold_hours=max_hold_hours,
+                        profit_target_1=profit_25,
+                        profit_target_2=profit_50,
+                        profit_target_3=profit_100,
+                        stop_loss=stop_loss,
+                        risk_level = risk_level)
                     
                     signals.append(signal)
                     print(f"  🎯 {ticker} {signal_type.upper()} - Strength: {strength:.0f}")
@@ -365,7 +364,7 @@ class SwingTradingScanner:
                 continue
         
         # Sort by strength score
-        signals.sort(key=lambda x: x.strength_score, reverse = True)
+        signals.sort(key=lambda x: x.strength_score, reverse=True)
         return signals
     
     def monitor_active_trades(self)->List[str]: 
@@ -385,12 +384,12 @@ class SwingTradingScanner:
                 
                 # Get current option price (simplified)
                 stock = yf.Ticker(trade.signal.ticker)
-                current_stock_price = stock.history(period="1d", interval = "1m")['Close'].iloc[-1]
+                current_stock_price = stock.history(period="1d", interval="1m")['Close'].iloc[-1]
                 
                 # Estimate current premium (simplified)
                 if current_stock_price  >=  trade.signal.target_strike: 
                     # ITM - estimate intrinsic + remaining time value
-                    intrinsic = current_stock_price - trade.signal.target_strike
+                    intrinsic = current_stock_price-trade.signal.target_strike
                     time_value = trade.entry_premium * max(0.1, 1 - hours_held / 24)
                     current_premium = intrinsic + time_value
                 else: 
@@ -400,7 +399,7 @@ class SwingTradingScanner:
                 
                 trade.current_premium = current_premium
                 trade.unrealized_pnl = current_premium - trade.entry_premium
-                trade.unrealized_pct = (trade.unrealized_pnl / trade.entry_premium) * 100
+                trade.unrealized_pct=(trade.unrealized_pnl / trade.entry_premium) * 100
                 
                 # Check exit conditions
                 exit_reason = None
@@ -422,12 +421,12 @@ class SwingTradingScanner:
                 elif current_premium  <=  trade.signal.stop_loss: 
                     exit_reason = "STOP LOSS HIT - exit immediately"
                 
-                # 3. Time - based exits (WSB rule: don't hold too long)
+                # 3. Time-based exits (WSB rule: don't hold too long)
                 elif hours_held  >=  trade.signal.max_hold_hours: 
                     exit_reason = f"Max hold time ({trade.signal.max_hold_hours}h) reached"
                 
                 # 4. End of day exit rule
-                elif datetime.now().hour  >=  15 and trade.signal.signal_type ==  "momentum": exit_reason = "End of day - close momentum trades"
+                elif datetime.now().hour  >=  15 and trade.signal.signal_type ==  "momentum": exit_reason="End of day - close momentum trades"
                 
                 if exit_reason: 
                     trade.should_exit = True
@@ -464,16 +463,16 @@ class SwingTradingScanner:
         output += "\n🎯 WSB SWING TRADING RULES: \n"
         output += "• FAST profit - taking: 25% → 50% → 100%\n"
         output += "• MAX 30 days expiry (prefer weeklies)\n"
-        output += "• Same - day exits preferred for momentum\n"
-        output += "• 30% stop loss - cut losses FAST\n"
-        output += "• Don't hold overnight unless strong setup\n"
-        output += "• Volume confirmation is MANDATORY\n"
+        output += "• Same-day exits preferred for momentum + n"
+        output += "• 30% stop loss - cut losses FAST + n"
+        output += "• Don't hold overnight unless strong setup + n"
+        output += "• Volume confirmation is MANDATORY + n"
         
         output += "\n⚠️  SWING TRADING WARNINGS: \n"
-        output += "• Options decay fast - time is your enemy\n"
+        output += "• Options decay fast - time is your enemy + n"
         output += "• Don't chase breakouts that already moved  > 5%\n"
         output += "• Avoid earnings weeks (IV crush risk)\n"
-        output += "• Use 1 - 2% position sizing max\n"
+        output += "• Use 1 - 2% position sizing max + n"
         
         return output
 
@@ -483,11 +482,11 @@ def main():
     parser.add_argument('command', 
                        choices = ['scan', 'monitor', 'continuous'],
                        help = 'Command to execute')
-    parser.add_argument('--max - expiry-days', type = int, default = 21,
+    parser.add_argument('--max - expiry - days', type=int, default=21,
                        help = 'Maximum days to expiry (WSB rule: ≤30)')
-    parser.add_argument('--output', choices = ['json', 'text'], default = 'text',
+    parser.add_argument('--output', choices=['json', 'text'], default='text',
                        help = 'Output format')
-    parser.add_argument('--min - strength', type = float, default = 60.0,
+    parser.add_argument('--min - strength', type=float, default=60.0,
                        help = 'Minimum signal strength score')
     
     args = parser.parse_args()
@@ -501,7 +500,7 @@ def main():
         signals = [s for s in signals if s.strength_score  >=  args.min_strength]
         
         if args.output  ==  'json': 
-            print(json.dumps([asdict(s) for s in signals], indent = 2, default = str))
+            print(json.dumps([asdict(s) for s in signals], indent=2, default=str))
         else: 
             print(scanner.format_signals(signals))
     

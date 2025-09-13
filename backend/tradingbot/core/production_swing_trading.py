@@ -74,7 +74,7 @@ class TechnicalAnalysis:
     adx: float
     volume_sma: float
     volume_ratio: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -94,11 +94,11 @@ class SwingPosition:
     max_favorable_move: float
     max_adverse_move: float
     entry_date: datetime
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
     days_held: int = 0
-    status: str = "active"
-    risk_reward_ratio: float = 0.0
-    technical_score: float = 0.0
+    status: str="active"
+    risk_reward_ratio: float=0.0
+    technical_score: float=0.0
 
 
 @dataclass
@@ -116,7 +116,7 @@ class SwingCandidate:
     risk_reward_ratio: float
     position_size: int
     confidence: float
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 class TechnicalAnalyzer: 
@@ -125,7 +125,7 @@ class TechnicalAnalyzer:
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
     
-    def calculate_rsi(self, prices: List[float], period: int = 14)->float:
+    def calculate_rsi(self, prices: List[float], period: int=14)->float:
         """Calculate RSI"""
         if len(prices)  <  period + 1: 
             return 50.0
@@ -144,7 +144,7 @@ class TechnicalAnalyzer:
         rsi = 100 - (100 / (1 + rs))
         return rsi
     
-    def calculate_macd(self, prices: List[float], fast: int = 12, slow: int = 26, signal: int = 9)->Tuple[float, float, float]: 
+    def calculate_macd(self, prices: List[float], fast: int=12, slow: int=26, signal: int=9)->Tuple[float, float, float]: 
         """Calculate MACD"""
         if len(prices)  <  slow: 
             return 0.0, 0.0, 0.0
@@ -163,7 +163,7 @@ class TechnicalAnalyzer:
         
         return macd, signal_line, histogram
     
-    def calculate_bollinger_bands(self, prices: List[float], period: int = 20, std_dev: float = 2.0)->Tuple[float, float, float, float, float]: 
+    def calculate_bollinger_bands(self, prices: List[float], period: int=20, std_dev: float=2.0)->Tuple[float, float, float, float, float]: 
         """Calculate Bollinger Bands"""
         if len(prices)  <  period: 
             return 0.0, 0.0, 0.0, 0.0, 0.0
@@ -171,7 +171,7 @@ class TechnicalAnalyzer:
         recent_prices = prices[-period: ]
         sma = sum(recent_prices) / period
         
-        variance = sum((price - sma) ** 2 for price in recent_prices) / period
+        variance = sum((price-sma) ** 2 for price in recent_prices) / period
         std = math.sqrt(variance)
         
         upper_band = sma + (std_dev * std)
@@ -201,7 +201,7 @@ class TechnicalAnalyzer:
         return sma_20, sma_50, sma_200, ema_12, ema_26
     
     def calculate_stochastic(self, high_prices: List[float], low_prices: List[float], 
-                           close_prices: List[float], period: int = 14)->Tuple[float, float]: 
+                           close_prices: List[float], period: int=14)->Tuple[float, float]: 
         """Calculate Stochastic Oscillator"""
         if len(close_prices)  <  period: 
             return 50.0, 50.0
@@ -216,7 +216,7 @@ class TechnicalAnalyzer:
         if highest_high ==  lowest_low: 
             return 50.0, 50.0
         
-        k_percent = ((current_close - lowest_low) / (highest_high - lowest_low)) * 100
+        k_percent = ((current_close-lowest_low) / (highest_high - lowest_low)) * 100
         
         # Simple moving average of K% for D%
         if len(close_prices)  >=  period * 2: 
@@ -230,7 +230,7 @@ class TechnicalAnalyzer:
                 ll = min(period_lows)
                 
                 if hh  !=  ll: 
-                    k_val = ((period_close - ll) / (hh - ll)) * 100
+                    k_val = ((period_close-ll) / (hh - ll)) * 100
                     k_values.append(k_val)
             
             d_percent = sum(k_values[-3: ]) / 3 if len(k_values)  >=  3 else k_percent
@@ -240,7 +240,7 @@ class TechnicalAnalyzer:
         return k_percent, d_percent
     
     def calculate_williams_r(self, high_prices: List[float], low_prices: List[float], 
-                            close_prices: List[float], period: int = 14)->float:
+                            close_prices: List[float], period: int=14)->float:
         """Calculate Williams %R"""
         if len(close_prices)  <  period: 
             return -50.0
@@ -259,7 +259,7 @@ class TechnicalAnalyzer:
         return williams_r
     
     def calculate_cci(self, high_prices: List[float], low_prices: List[float], 
-                     close_prices: List[float], period: int = 20)->float:
+                     close_prices: List[float], period: int=20)->float:
         """Calculate Commodity Channel Index"""
         if len(close_prices)  <  period: 
             return 0.0
@@ -280,7 +280,7 @@ class TechnicalAnalyzer:
         return cci
     
     def calculate_adx(self, high_prices: List[float], low_prices: List[float], 
-                     close_prices: List[float], period: int = 14)->float:
+                     close_prices: List[float], period: int=14)->float:
         """Calculate Average Directional Index"""
         if len(close_prices)  <  period * 2: 
             return 25.0
@@ -315,17 +315,17 @@ class SwingTradingStrategy:
         self.data = data_provider
         self.config = config
         self.logger = logger
-        self.technical_analyzer = TechnicalAnalyzer(logger)
-        self.active_positions = {}
-        self.swing_candidates = {}
+        self.technical_analyzer=TechnicalAnalyzer(logger)
+        self.active_positions={}
+        self.swing_candidates={}
         
         # Strategy parameters
         self.max_positions = 10
-        self.max_position_size = 0.05  # 5% of portfolio per position
-        self.min_risk_reward_ratio = 2.0
+        self.max_position_size=0.05  # 5% of portfolio per position
+        self.min_risk_reward_ratio=2.0
         self.max_hold_days = 30
-        self.stop_loss_pct = 0.08  # 8% stop loss
-        self.take_profit_pct = 0.16  # 16% take profit
+        self.stop_loss_pct=0.08  # 8% stop loss
+        self.take_profit_pct=0.16  # 16% take profit
         
         self.logger.info("SwingTradingStrategy initialized")
     
@@ -341,7 +341,7 @@ class SwingTradingStrategy:
             for ticker in universe: 
                 try: 
                     # Get historical data
-                    historical_data = await self.data.get_historical_data(ticker, days = 200)
+                    historical_data = await self.data.get_historical_data(ticker, days=200)
                     if not historical_data or len(historical_data)  <  50: 
                         continue
                     
@@ -366,7 +366,7 @@ class SwingTradingStrategy:
                     continue
             
             # Sort by technical score
-            candidates.sort(key=lambda x: x.technical_score, reverse = True)
+            candidates.sort(key=lambda x: x.technical_score, reverse=True)
             
             self.logger.info(f"Found {len(candidates)} swing trading opportunities")
             return candidates
@@ -488,10 +488,10 @@ class SwingTradingStrategy:
             
             # Calculate technical indicators
             rsi = self.technical_analyzer.calculate_rsi(closes)
-            macd, macd_signal, macd_histogram = self.technical_analyzer.calculate_macd(closes)
-            bb_upper, bb_middle, bb_lower, bb_width, bb_position = self.technical_analyzer.calculate_bollinger_bands(closes)
-            sma_20, sma_50, sma_200, ema_12, ema_26 = self.technical_analyzer.calculate_moving_averages(closes)
-            stochastic_k, stochastic_d = self.technical_analyzer.calculate_stochastic(highs, lows, closes)
+            macd, macd_signal, macd_histogram=self.technical_analyzer.calculate_macd(closes)
+            bb_upper, bb_middle, bb_lower, bb_width, bb_position=self.technical_analyzer.calculate_bollinger_bands(closes)
+            sma_20, sma_50, sma_200, ema_12, ema_26=self.technical_analyzer.calculate_moving_averages(closes)
+            stochastic_k, stochastic_d=self.technical_analyzer.calculate_stochastic(highs, lows, closes)
             williams_r = self.technical_analyzer.calculate_williams_r(highs, lows, closes)
             cci = self.technical_analyzer.calculate_cci(highs, lows, closes)
             adx = self.technical_analyzer.calculate_adx(highs, lows, closes)
@@ -501,30 +501,29 @@ class SwingTradingStrategy:
             volume_ratio = volumes[-1] / volume_sma if volume_sma  >  0 else 1.0
             
             analysis = TechnicalAnalysis(
-                ticker = ticker,
-                current_price = current_price,
-                rsi = rsi,
-                macd = macd,
-                macd_signal = macd_signal,
-                macd_histogram = macd_histogram,
-                bb_upper = bb_upper,
-                bb_middle = bb_middle,
-                bb_lower = bb_lower,
-                bb_width = bb_width,
-                bb_position = bb_position,
-                sma_20 = sma_20,
-                sma_50 = sma_50,
-                sma_200 = sma_200,
-                ema_12 = ema_12,
-                ema_26 = ema_26,
-                stochastic_k = stochastic_k,
-                stochastic_d = stochastic_d,
-                williams_r = williams_r,
-                cci = cci,
-                adx = adx,
-                volume_sma = volume_sma,
-                volume_ratio = volume_ratio
-            )
+                ticker=ticker,
+                current_price=current_price,
+                rsi=rsi,
+                macd=macd,
+                macd_signal=macd_signal,
+                macd_histogram=macd_histogram,
+                bb_upper=bb_upper,
+                bb_middle=bb_middle,
+                bb_lower=bb_lower,
+                bb_width=bb_width,
+                bb_position=bb_position,
+                sma_20=sma_20,
+                sma_50=sma_50,
+                sma_200=sma_200,
+                ema_12=ema_12,
+                ema_26=ema_26,
+                stochastic_k=stochastic_k,
+                stochastic_d=stochastic_d,
+                williams_r=williams_r,
+                cci=cci,
+                adx=adx,
+                volume_sma=volume_sma,
+                volume_ratio = volume_ratio)
             
             return analysis
             
@@ -605,7 +604,7 @@ class SwingTradingStrategy:
                 take_profit = entry_price * (1 - self.take_profit_pct)
             
             # Calculate risk / reward ratio
-            risk = abs(entry_price - stop_loss)
+            risk = abs(entry_price-stop_loss)
             reward = abs(take_profit - entry_price)
             risk_reward_ratio = reward / risk if risk  >  0 else 0
             
@@ -619,19 +618,18 @@ class SwingTradingStrategy:
             risk_score = self._calculate_risk_score(analysis, signal_data)
             
             candidate = SwingCandidate(
-                ticker = ticker,
+                ticker=ticker,
                 current_price = analysis.current_price,
-                signal = signal,
-                strategy = strategy,
-                technical_score = technical_score,
-                risk_score = risk_score,
-                entry_price = entry_price,
-                stop_loss = stop_loss,
-                take_profit = take_profit,
-                risk_reward_ratio = risk_reward_ratio,
-                position_size = position_size,
-                confidence = confidence
-            )
+                signal=signal,
+                strategy=strategy,
+                technical_score=technical_score,
+                risk_score=risk_score,
+                entry_price=entry_price,
+                stop_loss=stop_loss,
+                take_profit=take_profit,
+                risk_reward_ratio=risk_reward_ratio,
+                position_size=position_size,
+                confidence = confidence)
             
             return candidate
             
@@ -642,7 +640,7 @@ class SwingTradingStrategy:
     def _calculate_position_size(self, entry_price: float, stop_loss: float)->int:
         """Calculate position size based on risk"""
         # Simplified position sizing - in production, use proper risk management
-        risk_per_share = abs(entry_price - stop_loss)
+        risk_per_share = abs(entry_price-stop_loss)
         max_risk_amount = 1000.0  # $1000 max risk per position
         position_size = int(max_risk_amount / risk_per_share) if risk_per_share  >  0 else 100
         return min(position_size, 1000)  # Cap at 1000 shares
@@ -719,35 +717,35 @@ class SwingTradingStrategy:
             # Get current market data
             market_data = await self.data.get_market_data(position.ticker)
             if market_data: 
-                position.current_price = market_data.price
-                position.last_update = datetime.now()
+                position.current_price=market_data.price
+                position.last_update=datetime.now()
                 
                 # Update days held
-                position.days_held = (datetime.now() - position.entry_date).days
+                position.days_held=(datetime.now() - position.entry_date).days
                 
                 # Recalculate P & L
-                position.unrealized_pnl = self._calculate_position_pnl(position)
+                position.unrealized_pnl=self._calculate_position_pnl(position)
                 
                 # Update max favorable / adverse moves
                 if position.position_type ==  "long": 
-                    position.max_favorable_move = max(position.max_favorable_move, 
-                                                   position.current_price - position.entry_price)
-                    position.max_adverse_move = min(position.max_adverse_move, 
-                                                 position.current_price - position.entry_price)
+                    position.max_favorable_move=max(position.max_favorable_move, 
+                                                   position.current_price-position.entry_price)
+                    position.max_adverse_move=min(position.max_adverse_move, 
+                                                 position.current_price-position.entry_price)
                 else: 
-                    position.max_favorable_move = max(position.max_favorable_move, 
-                                                     position.entry_price - position.current_price)
-                    position.max_adverse_move = min(position.max_adverse_move, 
-                                                   position.entry_price - position.current_price)
+                    position.max_favorable_move=max(position.max_favorable_move, 
+                                                     position.entry_price-position.current_price)
+                    position.max_adverse_move=min(position.max_adverse_move, 
+                                                   position.entry_price-position.current_price)
             
         except Exception as e: 
             self.logger.error(f"Error updating position data for {position.ticker}: {e}")
     
     def _calculate_position_pnl(self, position: SwingPosition)->float:
         """Calculate position P & L"""
-        if position.position_type ==  "long": return (position.current_price - position.entry_price) * position.quantity
+        if position.position_type ==  "long": return (position.current_price-position.entry_price) * position.quantity
         else: 
-            return (position.entry_price - position.current_price) * position.quantity
+            return (position.entry_price-position.current_price) * position.quantity
     
     def _check_exit_conditions(self, position: SwingPosition)->Optional[SwingSignal]:
         """Check for exit conditions"""
@@ -778,11 +776,11 @@ class SwingTradingStrategy:
         if position.position_type ==  "long": 
             if position.current_price  >  position.trailing_stop: 
                 new_trailing_stop = position.current_price * (1 - self.stop_loss_pct)
-                position.trailing_stop = max(position.trailing_stop, new_trailing_stop)
+                position.trailing_stop=max(position.trailing_stop, new_trailing_stop)
         else: 
             if position.current_price  <  position.trailing_stop: 
                 new_trailing_stop = position.current_price * (1 + self.stop_loss_pct)
-                position.trailing_stop = min(position.trailing_stop, new_trailing_stop)
+                position.trailing_stop=min(position.trailing_stop, new_trailing_stop)
     
     def _check_position_risks(self, position: SwingPosition)->List[str]:
         """Check for position risk alerts"""

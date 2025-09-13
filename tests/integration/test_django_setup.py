@@ -1,4 +1,4 @@
-#!/usr / bin/env python
+#!/usr / bin / env python
 """
 Test script to verify Django setup and dependencies before running migrations
 """
@@ -25,23 +25,23 @@ def test_django_imports():
     
     try: 
         import corsheaders
-        print("✅ django - cors-headers imported successfully")
+        print("✅ django - cors - headers imported successfully")
     except ImportError as e: 
-        print(f"❌ django - cors-headers import failed: {e}")
+        print(f"❌ django - cors - headers import failed: {e}")
         return False
     
     try: 
         import social_django
-        print("✅ social - auth-app - django imported successfully")
+        print("✅ social - auth - app - django imported successfully")
     except ImportError as e: 
-        print(f"❌ social - auth-app - django import failed: {e}")
+        print(f"❌ social - auth - app - django import failed: {e}")
         return False
     
     try: 
         import admin_interface
-        print("✅ django - admin-interface imported successfully")
+        print("✅ django - admin - interface imported successfully")
     except ImportError as e: 
-        print(f"❌ django - admin-interface import failed: {e}")
+        print(f"❌ django - admin - interface import failed: {e}")
         return False
     
     try: 

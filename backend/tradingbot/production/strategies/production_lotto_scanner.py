@@ -55,45 +55,45 @@ class ProductionLottoScanner:
     
     def __init__(self, integration_manager: ProductionIntegrationManager, 
                  data_provider: ReliableDataProvider, config: dict):
-        self.strategy_name = "lotto_scanner"
+        self.strategy_name="lotto_scanner"
         self.integration_manager = integration_manager
         self.data_provider = data_provider
         
         # Configuration
-        self.max_risk_pct = config.get('max_risk_pct', 0.01)  # 1% max risk per play
-        self.max_concurrent_positions = config.get('max_concurrent_positions', 3)
-        self.profit_targets = config.get('profit_targets', [300, 500, 800])  # 3x, 5x, 8x
-        self.stop_loss_pct = config.get('stop_loss_pct', 0.50)  # 50% stop loss
-        self.min_win_probability = config.get('min_win_probability', 0.15)  # 15% minimum
-        self.max_dte = config.get('max_dte', 5)  # Max 5 days to expiry
+        self.max_risk_pct=config.get('max_risk_pct', 0.01)  # 1% max risk per play
+        self.max_concurrent_positions=config.get('max_concurrent_positions', 3)
+        self.profit_targets=config.get('profit_targets', [300, 500, 800])  # 3x, 5x, 8x
+        self.stop_loss_pct=config.get('stop_loss_pct', 0.50)  # 50% stop loss
+        self.min_win_probability=config.get('min_win_probability', 0.15)  # 15% minimum
+        self.max_dte=config.get('max_dte', 5)  # Max 5 days to expiry
         
         # Watchlists
-        self.high_volume_tickers = config.get('high_volume_tickers', [
+        self.high_volume_tickers=config.get('high_volume_tickers', [
             'SPY', 'QQQ', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META'
         ])
         
-        self.meme_tickers = config.get('meme_tickers', [
+        self.meme_tickers=config.get('meme_tickers', [
             'GME', 'AMC', 'PLTR', 'COIN', 'HOOD', 'RIVN', 'SOFI'
         ])
         
-        self.earnings_tickers = config.get('earnings_tickers', [
+        self.earnings_tickers=config.get('earnings_tickers', [
             'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX',
             'CRM', 'ADBE', 'ORCL', 'AMD', 'QCOM', 'UBER', 'SNOW'
         ])
         
         # Components
-        self.options_selector = SmartOptionsSelector(data_provider)
-        self.pricing_engine = RealOptionsPricingEngine()
-        self.risk_manager = RealTimeRiskManager()
+        self.options_selector=SmartOptionsSelector(data_provider)
+        self.pricing_engine=RealOptionsPricingEngine()
+        self.risk_manager=RealTimeRiskManager()
         
         # State tracking
         self.active_positions: Dict[str, Any] = {}
-        self.daily_pnl = 0.0
+        self.daily_pnl=0.0
         self.trade_count = 0
         self.last_scan_time: Optional[datetime] = None
         
         # Logging
-        self.logger = logging.getLogger(f"production.{self.strategy_name}")
+        self.logger=logging.getLogger(f"production.{self.strategy_name}")
         self.logger.info(f"Initialized ProductionLottoScanner with max risk {self.max_risk_pct: .1%}")
     
     async def run_strategy(self): 
@@ -171,7 +171,7 @@ class ProductionLottoScanner:
                     continue
                 
                 entry_price = position_info['entry_price']
-                pnl_pct = (current_price - entry_price) / entry_price
+                pnl_pct = (current_price-entry_price) / entry_price
                 
                 # Check profit targets (scale out)
                 if pnl_pct  >=  3.0:  # 300% gain
@@ -224,8 +224,7 @@ class ProductionLottoScanner:
             # Rank opportunities by risk - adjusted expected value
             opportunities.sort(
                 key = lambda x: x.win_probability * x.potential_return / (1 + x.risk_score),
-                reverse = True
-            )
+                reverse = True)
             
             # Take best opportunity if it meets criteria
             best_opp = opportunities[0]
@@ -234,7 +233,7 @@ class ProductionLottoScanner:
                 
                 await self._execute_lotto_trade(best_opp)
             
-            self.last_scan_time = datetime.now()
+            self.last_scan_time=datetime.now()
             
         except Exception as e: 
             self.logger.error(f"Error scanning opportunities: {e}")
@@ -350,7 +349,7 @@ class ProductionLottoScanner:
                     volume_ratio = await self._get_volume_ratio(ticker)
                     price_momentum = await self._get_price_momentum(ticker)
                     
-                    if volume_ratio  >  3.0 and abs(price_momentum)  >  0.03:  # 3x volume + 3% move
+                    if volume_ratio  >  3.0 and abs(price_momentum)  >  0.03:  # 3x volume+3% move
                         current_price = await self.data_provider.get_current_price(ticker)
                         if not current_price: 
                             continue
@@ -427,10 +426,10 @@ class ProductionLottoScanner:
             days_to_expiry = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
             
             if option_type ==  "call": 
-                breakeven = strike + mid_price
+                breakeven = strike+mid_price
                 distance_to_breakeven = (breakeven - current_spot) / current_spot
             else: 
-                breakeven = strike - mid_price
+                breakeven = strike-mid_price
                 distance_to_breakeven = (current_spot - breakeven) / current_spot
             
             # Win probability estimation (very rough)
@@ -451,26 +450,25 @@ class ProductionLottoScanner:
             stop_loss_price = mid_price * (1 - self.stop_loss_pct)
             
             return LottoOpportunity(
-                ticker = ticker,
-                play_type = play_type,
-                expiry_date = expiry,
-                days_to_expiry = days_to_expiry,
-                strike = strike,
-                option_type = option_type,
-                current_premium = mid_price,
-                breakeven = breakeven,
-                current_spot = current_spot,
-                catalyst_event = catalyst,
-                expected_move = expected_move,
-                max_position_size = max_dollar_risk,
-                max_contracts = max_contracts,
+                ticker=ticker,
+                play_type=play_type,
+                expiry_date=expiry,
+                days_to_expiry=days_to_expiry,
+                strike=strike,
+                option_type=option_type,
+                current_premium=mid_price,
+                breakeven=breakeven,
+                current_spot=current_spot,
+                catalyst_event=catalyst,
+                expected_move=expected_move,
+                max_position_size=max_dollar_risk,
+                max_contracts=max_contracts,
                 risk_level = "extreme" if risk_score  >  7 else "very_high",
-                win_probability = win_probability,
-                potential_return = potential_return,
-                stop_loss_price = stop_loss_price,
-                profit_target_price = profit_target_price,
-                risk_score = risk_score
-            )
+                win_probability=win_probability,
+                potential_return=potential_return,
+                stop_loss_price=stop_loss_price,
+                profit_target_price=profit_target_price,
+                risk_score = risk_score)
         
         except Exception as e: 
             self.logger.error(f"Error evaluating option opportunity: {e}")
@@ -531,7 +529,7 @@ class ProductionLottoScanner:
         except Exception as e: 
             self.logger.error(f"Error executing lotto trade: {e}")
     
-    async def _close_position(self, position_id: str, reason: str, close_pct: float = 1.0):
+    async def _close_position(self, position_id: str, reason: str, close_pct: float=1.0):
         """Close a lotto position"""
         try: 
             if position_id not in self.active_positions: 
@@ -578,9 +576,9 @@ class ProductionLottoScanner:
     async def _get_0dte_expiry(self)->Optional[str]: 
         """Get 0DTE expiry if available"""
         today = date.today()
-        weekday = today.weekday()  # 0 = Monday, 4 = Friday
+        weekday = today.weekday()  # 0=Monday, 4 = Friday
         
-        # Check if today has 0DTE options (Mon / Wed/Fri for major indices)
+        # Check if today has 0DTE options (Mon / Wed / Fri for major indices)
         if weekday in [0, 2, 4]: 
             return today.strftime("%Y-%m-%d")
         
@@ -600,7 +598,7 @@ class ProductionLottoScanner:
         """Calculate momentum score (0 - 100)"""
         try: 
             # Get recent price data
-            prices = await self.data_provider.get_recent_prices(ticker, periods = 20)
+            prices = await self.data_provider.get_recent_prices(ticker, periods=20)
             if not prices or len(prices)  <  10: 
                 return 0
             
@@ -623,7 +621,7 @@ class ProductionLottoScanner:
             # Volume momentum (simplified)
             volume_score = 30  # Placeholder - would use actual volume data
             
-            return min(100, ma_score + change_score + volume_score)
+            return min(100, ma_score+change_score+volume_score)
             
         except Exception: 
             return 0
@@ -632,7 +630,7 @@ class ProductionLottoScanner:
         """Estimate expected intraday move"""
         try: 
             # Get recent volatility
-            prices = await self.data_provider.get_recent_prices(ticker, periods = 20)
+            prices = await self.data_provider.get_recent_prices(ticker, periods=20)
             if not prices or len(prices)  <  10: 
                 return 0.02  # 2% default
             
@@ -665,7 +663,7 @@ class ProductionLottoScanner:
     async def _find_best_earnings_expiry(self, ticker: str, earnings_date: date)->Optional[str]:
         """Find best expiry for earnings play"""
         # Look for expiry within 3 days after earnings
-        target_date = earnings_date + timedelta(days=1)
+        target_date = earnings_date+timedelta(days=1)
         
         # In production, would query actual available expiries
         # For now, return weekly expiry
@@ -679,7 +677,7 @@ class ProductionLottoScanner:
     async def _get_price_momentum(self, ticker: str)->float:
         """Get current price momentum"""
         try: 
-            prices = await self.data_provider.get_recent_prices(ticker, periods = 2)
+            prices = await self.data_provider.get_recent_prices(ticker, periods=2)
             if not prices or len(prices)  <  2: 
                 return 0
             

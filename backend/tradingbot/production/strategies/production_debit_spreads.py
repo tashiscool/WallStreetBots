@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Production Debit Spreads Strategy
 More repeatable than naked calls with reduced theta / IV risk
@@ -61,44 +61,44 @@ class ProductionDebitSpreads:
     - Maximum 8 concurrent spread positions
     - Stop loss at 50% of premium paid
     - Profit target at 25 - 40% of max spread value
-    - Time - based exits before expiration week
+    - Time-based exits before expiration week
     """
     
     def __init__(self, integration_manager, data_provider: ReliableDataProvider, config: dict):
-        self.strategy_name = "debit_spreads"
+        self.strategy_name="debit_spreads"
         self.integration_manager = integration_manager
         self.data_provider = data_provider
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Core components
-        self.options_selector = SmartOptionsSelector(data_provider)
-        self.risk_manager = RealTimeRiskManager()
-        self.bs_engine = BlackScholesEngine()
+        self.options_selector=SmartOptionsSelector(data_provider)
+        self.risk_manager=RealTimeRiskManager()
+        self.bs_engine=BlackScholesEngine()
         
         # Strategy configuration
-        self.watchlist = config.get('watchlist', [
+        self.watchlist=config.get('watchlist', [
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX",
             "CRM", "ADBE", "ORCL", "AMD", "QCOM", "UBER", "SNOW", "COIN",
             "PLTR", "ROKU", "ZM", "SHOP", "SQ", "PYPL", "TWLO"
         ])
         
         # Risk parameters
-        self.max_positions = config.get('max_positions', 8)
-        self.max_position_size = config.get('max_position_size', 0.10)  # 10% per spread
-        self.min_dte = config.get('min_dte', 20)
-        self.max_dte = config.get('max_dte', 60)
+        self.max_positions=config.get('max_positions', 8)
+        self.max_position_size=config.get('max_position_size', 0.10)  # 10% per spread
+        self.min_dte=config.get('min_dte', 20)
+        self.max_dte=config.get('max_dte', 60)
         
         # Spread targeting
-        self.min_risk_reward = config.get('min_risk_reward', 1.5)
-        self.min_trend_strength = config.get('min_trend_strength', 0.6)
-        self.max_iv_rank = config.get('max_iv_rank', 80)  # Avoid buying high IV
-        self.min_volume_score = config.get('min_volume_score', 0.3)
+        self.min_risk_reward=config.get('min_risk_reward', 1.5)
+        self.min_trend_strength=config.get('min_trend_strength', 0.6)
+        self.max_iv_rank=config.get('max_iv_rank', 80)  # Avoid buying high IV
+        self.min_volume_score=config.get('min_volume_score', 0.3)
         
         # Exit criteria
-        self.profit_target = config.get('profit_target', 0.30)  # 30% of max profit
-        self.stop_loss = config.get('stop_loss', 0.50)  # 50% of premium paid
-        self.time_exit_dte = config.get('time_exit_dte', 7)  # Exit 7 days before expiry
+        self.profit_target=config.get('profit_target', 0.30)  # 30% of max profit
+        self.stop_loss=config.get('stop_loss', 0.50)  # 50% of premium paid
+        self.time_exit_dte=config.get('time_exit_dte', 7)  # Exit 7 days before expiry
         
         # Active positions tracking
         self.active_positions: List[Dict[str, Any]] = []
@@ -114,7 +114,7 @@ class ProductionDebitSpreads:
         if T  <=  0 or sigma  <=  0: 
             return max(S - K, 0), 1.0 if S  >  K else 0.0
             
-        d1 = (math.log(S / K) + (r + 0.5 * sigma*sigma)*T) / (sigma * math.sqrt(T))
+        d1 = (math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * math.sqrt(T))
         d2 = d1 - sigma * math.sqrt(T)
         
         call_price = S * self.norm_cdf(d1) - K * math.exp(-r * T) * self.norm_cdf(d2)
@@ -153,7 +153,7 @@ class ProductionDebitSpreads:
             
             # 3. Trend consistency
             direction_changes = 0
-            for i in range(len(prices)-10, len(prices)-1): 
+            for i in range(len(prices) - 10, len(prices) - 1): 
                 if i  <=  0: 
                     continue
                 curr_trend = prices[i + 1]  >  prices[i]
@@ -266,7 +266,7 @@ class ProductionDebitSpreads:
         for width in [5, 10, 15, 20]: 
             for long_call in suitable_calls: 
                 long_strike = long_call['strike']
-                short_strike = long_strike + width
+                short_strike = long_strike+width
                 
                 # Find matching short call
                 short_calls = [
@@ -289,7 +289,7 @@ class ProductionDebitSpreads:
                 
                 max_profit = width - net_debit
                 max_profit_pct = (max_profit / net_debit) * 100
-                breakeven = long_strike + net_debit
+                breakeven = long_strike+net_debit
                 risk_reward = max_profit / net_debit
                 
                 # Estimate probability of profit
@@ -332,32 +332,31 @@ class ProductionDebitSpreads:
                     confidence = max(0, min(1, confidence))
                     
                     opportunity = SpreadOpportunity(
-                        ticker = ticker,
+                        ticker=ticker,
                         scan_date = date.today(),
-                        spot_price = spot,
-                        trend_strength = trend_strength,
-                        expiry_date = expiry,
-                        days_to_expiry = days_to_exp,
-                        long_strike = long_strike,
-                        short_strike = short_strike,
-                        spread_width = width,
-                        long_premium = long_premium,
-                        short_premium = short_premium,
-                        net_debit = net_debit,
-                        max_profit = max_profit,
-                        max_profit_pct = max_profit_pct,
-                        breakeven = breakeven,
-                        prob_profit = prob_profit,
-                        risk_reward = risk_reward,
-                        iv_rank = iv_rank,
-                        volume_score = volume_score,
-                        confidence = confidence
-                    )
+                        spot_price=spot,
+                        trend_strength=trend_strength,
+                        expiry_date=expiry,
+                        days_to_expiry=days_to_exp,
+                        long_strike=long_strike,
+                        short_strike=short_strike,
+                        spread_width=width,
+                        long_premium=long_premium,
+                        short_premium=short_premium,
+                        net_debit=net_debit,
+                        max_profit=max_profit,
+                        max_profit_pct=max_profit_pct,
+                        breakeven=breakeven,
+                        prob_profit=prob_profit,
+                        risk_reward=risk_reward,
+                        iv_rank=iv_rank,
+                        volume_score=volume_score,
+                        confidence = confidence)
                     
                     opportunities.append(opportunity)
         
         # Sort by confidence score
-        opportunities.sort(key=lambda x: x.confidence, reverse = True)
+        opportunities.sort(key=lambda x: x.confidence, reverse=True)
         return opportunities[: 3]  # Top 3 per ticker
     
     def estimate_iv_from_price(self, S: float, K: float, T: float, market_price: float)->float:
@@ -366,16 +365,16 @@ class ProductionDebitSpreads:
             iv = 0.25  # Initial guess
             
             for _ in range(20): 
-                price, delta = self.black_scholes_call(S, K, T, 0.04, iv)
+                price, delta=self.black_scholes_call(S, K, T, 0.04, iv)
                 
                 # Calculate vega
-                d1 = (math.log(S / K) + (0.04 + 0.5 * iv*iv)*T) / (iv * math.sqrt(T))
+                d1 = (math.log(S / K) + (0.04 + 0.5 * iv * iv) * T) / (iv * math.sqrt(T))
                 vega = S * math.sqrt(T) * self.norm_cdf(d1) * math.exp(-0.04 * T)
                 
                 if abs(vega)  <  1e-6: 
                     break
                 
-                diff = price - market_price
+                diff = price-market_price
                 if abs(diff)  <  0.01: 
                     break
                 
@@ -404,7 +403,7 @@ class ProductionDebitSpreads:
                 if not current_price: 
                     continue
                 
-                # Pre - filter by trend strength
+                # Pre-filter by trend strength
                 trend_strength = await self.assess_trend_strength(ticker)
                 if trend_strength  <  self.min_trend_strength: 
                     continue
@@ -421,7 +420,7 @@ class ProductionDebitSpreads:
                 for exp_str in expiries: 
                     try: 
                         exp_date = datetime.strptime(exp_str, "%Y-%m-%d").date()
-                        days = (exp_date - today).days
+                        days = (exp_date-today).days
                         if self.min_dte  <=  days  <=  self.max_dte: 
                             valid_expiries.append(exp_str)
                     except: 
@@ -452,7 +451,7 @@ class ProductionDebitSpreads:
                 continue
         
         # Global ranking by confidence
-        all_opportunities.sort(key=lambda x: x.confidence, reverse = True)
+        all_opportunities.sort(key=lambda x: x.confidence, reverse=True)
         return all_opportunities
     
     async def execute_spread_trade(self, opportunity: SpreadOpportunity)->bool:
@@ -475,7 +474,7 @@ class ProductionDebitSpreads:
             long_signal = ProductionTradeSignal(
                 symbol = opportunity.ticker,
                 action = "BUY",
-                quantity = contracts,
+                quantity=contracts,
                 option_type = "CALL",
                 strike_price = Decimal(str(opportunity.long_strike)),
                 expiration_date = datetime.strptime(opportunity.expiry_date, "%Y-%m-%d").date(),
@@ -499,7 +498,7 @@ class ProductionDebitSpreads:
             short_signal = ProductionTradeSignal(
                 symbol = opportunity.ticker,
                 action = "SELL",
-                quantity = contracts,
+                quantity=contracts,
                 option_type = "CALL",
                 strike_price = Decimal(str(opportunity.short_strike)),
                 expiration_date = datetime.strptime(opportunity.expiry_date, "%Y-%m-%d").date(),
@@ -588,10 +587,10 @@ class ProductionDebitSpreads:
                 if not (long_price and short_price): 
                     continue
                 
-                current_spread_value = long_price - short_price
+                current_spread_value = long_price-short_price
                 
                 # Calculate P & L
-                pnl_per_contract = current_spread_value - net_debit
+                pnl_per_contract = current_spread_value-net_debit
                 total_pnl = pnl_per_contract * contracts * 100
                 pnl_pct = pnl_per_contract / net_debit if net_debit  >  0 else 0
                 
@@ -609,7 +608,7 @@ class ProductionDebitSpreads:
                     should_exit = True
                     exit_reason = "STOP_LOSS"
                 
-                # Time - based exit
+                # Time-based exit
                 elif (position['expiry_date'] - date.today()).days  <=  self.time_exit_dte: 
                     should_exit = True
                     exit_reason = "TIME_EXIT"
@@ -617,9 +616,9 @@ class ProductionDebitSpreads:
                 if should_exit: 
                     # Create exit signals for both legs
                     long_exit = ProductionTradeSignal(
-                        symbol = ticker,
+                        symbol=ticker,
                         action = "SELL",
-                        quantity = contracts,
+                        quantity=contracts,
                         option_type = "CALL",
                         strike_price = position['long_signal'].strike_price,
                         expiration_date = position['long_signal'].expiration_date,
@@ -635,9 +634,9 @@ class ProductionDebitSpreads:
                     )
                     
                     short_exit = ProductionTradeSignal(
-                        symbol = ticker,
+                        symbol=ticker,
                         action = "BUY",
-                        quantity = contracts,
+                        quantity=contracts,
                         option_type = "CALL",
                         strike_price = position['short_signal'].strike_price,
                         expiration_date = position['short_signal'].expiration_date,

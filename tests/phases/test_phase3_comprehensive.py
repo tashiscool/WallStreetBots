@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Comprehensive Phase 3 Tests
 Test all Phase 3 strategies with mocked dependencies
@@ -47,7 +47,7 @@ class EarningsEvent:
     revenue_actual: Optional[float] = None
     surprise_pct: Optional[float] = None
     guidance_updated: bool = False
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -61,7 +61,7 @@ class IVAnalysis:
     pre_earnings_iv: float
     post_earnings_iv: float
     iv_spike_threshold: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -82,9 +82,9 @@ class EarningsPosition:
     vega_exposure: float
     max_loss: float
     max_profit: float
-    entry_date: datetime = field(default_factory=datetime.now)
-    last_update: datetime = field(default_factory=datetime.now)
-    status: str = "active"
+    entry_date: datetime=field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
+    status: str="active"
 
 
 @dataclass
@@ -101,7 +101,7 @@ class EarningsCandidate:
     earnings_score: float
     risk_score: float
     strategy_recommended: EarningsStrategy
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 class SwingSignal(Enum): 
@@ -145,7 +145,7 @@ class TechnicalAnalysis:
     adx: float
     volume_sma: float
     volume_ratio: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -164,11 +164,11 @@ class SwingPosition:
     max_favorable_move: float
     max_adverse_move: float
     entry_date: datetime
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
     days_held: int = 0
-    status: str = "active"
-    risk_reward_ratio: float = 0.0
-    technical_score: float = 0.0
+    status: str="active"
+    risk_reward_ratio: float=0.0
+    technical_score: float=0.0
 
 
 @dataclass
@@ -185,7 +185,7 @@ class SwingCandidate:
     risk_reward_ratio: float
     position_size: int
     confidence: float
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 class MomentumSignal(Enum): 
@@ -227,7 +227,7 @@ class MomentumData:
     volume_score: float
     technical_score: float
     overall_score: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -245,8 +245,8 @@ class MomentumPosition:
     entry_date: datetime
     expiry_date: Optional[datetime] = None
     days_to_expiry: int = 0
-    last_update: datetime = field(default_factory=datetime.now)
-    status: str = "active"
+    last_update: datetime=field(default_factory=datetime.now)
+    status: str="active"
 
 
 class LottoSignal(Enum): 
@@ -281,7 +281,7 @@ class VolatilityAnalysis:
     gamma_exposure: float
     options_volume: int
     put_call_ratio: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -301,8 +301,8 @@ class LottoPosition:
     days_to_expiry: int
     max_profit: float
     max_loss: float
-    last_update: datetime = field(default_factory=datetime.now)
-    status: str = "active"
+    last_update: datetime=field(default_factory=datetime.now)
+    status: str="active"
 
 
 class SecularTrend(Enum): 
@@ -360,7 +360,7 @@ class SecularAnalysis:
     fundamental_score: float
     technical_score: float
     overall_score: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -380,8 +380,8 @@ class LEAPSPosition:
     days_to_expiry: int
     max_profit: float
     max_loss: float
-    last_update: datetime = field(default_factory=datetime.now)
-    status: str = "active"
+    last_update: datetime=field(default_factory=datetime.now)
+    status: str="active"
 
 
 class TestEarningsProtection(unittest.TestCase): 
@@ -749,7 +749,7 @@ class TestLEAPSTracker(unittest.TestCase):
 
 
 class TestPhase3EndToEnd(unittest.TestCase): 
-    """End - to-end tests for Phase 3"""
+    """End - to - end tests for Phase 3"""
     
     def test_earnings_protection_workflow(self): 
         """Test complete earnings protection workflow"""

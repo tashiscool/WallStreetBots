@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Simple Trading Bot - Personal Use
 Run this to start trading
@@ -26,7 +26,7 @@ class SimpleTradingBot:
         self.config = ProductionStrategyManagerConfig(
             alpaca_api_key = os.getenv('ALPACA_API_KEY'),
             alpaca_secret_key = os.getenv('ALPACA_SECRET_KEY'),
-            paper_trading = True,  # Change to False when ready for real money
+            paper_trading=True,  # Change to False when ready for real money
             user_id = 1,
             max_total_risk = 0.10,     # Max 10% of account at risk
             max_position_size = 0.03,  # Max 3% per position
@@ -44,7 +44,7 @@ class SimpleTradingBot:
         
         try: 
             # Initialize the manager
-            self.manager = ProductionStrategyManager(self.config)
+            self.manager=ProductionStrategyManager(self.config)
             print(f"✅ Loaded {len(self.manager.strategies)} strategies")
             
             # Simple safety check

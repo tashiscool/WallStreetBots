@@ -16,10 +16,10 @@ from .exact_clone import DipDetector, ExactCloneSystem, DipSignal
 @dataclass
 class MarketHours: 
     """Market hours configuration"""
-    market_open: time = time(9, 30)      # 9: 30 AM ET
-    market_close: time = time(16, 0)     # 4: 00 PM ET
-    optimal_entry_start: time = time(10, 0)   # 10: 00 AM ET (after initial volatility)
-    optimal_entry_end: time = time(15, 0)     # 3: 00 PM ET (before close)
+    market_open: time=time(9, 30)      # 9: 30 AM ET
+    market_close: time=time(16, 0)     # 4: 00 PM ET
+    optimal_entry_start: time=time(10, 0)   # 10: 00 AM ET (after initial volatility)
+    optimal_entry_end: time=time(15, 0)     # 3: 00 PM ET (before close)
 
 
 class LiveDipScanner: 
@@ -27,8 +27,8 @@ class LiveDipScanner:
 
     def __init__(self, system: ExactCloneSystem):
         self.system = system
-        self.dip_detector = DipDetector()
-        self.market_hours = MarketHours()
+        self.dip_detector=DipDetector()
+        self.market_hours=MarketHours()
         self.is_scanning = False
         self.scan_interval = 60  # Scan every 60 seconds
 
@@ -40,7 +40,7 @@ class LiveDipScanner:
 
         # Setup logging
         logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
 
     def is_market_open(self)->bool: 
         """Check if market is currently open"""
@@ -99,7 +99,7 @@ class LiveDipScanner:
             if self.system.active_position: 
                 await self._monitor_active_position(market_data)
 
-            self.last_scan_time = datetime.now()
+            self.last_scan_time=datetime.now()
 
         except Exception as e: 
             self.logger.error(f"Error in scan cycle: {e}")
@@ -162,7 +162,7 @@ class LiveDipScanner:
             return
 
         # Take the highest confidence opportunity
-        best_opportunity = max(opportunities, key = lambda x: x.confidence)
+        best_opportunity = max(opportunities, key=lambda x: x.confidence)
 
         if best_opportunity.confidence  >=  0.7:  # High confidence threshold
             self.logger.info(f"🚀 EXECUTING DIP TRADE: {best_opportunity.ticker}")
@@ -211,7 +211,7 @@ class LiveDipScanner:
 
         # Check exit conditions
         exit_condition = self.system.check_exit_conditions(
-            current_premium = estimated_premium,
+            current_premium=estimated_premium,
             current_delta = 0.5 if current_spot  >  position.strike else 0.3  # Rough delta estimate
         )
 
@@ -241,7 +241,7 @@ class LiveDipScanner:
         }
 
         # In production, send to Discord / Slack webhook, email, etc.
-        self.logger.info(f"🚨 EXECUTION ALERT: {json.dumps(alert_data, indent = 2)}")
+        self.logger.info(f"🚨 EXECUTION ALERT: {json.dumps(alert_data, indent=2)}")
 
     async def _send_exit_alert(self, position, exit_reason: str, exit_premium: float):
         """Send alert when position is exited"""
@@ -261,7 +261,7 @@ class LiveDipScanner:
         }
 
         # In production, send to Discord / Slack webhook, email, etc.
-        self.logger.info(f"🎯 EXIT ALERT: {json.dumps(alert_data, indent = 2)}")
+        self.logger.info(f"🎯 EXIT ALERT: {json.dumps(alert_data, indent=2)}")
 
     def should_scan(self)->bool: 
         """Check if scanner should run a scan cycle"""
@@ -292,7 +292,7 @@ class LiveDipScanner:
         
         return processed_signals
 
-    def update_daily_stats(self, opportunities_found: int = 0, trades_executed: int = 0):
+    def update_daily_stats(self, opportunities_found: int=0, trades_executed: int=0):
         """Update daily statistics"""
         self.opportunities_found_today += opportunities_found
         self.trades_executed_today += trades_executed
@@ -301,7 +301,7 @@ class LiveDipScanner:
         """Reset daily statistics (typically called at market open)"""
         self.opportunities_found_today = 0
         self.trades_executed_today = 0
-        self.last_reset_date = datetime.now()
+        self.last_reset_date=datetime.now()
 
     async def scan_universe(self)->List[DipSignal]: 
         """Scan the entire universe for dip opportunities"""
@@ -337,10 +337,10 @@ class LiveDipScanner:
 class DipTradingBot: 
     """Complete dip trading bot with scanner"""
 
-    def __init__(self, initial_capital: float = 500000):
-        self.system = ExactCloneSystem(initial_capital)
-        self.scanner = LiveDipScanner(self.system)
-        self.logger = logging.getLogger(__name__)
+    def __init__(self, initial_capital: float=500000):
+        self.system=ExactCloneSystem(initial_capital)
+        self.scanner=LiveDipScanner(self.system)
+        self.logger=logging.getLogger(__name__)
 
     async def start_bot(self): 
         """Start the complete trading bot"""

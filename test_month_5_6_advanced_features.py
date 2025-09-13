@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Test Month 5 - 6: Advanced Features and Automation
 Demonstrates sophisticated ML models, multi - asset risk, regulatory compliance, and automation
@@ -62,9 +62,9 @@ async def test_advanced_ml_models():
         }
         
         coordinator = MultiAgentRiskCoordinator(
-            risk_limits = risk_limits,
-            enable_ppo = True,
-            enable_ddpg = True,
+            risk_limits=risk_limits,
+            enable_ppo=True,
+            enable_ddpg=True,
             enable_td3 = False  # TD3 would be similar to DDPG
         )
         
@@ -185,10 +185,9 @@ async def test_multi_asset_risk():
         
         risk_manager = MultiAssetRiskManager(
             base_currency = "USD",
-            enable_crypto = True,
-            enable_forex = True,
-            enable_commodities = True
-        )
+            enable_crypto=True,
+            enable_forex=True,
+            enable_commodities = True)
         
         print("✅ Multi - Asset Risk Manager initialized")
         
@@ -199,28 +198,28 @@ async def test_multi_asset_risk():
         await risk_manager.add_position(
             "AAPL", AssetClass.EQUITY, 100, 15000, "USD",
             risk_factors = {RiskFactor.MARKET_RISK: 0.8, RiskFactor.LIQUIDITY_RISK: 0.1},
-            volatility = 0.25, liquidity_score = 0.9
+            volatility = 0.25, liquidity_score=0.9
         )
         
         # Crypto position
         await risk_manager.add_position(
             "BTC", AssetClass.CRYPTO, 0.5, 20000, "USD",
             risk_factors = {RiskFactor.CRYPTO_RISK: 0.9, RiskFactor.LIQUIDITY_RISK: 0.2},
-            volatility = 0.60, liquidity_score = 0.8
+            volatility = 0.60, liquidity_score=0.8
         )
         
         # Forex position
         await risk_manager.add_position(
             "EURUSD", AssetClass.FOREX, 100000, 110000, "USD",
             risk_factors = {RiskFactor.CURRENCY_RISK: 0.7, RiskFactor.INTEREST_RATE_RISK: 0.3},
-            volatility = 0.15, liquidity_score = 0.95
+            volatility = 0.15, liquidity_score=0.95
         )
         
         # Commodity position
         await risk_manager.add_position(
             "GOLD", AssetClass.COMMODITY, 10, 18000, "USD",
             risk_factors = {RiskFactor.COMMODITY_RISK: 0.6, RiskFactor.CURRENCY_RISK: 0.2},
-            volatility = 0.20, liquidity_score = 0.85
+            volatility = 0.20, liquidity_score=0.85
         )
         
         print("✅ Multi - asset positions added")
@@ -231,21 +230,21 @@ async def test_multi_asset_risk():
         print("\n3. Calculating Cross - Asset Correlations...")
         
         # Simulate market data
-        dates = pd.date_range(end=datetime.now(), periods = 252, freq = 'D')
+        dates = pd.date_range(end=datetime.now(), periods=252, freq='D')
         
         market_data = {
             "AAPL": pd.DataFrame({
                 'Close': 150 + np.random.normal(0, 5, 252)
-            }, index = dates),
+            }, index=dates),
             "BTC": pd.DataFrame({
                 'Close': 40000 + np.random.normal(0, 2000, 252)
-            }, index = dates),
+            }, index=dates),
             "EURUSD": pd.DataFrame({
                 'Close': 1.1 + np.random.normal(0, 0.02, 252)
-            }, index = dates),
+            }, index=dates),
             "GOLD": pd.DataFrame({
                 'Close': 1800 + np.random.normal(0, 50, 252)
-            }, index = dates)
+            }, index=dates)
         }
         
         correlations = await risk_manager.calculate_cross_asset_correlations(market_data)
@@ -315,7 +314,7 @@ async def test_regulatory_compliance():
         
         compliance_manager = RegulatoryComplianceManager(
             primary_authority = RegulatoryAuthority.FCA,
-            enable_audit_trail = True,
+            enable_audit_trail=True,
             compliance_db_path = "test_compliance.db"
         )
         
@@ -675,7 +674,7 @@ async def test_automated_rebalancing():
         
         print("✅ Dynamic rebalancing tested")
         print(f"   Current regime: {current_regime}")
-        print(f"   Regime - specific weights: {regime_weights_current}")
+        print(f"   Regime-specific weights: {regime_weights_current}")
         
         # 6. Test Rebalancing Performance
         print("\n6. Testing Rebalancing Performance...")
@@ -684,7 +683,7 @@ async def test_automated_rebalancing():
         rebalancing_cost = 0.001  # 0.1% cost per rebalancing
         
         # Calculate net benefit
-        performance_improvement = optimal_sharpe - portfolio_sharpe
+        performance_improvement = optimal_sharpe-portfolio_sharpe
         net_benefit = performance_improvement - rebalancing_cost
         
         print("✅ Rebalancing performance tested")

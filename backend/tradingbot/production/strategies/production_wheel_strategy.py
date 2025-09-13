@@ -39,8 +39,8 @@ class WheelPosition:
     option_type: Optional[str] = None  # "put" or "call"
     
     # Tracking
-    entry_date: datetime = field(default_factory=datetime.now)
-    total_premium_collected: Decimal = field(default_factory=lambda: Decimal('0'))
+    entry_date: datetime=field(default_factory=datetime.now)
+    total_premium_collected: Decimal=field(default_factory=lambda: Decimal('0'))
     cycle_number: int = 1
     annualized_return: Optional[Decimal] = None
 
@@ -91,25 +91,25 @@ class ProductionWheelStrategy:
         self.integration_manager = integration_manager
         self.data_provider = data_provider
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Initialize components
-        self.options_selector = SmartOptionsSelector(self.data_provider)
-        self.options_engine = create_options_pricing_engine()
-        self.risk_manager = RealTimeRiskManager()
+        self.options_selector=SmartOptionsSelector(self.data_provider)
+        self.options_engine=create_options_pricing_engine()
+        self.risk_manager=RealTimeRiskManager()
         
         # Strategy parameters from config
-        self.target_iv_rank = config.get('target_iv_rank', 50)  # Minimum IV rank
-        self.target_dte_range = config.get('target_dte_range', (30, 45))  # DTE range
-        self.target_delta_range = config.get('target_delta_range', (0.15, 0.30))  # Delta range
-        self.max_positions = config.get('max_positions', 10)  # Max concurrent positions
-        self.min_premium_dollars = config.get('min_premium_dollars', 50)  # Min premium per contract
-        self.profit_target = config.get('profit_target', 0.25)  # 25% profit target
-        self.max_loss_pct = config.get('max_loss_pct', 0.50)  # 50% max loss
-        self.assignment_buffer_days = config.get('assignment_buffer_days', 7)  # Days before expiry to close
+        self.target_iv_rank=config.get('target_iv_rank', 50)  # Minimum IV rank
+        self.target_dte_range=config.get('target_dte_range', (30, 45))  # DTE range
+        self.target_delta_range=config.get('target_delta_range', (0.15, 0.30))  # Delta range
+        self.max_positions=config.get('max_positions', 10)  # Max concurrent positions
+        self.min_premium_dollars=config.get('min_premium_dollars', 50)  # Min premium per contract
+        self.profit_target=config.get('profit_target', 0.25)  # 25% profit target
+        self.max_loss_pct=config.get('max_loss_pct', 0.50)  # 50% max loss
+        self.assignment_buffer_days=config.get('assignment_buffer_days', 7)  # Days before expiry to close
         
         # Watchlist - stocks suitable for wheel strategy
-        self.watchlist = config.get('watchlist', [
+        self.watchlist=config.get('watchlist', [
             'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX',
             'AMD', 'PLTR', 'F', 'BAC', 'T', 'KO', 'PFE', 'INTC', 'CCL', 'AAL'
         ])
@@ -158,14 +158,14 @@ class ProductionWheelStrategy:
                 if position.stage  ==  "cash_secured_put": # P & L from option premium
                     if position.option_premium: 
                         option_value = await self._get_current_option_value(position)
-                        position.unrealized_pnl = position.option_premium - option_value
+                        position.unrealized_pnl=position.option_premium - option_value
                 
                 elif position.stage  ==  "assigned_stock": # P & L from stock position
-                    stock_pnl = (current_price - position.entry_price) * position.quantity
-                    position.unrealized_pnl = position.total_premium_collected + stock_pnl
+                    stock_pnl = (current_price-position.entry_price) * position.quantity
+                    position.unrealized_pnl=position.total_premium_collected + stock_pnl
                 
                 elif position.stage  ==  "covered_call": # P & L from stock + option
-                    stock_pnl = (current_price - position.entry_price) * position.quantity
+                    stock_pnl = (current_price-position.entry_price) * position.quantity
                     if position.option_premium: 
                         option_value = await self._get_current_option_value(position)
                         option_pnl = position.option_premium - option_value
@@ -269,7 +269,7 @@ class ProductionWheelStrategy:
                     candidates.append(candidate)
             
             # Sort by best opportunities (highest annualized return with good risk metrics)
-            candidates.sort(key=lambda x: x.annualized_return, reverse = True)
+            candidates.sort(key=lambda x: x.annualized_return, reverse=True)
             
             # Generate signals for top candidates
             max_new_positions = self.max_positions - len(self.positions)
@@ -317,20 +317,20 @@ class ProductionWheelStrategy:
             probability_profit = Decimal(str(1.0 - abs(put_analysis.greeks.delta))) if put_analysis.greeks else Decimal('0.7')
             
             return WheelCandidate(
-                ticker = ticker,
-                current_price = current_price,
-                iv_rank = iv_rank,
+                ticker=ticker,
+                current_price=current_price,
+                iv_rank=iv_rank,
                 put_strike = put_analysis.contract.strike,
                 put_premium = put_analysis.mid_price,
                 put_delta = Decimal(str(put_analysis.greeks.delta)) if put_analysis.greeks else Decimal('-0.25'),
                 put_expiry = put_analysis.contract.expiry_date,
-                put_dte = (put_analysis.contract.expiry_date - date.today()).days,
-                liquidity_score = liquidity_score,
-                volume_score = volume_score,
-                earnings_risk = earnings_risk,
-                technical_score = technical_score,
-                annualized_return = annualized_return,
-                probability_profit = probability_profit,
+                put_dte = (put_analysis.contract.expiry_date-date.today()).days,
+                liquidity_score=liquidity_score,
+                volume_score=volume_score,
+                earnings_risk=earnings_risk,
+                technical_score=technical_score,
+                annualized_return=annualized_return,
+                probability_profit=probability_profit,
                 risk_reward_ratio = annualized_return / Decimal('100')  # Simplified risk - reward
             )
             
@@ -470,7 +470,7 @@ class ProductionWheelStrategy:
             
             if stage ==  "cash_secured_put": # New cash - secured put position
                 self.positions[ticker] = WheelPosition(
-                    ticker = ticker,
+                    ticker=ticker,
                     stage = "cash_secured_put",
                     status = "active",
                     quantity = -signal.quantity * 100,  # Negative for short option
@@ -487,17 +487,17 @@ class ProductionWheelStrategy:
             elif stage ==  "covered_call": # Add covered call to existing position
                 if ticker in self.positions: 
                     position = self.positions[ticker]
-                    position.stage = "covered_call"
-                    position.option_strike = Decimal(str(metadata.get("strike", 0)))
-                    position.option_expiry = datetime.fromisoformat(metadata.get("expiry", "")).date()
-                    position.option_premium = Decimal(str(metadata.get("premium", 0)))
-                    position.option_type = "call"
+                    position.stage="covered_call"
+                    position.option_strike=Decimal(str(metadata.get("strike", 0)))
+                    position.option_expiry=datetime.fromisoformat(metadata.get("expiry", "")).date()
+                    position.option_premium=Decimal(str(metadata.get("premium", 0)))
+                    position.option_type="call"
                     position.total_premium_collected += Decimal(str(metadata.get("premium", 0)))
             
             elif stage in ["close_profitable_put", "close_profitable_call", "avoid_assignment"]: 
                 # Position closed
                 if ticker in self.positions: 
-                    self.positions[ticker].status = "closed"
+                    self.positions[ticker].status="closed"
                     # Could move to historical positions here
             
             self.logger.info(f"Updated wheel position for {ticker}: {stage}")
@@ -531,11 +531,11 @@ class ProductionWheelStrategy:
     def _calculate_annualized_return(self, analysis: OptionsAnalysis)->Decimal:
         """Calculate annualized return for wheel strategy"""
         try: 
-            days_to_expiry = (analysis.contract.expiry_date - date.today()).days
+            days_to_expiry = (analysis.contract.expiry_date-date.today()).days
             if days_to_expiry  <=  0: 
                 return Decimal('0')
             
-            # Return = (Premium / Strike) * (365 / DTE)
+            # Return=(Premium / Strike) * (365 / DTE)
             premium_return = analysis.mid_price / analysis.contract.strike
             annualized = premium_return * Decimal(str(365 / days_to_expiry))
             

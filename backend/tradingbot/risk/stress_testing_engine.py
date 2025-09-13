@@ -1,5 +1,5 @@
 """
-Stress Testing Engine - 2025 Implementation
+Stress Testing Engine-2025 Implementation
 FCA - compliant stress testing framework with historical and hypothetical scenarios
 """
 
@@ -19,7 +19,7 @@ class StressScenario:
     market_shock: Dict[str, float]  # Asset class - >  shock percentage
     duration_days: int
     recovery_days: int
-    probability: float = 0.01  # 1% probability
+    probability: float=0.01  # 1% probability
 
 @dataclass
 class StressTestResult: 
@@ -46,8 +46,8 @@ class StressTesting2025:
     """FCA - compliant stress testing framework"""
     
     def __init__(self): 
-        self.regulatory_scenarios = self._initialize_regulatory_scenarios()
-        self.risk_limits = {
+        self.regulatory_scenarios=self._initialize_regulatory_scenarios()
+        self.risk_limits={
             'max_drawdown': 0.25,  # 25% max drawdown
             'max_daily_loss': 0.10,  # 10% max daily loss
             'min_recovery_time': 750  # 750 days max recovery (realistic for major crises)
@@ -144,7 +144,7 @@ class StressTesting2025:
     
     def run_comprehensive_stress_test(self, 
                                     portfolio: Dict[str, Any],
-                                    integration_frequency: str = 'daily')->StressTestReport:
+                                    integration_frequency: str='daily')->StressTestReport:
         """
         Run comprehensive stress tests per 2025 FCA guidelines
         
@@ -179,13 +179,13 @@ class StressTesting2025:
             except Exception as e: 
                 print(f"  ❌ ERROR: {str(e)}")
                 results[scenario_name] = StressTestResult(
-                    scenario_name = scenario_name,
+                    scenario_name=scenario_name,
                     portfolio_pnl = 0.0,
                     max_drawdown = 0.0,
                     recovery_time = 0,
                     strategy_breakdown = {},
                     risk_metrics = {},
-                    passed = False,
+                    passed=False,
                     failure_reason = f"Simulation error: {str(e)}"
                 )
                 failed_scenarios.append(scenario_name)
@@ -200,10 +200,10 @@ class StressTesting2025:
         overall_risk_score = self._calculate_overall_risk_score(results)
         
         return StressTestReport(
-            results = results,
-            compliance_status = compliance_status,
-            recommendations = recommendations,
-            overall_risk_score = overall_risk_score,
+            results=results,
+            compliance_status=compliance_status,
+            recommendations=recommendations,
+            overall_risk_score=overall_risk_score,
             test_date = datetime.now().strftime('%Y-%m-%d %H: %M:%S')
         )
     
@@ -235,7 +235,7 @@ class StressTesting2025:
         recovery_time = self._estimate_recovery_time(scenario, max_drawdown)
         
         # Check if scenario passes risk limits
-        passed, failure_reason = self._check_risk_limits(
+        passed, failure_reason=self._check_risk_limits(
             total_pnl, max_drawdown, recovery_time
         )
         
@@ -249,14 +249,13 @@ class StressTesting2025:
         
         return StressTestResult(
             scenario_name = scenario.name,
-            portfolio_pnl = total_pnl,
-            max_drawdown = max_drawdown,
-            recovery_time = recovery_time,
-            strategy_breakdown = strategy_breakdown,
-            risk_metrics = risk_metrics,
-            passed = passed,
-            failure_reason = failure_reason
-        )
+            portfolio_pnl=total_pnl,
+            max_drawdown=max_drawdown,
+            recovery_time=recovery_time,
+            strategy_breakdown=strategy_breakdown,
+            risk_metrics=risk_metrics,
+            passed=passed,
+            failure_reason = failure_reason)
     
     def _get_strategy_sensitivity(self, strategy_name: str, scenario: StressScenario)->float:
         """Get strategy sensitivity to stress scenario"""

@@ -50,7 +50,7 @@ class EarningsEvent:
     revenue_actual: Optional[float] = None
     surprise_pct: Optional[float] = None
     guidance_updated: bool = False
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -65,7 +65,7 @@ class IVAnalysis:
     pre_earnings_iv: float
     post_earnings_iv: float
     iv_spike_threshold: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -87,9 +87,9 @@ class EarningsPosition:
     vega_exposure: float
     max_loss: float
     max_profit: float
-    entry_date: datetime = field(default_factory=datetime.now)
-    last_update: datetime = field(default_factory=datetime.now)
-    status: str = "active"
+    entry_date: datetime=field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
+    status: str="active"
 
 
 @dataclass
@@ -107,7 +107,7 @@ class EarningsCandidate:
     earnings_score: float
     risk_score: float
     strategy_recommended: EarningsStrategy
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 class EarningsDataProvider: 
@@ -115,10 +115,10 @@ class EarningsDataProvider:
     
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
-        self.earnings_cache = {}
-        self.iv_cache = {}
+        self.earnings_cache={}
+        self.iv_cache={}
     
-    async def get_earnings_calendar(self, days_ahead: int = 30)->List[EarningsEvent]:
+    async def get_earnings_calendar(self, days_ahead: int=30)->List[EarningsEvent]:
         """Get upcoming earnings events"""
         try: 
             # Mock implementation - in production, integrate with real earnings API
@@ -167,7 +167,7 @@ class EarningsDataProvider:
         try: 
             # Mock IV analysis - in production, use real options data
             mock_iv = IVAnalysis(
-                ticker = ticker,
+                ticker=ticker,
                 current_iv = 0.25,
                 historical_iv = 0.20,
                 iv_percentile = 0.75,
@@ -185,7 +185,7 @@ class EarningsDataProvider:
             self.logger.error(f"Error fetching IV analysis for {ticker}: {e}")
             return None
     
-    async def get_earnings_history(self, ticker: str, quarters: int = 8)->List[Dict]:
+    async def get_earnings_history(self, ticker: str, quarters: int=8)->List[Dict]:
         """Get historical earnings data"""
         try: 
             # Mock historical earnings data
@@ -230,16 +230,16 @@ class EarningsProtectionStrategy:
         self.data = data_provider
         self.config = config
         self.logger = logger
-        self.earnings_provider = EarningsDataProvider(logger)
-        self.active_positions = {}
-        self.earnings_candidates = {}
+        self.earnings_provider=EarningsDataProvider(logger)
+        self.active_positions={}
+        self.earnings_candidates={}
         
         # Strategy parameters
-        self.max_earnings_exposure = 0.15  # 15% max exposure to earnings
+        self.max_earnings_exposure=0.15  # 15% max exposure to earnings
         self.min_days_to_earnings = 3
         self.max_days_to_earnings = 30
-        self.min_iv_rank = 0.60
-        self.max_protection_cost = 0.05  # 5% max protection cost
+        self.min_iv_rank=0.60
+        self.max_protection_cost=0.05  # 5% max protection cost
         
         self.logger.info("EarningsProtectionStrategy initialized")
     
@@ -256,7 +256,7 @@ class EarningsProtectionStrategy:
                 if event.event_type  !=  EarningsEventType.EARNINGS: 
                     continue
                 
-                days_to_earnings = (event.event_date - datetime.now()).days
+                days_to_earnings = (event.event_date-datetime.now()).days
                 
                 # Filter by days to earnings
                 if not (self.min_days_to_earnings  <=  days_to_earnings  <=  self.max_days_to_earnings): 
@@ -306,22 +306,21 @@ class EarningsProtectionStrategy:
                 candidate = EarningsCandidate(
                     ticker = event.ticker,
                     earnings_date = event.event_date,
-                    days_to_earnings = days_to_earnings,
+                    days_to_earnings=days_to_earnings,
                     current_price = market_data.price,
                     iv_rank = iv_analysis.iv_rank,
                     iv_percentile = iv_analysis.iv_percentile,
-                    expected_move = expected_move,
-                    protection_cost = protection_cost,
+                    expected_move=expected_move,
+                    protection_cost=protection_cost,
                     protection_ratio = protection_cost / market_data.price,
-                    earnings_score = earnings_score,
-                    risk_score = risk_score,
-                    strategy_recommended = strategy
-                )
+                    earnings_score=earnings_score,
+                    risk_score=risk_score,
+                    strategy_recommended = strategy)
                 
                 candidates.append(candidate)
             
             # Sort by earnings score
-            candidates.sort(key=lambda x: x.earnings_score, reverse = True)
+            candidates.sort(key=lambda x: x.earnings_score, reverse=True)
             
             self.logger.info(f"Found {len(candidates)} earnings protection opportunities")
             return candidates
@@ -509,7 +508,7 @@ class EarningsProtectionStrategy:
         # Add new position exposure
         new_exposure = candidate.protection_ratio
         
-        return (current_exposure + new_exposure)  <=  self.max_earnings_exposure
+        return (current_exposure+new_exposure)  <=  self.max_earnings_exposure
     
     async def _execute_deep_itm_protection(self, candidate: EarningsCandidate)->Optional[EarningsPosition]:
         """Execute deep ITM protection strategy"""
@@ -637,14 +636,14 @@ class EarningsProtectionStrategy:
             # Get current market data
             market_data = await self.data.get_market_data(position.ticker)
             if market_data: 
-                position.current_price = market_data.price
-                position.last_update = datetime.now()
+                position.current_price=market_data.price
+                position.last_update=datetime.now()
                 
                 # Recalculate P & L
-                position.unrealized_pnl = self._calculate_position_pnl(position)
+                position.unrealized_pnl=self._calculate_position_pnl(position)
                 
                 # Update days to earnings
-                position.days_to_earnings = (position.earnings_date - datetime.now()).days
+                position.days_to_earnings=(position.earnings_date-datetime.now()).days
             
         except Exception as e: 
             self.logger.error(f"Error updating position data for {position.ticker}: {e}")
@@ -653,11 +652,11 @@ class EarningsProtectionStrategy:
         """Calculate position P & L"""
         # Simplified P & L calculation - in production, use real options pricing
         if position.strategy ==  EarningsStrategy.DEEP_ITM_PROTECTION: 
-            return (position.current_price - position.entry_price) * position.quantity
+            return (position.current_price-position.entry_price) * position.quantity
         elif position.strategy ==  EarningsStrategy.CALENDAR_SPREAD_PROTECTION: 
             return position.theta_exposure * position.quantity * 10  # Mock theta decay
         elif position.strategy  ==  EarningsStrategy.PROTECTIVE_HEDGE: 
-            return -position.delta_exposure * (position.current_price - position.entry_price) * position.quantity
+            return -position.delta_exposure * (position.current_price-position.entry_price) * position.quantity
         elif position.strategy ==  EarningsStrategy.VOLATILITY_ARBITRAGE: 
             return position.vega_exposure * position.quantity * 5  # Mock vega exposure
         return 0.0
@@ -698,8 +697,8 @@ class EarningsProtectionStrategy:
         try: 
             self.logger.info(f"Rolling position for {position.ticker}")
             # Mock implementation - in production, execute roll trades
-            position.entry_date = datetime.now()
-            position.unrealized_pnl = 0.0
+            position.entry_date=datetime.now()
+            position.unrealized_pnl=0.0
             self.logger.info(f"Position rolled for {position.ticker}")
             
         except Exception as e: 

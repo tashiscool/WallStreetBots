@@ -77,8 +77,8 @@ class ComplianceRuleDefinition:
     measurement_period: int  # days
     severity: str  # "low", "medium", "high", "critical"
     is_active: bool = True
-    created_date: datetime = field(default_factory=datetime.now)
-    last_updated: datetime = field(default_factory=datetime.now)
+    created_date: datetime=field(default_factory=datetime.now)
+    last_updated: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -127,9 +127,9 @@ class RegulatoryComplianceManager:
     """
     
     def __init__(self, 
-                 primary_authority: RegulatoryAuthority = RegulatoryAuthority.FCA,
-                 enable_audit_trail: bool = True,
-                 compliance_db_path: str = "compliance.db"):
+                 primary_authority: RegulatoryAuthority=RegulatoryAuthority.FCA,
+                 enable_audit_trail: bool=True,
+                 compliance_db_path: str="compliance.db"):
         """
         Initialize regulatory compliance manager
         
@@ -142,7 +142,7 @@ class RegulatoryComplianceManager:
         self.enable_audit_trail = enable_audit_trail
         self.compliance_db_path = compliance_db_path
         
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Compliance state
         self.compliance_rules: Dict[str, ComplianceRuleDefinition] = {}
@@ -394,7 +394,7 @@ class RegulatoryComplianceManager:
             # Update tracking
             self.check_count += len(checks)
             self.violation_count += len([c for c in checks if c.status  !=  ComplianceStatus.COMPLIANT])
-            self.last_compliance_check = datetime.now()
+            self.last_compliance_check=datetime.now()
             
             # Log audit trail
             if self.enable_audit_trail: 
@@ -442,34 +442,33 @@ class RegulatoryComplianceManager:
             if is_compliant: 
                 status = ComplianceStatus.COMPLIANT
             else: 
-                if rule.severity  ==  "critical": status = ComplianceStatus.CRITICAL
-                elif rule.severity  ==  "high": status = ComplianceStatus.NON_COMPLIANT
+                if rule.severity  ==  "critical": status=ComplianceStatus.CRITICAL
+                elif rule.severity  ==  "high": status=ComplianceStatus.NON_COMPLIANT
                 else: 
                     status = ComplianceStatus.WARNING
             
             # Calculate deviation
-            deviation = current_value - rule.threshold
+            deviation = current_value-rule.threshold
             
             # Generate remediation actions
             remediation_actions = await self._generate_remediation_actions(rule, current_value, deviation)
             
             # Create check result
             check = ComplianceCheck(
-                check_id = f"{rule.rule_id}_{datetime.now().strftime('%Y % m%d_ % H%M % S')}",
+                check_id = f"{rule.rule_id}_{datetime.now().strftime('%Y % m % d_ % H % M % S')}",
                 rule_id = rule.rule_id,
                 timestamp = datetime.now(),
-                status = status,
-                current_value = current_value,
+                status=status,
+                current_value=current_value,
                 threshold_value = rule.threshold,
-                deviation = deviation,
+                deviation=deviation,
                 severity = rule.severity,
                 details = {
                     "rule_description": rule.description,
                     "measurement_period": rule.measurement_period,
                     "authority": rule.authority.value
                 },
-                remediation_actions = remediation_actions
-            )
+                remediation_actions = remediation_actions)
             
             return check
             
@@ -560,26 +559,25 @@ class RegulatoryComplianceManager:
                              old_values: Dict[str, Any],
                              new_values: Dict[str, Any],
                              reason: str,
-                             ip_address: str = None,
-                             session_id: str = None):
+                             ip_address: str=None,
+                             session_id: str=None):
         """Log audit trail entry"""
         try: 
             if not self.enable_audit_trail: 
                 return
             
             entry = AuditTrail(
-                entry_id = f"audit_{datetime.now().strftime('%Y % m%d_ % H%M % S_%f')}",
+                entry_id = f"audit_{datetime.now().strftime('%Y % m % d_ % H % M % S_ % f')}",
                 timestamp = datetime.now(),
-                user_id = user_id,
-                action = action,
-                entity_type = entity_type,
-                entity_id = entity_id,
-                old_values = old_values,
-                new_values = new_values,
-                reason = reason,
-                ip_address = ip_address,
-                session_id = session_id
-            )
+                user_id=user_id,
+                action=action,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                old_values=old_values,
+                new_values=new_values,
+                reason=reason,
+                ip_address=ip_address,
+                session_id = session_id)
             
             self.audit_trail.append(entry)
             
@@ -626,7 +624,7 @@ class RegulatoryComplianceManager:
             str: Report ID
         """
         try: 
-            report_id = f"report_{report_type}_{period_start.strftime('%Y % m%d')}_{period_end.strftime('%Y % m%d')}"
+            report_id = f"report_{report_type}_{period_start.strftime('%Y % m % d')}_{period_end.strftime('%Y % m % d')}"
             
             # Generate report data
             report_data = {
@@ -663,7 +661,7 @@ class RegulatoryComplianceManager:
                 user_id = "system",
                 action = "generate_report",
                 entity_type = "report",
-                entity_id = report_id,
+                entity_id=report_id,
                 old_values = {},
                 new_values = {"report_type": report_type, "period": f"{period_start} to {period_end}"},
                 reason = f"Generated {report_type} regulatory report"
@@ -746,22 +744,21 @@ class RegulatoryComplianceManager:
                     remediation_actions.append("URGENT: Position exceeds 30% - immediate action required")
             
             return ComplianceCheck(
-                check_id = f"pos_check_{datetime.now().strftime('%Y % m%d_ % H%M % S')}",
+                check_id = f"pos_check_{datetime.now().strftime('%Y % m % d_ % H % M % S')}",
                 rule_id = "position_limits",
                 timestamp = datetime.now(),
-                status = status,
-                current_value = concentration_risk,
+                status=status,
+                current_value=concentration_risk,
                 threshold_value = 0.2,  # Default position limit
                 deviation = max(0, concentration_risk - 0.2),
                 severity = "high" if violations else "low",
                 details = {"violations": violations, "concentration_risk": concentration_risk},
-                remediation_actions = remediation_actions
-            )
+                remediation_actions = remediation_actions)
             
         except Exception as e: 
             self.logger.error(f"Error in position compliance check: {e}")
             return ComplianceCheck(
-                check_id = f"pos_error_{datetime.now().strftime('%Y % m%d_ % H%M % S')}",
+                check_id = f"pos_error_{datetime.now().strftime('%Y % m % d_ % H % M % S')}",
                 rule_id = "position_limits",
                 timestamp = datetime.now(),
                 status = ComplianceStatus.NON_COMPLIANT,
@@ -807,16 +804,16 @@ class RegulatoryComplianceManager:
                 if hasattr(old_rule, key): 
                     setattr(old_rule, key, value)
             
-            old_rule.last_updated = datetime.now()
+            old_rule.last_updated=datetime.now()
             
             # Log audit trail
             asyncio.create_task(self._log_audit_trail(
                 user_id = "admin",
                 action = "update_rule",
                 entity_type = "compliance_rule",
-                entity_id = rule_id,
+                entity_id=rule_id,
                 old_values = {"threshold": old_rule.threshold, "severity": old_rule.severity},
-                new_values = updates,
+                new_values=updates,
                 reason = "Updated compliance rule"
             ))
             
@@ -832,8 +829,7 @@ if __name__ ==  "__main__":
         # Initialize compliance manager
         compliance_manager = RegulatoryComplianceManager(
             primary_authority = RegulatoryAuthority.FCA,
-            enable_audit_trail = True
-        )
+            enable_audit_trail = True)
         
         # Simulate portfolio data
         portfolio_data = {

@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Test script for production scanner - validates logic without external dependencies
 """
@@ -46,7 +46,7 @@ class MockTicker:
     def __init__(self, symbol): 
         self.symbol = symbol
 
-    def history(self, period = "60d", interval = "1d", auto_adjust = False): 
+    def history(self, period="60d", interval="1d", auto_adjust=False): 
         # Generate synthetic data for testing
         base_price = {"GOOGL": 207.0, "AAPL": 175.0, "MSFT": 285.0}.get(self.symbol, 200.0)
 
@@ -93,19 +93,19 @@ class MockTicker:
 
         # Create strikes around current price
         for strike_offset in [-20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30]: 
-            strike = round(base_price + strike_offset)
+            strike = round(base_price+strike_offset)
             if strike  <=  0: 
                 continue
 
             # Mock option pricing
-            intrinsic = max(0, base_price - strike)
+            intrinsic = max(0, base_price-strike)
             time_value = max(1.0, 15 - abs(strike_offset))
             mid_price = intrinsic + time_value
 
             calls_data.append({
                 "strike": strike,
-                "bid": max(0.05, mid_price - 0.25),
-                "ask": mid_price + 0.25,
+                "bid": max(0.05, mid_price-0.25),
+                "ask": mid_price+0.25,
                 "lastPrice": mid_price,
                 "volume": 1000 if abs(strike_offset)  <=  10 else 100,
                 "openInterest": 5000 if abs(strike_offset)  <=  10 else 500
@@ -114,7 +114,7 @@ class MockTicker:
         # Mock option chain object
         class MockOptionChain: 
             def __init__(self, calls_data): 
-                self.calls = MockOptionsDF(calls_data)
+                self.calls=MockOptionsDF(calls_data)
 
         return MockOptionChain(calls_data)
 
@@ -138,11 +138,11 @@ class MockOptionsDF:
 
     def sort_values(self, by): 
         if isinstance(by, list) and 'absdiff' in by: 
-            sorted_data = sorted(self.data, key = lambda x: x.get('absdiff', 0))
+            sorted_data = sorted(self.data, key=lambda x: x.get('absdiff', 0))
             return MockOptionsDF(sorted_data)
         return self
 
-    def head(self, n = 1): 
+    def head(self, n=1): 
         return MockOptionsDF(self.data[: n])
 
     @property
@@ -207,7 +207,7 @@ def test_signal_detection():
         if any(val  <=  0 for val in [spot, strike, t_years, iv]): 
             raise ValueError("Invalid BS parameters")
 
-        d1 = (math.log(spot / strike) + (r - q + 0.5 * iv*iv)*t_years) / (iv * math.sqrt(t_years))
+        d1 = (math.log(spot / strike) + (r - q + 0.5 * iv * iv) * t_years) / (iv * math.sqrt(t_years))
         d2 = d1 - iv * math.sqrt(t_years)
 
         call_value = (spot * math.exp(-q * t_years) * _norm_cdf(d1) -
@@ -264,8 +264,8 @@ def test_signal_detection():
         # Estimate premium using Black - Scholes
         try: 
             premium_per_share = bs_call_price(
-                spot = spot,
-                strike = strike,
+                spot=spot,
+                strike=strike,
                 t_years = 30 / 365.0,  # 30 DTE
                 r = 0.04,
                 q = 0.0,
@@ -286,7 +286,7 @@ def test_signal_detection():
         print(f"         Premium: ${premium_per_contract:.2f}")
         print(f"         Contracts: {contracts:,}")
         print(f"         Total cost: ${total_cost:,.0f}")
-        print(f"         Risk: {(total_cost / account_size)*100:.1f}% of account")
+        print(f"         Risk: {(total_cost / account_size) * 100:.1f}% of account")
         print(f"         Leverage: {(contracts * 100 * spot / total_cost):.1f}x")
 
         return {
@@ -339,7 +339,7 @@ def test_options_chain_mock():
     for exp_str in expiries: 
         try: 
             exp_date = datetime.strptime(exp_str, "%Y-%m-%d").date()
-            diff = abs((exp_date - today).days - target_dte)
+            diff = abs((exp_date-today).days - target_dte)
             if diff  <  best_diff: 
                 best_diff = diff
                 best_expiry = exp_str
@@ -361,14 +361,14 @@ def test_options_chain_mock():
         for option in chain.calls.data: 
             option['absdiff'] = abs(option['strike'] - target_strike)
 
-        sorted_options = sorted(chain.calls.data, key = lambda x: x['absdiff'])
+        sorted_options = sorted(chain.calls.data, key=lambda x: x['absdiff'])
         best_option = sorted_options[0]
 
         print(f"Target strike: ${target_strike}")
         print(f"Closest available strike: ${best_option['strike']}")
         print(f"Bid: ${best_option['bid']:.2f}")
         print(f"Ask: ${best_option['ask']:.2f}")
-        print(f"Mid: ${(best_option['bid'] + best_option['ask'])/2:.2f}")
+        print(f"Mid: ${(best_option['bid'] + best_option['ask']) / 2:.2f}")
         print(f"Volume: {best_option['volume']:,}")
         print(f"Open Interest: {best_option['openInterest']:,}")
 
@@ -398,7 +398,7 @@ def test_exact_clone_math():
     risk_pct = (actual_cost / account_size) * 100
 
     strike = round(spot * 1.05)
-    breakeven = strike + premium
+    breakeven = strike+premium
     leverage = (contracts * 100 * spot) / actual_cost
 
     print(f"  Contracts: {contracts:,}")
@@ -416,7 +416,7 @@ def test_exact_clone_math():
 
     # Compare
     print("\nComparison: ")
-    print(f"  Contract difference: {contracts - original_contracts:,} ({((contracts / original_contracts)-1)*100:+.1f}%)")
+    print(f"  Contract difference: {contracts - original_contracts:,} ({((contracts / original_contracts) - 1) * 100:+.1f}%)")
     print(f"  Cost difference: ${actual_cost - original_cost:,.0f}")
     print(f"  Risk reduction: {95 - risk_pct:.1f} percentage points")
 

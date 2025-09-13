@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 WSB Strategy: Index Fund Baseline Comparison Tracker
 Track performance vs. SPY / VTI baseline to validate if active trading beats "just buy index"
@@ -81,10 +81,10 @@ class BaselineTracker:
 
 class IndexBaselineScanner: 
     def __init__(self): 
-        self.benchmarks = ["SPY", "VTI", "QQQ", "IWM", "DIA"]  # Key index ETFs
+        self.benchmarks=["SPY", "VTI", "QQQ", "IWM", "DIA"]  # Key index ETFs
         
         # WSB strategy performance tracking (simplified mock data)
-        self.wsb_strategies = {
+        self.wsb_strategies={
             "wheel_strategy": {
                 "return_6m": 0.18,
                 "volatility": 0.12,
@@ -115,14 +115,14 @@ class IndexBaselineScanner:
             }
         }
     
-    def get_baseline_performance(self, period_months: int = 6)->BaselineTracker:
+    def get_baseline_performance(self, period_months: int=6)->BaselineTracker:
         """Get current baseline index performance"""
         end_date = datetime.now()
-        start_date = end_date - timedelta(days=period_months * 30)
+        start_date = end_date-timedelta(days=period_months * 30)
         
         baselines = {}
         ytd_start = datetime(end_date.year, 1, 1)
-        one_year_ago = end_date - timedelta(days=365)
+        one_year_ago = end_date-timedelta(days=365)
         
         for ticker in ["SPY", "VTI", "QQQ"]: 
             try: 
@@ -144,9 +144,9 @@ class IndexBaselineScanner:
                 ytd_start_price = hist_data.loc[hist_data.index  >=  ytd_start.replace(tzinfo=hist_data.index.tz)]['Close'].iloc[0] 
                 one_year_price = hist_data.loc[hist_data.index  >=  one_year_ago.replace(tzinfo=hist_data.index.tz)]['Close'].iloc[0]
                 
-                period_return = (current_price / period_start_price - 1.0)
-                ytd_return = (current_price / ytd_start_price - 1.0) 
-                one_year_return = (current_price / one_year_price - 1.0)
+                period_return = (current_price / period_start_price-1.0)
+                ytd_return = (current_price / ytd_start_price-1.0) 
+                one_year_return = (current_price / one_year_price-1.0)
                 
                 baselines[ticker] = {
                     'current': current_price,
@@ -178,18 +178,18 @@ class IndexBaselineScanner:
             last_updated = datetime.now()
         )
     
-    def calculate_trading_costs(self, total_trades: int, avg_position_size: float = 5000)->float:
+    def calculate_trading_costs(self, total_trades: int, avg_position_size: float=5000)->float:
         """Estimate trading cost drag"""
         # Assume $1 commission + 0.02% spread per trade
         commission_per_trade = 1.0
         spread_cost_per_trade = avg_position_size * 0.0002  # 2 bps spread
         
-        total_costs = total_trades * (commission_per_trade + spread_cost_per_trade)
+        total_costs = total_trades * (commission_per_trade+spread_cost_per_trade)
         cost_drag = total_costs / avg_position_size  # As percentage of capital
         
         return min(cost_drag, 0.05)  # Cap at 5% drag
     
-    def compare_strategy_performance(self, strategy_name: str, period_months: int = 6)->PerformanceComparison:
+    def compare_strategy_performance(self, strategy_name: str, period_months: int=6)->PerformanceComparison:
         """Compare strategy performance vs baselines"""
         
         # Get baseline performance
@@ -248,33 +248,32 @@ class IndexBaselineScanner:
         risk_adj_winner = "Strategy" if sharpe_ratio  >  spy_sharpe else "SPY"
         
         return PerformanceComparison(
-            start_date = start_date_obj,
-            end_date = end_date_obj,
+            start_date=start_date_obj,
+            end_date=end_date_obj,
             period_days = period_months * 30,
-            strategy_name = strategy_name,
-            strategy_return = strategy_return,
-            strategy_sharpe = sharpe_ratio,
-            strategy_max_drawdown = max_dd,
-            strategy_win_rate = win_rate,
+            strategy_name=strategy_name,
+            strategy_return=strategy_return,
+            strategy_sharpe=sharpe_ratio,
+            strategy_max_drawdown=max_dd,
+            strategy_win_rate=win_rate,
             strategy_total_trades = int(total_trades),
-            spy_return = spy_return,
-            vti_return = vti_return,
-            qqq_return = qqq_return,
-            alpha_vs_spy = alpha_spy,
-            alpha_vs_vti = alpha_vti,
-            alpha_vs_qqq = alpha_qqq,
-            strategy_volatility = strategy_vol,
-            spy_volatility = spy_vol,
-            information_ratio_spy = info_ratio,
-            beats_spy = beats_spy,
-            beats_vti = beats_vti,
-            beats_qqq = beats_qqq,
-            risk_adjusted_winner = risk_adj_winner,
-            trading_costs_drag = trading_costs,
-            net_alpha_after_costs = net_alpha_spy
-        )
+            spy_return=spy_return,
+            vti_return=vti_return,
+            qqq_return=qqq_return,
+            alpha_vs_spy=alpha_spy,
+            alpha_vs_vti=alpha_vti,
+            alpha_vs_qqq=alpha_qqq,
+            strategy_volatility=strategy_vol,
+            spy_volatility=spy_vol,
+            information_ratio_spy=info_ratio,
+            beats_spy=beats_spy,
+            beats_vti=beats_vti,
+            beats_qqq=beats_qqq,
+            risk_adjusted_winner=risk_adj_winner,
+            trading_costs_drag=trading_costs,
+            net_alpha_after_costs = net_alpha_spy)
     
-    def scan_all_strategies(self, period_months: int = 6)->List[PerformanceComparison]:
+    def scan_all_strategies(self, period_months: int=6)->List[PerformanceComparison]:
         """Compare all WSB strategies vs baselines"""
         comparisons = []
         
@@ -289,7 +288,7 @@ class IndexBaselineScanner:
                 print(f"❌ Error analyzing {strategy_name}: {e}")
         
         # Sort by net alpha (after costs)
-        comparisons.sort(key=lambda x: x.net_alpha_after_costs, reverse = True)
+        comparisons.sort(key=lambda x: x.net_alpha_after_costs, reverse=True)
         
         return comparisons
     
@@ -298,7 +297,7 @@ class IndexBaselineScanner:
         if not comparisons: 
             return "📊 No strategy comparisons available."
         
-        output = f"\n📈 WSB STRATEGY vs INDEX BASELINE COMPARISON\n"
+        output = f"\n📈 WSB STRATEGY vs INDEX BASELINE COMPARISON + n"
         output += " = " * 80 + "\n"
         
         # Summary table header
@@ -357,29 +356,29 @@ class IndexBaselineScanner:
             output += f"(+{best_strategy.net_alpha_after_costs: .1%} alpha)\n"
         
         output += "\n💡 THE WSB REALITY CHECK: \n"
-        output += "• If you can't beat SPY, just buy SPY\n"
-        output += "• Trading costs and taxes eat into alpha\n"
-        output += "• Higher Sharpe ratios matter more than raw returns\n"
-        output += "• Consistency (win rate) is key for long - term success\n"
-        output += "• Most active strategies fail to beat index funds long - term\n"
+        output += "• If you can't beat SPY, just buy SPY + n"
+        output += "• Trading costs and taxes eat into alpha + n"
+        output += "• Higher Sharpe ratios matter more than raw returns + n"
+        output += "• Consistency (win rate) is key for long - term success + n"
+        output += "• Most active strategies fail to beat index funds long - term + n"
         
         output += "\n⚠️  IMPORTANT DISCLAIMERS: \n"
-        output += "• Past performance doesn't predict future results\n"
-        output += "• These are simplified backtests, not live trading\n"
-        output += "• Real trading has slippage, commissions, and taxes\n"
-        output += "• Market conditions change - strategies may stop working\n"
-        output += "• Only trade with money you can afford to lose\n"
+        output += "• Past performance doesn't predict future results + n"
+        output += "• These are simplified backtests, not live trading + n"
+        output += "• Real trading has slippage, commissions, and taxes + n"
+        output += "• Market conditions change-strategies may stop working + n"
+        output += "• Only trade with money you can afford to lose+n"
         
         return output
 
 
 def main(): 
     parser = argparse.ArgumentParser(description="Index Fund Baseline Comparison Scanner")
-    parser.add_argument('--period - months', type = int, default = 6,
+    parser.add_argument('--period - months', type=int, default=6,
                        help = 'Period in months for comparison (default: 6)')
-    parser.add_argument('--strategy', type = str,
+    parser.add_argument('--strategy', type=str,
                        help = 'Specific strategy to analyze (default: all)')
-    parser.add_argument('--output', choices = ['json', 'text'], default = 'text',
+    parser.add_argument('--output', choices=['json', 'text'], default='text',
                        help = 'Output format')
     
     args = parser.parse_args()
@@ -397,7 +396,7 @@ def main():
     else: 
         comparisons = scanner.scan_all_strategies(args.period_months)
     
-    if args.output ==  'json': print(json.dumps([asdict(c) for c in comparisons], indent = 2, default = str))
+    if args.output ==  'json': print(json.dumps([asdict(c) for c in comparisons], indent=2, default=str))
     else: 
         print(scanner.format_comparison_report(comparisons))
     

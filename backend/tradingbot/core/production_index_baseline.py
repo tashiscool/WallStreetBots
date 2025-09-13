@@ -44,7 +44,7 @@ class BenchmarkData:
     max_drawdown: float
     
     # Metadata
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -73,7 +73,7 @@ class StrategyPerformance:
     profit_factor: float
     
     # Metadata
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -98,7 +98,7 @@ class PerformanceComparison:
     benchmark_sharpe: float
     
     # Metadata
-    comparison_date: datetime = field(default_factory=datetime.now)
+    comparison_date: datetime=field(default_factory=datetime.now)
 
 
 class PerformanceCalculator: 
@@ -150,7 +150,7 @@ class PerformanceCalculator:
         variance = sum((r - mean_return) ** 2 for r in returns) / (len(returns) - 1)
         return math.sqrt(variance)
     
-    def calculate_sharpe_ratio(self, returns: List[float], risk_free_rate: float = 0.02)->float:
+    def calculate_sharpe_ratio(self, returns: List[float], risk_free_rate: float=0.02)->float:
         """Calculate Sharpe ratio"""
         if len(returns)  <  2: 
             return 0.0
@@ -216,9 +216,9 @@ class ProductionIndexBaseline:
         self.data = data_provider
         self.config = config
         self.logger = logger
-        self.error_handler = ErrorHandler(logger)
-        self.metrics = MetricsCollector(logger)
-        self.calculator = PerformanceCalculator(logger)
+        self.error_handler=ErrorHandler(logger)
+        self.metrics=MetricsCollector(logger)
+        self.calculator=PerformanceCalculator(logger)
         
         # Benchmark tracking
         self.benchmarks: Dict[str, BenchmarkData] = {}
@@ -231,7 +231,7 @@ class ProductionIndexBaseline:
         
         # Strategy state
         self.last_update_time: Optional[datetime] = None
-        self.update_interval = timedelta(hours=1)
+        self.update_interval=timedelta(hours=1)
         
         self.logger.info("Index Baseline Strategy initialized")
     
@@ -264,8 +264,8 @@ class ProductionIndexBaseline:
                 BenchmarkType.IWM
             
             benchmark = BenchmarkData(
-                ticker = ticker,
-                benchmark_type = benchmark_type,
+                ticker=ticker,
+                benchmark_type=benchmark_type,
                 current_price = market_data.price,
                 daily_return = market_data.change_percent,
                 weekly_return = 0.0,  # Would calculate from historical data
@@ -318,12 +318,12 @@ class ProductionIndexBaseline:
             returns = self.calculator.calculate_returns(self.price_history[ticker])
             
             # Update benchmark data
-            benchmark.current_price = market_data.price
-            benchmark.daily_return = market_data.change_percent
-            benchmark.weekly_return = returns['weekly_return']
-            benchmark.monthly_return = returns['monthly_return']
-            benchmark.ytd_return = returns['ytd_return']
-            benchmark.annual_return = returns['annual_return']
+            benchmark.current_price=market_data.price
+            benchmark.daily_return=market_data.change_percent
+            benchmark.weekly_return=returns['weekly_return']
+            benchmark.monthly_return=returns['monthly_return']
+            benchmark.ytd_return=returns['ytd_return']
+            benchmark.annual_return=returns['annual_return']
             
             # Calculate risk metrics
             if len(self.price_history[ticker])  >  1: 
@@ -331,11 +331,11 @@ class ProductionIndexBaseline:
                                self.price_history[ticker][i - 1] 
                                for i in range(1, len(self.price_history[ticker]))]
                 
-                benchmark.volatility = self.calculator.calculate_volatility(price_returns)
-                benchmark.sharpe_ratio = self.calculator.calculate_sharpe_ratio(price_returns)
-                benchmark.max_drawdown = self.calculator.calculate_max_drawdown(self.price_history[ticker])
+                benchmark.volatility=self.calculator.calculate_volatility(price_returns)
+                benchmark.sharpe_ratio=self.calculator.calculate_sharpe_ratio(price_returns)
+                benchmark.max_drawdown=self.calculator.calculate_max_drawdown(self.price_history[ticker])
             
-            benchmark.last_update = datetime.now()
+            benchmark.last_update=datetime.now()
             
             self.logger.info(f"Updated benchmark: {ticker}",
                            price = benchmark.current_price,
@@ -353,7 +353,7 @@ class ProductionIndexBaseline:
             # Calculate strategy metrics
             total_return = self._calculate_strategy_return(trades)
             win_rate = self._calculate_win_rate(trades)
-            avg_win, avg_loss = self._calculate_avg_win_loss(trades)
+            avg_win, avg_loss=self._calculate_avg_win_loss(trades)
             profit_factor = self._calculate_profit_factor(trades)
             
             # Calculate risk metrics (simplified)
@@ -362,30 +362,29 @@ class ProductionIndexBaseline:
             max_drawdown = 0.10  # Default max drawdown
             
             performance = StrategyPerformance(
-                strategy_name = strategy_name,
-                total_return = total_return,
+                strategy_name=strategy_name,
+                total_return=total_return,
                 daily_return = total_return / 252,  # Simplified daily return
                 weekly_return = total_return / 52,   # Simplified weekly return
                 monthly_return = total_return / 12,  # Simplified monthly return
-                ytd_return = total_return,
-                annual_return = total_return,
-                volatility = volatility,
-                sharpe_ratio = sharpe_ratio,
-                max_drawdown = max_drawdown,
-                win_rate = win_rate,
+                ytd_return=total_return,
+                annual_return=total_return,
+                volatility=volatility,
+                sharpe_ratio=sharpe_ratio,
+                max_drawdown=max_drawdown,
+                win_rate=win_rate,
                 total_trades = len(trades),
                 winning_trades = sum(1 for trade in trades if self._is_winning_trade(trade)),
                 losing_trades = sum(1 for trade in trades if not self._is_winning_trade(trade)),
-                avg_win = avg_win,
-                avg_loss = avg_loss,
-                profit_factor = profit_factor
-            )
+                avg_win=avg_win,
+                avg_loss=avg_loss,
+                profit_factor = profit_factor)
             
             self.strategy_performance[strategy_name] = performance
             
             self.logger.info(f"Strategy performance tracked: {strategy_name}",
-                           total_return = total_return,
-                           win_rate = win_rate,
+                           total_return=total_return,
+                           win_rate=win_rate,
                            total_trades = len(trades))
             
         except Exception as e: 
@@ -465,15 +464,15 @@ class ProductionIndexBaseline:
                 information_ratio = alpha / strategy_perf.volatility if strategy_perf.volatility  >  0 else 0.0
                 
                 comparison = PerformanceComparison(
-                    strategy_name = strategy_name,
-                    benchmark_ticker = ticker,
+                    strategy_name=strategy_name,
+                    benchmark_ticker=ticker,
                     strategy_return = strategy_perf.total_return,
                     benchmark_return = benchmark.annual_return,
-                    alpha = alpha,
-                    beta = beta,
+                    alpha=alpha,
+                    beta=beta,
                     strategy_volatility = strategy_perf.volatility,
                     benchmark_volatility = benchmark.volatility,
-                    information_ratio = information_ratio,
+                    information_ratio=information_ratio,
                     strategy_sharpe = strategy_perf.sharpe_ratio,
                     benchmark_sharpe = benchmark.sharpe_ratio
                 )
@@ -481,7 +480,7 @@ class ProductionIndexBaseline:
                 comparisons.append(comparison)
                 
                 self.logger.info(f"Performance comparison: {strategy_name} vs {ticker}",
-                               alpha = alpha,
+                               alpha=alpha,
                                strategy_return = strategy_perf.total_return,
                                benchmark_return = benchmark.annual_return)
                 

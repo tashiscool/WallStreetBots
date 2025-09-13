@@ -48,7 +48,7 @@ class SystemHealthReport:
     trading_status: ComponentHealth
     components: Dict[str, ComponentHealth] = field(default_factory=dict)
     recommendations: List[str] = field(default_factory=list)
-    uptime_seconds: float = 0.0
+    uptime_seconds: float=0.0
     total_errors: int = 0
 
 
@@ -64,14 +64,14 @@ class SystemHealthMonitor:
     - Trading performance metrics
     """
     
-    def __init__(self, trading_system = None, alert_system = None, config: Dict[str, Any] = None): 
+    def __init__(self, trading_system=None, alert_system=None, config: Dict[str, Any] = None): 
         self.trading_system = trading_system
         self.alert_system = alert_system
         self.config = config or {}
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Health thresholds
-        self.alert_thresholds = {
+        self.alert_thresholds={
             'data_feed_latency': config.get('data_feed_latency_threshold', 5.0),  # seconds
             'order_execution_time': config.get('order_execution_time_threshold', 30.0),  # seconds
             'error_rate': config.get('error_rate_threshold', 0.05),  # 5% error rate
@@ -81,9 +81,9 @@ class SystemHealthMonitor:
         }
         
         # Monitoring state
-        self.start_time = datetime.now()
-        self.health_history = []
-        self.component_checks = {}
+        self.start_time=datetime.now()
+        self.health_history=[]
+        self.component_checks={}
         
         self.logger.info("SystemHealthMonitor initialized")
     
@@ -99,8 +99,7 @@ class SystemHealthMonitor:
                 self._check_database_performance(),
                 self._check_system_resources(),
                 self._check_trading_performance(),
-                return_exceptions = True
-            )
+                return_exceptions = True)
             
             # Extract results
             data_feed_health = health_checks[0] if not isinstance(health_checks[0], Exception) else self._create_error_health("data_feed", health_checks[0])
@@ -117,12 +116,12 @@ class SystemHealthMonitor:
             # Create comprehensive report
             report = SystemHealthReport(
                 timestamp = datetime.now(),
-                overall_status = overall_status,
-                data_feed_status = data_feed_health,
-                broker_status = broker_health,
-                database_status = db_health,
-                resource_status = resource_health,
-                trading_status = trading_health,
+                overall_status=overall_status,
+                data_feed_status=data_feed_health,
+                broker_status=broker_health,
+                database_status=db_health,
+                resource_status=resource_health,
+                trading_status=trading_health,
                 components = {
                     'data_feed': data_feed_health,
                     'broker': broker_health,
@@ -134,12 +133,12 @@ class SystemHealthMonitor:
             )
             
             # Generate recommendations
-            report.recommendations = self._generate_recommendations(report)
+            report.recommendations=self._generate_recommendations(report)
             
             # Store in history
             self.health_history.append(report)
             if len(self.health_history)  >  100:  # Keep last 100 reports
-                self.health_history = self.health_history[-100: ]
+                self.health_history=self.health_history[-100: ]
             
             # Send alerts if unhealthy
             if overall_status in [HealthStatus.DEGRADED, HealthStatus.CRITICAL]: 
@@ -169,9 +168,9 @@ class SystemHealthMonitor:
                     status = HealthStatus.HEALTHY if response_time  <  self.alert_thresholds['data_feed_latency'] * 1000 else HealthStatus.DEGRADED
                     return ComponentHealth(
                         component_name = "data_feed",
-                        status = status,
+                        status=status,
                         last_check = datetime.now(),
-                        response_time_ms = response_time,
+                        response_time_ms=response_time,
                         details = {
                             'test_ticker': 'AAPL',
                             'test_price': float(test_price.price) if hasattr(test_price, 'price') else None,
@@ -184,7 +183,7 @@ class SystemHealthMonitor:
                         component_name = "data_feed",
                         status = HealthStatus.CRITICAL,
                         last_check = datetime.now(),
-                        response_time_ms = response_time,
+                        response_time_ms=response_time,
                         error_count = 1,
                         details = {'error': 'No data returned from test request'},
                         recommendations = ['Switch to backup data source', 'Check data provider configuration']
@@ -224,9 +223,9 @@ class SystemHealthMonitor:
                     status = HealthStatus.HEALTHY if response_time  <  5000 else HealthStatus.DEGRADED  # 5 second threshold
                     return ComponentHealth(
                         component_name = "broker",
-                        status = status,
+                        status=status,
                         last_check = datetime.now(),
-                        response_time_ms = response_time,
+                        response_time_ms=response_time,
                         details = {
                             'account_status': getattr(account_info, 'status', 'unknown'),
                             'buying_power': getattr(account_info, 'buying_power', 0),
@@ -239,7 +238,7 @@ class SystemHealthMonitor:
                         component_name = "broker",
                         status = HealthStatus.CRITICAL,
                         last_check = datetime.now(),
-                        response_time_ms = response_time,
+                        response_time_ms=response_time,
                         error_count = 1,
                         details = {'error': 'No account info returned'},
                         recommendations = ['Check broker API credentials', 'Verify account status']
@@ -280,9 +279,9 @@ class SystemHealthMonitor:
             
             return ComponentHealth(
                 component_name = "database",
-                status = status,
+                status=status,
                 last_check = datetime.now(),
-                response_time_ms = response_time,
+                response_time_ms=response_time,
                 details = {
                     'connection_pool_size': 10,  # Placeholder
                     'active_connections': 3,     # Placeholder
@@ -316,14 +315,14 @@ class SystemHealthMonitor:
             
             if cpu_percent  >  self.alert_thresholds['cpu_usage'] * 100: 
                 status = HealthStatus.CRITICAL
-                recommendations.append('High CPU usage - consider scaling or optimization')
+                recommendations.append('High CPU usage-consider scaling or optimization')
             elif cpu_percent  >  self.alert_thresholds['cpu_usage'] * 100 * 0.8: 
                 status = HealthStatus.DEGRADED
                 recommendations.append('CPU usage approaching threshold')
             
             if memory.percent  >  self.alert_thresholds['memory_usage'] * 100: 
                 status = HealthStatus.CRITICAL
-                recommendations.append('High memory usage - consider memory optimization')
+                recommendations.append('High memory usage-consider memory optimization')
             elif memory.percent  >  self.alert_thresholds['memory_usage'] * 100 * 0.8: 
                 if status ==  HealthStatus.HEALTHY: 
                     status = HealthStatus.DEGRADED
@@ -331,7 +330,7 @@ class SystemHealthMonitor:
             
             if disk.percent  >  self.alert_thresholds['disk_usage'] * 100: 
                 status = HealthStatus.CRITICAL
-                recommendations.append('High disk usage - cleanup required')
+                recommendations.append('High disk usage-cleanup required')
             elif disk.percent  >  self.alert_thresholds['disk_usage'] * 100 * 0.8: 
                 if status ==  HealthStatus.HEALTHY: 
                     status = HealthStatus.DEGRADED
@@ -339,7 +338,7 @@ class SystemHealthMonitor:
             
             return ComponentHealth(
                 component_name = "resources",
-                status = status,
+                status=status,
                 last_check = datetime.now(),
                 response_time_ms = 0,
                 details = {
@@ -349,8 +348,7 @@ class SystemHealthMonitor:
                     'disk_percent': disk.percent,
                     'disk_free_gb': disk.free / (1024**3)
                 },
-                recommendations = recommendations
-            )
+                recommendations = recommendations)
             
         except Exception as e: 
             return ComponentHealth(
@@ -379,7 +377,7 @@ class SystemHealthMonitor:
             
             if error_rate  >  self.alert_thresholds['error_rate']: 
                 status = HealthStatus.CRITICAL
-                recommendations.append('High trading error rate - review strategy logic')
+                recommendations.append('High trading error rate-review strategy logic')
             elif error_rate  >  self.alert_thresholds['error_rate'] * 0.5: 
                 if status ==  HealthStatus.HEALTHY: 
                     status = HealthStatus.DEGRADED
@@ -387,7 +385,7 @@ class SystemHealthMonitor:
             
             return ComponentHealth(
                 component_name = "trading",
-                status = status,
+                status=status,
                 last_check = datetime.now(),
                 response_time_ms = 0,
                 error_count = int((total_trades - successful_trades)),
@@ -397,8 +395,7 @@ class SystemHealthMonitor:
                     'error_rate': error_rate,
                     'avg_execution_time_ms': 150  # Placeholder
                 },
-                recommendations = recommendations
-            )
+                recommendations = recommendations)
             
         except Exception as e: 
             return ComponentHealth(
@@ -441,7 +438,7 @@ class SystemHealthMonitor:
         
         # Add system - wide recommendations
         if report.overall_status ==  HealthStatus.CRITICAL: 
-            recommendations.append('System in critical state - immediate attention required')
+            recommendations.append('System in critical state-immediate attention required')
         elif report.overall_status ==  HealthStatus.DEGRADED: 
             recommendations.append('System performance degraded - monitor closely')
         
@@ -456,13 +453,12 @@ class SystemHealthMonitor:
                 f"Overall Status: {report.overall_status.value}\n"
                 f"Components: {', '.join([f'{name}: {comp.status.value}' for name, comp in report.components.items()])}\n"
                 f"Recommendations: {'; '.join(report.recommendations[:3])}",  # First 3 recommendations
-                priority = priority
-            )
+                priority = priority)
     
     def _create_error_health(self, component_name: str, error: Exception)->ComponentHealth:
         """Create health status for component that failed to check"""
         return ComponentHealth(
-            component_name = component_name,
+            component_name=component_name,
             status = HealthStatus.CRITICAL,
             last_check = datetime.now(),
             response_time_ms = 0,
@@ -484,7 +480,7 @@ class SystemHealthMonitor:
             recommendations = ['System health check failed - immediate investigation required']
         )
     
-    def get_health_history(self, hours: int = 24)->List[SystemHealthReport]:
+    def get_health_history(self, hours: int=24)->List[SystemHealthReport]:
         """Get health history for specified hours"""
         cutoff_time = datetime.now() - timedelta(hours=hours)
         return [report for report in self.health_history if report.timestamp  >=  cutoff_time]

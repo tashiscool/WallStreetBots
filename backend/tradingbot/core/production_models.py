@@ -32,14 +32,14 @@ class OrderSide(Enum):
 class Strategy: 
     """Trading strategy configuration"""
     id: Optional[int] = None
-    name: str = ""
-    description: str = ""
-    risk_level: StrategyRiskLevel = StrategyRiskLevel.LOW
-    status: str = "active"
-    max_position_risk: Decimal = Decimal('0.02')
-    max_account_risk: Decimal = Decimal('0.10')
-    created_at: datetime = field(default_factory=datetime.now)
-    updated_at: datetime = field(default_factory=datetime.now)
+    name: str=""
+    description: str=""
+    risk_level: StrategyRiskLevel=StrategyRiskLevel.LOW
+    status: str="active"
+    max_position_risk: Decimal=Decimal('0.02')
+    max_account_risk: Decimal=Decimal('0.10')
+    created_at: datetime=field(default_factory=datetime.now)
+    updated_at: datetime=field(default_factory=datetime.now)
 
 
 @dataclass  
@@ -47,17 +47,17 @@ class Position:
     """Current position in a security"""
     id: Optional[int] = None
     strategy_id: Optional[int] = None
-    ticker: str = ""
+    ticker: str=""
     quantity: int = 0
-    avg_entry_price: Decimal = Decimal('0.00')
-    current_price: Decimal = Decimal('0.00')
-    market_value: Decimal = Decimal('0.00')
-    unrealized_pnl: Decimal = Decimal('0.00')
-    realized_pnl: Decimal = Decimal('0.00')
-    total_pnl: Decimal = Decimal('0.00')
-    risk_amount: Decimal = Decimal('0.00')
-    entry_date: datetime = field(default_factory=datetime.now)
-    last_update: datetime = field(default_factory=datetime.now)
+    avg_entry_price: Decimal=Decimal('0.00')
+    current_price: Decimal=Decimal('0.00')
+    market_value: Decimal=Decimal('0.00')
+    unrealized_pnl: Decimal=Decimal('0.00')
+    realized_pnl: Decimal=Decimal('0.00')
+    total_pnl: Decimal=Decimal('0.00')
+    risk_amount: Decimal=Decimal('0.00')
+    entry_date: datetime=field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -66,17 +66,17 @@ class Trade:
     """Individual trade execution record"""
     id: Optional[int] = None
     strategy_id: Optional[int] = None
-    trade_id: str = ""
-    ticker: str = ""
-    side: OrderSide = OrderSide.BUY
+    trade_id: str=""
+    ticker: str=""
+    side: OrderSide=OrderSide.BUY
     quantity: int = 0
-    entry_price: Decimal = Decimal('0.00')
+    entry_price: Decimal=Decimal('0.00')
     exit_price: Optional[Decimal] = None
     pnl: Optional[Decimal] = None
-    commission: Decimal = Decimal('0.00')
-    slippage: Decimal = Decimal('0.00')
-    status: TradeStatus = TradeStatus.PENDING
-    entry_time: datetime = field(default_factory=datetime.now)
+    commission: Decimal=Decimal('0.00')
+    slippage: Decimal=Decimal('0.00')
+    status: TradeStatus=TradeStatus.PENDING
+    entry_time: datetime=field(default_factory=datetime.now)
     exit_time: Optional[datetime] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -86,23 +86,23 @@ class RiskLimit:
     """Risk management limits for strategies"""
     id: Optional[int] = None
     strategy_id: Optional[int] = None
-    max_position_size: Decimal = Decimal('0.02')
-    max_total_risk: Decimal = Decimal('0.10')
-    max_daily_loss: Decimal = Decimal('0.05')
-    max_drawdown: Decimal = Decimal('0.20')
-    stop_loss_pct: Decimal = Decimal('0.10')
-    take_profit_pct: Decimal = Decimal('0.20')
-    created_at: datetime = field(default_factory=datetime.now)
+    max_position_size: Decimal=Decimal('0.02')
+    max_total_risk: Decimal=Decimal('0.10')
+    max_daily_loss: Decimal=Decimal('0.05')
+    max_drawdown: Decimal=Decimal('0.20')
+    stop_loss_pct: Decimal=Decimal('0.10')
+    take_profit_pct: Decimal=Decimal('0.20')
+    created_at: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
 class Alert: 
     """System alerts and notifications"""
     id: Optional[int] = None
-    timestamp: datetime = field(default_factory=datetime.now)
-    level: str = "info"  # info, warning, error, critical
-    message: str = ""
-    source: str = ""
+    timestamp: datetime=field(default_factory=datetime.now)
+    level: str="info"  # info, warning, error, critical
+    message: str=""
+    source: str=""
     metadata: Dict[str, Any] = field(default_factory=dict)
     acknowledged: bool = False
 
@@ -118,7 +118,7 @@ _alerts: List[Alert] = []
 
 def create_strategy(strategy: Strategy)->Strategy:
     """Create a new strategy"""
-    strategy.id = len(_strategies) + 1
+    strategy.id=len(_strategies) + 1
     _strategies.append(strategy)
     return strategy
 
@@ -133,7 +133,7 @@ def get_strategy(strategy_id: int)->Optional[Strategy]:
 
 def create_position(position: Position)->Position:
     """Create a new position"""
-    position.id = len(_positions) + 1
+    position.id=len(_positions) + 1
     _positions.append(position)
     return position
 
@@ -147,7 +147,7 @@ def get_positions(strategy_id: Optional[int] = None)->List[Position]:
 
 def create_trade(trade: Trade)->Trade:
     """Create a new trade"""
-    trade.id = len(_trades) + 1
+    trade.id=len(_trades) + 1
     _trades.append(trade)
     return trade
 
@@ -161,7 +161,7 @@ def get_trades(strategy_id: Optional[int] = None)->List[Trade]:
 
 def create_alert(alert: Alert)->Alert:
     """Create a new alert"""
-    alert.id = len(_alerts) + 1
+    alert.id=len(_alerts) + 1
     _alerts.append(alert)
     return alert
 
@@ -178,27 +178,27 @@ class PerformanceMetrics:
     """Strategy performance metrics"""
     id: Optional[int] = None
     strategy_id: Optional[int] = None
-    strategy_name: str = ""
-    period_start: datetime = field(default_factory=datetime.now)
-    period_end: datetime = field(default_factory=datetime.now)
+    strategy_name: str=""
+    period_start: datetime=field(default_factory=datetime.now)
+    period_end: datetime=field(default_factory=datetime.now)
     total_trades: int = 0
     winning_trades: int = 0
     losing_trades: int = 0
-    win_rate: Decimal = Decimal('0.00')
-    total_pnl: Decimal = Decimal('0.00')
-    gross_profit: Decimal = Decimal('0.00')
-    gross_loss: Decimal = Decimal('0.00')
-    profit_factor: Decimal = Decimal('0.00')
-    avg_win: Decimal = Decimal('0.00')
-    avg_loss: Decimal = Decimal('0.00')
-    largest_win: Decimal = Decimal('0.00')
-    largest_loss: Decimal = Decimal('0.00')
-    max_drawdown: Decimal = Decimal('0.00')
-    sharpe_ratio: Decimal = Decimal('0.00')
-    sortino_ratio: Decimal = Decimal('0.00')
-    calmar_ratio: Decimal = Decimal('0.00')
-    kelly_fraction: Decimal = Decimal('0.00')
-    var_95: Decimal = Decimal('0.00')
-    expected_shortfall: Decimal = Decimal('0.00')
-    created_at: datetime = field(default_factory=datetime.now)
-    updated_at: datetime = field(default_factory=datetime.now)
+    win_rate: Decimal=Decimal('0.00')
+    total_pnl: Decimal=Decimal('0.00')
+    gross_profit: Decimal=Decimal('0.00')
+    gross_loss: Decimal=Decimal('0.00')
+    profit_factor: Decimal=Decimal('0.00')
+    avg_win: Decimal=Decimal('0.00')
+    avg_loss: Decimal=Decimal('0.00')
+    largest_win: Decimal=Decimal('0.00')
+    largest_loss: Decimal=Decimal('0.00')
+    max_drawdown: Decimal=Decimal('0.00')
+    sharpe_ratio: Decimal=Decimal('0.00')
+    sortino_ratio: Decimal=Decimal('0.00')
+    calmar_ratio: Decimal=Decimal('0.00')
+    kelly_fraction: Decimal=Decimal('0.00')
+    var_95: Decimal=Decimal('0.00')
+    expected_shortfall: Decimal=Decimal('0.00')
+    created_at: datetime=field(default_factory=datetime.now)
+    updated_at: datetime=field(default_factory=datetime.now)

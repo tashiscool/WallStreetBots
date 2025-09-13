@@ -64,16 +64,16 @@ class RiskSummary:
 class RiskDashboard2025: 
     """Real - time risk monitoring dashboard with 2025 features"""
     
-    def __init__(self, portfolio_value: float = 100000.0):
+    def __init__(self, portfolio_value: float=100000.0):
         self.portfolio_value = portfolio_value
         
         # Initialize risk engines
-        self.var_engine = AdvancedVaREngine(portfolio_value)
-        self.stress_tester = StressTesting2025()
-        self.ml_predictor = MLRiskPredictor()
+        self.var_engine=AdvancedVaREngine(portfolio_value)
+        self.stress_tester=StressTesting2025()
+        self.ml_predictor=MLRiskPredictor()
         
         # Risk limits
-        self.risk_limits = {
+        self.risk_limits={
             'max_var_1d': 0.05,  # 5% of portfolio
             'max_var_5d': 0.10,  # 10% of portfolio
             'max_cvar_99': 0.08,  # 8% of portfolio
@@ -83,8 +83,8 @@ class RiskDashboard2025:
         }
         
         # Alert system
-        self.active_alerts = []
-        self.alert_history = []
+        self.active_alerts=[]
+        self.alert_history=[]
         
     def generate_risk_summary(self, portfolio: Dict[str, Any])->RiskSummary: 
         """Generate comprehensive real - time risk summary"""
@@ -95,7 +95,7 @@ class RiskDashboard2025:
         market_data = portfolio.get('market_data', {})
         
         # Calculate core risk metrics
-        var_1d, var_5d, cvar_99 = self._calculate_core_risk_metrics(positions, market_data)
+        var_1d, var_5d, cvar_99=self._calculate_core_risk_metrics(positions, market_data)
         
         # Calculate advanced metrics
         tail_expectation = self._calculate_tail_expectation(positions)
@@ -112,7 +112,7 @@ class RiskDashboard2025:
         concentration_risk = self._calculate_concentration_risk(positions)
         
         # Run stress tests
-        stress_test_pnl, scenario_analysis = self._run_stress_tests(portfolio)
+        stress_test_pnl, scenario_analysis=self._run_stress_tests(portfolio)
         
         # Check for alerts
         self._check_risk_alerts(portfolio)
@@ -123,21 +123,21 @@ class RiskDashboard2025:
         )
         
         return RiskSummary(
-            var_1d = var_1d,
-            var_5d = var_5d,
-            cvar_99 = cvar_99,
-            tail_expectation = tail_expectation,
-            regime_adjusted_risk = regime_adjusted_risk,
-            ml_risk_forecast = ml_risk_forecast,
-            sentiment_risk = sentiment_risk,
-            options_flow_risk = options_flow_risk,
-            social_media_risk = social_media_risk,
-            factor_risk_breakdown = factor_risk_breakdown,
-            concentration_risk = concentration_risk,
-            stress_test_pnl = stress_test_pnl,
-            scenario_analysis = scenario_analysis,
+            var_1d=var_1d,
+            var_5d=var_5d,
+            cvar_99=cvar_99,
+            tail_expectation=tail_expectation,
+            regime_adjusted_risk=regime_adjusted_risk,
+            ml_risk_forecast=ml_risk_forecast,
+            sentiment_risk=sentiment_risk,
+            options_flow_risk=options_flow_risk,
+            social_media_risk=social_media_risk,
+            factor_risk_breakdown=factor_risk_breakdown,
+            concentration_risk=concentration_risk,
+            stress_test_pnl=stress_test_pnl,
+            scenario_analysis=scenario_analysis,
             active_alerts = self.active_alerts,
-            risk_limit_utilization = risk_limit_utilization,
+            risk_limit_utilization=risk_limit_utilization,
             calculation_timestamp = datetime.now().isoformat(),
             portfolio_value = self.portfolio_value,
             total_positions = len(positions)
@@ -153,7 +153,7 @@ class RiskDashboard2025:
         
         # Calculate VaR suite
         var_suite = self.var_engine.calculate_var_suite(
-            returns = sample_returns,
+            returns=sample_returns,
             confidence_levels = [0.95, 0.99],
             methods = ['historical', 'monte_carlo']
         )
@@ -171,7 +171,7 @@ class RiskDashboard2025:
         return self.portfolio_value * 0.03  # 3% of portfolio value
     
     def _calculate_regime_adjusted_risk(self, market_data: Dict)->float:
-        """Calculate regime - adjusted risk"""
+        """Calculate regime-adjusted risk"""
         # Get regime detection from VaR engine
         sample_returns = np.random.normal(0.001, 0.02, 60)
         regime_info = self.var_engine.detect_regime_and_adjust(sample_returns)
@@ -219,7 +219,7 @@ class RiskDashboard2025:
         social_volume = market_data.get('social_volume', 0.5)
         social_sentiment = market_data.get('social_sentiment', 0)
         
-        # High volume + negative sentiment = high risk
+        # High volume+negative sentiment = high risk
         risk_score = social_volume * abs(social_sentiment)
         return self.portfolio_value * risk_score * 0.1  # Scale to portfolio
     
@@ -275,13 +275,13 @@ class RiskDashboard2025:
     def _check_risk_alerts(self, portfolio: Dict)->None:
         """Check for risk limit breaches and generate alerts"""
         # Clear previous alerts
-        self.active_alerts = []
+        self.active_alerts=[]
         
         # Get current risk metrics
         positions = portfolio.get('positions', [])
         market_data = portfolio.get('market_data', {})
         
-        var_1d, var_5d, cvar_99 = self._calculate_core_risk_metrics(positions, market_data)
+        var_1d, var_5d, cvar_99=self._calculate_core_risk_metrics(positions, market_data)
         concentration_risk = self._calculate_concentration_risk(positions)
         
         # Check VaR limits
@@ -290,7 +290,7 @@ class RiskDashboard2025:
                 alert_type = "VAR_BREACH",
                 severity = "HIGH",
                 message = f"1 - day VaR ${var_1d: ,.0f} exceeds limit ${self.risk_limits['max_var_1d'] * self.portfolio_value: ,.0f}",
-                portfolio_impact = var_1d,
+                portfolio_impact=var_1d,
                 recommended_action = "Reduce position sizes immediately"
             )
         
@@ -300,7 +300,7 @@ class RiskDashboard2025:
                 alert_type = "CONCENTRATION_BREACH",
                 severity = "MEDIUM",
                 message = f"Concentration risk ${concentration_risk: ,.0f} exceeds limit",
-                portfolio_impact = concentration_risk,
+                portfolio_impact=concentration_risk,
                 recommended_action = "Diversify portfolio positions"
             )
         
@@ -311,7 +311,7 @@ class RiskDashboard2025:
                 alert_type = "ML_RISK_HIGH",
                 severity = "MEDIUM",
                 message = f"ML risk forecast ${ml_risk: ,.0f} indicates high risk environment",
-                portfolio_impact = ml_risk,
+                portfolio_impact=ml_risk,
                 recommended_action = "Consider reducing risk exposure"
             )
     
@@ -319,14 +319,13 @@ class RiskDashboard2025:
                    portfolio_impact: float, recommended_action: str)->None:
         """Add new risk alert"""
         alert = RiskAlert(
-            alert_id = f"{alert_type}_{datetime.now().strftime('%Y % m%d_ % H%M % S')}",
-            alert_type = alert_type,
-            severity = severity,
-            message = message,
+            alert_id = f"{alert_type}_{datetime.now().strftime('%Y % m % d_ % H % M % S')}",
+            alert_type=alert_type,
+            severity=severity,
+            message=message,
             timestamp = datetime.now().isoformat(),
-            portfolio_impact = portfolio_impact,
-            recommended_action = recommended_action
-        )
+            portfolio_impact=portfolio_impact,
+            recommended_action = recommended_action)
         
         self.active_alerts.append(alert)
         self.alert_history.append(alert)
@@ -420,7 +419,7 @@ class RiskDashboard2025:
                 return True
         return False
     
-    def get_alert_history(self, limit: int = 50)->List[Dict]:
+    def get_alert_history(self, limit: int=50)->List[Dict]:
         """Get alert history"""
         return [
             {

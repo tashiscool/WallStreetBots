@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Behavioral Verification Tests for Risk Management System
 Tests mathematical accuracy of Kelly Criterion, position sizing, and portfolio risk calculations
@@ -23,7 +23,7 @@ class TestKellyCriterionAccuracy(unittest.TestCase):
     """Test mathematical accuracy of Kelly Criterion calculations"""
     
     def setUp(self): 
-        self.kelly_calc = KellyCalculator()
+        self.kelly_calc=KellyCalculator()
     
     def test_kelly_formula_mathematical_accuracy(self): 
         """Test Kelly formula against known mathematical results"""
@@ -36,14 +36,14 @@ class TestKellyCriterionAccuracy(unittest.TestCase):
             win_prob, avg_win, avg_loss
         )
         
-        # Expected Kelly = (bp - q) / b where b = avg_win / avg_loss, p = win_prob, q = 1 - p
-        b = avg_win / avg_loss  # b = 2.0
-        p = win_prob           # p = 0.6
-        q = 1 - p             # q = 0.4
-        expected_kelly = (b * p - q) / b  # (2 * 0.6 - 0.4) / 2 = 0.4
+        # Expected Kelly=(bp - q) / b where b=avg_win / avg_loss, p=win_prob, q = 1 - p
+        b = avg_win / avg_loss  # b=2.0
+        p = win_prob           # p=0.6
+        q = 1 - p             # q=0.4
+        expected_kelly = (b * p - q) / b  # (2 * 0.6 - 0.4) / 2=0.4
         
-        self.assertAlmostEqual(kelly_fraction, expected_kelly, places = 10)
-        self.assertAlmostEqual(kelly_fraction, 0.4, places = 10)
+        self.assertAlmostEqual(kelly_fraction, expected_kelly, places=10)
+        self.assertAlmostEqual(kelly_fraction, 0.4, places=10)
     
     def test_kelly_edge_cases(self): 
         """Test Kelly calculation edge cases"""
@@ -74,36 +74,36 @@ class TestKellyCriterionAccuracy(unittest.TestCase):
             {'return_pct': -0.5},  # 50% loss (2 losses)
         ]
         
-        kelly_fraction, stats = self.kelly_calc.calculate_from_historical_trades(trades)
+        kelly_fraction, stats=self.kelly_calc.calculate_from_historical_trades(trades)
         
         # Expected stats
         expected_win_rate = 3 / 5  # 0.6
         expected_avg_win = 1.0   # 100%
         expected_avg_loss = 0.5  # 50%
         
-        self.assertAlmostEqual(stats['win_probability'], expected_win_rate, places = 10)
-        self.assertAlmostEqual(stats['avg_win_pct'], expected_avg_win, places = 10)
-        self.assertAlmostEqual(stats['avg_loss_pct'], expected_avg_loss, places = 10)
+        self.assertAlmostEqual(stats['win_probability'], expected_win_rate, places=10)
+        self.assertAlmostEqual(stats['avg_win_pct'], expected_avg_win, places=10)
+        self.assertAlmostEqual(stats['avg_loss_pct'], expected_avg_loss, places=10)
         
-        # Expected Kelly = (2 * 0.6 - 0.4) / 2 = 0.4
-        self.assertAlmostEqual(kelly_fraction, 0.4, places = 10)
+        # Expected Kelly=(2 * 0.6 - 0.4) / 2=0.4
+        self.assertAlmostEqual(kelly_fraction, 0.4, places=10)
     
     def test_kelly_empty_data_handling(self): 
         """Test handling of empty or invalid trade data"""
         # Empty trades
-        kelly, stats = self.kelly_calc.calculate_from_historical_trades([])
+        kelly, stats=self.kelly_calc.calculate_from_historical_trades([])
         self.assertEqual(kelly, 0.0)
         self.assertEqual(stats, {})
         
         # Only wins (no losses)
         wins_only = [{'return_pct': 1.0}, {'return_pct': 0.5}]
-        kelly, stats = self.kelly_calc.calculate_from_historical_trades(wins_only)
+        kelly, stats=self.kelly_calc.calculate_from_historical_trades(wins_only)
         self.assertEqual(kelly, 0.0)
         self.assertIn('error', stats)
         
         # Only losses (no wins)
         losses_only = [{'return_pct': -0.3}, {'return_pct': -0.2}]
-        kelly, stats = self.kelly_calc.calculate_from_historical_trades(losses_only)
+        kelly, stats=self.kelly_calc.calculate_from_historical_trades(losses_only)
         self.assertEqual(kelly, 0.0)
         self.assertIn('error', stats)
     
@@ -119,7 +119,7 @@ class TestKellyCriterionAccuracy(unittest.TestCase):
             {'return_pct': -0.30}, # Smaller loss
         ]
         
-        kelly_fraction, stats = self.kelly_calc.calculate_from_historical_trades(successful_trades)
+        kelly_fraction, stats=self.kelly_calc.calculate_from_historical_trades(successful_trades)
         
         # Should show positive edge
         self.assertGreater(kelly_fraction, 0.1)  # At least 10% Kelly
@@ -132,8 +132,8 @@ class TestPositionSizingAccuracy(unittest.TestCase):
     """Test mathematical accuracy of position sizing calculations"""
     
     def setUp(self): 
-        self.risk_params = RiskParameters()
-        self.position_sizer = PositionSizer(self.risk_params)
+        self.risk_params=RiskParameters()
+        self.position_sizer=PositionSizer(self.risk_params)
     
     def test_fixed_fractional_sizing_accuracy(self): 
         """Test fixed fractional position sizing mathematical accuracy"""
@@ -142,11 +142,10 @@ class TestPositionSizingAccuracy(unittest.TestCase):
         risk_tier = 'moderate'  # 10% risk
         
         sizing = self.position_sizer.calculate_position_size(
-            account_value = account_value,
+            account_value=account_value,
             setup_confidence = 1.0,  # Max confidence to isolate fixed fractional
-            premium_per_contract = premium_per_contract,
-            risk_tier = risk_tier
-        )
+            premium_per_contract=premium_per_contract,
+            risk_tier = risk_tier)
         
         # Expected calculation for fixed fractional component
         expected_risk_amount = account_value * self.risk_params.risk_tiers[risk_tier]  # $10,000
@@ -171,23 +170,22 @@ class TestPositionSizingAccuracy(unittest.TestCase):
         avg_loss = 0.45
         
         sizing = self.position_sizer.calculate_position_size(
-            account_value = account_value,
+            account_value=account_value,
             setup_confidence = 1.0,
-            premium_per_contract = premium_per_contract,
-            expected_win_rate = win_rate,
-            expected_avg_win = avg_win,
-            expected_avg_loss = avg_loss
-        )
+            premium_per_contract=premium_per_contract,
+            expected_win_rate=win_rate,
+            expected_avg_win=avg_win,
+            expected_avg_loss = avg_loss)
         
         # Verify Kelly calculation
         expected_kelly = self.position_sizer.kelly_calc.calculate_kelly_fraction(
             win_rate, avg_win, avg_loss
         )
-        self.assertAlmostEqual(sizing['kelly_fraction'], expected_kelly, places = 10)
+        self.assertAlmostEqual(sizing['kelly_fraction'], expected_kelly, places=10)
         
         # Verify safe Kelly (with multiplier)
         expected_safe_kelly = expected_kelly * self.risk_params.kelly_multiplier
-        self.assertAlmostEqual(sizing['safe_kelly_fraction'], expected_safe_kelly, places = 10)
+        self.assertAlmostEqual(sizing['safe_kelly_fraction'], expected_safe_kelly, places=10)
         
         # Verify Kelly contracts calculation
         expected_kelly_risk = account_value * expected_safe_kelly
@@ -195,18 +193,17 @@ class TestPositionSizingAccuracy(unittest.TestCase):
         self.assertEqual(sizing['kelly_contracts'], expected_kelly_contracts)
     
     def test_confidence_adjusted_sizing_accuracy(self): 
-        """Test confidence - adjusted sizing mathematical accuracy"""
+        """Test confidence-adjusted sizing mathematical accuracy"""
         account_value = 200000.0
         premium_per_contract = 3.0
         setup_confidence = 0.75  # 75% confidence
         risk_tier = 'aggressive'  # 15% max risk
         
         sizing = self.position_sizer.calculate_position_size(
-            account_value = account_value,
-            setup_confidence = setup_confidence,
-            premium_per_contract = premium_per_contract,
-            risk_tier = risk_tier
-        )
+            account_value=account_value,
+            setup_confidence=setup_confidence,
+            premium_per_contract=premium_per_contract,
+            risk_tier = risk_tier)
         
         # Expected confidence adjustment
         max_risk_amount = account_value * self.risk_params.risk_tiers[risk_tier]  # $30,000
@@ -222,9 +219,9 @@ class TestPositionSizingAccuracy(unittest.TestCase):
         premium_per_contract = 1.0  # Very cheap options
         
         sizing = self.position_sizer.calculate_position_size(
-            account_value = account_value,
+            account_value=account_value,
             setup_confidence = 1.0,
-            premium_per_contract = premium_per_contract,
+            premium_per_contract=premium_per_contract,
             risk_tier = 'aggressive'  # Would normally allow 15%
         )
         
@@ -274,8 +271,8 @@ class TestPositionMathematicalAccuracy(unittest.TestCase):
         position = Position(
             ticker = "AAPL",
             position_type = "call",
-            entry_date = entry_date,
-            expiry_date = expiry_date,
+            entry_date=entry_date,
+            expiry_date=expiry_date,
             strike = 150.0,
             contracts = 100,
             entry_premium = 5.0,
@@ -314,10 +311,10 @@ class TestPositionMathematicalAccuracy(unittest.TestCase):
             profit_targets = []
         )
         
-        # Expected ROI = (current_value - total_cost) / total_cost
+        # Expected ROI=(current_value-total_cost) / total_cost
         expected_roi = (25.0 - 10.0) / 10.0  # 1.5 or 150%
         
-        self.assertAlmostEqual(position.unrealized_roi, expected_roi, places = 10)
+        self.assertAlmostEqual(position.unrealized_roi, expected_roi, places=10)
     
     def test_position_premium_update_accuracy(self): 
         """Test position premium update calculations"""
@@ -362,8 +359,8 @@ class TestPositionMathematicalAccuracy(unittest.TestCase):
         position = Position(
             ticker = "SPY",
             position_type = "call",
-            entry_date = entry_date,
-            expiry_date = expiry_date,
+            entry_date=entry_date,
+            expiry_date=expiry_date,
             strike = 400.0,
             contracts = 10,
             entry_premium = 5.0,
@@ -385,7 +382,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
     """Test portfolio - level risk calculation accuracy"""
     
     def setUp(self): 
-        self.risk_manager = RiskManager()
+        self.risk_manager=RiskManager()
     
     def test_portfolio_risk_calculation_accuracy(self): 
         """Test portfolio risk metrics mathematical accuracy"""
@@ -400,7 +397,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
                 contracts = 100,
                 entry_premium = 5.0,
                 current_premium = 7.0,
-                total_cost = 0, current_value = 0, stop_loss_level = 0, profit_targets = []
+                total_cost = 0, current_value=0, stop_loss_level=0, profit_targets=[]
             ),
             Position(
                 ticker = "GOOGL",
@@ -411,7 +408,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
                 contracts = 50,
                 entry_premium = 10.0,
                 current_premium = 8.0,
-                total_cost = 0, current_value = 0, stop_loss_level = 0, profit_targets = []
+                total_cost = 0, current_value=0, stop_loss_level=0, profit_targets=[]
             )
         ]
         
@@ -424,7 +421,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
         # Expected calculations
         expected_total_positions_value = (100 * 7.0) + (50 * 8.0)  # 700 + 400 = 1100
         expected_total_cost = (100 * 5.0) + (50 * 10.0)  # 500 + 500 = 1000
-        expected_unrealized_pnl = expected_total_positions_value - expected_total_cost  # 100
+        expected_unrealized_pnl = expected_total_positions_value-expected_total_cost  # 100
         
         self.assertEqual(portfolio_risk.total_positions_value, expected_total_positions_value)
         self.assertEqual(portfolio_risk.unrealized_pnl, expected_unrealized_pnl)
@@ -475,7 +472,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
             contracts = 100,
             entry_premium = 5.0,
             current_premium = 3.0,  # Losing position
-            total_cost = 0, current_value = 0, stop_loss_level = 0, profit_targets = []
+            total_cost = 0, current_value=0, stop_loss_level=0, profit_targets=[]
         )
         
         self.risk_manager.positions.append(position)
@@ -484,7 +481,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
         # The implementation uses a baseline $500k account value
         baseline_account = 500000.0
         current_value = 100 * 3.0  # 300
-        expected_utilization = current_value / baseline_account  # 300 / 500000 = 0.0006
+        expected_utilization = current_value / baseline_account  # 300 / 500000=0.0006
         
         self.assertAlmostEqual(
             portfolio_risk.cash_utilization,
@@ -494,7 +491,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
         
         # Test risk utilization (should be positive when positions are at risk)
         current_risk = max(0, (100 * 5.0) - current_value)  # 500 - 300 = 200
-        expected_risk_utilization = current_risk / baseline_account  # 200 / 500000 = 0.0004
+        expected_risk_utilization = current_risk / baseline_account  # 200 / 500000=0.0004
         
         # The actual implementation might calculate this differently, so just verify it's reasonable
         self.assertGreaterEqual(portfolio_risk.risk_utilization, 0)
@@ -505,7 +502,7 @@ class TestRiskManagerValidation(unittest.TestCase):
     """Test risk manager validation logic"""
     
     def setUp(self): 
-        self.risk_manager = RiskManager()
+        self.risk_manager=RiskManager()
         self.risk_manager.risk_params = RiskParameters(
             max_single_position_risk = 0.15,  # 15% max
             max_total_risk = 0.30,            # 30% total max
@@ -524,10 +521,10 @@ class TestRiskManagerValidation(unittest.TestCase):
             contracts = 1000,
             entry_premium = 100.0,  # Very expensive = $100k total
             current_premium = 100.0,
-            total_cost = 0, current_value = 0, stop_loss_level = 0, profit_targets = []
+            total_cost = 0, current_value=0, stop_loss_level=0, profit_targets=[]
         )
         
-        # Should fail validation (20% of $500k account = exceeds 15% limit)
+        # Should fail validation (20% of $500k account=exceeds 15% limit)
         is_valid = self.risk_manager._validate_new_position(oversized_position)
         self.assertFalse(is_valid)
         
@@ -541,7 +538,7 @@ class TestRiskManagerValidation(unittest.TestCase):
             contracts = 100,
             entry_premium = 50.0,  # $5k total
             current_premium = 50.0,
-            total_cost = 0, current_value = 0, stop_loss_level = 0, profit_targets = []
+            total_cost = 0, current_value=0, stop_loss_level=0, profit_targets=[]
         )
         
         # Should pass validation (1% of $500k account)
@@ -559,8 +556,8 @@ class TestRiskManagerValidation(unittest.TestCase):
             strike = 400.0,
             contracts = 10,
             entry_premium = 20.0,
-            current_premium = 8.0,  # Below stop loss (50% of 20 = 10)
-            total_cost = 0, current_value = 0, stop_loss_level = 10.0, profit_targets = []
+            current_premium = 8.0,  # Below stop loss (50% of 20=10)
+            total_cost = 0, current_value=0, stop_loss_level=10.0, profit_targets=[]
         )
         
         self.risk_manager.positions.append(stopped_position)
@@ -581,7 +578,7 @@ class TestRiskManagerValidation(unittest.TestCase):
             contracts = 10,
             entry_premium = 10.0,
             current_premium = 35.0,  # 250% gain (above 200% target)
-            total_cost = 0, current_value = 0, stop_loss_level = 0, profit_targets = []
+            total_cost = 0, current_value=0, stop_loss_level=0, profit_targets=[]
         )
         
         self.risk_manager.positions.append(profitable_position)
@@ -589,7 +586,7 @@ class TestRiskManagerValidation(unittest.TestCase):
         
         # Should detect profit target hit
         self.assertGreater(len(profit_exits), 0)
-        position, fraction = profit_exits[0]
+        position, fraction=profit_exits[0]
         self.assertEqual(position.ticker, "META")
         self.assertGreater(fraction, 0)
 

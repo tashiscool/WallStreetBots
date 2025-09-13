@@ -51,7 +51,7 @@ class MonteCarloMASharpeRatioStrategy(Strategy):
             actions:    list of action objects
         """
         from .pipelines.monte_carlo_w_ma import MonteCarloMovingAveragePipline
-        pipeline = MonteCarloMovingAveragePipline(name=self.name, portfolio = portfolio)
+        pipeline = MonteCarloMovingAveragePipline(name=self.name, portfolio=portfolio)
         actions = pipeline.rebalance(order_type='M')
         return actions
 
@@ -66,6 +66,6 @@ class HMMNaiveStrategy(Strategy):
             actions:    list of action objects
         """
         from .pipelines.hiddenmarkov_pipeline import HMMPipline
-        pipeline = HMMPipline(name=self.name, portfolio = portfolio)
+        pipeline = HMMPipline(name=self.name, portfolio=portfolio)
         actions = pipeline.rebalance(order_type='M')
         return actions

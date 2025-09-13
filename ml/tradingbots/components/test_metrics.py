@@ -19,8 +19,8 @@ class MovingAverageSharpeRatioTestCase(unittest.TestCase):
         """
         stocks = ["AAPL", "MSFT"]
         fetcher = DummyFetcher()
-        test_metric = metrics.MovingAverageSharpeRatio(stocks, past_days = 10, max_n = 5, timestep = "DAY",
-                                                       rf = 0.02, fetcher = fetcher)
+        test_metric = metrics.MovingAverageSharpeRatio(stocks, past_days=10, max_n=5, timestep="DAY",
+                                                       rf = 0.02, fetcher=fetcher)
         # print(test_metric.generate_stock_returns())
         # print(test_metric.generate_stock_returns().pct_change())
         test_metric.configure()

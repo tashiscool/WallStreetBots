@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Comprehensive Test Suite for Earnings Protection WSB Strategy Module
 Tests all components of the earnings IV crush protection system
@@ -25,7 +25,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
 
     def setUp(self): 
         """Set up test fixtures"""
-        self.scanner = EarningsProtectionScanner()
+        self.scanner=EarningsProtectionScanner()
         
         # Mock earnings event
         self.mock_earnings_event = EarningsEvent(
@@ -36,13 +36,13 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             days_until_earnings = 3,
             current_price = 150.0,
             expected_move = 0.06,  # 6% expected move
-            iv_current = 0.45,     # 45% IV (elevated pre - earnings)
+            iv_current = 0.45,     # 45% IV (elevated pre-earnings)
             iv_historical_avg = 0.25,  # 25% historical average
             iv_crush_risk = "high"
         )
         
         # Mock options chain data
-        self.mock_calls_data = pd.DataFrame({
+        self.mock_calls_data=pd.DataFrame({
             'strike': [140, 145, 150, 155, 160, 165],
             'bid': [12.50, 8.20, 4.80, 2.30, 0.90, 0.35],
             'ask': [13.00, 8.70, 5.30, 2.80, 1.40, 0.85],
@@ -51,7 +51,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             'impliedVolatility': [0.42, 0.44, 0.45, 0.46, 0.48, 0.50]
         })
         
-        self.mock_puts_data = pd.DataFrame({
+        self.mock_puts_data=pd.DataFrame({
             'strike': [135, 140, 145, 150, 155, 160],
             'bid': [0.40, 0.95, 2.40, 4.90, 8.30, 12.60],
             'ask': [0.90, 1.45, 2.90, 5.40, 8.80, 13.10],
@@ -74,19 +74,19 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             
             # Mock options chain
             mock_chain = Mock()
-            mock_chain.calls = self.mock_calls_data
-            mock_chain.puts = self.mock_puts_data
+            mock_chain.calls=self.mock_calls_data
+            mock_chain.puts=self.mock_puts_data
             mock_ticker.option_chain.return_value = mock_chain
-            mock_ticker.options = ['2024 - 12-10']  # Mock expiry
+            mock_ticker.options=['2024 - 12 - 10']  # Mock expiry
             
             # Mock stock history
-            mock_ticker.history.return_value = pd.DataFrame({
+            mock_ticker.history.return_value=pd.DataFrame({
                 'Close': [150.0]
-            }, index = [datetime.now()])
+            }, index=[datetime.now()])
             
             mock_yf.return_value = mock_ticker
             
-            expected_move, iv_estimate = self.scanner.estimate_earnings_move("AAPL", 5)
+            expected_move, iv_estimate=self.scanner.estimate_earnings_move("AAPL", 5)
             
             # Should return reasonable estimates
             self.assertGreater(expected_move, 0.02)  # At least 2% move
@@ -107,7 +107,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             expected_move = 0.12,  # 12% expected move
             iv_current = 0.80,     # 80% IV (very high)
             iv_historical_avg = 0.35,  # 35% historical
-            iv_crush_risk = "extreme"  # 80 / 35 = 2.3x premium
+            iv_crush_risk = "extreme"  # 80 / 35=2.3x premium
         )
         
         # Should classify as extreme risk
@@ -133,7 +133,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             mock_chain = Mock()
             mock_chain.calls = deep_itm_calls
             mock_ticker.option_chain.return_value = mock_chain
-            mock_ticker.options = ['2024 - 12-15']  # Post - earnings expiry
+            mock_ticker.options=['2024 - 12 - 15']  # Post - earnings expiry
             
             mock_yf.return_value = mock_ticker
             
@@ -157,11 +157,11 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             back_calls['bid'] = back_calls['bid'] + 1.0  # Higher premium for longer expiry
             back_calls['ask'] = back_calls['ask'] + 1.0
             
-            mock_ticker.option_chain.side_effect = [
-                Mock(calls=front_calls, puts = pd.DataFrame()),  # Front month
-                Mock(calls=back_calls, puts = pd.DataFrame())    # Back month
+            mock_ticker.option_chain.side_effect=[
+                Mock(calls=front_calls, puts=pd.DataFrame()),  # Front month
+                Mock(calls=back_calls, puts=pd.DataFrame())    # Back month
             ]
-            mock_ticker.options = ['2024 - 12-06', '2024 - 12-20']  # Before and after earnings
+            mock_ticker.options=['2024 - 12 - 06', '2024 - 12 - 20']  # Before and after earnings
             
             mock_yf.return_value = mock_ticker
             
@@ -182,10 +182,10 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             mock_ticker = Mock()
             
             mock_chain = Mock()
-            mock_chain.calls = self.mock_calls_data
-            mock_chain.puts = self.mock_puts_data
+            mock_chain.calls=self.mock_calls_data
+            mock_chain.puts=self.mock_puts_data
             mock_ticker.option_chain.return_value = mock_chain
-            mock_ticker.options = ['2024 - 12-15']  # Post - earnings
+            mock_ticker.options=['2024 - 12 - 15']  # Post - earnings
             
             mock_yf.return_value = mock_ticker
             
@@ -209,7 +209,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             strategy_type = "deep_itm",
             earnings_date = date.today() + timedelta(days=3),
             strikes = [130],
-            expiry_dates = ['2024 - 12-15'],
+            expiry_dates = ['2024 - 12 - 15'],
             option_types = ['call'],
             quantities = [1],
             net_debit = 18.0,
@@ -231,7 +231,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             strategy_type = "calendar_spread",
             earnings_date = date.today() + timedelta(days=3),
             strikes = [150, 150],
-            expiry_dates = ['2024 - 12-06', '2024 - 12-20'],
+            expiry_dates = ['2024 - 12 - 06', '2024 - 12 - 20'],
             option_types = ['call', 'call'],
             quantities = [-1, 1],
             net_debit = 2.5,
@@ -253,7 +253,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             strategy_type = "protective_hedge",
             earnings_date = date.today() + timedelta(days=3),
             strikes = [157.5, 142.5],
-            expiry_dates = ['2024 - 12-15', '2024 - 12-15'],
+            expiry_dates = ['2024 - 12 - 15', '2024 - 12 - 15'],
             option_types = ['call', 'put'],
             quantities = [1, 1],
             net_debit = 6.5,
@@ -285,25 +285,25 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         mock_ticker = Mock()
         
         # Mock company info
-        mock_ticker.info = {'shortName': 'Apple Inc.'}
+        mock_ticker.info={'shortName': 'Apple Inc.'}
         
         # Mock stock history
-        mock_ticker.history.return_value = pd.DataFrame({
+        mock_ticker.history.return_value=pd.DataFrame({
             'Close': [150.0]
-        }, index = [datetime.now()])
+        }, index=[datetime.now()])
         
         # Mock options data
         mock_chain = Mock()
-        mock_chain.calls = self.mock_calls_data
-        mock_chain.puts = self.mock_puts_data
+        mock_chain.calls=self.mock_calls_data
+        mock_chain.puts=self.mock_puts_data
         mock_ticker.option_chain.return_value = mock_chain
-        mock_ticker.options = ['2024 - 12-15']
+        mock_ticker.options=['2024 - 12 - 15']
         
         mock_yf.return_value = mock_ticker
         
         # Mock earnings estimation to return high IV crush risk
-        with patch.object(self.scanner, 'estimate_earnings_move', return_value = (0.08, 0.50)), \
-             patch.object(self.scanner, 'estimate_historical_iv', return_value = 0.25): 
+        with patch.object(self.scanner, 'estimate_earnings_move', return_value=(0.08, 0.50)), \
+             patch.object(self.scanner, 'estimate_historical_iv', return_value=0.25): 
             
             strategies = self.scanner.scan_earnings_protection()
             
@@ -349,7 +349,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
     def test_alternative_post_earnings_opportunities(self): 
         """Test post - earnings opportunity identification"""
         # After earnings, IV crush creates buying opportunities
-        post_earnings_iv = 0.20  # Crushed from 0.50 pre - earnings
+        post_earnings_iv = 0.20  # Crushed from 0.50 pre-earnings
         historical_iv = 0.25
         
         # IV now below historical = potential buying opportunity
@@ -370,7 +370,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             strategy_type = "calendar_spread",
             earnings_date = date.today() + timedelta(days=3),
             strikes = [150, 150],
-            expiry_dates = ['2024 - 12-06', '2024 - 12-20'],
+            expiry_dates = ['2024 - 12 - 06', '2024 - 12 - 20'],
             option_types = ['call', 'call'],
             quantities = [-1, 1],
             net_debit = 2.5,
@@ -432,7 +432,7 @@ class TestEarningsProtectionCalculations(unittest.TestCase):
         back_premium_after = 5.5  # Less crush
         
         # Calendar spread P & L
-        spread_cost = back_premium_before - front_premium_before  # Debit
+        spread_cost = back_premium_before-front_premium_before  # Debit
         spread_value_after = back_premium_after - front_premium_after  # Value after crush
         
         profit = spread_value_after - spread_cost

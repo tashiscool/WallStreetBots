@@ -33,7 +33,7 @@ class ImpliedMoveData:
     implied_move_dollar: Decimal
     confidence: float  # 0 - 1 confidence in calculation
     calculation_method: str  # 'straddle', 'strangle', 'estimated'
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -47,7 +47,7 @@ class IVPercentileData:
     historical_mean: float
     historical_std: float
     z_score: float  # Standard deviations from mean
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -78,13 +78,13 @@ class EnhancedEarningsEvent:
     last_4_reactions: List[float] = field(default_factory=list)  # Last 4 earnings moves
     
     # Strategy recommendations
-    reaction_type: EarningsReactionType = EarningsReactionType.UNKNOWN
+    reaction_type: EarningsReactionType=EarningsReactionType.UNKNOWN
     recommended_strategies: List[str] = field(default_factory=list)
-    risk_level: str = "medium"  # 'low', 'medium', 'high'
+    risk_level: str="medium"  # 'low', 'medium', 'high'
     
     # Metadata
     data_sources: List[str] = field(default_factory=list)
-    last_updated: datetime = field(default_factory=datetime.now)
+    last_updated: datetime=field(default_factory=datetime.now)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -100,12 +100,12 @@ class EarningsCalendarProvider:
     - Strategy recommendations based on IV and historical patterns
     """
     
-    def __init__(self, data_provider = None, options_pricing = None, polygon_api_key: str = None, alpha_vantage_key: str = None):
+    def __init__(self, data_provider=None, options_pricing=None, polygon_api_key: str=None, alpha_vantage_key: str=None):
         self.data_provider = data_provider
         self.options_pricing = options_pricing
         self.polygon_api_key = polygon_api_key
         self.alpha_vantage_key = alpha_vantage_key
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Initialize external API clients
         self.polygon_client = None
@@ -114,10 +114,10 @@ class EarningsCalendarProvider:
         if polygon_api_key: 
             try: 
                 from polygon import RESTClient
-                self.polygon_client = RESTClient(api_key=polygon_api_key)
+                self.polygon_client=RESTClient(api_key=polygon_api_key)
                 self.logger.info("Polygon.io client initialized")
             except ImportError: 
-                self.logger.warning("Polygon.io client not available - install polygon - api-client")
+                self.logger.warning("Polygon.io client not available-install polygon - api - client")
                 self.polygon_client = None
             except Exception as e: 
                 self.logger.error(f"Failed to initialize Polygon.io client: {e}")
@@ -126,10 +126,10 @@ class EarningsCalendarProvider:
         if alpha_vantage_key: 
             try: 
                 import alphavantage
-                self.alpha_vantage_client = alphavantage.AlphaVantage(key=alpha_vantage_key)
+                self.alpha_vantage_client=alphavantage.AlphaVantage(key=alpha_vantage_key)
                 self.logger.info("Alpha Vantage client initialized")
             except ImportError: 
-                self.logger.warning("Alpha Vantage client not available - install alpha - vantage")
+                self.logger.warning("Alpha Vantage client not available-install alpha - vantage")
                 self.alpha_vantage_client = None
             except Exception as e: 
                 self.logger.error(f"Failed to initialize Alpha Vantage client: {e}")
@@ -142,11 +142,11 @@ class EarningsCalendarProvider:
         # Cached data
         self.earnings_cache: Dict[str, EnhancedEarningsEvent] = {}
         self.iv_cache: Dict[str, IVPercentileData] = {}
-        self.cache_ttl = timedelta(hours=4)  # 4 hour cache
+        self.cache_ttl=timedelta(hours=4)  # 4 hour cache
         
         self.logger.info("EarningsCalendarProvider initialized with external data sources")
     
-    async def get_earnings_calendar(self, days_ahead: int = 30)->List[EnhancedEarningsEvent]:
+    async def get_earnings_calendar(self, days_ahead: int=30)->List[EnhancedEarningsEvent]:
         """Get enhanced earnings calendar with IV analysis"""
         try: 
             # Get base earnings events
@@ -186,7 +186,7 @@ class EarningsCalendarProvider:
             self.logger.error(f"Error getting earnings calendar: {e}")
             return []
     
-    async def _get_real_earnings_calendar(self, days_ahead: int = 30)->List[Any]:
+    async def _get_real_earnings_calendar(self, days_ahead: int=30)->List[Any]:
         """Get real earnings calendar from external sources"""
         earnings_events = []
         
@@ -219,13 +219,12 @@ class EarningsCalendarProvider:
             
             # Get earnings calendar from Polygon.io
             start_date = date.today()
-            end_date = start_date + timedelta(days=days_ahead)
+            end_date = start_date+timedelta(days=days_ahead)
             
             # Polygon.io earnings calendar API call
             earnings_data = self.polygon_client.reference_earnings_calendar(
-                start_date = start_date,
-                end_date = end_date
-            )
+                start_date=start_date,
+                end_date = end_date)
             
             events = []
             for earnings in earnings_data.results: 
@@ -296,7 +295,7 @@ class EarningsCalendarProvider:
             iv_analysis = await self._analyze_iv_percentiles(base_event.ticker)
             
             # Get historical earnings data
-            historical_moves, beat_rate = await self._get_historical_earnings_performance(base_event.ticker)
+            historical_moves, beat_rate=await self._get_historical_earnings_performance(base_event.ticker)
             
             # Determine reaction type and recommendations
             reaction_type = self._classify_expected_reaction(implied_move, iv_analysis, historical_moves)
@@ -308,15 +307,15 @@ class EarningsCalendarProvider:
                 company_name = getattr(base_event, 'company_name', base_event.ticker),
                 earnings_date = base_event.earnings_date,
                 earnings_time = getattr(base_event, 'earnings_time', 'Unknown'),
-                current_price = current_price,
+                current_price=current_price,
                 estimated_eps = getattr(base_event, 'estimated_eps', None),
-                implied_move = implied_move,
-                iv_analysis = iv_analysis,
+                implied_move=implied_move,
+                iv_analysis=iv_analysis,
                 avg_historical_move = statistics.mean(historical_moves) if historical_moves else None,
-                historical_beat_rate = beat_rate,
+                historical_beat_rate=beat_rate,
                 last_4_reactions = historical_moves[-4: ] if len(historical_moves)  >=  4 else historical_moves,
-                reaction_type = reaction_type,
-                recommended_strategies = recommendations,
+                reaction_type=reaction_type,
+                recommended_strategies=recommendations,
                 risk_level = self._assess_risk_level(reaction_type, iv_analysis),
                 data_sources = ['base_provider', 'options_chain', 'iv_analysis'],
                 last_updated = datetime.now()
@@ -371,8 +370,8 @@ class EarningsCalendarProvider:
             
             # Find closest to ATM
             current_price_float = float(current_price)
-            atm_call = min(atm_calls, key = lambda x: abs(float(x.strike) - current_price_float))
-            atm_put = min(atm_puts, key = lambda x: abs(float(x.strike) - current_price_float))
+            atm_call = min(atm_calls, key=lambda x: abs(float(x.strike) - current_price_float))
+            atm_put = min(atm_puts, key=lambda x: abs(float(x.strike) - current_price_float))
             
             # Calculate straddle price
             call_mid = (atm_call.bid + atm_call.ask) / 2 if atm_call.bid  >  0 and atm_call.ask  >  0 else atm_call.last_price
@@ -392,15 +391,15 @@ class EarningsCalendarProvider:
             put_spread = float((atm_put.ask - atm_put.bid) / put_mid) if put_mid  >  0 else 1.0
             avg_spread = (call_spread + put_spread) / 2
             
-            total_volume = atm_call.volume + atm_put.volume
+            total_volume = atm_call.volume+atm_put.volume
             confidence = max(0.1, min(1.0, (1.0 - avg_spread) * min(1.0, total_volume / 100)))
             
             return ImpliedMoveData(
-                straddle_price = straddle_price,
-                stock_price = current_price,
-                implied_move_percentage = implied_move_pct,
-                implied_move_dollar = implied_move_dollar,
-                confidence = confidence,
+                straddle_price=straddle_price,
+                stock_price=current_price,
+                implied_move_percentage=implied_move_pct,
+                implied_move_dollar=implied_move_dollar,
+                confidence=confidence,
                 calculation_method = 'straddle'
             )
             
@@ -415,10 +414,10 @@ class EarningsCalendarProvider:
         estimated_move_dollar = current_price * Decimal(str(estimated_move_pct))
         
         return ImpliedMoveData(
-            straddle_price = estimated_move_dollar,
-            stock_price = current_price,
-            implied_move_percentage = estimated_move_pct,
-            implied_move_dollar = estimated_move_dollar,
+            straddle_price=estimated_move_dollar,
+            stock_price=current_price,
+            implied_move_percentage=estimated_move_pct,
+            implied_move_dollar=estimated_move_dollar,
             confidence = 0.3,  # Low confidence
             calculation_method = 'estimated'
         )
@@ -486,15 +485,14 @@ class EarningsCalendarProvider:
                 trend = 'stable'
             
             iv_analysis = IVPercentileData(
-                current_iv = current_iv,
-                iv_percentile_30d = iv_percentile_30d,
-                iv_percentile_90d = iv_percentile_90d,
-                iv_rank = iv_percentile_90d,  # Use 90 - day as rank
-                iv_trend = trend,
-                historical_mean = historical_mean,
-                historical_std = historical_std,
-                z_score = z_score
-            )
+                current_iv=current_iv,
+                iv_percentile_30d=iv_percentile_30d,
+                iv_percentile_90d=iv_percentile_90d,
+                iv_rank=iv_percentile_90d,  # Use 90 - day as rank
+                iv_trend=trend,
+                historical_mean=historical_mean,
+                historical_std=historical_std,
+                z_score = z_score)
             
             # Cache result
             self.iv_cache[ticker] = iv_analysis
@@ -680,7 +678,7 @@ class EarningsCalendarProvider:
             return None
 
 
-def create_earnings_calendar_provider(data_provider=None, options_pricing = None, 
-                                    polygon_api_key: str = None)->EarningsCalendarProvider:
+def create_earnings_calendar_provider(data_provider=None, options_pricing=None, 
+                                    polygon_api_key: str=None)->EarningsCalendarProvider:
     """Factory function to create earnings calendar provider"""
     return EarningsCalendarProvider(data_provider, options_pricing, polygon_api_key)

@@ -1,5 +1,5 @@
 """
-Advanced Risk Management Module - 2025 Implementation
+Advanced Risk Management Module-2025 Implementation
 Sophisticated risk models for algorithmic trading
 """
 

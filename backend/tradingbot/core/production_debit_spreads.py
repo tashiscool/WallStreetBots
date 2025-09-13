@@ -54,20 +54,20 @@ class SpreadPosition:
     short_option: Dict[str, Any]  # Short option details
     
     # Pricing
-    current_value: float = 0.0
-    unrealized_pnl: float = 0.0
-    profit_pct: float = 0.0
+    current_value: float=0.0
+    unrealized_pnl: float=0.0
+    profit_pct: float=0.0
     
     # Timing
-    entry_date: datetime = field(default_factory=datetime.now)
-    expiry_date: datetime = field(default_factory=lambda: datetime.now() + timedelta(days=30))
-    last_update: datetime = field(default_factory=datetime.now)
+    entry_date: datetime=field(default_factory=datetime.now)
+    expiry_date: datetime=field(default_factory=lambda: datetime.now() + timedelta(days=30))
+    last_update: datetime=field(default_factory=datetime.now)
     
     # Greeks
-    net_delta: float = 0.0
-    net_gamma: float = 0.0
-    net_theta: float = 0.0
-    net_vega: float = 0.0
+    net_delta: float=0.0
+    net_gamma: float=0.0
+    net_theta: float=0.0
+    net_vega: float=0.0
     
     def update_pricing(self, long_option_data: OptionsData, short_option_data: OptionsData):
         """Update spread pricing with current option data"""
@@ -75,24 +75,24 @@ class SpreadPosition:
         long_value = long_option_data.bid
         short_value = short_option_data.ask
         
-        self.current_value = (long_value - short_value) * self.quantity * 100
+        self.current_value=(long_value-short_value) * self.quantity * 100
         
         # Calculate P & L
-        self.unrealized_pnl = self.current_value - (self.net_debit * self.quantity * 100)
-        self.profit_pct = self.unrealized_pnl / (self.net_debit * self.quantity * 100)
+        self.unrealized_pnl=self.current_value-(self.net_debit * self.quantity * 100)
+        self.profit_pct=self.unrealized_pnl / (self.net_debit * self.quantity * 100)
         
         # Update Greeks
-        self.net_delta = (long_option_data.delta - short_option_data.delta) * self.quantity * 100
-        self.net_gamma = (long_option_data.gamma - short_option_data.gamma) * self.quantity * 100
-        self.net_theta = (long_option_data.theta - short_option_data.theta) * self.quantity * 100
-        self.net_vega = (long_option_data.vega - short_option_data.vega) * self.quantity * 100
+        self.net_delta=(long_option_data.delta - short_option_data.delta) * self.quantity * 100
+        self.net_gamma=(long_option_data.gamma - short_option_data.gamma) * self.quantity * 100
+        self.net_theta=(long_option_data.theta - short_option_data.theta) * self.quantity * 100
+        self.net_vega=(long_option_data.vega - short_option_data.vega) * self.quantity * 100
         
-        self.last_update = datetime.now()
+        self.last_update=datetime.now()
     
     def calculate_max_profit(self)->float: 
         """Calculate maximum profit potential"""
         if self.spread_type ==  SpreadType.BULL_CALL_SPREAD: 
-            return (self.short_strike - self.long_strike) * self.quantity * 100 - self.net_debit * self.quantity * 100
+            return (self.short_strike-self.long_strike) * self.quantity * 100 - self.net_debit * self.quantity * 100
         return 0.0
     
     def calculate_max_loss(self)->float: 
@@ -101,7 +101,7 @@ class SpreadPosition:
     
     def calculate_days_to_expiry(self)->int: 
         """Calculate days to expiry"""
-        delta = self.expiry_date - datetime.now()
+        delta = self.expiry_date-datetime.now()
         return max(0, delta.days)
 
 
@@ -130,8 +130,8 @@ class SpreadCandidate:
     net_vega: float
     
     # Scoring
-    spread_score: float = 0.0
-    risk_score: float = 0.0
+    spread_score: float=0.0
+    risk_score: float=0.0
     
     def calculate_spread_score(self)->float: 
         """Calculate spread strategy score"""
@@ -152,11 +152,11 @@ class SpreadCandidate:
         score += max(0, 0.05 - debit_pct) * 20
         
         # Strike width (reasonable width)
-        strike_width = abs(self.short_strike - self.long_strike)
+        strike_width = abs(self.short_strike-self.long_strike)
         if 2  <=  strike_width  <=  10: 
             score += 0.1
         
-        self.spread_score = max(0.0, min(1.0, score))
+        self.spread_score=max(0.0, min(1.0, score))
         return self.spread_score
 
 
@@ -164,7 +164,7 @@ class QuantLibPricer:
     """QuantLib - based options pricing"""
     
     def __init__(self): 
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
     
     def calculate_black_scholes(self, 
                               spot_price: float,
@@ -180,11 +180,11 @@ class QuantLibPricer:
             
             # Calculate d1 and d2
             d1 = (math.log(spot_price / strike_price) + 
-                  (risk_free_rate + 0.5 * volatility**2) * time_to_expiry) / (volatility * math.sqrt(time_to_expiry))
+                  (risk_free_rate+0.5 * volatility**2) * time_to_expiry) / (volatility * math.sqrt(time_to_expiry))
             d2 = d1 - volatility * math.sqrt(time_to_expiry)
             
             # Calculate option price
-            if option_type.lower()  ==  'call': price = (spot_price * self._normal_cdf(d1) - 
+            if option_type.lower()  ==  'call': price=(spot_price * self._normal_cdf(d1) - 
                         strike_price * math.exp(-risk_free_rate * time_to_expiry) * self._normal_cdf(d2))
             else:  # put
                 price = (strike_price * math.exp(-risk_free_rate * time_to_expiry) * self._normal_cdf(-d2) - 
@@ -236,16 +236,16 @@ class ProductionDebitSpreads:
         self.data = data_provider
         self.config = config
         self.logger = logger
-        self.error_handler = ErrorHandler(logger)
-        self.metrics = MetricsCollector(logger)
-        self.pricer = QuantLibPricer()
+        self.error_handler=ErrorHandler(logger)
+        self.metrics=MetricsCollector(logger)
+        self.pricer=QuantLibPricer()
         
         # Strategy parameters
-        self.max_positions = config.trading.max_concurrent_trades
-        self.max_position_size = config.risk.max_position_risk
-        self.profit_target = 0.50  # Close at 50% profit
-        self.stop_loss = 0.25  # Close at 25% loss
-        self.min_profit_loss_ratio = 2.0  # Minimum 2: 1 ratio
+        self.max_positions=config.trading.max_concurrent_trades
+        self.max_position_size=config.risk.max_position_risk
+        self.profit_target=0.50  # Close at 50% profit
+        self.stop_loss=0.25  # Close at 25% loss
+        self.min_profit_loss_ratio=2.0  # Minimum 2: 1 ratio
         
         # Position tracking
         self.positions: Dict[str, SpreadPosition] = {}
@@ -253,7 +253,7 @@ class ProductionDebitSpreads:
         
         # Strategy state
         self.last_scan_time: Optional[datetime] = None
-        self.scan_interval = timedelta(minutes=15)
+        self.scan_interval=timedelta(minutes=15)
         
         self.logger.info("Debit Spreads Strategy initialized",
                         max_positions = self.max_positions,
@@ -279,9 +279,9 @@ class ProductionDebitSpreads:
                     continue
             
             # Sort by spread score
-            candidates.sort(key=lambda x: x.spread_score, reverse = True)
+            candidates.sort(key=lambda x: x.spread_score, reverse=True)
             
-            self.candidates = candidates[: 10]  # Top 10 candidates
+            self.candidates=candidates[: 10]  # Top 10 candidates
             
             self.logger.info(f"Found {len(self.candidates)} debit spread candidates")
             self.metrics.record_metric("debit_spread_candidates_found", len(self.candidates))
@@ -311,7 +311,7 @@ class ProductionDebitSpreads:
             bull_spreads = self._find_bull_call_spreads(options_data, market_data.price)
             for spread in bull_spreads: 
                 candidate = SpreadCandidate(
-                    ticker = ticker,
+                    ticker=ticker,
                     current_price = market_data.price,
                     spread_type = SpreadType.BULL_CALL_SPREAD,
                     long_strike = spread['long_strike'],
@@ -354,7 +354,7 @@ class ProductionDebitSpreads:
                 if short_option.strike  <=  long_option.strike:  # Short strike must be higher
                     continue
                 
-                if short_option.strike - long_option.strike  >  current_price * 0.20:  # Max 20% width
+                if short_option.strike-long_option.strike  >  current_price * 0.20:  # Max 20% width
                     continue
                 
                 # Calculate spread metrics
@@ -362,7 +362,7 @@ class ProductionDebitSpreads:
                 if net_debit  <=  0:  # Must be a debit spread
                     continue
                 
-                max_profit = (short_option.strike - long_option.strike) * 100 - net_debit * 100
+                max_profit = (short_option.strike-long_option.strike) * 100 - net_debit * 100
                 max_loss = net_debit * 100
                 profit_loss_ratio = max_profit / max_loss if max_loss  >  0 else 0
                 
@@ -392,7 +392,7 @@ class ProductionDebitSpreads:
                 })
         
         # Sort by profit / loss ratio
-        spreads.sort(key=lambda x: x['profit_loss_ratio'], reverse = True)
+        spreads.sort(key=lambda x: x['profit_loss_ratio'], reverse=True)
         
         return spreads[: 5]  # Top 5 spreads
     
@@ -424,7 +424,7 @@ class ProductionDebitSpreads:
                 ticker = candidate.ticker,
                 side = OrderSide.BUY,  # Buy long option
                 order_type = OrderType.LIMIT,
-                quantity = position_size,
+                quantity=position_size,
                 limit_price = candidate.long_premium,
                 reason = f"Debit spread: Buy {candidate.long_strike} call",
                 confidence = candidate.spread_score
@@ -442,7 +442,7 @@ class ProductionDebitSpreads:
                 ticker = candidate.ticker,
                 side = OrderSide.SELL,  # Sell short option
                 order_type = OrderType.LIMIT,
-                quantity = position_size,
+                quantity=position_size,
                 limit_price = candidate.short_premium,
                 reason = f"Debit spread: Sell {candidate.short_strike} call",
                 confidence = candidate.spread_score
@@ -463,7 +463,7 @@ class ProductionDebitSpreads:
                 status = SpreadStatus.ACTIVE,
                 long_strike = candidate.long_strike,
                 short_strike = candidate.short_strike,
-                quantity = position_size,
+                quantity=position_size,
                 net_debit = candidate.net_debit,
                 max_profit = candidate.max_profit,
                 max_loss = candidate.max_loss,
@@ -621,10 +621,10 @@ class ProductionDebitSpreads:
                 short_result.status.value  ==  "filled"): 
                 
                 # Update position
-                position.status = SpreadStatus.CLOSED
+                position.status=SpreadStatus.CLOSED
                 
                 self.logger.info(f"Debit spread closed: {position.ticker}",
-                               reason = reason,
+                               reason=reason,
                                pnl = position.unrealized_pnl,
                                profit_pct = position.profit_pct)
                 

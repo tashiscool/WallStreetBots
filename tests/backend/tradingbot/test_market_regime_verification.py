@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Behavioral Verification Tests for Market Regime Detection System
 Tests mathematical accuracy, signal logic, and strategy behavior validation
@@ -24,7 +24,7 @@ class TestTechnicalAnalysisAccuracy(unittest.TestCase):
     """Test mathematical accuracy of technical analysis calculations"""
     
     def setUp(self): 
-        self.ta = TechnicalAnalysis()
+        self.ta=TechnicalAnalysis()
     
     def test_ema_calculation_accuracy(self): 
         """Test EMA calculation against known mathematical values"""
@@ -34,18 +34,18 @@ class TestTechnicalAnalysisAccuracy(unittest.TestCase):
         
         ema_values = self.ta.calculate_ema(prices, period)
         
-        # EMA formula: EMA_today = (Price_today * (2 / (period + 1))) + (EMA_yesterday * (1 - (2 / (period + 1))))
+        # EMA formula: EMA_today=(Price_today * (2 / (period + 1))) + (EMA_yesterday * (1 - (2 / (period + 1))))
         alpha = 2.0 / (period + 1)
         
         # Verify alpha calculation
-        self.assertAlmostEqual(alpha, 0.3333333333333333, places = 10)
+        self.assertAlmostEqual(alpha, 0.3333333333333333, places=10)
         
         # First EMA value should be first price
         self.assertEqual(ema_values[0], prices[0])
         
         # Verify subsequent calculations
         expected_ema_1 = alpha * prices[1] + (1 - alpha) * ema_values[0]
-        self.assertAlmostEqual(ema_values[1], expected_ema_1, places = 10)
+        self.assertAlmostEqual(ema_values[1], expected_ema_1, places=10)
         
         # EMA values should be reasonable (between min and max of prices)
         self.assertGreater(ema_values[-1], min(prices))
@@ -88,7 +88,7 @@ class TestTechnicalAnalysisAccuracy(unittest.TestCase):
         # ATR should reflect average volatility
         final_atr = atr_values[-1]
         avg_range = sum(highs[i] - lows[i] for i in range(len(highs))) / len(highs)
-        self.assertAlmostEqual(final_atr, avg_range, delta = avg_range * 0.5)
+        self.assertAlmostEqual(final_atr, avg_range, delta=avg_range * 0.5)
     
     def test_slope_calculation_mathematical_accuracy(self): 
         """Test linear regression slope calculation accuracy"""
@@ -97,25 +97,25 @@ class TestTechnicalAnalysisAccuracy(unittest.TestCase):
         slope = self.ta.calculate_slope(values, 5)
         
         # Should be exactly 2.0 for perfect linear trend
-        self.assertAlmostEqual(slope, 2.0, places = 10)
+        self.assertAlmostEqual(slope, 2.0, places=10)
         
         # Perfect downward trend: y = -1x + 20
         down_values = [20, 19, 18, 17, 16, 15, 14, 13, 12, 11]
         down_slope = self.ta.calculate_slope(down_values, 5)
         
-        self.assertAlmostEqual(down_slope, -1.0, places = 10)
+        self.assertAlmostEqual(down_slope, -1.0, places=10)
         
         # Flat trend should have near - zero slope
         flat_values = [15, 15.1, 14.9, 15.05, 14.95, 15]
         flat_slope = self.ta.calculate_slope(flat_values, 5)
-        self.assertAlmostEqual(flat_slope, 0.0, delta = 0.1)
+        self.assertAlmostEqual(flat_slope, 0.0, delta=0.1)
 
 
 class TestMarketRegimeAccuracy(unittest.TestCase): 
     """Test market regime detection mathematical logic and accuracy"""
     
     def setUp(self): 
-        self.regime_filter = MarketRegimeFilter()
+        self.regime_filter=MarketRegimeFilter()
     
     def test_bull_regime_detection_accuracy(self): 
         """Test bull regime detection with precise mathematical criteria"""
@@ -264,7 +264,7 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
     """Test signal generation logic and mathematical confidence calculations"""
     
     def setUp(self): 
-        self.signal_gen = SignalGenerator()
+        self.signal_gen=SignalGenerator()
     
     def test_pullback_and_reversal_setup_detection(self): 
         """Test pullback setup and reversal trigger detection separately"""
@@ -317,9 +317,9 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
         """Test signal generation follows proper logical flow"""
         # Bull regime with no setup should give HOLD
         bull_indicators = create_sample_indicators(
-            price = 110.0, ema_20 = 108.0, ema_50 = 105.0, ema_200 = 100.0, rsi = 55
+            price = 110.0, ema_20=108.0, ema_50=105.0, ema_200=100.0, rsi=55
         )
-        bull_indicators.ema_20_slope = 0.002
+        bull_indicators.ema_20_slope=0.002
         
         signal = self.signal_gen.generate_signal(bull_indicators, bull_indicators)
         self.assertEqual(signal.regime, MarketRegime.BULL)
@@ -327,8 +327,7 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
         
         # Test with earnings risk should block signals
         signal_earnings = self.signal_gen.generate_signal(
-            bull_indicators, bull_indicators, earnings_risk = True
-        )
+            bull_indicators, bull_indicators, earnings_risk=True)
         self.assertEqual(signal_earnings.signal_type, SignalType.HOLD)
         self.assertEqual(signal_earnings.confidence, 0.0)
     
@@ -342,7 +341,7 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
             rsi = 55,
             volume = 2000000
         )
-        current.ema_20_slope = 0.003  # Strong positive slope
+        current.ema_20_slope=0.003  # Strong positive slope
         
         previous = create_sample_indicators(
             price = 108.0,
@@ -363,27 +362,25 @@ class TestSignalGenerationAccuracy(unittest.TestCase):
         expected_confidence += 0.2  # Strong volume (2x expansion)
         expected_confidence += 0.1  # Strong price momentum ( >  1%)
         
-        self.assertAlmostEqual(confidence, min(expected_confidence, 1.0), places = 2)
+        self.assertAlmostEqual(confidence, min(expected_confidence, 1.0), places=2)
     
     def test_risk_filter_accuracy(self): 
         """Test risk filter mathematical logic"""
         indicators = create_sample_indicators(
-            price = 110.0, ema_20 = 109.0, ema_50 = 105.0, ema_200 = 100.0, rsi = 55
+            price = 110.0, ema_20=109.0, ema_50=105.0, ema_200=100.0, rsi=55
         )
-        indicators.ema_20_slope = 0.002
+        indicators.ema_20_slope=0.002
         
         # Test earnings risk filter
         signal_earnings = self.signal_gen.generate_signal(
-            indicators, indicators, earnings_risk = True
-        )
+            indicators, indicators, earnings_risk=True)
         self.assertEqual(signal_earnings.signal_type, SignalType.HOLD)
         self.assertEqual(signal_earnings.confidence, 0.0)
         self.assertIn("Earnings risk", " ".join(signal_earnings.reasoning))
         
         # Test macro risk filter
         signal_macro = self.signal_gen.generate_signal(
-            indicators, indicators, macro_risk = True
-        )
+            indicators, indicators, macro_risk=True)
         self.assertEqual(signal_macro.signal_type, SignalType.HOLD)
         self.assertEqual(signal_macro.confidence, 0.0)
         self.assertIn("Major macro event", " ".join(signal_macro.reasoning))
@@ -427,8 +424,8 @@ class TestTechnicalIndicatorsAccuracy(unittest.TestCase):
         expected_distance_20 = (110.0 - 105.0) / 110.0
         expected_distance_50 = (110.0 - 100.0) / 110.0
         
-        self.assertAlmostEqual(indicators.distance_from_20ema, expected_distance_20, places = 10)
-        self.assertAlmostEqual(indicators.distance_from_50ema, expected_distance_50, places = 10)
+        self.assertAlmostEqual(indicators.distance_from_20ema, expected_distance_20, places=10)
+        self.assertAlmostEqual(indicators.distance_from_50ema, expected_distance_50, places=10)
     
     def test_zero_price_handling(self): 
         """Test handling of zero price in distance calculations"""
@@ -453,8 +450,8 @@ class TestMarketRegimeIntegration(unittest.TestCase):
     """Test integration scenarios and edge cases"""
     
     def setUp(self): 
-        self.signal_gen = SignalGenerator()
-        self.regime_filter = MarketRegimeFilter()
+        self.signal_gen=SignalGenerator()
+        self.regime_filter=MarketRegimeFilter()
     
     def test_complete_signal_generation_pipeline(self): 
         """Test complete signal generation from indicators to final signal"""
@@ -478,7 +475,7 @@ class TestMarketRegimeIntegration(unittest.TestCase):
             high = 207.60,
             low = 206.40
         )
-        current_day.ema_20_slope = 0.0015  # Positive trend
+        current_day.ema_20_slope=0.0015  # Positive trend
         
         # Generate signal
         signal = self.signal_gen.generate_signal(current_day, prev_day)

@@ -1,5 +1,5 @@
 """
-Advanced VaR Engine - 2025 Implementation
+Advanced VaR Engine-2025 Implementation
 Multi - method VaR calculation with machine learning enhancements
 """
 
@@ -44,7 +44,7 @@ class VaRSuite:
 class AdvancedVaREngine: 
     """2025 - standard VaR calculation with multiple methodologies"""
     
-    def __init__(self, portfolio_value: float = 100000.0):
+    def __init__(self, portfolio_value: float=100000.0):
         self.portfolio_value = portfolio_value
         self.min_data_points = 30  # Minimum data points required
         
@@ -79,7 +79,7 @@ class AdvancedVaREngine:
                     continue
         
         return VaRSuite(
-            results = results,
+            results=results,
             portfolio_value = self.portfolio_value,
             calculation_timestamp = pd.Timestamp.now().isoformat()
         )
@@ -100,7 +100,7 @@ class AdvancedVaREngine:
     def _parametric_var(self, returns: np.ndarray, confidence_level: float)->VaRResult:
         """Parametric VaR using normal distribution assumption"""
         mean_return = np.mean(returns)
-        std_return = np.std(returns, ddof = 1)
+        std_return = np.std(returns, ddof=1)
         
         # Z - score for confidence level
         z_score = stats.norm.ppf(1 - confidence_level)
@@ -109,8 +109,8 @@ class AdvancedVaREngine:
         var_value = abs(mean_return + z_score * std_return) * self.portfolio_value
         
         return VaRResult(
-            var_value = var_value,
-            confidence_level = confidence_level,
+            var_value=var_value,
+            confidence_level=confidence_level,
             method = 'parametric_normal',
             horizon_days = 1,
             calculation_date = pd.Timestamp.now().strftime('%Y-%m-%d'),
@@ -134,8 +134,8 @@ class AdvancedVaREngine:
         var_value = abs(var_return) * self.portfolio_value
         
         return VaRResult(
-            var_value = var_value,
-            confidence_level = confidence_level,
+            var_value=var_value,
+            confidence_level=confidence_level,
             method = 'historical_simulation',
             horizon_days = 1,
             calculation_date = pd.Timestamp.now().strftime('%Y-%m-%d'),
@@ -146,10 +146,10 @@ class AdvancedVaREngine:
             }
         )
     
-    def _monte_carlo_var(self, returns: np.ndarray, confidence_level: float, n_simulations: int = 10000)->VaRResult:
+    def _monte_carlo_var(self, returns: np.ndarray, confidence_level: float, n_simulations: int=10000)->VaRResult:
         """Monte Carlo simulation VaR"""
         mean_return = np.mean(returns)
-        std_return = np.std(returns, ddof = 1)
+        std_return = np.std(returns, ddof=1)
         
         # Generate random returns
         np.random.seed(42)  # For reproducibility
@@ -164,8 +164,8 @@ class AdvancedVaREngine:
         var_value = abs(var_return) * self.portfolio_value
         
         return VaRResult(
-            var_value = var_value,
-            confidence_level = confidence_level,
+            var_value=var_value,
+            confidence_level=confidence_level,
             method = 'monte_carlo',
             horizon_days = 1,
             calculation_date = pd.Timestamp.now().strftime('%Y-%m-%d'),
@@ -195,15 +195,15 @@ class AdvancedVaREngine:
         
         # Fit Generalized Pareto Distribution
         try: 
-            shape, loc, scale = stats.genpareto.fit(excesses, floc = 0)
+            shape, loc, scale=stats.genpareto.fit(excesses, floc=0)
             
             # Calculate VaR using GPD
             var_return = threshold + scale * ((1 - confidence_level) ** (-shape) - 1) / shape
             var_value = abs(var_return) * self.portfolio_value
             
             return VaRResult(
-                var_value = var_value,
-                confidence_level = confidence_level,
+                var_value=var_value,
+                confidence_level=confidence_level,
                 method = 'evt_gpd',
                 horizon_days = 1,
                 calculation_date = pd.Timestamp.now().strftime('%Y-%m-%d'),
@@ -218,7 +218,7 @@ class AdvancedVaREngine:
             # Fallback to historical if EVT fails
             return self._historical_var(returns, confidence_level)
     
-    def calculate_cvar(self, returns: np.ndarray, confidence_level: float = 0.95)->float:
+    def calculate_cvar(self, returns: np.ndarray, confidence_level: float=0.95)->float:
         """Calculate Conditional Value at Risk (Expected Shortfall)"""
         # Get VaR first
         var_result = self._historical_var(returns, confidence_level)
@@ -230,7 +230,7 @@ class AdvancedVaREngine:
         
         return abs(cvar)
     
-    def detect_regime_and_adjust(self, returns: np.ndarray, lookback_days: int = 60)->Dict:
+    def detect_regime_and_adjust(self, returns: np.ndarray, lookback_days: int=60)->Dict:
         """Simple regime detection based on volatility"""
         recent_returns = returns[-lookback_days: ] if len(returns)  >  lookback_days else returns
         
@@ -273,7 +273,7 @@ if __name__ ==  "__main__": # Generate sample returns data
     # Calculate VaR suite
     print("Calculating VaR Suite...")
     var_suite = var_engine.calculate_var_suite(
-        returns = sample_returns,
+        returns=sample_returns,
         confidence_levels = [0.95, 0.99],
         methods = ['parametric', 'historical', 'monte_carlo']
     )

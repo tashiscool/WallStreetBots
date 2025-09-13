@@ -7,7 +7,7 @@ class News(models.Model):
     """News of a company"""
     headline = models.TextField()
     link = models.URLField(max_length=200)  # default = 200
-    date = models.DateField(auto_now=False, auto_now_add = False)
+    date = models.DateField(auto_now=False, auto_now_add=False)
 
     # Metadata
     class Meta: 
@@ -21,7 +21,7 @@ class News(models.Model):
 class Tweets(models.Model): 
     """Tweets / Reddits of a company"""
     content = models.TextField()
-    date = models.DateField(auto_now=False, auto_now_add = False)
+    date = models.DateField(auto_now=False, auto_now_add=False)
 
     # Metadata
     class Meta: 
@@ -35,9 +35,9 @@ class Tweets(models.Model):
 class Company(models.Model): 
     """Company entity"""
     name = models.TextField()
-    ticker = models.CharField(max_length=255, primary_key = True)
-    news = models.ManyToManyField(News, blank = True)
-    tweets = models.ManyToManyField(Tweets, blank = True)
+    ticker = models.CharField(max_length=255, primary_key=True)
+    news = models.ManyToManyField(News, blank=True)
+    tweets = models.ManyToManyField(Tweets, blank=True)
 
     # Metadata
     class Meta: 
@@ -50,7 +50,7 @@ class Company(models.Model):
 
 class Stock(models.Model): 
     """Stock of a company"""
-    company = models.OneToOneField(Company, help_text = 'Company', on_delete = models.CASCADE)  # To Be Completed
+    company = models.OneToOneField(Company, help_text='Company', on_delete=models.CASCADE)  # To Be Completed
     current_price = None  # To Be Completed
     indicators = None  # To Be Completed
     historical_prices = None  # To Be Completed
@@ -67,9 +67,9 @@ class Stock(models.Model):
 
 class Price(models.Model): 
     """Price of a stock"""
-    stock = models.ForeignKey(Stock, help_text = 'Associated stock', on_delete = models.CASCADE)
-    date = models.DateField(auto_now=False, auto_now_add = False)
-    value = models.DecimalField(max_digits=8, decimal_places = 2, help_text = 'quantity')
+    stock = models.ForeignKey(Stock, help_text='Associated stock', on_delete=models.CASCADE)
+    date = models.DateField(auto_now=False, auto_now_add=False)
+    value = models.DecimalField(max_digits=8, decimal_places=2, help_text='quantity')
 
     # Metadata
     class Meta: 
@@ -86,7 +86,7 @@ class StockTrade(models.Model):
     # or add transaction type (buy, sell, etc.) which is probably preferable
     # should probably change to represent a single exchange instance instead of trying to
     # show an entire buy / sell operation
-    company = models.ForeignKey(Company, on_delete = models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     price = models.FloatField()
     amount = models.IntegerField()
     bought_timestamp = models.DateTimeField(auto_now_add=True)
@@ -120,23 +120,23 @@ class Order(models.Model):
     ]
     # Fields
     order_number = models.BigAutoField(primary_key=True)
-    client_order_id = models.CharField(max_length=100, default = '', help_text = 'for alpaca sync')
-    user = models.ForeignKey(User, help_text = 'associated user', on_delete = models.CASCADE)
-    timestamp = models.DateTimeField(auto_now_add=True, help_text = 'order submission timestamp')
-    stock = models.ForeignKey(Stock, help_text = 'associated stock', on_delete = models.CASCADE)
-    order_type = models.CharField(choices=ORDERTYPES, max_length = 2, help_text = 'order type')
-    quantity = models.DecimalField(max_digits=8, decimal_places = 2, help_text = 'quantity')
-    transaction_type = models.CharField(choices=TRANSACTIONTYPES, max_length = 2,
+    client_order_id = models.CharField(max_length=100, default='', help_text='for alpaca sync')
+    user = models.ForeignKey(User, help_text='associated user', on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True, help_text='order submission timestamp')
+    stock = models.ForeignKey(Stock, help_text='associated stock', on_delete=models.CASCADE)
+    order_type = models.CharField(choices=ORDERTYPES, max_length=2, help_text='order type')
+    quantity = models.DecimalField(max_digits=8, decimal_places=2, help_text='quantity')
+    transaction_type = models.CharField(choices=TRANSACTIONTYPES, max_length=2,
                                         help_text = 'buy or sell transaction type')
-    status = models.CharField(choices=STATUS, max_length = 1, help_text = 'order status')
+    status = models.CharField(choices=STATUS, max_length=1, help_text='order status')
 
     # Not required
-    filled_avg_price = models.DecimalField(max_digits=8, decimal_places = 2, help_text = 'filled average price', blank = True,
+    filled_avg_price = models.DecimalField(max_digits=8, decimal_places=2, help_text='filled average price', blank=True,
                                            null = True)
-    filled_timestamp = models.DateTimeField(blank=True, help_text = 'order filled timestamp', null = True)
-    limit_price = models.DecimalField(max_digits=8, decimal_places = 2, help_text = 'limit price', blank = True, null = True)
-    stop_price = models.DecimalField(max_digits=8, decimal_places = 2, help_text = 'stop price', blank = True, null = True)
-    filled_quantity = models.DecimalField(max_digits=8, decimal_places = 2, default = 0, help_text = 'filled quantity')
+    filled_timestamp = models.DateTimeField(blank=True, help_text='order filled timestamp', null=True)
+    limit_price = models.DecimalField(max_digits=8, decimal_places=2, help_text='limit price', blank=True, null=True)
+    stop_price = models.DecimalField(max_digits=8, decimal_places=2, help_text='stop price', blank=True, null=True)
+    filled_quantity = models.DecimalField(max_digits=8, decimal_places=2, default=0, help_text='filled quantity')
 
     # Metadata
     class Meta: 
@@ -173,14 +173,14 @@ class Portfolio(models.Model):
         ('manual', 'Manual portfolio management'),
         ('hmm_naive_even_split', 'HMM model prediction + Even split portfolio'),  # HMMNaiveStrategy()
         ('ma_sharp_ratio_monte_carlo',
-         'Moving average + Sharpe ratio Monte Carlo simulation'),  # MonteCarloMASharpeRatioStrategy()
+         'Moving average+Sharpe ratio Monte Carlo simulation'),  # MonteCarloMASharpeRatioStrategy()
         ('hmm_sharp_ratio_monte_carlo', 'HMM model prediction + Sharpe ratio Monte Carlo simulation'),  # TODO
     ]
     """Portfolio for a user"""
-    name = models.CharField(max_length=100, blank = False, help_text = "Portfolio name")
-    user = models.OneToOneField(User, help_text = 'Associated user', on_delete = models.CASCADE)
-    cash = models.DecimalField(max_digits=10, decimal_places = 2, help_text = 'Cash')
-    strategy = models.CharField(max_length=50, choices = STRATEGY, default = 'manual',
+    name = models.CharField(max_length=100, blank=False, help_text="Portfolio name")
+    user = models.OneToOneField(User, help_text='Associated user', on_delete=models.CASCADE)
+    cash = models.DecimalField(max_digits=10, decimal_places=2, help_text='Cash')
+    strategy = models.CharField(max_length=50, choices=STRATEGY, default='manual',
                                 help_text = "Portfolio Rebalancing Strategy")
 
     # Metadata
@@ -194,10 +194,10 @@ class Portfolio(models.Model):
 
 class StockInstance(models.Model): 
     """An instance of a stock"""
-    user = models.ForeignKey(User, help_text = 'Associated user', on_delete = models.CASCADE)
-    portfolio = models.ForeignKey(Portfolio, help_text = 'Associated portfolio', on_delete = models.CASCADE)
-    stock = models.ForeignKey(Stock, help_text = 'Associated stock', on_delete = models.CASCADE)
-    quantity = models.DecimalField(max_digits=8, decimal_places = 2, help_text = 'quantity')
+    user = models.ForeignKey(User, help_text='Associated user', on_delete=models.CASCADE)
+    portfolio = models.ForeignKey(Portfolio, help_text='Associated portfolio', on_delete=models.CASCADE)
+    stock = models.ForeignKey(Stock, help_text='Associated stock', on_delete=models.CASCADE)
+    quantity = models.DecimalField(max_digits=8, decimal_places=2, help_text='quantity')
 
     # Metadata
     class Meta: 

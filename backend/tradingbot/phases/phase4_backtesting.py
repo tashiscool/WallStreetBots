@@ -94,12 +94,12 @@ class BacktestEngine:
         
         # Backtesting state
         self.current_date = None
-        self.portfolio_value = 0.0
-        self.cash = 0.0
-        self.positions = {}
-        self.trades = []
-        self.daily_portfolio_values = []
-        self.daily_returns = []
+        self.portfolio_value=0.0
+        self.cash=0.0
+        self.positions={}
+        self.trades=[]
+        self.daily_portfolio_values=[]
+        self.daily_returns=[]
         
         self.logger.info("BacktestEngine initialized")
     
@@ -126,17 +126,17 @@ class BacktestEngine:
     
     def _initialize_backtest(self, config: BacktestConfig):
         """Initialize backtesting state"""
-        self.current_date = config.start_date
-        self.portfolio_value = config.initial_capital
-        self.cash = config.initial_capital
-        self.positions = {}
-        self.trades = []
-        self.daily_portfolio_values = []
-        self.daily_returns = []
+        self.current_date=config.start_date
+        self.portfolio_value=config.initial_capital
+        self.cash=config.initial_capital
+        self.positions={}
+        self.trades=[]
+        self.daily_portfolio_values=[]
+        self.daily_returns=[]
     
     async def _run_simulation(self, strategy, config: BacktestConfig):
         """Run the backtest simulation"""
-        date_range = [config.start_date + timedelta(days=i) for i in range((config.end_date - config.start_date).days + 1)]
+        date_range = [config.start_date+timedelta(days=i) for i in range((config.end_date-config.start_date).days + 1)]
         
         for current_date in date_range: 
             self.current_date = current_date
@@ -149,7 +149,7 @@ class BacktestEngine:
             
             # Calculate daily return
             if len(self.daily_portfolio_values)  >  1: 
-                daily_return = (self.portfolio_value - self.daily_portfolio_values[-2]) / self.daily_portfolio_values[-2]
+                daily_return = (self.portfolio_value-self.daily_portfolio_values[-2]) / self.daily_portfolio_values[-2]
                 self.daily_returns.append(daily_return)
             else: 
                 self.daily_returns.append(0.0)
@@ -172,7 +172,7 @@ class BacktestEngine:
             # Mock current price update
             current_price = position['entry_price'] * (1 + 0.001)  # 0.1% daily return
             position['current_price'] = current_price
-            position['unrealized_pnl'] = (current_price - position['entry_price']) * position['quantity']
+            position['unrealized_pnl'] = (current_price-position['entry_price']) * position['quantity']
             total_value += position['unrealized_pnl']
         
         self.portfolio_value = total_value
@@ -292,7 +292,7 @@ class BacktestEngine:
                 quantity = position['quantity']
             
             # Calculate P & L
-            pnl = (price - position['entry_price']) * quantity
+            pnl = (price-position['entry_price']) * quantity
             commission = config.commission_per_trade
             slippage = config.slippage_per_trade * (quantity * price)
             net_pnl = pnl - commission - slippage
@@ -304,19 +304,19 @@ class BacktestEngine:
             
             # Record the trade
             trade = BacktestTrade(
-                ticker = ticker,
+                ticker=ticker,
                 strategy = 'backtest',
                 entry_date = position['entry_date'],
                 exit_date = self.current_date,
                 entry_price = position['entry_price'],
-                exit_price = price,
-                quantity = quantity,
+                exit_price=price,
+                quantity=quantity,
                 side = 'long',
-                pnl = pnl,
-                commission = commission,
-                slippage = slippage,
-                net_pnl = net_pnl,
-                holding_period_days = (self.current_date - position['entry_date']).days,
+                pnl=pnl,
+                commission=commission,
+                slippage=slippage,
+                net_pnl=net_pnl,
+                holding_period_days = (self.current_date-position['entry_date']).days,
                 return_pct = pnl / (position['entry_price'] * quantity),
                 exit_reason = 'signal_exit'
             )
@@ -338,8 +338,8 @@ class BacktestEngine:
             # Mock price update
             current_price = position['entry_price'] * (1 + 0.001)  # 0.1% daily return
             position['current_price'] = current_price
-            position['unrealized_pnl'] = (current_price - position['entry_price']) * position['quantity']
-            position['days_held'] = (self.current_date - position['entry_date']).days
+            position['unrealized_pnl'] = (current_price-position['entry_price']) * position['quantity']
+            position['days_held'] = (self.current_date-position['entry_date']).days
     
     async def _check_exit_conditions(self, config: BacktestConfig):
         """Check for exit conditions (stop loss, take profit)"""
@@ -367,8 +367,8 @@ class BacktestEngine:
             win_rate = winning_trades / total_trades if total_trades  >  0 else 0
             
             # Return metrics
-            total_return = (self.portfolio_value - config.initial_capital) / config.initial_capital
-            years = (config.end_date - config.start_date).days / 365.25
+            total_return = (self.portfolio_value-config.initial_capital) / config.initial_capital
+            years = (config.end_date-config.start_date).days / 365.25
             annualized_return = (1 + total_return) ** (1 / years) - 1 if years  >  0 else 0
             
             # Risk metrics
@@ -400,7 +400,7 @@ class BacktestEngine:
             # Cost analysis
             total_commission = sum(t.commission for t in self.trades)
             total_slippage = sum(t.slippage for t in self.trades)
-            net_profit = self.portfolio_value - config.initial_capital
+            net_profit = self.portfolio_value-config.initial_capital
             
             # Benchmark comparison
             benchmark_return = 0.10  # 10% annual return
@@ -408,28 +408,28 @@ class BacktestEngine:
             beta = 1.0  # Mock beta
             
             results = BacktestResults(
-                config = config,
+                config=config,
                 start_date = config.start_date,
                 end_date = config.end_date,
-                total_trades = total_trades,
-                winning_trades = winning_trades,
-                losing_trades = losing_trades,
-                win_rate = win_rate,
-                total_return = total_return,
-                annualized_return = annualized_return,
-                volatility = volatility,
-                sharpe_ratio = sharpe_ratio,
-                max_drawdown = max_drawdown,
-                calmar_ratio = calmar_ratio,
-                profit_factor = profit_factor,
-                avg_win = avg_win,
-                avg_loss = avg_loss,
-                total_commission = total_commission,
-                total_slippage = total_slippage,
-                net_profit = net_profit,
-                benchmark_return = benchmark_return,
-                alpha = alpha,
-                beta = beta,
+                total_trades=total_trades,
+                winning_trades=winning_trades,
+                losing_trades=losing_trades,
+                win_rate=win_rate,
+                total_return=total_return,
+                annualized_return=annualized_return,
+                volatility=volatility,
+                sharpe_ratio=sharpe_ratio,
+                max_drawdown=max_drawdown,
+                calmar_ratio=calmar_ratio,
+                profit_factor=profit_factor,
+                avg_win=avg_win,
+                avg_loss=avg_loss,
+                total_commission=total_commission,
+                total_slippage=total_slippage,
+                net_profit=net_profit,
+                benchmark_return=benchmark_return,
+                alpha=alpha,
+                beta=beta,
                 trades = self.trades,
                 daily_returns = self.daily_returns,
                 daily_portfolio_values = self.daily_portfolio_values

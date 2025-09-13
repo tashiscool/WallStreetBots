@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Quick test runner to verify all WSB strategy modules work correctly
 Tests basic functionality without complex unit tests
@@ -83,12 +83,12 @@ def test_module_imports():
         # Test golden / death cross analysis
         ma_cross = MovingAverageCross(
             cross_type = "golden_cross",
-            cross_date = None,
-            days_since_cross = None,
+            cross_date=None,
+            days_since_cross=None,
             sma_50 = 100.0,
             sma_200 = 95.0,
-            price_above_50sma = True,
-            price_above_200sma = True,
+            price_above_50sma=True,
+            price_above_200sma=True,
             cross_strength = 50.0,
             trend_direction = "bullish"
         )
@@ -136,7 +136,7 @@ def test_basic_functionality():
         assert hasattr(scanner, 'black_scholes_call')
         
         # Test basic BS calculation
-        price, delta = scanner.black_scholes_put(100, 95, 0.25, 0.05, 0.2)
+        price, delta=scanner.black_scholes_put(100, 95, 0.25, 0.05, 0.2)
         assert price  >  0
         assert -1  <  delta  <  0  # Put delta should be negative
         
@@ -193,12 +193,12 @@ def test_basic_functionality():
         # Test timing calculation
         from leaps_tracker import MovingAverageCross
         ma_cross = MovingAverageCross(
-            cross_type = "golden_cross", cross_date = None, days_since_cross = 20,
-            sma_50 = 110.0, sma_200 = 105.0, price_above_50sma = True, 
-            price_above_200sma = True, cross_strength = 60.0, trend_direction = "bullish"
+            cross_type = "golden_cross", cross_date=None, days_since_cross=20,
+            sma_50 = 110.0, sma_200=105.0, price_above_50sma=True, 
+            price_above_200sma=True, cross_strength=60.0, trend_direction="bullish"
         )
         
-        entry_score, exit_score = tracker.calculate_entry_exit_timing_scores(ma_cross, 112.0)
+        entry_score, exit_score=tracker.calculate_entry_exit_timing_scores(ma_cross, 112.0)
         assert 0  <=  entry_score  <=  100
         assert 0  <=  exit_score  <=  100
         
@@ -222,8 +222,8 @@ def generate_summary(import_results, functionality_results):
     
     print(f"📊 RESULTS: ")
     print(f"   Total WSB Strategy Modules: {total_modules}")
-    print(f"   Successful Imports:         {successful_imports}/{total_modules} ({(successful_imports / total_modules)*100: .0f}%)")
-    print(f"   Functional Modules:         {functional_modules}/{total_modules} ({(functional_modules / total_modules)*100: .0f}%)")
+    print(f"   Successful Imports:         {successful_imports}/{total_modules} ({(successful_imports / total_modules) * 100: .0f}%)")
+    print(f"   Functional Modules:         {functional_modules}/{total_modules} ({(functional_modules / total_modules) * 100: .0f}%)")
     
     print(f"\n📋 MODULE STATUS: ")
     all_modules = set(list(import_results.keys()) + list(functionality_results.keys()))

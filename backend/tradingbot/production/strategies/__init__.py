@@ -2,14 +2,14 @@
 Production Trading Strategies
 
 Production - ready implementations of WSB - style trading strategies: 
-- ProductionWSBDipBot: Dip - after-run strategy with live execution
+- ProductionWSBDipBot: Dip - after - run strategy with live execution
 - ProductionEarningsProtection: Earnings protection strategies
 - ProductionIndexBaseline: Baseline performance tracking
 - ProductionWheelStrategy: Automated premium selling wheel strategy
 - ProductionMomentumWeeklies: Intraday momentum and reversal patterns for weekly options
 - ProductionDebitSpreads: Call spreads with reduced theta / IV risk
 - ProductionLEAPSTracker: Long - term secular growth trends with systematic profit - taking
-- ProductionSwingTrading: Fast profit - taking swing trades with same - day exit discipline
+- ProductionSwingTrading: Fast profit - taking swing trades with same-day exit discipline
 - ProductionSPXCreditSpreads: WSB - style 0DTE / short - term credit spreads with defined risk
 - ProductionLottoScanner: Extreme high - risk 0DTE and earnings lotto plays with strict discipline
 """

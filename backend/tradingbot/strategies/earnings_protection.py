@@ -1,7 +1,7 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 WSB Strategy: Earnings IV Crush Protection
-Avoid the #1 WSB earnings mistake - getting crushed by IV collapse
+Avoid the #1 WSB earnings mistake-getting crushed by IV collapse
 Focus on IV - resistant structures: Deep ITM options, calendar spreads, balanced hedges
 """
 
@@ -71,7 +71,7 @@ class EarningsProtectionStrategy:
 class EarningsProtectionScanner: 
     def __init__(self): 
         # Focus on liquid names with reliable earnings dates
-        self.earnings_candidates = [
+        self.earnings_candidates=[
             # Mega caps with predictable earnings
             "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NVDA", "NFLX",
             
@@ -82,7 +82,7 @@ class EarningsProtectionScanner:
             "PLTR", "COIN", "ROKU", "ZM", "DOCU", "SNOW", "CRWD", "ZS"
         ]
     
-    def get_upcoming_earnings(self, days_ahead: int = 14)->List[EarningsEvent]:
+    def get_upcoming_earnings(self, days_ahead: int=14)->List[EarningsEvent]:
         """Get upcoming earnings events (simplified - would use earnings API in production)"""
         # Mock earnings data - in production, use Alpha Vantage, FMP, or similar
         mock_earnings = [
@@ -120,7 +120,7 @@ class EarningsProtectionScanner:
                         company_name = ticker
                     
                     # Estimate expected move and IV
-                    expected_move, iv_current = self.estimate_earnings_move(ticker, earning["days_out"])
+                    expected_move, iv_current=self.estimate_earnings_move(ticker, earning["days_out"])
                     iv_historical = self.estimate_historical_iv(ticker)
                     
                     # Assess IV crush risk
@@ -135,17 +135,16 @@ class EarningsProtectionScanner:
                         crush_risk = "low"
                     
                     event = EarningsEvent(
-                        ticker = ticker,
-                        company_name = company_name,
-                        earnings_date = earnings_date,
+                        ticker=ticker,
+                        company_name=company_name,
+                        earnings_date=earnings_date,
                         earnings_time = earning["time"],
                         days_until_earnings = earning["days_out"],
-                        current_price = current_price,
-                        expected_move = expected_move,
-                        iv_current = iv_current,
-                        iv_historical_avg = iv_historical,
-                        iv_crush_risk = crush_risk
-                    )
+                        current_price=current_price,
+                        expected_move=expected_move,
+                        iv_current=iv_current,
+                        iv_historical_avg=iv_historical,
+                        iv_crush_risk = crush_risk)
                     
                     events.append(event)
                     
@@ -153,7 +152,7 @@ class EarningsProtectionScanner:
                     print(f"Error processing {ticker}: {e}")
                     continue
         
-        return sorted(events, key = lambda x: x.days_until_earnings)
+        return sorted(events, key=lambda x: x.days_until_earnings)
     
     def estimate_earnings_move(self, ticker: str, days_to_earnings: int)->Tuple[float, float]: 
         """Estimate expected move and current IV from options"""
@@ -276,18 +275,18 @@ class EarningsProtectionScanner:
             # Calculate metrics
             intrinsic_value = max(0, spot - strike)
             time_value = premium - intrinsic_value
-            breakeven = strike + premium
+            breakeven = strike+premium
             
             # Profit scenarios
-            profit_up_5 = (spot * 1.05) - strike - premium
+            profit_up_5 = (spot * 1.05) - strike-premium
             profit_down_5 = max(0, spot * 0.95 - strike) - premium
-            profit_flat = spot - strike - premium
+            profit_flat = spot - strike-premium
             
             # IV sensitivity (deep ITM has less time value)
             iv_sensitivity = time_value / premium if premium  >  0 else 0.0
             
             strategy = EarningsProtectionStrategy(
-                ticker = ticker,
+                ticker=ticker,
                 strategy_name = f"Deep ITM Call ${strike: .0f}",
                 strategy_type = "deep_itm",
                 earnings_date = event.earnings_date,
@@ -295,16 +294,16 @@ class EarningsProtectionScanner:
                 expiry_dates = [target_expiry],
                 option_types = ["call"],
                 quantities = [1],
-                net_debit = premium,
+                net_debit=premium,
                 max_profit = float('inf'),  # Unlimited upside
-                max_loss = premium,
+                max_loss=premium,
                 breakeven_points = [breakeven],
-                iv_sensitivity = iv_sensitivity,
+                iv_sensitivity=iv_sensitivity,
                 theta_decay = time_value * 0.1,  # Rough estimate
                 gamma_risk = 0.3,  # Lower gamma for deep ITM
-                profit_if_up_5pct = profit_up_5,
-                profit_if_down_5pct = profit_down_5,
-                profit_if_flat = profit_flat,
+                profit_if_up_5pct=profit_up_5,
+                profit_if_down_5pct=profit_down_5,
+                profit_if_flat=profit_flat,
                 risk_level = "medium"
             )
             
@@ -374,7 +373,7 @@ class EarningsProtectionScanner:
             profit_flat = max_profit * 0.7    # Best case scenario
             
             strategy = EarningsProtectionStrategy(
-                ticker = ticker,
+                ticker=ticker,
                 strategy_name = f"Calendar Spread ${strike: .0f}",
                 strategy_type = "calendar_spread",
                 earnings_date = event.earnings_date,
@@ -382,16 +381,16 @@ class EarningsProtectionScanner:
                 expiry_dates = [front_expiry, back_expiry],
                 option_types = ["call", "call"],
                 quantities = [-1, 1],  # Sell front, buy back
-                net_debit = net_debit,
-                max_profit = max_profit,
-                max_loss = net_debit,
-                breakeven_points = [strike - net_debit, strike + net_debit],
+                net_debit=net_debit,
+                max_profit=max_profit,
+                max_loss=net_debit,
+                breakeven_points = [strike-net_debit, strike+net_debit],
                 iv_sensitivity = 0.2,  # Lower IV sensitivity
                 theta_decay = -net_debit * 0.05,  # Benefits from theta
                 gamma_risk = 0.1,  # Low gamma risk
-                profit_if_up_5pct = profit_up_5,
-                profit_if_down_5pct = profit_down_5,
-                profit_if_flat = profit_flat,
+                profit_if_up_5pct=profit_up_5,
+                profit_if_down_5pct=profit_down_5,
+                profit_if_flat=profit_flat,
                 risk_level = "low"
             )
             
@@ -452,7 +451,7 @@ class EarningsProtectionScanner:
             profit_flat = -total_premium
             
             strategy = EarningsProtectionStrategy(
-                ticker = ticker,
+                ticker=ticker,
                 strategy_name = f"Protective Hedge {call_strike_actual: .0f}C / {put_strike_actual: .0f}P",
                 strategy_type = "protective_hedge", 
                 earnings_date = event.earnings_date,
@@ -460,16 +459,16 @@ class EarningsProtectionScanner:
                 expiry_dates = [target_expiry, target_expiry],
                 option_types = ["call", "put"],
                 quantities = [1, 1],
-                net_debit = total_premium,
+                net_debit=total_premium,
                 max_profit = float('inf'),  # Unlimited if big move
-                max_loss = total_premium,
+                max_loss=total_premium,
                 breakeven_points = [call_strike_actual + total_premium, put_strike_actual - total_premium],
                 iv_sensitivity = 0.6,  # Moderate IV sensitivity
                 theta_decay = total_premium * 0.1,
                 gamma_risk = 0.5,
-                profit_if_up_5pct = profit_up_5,
-                profit_if_down_5pct = profit_down_5,
-                profit_if_flat = profit_flat,
+                profit_if_up_5pct=profit_up_5,
+                profit_if_down_5pct=profit_down_5,
+                profit_if_flat=profit_flat,
                 risk_level = "medium"
             )
             
@@ -532,7 +531,7 @@ class EarningsProtectionScanner:
         output += " = " * 80 + "\n"
         
         for i, strategy in enumerate(strategies, 1): 
-            days_to_earnings = (strategy.earnings_date - date.today()).days
+            days_to_earnings = (strategy.earnings_date-date.today()).days
             
             output += f"\n{i}. {strategy.ticker} - {strategy.strategy_name}\n"
             output += f"   Earnings: {strategy.earnings_date} ({days_to_earnings} days) | Strategy: {strategy.strategy_type}\n"
@@ -549,33 +548,33 @@ class EarningsProtectionScanner:
         output += "\n" + " = " * 80
         output += "\n🛡️  EARNINGS PROTECTION PRINCIPLES: \n"
         output += "• Avoid long straddles / strangles (high IV crush risk)\n"
-        output += "• Deep ITM options have less time value → less IV risk\n"
-        output += "• Calendar spreads benefit from IV crush on front month\n"
-        output += "• Protective hedges limit downside with defined risk\n"
-        output += "• Lower IV sensitivity = better protection\n"
+        output += "• Deep ITM options have less time value → less IV risk + n"
+        output += "• Calendar spreads benefit from IV crush on front month + n"
+        output += "• Protective hedges limit downside with defined risk + n"
+        output += "• Lower IV sensitivity = better protection + n"
         
         output += "\n⚠️  WSB EARNINGS WARNINGS: \n"
-        output += "• Most earnings plays lose money due to IV crush\n"
-        output += "• Expected moves are often overestimated\n"
-        output += "• Even 'right' direction can lose if IV crushes\n"
-        output += "• Consider avoiding earnings altogether\n"
-        output += "• If playing, use only 1 - 2% position sizing\n"
+        output += "• Most earnings plays lose money due to IV crush + n"
+        output += "• Expected moves are often overestimated + n"
+        output += "• Even 'right' direction can lose if IV crushes + n"
+        output += "• Consider avoiding earnings altogether + n"
+        output += "• If playing, use only 1 - 2% position sizing + n"
         
-        output += "\n💡 ALTERNATIVE: Wait until AFTER earnings\n"
-        output += "• IV crush creates opportunities to buy cheap options\n"
-        output += "• Lower IV = better risk / reward for future moves\n"
-        output += "• Let others get crushed, then pick up the pieces\n"
+        output += "\n💡 ALTERNATIVE: Wait until AFTER earnings + n"
+        output += "• IV crush creates opportunities to buy cheap options + n"
+        output += "• Lower IV = better risk / reward for future moves + n"
+        output += "• Let others get crushed, then pick up the pieces + n"
         
         return output
 
 
 def main(): 
     parser = argparse.ArgumentParser(description="Earnings IV Crush Protection Scanner")
-    parser.add_argument('--days - ahead', type = int, default = 14,
+    parser.add_argument('--days - ahead', type=int, default=14,
                        help = 'Days ahead to scan for earnings')
-    parser.add_argument('--output', choices = ['json', 'text'], default = 'text',
+    parser.add_argument('--output', choices=['json', 'text'], default='text',
                        help = 'Output format')
-    parser.add_argument('--max - iv-sensitivity', type = float, default = 0.5,
+    parser.add_argument('--max - iv - sensitivity', type=float, default=0.5,
                        help = 'Maximum IV sensitivity (0.0 - 1.0)')
     
     args = parser.parse_args()
@@ -586,7 +585,7 @@ def main():
     # Filter by IV sensitivity
     strategies = [s for s in strategies if s.iv_sensitivity  <=  args.max_iv_sensitivity]
     
-    if args.output  ==  'json': print(json.dumps([asdict(s) for s in strategies], indent = 2, default = str))
+    if args.output  ==  'json': print(json.dumps([asdict(s) for s in strategies], indent=2, default=str))
     else: 
         print(scanner.format_strategies(strategies))
     

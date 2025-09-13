@@ -30,7 +30,7 @@ class Phase3StrategyStatus:
     active_positions: int
     total_pnl: float
     total_exposure: float
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -42,7 +42,7 @@ class Phase3PortfolioSummary:
     total_pnl: float
     total_exposure: float
     risk_alerts: List[str]
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 class Phase3StrategyManager: 
@@ -50,15 +50,14 @@ class Phase3StrategyManager:
     
     def __init__(self, config: ConfigManager):
         self.config = config
-        self.logger = ProductionLogger("phase3_manager")
+        self.logger=ProductionLogger("phase3_manager")
         
         # Initialize data provider and trading interface
-        self.data_provider = UnifiedDataProvider(self.logger)
+        self.data_provider=UnifiedDataProvider(self.logger)
         self.trading_interface = TradingInterface(
             alpaca_api_key = "mock_key",
             alpaca_secret_key = "mock_secret",
-            paper_trading = True
-        )
+            paper_trading = True)
         
         # Initialize Phase 3 strategies
         self.earnings_protection = EarningsProtectionStrategy(
@@ -82,7 +81,7 @@ class Phase3StrategyManager:
         )
         
         # Strategy registry
-        self.strategies = {
+        self.strategies={
             "earnings_protection": self.earnings_protection,
             "swing_trading": self.swing_trading,
             "momentum_weeklies": self.momentum_weeklies,
@@ -327,7 +326,7 @@ class Phase3StrategyManager:
                 earnings_status = await self.earnings_protection.get_strategy_status()
                 status_dict["earnings_protection"] = Phase3StrategyStatus(
                     strategy_name = "Earnings Protection",
-                    is_active = True,
+                    is_active=True,
                     active_positions = earnings_status.get("active_positions", 0),
                     total_pnl = earnings_status.get("total_pnl", 0.0),
                     total_exposure = earnings_status.get("total_exposure", 0.0)
@@ -336,7 +335,7 @@ class Phase3StrategyManager:
                 self.logger.error(f"Error getting earnings protection status: {e}")
                 status_dict["earnings_protection"] = Phase3StrategyStatus(
                     strategy_name = "Earnings Protection",
-                    is_active = False,
+                    is_active=False,
                     active_positions = 0,
                     total_pnl = 0.0,
                     total_exposure = 0.0
@@ -347,7 +346,7 @@ class Phase3StrategyManager:
                 swing_status = await self.swing_trading.get_strategy_status()
                 status_dict["swing_trading"] = Phase3StrategyStatus(
                     strategy_name = "Swing Trading",
-                    is_active = True,
+                    is_active=True,
                     active_positions = swing_status.get("active_positions", 0),
                     total_pnl = swing_status.get("total_pnl", 0.0),
                     total_exposure = swing_status.get("total_exposure", 0.0)
@@ -356,7 +355,7 @@ class Phase3StrategyManager:
                 self.logger.error(f"Error getting swing trading status: {e}")
                 status_dict["swing_trading"] = Phase3StrategyStatus(
                     strategy_name = "Swing Trading",
-                    is_active = False,
+                    is_active=False,
                     active_positions = 0,
                     total_pnl = 0.0,
                     total_exposure = 0.0
@@ -367,7 +366,7 @@ class Phase3StrategyManager:
                 momentum_status = await self.momentum_weeklies.get_strategy_status()
                 status_dict["momentum_weeklies"] = Phase3StrategyStatus(
                     strategy_name = "Momentum Weeklies",
-                    is_active = True,
+                    is_active=True,
                     active_positions = momentum_status.get("active_positions", 0),
                     total_pnl = momentum_status.get("total_pnl", 0.0),
                     total_exposure = momentum_status.get("total_exposure", 0.0)
@@ -376,7 +375,7 @@ class Phase3StrategyManager:
                 self.logger.error(f"Error getting momentum weeklies status: {e}")
                 status_dict["momentum_weeklies"] = Phase3StrategyStatus(
                     strategy_name = "Momentum Weeklies",
-                    is_active = False,
+                    is_active=False,
                     active_positions = 0,
                     total_pnl = 0.0,
                     total_exposure = 0.0
@@ -387,7 +386,7 @@ class Phase3StrategyManager:
                 lotto_status = await self.lotto_scanner.get_strategy_status()
                 status_dict["lotto_scanner"] = Phase3StrategyStatus(
                     strategy_name = "Lotto Scanner",
-                    is_active = True,
+                    is_active=True,
                     active_positions = lotto_status.get("active_positions", 0),
                     total_pnl = lotto_status.get("total_pnl", 0.0),
                     total_exposure = lotto_status.get("total_exposure", 0.0)
@@ -396,7 +395,7 @@ class Phase3StrategyManager:
                 self.logger.error(f"Error getting lotto scanner status: {e}")
                 status_dict["lotto_scanner"] = Phase3StrategyStatus(
                     strategy_name = "Lotto Scanner",
-                    is_active = False,
+                    is_active=False,
                     active_positions = 0,
                     total_pnl = 0.0,
                     total_exposure = 0.0
@@ -407,7 +406,7 @@ class Phase3StrategyManager:
                 leaps_status = await self.leaps_tracker.get_strategy_status()
                 status_dict["leaps_tracker"] = Phase3StrategyStatus(
                     strategy_name = "LEAPS Tracker",
-                    is_active = True,
+                    is_active=True,
                     active_positions = leaps_status.get("active_positions", 0),
                     total_pnl = leaps_status.get("total_pnl", 0.0),
                     total_exposure = leaps_status.get("total_exposure", 0.0)
@@ -416,7 +415,7 @@ class Phase3StrategyManager:
                 self.logger.error(f"Error getting LEAPS tracker status: {e}")
                 status_dict["leaps_tracker"] = Phase3StrategyStatus(
                     strategy_name = "LEAPS Tracker",
-                    is_active = False,
+                    is_active=False,
                     active_positions = 0,
                     total_pnl = 0.0,
                     total_exposure = 0.0
@@ -453,13 +452,12 @@ class Phase3StrategyManager:
                     risk_alerts.append(f"High exposure in {strategy_name}: ${status.total_exposure:.2f}")
             
             summary = Phase3PortfolioSummary(
-                total_strategies = total_strategies,
-                active_strategies = active_strategies,
-                total_positions = total_positions,
-                total_pnl = total_pnl,
-                total_exposure = total_exposure,
-                risk_alerts = risk_alerts
-            )
+                total_strategies=total_strategies,
+                active_strategies=active_strategies,
+                total_positions=total_positions,
+                total_pnl=total_pnl,
+                total_exposure=total_exposure,
+                risk_alerts = risk_alerts)
             
             self.logger.info(f"Portfolio summary: {total_positions} positions, ${total_pnl: .2f} P & L")
             return summary
@@ -538,5 +536,4 @@ async def create_phase3_trading_interface(logger: ProductionLogger)->TradingInte
     return TradingInterface(
         alpaca_api_key = "mock_key",
         alpaca_secret_key = "mock_secret",
-        paper_trading = True
-    )
+        paper_trading = True)

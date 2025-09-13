@@ -25,7 +25,7 @@ class RssSource:
         feed = feedparser.parse(self.url)
         entry = feed['entries'][0]
         if self._newest_id is None or entry['id']  !=  self._newest_id: 
-            self._newest_id = entry['id']
+            self._newest_id=entry['id']
             return self.process_entry(entry)
         return None
 
@@ -41,9 +41,9 @@ def wait_for_newest_rss_feed_entry():
 
 
 urls = [
-    'https: //rss.nytimes.com / services/xml / rss/nyt / HomePage.xml',
+    'https: //rss.nytimes.com / services / xml / rss / nyt / HomePage.xml',
     'https: //www.economist.com / united - states / rss.xml',
-    'https: //www.economist.com / the - americas / rss.xml'
+    'https: //www.economist.com / the-americas / rss.xml'
 ]
 
 if __name__ ==  "__main__": 

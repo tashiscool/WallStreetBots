@@ -64,34 +64,34 @@ class ProductionWSBDipBot:
         self.data_provider = data_provider
         self.config = config
         self.logger = logger
-        self.error_handler = ErrorHandler(logger)
-        self.metrics = MetricsCollector(logger)
+        self.error_handler=ErrorHandler(logger)
+        self.metrics=MetricsCollector(logger)
         
         # Strategy parameters
-        self.max_position_risk = 0.02  # 2% max per position
-        self.min_dip_percentage = 3.0  # Minimum 3% dip to consider
-        self.max_dip_percentage = 15.0  # Maximum 15% dip (beyond this, likely fundamental issue)
-        self.min_volume_ratio = 2.0  # Minimum 2x average volume
-        self.rsi_threshold = 30.0  # RSI oversold threshold
+        self.max_position_risk=0.02  # 2% max per position
+        self.min_dip_percentage=3.0  # Minimum 3% dip to consider
+        self.max_dip_percentage=15.0  # Maximum 15% dip (beyond this, likely fundamental issue)
+        self.min_volume_ratio=2.0  # Minimum 2x average volume
+        self.rsi_threshold=30.0  # RSI oversold threshold
         self.news_sentiment_threshold = -0.3  # Minimum news sentiment
         
         # Risk controls
         self.max_positions = 10  # Maximum concurrent positions
-        self.max_account_risk = 0.10  # Maximum 10% of account at risk
-        self.daily_loss_limit = 0.05  # Stop trading if down 5% for the day
+        self.max_account_risk=0.10  # Maximum 10% of account at risk
+        self.daily_loss_limit=0.05  # Stop trading if down 5% for the day
         
         # WSB universe (popular tickers)
-        self.wsb_universe = [
+        self.wsb_universe=[
             'AAPL', 'TSLA', 'AMZN', 'MSFT', 'GOOGL', 'META', 'NVDA', 'SPY', 'QQQ',
             'AMD', 'NFLX', 'SHOP', 'SQ', 'ROKU', 'ZOOM', 'PLTR', 'NIO', 'BABA',
             'GME', 'AMC', 'BB', 'NOK', 'SNDL', 'TLRY', 'MVIS', 'CLOV', 'WISH'
         ]
         
         # Performance tracking
-        self.daily_pnl = 0.0
+        self.daily_pnl=0.0
         self.total_trades = 0
         self.winning_trades = 0
-        self.position_history = []
+        self.position_history=[]
         
         self.logger.info("Production WSB Dip Bot initialized with strict risk controls")
     
@@ -118,7 +118,7 @@ class ProductionWSBDipBot:
                     continue
             
             # Sort by risk - adjusted expected return
-            opportunities.sort(key=lambda x: x.expected_return / max(x.risk_score, 1), reverse = True)
+            opportunities.sort(key=lambda x: x.expected_return / max(x.risk_score, 1), reverse=True)
             
             # Limit to top opportunities
             top_opportunities = opportunities[: 5]
@@ -141,7 +141,7 @@ class ProductionWSBDipBot:
                 return None
             
             # Calculate dip percentage
-            dip_percentage = abs((market_data.price - market_data.previous_close) / market_data.previous_close * 100)
+            dip_percentage = abs((market_data.price-market_data.previous_close) / market_data.previous_close * 100)
             
             # Filter by dip criteria
             if dip_percentage  <  self.min_dip_percentage or dip_percentage  >  self.max_dip_percentage: 
@@ -180,20 +180,20 @@ class ProductionWSBDipBot:
             max_loss = position_size * market_data.price * self.max_position_risk
             
             return DipOpportunity(
-                ticker = ticker,
+                ticker=ticker,
                 current_price = market_data.price,
                 previous_close = market_data.previous_close,
-                dip_percentage = dip_percentage,
+                dip_percentage=dip_percentage,
                 volume = market_data.volume,
-                volume_ratio = volume_ratio,
-                rsi = rsi,
-                bollinger_position = bollinger_position,
-                news_sentiment = news_sentiment,
-                risk_score = risk_score,
-                kelly_fraction = kelly_fraction,
-                position_size = position_size,
-                expected_return = expected_return,
-                max_loss = max_loss,
+                volume_ratio=volume_ratio,
+                rsi=rsi,
+                bollinger_position=bollinger_position,
+                news_sentiment=news_sentiment,
+                risk_score=risk_score,
+                kelly_fraction=kelly_fraction,
+                position_size=position_size,
+                expected_return=expected_return,
+                max_loss=max_loss,
                 confidence = min(risk_score / 100.0, 1.0)
             )
             
@@ -201,7 +201,7 @@ class ProductionWSBDipBot:
             self.error_handler.handle_error(e, {"ticker": ticker, "operation": "_analyze_ticker"})
             return None
     
-    async def _get_average_volume(self, ticker: str, days: int = 20)->float:
+    async def _get_average_volume(self, ticker: str, days: int=20)->float:
         """Get average volume over specified days"""
         try: 
             # In production, would fetch historical volume data
@@ -211,7 +211,7 @@ class ProductionWSBDipBot:
         except: 
             return 1000000.0  # Default fallback
     
-    async def _calculate_rsi(self, ticker: str, period: int = 14)->float:
+    async def _calculate_rsi(self, ticker: str, period: int=14)->float:
         """Calculate RSI for ticker"""
         try: 
             # In production, would fetch historical price data and calculate real RSI
@@ -219,7 +219,7 @@ class ProductionWSBDipBot:
             market_data = await self.data_provider.get_market_data(ticker)
             
             # Simple RSI estimation based on price change
-            price_change_pct = (market_data.price - market_data.previous_close) / market_data.previous_close
+            price_change_pct = (market_data.price-market_data.previous_close) / market_data.previous_close
             
             if price_change_pct  <  -0.05:  # Down more than 5%
                 return 25.0  # Oversold
@@ -245,9 +245,9 @@ class ProductionWSBDipBot:
             volatility = daily_range * 2.0  # Rough estimate
             
             # Estimate Bollinger position
-            price_from_close = (current_price - market_data.previous_close) / market_data.previous_close
+            price_from_close = (current_price-market_data.previous_close) / market_data.previous_close
             
-            # Normalize to -1 to 1 scale (lower band = -1, upper band = 1)
+            # Normalize to -1 to 1 scale (lower band=-1, upper band=1)
             bollinger_position = price_from_close / (volatility / 2)
             
             return max(-1.0, min(1.0, bollinger_position))
@@ -310,8 +310,8 @@ class ProductionWSBDipBot:
             avg_win = stats.get('avg_win', 0.08)  # 8% average win
             avg_loss = stats.get('avg_loss', 0.04)  # 4% average loss
             
-            # Kelly formula: f = (bp - q) / b
-            # where b = avg_win / avg_loss, p = win_probability, q = 1 - p
+            # Kelly formula: f=(bp - q) / b
+            # where b=avg_win / avg_loss, p=win_probability, q = 1 - p
             if avg_loss  <=  0: 
                 return 0.0
                 
@@ -402,7 +402,7 @@ class ProductionWSBDipBot:
         try: 
             self.logger.info(f"Executing dip trade for {opportunity.ticker}")
             
-            # Pre - trade risk checks
+            # Pre-trade risk checks
             if not await self._pre_trade_risk_check(opportunity): 
                 return False
             
@@ -420,8 +420,7 @@ class ProductionWSBDipBot:
                 stop_order = await self.trading_interface.place_stop_loss(
                     ticker = opportunity.ticker,
                     quantity = opportunity.position_size,
-                    stop_price = stop_loss_price
-                )
+                    stop_price = stop_loss_price)
                 
                 # Record trade
                 await self._record_trade(opportunity, order_result, stop_order)
@@ -442,7 +441,7 @@ class ProductionWSBDipBot:
             return False
     
     async def _pre_trade_risk_check(self, opportunity: DipOpportunity)->bool:
-        """Pre - trade risk validation"""
+        """Pre-trade risk validation"""
         try: 
             # Check maximum positions
             current_positions = await self._get_current_position_count()
@@ -553,7 +552,7 @@ class ProductionWSBDipBot:
             # Calculate unrealized P & L
             entry_price = float(position.get('avg_cost_basis', 0))
             current_price = market_data.price
-            unrealized_pnl = (current_price - entry_price) / entry_price
+            unrealized_pnl = (current_price-entry_price) / entry_price
             
             # Exit conditions
             should_exit = False
@@ -564,7 +563,7 @@ class ProductionWSBDipBot:
                 should_exit = True
                 exit_reason = "profit_target"
             
-            # Time - based exit (hold for max 3 days)
+            # Time-based exit (hold for max 3 days)
             # In production, would check entry timestamp
             
             # Technical exit (RSI overbought)
@@ -592,8 +591,8 @@ class ProductionWSBDipBot:
             
             # Place sell order
             order_result = await self.trading_interface.sell_stock(
-                ticker = ticker,
-                quantity = quantity,
+                ticker=ticker,
+                quantity=quantity,
                 order_type = 'market'
             )
             
@@ -650,7 +649,7 @@ class ProductionWSBDipBot:
             account_info = await self.trading_interface.get_account()
             
             # Update daily P & L
-            self.daily_pnl = float(account_info.get('daytrading_buying_power', 0)) - \
+            self.daily_pnl=float(account_info.get('daytrading_buying_power', 0)) - \
                 self.config.risk.account_size
             
             # Record metrics

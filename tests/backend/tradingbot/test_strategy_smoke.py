@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Smoke Tests for Trading Strategies
 Simple tests to ensure strategies don't crash and basic functionality works
@@ -42,7 +42,7 @@ class TestStrategySmokeTests(unittest.TestCase):
         scanner = MomentumWeekliesScanner()
         expiry = scanner.get_next_weekly_expiry()
         self.assertIsInstance(expiry, str)
-        self.assertEqual(len(expiry), 10)  # YYYY - MM-DD format
+        self.assertEqual(len(expiry), 10)  # YYYY - MM - DD format
         
     def test_momentum_signal_creation(self): 
         """Test MomentumSignal dataclass"""
@@ -53,7 +53,7 @@ class TestStrategySmokeTests(unittest.TestCase):
             reversal_type = "bullish_reversal",
             volume_spike = 2.0,
             price_momentum = 5.0,
-            weekly_expiry = "2024 - 01-19",
+            weekly_expiry = "2024 - 01 - 19",
             target_strike = 155,
             premium_estimate = 2.50,
             risk_level = "medium",
@@ -71,7 +71,7 @@ class TestStrategySmokeTests(unittest.TestCase):
     def test_debit_spreads_black_scholes(self): 
         """Test Black - Scholes calculation"""
         scanner = DebitSpreadScanner()
-        price, delta = scanner.black_scholes_call(100.0, 105.0, 0.25, 0.05, 0.20)
+        price, delta=scanner.black_scholes_call(100.0, 105.0, 0.25, 0.05, 0.20)
         self.assertIsInstance(price, float)
         self.assertIsInstance(delta, float)
         self.assertGreater(price, 0)
@@ -85,7 +85,7 @@ class TestStrategySmokeTests(unittest.TestCase):
             scan_date = date.today(),
             spot_price = 400.0,
             trend_strength = 0.8,
-            expiry_date = "2024 - 01-19",
+            expiry_date = "2024 - 01 - 19",
             days_to_expiry = 30,
             long_strike = 395,
             short_strike = 400,
@@ -115,7 +115,7 @@ class TestStrategySmokeTests(unittest.TestCase):
             ticker = "AAPL",
             theme = "AI Revolution",
             entry_date = date(2024, 1, 15),
-            expiry_date = "2025 - 01-17",
+            expiry_date = "2025 - 01 - 17",
             strike = 150,
             entry_premium = 15.0,
             current_premium = 16.50,
@@ -129,8 +129,8 @@ class TestStrategySmokeTests(unittest.TestCase):
             days_held = 100,
             days_to_expiry = 200,
             delta = 0.65,
-            profit_target_hit = False,
-            stop_loss_hit = False,
+            profit_target_hit=False,
+            stop_loss_hit=False,
             scale_out_level = 0
         )
         self.assertEqual(position.ticker, "AAPL")
@@ -146,7 +146,7 @@ class TestStrategySmokeTests(unittest.TestCase):
         play = LottoPlay(
             ticker = "TSLA",
             play_type = "0dte",
-            expiry_date = "2024 - 01-19",
+            expiry_date = "2024 - 01 - 19",
             days_to_expiry = 0,
             strike = 200,
             option_type = "call",
@@ -179,7 +179,7 @@ class TestStrategySmokeTests(unittest.TestCase):
             shares = 0,
             avg_cost = 0.0,
             strike = 150,
-            expiry = "2024 - 01-19",
+            expiry = "2024 - 01 - 19",
             premium_collected = 2.50,
             days_to_expiry = 5,
             current_price = 149.0,
@@ -197,7 +197,7 @@ class TestStrategySmokeTests(unittest.TestCase):
         # Use the correct DipSignal fields from wsb_dip_bot.py
         signal = DipSignal(
             ticker = "AAPL",
-            ts_ny = "2024 - 01-19 15: 30: 00",
+            ts_ny = "2024 - 01 - 19 15: 30: 00",
             spot = 150.0,
             prior_close = 155.0,
             intraday_pct = -3.2,
@@ -217,7 +217,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
         
         with patch('backend.tradingbot.strategies.momentum_weeklies.yf.Ticker') as mock_ticker: 
             mock_stock = Mock()
-            mock_stock.history.return_value = pd.DataFrame({
+            mock_stock.history.return_value=pd.DataFrame({
                 'Volume': [1000000, 1200000, 1100000, 1300000, 1000000, 2000000]
             })
             mock_ticker.return_value = mock_stock
@@ -232,7 +232,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
         
         with patch('backend.tradingbot.strategies.momentum_weeklies.yf.Ticker') as mock_ticker: 
             mock_stock = Mock()
-            mock_stock.history.return_value = pd.DataFrame({
+            mock_stock.history.return_value=pd.DataFrame({
                 'Close': [100, 98, 96, 94, 92, 90, 88, 90, 92, 94, 96, 98, 100],
                 'Volume': [1000000] * 13
             })
@@ -248,7 +248,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
         
         with patch('backend.tradingbot.strategies.debit_spreads.yf.Ticker') as mock_ticker: 
             mock_stock = Mock()
-            mock_stock.history.return_value = pd.DataFrame({
+            mock_stock.history.return_value=pd.DataFrame({
                 'Close': [100.0, 101.0, 102.0, 103.0, 104.0, 105.0]
             })
             mock_ticker.return_value = mock_stock
@@ -264,7 +264,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
         
         with patch('backend.tradingbot.strategies.debit_spreads.yf.Ticker') as mock_ticker: 
             mock_stock = Mock()
-            mock_stock.history.return_value = pd.DataFrame({
+            mock_stock.history.return_value=pd.DataFrame({
                 'Close': [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
             })
             mock_ticker.return_value = mock_stock
@@ -283,7 +283,7 @@ class TestStrategyErrorHandling(unittest.TestCase):
         scanner = MomentumWeekliesScanner()
         
         with patch('backend.tradingbot.strategies.momentum_weeklies.yf.Ticker') as mock_ticker: 
-            mock_ticker.side_effect = Exception("Network error")
+            mock_ticker.side_effect=Exception("Network error")
             
             # Should handle gracefully without crashing
             result = scanner.detect_volume_spike("INVALID")
@@ -294,7 +294,7 @@ class TestStrategyErrorHandling(unittest.TestCase):
         scanner = DebitSpreadScanner()
         
         with patch('backend.tradingbot.strategies.debit_spreads.yf.Ticker') as mock_ticker: 
-            mock_ticker.side_effect = Exception("Network error")
+            mock_ticker.side_effect=Exception("Network error")
             
             # Should handle gracefully without crashing
             result = scanner.calculate_iv_rank("INVALID", 0.20)

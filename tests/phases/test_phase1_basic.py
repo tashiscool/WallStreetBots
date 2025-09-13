@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Basic Phase 1 Functionality Test
 Test core Phase 1 components without complex dependencies
@@ -33,7 +33,7 @@ def test_configuration():
     print(f"✅ Config validation found {len(errors)} errors (expected for empty config)")
     
     # Test config loading from file
-    with tempfile.NamedTemporaryFile(mode='w', suffix = '.json', delete = False) as f: 
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f: 
         test_config = {
             "risk": {
                 "max_position_risk": 0.15,
@@ -51,7 +51,7 @@ def test_configuration():
     finally: 
         os.unlink(config_file)
     
-    print("✅ Configuration management working correctly\n")
+    print("✅ Configuration management working correctly + n")
 
 
 def test_logging(): 
@@ -60,9 +60,9 @@ def test_logging():
     
     # Test logger creation
     logger = ProductionLogger("test_logger")
-    logger.info("Test info message", test_param = "value")
-    logger.warning("Test warning message", test_param = "value")
-    logger.error("Test error message", test_param = "value")
+    logger.info("Test info message", test_param="value")
+    logger.warning("Test warning message", test_param="value")
+    logger.error("Test error message", test_param="value")
     print("✅ Logging system working correctly")
     
     # Test error handling
@@ -74,7 +74,7 @@ def test_logging():
     print(f"✅ Error handling working: {result['error_type']} - {result['error_message']}")
     
     # Test circuit breaker
-    circuit_breaker = CircuitBreaker(failure_threshold=2, timeout = 1.0)
+    circuit_breaker = CircuitBreaker(failure_threshold=2, timeout=1.0)
     
     def success_func(): 
         return "success"
@@ -82,7 +82,7 @@ def test_logging():
     result = circuit_breaker.call(success_func)
     print(f"✅ Circuit breaker working: {result}")
     
-    print("✅ Production logging working correctly\n")
+    print("✅ Production logging working correctly + n")
 
 
 def test_monitoring(): 
@@ -120,7 +120,7 @@ def test_monitoring():
     print(f"✅ Metrics collector working: {summary['count']} metrics recorded")
     print(f"✅ Average value: {summary['avg']:.1f}")
     
-    print("✅ Monitoring components working correctly\n")
+    print("✅ Monitoring components working correctly + n")
 
 
 def test_data_structures(): 
@@ -145,7 +145,7 @@ def test_data_structures():
     # Test options data
     options_data = OptionsData(
         ticker = "AAPL",
-        expiry_date = "2024 - 01-19",
+        expiry_date = "2024 - 01 - 19",
         strike = 150.0,
         option_type = "call",
         bid = 2.50,
@@ -173,7 +173,7 @@ def test_data_structures():
     )
     print(f"✅ Earnings event: {earnings_event.ticker} on {earnings_event.earnings_date.strftime('%Y-%m-%d')} {earnings_event.time}")
     
-    print("✅ Data structures working correctly\n")
+    print("✅ Data structures working correctly + n")
 
 
 def test_trading_interface(): 
@@ -202,13 +202,13 @@ def test_trading_interface():
         side: OrderSide
         order_type: OrderType
         quantity: int
-        reason: str = ""
-        confidence: float = 0.0
+        reason: str=""
+        confidence: float=0.0
         timestamp: datetime = None
         
         def __post_init__(self): 
             if self.timestamp is None: 
-                self.timestamp = datetime.now()
+                self.timestamp=datetime.now()
     
     signal = TradeSignal(
         strategy_name = "test_strategy",
@@ -235,16 +235,16 @@ def test_trading_interface():
         status: TradeStatus
         filled_quantity: int = 0
         filled_price: float = None
-        commission: float = 0.0
+        commission: float=0.0
         timestamp: datetime = None
         
         def __post_init__(self): 
             if self.timestamp is None: 
-                self.timestamp = datetime.now()
+                self.timestamp=datetime.now()
     
     result = TradeResult(
         trade_id = "test_123",
-        signal = signal,
+        signal=signal,
         status = TradeStatus.FILLED,
         filled_quantity = 100,
         filled_price = 150.0,
@@ -253,7 +253,7 @@ def test_trading_interface():
     
     print(f"✅ Trade result: {result.trade_id} - {result.status.value} {result.filled_quantity} @ ${result.filled_price: .2f}")
     
-    print("✅ Trading interface components working correctly\n")
+    print("✅ Trading interface components working correctly + n")
 
 
 def main(): 

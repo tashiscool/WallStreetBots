@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr / bin / env python3
 """
 Focused tests for ProductionStrategyManager 
 Tests the core functionality we just implemented
@@ -29,13 +29,13 @@ def test_strategy_manager_initialization():
     config = ProductionStrategyManagerConfig(
         alpaca_api_key = "test_key",
         alpaca_secret_key = "test_secret", 
-        paper_trading = True,
+        paper_trading=True,
         user_id = 1
     )
     
     with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager'), \
          patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider'), \
-         patch.object(ProductionStrategyManager, '_create_strategy', return_value = None): 
+         patch.object(ProductionStrategyManager, '_create_strategy', return_value=None): 
         
         manager = ProductionStrategyManager(config)
         
@@ -56,7 +56,7 @@ def test_strategy_config_dataclass():
     
     config = StrategyConfig(
         name = "test_strategy",
-        enabled = True,
+        enabled=True,
         max_position_size = 0.15,
         risk_tolerance = "high",
         parameters = {"param1": "value1", "param2": 100}
@@ -79,7 +79,7 @@ def test_production_strategy_manager_config_dataclass():
     config = ProductionStrategyManagerConfig(
         alpaca_api_key = "test_key_123",
         alpaca_secret_key = "test_secret_456",
-        paper_trading = True,
+        paper_trading=True,
         user_id = 42
     )
     
@@ -104,18 +104,18 @@ def test_create_strategy_method_exists():
     config = ProductionStrategyManagerConfig(
         alpaca_api_key = "test_key",
         alpaca_secret_key = "test_secret",
-        paper_trading = True,
+        paper_trading=True,
         user_id = 1
     )
     
     with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager'), \
          patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider'), \
-         patch.object(ProductionStrategyManager, '_create_strategy', return_value = None): 
+         patch.object(ProductionStrategyManager, '_create_strategy', return_value=None): 
         
         manager = ProductionStrategyManager(config)
         
         # Test unknown strategy
-        strategy_config = StrategyConfig(name="unknown_strategy", enabled = True)
+        strategy_config = StrategyConfig(name="unknown_strategy", enabled=True)
         result = manager._create_strategy("unknown_strategy", strategy_config)
         
         # Should return None for unknown strategies
@@ -132,18 +132,18 @@ async def test_async_methods_exist():
     config = ProductionStrategyManagerConfig(
         alpaca_api_key = "test_key",
         alpaca_secret_key = "test_secret",
-        paper_trading = True,
+        paper_trading=True,
         user_id = 1
     )
     
     with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager') as MockIntegration, \
          patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider') as MockData, \
-         patch.object(ProductionStrategyManager, '_create_strategy', return_value = None): 
+         patch.object(ProductionStrategyManager, '_create_strategy', return_value=None): 
         
         # Setup mocks
         mock_integration = Mock()
-        mock_integration.alpaca_manager.validate_api.return_value = (True, "Success")
-        mock_integration.get_portfolio_value.return_value = 50000.0
+        mock_integration.alpaca_manager.validate_api.return_value=(True, "Success")
+        mock_integration.get_portfolio_value.return_value=50000.0
         MockIntegration.return_value = mock_integration
         
         mock_data = Mock()
@@ -161,8 +161,8 @@ async def test_async_methods_exist():
         from unittest.mock import AsyncMock
         
         # Mock the async methods properly
-        manager.integration_manager.get_portfolio_value = AsyncMock(return_value=50000.0)
-        manager.data_provider.is_market_open = AsyncMock(return_value=True)
+        manager.integration_manager.get_portfolio_value=AsyncMock(return_value=50000.0)
+        manager.data_provider.is_market_open=AsyncMock(return_value=True)
         
         # This should not raise an exception
         result = await manager._validate_system_state()
@@ -178,7 +178,7 @@ def test_strategy_factory_methods_mapping():
     config = ProductionStrategyManagerConfig(
         alpaca_api_key = "test_key",
         alpaca_secret_key = "test_secret",
-        paper_trading = True,
+        paper_trading=True,
         user_id = 1
     )
     
@@ -198,13 +198,13 @@ def test_strategy_factory_methods_mapping():
     
     with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager'), \
          patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider'), \
-         patch.object(ProductionStrategyManager, '_create_strategy', return_value = Mock()) as mock_create: 
+         patch.object(ProductionStrategyManager, '_create_strategy', return_value=Mock()) as mock_create: 
         
         manager = ProductionStrategyManager(config)
         
         # Test each expected strategy
         for strategy_name in expected_strategies: 
-            strategy_config = StrategyConfig(name=strategy_name, enabled = True)
+            strategy_config = StrategyConfig(name=strategy_name, enabled=True)
             
             # Reset mock call count
             mock_create.reset_mock()

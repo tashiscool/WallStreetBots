@@ -1,6 +1,6 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
-WSB Dip - After-Run Scanner & Exact - Clone Options Planner / Monitor
+WSB Dip - After - Run Scanner & Exact - Clone Options Planner / Monitor
 
 Replicates the common r / WSB winning tactic: 
 - Buy ~5% OTM calls with ~30 DTE on a HARD DIP DAY that follows a BIG RUN.
@@ -19,18 +19,18 @@ Install deps:
     pip install -r requirements.txt
 
 Examples: 
-    # End - of-day scan across default mega - caps; propose an options line per hit
-    python wsb_dip_bot.py scan - eod --account - size 450000 --risk - pct 1.0 --use - options-chain
+    # End - of - day scan across default mega - caps; propose an options line per hit
+    python wsb_dip_bot.py scan - eod --account - size 450000 --risk - pct 1.0 --use-options - chain
     
     # Intraday polling every 2 minutes for 30 minutes
     python wsb_dip_bot.py scan - intraday --poll - seconds 120 --max - minutes 30 \
-        --account - size 450000 --risk - pct 1.0 --use - options-chain
+        --account - size 450000 --risk - pct 1.0 --use-options - chain
 
     # Build a plan for one ticker now (e.g., GOOG at spot 207)
-    python wsb_dip_bot.py plan --ticker GOOG --spot 207 --account - size 450000 --risk - pct 1.0 --use - options-chain
+    python wsb_dip_bot.py plan --ticker GOOG --spot 207 --account - size 450000 --risk - pct 1.0 --use-options - chain
 
     # Monitor a built plan (target 3x or Δ≥0.60), polling every 60s, stop after market close
-    python wsb_dip_bot.py monitor --ticker GOOG --expiry 2025 - 10-17 --strike 220 --entry - prem 4.70 \
+    python wsb_dip_bot.py monitor --ticker GOOG --expiry 2025 - 10 - 17 --strike 220 --entry - prem 4.70 \
         --target - mult 3.0 --delta - target 0.60 --poll - seconds 60 --max - minutes 360
 
 Author: ChatGPT
@@ -78,7 +78,7 @@ RISK_PCT_DEFAULT = 0.10  # 10% of account per signal by default (can set 1.0 to 
 def now_ny()->datetime: 
     return datetime.now(pytz.timezone("America / New_York"))
 
-def round_to_increment(x: float, inc: float = 1.0)->float:
+def round_to_increment(x: float, inc: float=1.0)->float:
     return round(x / inc) * inc
 
 def nearest_expiry(expiries: List[str], target_days: int)->Optional[str]:
@@ -111,20 +111,20 @@ def _norm_cdf(x: float)->float:
     return 0.5 * (1.0 + math.erf(x / math.sqrt(2)))
 
 def bs_d1(spot: float, strike: float, t: float, r: float, q: float, iv: float)->float:
-    return (math.log(spot / strike) + (r - q + 0.5 * iv*iv)*t) / (iv * math.sqrt(t))
+    return (math.log(spot / strike) + (r - q + 0.5 * iv * iv) * t) / (iv * math.sqrt(t))
 
 def bs_call(spot: float, strike: float, t: float, r: float, q: float, iv: float)->float:
     if min(spot, strike, t, iv)  <=  0: raise ValueError("positive inputs required")
     d1 = bs_d1(spot, strike, t, r, q, iv)
     d2 = d1 - iv * math.sqrt(t)
-    return spot * math.exp(-q * t)*_norm_cdf(d1) - strike * math.exp(-r * t)*_norm_cdf(d2)
+    return spot * math.exp(-q * t) * _norm_cdf(d1) - strike * math.exp(-r * t) * _norm_cdf(d2)
 
 def bs_delta_call(spot: float, strike: float, t: float, r: float, q: float, iv: float)->float:
     d1 = bs_d1(spot, strike, t, r, q, iv)
     return math.exp(-q * t) * _norm_cdf(d1)
 
-def implied_vol_call(market_px: float, spot: float, strike: float, t: float, r: float = 0.04, q: float = 0.0,
-                     iv_init: float = 0.3, tol: float = 1e-4, max_iter: int = 60)->Optional[float]:
+def implied_vol_call(market_px: float, spot: float, strike: float, t: float, r: float=0.04, q: float=0.0,
+                     iv_init: float=0.3, tol: float=1e-4, max_iter: int=60)->Optional[float]:
     """ Solve for IV using Newton - Raphson; returns None if fails. """
     if market_px  <=  0 or min(spot, strike, t)  <=  0: 
         return None
@@ -133,8 +133,8 @@ def implied_vol_call(market_px: float, spot: float, strike: float, t: float, r: 
         try: 
             d1 = bs_d1(spot, strike, t, r, q, iv)
             d2 = d1 - iv * math.sqrt(t)
-            model = spot * math.exp(-q * t)*_norm_cdf(d1) - strike * math.exp(-r * t)*_norm_cdf(d2)
-            vega = spot * math.exp(-q * t)*math.sqrt(t)*_norm_pdf(d1)
+            model = spot * math.exp(-q * t) * _norm_cdf(d1) - strike * math.exp(-r * t) * _norm_cdf(d2)
+            vega = spot * math.exp(-q * t) * math.sqrt(t) * _norm_pdf(d1)
             diff = model - market_px
             if abs(diff)  <  tol: 
                 return max(iv, 1e-6)
@@ -150,26 +150,26 @@ def implied_vol_call(market_px: float, spot: float, strike: float, t: float, r: 
 
 # -------------------------- Data Access --------------------------
 
-def fetch_daily_history(ticker: str, period: str = "120d")->pd.DataFrame:
+def fetch_daily_history(ticker: str, period: str="120d")->pd.DataFrame:
     tkr = yf.Ticker(ticker)
-    df = tkr.history(period=period, interval = "1d", auto_adjust = False)
+    df = tkr.history(period=period, interval="1d", auto_adjust=False)
     if df is None or df.empty: 
         raise RuntimeError(f"No daily history for {ticker}")
     return df.dropna()
 
 def fetch_intraday_last_and_prior_close(ticker: str)->Optional[Dict[str, float]]: 
     tkr = yf.Ticker(ticker)
-    dailies = tkr.history(period="7d", interval = "1d")
+    dailies = tkr.history(period="7d", interval="1d")
     if dailies is None or len(dailies)  <  2: 
         return None
     prior_close = float(dailies["Close"].iloc[-2])
-    intraday = tkr.history(period="2d", interval = "5m")
+    intraday = tkr.history(period="2d", interval="5m")
     if intraday is None or intraday.empty: 
         return None
     last = float(intraday["Close"].iloc[-1])
     return {"last": last, "prior_close": prior_close}
 
-@retry(tries=3, delay = 1.0, exceptions = (Exception,))
+@retry(tries=3, delay=1.0, exceptions=(Exception,))
 def get_option_mid_for_nearest_5pct_otm(ticker: str, expiry: str, desired_strike: float)->Optional[Dict[str, float]]: 
     tkr = yf.Ticker(ticker)
     chain = tkr.option_chain(expiry)
@@ -231,18 +231,18 @@ def detect_eod_signal(ticker: str, run_lookback: int, run_pct: float, dip_pct: f
     if run_ret  <  run_pct: 
         return None
     return DipSignal(
-        ticker = ticker,
+        ticker=ticker,
         ts_ny = now_ny().isoformat(),
         spot = float(today["Close"]),
         prior_close = float(yday["Close"]),
         intraday_pct = float(day_chg),
-        run_lookback = run_lookback,
+        run_lookback=run_lookback,
         run_return = float(run_ret)
     )
 
 def detect_intraday_signal(ticker: str, run_lookback: int, run_pct: float, dip_pct: float)->Optional[DipSignal]:
     # Run check on dailies
-    df = fetch_daily_history(ticker, period = "180d")
+    df = fetch_daily_history(ticker, period="180d")
     if len(df)  <  run_lookback + 2: 
         return None
     window = df["Close"].iloc[-(run_lookback + 1): -1]
@@ -257,12 +257,12 @@ def detect_intraday_signal(ticker: str, run_lookback: int, run_pct: float, dip_p
     if live_pct  >  dip_pct: 
         return None
     return DipSignal(
-        ticker = ticker,
+        ticker=ticker,
         ts_ny = now_ny().isoformat(),
         spot = float(live["last"]),
         prior_close = float(live["prior_close"]),
         intraday_pct = float(live_pct),
-        run_lookback = run_lookback,
+        run_lookback=run_lookback,
         run_return = float(run_ret)
     )
 
@@ -294,13 +294,13 @@ def build_exact_plan(ticker: str, spot: float, account_size: float, risk_pct: fl
         strike = desired_strike
         prem = None
     if prem is None: 
-        # Fallback estimate via BS with IV = 30%, r = 4%
+        # Fallback estimate via BS with IV=30%, r = 4%
         try: 
             dte = max((datetime.fromisoformat(expiry).date() - date.today()).days, 1)
         except Exception: 
             dte = target_dte_days
         t = dte / 365.0
-        px = bs_call(spot, strike, t, r = 0.04, q = 0.0, iv = 0.30)
+        px = bs_call(spot, strike, t, r=0.04, q=0.0, iv=0.30)
         prem = max(px * 100.0, 0.01)
     contracts = int((account_size * risk_pct) // prem)
     total_cost = contracts * prem
@@ -308,9 +308,9 @@ def build_exact_plan(ticker: str, spot: float, account_size: float, risk_pct: fl
         dte_days = (datetime.fromisoformat(expiry).date() - date.today()).days
     except Exception: 
         dte_days = target_dte_days
-    breakeven = strike + prem / 100.0
+    breakeven = strike+prem / 100.0
     return OptionPlan(
-        ticker = ticker,
+        ticker=ticker,
         ts_ny = now_ny().isoformat(),
         spot = float(spot),
         expiry = str(expiry),
@@ -328,8 +328,8 @@ def build_exact_plan(ticker: str, spot: float, account_size: float, risk_pct: fl
 # -------------------------- Monitor Logic --------------------------
 
 def monitor_plan(ticker: str, expiry: str, strike: float, entry_prem: float,
-                 target_mult: float = 3.0, delta_target: float = 0.60, loss_stop_mult: float = 0.5,
-                 poll_seconds: int = 60, max_minutes: int = 360)->None:
+                 target_mult: float=3.0, delta_target: float=0.60, loss_stop_mult: float=0.5,
+                 poll_seconds: int=60, max_minutes: int=360)->None:
     """
     Polls the option mid every poll_seconds. Alerts when: 
     - price  >=  target_mult * entry_prem
@@ -371,11 +371,11 @@ def monitor_plan(ticker: str, expiry: str, strike: float, entry_prem: float,
             t = dte_days / 365.0
 
             # Try to estimate IV from mid; then delta
-            iv = implied_vol_call(market_px=mid_per_share, spot = spot, strike = strike, t = t, r = 0.04, q = 0.0) or 0.30
-            delta = bs_delta_call(spot, strike, t, r = 0.04, q = 0.0, iv = iv)
+            iv = implied_vol_call(market_px=mid_per_share, spot=spot, strike=strike, t=t, r=0.04, q=0.0) or 0.30
+            delta = bs_delta_call(spot, strike, t, r=0.04, q=0.0, iv=iv)
 
             timestamp = now_ny().strftime('%H: %M:%S')
-            print(f"[{timestamp}] spot = {spot: .2f} mid = {mid: .2f} (bid={bid * 100: .2f}/ask = {ask * 100: .2f}) IV≈{iv: .2%} Δ≈{delta: .2f}")
+            print(f"[{timestamp}] spot={spot: .2f} mid={mid: .2f} (bid={bid * 100: .2f}/ask={ask * 100: .2f}) IV≈{iv: .2%} Δ≈{delta: .2f}")
 
             if mid  >=  target_px: 
                 print(f"[TAKE - PROFIT] Target hit: ${mid:.2f} ≥ ${target_px: .2f}")
@@ -399,33 +399,33 @@ def monitor_plan(ticker: str, expiry: str, strike: float, entry_prem: float,
 def write_outputs(signals: List[DipSignal], plans: List[OptionPlan], out_prefix: str)->None:
     if signals: 
         df_s = pd.DataFrame([asdict(s) for s in signals])
-        df_s.to_csv(f"{out_prefix}_signals.csv", index = False)
+        df_s.to_csv(f"{out_prefix}_signals.csv", index=False)
         with open(f"{out_prefix}_signals.json", "w") as f: 
-            json.dump(df_s.to_dict(orient="records"), f, indent = 2)
+            json.dump(df_s.to_dict(orient="records"), f, indent=2)
     if plans: 
         df_p = pd.DataFrame([asdict(p) for p in plans])
-        df_p.to_csv(f"{out_prefix}_plans.csv", index = False)
+        df_p.to_csv(f"{out_prefix}_plans.csv", index=False)
         with open(f"{out_prefix}_plans.json", "w") as f: 
-            json.dump(df_p.to_dict(orient="records"), f, indent = 2)
+            json.dump(df_p.to_dict(orient="records"), f, indent=2)
 
 
 # -------------------------- Subcommand Runners --------------------------
 
 def run_scan_eod(universe: List[str], account_size: float, risk_pct: float, use_chain: bool,
                  run_lookback: int, run_pct: float, dip_pct: float, out_prefix: str)->None:
-    hits, plans = [], []
+    hits, plans=[], []
     for t in universe: 
         try: 
             sig = detect_eod_signal(t, run_lookback, run_pct, dip_pct)
             if sig: 
-                print(f"[EOD] {t}: dip {pct(sig.intraday_pct)} after {sig.run_lookback}d run {pct(sig.run_return)} | spot = {sig.spot: .2f}")
+                print(f"[EOD] {t}: dip {pct(sig.intraday_pct)} after {sig.run_lookback}d run {pct(sig.run_return)} | spot={sig.spot: .2f}")
                 plan = build_exact_plan(t, sig.spot, account_size, risk_pct, TARGET_DTE_DAYS, OTM_PCT, use_chain)
                 print("      Plan: " + str(t) + " " + str(plan.expiry) + " C" + str(plan.strike) + " ~5%%OTM | est prem $" + str(plan.premium_est_per_contract) + " | "
                       f"contracts {plan.contracts} | cost ${plan.total_cost: .2f} | BE {plan.breakeven_at_expiry: .2f}")
                 hits.append(sig)
                 plans.append(plan)
         except Exception as e: 
-            print(f"[WARN] {t}: {e}", file = sys.stderr)
+            print(f"[WARN] {t}: {e}", file=sys.stderr)
     write_outputs(hits, plans, out_prefix)
     if not hits: 
         print("No EOD signals.")
@@ -435,7 +435,7 @@ def run_scan_intraday(universe: List[str], account_size: float, risk_pct: float,
                       poll_seconds: int, max_minutes: int, out_prefix: str)->None:
     end_time = now_ny() + timedelta(minutes=max_minutes) if max_minutes  >  0 else None
     seen: set[str] = set()
-    hits_all, plans_all = [], []
+    hits_all, plans_all=[], []
     while True: 
         if end_time and now_ny()  >=  end_time: 
             break
@@ -445,7 +445,7 @@ def run_scan_intraday(universe: List[str], account_size: float, risk_pct: float,
             try: 
                 sig = detect_intraday_signal(t, run_lookback, run_pct, dip_pct)
                 if sig: 
-                    print(f"[INTRADAY] {t}: dip {pct(sig.intraday_pct)} after {sig.run_lookback}d run {pct(sig.run_return)} | spot = {sig.spot: .2f}")
+                    print(f"[INTRADAY] {t}: dip {pct(sig.intraday_pct)} after {sig.run_lookback}d run {pct(sig.run_return)} | spot={sig.spot: .2f}")
                     plan = build_exact_plan(t, sig.spot, account_size, risk_pct, TARGET_DTE_DAYS, OTM_PCT, use_chain)
                     print("          Plan: " + str(t) + " " + str(plan.expiry) + " C" + str(plan.strike) + " ~5%%OTM | est prem $" + str(plan.premium_est_per_contract) + " | "
                           f"contracts {plan.contracts} | cost ${plan.total_cost: .2f} | BE {plan.breakeven_at_expiry: .2f}")
@@ -453,7 +453,7 @@ def run_scan_intraday(universe: List[str], account_size: float, risk_pct: float,
                     plans_all.append(plan)
                     seen.add(t)
             except Exception as e: 
-                print(f"[WARN] {t}: {e}", file = sys.stderr)
+                print(f"[WARN] {t}: {e}", file=sys.stderr)
         time.sleep(max(5, poll_seconds))
     write_outputs(hits_all, plans_all, out_prefix)
     if not hits_all: 
@@ -461,7 +461,7 @@ def run_scan_intraday(universe: List[str], account_size: float, risk_pct: float,
 
 def run_plan_one(ticker: str, spot: float, account_size: float, risk_pct: float, use_chain: bool)->None:
     plan = build_exact_plan(ticker, spot, account_size, risk_pct, TARGET_DTE_DAYS, OTM_PCT, use_chain)
-    print(json.dumps(asdict(plan), indent = 2))
+    print(json.dumps(asdict(plan), indent=2))
 
 def run_monitor_one(**kwargs)->None: 
     monitor_plan(**kwargs)
@@ -470,52 +470,52 @@ def run_monitor_one(**kwargs)->None:
 # -------------------------- CLI --------------------------
 
 def parse_args()->argparse.Namespace: 
-    p = argparse.ArgumentParser(description="WSB Dip - after-Run Scanner / Planner/Monitor")
-    sub = p.add_subparsers(dest="cmd", required = True)
+    p = argparse.ArgumentParser(description="WSB Dip - after - Run Scanner / Planner / Monitor")
+    sub = p.add_subparsers(dest="cmd", required=True)
 
     # scan - eod
-    se = sub.add_parser("scan - eod", help = "End - of-day scan across universe")
-    se.add_argument("--universe", type = str, default = ",".join(DEFAULT_UNIVERSE))
-    se.add_argument("--account - size", type = float, default = 500_000.0)
-    se.add_argument("--risk - pct", type = float, default = RISK_PCT_DEFAULT)
-    se.add_argument("--use - options-chain", action = "store_true")
-    se.add_argument("--run - lookback", type = int, default = RUN_LOOKBACK)
-    se.add_argument("--run - pct", type = float, default = RUN_PCT)
-    se.add_argument("--dip - pct", type = float, default = DIP_PCT)
-    se.add_argument("--out - prefix", type = str, default = "wsb_dip_eod")
+    se = sub.add_parser("scan - eod", help="End - of - day scan across universe")
+    se.add_argument("--universe", type=str, default=",".join(DEFAULT_UNIVERSE))
+    se.add_argument("--account - size", type=float, default=500_000.0)
+    se.add_argument("--risk - pct", type=float, default=RISK_PCT_DEFAULT)
+    se.add_argument("--use-options - chain", action="store_true")
+    se.add_argument("--run - lookback", type=int, default=RUN_LOOKBACK)
+    se.add_argument("--run - pct", type=float, default=RUN_PCT)
+    se.add_argument("--dip - pct", type=float, default=DIP_PCT)
+    se.add_argument("--out - prefix", type=str, default="wsb_dip_eod")
 
     # scan - intraday
-    si = sub.add_parser("scan - intraday", help = "Intraday scan across universe (polling)")
-    si.add_argument("--universe", type = str, default = ",".join(DEFAULT_UNIVERSE))
-    si.add_argument("--account - size", type = float, default = 500_000.0)
-    si.add_argument("--risk - pct", type = float, default = RISK_PCT_DEFAULT)
-    si.add_argument("--use - options-chain", action = "store_true")
-    si.add_argument("--run - lookback", type = int, default = RUN_LOOKBACK)
-    si.add_argument("--run - pct", type = float, default = RUN_PCT)
-    si.add_argument("--dip - pct", type = float, default = DIP_PCT)
-    si.add_argument("--poll - seconds", type = int, default = 90)
-    si.add_argument("--max - minutes", type = int, default = 0)
-    si.add_argument("--out - prefix", type = str, default = "wsb_dip_intraday")
+    si = sub.add_parser("scan - intraday", help="Intraday scan across universe (polling)")
+    si.add_argument("--universe", type=str, default=",".join(DEFAULT_UNIVERSE))
+    si.add_argument("--account - size", type=float, default=500_000.0)
+    si.add_argument("--risk - pct", type=float, default=RISK_PCT_DEFAULT)
+    si.add_argument("--use-options - chain", action="store_true")
+    si.add_argument("--run - lookback", type=int, default=RUN_LOOKBACK)
+    si.add_argument("--run - pct", type=float, default=RUN_PCT)
+    si.add_argument("--dip - pct", type=float, default=DIP_PCT)
+    si.add_argument("--poll - seconds", type=int, default=90)
+    si.add_argument("--max - minutes", type=int, default=0)
+    si.add_argument("--out - prefix", type=str, default="wsb_dip_intraday")
 
     # plan (single ticker)
-    pl = sub.add_parser("plan", help = "Plan the exact ~5% OTM ~30DTE line for one ticker")
-    pl.add_argument("--ticker", required = True, type = str)
-    pl.add_argument("--spot", required = True, type = float, help = "Current spot you see")
-    pl.add_argument("--account - size", type = float, default = 500_000.0)
-    pl.add_argument("--risk - pct", type = float, default = RISK_PCT_DEFAULT)
-    pl.add_argument("--use - options-chain", action = "store_true")
+    pl = sub.add_parser("plan", help="Plan the exact ~5% OTM ~30DTE line for one ticker")
+    pl.add_argument("--ticker", required=True, type=str)
+    pl.add_argument("--spot", required=True, type=float, help="Current spot you see")
+    pl.add_argument("--account - size", type=float, default=500_000.0)
+    pl.add_argument("--risk - pct", type=float, default=RISK_PCT_DEFAULT)
+    pl.add_argument("--use-options - chain", action="store_true")
 
     # monitor (single contract line)
-    mo = sub.add_parser("monitor", help = "Monitor a chosen contract for TP / Δ/SL exits")
-    mo.add_argument("--ticker", required = True, type = str)
-    mo.add_argument("--expiry", required = True, type = str, help = "YYYY - MM-DD")
-    mo.add_argument("--strike", required = True, type = float)
-    mo.add_argument("--entry - prem", required = True, type = float, help = "Entry premium per contract ($)")
-    mo.add_argument("--target - mult", type = float, default = 3.0)
-    mo.add_argument("--delta - target", type = float, default = 0.60)
-    mo.add_argument("--loss - stop-mult", type = float, default = 0.50)
-    mo.add_argument("--poll - seconds", type = int, default = 60)
-    mo.add_argument("--max - minutes", type = int, default = 360)
+    mo = sub.add_parser("monitor", help="Monitor a chosen contract for TP / Δ / SL exits")
+    mo.add_argument("--ticker", required=True, type=str)
+    mo.add_argument("--expiry", required=True, type=str, help="YYYY - MM - DD")
+    mo.add_argument("--strike", required=True, type=float)
+    mo.add_argument("--entry - prem", required=True, type=float, help="Entry premium per contract ($)")
+    mo.add_argument("--target - mult", type=float, default=3.0)
+    mo.add_argument("--delta - target", type=float, default=0.60)
+    mo.add_argument("--loss - stop - mult", type=float, default=0.50)
+    mo.add_argument("--poll - seconds", type=int, default=60)
+    mo.add_argument("--max - minutes", type=int, default=360)
 
     return p.parse_args()
 
@@ -525,7 +525,7 @@ def main()->None:
     if args.cmd ==  "scan - eod": 
         universe = [t.strip().upper() for t in args.universe.split(",") if t.strip()]
         if not (0  <  args.risk_pct  <=  1.0): 
-            print("risk - pct must be in (0,1].", file = sys.stderr)
+            print("risk - pct must be in (0,1].", file=sys.stderr)
             sys.exit(2)
         run_scan_eod(universe, args.account_size, args.risk_pct, args.use_options_chain,
                      args.run_lookback, args.run_pct, args.dip_pct, args.out_prefix)
@@ -533,7 +533,7 @@ def main()->None:
     elif args.cmd ==  "scan - intraday": 
         universe = [t.strip().upper() for t in args.universe.split(",") if t.strip()]
         if not (0  <  args.risk_pct  <=  1.0): 
-            print("risk - pct must be in (0,1].", file = sys.stderr)
+            print("risk - pct must be in (0,1].", file=sys.stderr)
             sys.exit(2)
         run_scan_intraday(universe, args.account_size, args.risk_pct, args.use_options_chain,
                           args.run_lookback, args.run_pct, args.dip_pct,
@@ -541,7 +541,7 @@ def main()->None:
 
     elif args.cmd ==  "plan": 
         if not (0  <  args.risk_pct  <=  1.0): 
-            print("risk - pct must be in (0,1].", file = sys.stderr)
+            print("risk - pct must be in (0,1].", file=sys.stderr)
             sys.exit(2)
         run_plan_one(args.ticker.upper(), args.spot, args.account_size, args.risk_pct, args.use_options_chain)
 
@@ -563,5 +563,5 @@ if __name__ ==  "__main__":
     except KeyboardInterrupt: 
         print("\nStopped by user.")
     except Exception as e: 
-        print(f"[FATAL] {e}", file = sys.stderr)
+        print(f"[FATAL] {e}", file=sys.stderr)
         sys.exit(1)

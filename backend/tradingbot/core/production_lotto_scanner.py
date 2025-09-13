@@ -62,7 +62,7 @@ class VolatilityAnalysis:
     gamma_exposure: float
     options_volume: int
     put_call_ratio: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -85,7 +85,7 @@ class LottoOption:
     vega: float
     intrinsic_value: float
     time_value: float
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -102,9 +102,9 @@ class LottoCandidate:
     risk_reward_ratio: float
     position_size: int
     recommended_option: Optional[LottoOption] = None
-    lotto_score: float = 0.0
-    risk_score: float = 0.0
-    last_update: datetime = field(default_factory=datetime.now)
+    lotto_score: float=0.0
+    risk_score: float=0.0
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -125,8 +125,8 @@ class LottoPosition:
     days_to_expiry: int
     max_profit: float
     max_loss: float
-    last_update: datetime = field(default_factory=datetime.now)
-    status: str = "active"
+    last_update: datetime=field(default_factory=datetime.now)
+    status: str="active"
 
 
 class VolatilityAnalyzer: 
@@ -144,11 +144,11 @@ class VolatilityAnalyzer:
             time_to_expiry_years = time_to_expiry / 365.0
             
             # Rough IV estimation
-            if option_type.lower()  ==  "call": intrinsic_value = max(0, spot_price - strike_price)
+            if option_type.lower()  ==  "call": intrinsic_value=max(0, spot_price-strike_price)
             else: 
-                intrinsic_value = max(0, strike_price - spot_price)
+                intrinsic_value = max(0, strike_price-spot_price)
             
-            time_value = option_price - intrinsic_value
+            time_value = option_price-intrinsic_value
             
             if time_value  <=  0: 
                 return 0.0
@@ -161,7 +161,7 @@ class VolatilityAnalyzer:
             self.logger.error(f"Error calculating implied volatility: {e}")
             return 0.0
     
-    def calculate_historical_volatility(self, prices: List[float], period: int = 20)->float:
+    def calculate_historical_volatility(self, prices: List[float], period: int=20)->float:
         """Calculate historical volatility"""
         if len(prices)  <  period + 1: 
             return 0.0
@@ -247,7 +247,7 @@ class LottoOptionsProvider:
     
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
-        self.options_cache = {}
+        self.options_cache={}
     
     async def get_zero_dte_options(self, ticker: str)->List[LottoOption]:
         """Get 0DTE options for ticker"""
@@ -262,9 +262,9 @@ class LottoOptionsProvider:
             for strike in strikes: 
                 # Call option
                 call_option = LottoOption(
-                    ticker = ticker,
+                    ticker=ticker,
                     option_type = OptionStrategy.CALL,
-                    strike_price = strike,
+                    strike_price=strike,
                     expiry_date = datetime.now() + timedelta(hours=6),  # 0DTE
                     days_to_expiry = 0,
                     bid_price = max(0.01, strike * 0.01),
@@ -277,16 +277,16 @@ class LottoOptionsProvider:
                     gamma = 0.05,
                     theta = -0.2,  # High theta decay
                     vega = 0.05,
-                    intrinsic_value = max(0, current_price - strike),
+                    intrinsic_value = max(0, current_price-strike),
                     time_value = max(0.01, strike * 0.01)
                 )
                 options.append(call_option)
                 
                 # Put option
                 put_option = LottoOption(
-                    ticker = ticker,
+                    ticker=ticker,
                     option_type = OptionStrategy.PUT,
-                    strike_price = strike,
+                    strike_price=strike,
                     expiry_date = datetime.now() + timedelta(hours=6),  # 0DTE
                     days_to_expiry = 0,
                     bid_price = max(0.01, strike * 0.01),
@@ -299,7 +299,7 @@ class LottoOptionsProvider:
                     gamma = 0.05,
                     theta = -0.2,  # High theta decay
                     vega = 0.05,
-                    intrinsic_value = max(0, strike - current_price),
+                    intrinsic_value = max(0, strike-current_price),
                     time_value = max(0.01, strike * 0.01)
                 )
                 options.append(put_option)
@@ -316,7 +316,7 @@ class LottoOptionsProvider:
         try: 
             # Mock implementation - in production, integrate with real options API
             current_price = 150.0  # Mock current price
-            days_to_earnings = (earnings_date - datetime.now()).days
+            days_to_earnings = (earnings_date-datetime.now()).days
             
             # Generate mock earnings options
             options = []
@@ -325,11 +325,11 @@ class LottoOptionsProvider:
             for strike in strikes: 
                 # Call option
                 call_option = LottoOption(
-                    ticker = ticker,
+                    ticker=ticker,
                     option_type = OptionStrategy.CALL,
-                    strike_price = strike,
-                    expiry_date = earnings_date,
-                    days_to_expiry = days_to_earnings,
+                    strike_price=strike,
+                    expiry_date=earnings_date,
+                    days_to_expiry=days_to_earnings,
                     bid_price = max(0.01, strike * 0.03),
                     ask_price = max(0.02, strike * 0.035),
                     mid_price = max(0.015, strike * 0.0325),
@@ -340,18 +340,18 @@ class LottoOptionsProvider:
                     gamma = 0.03,
                     theta = -0.1,
                     vega = 0.1,
-                    intrinsic_value = max(0, current_price - strike),
+                    intrinsic_value = max(0, current_price-strike),
                     time_value = max(0.01, strike * 0.03)
                 )
                 options.append(call_option)
                 
                 # Put option
                 put_option = LottoOption(
-                    ticker = ticker,
+                    ticker=ticker,
                     option_type = OptionStrategy.PUT,
-                    strike_price = strike,
-                    expiry_date = earnings_date,
-                    days_to_expiry = days_to_earnings,
+                    strike_price=strike,
+                    expiry_date=earnings_date,
+                    days_to_expiry=days_to_earnings,
                     bid_price = max(0.01, strike * 0.03),
                     ask_price = max(0.02, strike * 0.035),
                     mid_price = max(0.015, strike * 0.0325),
@@ -362,7 +362,7 @@ class LottoOptionsProvider:
                     gamma = 0.03,
                     theta = -0.1,
                     vega = 0.1,
-                    intrinsic_value = max(0, strike - current_price),
+                    intrinsic_value = max(0, strike-current_price),
                     time_value = max(0.01, strike * 0.03)
                 )
                 options.append(put_option)
@@ -388,28 +388,28 @@ class LottoOptionsProvider:
                 # For 0DTE, look for options with high gamma and low time value
                 filtered_options = [opt for opt in options if opt.days_to_expiry  ==  0]
                 if filtered_options: 
-                    best_option = max(filtered_options, key = lambda x: x.gamma)
+                    best_option = max(filtered_options, key=lambda x: x.gamma)
                     return best_option
             
             elif lotto_type ==  LottoType.EARNINGS_LOTTO: 
                 # For earnings, look for options with high vega and reasonable time value
                 filtered_options = [opt for opt in options if opt.days_to_expiry  <=  7]
                 if filtered_options: 
-                    best_option = max(filtered_options, key = lambda x: x.vega)
+                    best_option = max(filtered_options, key=lambda x: x.vega)
                     return best_option
             
             elif lotto_type ==  LottoType.VOLATILITY_SPIKE: 
                 # For volatility spike, look for options with high vega
-                best_option = max(options, key = lambda x: x.vega)
+                best_option = max(options, key=lambda x: x.vega)
                 return best_option
             
             elif lotto_type ==  LottoType.GAMMA_SQUEEZE: 
                 # For gamma squeeze, look for options with high gamma
-                best_option = max(options, key = lambda x: x.gamma)
+                best_option = max(options, key=lambda x: x.gamma)
                 return best_option
             
             # Default: find option closest to current price
-            best_option = min(options, key = lambda x: abs(x.strike_price - current_price))
+            best_option = min(options, key=lambda x: abs(x.strike_price-current_price))
             return best_option
             
         except Exception as e: 
@@ -429,18 +429,18 @@ class LottoScannerStrategy:
         self.data = data_provider
         self.config = config
         self.logger = logger
-        self.volatility_analyzer = VolatilityAnalyzer(logger)
-        self.options_provider = LottoOptionsProvider(logger)
-        self.active_positions = {}
-        self.lotto_candidates = {}
+        self.volatility_analyzer=VolatilityAnalyzer(logger)
+        self.options_provider=LottoOptionsProvider(logger)
+        self.active_positions={}
+        self.lotto_candidates={}
         
         # Strategy parameters
         self.max_positions = 20
-        self.max_position_size = 0.02  # 2% of portfolio per position
-        self.min_lotto_score = 0.7
-        self.max_risk_per_trade = 0.01  # 1% max risk per trade
-        self.stop_loss_pct = 0.5  # 50% stop loss for lotto plays
-        self.take_profit_pct = 2.0  # 200% take profit for lotto plays
+        self.max_position_size=0.02  # 2% of portfolio per position
+        self.min_lotto_score=0.7
+        self.max_risk_per_trade=0.01  # 1% max risk per trade
+        self.stop_loss_pct=0.5  # 50% stop loss for lotto plays
+        self.take_profit_pct=2.0  # 200% take profit for lotto plays
         
         self.logger.info("LottoScannerStrategy initialized")
     
@@ -456,7 +456,7 @@ class LottoScannerStrategy:
             for ticker in universe: 
                 try: 
                     # Get historical data
-                    historical_data = await self.data.get_historical_data(ticker, days = 50)
+                    historical_data = await self.data.get_historical_data(ticker, days=50)
                     if not historical_data or len(historical_data)  <  20: 
                         continue
                     
@@ -487,7 +487,7 @@ class LottoScannerStrategy:
                     continue
             
             # Sort by lotto score
-            candidates.sort(key=lambda x: x.lotto_score, reverse = True)
+            candidates.sort(key=lambda x: x.lotto_score, reverse=True)
             
             self.logger.info(f"Found {len(candidates)} lotto opportunities")
             return candidates
@@ -552,9 +552,8 @@ class LottoScannerStrategy:
                 entry_date = datetime.now(),
                 expiry_date = best_option.expiry_date,
                 days_to_expiry = best_option.days_to_expiry,
-                max_profit = max_profit,
-                max_loss = max_loss
-            )
+                max_profit=max_profit,
+                max_loss = max_loss)
             
             self.active_positions[candidate.ticker] = position
             self.logger.info(f"Created lotto position for {candidate.ticker}")
@@ -652,21 +651,20 @@ class LottoScannerStrategy:
             put_call_ratio = 0.8  # Mock put / call ratio
             
             analysis = VolatilityAnalysis(
-                ticker = ticker,
-                current_price = current_price,
-                implied_volatility = implied_vol,
-                historical_volatility = historical_vol,
-                iv_percentile = iv_percentile,
-                iv_rank = iv_rank,
-                vix_level = vix_level,
-                vix_percentile = vix_percentile,
-                expected_move = expected_move,
-                actual_move = actual_move,
-                volatility_skew = volatility_skew,
-                gamma_exposure = gamma_exposure,
-                options_volume = options_volume,
-                put_call_ratio = put_call_ratio
-            )
+                ticker=ticker,
+                current_price=current_price,
+                implied_volatility=implied_vol,
+                historical_volatility=historical_vol,
+                iv_percentile=iv_percentile,
+                iv_rank=iv_rank,
+                vix_level=vix_level,
+                vix_percentile=vix_percentile,
+                expected_move=expected_move,
+                actual_move=actual_move,
+                volatility_skew=volatility_skew,
+                gamma_exposure=gamma_exposure,
+                options_volume=options_volume,
+                put_call_ratio = put_call_ratio)
             
             return analysis
             
@@ -754,8 +752,8 @@ class LottoScannerStrategy:
                 stop_loss = entry_price * (1 + self.stop_loss_pct)
             
             # Calculate risk / reward ratio
-            risk = abs(entry_price - stop_loss)
-            reward = abs(target_price - entry_price)
+            risk = abs(entry_price-stop_loss)
+            reward = abs(target_price-entry_price)
             risk_reward_ratio = reward / risk if risk  >  0 else 0
             
             # Calculate position size
@@ -768,19 +766,18 @@ class LottoScannerStrategy:
             risk_score = self._calculate_risk_score(volatility_analysis, lotto_type)
             
             candidate = LottoCandidate(
-                ticker = ticker,
-                lotto_type = lotto_type,
-                signal = signal,
-                volatility_analysis = volatility_analysis,
-                confidence = lotto_score,
-                entry_price = entry_price,
-                target_price = target_price,
-                stop_loss = stop_loss,
-                risk_reward_ratio = risk_reward_ratio,
-                position_size = position_size,
-                lotto_score = lotto_score,
-                risk_score = risk_score
-            )
+                ticker=ticker,
+                lotto_type=lotto_type,
+                signal=signal,
+                volatility_analysis=volatility_analysis,
+                confidence=lotto_score,
+                entry_price=entry_price,
+                target_price=target_price,
+                stop_loss=stop_loss,
+                risk_reward_ratio=risk_reward_ratio,
+                position_size=position_size,
+                lotto_score=lotto_score,
+                risk_score = risk_score)
             
             return candidate
             
@@ -791,7 +788,7 @@ class LottoScannerStrategy:
     def _calculate_position_size(self, entry_price: float, stop_loss: float)->int:
         """Calculate position size based on risk"""
         # Simplified position sizing - in production, use proper risk management
-        risk_per_share = abs(entry_price - stop_loss)
+        risk_per_share = abs(entry_price-stop_loss)
         max_risk_amount = 200.0  # $200 max risk per lotto play
         position_size = int(max_risk_amount / risk_per_share) if risk_per_share  >  0 else 100
         return min(position_size, 200)  # Cap at 200 shares
@@ -855,14 +852,14 @@ class LottoScannerStrategy:
             # Get current market data
             market_data = await self.data.get_market_data(position.ticker)
             if market_data: 
-                position.current_price = market_data.price
-                position.last_update = datetime.now()
+                position.current_price=market_data.price
+                position.last_update=datetime.now()
                 
                 # Update days to expiry
-                position.days_to_expiry = (position.expiry_date - datetime.now()).days
+                position.days_to_expiry=(position.expiry_date-datetime.now()).days
                 
                 # Recalculate P & L
-                position.unrealized_pnl = self._calculate_position_pnl(position)
+                position.unrealized_pnl=self._calculate_position_pnl(position)
             
         except Exception as e: 
             self.logger.error(f"Error updating position data for {position.ticker}: {e}")
@@ -870,7 +867,7 @@ class LottoScannerStrategy:
     def _calculate_position_pnl(self, position: LottoPosition)->float:
         """Calculate position P & L"""
         # Simplified P & L calculation for lotto options
-        price_change = position.current_price - position.entry_price
+        price_change = position.current_price-position.entry_price
         return price_change * position.quantity * 100  # Options are per 100 shares
     
     def _check_exit_conditions(self, position: LottoPosition)->Optional[str]:

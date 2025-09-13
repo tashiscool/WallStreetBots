@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Test Risk - Strategy Integration
 Demonstrates Month 3 - 4: Integration with WallStreetBots
@@ -59,17 +59,16 @@ async def test_risk_strategy_integration():
         config = RiskIntegratedConfig(
             alpaca_api_key = "test_key",
             alpaca_secret_key = "test_secret",
-            paper_trading = True,
+            paper_trading=True,
             profile = StrategyProfile.research_2024,
-            risk_limits = risk_limits,
-            enable_ml_risk = True,
-            enable_stress_testing = True,
-            enable_risk_dashboard = True,
+            risk_limits=risk_limits,
+            enable_ml_risk=True,
+            enable_stress_testing=True,
+            enable_risk_dashboard=True,
             risk_calculation_interval = 10,  # 10 seconds for testing
-            auto_position_sizing = True,
-            auto_risk_controls = True,
-            cross_strategy_coordination = True
-        )
+            auto_position_sizing=True,
+            auto_risk_controls=True,
+            cross_strategy_coordination = True)
         
         # Initialize manager
         manager = RiskIntegratedProductionManager(config)
@@ -96,7 +95,7 @@ async def test_risk_strategy_integration():
         import pandas as pd
         import numpy as np
         
-        dates = pd.date_range(end=datetime.now(), periods = 252, freq = 'D')
+        dates = pd.date_range(end=datetime.now(), periods=252, freq='D')
         returns = np.random.normal(0, 0.02, 252)
         prices = 100 * np.cumprod(1 + returns)
         
@@ -107,21 +106,21 @@ async def test_risk_strategy_integration():
                 'Low': prices * 0.98,
                 'Close': prices,
                 'Volume': np.random.randint(1000000, 5000000, 252)
-            }, index = dates),
+            }, index=dates),
             'SPY': pd.DataFrame({
                 'Open': prices * 0.99,
                 'High': prices * 1.01,
                 'Low': prices * 0.99,
                 'Close': prices,
                 'Volume': np.random.randint(5000000, 10000000, 252)
-            }, index = dates),
+            }, index=dates),
             'TSLA': pd.DataFrame({
                 'Open': prices * 0.95,
                 'High': prices * 1.05,
                 'Low': prices * 0.95,
                 'Close': prices,
                 'Volume': np.random.randint(2000000, 8000000, 252)
-            }, index = dates)
+            }, index=dates)
         }
         
         portfolio_value = 100000.0

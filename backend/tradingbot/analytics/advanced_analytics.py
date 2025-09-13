@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Advanced Analytics Module
 Comprehensive performance analytics including Sharpe ratio, max drawdown, and risk - adjusted metrics
@@ -87,7 +87,7 @@ class AdvancedAnalytics:
     - Win rate, profit factor, recovery metrics
     """
 
-    def __init__(self, risk_free_rate: float = 0.02):
+    def __init__(self, risk_free_rate: float=0.02):
         """
         Initialize analytics engine
 
@@ -95,7 +95,7 @@ class AdvancedAnalytics:
             risk_free_rate: Annual risk - free rate (default 2%)
         """
         self.risk_free_rate = risk_free_rate
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
 
     def calculate_comprehensive_metrics(self,
                                       returns: Union[List[float], np.ndarray, pd.Series],
@@ -148,11 +148,11 @@ class AdvancedAnalytics:
 
             # Trading metrics
             win_rate = self._calculate_win_rate(returns)
-            avg_win, avg_loss = self._calculate_avg_win_loss(returns)
+            avg_win, avg_loss=self._calculate_avg_win_loss(returns)
             profit_factor = self._calculate_profit_factor(returns)
 
             # Relative metrics (if benchmark provided)
-            alpha, beta, information_ratio, treynor_ratio, tracking_error = self._calculate_relative_metrics(
+            alpha, beta, information_ratio, treynor_ratio, tracking_error=self._calculate_relative_metrics(
                 returns, benchmark_returns
             )
 
@@ -173,36 +173,35 @@ class AdvancedAnalytics:
             sterling_ratio = self._calculate_sterling_ratio(returns, max_drawdown)
 
             return PerformanceMetrics(
-                total_return = total_return,
-                annualized_return = annualized_return,
-                volatility = volatility,
-                sharpe_ratio = sharpe_ratio,
-                sortino_ratio = sortino_ratio,
-                calmar_ratio = calmar_ratio,
-                max_drawdown = max_drawdown,
-                var_95 = var_95,
-                var_99 = var_99,
-                cvar_95 = cvar_95,
-                win_rate = win_rate,
-                avg_win = avg_win,
-                avg_loss = avg_loss,
-                profit_factor = profit_factor,
-                information_ratio = information_ratio,
-                treynor_ratio = treynor_ratio,
-                alpha = alpha,
-                beta = beta,
-                tracking_error = tracking_error,
-                period_start = period_start,
-                period_end = period_end,
-                trading_days = trading_days,
-                best_day = best_day,
-                worst_day = worst_day,
-                positive_days = positive_days,
-                negative_days = negative_days,
-                recovery_factor = recovery_factor,
-                ulcer_index = ulcer_index,
-                sterling_ratio = sterling_ratio
-            )
+                total_return=total_return,
+                annualized_return=annualized_return,
+                volatility=volatility,
+                sharpe_ratio=sharpe_ratio,
+                sortino_ratio=sortino_ratio,
+                calmar_ratio=calmar_ratio,
+                max_drawdown=max_drawdown,
+                var_95=var_95,
+                var_99=var_99,
+                cvar_95=cvar_95,
+                win_rate=win_rate,
+                avg_win=avg_win,
+                avg_loss=avg_loss,
+                profit_factor=profit_factor,
+                information_ratio=information_ratio,
+                treynor_ratio=treynor_ratio,
+                alpha=alpha,
+                beta=beta,
+                tracking_error=tracking_error,
+                period_start=period_start,
+                period_end=period_end,
+                trading_days=trading_days,
+                best_day=best_day,
+                worst_day=worst_day,
+                positive_days=positive_days,
+                negative_days=negative_days,
+                recovery_factor=recovery_factor,
+                ulcer_index=ulcer_index,
+                sterling_ratio = sterling_ratio)
 
         except Exception as e: 
             self.logger.error(f"Error calculating comprehensive metrics: {e}")
@@ -252,13 +251,12 @@ class AdvancedAnalytics:
                             start_date = dates[start_idx],
                             end_date = dates[trough_idx],
                             recovery_date = dates[i],
-                            peak_value = peak,
-                            trough_value = trough_value,
-                            drawdown_pct = drawdown_pct,
-                            duration_days = duration,
-                            recovery_days = recovery_days,
-                            is_recovered = True
-                        ))
+                            peak_value=peak,
+                            trough_value=trough_value,
+                            drawdown_pct=drawdown_pct,
+                            duration_days=duration,
+                            recovery_days=recovery_days,
+                            is_recovered = True))
 
                     peak = value
                     peak_idx = i
@@ -281,16 +279,15 @@ class AdvancedAnalytics:
                 drawdown_periods.append(DrawdownPeriod(
                     start_date = dates[start_idx],
                     end_date = dates[trough_idx],
-                    recovery_date = None,
-                    peak_value = peak,
-                    trough_value = trough_value,
-                    drawdown_pct = drawdown_pct,
-                    duration_days = duration,
-                    recovery_days = None,
-                    is_recovered = False
-                ))
+                    recovery_date=None,
+                    peak_value=peak,
+                    trough_value=trough_value,
+                    drawdown_pct=drawdown_pct,
+                    duration_days=duration,
+                    recovery_days=None,
+                    is_recovered = False))
 
-            return sorted(drawdown_periods, key = lambda x: x.drawdown_pct, reverse = True)
+            return sorted(drawdown_periods, key=lambda x: x.drawdown_pct, reverse=True)
 
         except Exception as e: 
             self.logger.error(f"Error analyzing drawdown periods: {e}")
@@ -427,7 +424,7 @@ class AdvancedAnalytics:
         # Calculate alpha
         portfolio_return = self._calculate_annualized_return(returns)
         benchmark_return = self._calculate_annualized_return(benchmark_returns)
-        alpha = float(portfolio_return - (self.risk_free_rate + beta * (benchmark_return - self.risk_free_rate)))
+        alpha = float(portfolio_return - (self.risk_free_rate+beta * (benchmark_return - self.risk_free_rate)))
 
         # Calculate tracking error
         tracking_error = float(np.std(returns - benchmark_returns) * np.sqrt(252))
@@ -468,7 +465,7 @@ class AdvancedAnalytics:
         ann_return = self._calculate_annualized_return(returns)
         return float(ann_return / max_drawdown) if max_drawdown  >  0 else 0.0
 
-    def _returns_to_values(self, returns: np.ndarray, initial_value: float = 10000.0)->np.ndarray:
+    def _returns_to_values(self, returns: np.ndarray, initial_value: float=10000.0)->np.ndarray:
         """Convert returns to portfolio values"""
         values = [initial_value]
         for ret in returns: 
@@ -479,15 +476,15 @@ class AdvancedAnalytics:
         """Create empty metrics object"""
         now = datetime.now()
         return PerformanceMetrics(
-            total_return = 0.0, annualized_return = 0.0, volatility = 0.0,
-            sharpe_ratio = 0.0, sortino_ratio = 0.0, calmar_ratio = 0.0,
-            max_drawdown = 0.0, var_95 = 0.0, var_99 = 0.0, cvar_95 = 0.0,
-            win_rate = 0.0, avg_win = 0.0, avg_loss = 0.0, profit_factor = 0.0,
-            information_ratio = 0.0, treynor_ratio = 0.0, alpha = 0.0, beta = 1.0,
-            tracking_error = 0.0, period_start = now, period_end = now,
-            trading_days = 0, best_day = 0.0, worst_day = 0.0,
-            positive_days = 0, negative_days = 0, recovery_factor = 0.0,
-            ulcer_index = 0.0, sterling_ratio = 0.0
+            total_return = 0.0, annualized_return=0.0, volatility=0.0,
+            sharpe_ratio = 0.0, sortino_ratio=0.0, calmar_ratio=0.0,
+            max_drawdown = 0.0, var_95=0.0, var_99=0.0, cvar_95=0.0,
+            win_rate = 0.0, avg_win=0.0, avg_loss=0.0, profit_factor=0.0,
+            information_ratio = 0.0, treynor_ratio=0.0, alpha=0.0, beta=1.0,
+            tracking_error = 0.0, period_start=now, period_end=now,
+            trading_days = 0, best_day=0.0, worst_day=0.0,
+            positive_days = 0, negative_days=0, recovery_factor=0.0,
+            ulcer_index = 0.0, sterling_ratio=0.0
         )
 
     def generate_analytics_report(self, metrics: PerformanceMetrics)->str:
@@ -547,7 +544,7 @@ class AdvancedAnalytics:
 def analyze_performance(returns: Union[List[float], np.ndarray],
                        benchmark_returns: Optional[Union[List[float], np.ndarray]] = None,
                        portfolio_values: Optional[Union[List[float], np.ndarray]] = None,
-                       risk_free_rate: float = 0.02)->PerformanceMetrics:
+                       risk_free_rate: float=0.02)->PerformanceMetrics:
     """
     Quick performance analysis
 
@@ -562,7 +559,6 @@ def analyze_performance(returns: Union[List[float], np.ndarray],
     """
     analytics = AdvancedAnalytics(risk_free_rate)
     return analytics.calculate_comprehensive_metrics(
-        returns = returns,
-        benchmark_returns = benchmark_returns,
-        portfolio_values = portfolio_values
-    )
+        returns=returns,
+        benchmark_returns=benchmark_returns,
+        portfolio_values = portfolio_values)

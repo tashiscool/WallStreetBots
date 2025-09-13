@@ -2,7 +2,7 @@ class StocksManagerNaive:
 
     def __init__(self, bots, account): 
         self.bots = bots
-        self.account_balance, self.portfolio = self.extract_acc_info(account)
+        self.account_balance, self.portfolio=self.extract_acc_info(account)
 
     def make_decision(self): 
         '''
@@ -24,7 +24,7 @@ class StocksManagerNaive:
                         action_dict[symbol] = action_dict[symbol] + n_shares
                     else: 
                         action_dict[symbol] = n_shares
-                    bot.balance = balance - n_shares * share_price
+                    bot.balance = balance-n_shares * share_price
                     bot.shares = n_shares
 
                     print("- >  buying", symbol, "for", n_shares, "shares for $", share_price, "per share")
@@ -50,5 +50,5 @@ class StocksManagerNaive:
         This function needs to be implemented
         '''
         # put extract stuff here
-        account_balance, portfolio = None, None
+        account_balance, portfolio=None, None
         return account_balance, portfolio

@@ -54,12 +54,12 @@ import os
 class ProductionLogger: 
     """Production - grade logging system"""
     
-    def __init__(self, name: str, log_level: str = "INFO"):
+    def __init__(self, name: str, log_level: str="INFO"):
         self.name = name
         if structlog: 
-            self.logger = structlog.get_logger(name)
+            self.logger=structlog.get_logger(name)
         else: 
-            self.logger = logging.getLogger(name)
+            self.logger=logging.getLogger(name)
         self.setup_logging(log_level)
     
     def setup_logging(self, log_level: str):
@@ -78,10 +78,10 @@ class ProductionLogger:
                     structlog.processors.UnicodeDecoder(),
                     structlog.processors.JSONRenderer()
                 ],
-                context_class = dict,
+                context_class=dict,
                 logger_factory = structlog.stdlib.LoggerFactory(),
                 wrapper_class = structlog.stdlib.BoundLogger,
-                cache_logger_on_first_use = True,
+                cache_logger_on_first_use=True,
             )
         else: 
             # Fallback to standard logging
@@ -92,7 +92,7 @@ class ProductionLogger:
         
         # Setup file handler
         log_dir = "logs"
-        os.makedirs(log_dir, exist_ok = True)
+        os.makedirs(log_dir, exist_ok=True)
         
         file_handler = logging.FileHandler(f"{log_dir}/{self.name}.log")
         file_handler.setLevel(getattr(logging, log_level.upper()))
@@ -194,8 +194,8 @@ class ErrorHandler:
         # Log error with context
         self.logger.error(
             f"Error occurred: {error_type}",
-            error_type = error_type,
-            error_message = error_message,
+            error_type=error_type,
+            error_message=error_message,
             error_count = self.error_counts[error_type],
             context = context or {},
             traceback = traceback.format_exc()
@@ -206,10 +206,9 @@ class ErrorHandler:
         if self.error_counts[error_type]  >=  threshold: 
             self.logger.critical(
                 f"Error threshold exceeded for {error_type}",
-                error_type = error_type,
+                error_type=error_type,
                 count = self.error_counts[error_type],
-                threshold = threshold
-            )
+                threshold = threshold)
         
         return {
             'error_type': error_type,
@@ -225,16 +224,16 @@ class ErrorHandler:
 
 
 def retry_with_backoff(
-    max_attempts: int = 3,
-    base_delay: float = 1.0,
-    max_delay: float = 60.0,
-    exceptions: tuple = (Exception,)
+    max_attempts: int=3,
+    base_delay: float=1.0,
+    max_delay: float=60.0,
+    exceptions: tuple=(Exception,)
 ): 
     """Decorator for retry with exponential backoff"""
     def decorator(func: Callable)->Callable:
         @retry(
             stop = stop_after_attempt(max_attempts),
-            wait = wait_exponential(multiplier=base_delay, min = base_delay, max = max_delay),
+            wait = wait_exponential(multiplier=base_delay, min=base_delay, max=max_delay),
             retry = retry_if_exception_type(exceptions),
             before_sleep = before_sleep_log(logging.getLogger(func.__module__), logging.WARNING)
         )
@@ -244,7 +243,7 @@ def retry_with_backoff(
         
         @retry(
             stop = stop_after_attempt(max_attempts),
-            wait = wait_exponential(multiplier=base_delay, min = base_delay, max = max_delay),
+            wait = wait_exponential(multiplier=base_delay, min=base_delay, max=max_delay),
             retry = retry_if_exception_type(exceptions),
             before_sleep = before_sleep_log(logging.getLogger(func.__module__), logging.WARNING)
         )
@@ -263,19 +262,19 @@ def retry_with_backoff(
 class CircuitBreaker: 
     """Circuit breaker pattern for external service calls"""
     
-    def __init__(self, failure_threshold: int = 5, timeout: float = 60.0):
+    def __init__(self, failure_threshold: int=5, timeout: float=60.0):
         self.failure_threshold = failure_threshold
         self.timeout = timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
-        self.logger = ProductionLogger("circuit_breaker")
+        self.state="CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.logger=ProductionLogger("circuit_breaker")
     
     def call(self, func: Callable, *args, **kwargs): 
         """Execute function with circuit breaker protection"""
         if self.state ==  "OPEN": 
             if self._should_attempt_reset(): 
-                self.state = "HALF_OPEN"
+                self.state="HALF_OPEN"
                 self.logger.info("Circuit breaker transitioning to HALF_OPEN")
             else: 
                 raise Exception("Circuit breaker is OPEN")
@@ -292,7 +291,7 @@ class CircuitBreaker:
         """Execute async function with circuit breaker protection"""
         if self.state ==  "OPEN": 
             if self._should_attempt_reset(): 
-                self.state = "HALF_OPEN"
+                self.state="HALF_OPEN"
                 self.logger.info("Circuit breaker transitioning to HALF_OPEN")
             else: 
                 raise Exception("Circuit breaker is OPEN")
@@ -316,16 +315,16 @@ class CircuitBreaker:
         """Handle successful call"""
         self.failure_count = 0
         if self.state  ==  "HALF_OPEN": 
-            self.state = "CLOSED"
+            self.state="CLOSED"
             self.logger.info("Circuit breaker reset to CLOSED")
     
     def _on_failure(self): 
         """Handle failed call"""
         self.failure_count += 1
-        self.last_failure_time = datetime.now()
+        self.last_failure_time=datetime.now()
         
         if self.failure_count  >=  self.failure_threshold: 
-            self.state = "OPEN"
+            self.state="OPEN"
             self.logger.critical(
                 f"Circuit breaker opened after {self.failure_count} failures",
                 failure_count = self.failure_count,
@@ -349,7 +348,7 @@ class HealthChecker:
     
     async def run_health_checks(self)->Dict[str, Any]: 
         """Run all registered health checks"""
-        self.last_check_time = datetime.now()
+        self.last_check_time=datetime.now()
         results = {}
         
         for name, check_func in self.health_checks.items(): 
@@ -422,9 +421,9 @@ class MetricsCollector:
         if len(self.metrics[metric_name])  >  self.max_metrics_per_type: 
             self.metrics[metric_name] = self.metrics[metric_name][-self.max_metrics_per_type: ]
         
-        self.logger.debug(f"Recorded metric {metric_name}: {value}", metric_name = metric_name, value = value, tags = tags)
+        self.logger.debug(f"Recorded metric {metric_name}: {value}", metric_name=metric_name, value=value, tags=tags)
     
-    def get_metric_summary(self, metric_name: str, window_minutes: int = 60)->Dict[str, Any]: 
+    def get_metric_summary(self, metric_name: str, window_minutes: int=60)->Dict[str, Any]: 
         """Get metric summary for specified time window"""
         if metric_name not in self.metrics: 
             return {}
@@ -453,7 +452,7 @@ class MetricsCollector:
         """Export metrics to JSON file"""
         try: 
             with open(file_path, 'w') as f: 
-                json.dump(self.metrics, f, indent = 2)
+                json.dump(self.metrics, f, indent=2)
             
             self.logger.info(f"Metrics exported to {file_path}")
         except Exception as e: 
@@ -461,7 +460,7 @@ class MetricsCollector:
 
 
 # Factory functions for easy initialization
-def create_production_logger(name: str, log_level: str = "INFO")->ProductionLogger:
+def create_production_logger(name: str, log_level: str="INFO")->ProductionLogger:
     """Create production logger"""
     return ProductionLogger(name, log_level)
 
@@ -471,7 +470,7 @@ def create_error_handler(logger: ProductionLogger)->ErrorHandler:
     return ErrorHandler(logger)
 
 
-def create_circuit_breaker(failure_threshold: int = 5, timeout: float = 60.0)->CircuitBreaker:
+def create_circuit_breaker(failure_threshold: int=5, timeout: float=60.0)->CircuitBreaker:
     """Create circuit breaker"""
     return CircuitBreaker(failure_threshold, timeout)
 

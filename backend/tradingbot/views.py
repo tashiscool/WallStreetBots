@@ -18,7 +18,7 @@ def stock_trade(request):
     transaction_type = request.POST.get('transaction_type')
     ticker = request.POST.get('ticker')
     # price is used for other order types, commented out for linter for now
-    # price = float(request.POST.get('price')) if request.POST.get('price') else None
+    # price=float(request.POST.get('price')) if request.POST.get('price') else None
     portfolio_name = request.POST.get('portfolio')
     alpaca_api = AlpacaManager(user.credential.alpaca_id, user.credential.alpaca_key)
     quantity = int(request.POST.get('quantity'))
@@ -29,16 +29,15 @@ def stock_trade(request):
         if transaction_type  ==  'market': 
             if not alpaca_api.market_buy(ticker, quantity): 
                 return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            portfolio_name = Portfolio.objects.get(user=user, name = portfolio_name)
+            portfolio_name = Portfolio.objects.get(user=user, name=portfolio_name)
             stock = Stock.objects.get(ticker=ticker)
             order = Order(
-                user = user,
-                stock = stock,
-                quantity = quantity,
-                portfolio = portfolio_name,
-                transaction_type = transaction_type,
-                transaction_side = transaction_side
-            )
+                user=user,
+                stock=stock,
+                quantity=quantity,
+                portfolio=portfolio_name,
+                transaction_type=transaction_type,
+                transaction_side = transaction_side)
             order.save()
             return HttpResponse(status=status.HTTP_201_CREATED)
 

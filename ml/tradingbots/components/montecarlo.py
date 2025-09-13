@@ -5,7 +5,7 @@ from .portfoliomanager import PortfolioManager
 
 
 class MonteCarloPortfolioUpdate(PortfolioManager): 
-    def __init__(self, portfolio, metric, data_fetcher, simulation_itr = 10000, buffer = 0.05): 
+    def __init__(self, portfolio, metric, data_fetcher, simulation_itr=10000, buffer=0.05): 
         """
         Args: 
             portfolio: portfolio dictionary contains cash and stocks with qty

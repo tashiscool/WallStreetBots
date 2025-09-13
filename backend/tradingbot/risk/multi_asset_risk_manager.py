@@ -58,9 +58,9 @@ class AssetPosition:
     currency: str
     risk_factors: Dict[RiskFactor, float] = field(default_factory=dict)
     correlation_factors: Dict[str, float] = field(default_factory=dict)
-    liquidity_score: float = 1.0
-    volatility: float = 0.0
-    beta: float = 1.0
+    liquidity_score: float=1.0
+    volatility: float=0.0
+    beta: float=1.0
 
 
 @dataclass
@@ -103,11 +103,11 @@ class MultiAssetRiskManager:
     """
     
     def __init__(self, 
-                 base_currency: str = "USD",
-                 correlation_window: int = 252,
-                 enable_crypto: bool = True,
-                 enable_forex: bool = True,
-                 enable_commodities: bool = True):
+                 base_currency: str="USD",
+                 correlation_window: int=252,
+                 enable_crypto: bool=True,
+                 enable_forex: bool=True,
+                 enable_commodities: bool=True):
         """
         Initialize multi - asset risk manager
         
@@ -124,7 +124,7 @@ class MultiAssetRiskManager:
         self.enable_forex = enable_forex
         self.enable_commodities = enable_commodities
         
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Asset data
         self.positions: Dict[str, AssetPosition] = {}
@@ -133,8 +133,8 @@ class MultiAssetRiskManager:
         
         # Risk models
         self.correlation_matrix = None
-        self.risk_factor_loadings = {}
-        self.asset_class_correlations = {}
+        self.risk_factor_loadings={}
+        self.asset_class_correlations={}
         
         # Performance tracking
         self.calculation_count = 0
@@ -147,11 +147,11 @@ class MultiAssetRiskManager:
                          asset_class: AssetClass,
                          quantity: float,
                          value: float,
-                         currency: str = "USD",
+                         currency: str="USD",
                          risk_factors: Dict[RiskFactor, float] = None,
-                         liquidity_score: float = 1.0,
-                         volatility: float = 0.0,
-                         beta: float = 1.0):
+                         liquidity_score: float=1.0,
+                         volatility: float=0.0,
+                         beta: float=1.0):
         """
         Add multi - asset position
         
@@ -168,16 +168,15 @@ class MultiAssetRiskManager:
         """
         try: 
             position = AssetPosition(
-                symbol = symbol,
-                asset_class = asset_class,
-                quantity = quantity,
-                value = value,
-                currency = currency,
+                symbol=symbol,
+                asset_class=asset_class,
+                quantity=quantity,
+                value=value,
+                currency=currency,
                 risk_factors = risk_factors or {},
-                liquidity_score = liquidity_score,
-                volatility = volatility,
-                beta = beta
-            )
+                liquidity_score=liquidity_score,
+                volatility=volatility,
+                beta = beta)
             
             self.positions[symbol] = position
             
@@ -263,13 +262,13 @@ class MultiAssetRiskManager:
             pearson_corr = returns1.corr(returns2)
             
             # Calculate Spearman correlation
-            spearman_corr = returns1.corr(returns2, method = 'spearman')
+            spearman_corr = returns1.corr(returns2, method='spearman')
             
             # Use Pearson as primary correlation
             correlation = CrossAssetCorrelation(
-                asset1 = symbol1,
-                asset2 = symbol2,
-                correlation = pearson_corr,
+                asset1=symbol1,
+                asset2=symbol2,
+                correlation=pearson_corr,
                 correlation_type = "pearson",
                 time_horizon = self.correlation_window,
                 last_updated = datetime.now(),
@@ -310,7 +309,7 @@ class MultiAssetRiskManager:
                         else: 
                             corr_matrix[i, j] = 0.0  # Default correlation
             
-            self.correlation_matrix = pd.DataFrame(corr_matrix, index = assets, columns = assets)
+            self.correlation_matrix=pd.DataFrame(corr_matrix, index=assets, columns=assets)
             
             self.logger.info(f"Updated correlation matrix: {n_assets}x{n_assets}")
             
@@ -318,8 +317,8 @@ class MultiAssetRiskManager:
             self.logger.error(f"Error updating correlation matrix: {e}")
     
     async def calculate_multi_asset_var(self, 
-                                      confidence_level: float = 0.99,
-                                      time_horizon: int = 1)->MultiAssetRiskMetrics:
+                                      confidence_level: float=0.99,
+                                      time_horizon: int=1)->MultiAssetRiskMetrics:
         """
         Calculate multi - asset VaR
         
@@ -377,21 +376,20 @@ class MultiAssetRiskManager:
             total_cvar = total_var * 1.2  # CVaR is typically higher than VaR
             
             metrics = MultiAssetRiskMetrics(
-                total_var = total_var,
-                total_cvar = total_cvar,
-                asset_class_vars = asset_class_vars,
-                risk_factor_exposures = risk_factor_exposures,
-                correlation_risk = correlation_risk,
-                concentration_risk = concentration_risk,
-                liquidity_risk = liquidity_risk,
-                currency_risk = currency_risk,
-                cross_asset_hedge_ratio = hedge_ratio,
-                diversification_ratio = diversification_ratio
-            )
+                total_var=total_var,
+                total_cvar=total_cvar,
+                asset_class_vars=asset_class_vars,
+                risk_factor_exposures=risk_factor_exposures,
+                correlation_risk=correlation_risk,
+                concentration_risk=concentration_risk,
+                liquidity_risk=liquidity_risk,
+                currency_risk=currency_risk,
+                cross_asset_hedge_ratio=hedge_ratio,
+                diversification_ratio = diversification_ratio)
             
             # Update tracking
             self.calculation_count += 1
-            self.last_calculation = datetime.now()
+            self.last_calculation=datetime.now()
             
             self.logger.info(f"Multi - asset VaR calculated: {total_var:.2%}")
             
@@ -454,7 +452,7 @@ class MultiAssetRiskManager:
             
             # Calculate average correlation
             corr_values = self.correlation_matrix.values
-            mask = ~np.eye(corr_values.shape[0], dtype = bool)
+            mask = ~np.eye(corr_values.shape[0], dtype=bool)
             avg_correlation = np.mean(corr_values[mask])
             
             # Higher correlation = higher risk
@@ -500,7 +498,7 @@ class MultiAssetRiskManager:
             weighted_liquidity = sum(pos.liquidity_score * pos.value for pos in self.positions.values())
             avg_liquidity = weighted_liquidity / total_value
             
-            # Convert to risk (lower liquidity = higher risk)
+            # Convert to risk (lower liquidity=higher risk)
             liquidity_risk = 1.0 - avg_liquidity
             
             return liquidity_risk
@@ -663,48 +661,47 @@ if __name__ ==  "__main__":
         # Initialize multi - asset risk manager
         risk_manager = MultiAssetRiskManager(
             base_currency = "USD",
-            enable_crypto = True,
-            enable_forex = True,
-            enable_commodities = True
-        )
+            enable_crypto=True,
+            enable_forex=True,
+            enable_commodities = True)
         
         # Add sample positions
         await risk_manager.add_position(
             "AAPL", AssetClass.EQUITY, 100, 15000, "USD", 
-            volatility = 0.25, liquidity_score = 0.9
+            volatility = 0.25, liquidity_score=0.9
         )
         
         await risk_manager.add_position(
             "BTC", AssetClass.CRYPTO, 0.5, 20000, "USD",
-            volatility = 0.60, liquidity_score = 0.8
+            volatility = 0.60, liquidity_score=0.8
         )
         
         await risk_manager.add_position(
             "EURUSD", AssetClass.FOREX, 100000, 110000, "USD",
-            volatility = 0.15, liquidity_score = 0.95
+            volatility = 0.15, liquidity_score=0.95
         )
         
         await risk_manager.add_position(
             "GOLD", AssetClass.COMMODITY, 10, 18000, "USD",
-            volatility = 0.20, liquidity_score = 0.85
+            volatility = 0.20, liquidity_score=0.85
         )
         
         # Simulate market data
-        dates = pd.date_range(end=datetime.now(), periods = 252, freq = 'D')
+        dates = pd.date_range(end=datetime.now(), periods=252, freq='D')
         
         market_data = {
             "AAPL": pd.DataFrame({
                 'Close': 150 + np.random.normal(0, 5, 252)
-            }, index = dates),
+            }, index=dates),
             "BTC": pd.DataFrame({
                 'Close': 40000 + np.random.normal(0, 2000, 252)
-            }, index = dates),
+            }, index=dates),
             "EURUSD": pd.DataFrame({
                 'Close': 1.1 + np.random.normal(0, 0.02, 252)
-            }, index = dates),
+            }, index=dates),
             "GOLD": pd.DataFrame({
                 'Close': 1800 + np.random.normal(0, 50, 252)
-            }, index = dates)
+            }, index=dates)
         }
         
         # Calculate correlations

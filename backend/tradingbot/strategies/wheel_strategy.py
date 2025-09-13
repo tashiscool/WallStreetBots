@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 WSB Strategy #6: Covered Calls / Wheel Strategy
 Consistent income generation on volatile names with positive expectancy
@@ -63,13 +63,13 @@ class WheelCandidate:
 
 
 class WheelStrategy: 
-    def __init__(self, portfolio_file: str = "wheel_portfolio.json"):
+    def __init__(self, portfolio_file: str="wheel_portfolio.json"):
         self.portfolio_file = portfolio_file
         self.positions: List[WheelPosition] = []
         self.load_portfolio()
         
         # Good wheel candidates - stable companies with decent volatility
-        self.wheel_candidates = [
+        self.wheel_candidates=[
             # Blue chips with decent volatility
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX",
             
@@ -95,14 +95,14 @@ class WheelStrategy:
             try: 
                 with open(self.portfolio_file, 'r') as f: 
                     data = json.load(f)
-                    self.positions = [
+                    self.positions=[
                         WheelPosition(**pos) for pos in data.get('positions', [])
                     ]
             except Exception as e: 
                 print(f"Error loading portfolio: {e}")
-                self.positions = []
+                self.positions=[]
         else: 
-            self.positions = []
+            self.positions=[]
     
     def save_portfolio(self): 
         """Save wheel portfolio"""
@@ -112,7 +112,7 @@ class WheelStrategy:
                 'positions': [asdict(pos) for pos in self.positions]
             }
             with open(self.portfolio_file, 'w') as f: 
-                json.dump(data, f, indent = 2, default = str)
+                json.dump(data, f, indent=2, default=str)
         except Exception as e: 
             print(f"Error saving portfolio: {e}")
     
@@ -125,7 +125,7 @@ class WheelStrategy:
         if T  <=  0 or sigma  <=  0: 
             return max(K - S, 0), -1.0 if S  <  K else 0.0
             
-        d1 = (math.log(S / K) + (r + 0.5 * sigma*sigma)*T) / (sigma * math.sqrt(T))
+        d1 = (math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * math.sqrt(T))
         d2 = d1 - sigma * math.sqrt(T)
         
         put_price = K * math.exp(-r * T) * self.norm_cdf(-d2) - S * self.norm_cdf(-d1)
@@ -417,24 +417,23 @@ class WheelStrategy:
                 if wheel_annual_return  >=  8.0:  # Minimum 8% annual return
                     
                     candidate = WheelCandidate(
-                        ticker = ticker,
-                        company_name = company_name,
-                        current_price = current_price,
-                        iv_rank = iv_rank,
-                        put_strike = put_strike,
-                        put_expiry = expiry,
-                        put_premium = put_premium,
-                        put_delta = put_delta,
-                        call_strike = call_strike,
-                        call_premium = call_premium,
-                        call_delta = call_delta,
-                        wheel_annual_return = wheel_annual_return,
-                        dividend_yield = dividend_yield,
-                        liquidity_score = liquidity_score,
-                        quality_score = quality_score,
-                        volatility_score = volatility_score,
-                        risk_factors = risk_factors
-                    )
+                        ticker=ticker,
+                        company_name=company_name,
+                        current_price=current_price,
+                        iv_rank=iv_rank,
+                        put_strike=put_strike,
+                        put_expiry=expiry,
+                        put_premium=put_premium,
+                        put_delta=put_delta,
+                        call_strike=call_strike,
+                        call_premium=call_premium,
+                        call_delta=call_delta,
+                        wheel_annual_return=wheel_annual_return,
+                        dividend_yield=dividend_yield,
+                        liquidity_score=liquidity_score,
+                        quality_score=quality_score,
+                        volatility_score=volatility_score,
+                        risk_factors = risk_factors)
                     
                     candidates.append(candidate)
                     print(f"  ✅ {ticker}: {wheel_annual_return:.1f}% annual return")
@@ -446,8 +445,7 @@ class WheelStrategy:
         # Sort by risk - adjusted return
         candidates.sort(
             key = lambda x: x.wheel_annual_return * (x.quality_score / 100) * (x.liquidity_score / 100),
-            reverse = True
-        )
+            reverse = True)
         
         return candidates
     
@@ -462,29 +460,29 @@ class WheelStrategy:
                 pos.current_price = current_price
                 
                 if pos.position_type  ==  "assigned_shares": # Calculate unrealized P & L on shares
-                    pos.unrealized_pnl = (current_price - pos.avg_cost) * pos.shares
+                    pos.unrealized_pnl=(current_price-pos.avg_cost) * pos.shares
                 
                 elif pos.strike and pos.expiry: 
                     # Update days to expiry
-                    pos.days_to_expiry = (datetime.strptime(pos.expiry, "%Y-%m-%d").date() - date.today()).days
+                    pos.days_to_expiry=(datetime.strptime(pos.expiry, "%Y-%m-%d").date() - date.today()).days
                     
                     # Estimate assignment risk
-                    if pos.position_type ==  "cash_secured_put": pos.assignment_risk = max(0, (pos.strike - current_price) / current_price)
+                    if pos.position_type ==  "cash_secured_put": pos.assignment_risk=max(0, (pos.strike-current_price) / current_price)
                     else:  # covered call
-                        pos.assignment_risk = max(0, (current_price - pos.strike) / pos.strike)
+                        pos.assignment_risk=max(0, (current_price-pos.strike) / pos.strike)
                 
                 # Calculate annualized return
                 if pos.days_to_expiry and pos.days_to_expiry  >  0: 
-                    if pos.position_type ==  "cash_secured_put": pos.annualized_return = (pos.premium_collected / pos.strike) * (365 / (30 - pos.days_to_expiry)) * 100
+                    if pos.position_type ==  "cash_secured_put": pos.annualized_return=(pos.premium_collected / pos.strike) * (365 / (30 - pos.days_to_expiry)) * 100
                     else: 
-                        pos.annualized_return = (pos.total_premium_collected / (pos.avg_cost * pos.shares)) * 100
+                        pos.annualized_return=(pos.total_premium_collected / (pos.avg_cost * pos.shares)) * 100
                 
             except Exception as e: 
                 print(f"Error updating {pos.ticker}: {e}")
         
         self.save_portfolio()
     
-    def format_candidates(self, candidates: List[WheelCandidate], limit: int = 15)->str:
+    def format_candidates(self, candidates: List[WheelCandidate], limit: int=15)->str:
         """Format wheel candidates for display"""
         if not candidates: 
             return "🔍 No suitable wheel candidates found."
@@ -498,7 +496,7 @@ class WheelStrategy:
             output += f"\n{i}. {cand.ticker} - {cand.company_name}\n"
             output += f"   Current: ${cand.current_price:.2f} | IV Rank: {cand.iv_rank:.0f}\n"
             output += f"   SELL ${cand.put_strike} PUT: ${cand.put_premium:.2f} premium (Δ{cand.put_delta: .2f})\n"
-            output += f"   IF ASSIGNED, SELL ${cand.call_strike} CALL: ${cand.call_premium:.2f} premium\n"
+            output += f"   IF ASSIGNED, SELL ${cand.call_strike} CALL: ${cand.call_premium:.2f} premium + n"
             output += f"   Estimated Annual Return: {cand.wheel_annual_return:.1f}%\n"
             output += f"   Dividend Yield: {cand.dividend_yield:.1f}% | Assignment Risk: {assignment_risk}\n"
             output += f"   Quality: {cand.quality_score:.0f} | Liquidity: {cand.liquidity_score:.0f}\n"
@@ -507,17 +505,17 @@ class WheelStrategy:
                 output += f"   ⚠️  Risks: {', '.join(cand.risk_factors)}\n"
         
         output += "\n💡 WHEEL STRATEGY PROCESS: \n"
-        output += "1. Sell cash - secured puts on quality names\n"
-        output += "2. If assigned → own shares at discount\n"
-        output += "3. Sell covered calls above your cost basis\n"
-        output += "4. If called away → profit + start over\n"
-        output += "5. Collect dividends while holding shares\n"
+        output += "1. Sell cash - secured puts on quality names + n"
+        output += "2. If assigned → own shares at discount + n"
+        output += "3. Sell covered calls above your cost basis + n"
+        output += "4. If called away → profit + start over + n"
+        output += "5. Collect dividends while holding shares + n"
         
         output += "\n✅ WHEEL ADVANTAGES: \n"
-        output += "• Positive expected value over time\n"
-        output += "• Lower risk than naked options\n"
-        output += "• Generates income in sideways markets\n"
-        output += "• Forces buying low, selling high\n"
+        output += "• Positive expected value over time+n"
+        output += "• Lower risk than naked options + n"
+        output += "• Generates income in sideways markets + n"
+        output += "• Forces buying low, selling high + n"
         
         return output
     
@@ -533,7 +531,7 @@ class WheelStrategy:
         calls = [p for p in self.positions if p.position_type  ==  "covered_call"]  
         shares = [p for p in self.positions if p.position_type  ==  "assigned_shares"]
         
-        output = f"\n🎡 WHEEL PORTFOLIO SUMMARY\n"
+        output = f"\n🎡 WHEEL PORTFOLIO SUMMARY + n"
         output += " = " * 60 + "\n"
         
         total_premium = sum(p.total_premium_collected for p in self.positions)
@@ -541,7 +539,7 @@ class WheelStrategy:
         
         output += f"Total Premium Collected: ${total_premium:,.0f}\n"
         output += f"Unrealized P & L: ${total_unrealized:,.0f}\n"
-        output += f"Active Positions: {len(self.positions)}\n\n"
+        output += f"Active Positions: {len(self.positions)}\n + n"
         
         if puts: 
             output += "CASH - SECURED PUTS: \n"
@@ -551,8 +549,8 @@ class WheelStrategy:
                 risk_indicator = "🟥" if put.assignment_risk  >  0.3 else "🟨" if put.assignment_risk  >  0.1 else "🟩"
                 
                 output += f"{put.ticker} ${put.strike} PUT exp {put.expiry} {risk_indicator}\n"
-                output += f"  Premium: ${put.premium_collected:.2f} | {days_left}d left\n"
-                output += f"  Assignment risk: {put.assignment_risk:.1%}\n\n"
+                output += f"  Premium: ${put.premium_collected:.2f} | {days_left}d left + n"
+                output += f"  Assignment risk: {put.assignment_risk:.1%}\n + n"
         
         if shares: 
             output += "ASSIGNED SHARES: \n"
@@ -562,7 +560,7 @@ class WheelStrategy:
                 
                 output += f"{share_pos.ticker}: {share_pos.shares} shares @ ${share_pos.avg_cost: .2f} {pnl_indicator}\n"
                 output += f"  Current: ${share_pos.current_price:.2f} | P & L: ${share_pos.unrealized_pnl:.0f}\n"
-                output += f"  Total premium: ${share_pos.total_premium_collected:.2f}\n\n"
+                output += f"  Total premium: ${share_pos.total_premium_collected:.2f}\n + n"
         
         if calls: 
             output += "COVERED CALLS: \n"
@@ -572,23 +570,23 @@ class WheelStrategy:
                 risk_indicator = "🟥" if call.assignment_risk  >  0.3 else "🟨" if call.assignment_risk  >  0.1 else "🟩"
                 
                 output += f"{call.ticker} ${call.strike} CALL exp {call.expiry} {risk_indicator}\n"
-                output += f"  Premium: ${call.premium_collected:.2f} | {days_left}d left\n"
-                output += f"  Call - away risk: {call.assignment_risk:.1%}\n\n"
+                output += f"  Premium: ${call.premium_collected:.2f} | {days_left}d left + n"
+                output += f"  Call - away risk: {call.assignment_risk:.1%}\n + n"
         
         return output
 
 
 def main(): 
     parser = argparse.ArgumentParser(description="Wheel Strategy Scanner")
-    parser.add_argument('command', choices = ['scan', 'portfolio', 'update'],
+    parser.add_argument('command', choices=['scan', 'portfolio', 'update'],
                        help = 'Command to execute')
-    parser.add_argument('--output', choices = ['json', 'text'], default = 'text',
+    parser.add_argument('--output', choices=['json', 'text'], default='text',
                        help = 'Output format')
-    parser.add_argument('--limit', type = int, default = 15,
+    parser.add_argument('--limit', type=int, default=15,
                        help = 'Maximum results to show')
-    parser.add_argument('--min - return', type = float, default = 8.0,
+    parser.add_argument('--min - return', type=float, default=8.0,
                        help = 'Minimum annual return %%')
-    parser.add_argument('--save - csv', type = str,
+    parser.add_argument('--save-csv', type=str,
                        help = 'Save results to CSV file')
     
     args = parser.parse_args()
@@ -602,17 +600,17 @@ def main():
         candidates = [c for c in candidates if c.wheel_annual_return  >=  args.min_return]
         
         if args.save_csv: 
-            with open(args.save_csv, 'w', newline = '') as csvfile: 
+            with open(args.save_csv, 'w', newline='') as csvfile: 
                 if candidates: 
                     fieldnames = candidates[0].__dict__.keys()
-                    writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                     writer.writeheader()
                     for cand in candidates: 
                         writer.writerow(asdict(cand))
             print(f"💾 Saved {len(candidates)} candidates to {args.save_csv}")
         
         if args.output ==  'json': print(json.dumps([asdict(c) for c in candidates[:args.limit]], 
-                            indent = 2, default = str))
+                            indent = 2, default=str))
         else: 
             print(wheel.format_candidates(candidates, args.limit))
             

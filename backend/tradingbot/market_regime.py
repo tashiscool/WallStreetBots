@@ -41,15 +41,15 @@ class TechnicalIndicators:
     low_24h: float
 
     # Derived indicators
-    distance_from_20ema: float = 0.0
-    distance_from_50ema: float = 0.0
-    ema_20_slope: float = 0.0
-    ema_50_slope: float = 0.0
+    distance_from_20ema: float=0.0
+    distance_from_50ema: float=0.0
+    ema_20_slope: float=0.0
+    ema_50_slope: float=0.0
 
     def __post_init__(self): 
         """Calculate derived indicators"""
-        self.distance_from_20ema = (self.price - self.ema_20) / self.price if self.price  >  0 else 0
-        self.distance_from_50ema = (self.price - self.ema_50) / self.price if self.price  >  0 else 0
+        self.distance_from_20ema=(self.price-self.ema_20) / self.price if self.price  >  0 else 0
+        self.distance_from_50ema=(self.price-self.ema_50) / self.price if self.price  >  0 else 0
 
 
 @dataclass
@@ -65,9 +65,9 @@ class MarketSignal:
 
     def __post_init__(self): 
         if self.reasoning is None: 
-            self.reasoning = []
+            self.reasoning=[]
         if self.timestamp is None: 
-            self.timestamp = datetime.now()
+            self.timestamp=datetime.now()
 
 
 class TechnicalAnalysis: 
@@ -83,12 +83,12 @@ class TechnicalAnalysis:
         ema = [prices[0]]  # Start with first price
 
         for price in prices[1: ]:
-            ema.append(alpha * price + (1 - alpha) * ema[-1])
+            ema.append(alpha * price+(1 - alpha) * ema[-1])
 
         return ema
 
     @staticmethod
-    def calculate_rsi(prices: List[float], period: int = 14)->List[float]:
+    def calculate_rsi(prices: List[float], period: int=14)->List[float]:
         """Calculate Relative Strength Index"""
         if len(prices)  <  period + 1: 
             return [np.nan] * len(prices)
@@ -126,7 +126,7 @@ class TechnicalAnalysis:
         return rsi_values
 
     @staticmethod
-    def calculate_atr(highs: List[float], lows: List[float], closes: List[float], period: int = 14)->List[float]:
+    def calculate_atr(highs: List[float], lows: List[float], closes: List[float], period: int=14)->List[float]:
         """Calculate Average True Range"""
         if len(highs)  <  period or len(lows)  <  period or len(closes)  <  period: 
             return [np.nan] * len(closes)
@@ -157,7 +157,7 @@ class TechnicalAnalysis:
         return atr_values
 
     @staticmethod
-    def calculate_slope(values: List[float], period: int = 5)->float:
+    def calculate_slope(values: List[float], period: int=5)->float:
         """Calculate slope of recent values using linear regression"""
         if len(values)  <  period: 
             return 0.0
@@ -184,13 +184,13 @@ class MarketRegimeFilter:
     """
 
     def __init__(self): 
-        self.ta = TechnicalAnalysis()
+        self.ta=TechnicalAnalysis()
 
         # Regime parameters from playbook
-        self.min_trend_slope = 0.001  # Minimum positive slope for 20 - EMA
+        self.min_trend_slope=0.001  # Minimum positive slope for 20 - EMA
         self.rsi_pullback_min = 35
         self.rsi_pullback_max = 50
-        self.max_distance_from_20ema = 0.01  # 1% maximum distance for pullback
+        self.max_distance_from_20ema=0.01  # 1% maximum distance for pullback
 
     def determine_regime(self, indicators: TechnicalIndicators)->MarketRegime:
         """
@@ -275,15 +275,14 @@ class SignalGenerator:
     """Generate trading signals based on regime and technical setup"""
 
     def __init__(self): 
-        self.regime_filter = MarketRegimeFilter()
+        self.regime_filter=MarketRegimeFilter()
 
     def generate_signal(
         self,
         current_indicators: TechnicalIndicators,
         previous_indicators: TechnicalIndicators,
-        earnings_risk: bool = False,
-        macro_risk: bool = False
-    )->MarketSignal: 
+        earnings_risk: bool=False,
+        macro_risk: bool=False)->MarketSignal: 
         """
         Generate trading signal based on regime and setup
 
@@ -302,16 +301,16 @@ class SignalGenerator:
         # Risk filters first
         if earnings_risk: 
             reasoning.append("Earnings risk detected - avoiding new positions")
-            return MarketSignal(SignalType.HOLD, 0.0, regime, reasoning = reasoning)
+            return MarketSignal(SignalType.HOLD, 0.0, regime, reasoning=reasoning)
 
         if macro_risk: 
             reasoning.append("Major macro event risk - avoiding new positions")
-            return MarketSignal(SignalType.HOLD, 0.0, regime, reasoning = reasoning)
+            return MarketSignal(SignalType.HOLD, 0.0, regime, reasoning=reasoning)
 
         # Only trade in bull regime
         if regime  !=  MarketRegime.BULL: 
             reasoning.append(f"Market regime is {regime.value} - not bull market")
-            return MarketSignal(SignalType.NO_SIGNAL, 0.0, regime, reasoning = reasoning)
+            return MarketSignal(SignalType.NO_SIGNAL, 0.0, regime, reasoning=reasoning)
 
         # Check for pullback setup
         has_pullback_setup = self.regime_filter.detect_pullback_setup(
@@ -339,15 +338,14 @@ class SignalGenerator:
                     SignalType.BUY,
                     confidence,
                     regime,
-                    reasoning = reasoning
-                )
+                    reasoning = reasoning)
             else: 
                 reasoning.append("Pullback setup present but awaiting reversal trigger")
-                return MarketSignal(SignalType.HOLD, 0.3, regime, reasoning = reasoning)
+                return MarketSignal(SignalType.HOLD, 0.3, regime, reasoning=reasoning)
 
         # Default to hold in bull market
         reasoning.append("Bull regime confirmed but no setup detected")
-        return MarketSignal(SignalType.HOLD, 0.1, regime, reasoning = reasoning)
+        return MarketSignal(SignalType.HOLD, 0.1, regime, reasoning=reasoning)
 
     def _calculate_signal_confidence(
         self,
@@ -378,7 +376,7 @@ class SignalGenerator:
             confidence += 0.1
 
         # Price action strength
-        price_momentum = (current.price - previous.price) / previous.price
+        price_momentum = (current.price-previous.price) / previous.price
         if price_momentum  >  0.01:  # Strong upward momentum
             confidence += 0.1
 
@@ -391,19 +389,18 @@ def create_sample_indicators(
     ema_50: float,
     ema_200: float,
     rsi: float,
-    volume: int = 1000000,
-    high: float = None,
-    low: float = None
-)->TechnicalIndicators: 
+    volume: int=1000000,
+    high: float=None,
+    low: float=None)->TechnicalIndicators: 
     """Helper function to create sample indicators for testing"""
     return TechnicalIndicators(
-        price = price,
-        ema_20 = ema_20,
-        ema_50 = ema_50,
-        ema_200 = ema_200,
-        rsi_14 = rsi,
+        price=price,
+        ema_20=ema_20,
+        ema_50=ema_50,
+        ema_200=ema_200,
+        rsi_14=rsi,
         atr_14 = price * 0.02,  # 2% ATR
-        volume = volume,
+        volume=volume,
         high_24h = high or price * 1.01,
         low_24h = low or price * 0.99
     )

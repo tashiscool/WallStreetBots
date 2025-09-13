@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 WSB Strategy: SPX / SPY 0DTE Credit Spreads
 Most cited "actually profitable" 0DTE strategy on WSB
@@ -61,7 +61,7 @@ class CreditSpreadOpportunity:
 class SPXCreditSpreadsScanner: 
     def __init__(self): 
         # Focus on SPX and liquid ETFs for credit spreads
-        self.credit_tickers = [
+        self.credit_tickers=[
             "SPX",   # S & P 500 Index (preferred for tax treatment)
             "SPY",   # SPDR S & P 500 ETF
             "QQQ",   # Invesco QQQ ETF
@@ -69,8 +69,8 @@ class SPXCreditSpreadsScanner:
         ]
         
         # Target delta for short strikes (WSB standard)
-        self.target_short_delta = 0.30
-        self.profit_target_pct = 0.25  # 25% profit target
+        self.target_short_delta=0.30
+        self.profit_target_pct=0.25  # 25% profit target
         
     def norm_cdf(self, x: float)->float:
         """Standard normal CDF"""
@@ -81,7 +81,7 @@ class SPXCreditSpreadsScanner:
         if T  <=  0 or sigma  <=  0: 
             return max(K - S, 0), -1.0 if S  <  K else 0.0
             
-        d1 = (math.log(S / K) + (r + 0.5 * sigma*sigma)*T) / (sigma * math.sqrt(T))
+        d1 = (math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * math.sqrt(T))
         d2 = d1 - sigma * math.sqrt(T)
         
         put_price = K * math.exp(-r * T) * self.norm_cdf(-d2) - S * self.norm_cdf(-d1)
@@ -94,7 +94,7 @@ class SPXCreditSpreadsScanner:
         if T  <=  0 or sigma  <=  0: 
             return max(S - K, 0), 1.0 if S  >  K else 0.0
             
-        d1 = (math.log(S / K) + (r + 0.5 * sigma*sigma)*T) / (sigma * math.sqrt(T))
+        d1 = (math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * math.sqrt(T))
         d2 = d1 - sigma * math.sqrt(T)
         
         call_price = S * self.norm_cdf(d1) - K * math.exp(-r * T) * self.norm_cdf(d2)
@@ -103,12 +103,12 @@ class SPXCreditSpreadsScanner:
         return max(call_price, 0), delta
     
     def get_0dte_expiry(self)->Optional[str]: 
-        """Get 0DTE expiry if available (Mon / Wed/Fri for SPX / SPY)"""
+        """Get 0DTE expiry if available (Mon / Wed / Fri for SPX / SPY)"""
         today = date.today()
-        weekday = today.weekday()  # 0 = Monday, 4 = Friday
+        weekday = today.weekday()  # 0=Monday, 4 = Friday
         
-        # SPX has 0DTE on Mon / Wed/Fri
-        # SPY typically has 0DTE on Mon / Wed/Fri
+        # SPX has 0DTE on Mon / Wed / Fri
+        # SPY typically has 0DTE on Mon / Wed / Fri
         if weekday in [0, 2, 4]:  # Mon, Wed, Fri
             return today.strftime("%Y-%m-%d")
         
@@ -118,8 +118,8 @@ class SPXCreditSpreadsScanner:
         """Estimate IV from expected daily move"""
         try: 
             # Convert daily expected move to annual IV
-            # Expected move = S * IV * sqrt(T)
-            # For 1 day: IV = expected_move / (S * sqrt(1 / 365))
+            # Expected move=S * IV * sqrt(T)
+            # For 1 day: IV=expected_move / (S * sqrt(1 / 365))
             iv_estimate = expected_move_pct / math.sqrt(1 / 365)
             return max(0.10, min(1.0, iv_estimate))  # Reasonable bounds
         except: 
@@ -163,7 +163,7 @@ class SPXCreditSpreadsScanner:
             stock = yf.Ticker(options_ticker)
             chain = stock.option_chain(expiry)
             
-            if option_type ==  "put": options_df = chain.puts
+            if option_type ==  "put": options_df=chain.puts
             else: 
                 options_df = chain.calls
             
@@ -206,10 +206,10 @@ class SPXCreditSpreadsScanner:
                     strike_adj = option['strike'] * multiplier
                     
                     if option_type  ==  "put": 
-                        _, delta = self.black_scholes_put(spot_price, strike_adj, time_to_exp, 0.04, iv_estimate)
+                        _, delta=self.black_scholes_put(spot_price, strike_adj, time_to_exp, 0.04, iv_estimate)
                         delta_diff = abs(abs(delta) - target_delta)
                     else: 
-                        _, delta = self.black_scholes_call(spot_price, strike_adj, time_to_exp, 0.04, iv_estimate)
+                        _, delta=self.black_scholes_call(spot_price, strike_adj, time_to_exp, 0.04, iv_estimate)
                         delta_diff = abs(delta - target_delta)
                     
                     if delta_diff  <  best_delta_diff: 
@@ -229,14 +229,14 @@ class SPXCreditSpreadsScanner:
     def calculate_spread_metrics(self, short_strike: float, long_strike: float, 
                                short_premium: float, long_premium: float)->Tuple[float, float, float]: 
         """Calculate spread metrics"""
-        spread_width = abs(short_strike - long_strike)
+        spread_width = abs(short_strike-long_strike)
         net_credit = short_premium - long_premium
         max_profit = net_credit
         max_loss = spread_width - net_credit
         
         return net_credit, max_profit, max_loss
     
-    def scan_credit_spreads(self, dte_target: int = 0)->List[CreditSpreadOpportunity]:
+    def scan_credit_spreads(self, dte_target: int=0)->List[CreditSpreadOpportunity]:
         """Scan for credit spread opportunities"""
         opportunities = []
         
@@ -266,22 +266,22 @@ class SPXCreditSpreadsScanner:
                 print(f"  📊 {ticker}: ${spot_price:.2f}, Expected move: ±{expected_move_pct:.1%}")
                 
                 # 1. PUT CREDIT SPREADS (bullish / neutral)
-                put_short_strike, put_short_delta, put_short_premium = self.find_target_delta_strike(
+                put_short_strike, put_short_delta, put_short_premium=self.find_target_delta_strike(
                     ticker, expiry, "put", self.target_short_delta, spot_price
                 )
                 
                 if put_short_strike: 
                     # Long strike is typically 5 - 10 points below short strike
                     spread_width = min(10, max(5, spot_price * 0.02))  # 2% of underlying
-                    put_long_strike = put_short_strike - spread_width
+                    put_long_strike = put_short_strike-spread_width
                     
                     # Get long put premium
-                    _, _, put_long_premium = self.find_target_delta_strike(
+                    _, _, put_long_premium=self.find_target_delta_strike(
                         ticker, expiry, "put", 0.15, spot_price  # Lower delta for long strike
                     )
                     
                     if put_long_premium  >  0: 
-                        net_credit, max_profit, max_loss = self.calculate_spread_metrics(
+                        net_credit, max_profit, max_loss=self.calculate_spread_metrics(
                             put_short_strike, put_long_strike, put_short_premium, put_long_premium
                         )
                         
@@ -290,44 +290,44 @@ class SPXCreditSpreadsScanner:
                             profit_target = net_credit * self.profit_target_pct
                             
                             opportunity = CreditSpreadOpportunity(
-                                ticker = ticker,
+                                ticker=ticker,
                                 strategy_type = "put_credit_spread",
-                                expiry_date = expiry,
-                                dte = dte_target,
-                                short_strike = put_short_strike,
-                                long_strike = put_long_strike,
-                                spread_width = spread_width,
-                                net_credit = net_credit,
-                                max_profit = max_profit,
-                                max_loss = max_loss,
-                                short_delta = put_short_delta,
-                                prob_profit = prob_profit,
-                                profit_target = profit_target,
-                                break_even_lower = put_short_strike - net_credit,
+                                expiry_date=expiry,
+                                dte=dte_target,
+                                short_strike=put_short_strike,
+                                long_strike=put_long_strike,
+                                spread_width=spread_width,
+                                net_credit=net_credit,
+                                max_profit=max_profit,
+                                max_loss=max_loss,
+                                short_delta=put_short_delta,
+                                prob_profit=prob_profit,
+                                profit_target=profit_target,
+                                break_even_lower = put_short_strike-net_credit,
                                 break_even_upper = float('inf'),
                                 iv_rank = 50.0,  # Simplified
-                                underlying_price = spot_price,
-                                expected_move = expected_move_pct,
+                                underlying_price=spot_price,
+                                expected_move=expected_move_pct,
                                 volume_score = 70.0  # Simplified
                             )
                             
                             opportunities.append(opportunity)
                 
                 # 2. CALL CREDIT SPREADS (bearish / neutral) 
-                call_short_strike, call_short_delta, call_short_premium = self.find_target_delta_strike(
+                call_short_strike, call_short_delta, call_short_premium=self.find_target_delta_strike(
                     ticker, expiry, "call", self.target_short_delta, spot_price
                 )
                 
                 if call_short_strike: 
                     spread_width = min(10, max(5, spot_price * 0.02))
-                    call_long_strike = call_short_strike + spread_width
+                    call_long_strike = call_short_strike+spread_width
                     
-                    _, _, call_long_premium = self.find_target_delta_strike(
+                    _, _, call_long_premium=self.find_target_delta_strike(
                         ticker, expiry, "call", 0.15, spot_price
                     )
                     
                     if call_long_premium  >  0: 
-                        net_credit, max_profit, max_loss = self.calculate_spread_metrics(
+                        net_credit, max_profit, max_loss=self.calculate_spread_metrics(
                             call_short_strike, call_long_strike, call_short_premium, call_long_premium
                         )
                         
@@ -336,24 +336,24 @@ class SPXCreditSpreadsScanner:
                             profit_target = net_credit * self.profit_target_pct
                             
                             opportunity = CreditSpreadOpportunity(
-                                ticker = ticker,
+                                ticker=ticker,
                                 strategy_type = "call_credit_spread",
-                                expiry_date = expiry,
-                                dte = dte_target,
-                                short_strike = call_short_strike,
-                                long_strike = call_long_strike,
-                                spread_width = spread_width,
-                                net_credit = net_credit,
-                                max_profit = max_profit,
-                                max_loss = max_loss,
-                                short_delta = call_short_delta,
-                                prob_profit = prob_profit,
-                                profit_target = profit_target,
+                                expiry_date=expiry,
+                                dte=dte_target,
+                                short_strike=call_short_strike,
+                                long_strike=call_long_strike,
+                                spread_width=spread_width,
+                                net_credit=net_credit,
+                                max_profit=max_profit,
+                                max_loss=max_loss,
+                                short_delta=call_short_delta,
+                                prob_profit=prob_profit,
+                                profit_target=profit_target,
                                 break_even_lower = 0,
-                                break_even_upper = call_short_strike + net_credit,
+                                break_even_upper = call_short_strike+net_credit,
                                 iv_rank = 50.0,
-                                underlying_price = spot_price,
-                                expected_move = expected_move_pct,
+                                underlying_price=spot_price,
+                                expected_move=expected_move_pct,
                                 volume_score = 70.0
                             )
                             
@@ -366,28 +366,28 @@ class SPXCreditSpreadsScanner:
                     total_max_loss = max_loss * 2  # Conservative estimate
                     
                     condor = CreditSpreadOpportunity(
-                        ticker = ticker,
+                        ticker=ticker,
                         strategy_type = "iron_condor",
-                        expiry_date = expiry,
-                        dte = dte_target,
+                        expiry_date=expiry,
+                        dte=dte_target,
                         short_strike = 0,  # N / A for condor
                         long_strike = 0,   # N / A for condor
-                        spread_width = spread_width,
-                        net_credit = total_credit,
-                        max_profit = total_credit,
-                        max_loss = total_max_loss,
-                        put_short_strike = put_short_strike,
-                        put_long_strike = put_long_strike,
-                        call_short_strike = call_short_strike,
-                        call_long_strike = call_long_strike,
+                        spread_width=spread_width,
+                        net_credit=total_credit,
+                        max_profit=total_credit,
+                        max_loss=total_max_loss,
+                        put_short_strike=put_short_strike,
+                        put_long_strike=put_long_strike,
+                        call_short_strike=call_short_strike,
+                        call_long_strike=call_long_strike,
                         short_delta = 0.0,  # Net delta should be ~0
                         prob_profit = prob_profit * 0.8,  # Lower prob for condor
                         profit_target = total_credit * self.profit_target_pct,
-                        break_even_lower = put_short_strike - total_credit,
-                        break_even_upper = call_short_strike + total_credit,
+                        break_even_lower = put_short_strike-total_credit,
+                        break_even_upper = call_short_strike+total_credit,
                         iv_rank = 50.0,
-                        underlying_price = spot_price,
-                        expected_move = expected_move_pct,
+                        underlying_price=spot_price,
+                        expected_move=expected_move_pct,
                         volume_score = 70.0
                     )
                     
@@ -400,8 +400,7 @@ class SPXCreditSpreadsScanner:
         # Sort by profit potential and probability
         opportunities.sort(
             key = lambda x: x.prob_profit * (x.max_profit / max(x.max_loss, 0.01)),
-            reverse = True
-        )
+            reverse = True)
         
         return opportunities
     
@@ -434,45 +433,45 @@ class SPXCreditSpreadsScanner:
         
         output += "\n" + " = " * 80
         output += "\n🎯 WSB 0DTE CREDIT SPREAD RULES: \n"
-        output += "• Target ~30 delta short strikes\n"
-        output += "• Auto - close at 25% profit target\n"
+        output += "• Target ~30 delta short strikes + n"
+        output += "• Auto - close at 25% profit target + n"
         output += "• Prefer SPX for tax treatment (60 / 40 vs 100% short - term)\n"
-        output += "• High win rate but occasional max loss weeks\n"
-        output += "• Best on Mon / Wed/Fri (0DTE availability)\n"
-        output += "• Position size: 1 - 2% of account max\n"
+        output += "• High win rate but occasional max loss weeks + n"
+        output += "• Best on Mon / Wed / Fri (0DTE availability)\n"
+        output += "• Position size: 1 - 2% of account max + n"
         
         output += "\n⚠️  CREDIT SPREAD WARNINGS: \n"
         output += "• Pin risk at expiration (stock at short strike)\n"
-        output += "• Early assignment risk on ITM short options\n"
-        output += "• Margin requirements can be substantial\n"
-        output += "• One bad week can wipe out months of profits\n"
-        output += "• Avoid earnings weeks and major events\n"
+        output += "• Early assignment risk on ITM short options + n"
+        output += "• Margin requirements can be substantial + n"
+        output += "• One bad week can wipe out months of profits + n"
+        output += "• Avoid earnings weeks and major events + n"
         
         return output
 
 
 def main(): 
     parser = argparse.ArgumentParser(description="SPX / SPY 0DTE Credit Spreads Scanner")
-    parser.add_argument('--dte', type = int, default = 0,
+    parser.add_argument('--dte', type=int, default=0,
                        help = 'Days to expiration (0 for same day)')
-    parser.add_argument('--output', choices = ['json', 'text'], default = 'text',
+    parser.add_argument('--output', choices=['json', 'text'], default='text',
                        help = 'Output format')
-    parser.add_argument('--min - credit', type = float, default = 0.10,
+    parser.add_argument('--min - credit', type=float, default=0.10,
                        help = 'Minimum net credit required')
-    parser.add_argument('--target - delta', type = float, default = 0.30,
+    parser.add_argument('--target - delta', type=float, default=0.30,
                        help = 'Target delta for short strikes')
     
     args = parser.parse_args()
     
     scanner = SPXCreditSpreadsScanner()
-    scanner.target_short_delta = args.target_delta
+    scanner.target_short_delta=args.target_delta
     
     opportunities = scanner.scan_credit_spreads(args.dte)
     
     # Filter by minimum credit
     opportunities = [opp for opp in opportunities if opp.net_credit  >=  args.min_credit]
     
-    if args.output  ==  'json': print(json.dumps([asdict(opp) for opp in opportunities], indent = 2, default = str))
+    if args.output  ==  'json': print(json.dumps([asdict(opp) for opp in opportunities], indent=2, default=str))
     else: 
         print(scanner.format_opportunities(opportunities))
     

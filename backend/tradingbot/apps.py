@@ -29,7 +29,7 @@ def start_pipelines():
         # from ml.tradingbots.pipelines.monte_carlo_w_ma import MonteCarloMovingAveragePipline
         from ml.tradingbots.trader import MonteCarloMASharpeRatioStrategy
         # TODO: dynamically get the right strategy
-        # rebalancing_strategies = {
+        # rebalancing_strategies={
         #     "monte_carlo": MonteCarloMASharpeRatioStrategy,
         #     "hmm": None
         # }
@@ -42,7 +42,7 @@ def start_pipelines():
         for user, actions in users_to_actions.items(): 
             for action in actions: 
                 place_general_order(
-                    user = user,
+                    user=user,
                     user_details = sync_alpaca(user),
                     ticker = action.ticker,
                     quantity = action.quantity,
@@ -63,7 +63,7 @@ class TradingbotConfig(AppConfig):
         try: 
             from apscheduler.schedulers.background import BackgroundScheduler
             scheduler = BackgroundScheduler()
-            scheduler.add_job(start_pipelines, 'interval', seconds = 60 * 60*24)
+            scheduler.add_job(start_pipelines, 'interval', seconds=60 * 60 * 24)
             scheduler.start()
         except ImportError: 
             # Silently fail if APScheduler is not available

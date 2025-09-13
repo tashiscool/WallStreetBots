@@ -4,7 +4,7 @@ class MovingAverageBot:
 
     '''
 
-    def __init__(self, stock, balance, n = 20): 
+    def __init__(self, stock, balance, n=20): 
         self.stock = stock
         self.balance = balance
         self.shares = 0

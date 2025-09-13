@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Integrated Advanced Risk Manager
 Combines all Month 1 - 6 risk management features into a unified system
@@ -43,9 +43,9 @@ logger = logging.getLogger(__name__)
 class IntegratedRiskConfig: 
     """Configuration for integrated risk management system"""
     # Core risk settings
-    max_total_var: float = 0.05  # 5% max total VaR
-    max_position_size: float = 0.25  # 25% max position size
-    portfolio_value: float = 100000.0
+    max_total_var: float=0.05  # 5% max total VaR
+    max_position_size: float=0.25  # 25% max position size
+    portfolio_value: float=100000.0
     
     # Advanced features toggles
     enable_ml_agents: bool = True
@@ -55,12 +55,12 @@ class IntegratedRiskConfig:
     enable_auto_rebalancing: bool = True
     
     # Regulatory settings
-    regulatory_authority: str = "FCA"
-    compliance_mode: str = "strict"  # strict, moderate, basic
+    regulatory_authority: str="FCA"
+    compliance_mode: str="strict"  # strict, moderate, basic
     
     # Performance settings
     risk_calculation_frequency: int = 60  # seconds
-    rebalancing_frequency: int = 3600  # seconds (hourly)
+    rebalancing_frequency: int=3600  # seconds (hourly)
 
 
 class IntegratedAdvancedRiskManager: 
@@ -79,22 +79,22 @@ class IntegratedAdvancedRiskManager:
     - ML - driven portfolio optimization and rebalancing
     """
     
-    def __init__(self, config: IntegratedRiskConfig = None):
+    def __init__(self, config: IntegratedRiskConfig=None):
         """
         Initialize the integrated risk management system
         
         Args: 
             config: Risk management configuration
         """
-        self.config = config or IntegratedRiskConfig()
-        self.logger = logging.getLogger(__name__)
+        self.config=config or IntegratedRiskConfig()
+        self.logger=logging.getLogger(__name__)
         
         # Initialize core risk management components
-        self.risk_integration_manager = RiskIntegrationManager()
-        self.var_engine = AdvancedVaREngine(portfolio_value=self.config.portfolio_value)
-        self.stress_engine = StressTesting2025()
-        self.ml_predictor = MLRiskPredictor()
-        self.dashboard = RiskDashboard2025()
+        self.risk_integration_manager=RiskIntegrationManager()
+        self.var_engine=AdvancedVaREngine(portfolio_value=self.config.portfolio_value)
+        self.stress_engine=StressTesting2025()
+        self.ml_predictor=MLRiskPredictor()
+        self.dashboard=RiskDashboard2025()
         
         # Initialize advanced features if available
         self.ml_coordinator = None
@@ -110,20 +110,20 @@ class IntegratedAdvancedRiskManager:
                     'max_drawdown': 0.15,
                     'max_leverage': 2.0
                 }
-                self.ml_coordinator = MultiAgentRiskCoordinator(risk_limits=ml_risk_limits)
+                self.ml_coordinator=MultiAgentRiskCoordinator(risk_limits=ml_risk_limits)
                 
             if self.config.enable_multi_asset: 
-                self.multi_asset_manager = MultiAssetRiskManager()
+                self.multi_asset_manager=MultiAssetRiskManager()
                 
             if self.config.enable_compliance: 
                 authority = RegulatoryAuthority.FCA if self.config.regulatory_authority  ==  "FCA" else RegulatoryAuthority.CFTC
-                self.compliance_manager = RegulatoryComplianceManager(primary_authority=authority)
+                self.compliance_manager=RegulatoryComplianceManager(primary_authority=authority)
         
         # System state
-        self.current_positions = {}
-        self.risk_history = []
+        self.current_positions={}
+        self.risk_history=[]
         self.last_rebalancing = None
-        self.system_status = "initialized"
+        self.system_status="initialized"
         
         self.logger.info("Integrated Advanced Risk Manager initialized")
         
@@ -148,7 +148,7 @@ class IntegratedAdvancedRiskManager:
             portfolio_returns = self._calculate_portfolio_returns(positions, market_data)
             if len(portfolio_returns)  >  30:  # Minimum data requirement
                 var_suite = self.var_engine.calculate_var_suite(
-                    returns = portfolio_returns,
+                    returns=portfolio_returns,
                     confidence_levels = [0.95, 0.99],
                     methods = ['parametric', 'historical', 'monte_carlo']
                 )
@@ -192,8 +192,8 @@ class IntegratedAdvancedRiskManager:
                 for symbol, position in positions.items(): 
                     asset_class = self._determine_asset_class(symbol)
                     self.multi_asset_manager.add_position(
-                        symbol = symbol,
-                        asset_class = asset_class,
+                        symbol=symbol,
+                        asset_class=asset_class,
                         value = position.get('value', 0),
                         quantity = position.get('qty', 0)
                     )
@@ -230,7 +230,7 @@ class IntegratedAdvancedRiskManager:
             # 8. Generate dashboard summary
             dashboard_data = self.dashboard.generate_risk_summary(
                 portfolio_value = self.config.portfolio_value,
-                positions = positions,
+                positions=positions,
                 var_results = results.get('var_analysis', {}),
                 stress_results = results.get('stress_testing', {}),
                 ml_results = results.get('ml_prediction', {})
@@ -277,13 +277,13 @@ class IntegratedAdvancedRiskManager:
             
             if returns_list: 
                 if all(hasattr(r, 'values') for r in returns_list):  # All pandas Series
-                    portfolio_returns = pd.concat(returns_list, axis = 1).sum(axis=1).dropna()
+                    portfolio_returns = pd.concat(returns_list, axis=1).sum(axis=1).dropna()
                     return portfolio_returns.values
                 else:  # Mix of arrays and series, convert all to arrays
                     arrays = [r.values if hasattr(r, 'values') else r for r in returns_list]
                     min_length = min(len(arr) for arr in arrays)
                     truncated_arrays = [arr[: min_length] for arr in arrays]
-                    portfolio_returns = np.sum(truncated_arrays, axis = 0)
+                    portfolio_returns = np.sum(truncated_arrays, axis=0)
                     return portfolio_returns
             else: 
                 return np.array([])
@@ -318,29 +318,28 @@ class IntegratedAdvancedRiskManager:
             return RiskState(
                 portfolio_var = abs(portfolio_var),
                 portfolio_cvar = abs(portfolio_var * 1.3),  # Approximate CVaR
-                concentration_risk = concentration_risk,
+                concentration_risk=concentration_risk,
                 greeks_risk = 0.05,  # Placeholder
-                market_volatility = market_volatility,
+                market_volatility=market_volatility,
                 market_regime = "normal",
                 time_of_day = datetime.now().hour / 24.0,
                 day_of_week = datetime.now().weekday(),
                 recent_performance = np.mean(portfolio_returns[-10: ]) if len(portfolio_returns)  >=  10 else 0,
                 stress_test_score = 0.7,  # Placeholder
-                ml_risk_score = ml_risk_score,
-                position_count = position_count,
-                total_exposure = total_value,
-                cash_ratio = cash_ratio
-            )
+                ml_risk_score=ml_risk_score,
+                position_count=position_count,
+                total_exposure=total_value,
+                cash_ratio = cash_ratio)
             
         except Exception as e: 
             self.logger.warning(f"Error creating risk state: {e}")
             # Return default risk state
             return RiskState(
-                portfolio_var = 0.02, portfolio_cvar = 0.03, concentration_risk = 0.25,
-                greeks_risk = 0.05, market_volatility = 0.15, market_regime = "normal",
-                time_of_day = 0.5, day_of_week = 1, recent_performance = 0.001,
-                stress_test_score = 0.7, ml_risk_score = 50.0, position_count = 5,
-                total_exposure = 100000.0, cash_ratio = 0.1
+                portfolio_var = 0.02, portfolio_cvar=0.03, concentration_risk=0.25,
+                greeks_risk = 0.05, market_volatility=0.15, market_regime="normal",
+                time_of_day = 0.5, day_of_week=1, recent_performance=0.001,
+                stress_test_score = 0.7, ml_risk_score=50.0, position_count=5,
+                total_exposure = 100000.0, cash_ratio=0.1
             )
     
     def _determine_asset_class(self, symbol: str)->'AssetClass':
@@ -363,7 +362,7 @@ class IntegratedAdvancedRiskManager:
                                         market_data: Dict[str, Any])->None: 
         """Start continuous risk monitoring"""
         self.logger.info("Starting continuous risk monitoring")
-        self.system_status = "monitoring"
+        self.system_status="monitoring"
         
         while self.system_status  ==  "monitoring": 
             try: 
@@ -378,7 +377,7 @@ class IntegratedAdvancedRiskManager:
                 
                 # Keep only last 100 results
                 if len(self.risk_history)  >  100: 
-                    self.risk_history = self.risk_history[-100: ]
+                    self.risk_history=self.risk_history[-100: ]
                 
                 # Check for rebalancing needs
                 if (self.config.enable_auto_rebalancing and 
@@ -410,14 +409,14 @@ class IntegratedAdvancedRiskManager:
                     self.logger.info(f"ML agents recommend: {action}")
                 
                 # Mark that rebalancing was checked
-                self.last_rebalancing = datetime.now()
+                self.last_rebalancing=datetime.now()
                 
         except Exception as e: 
             self.logger.error(f"Error checking rebalancing needs: {e}")
     
     def stop_monitoring(self)->None: 
         """Stop continuous monitoring"""
-        self.system_status = "stopped"
+        self.system_status="stopped"
         self.logger.info("Risk monitoring stopped")
     
     def get_system_status(self)->Dict[str, Any]: 
@@ -438,8 +437,8 @@ class IntegratedAdvancedRiskManager:
 
 
 # Convenience function for easy integration
-async def create_integrated_risk_system(portfolio_value: float = 100000,
-                                      regulatory_authority: str = "FCA")->IntegratedAdvancedRiskManager:
+async def create_integrated_risk_system(portfolio_value: float=100000,
+                                      regulatory_authority: str="FCA")->IntegratedAdvancedRiskManager:
     """
     Create a fully integrated risk management system with all features enabled
     
@@ -451,13 +450,12 @@ async def create_integrated_risk_system(portfolio_value: float = 100000,
         Integrated risk management system
     """
     config = IntegratedRiskConfig(
-        portfolio_value = portfolio_value,
-        regulatory_authority = regulatory_authority,
-        enable_ml_agents = True,
-        enable_multi_asset = True,
-        enable_compliance = True,
-        enable_advanced_analytics = True,
-        enable_auto_rebalancing = True
-    )
+        portfolio_value=portfolio_value,
+        regulatory_authority=regulatory_authority,
+        enable_ml_agents=True,
+        enable_multi_asset=True,
+        enable_compliance=True,
+        enable_advanced_analytics=True,
+        enable_auto_rebalancing = True)
     
     return IntegratedAdvancedRiskManager(config)

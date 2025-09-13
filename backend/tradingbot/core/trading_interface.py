@@ -47,10 +47,10 @@ class TradeSignal:
     quantity: int
     limit_price: Optional[float] = None
     stop_price: Optional[float] = None
-    time_in_force: str = "gtc"
-    reason: str = ""
-    confidence: float = 0.0
-    timestamp: datetime = field(default_factory=datetime.now)
+    time_in_force: str="gtc"
+    reason: str=""
+    confidence: float=0.0
+    timestamp: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -61,8 +61,8 @@ class TradeResult:
     status: TradeStatus
     filled_quantity: int = 0
     filled_price: Optional[float] = None
-    commission: float = 0.0
-    timestamp: datetime = field(default_factory=datetime.now)
+    commission: float=0.0
+    timestamp: datetime=field(default_factory=datetime.now)
     error_message: Optional[str] = None
 
 
@@ -75,7 +75,7 @@ class PositionUpdate:
     current_price: float
     unrealized_pnl: float
     market_value: float
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime=field(default_factory=datetime.now)
 
 
 class TradingInterface: 
@@ -89,7 +89,7 @@ class TradingInterface:
         self.risk = risk_manager
         self.alerts = alert_system
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         self.active_trades: Dict[str, TradeResult] = {}
         self.positions: Dict[str, PositionUpdate] = {}
         
@@ -111,10 +111,10 @@ class TradingInterface:
         """
         Execute trade with comprehensive risk controls and error handling
         """
-        trade_id = f"{signal.strategy_name}_{signal.ticker}_{datetime.now().strftime('%Y % m%d_ % H%M % S')}"
+        trade_id = f"{signal.strategy_name}_{signal.ticker}_{datetime.now().strftime('%Y % m % d_ % H % M % S')}"
         
         try: 
-            self.logger.info(f"Executing trade {trade_id}", extra = {
+            self.logger.info(f"Executing trade {trade_id}", extra={
                 'trade_id': trade_id,
                 'strategy': signal.strategy_name,
                 'ticker': signal.ticker,
@@ -126,8 +126,8 @@ class TradingInterface:
             validation_result = await self.validate_signal(signal)
             if not validation_result['valid']: 
                 return TradeResult(
-                    trade_id = trade_id,
-                    signal = signal,
+                    trade_id=trade_id,
+                    signal=signal,
                     status = TradeStatus.REJECTED,
                     error_message = validation_result['reason']
                 )
@@ -141,8 +141,8 @@ class TradingInterface:
                     f"Risk limit exceeded for {signal.ticker}: {risk_check['reason']}"
                 )
                 return TradeResult(
-                    trade_id = trade_id,
-                    signal = signal,
+                    trade_id=trade_id,
+                    signal=signal,
                     status = TradeStatus.REJECTED,
                     error_message = f"Risk limit exceeded: {risk_check['reason']}"
                 )
@@ -152,8 +152,8 @@ class TradingInterface:
             
             # 4. Create trade result
             trade_result = TradeResult(
-                trade_id = trade_id,
-                signal = signal,
+                trade_id=trade_id,
+                signal=signal,
                 status = TradeStatus.FILLED if broker_result['success'] else TradeStatus.REJECTED,
                 filled_quantity = broker_result.get('filled_quantity', 0),
                 filled_price = broker_result.get('filled_price'),
@@ -171,7 +171,7 @@ class TradingInterface:
                 f"Trade executed: {signal.ticker} {signal.side.value} {signal.quantity} @ {trade_result.filled_price}"
             )
             
-            self.logger.info(f"Trade {trade_id} executed successfully", extra = {
+            self.logger.info(f"Trade {trade_id} executed successfully", extra={
                 'trade_id': trade_id,
                 'filled_quantity': trade_result.filled_quantity,
                 'filled_price': trade_result.filled_price
@@ -180,14 +180,14 @@ class TradingInterface:
             return trade_result
             
         except Exception as e: 
-            self.logger.error(f"Error executing trade {trade_id}: {e}", extra = {
+            self.logger.error(f"Error executing trade {trade_id}: {e}", extra={
                 'trade_id': trade_id,
                 'error': str(e)
             })
             
             return TradeResult(
-                trade_id = trade_id,
-                signal = signal,
+                trade_id=trade_id,
+                signal=signal,
                 status = TradeStatus.REJECTED,
                 error_message = str(e)
             )
@@ -303,7 +303,7 @@ class TradingInterface:
     async def get_current_price(self, ticker: str)->float:
         """Get current price for ticker"""
         try: 
-            success, price = self.broker.get_price(ticker)
+            success, price=self.broker.get_price(ticker)
             if success: 
                 return float(price)
             else: 
@@ -366,7 +366,7 @@ class TradingInterface:
             self.logger.error(f"Error updating positions: {e}")
             return []
     
-    async def get_trade_history(self, limit: int = 100)->List[TradeResult]:
+    async def get_trade_history(self, limit: int=100)->List[TradeResult]:
         """Get recent trade history"""
         return list(self.active_trades.values())[-limit: ]
     
@@ -377,7 +377,7 @@ class TradingInterface:
                 trade = self.active_trades[trade_id]
                 if trade.status  ==  TradeStatus.PENDING: 
                     # Implement broker cancel logic here
-                    trade.status = TradeStatus.CANCELLED
+                    trade.status=TradeStatus.CANCELLED
                     return True
             return False
         except Exception as e: 

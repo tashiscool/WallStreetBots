@@ -40,7 +40,7 @@ class TechnicalIndicators:
     """Technical analysis indicators"""
     
     @staticmethod
-    def calculate_rsi(prices: List[Decimal], period: int = 14)->Optional[Decimal]:
+    def calculate_rsi(prices: List[Decimal], period: int=14)->Optional[Decimal]:
         """Calculate RSI (Relative Strength Index)"""
         if len(prices)  <  period + 1: 
             return None
@@ -87,8 +87,8 @@ class TechnicalIndicators:
             return None
     
     @staticmethod
-    def calculate_bollinger_bands(prices: List[Decimal], period: int = 20, 
-                                std_dev: float = 2.0)->Optional[Dict[str, Decimal]]: 
+    def calculate_bollinger_bands(prices: List[Decimal], period: int=20, 
+                                std_dev: float=2.0)->Optional[Dict[str, Decimal]]: 
         """Calculate Bollinger Bands"""
         if len(prices)  <  period: 
             return None
@@ -115,7 +115,7 @@ class TechnicalIndicators:
             return None
     
     @staticmethod
-    def calculate_volume_spike(volumes: List[int], period: int = 20)->Optional[float]:
+    def calculate_volume_spike(volumes: List[int], period: int=20)->Optional[float]:
         """Calculate volume spike ratio"""
         if len(volumes)  <  period + 1: 
             return None
@@ -140,10 +140,10 @@ class WSBDipDetector:
     
     def __init__(self): 
         # Enhanced thresholds for better signal quality
-        self.min_run_percentage = 0.20  # 20% minimum run (more selective)
-        self.min_dip_percentage = 0.05  # 5% minimum dip (deeper dips)
+        self.min_run_percentage=0.20  # 20% minimum run (more selective)
+        self.min_dip_percentage=0.05  # 5% minimum dip (deeper dips)
         self.max_dip_age_days = 3       # Dip must be recent
-        self.volume_spike_threshold = 1.5  # 50% above average volume
+        self.volume_spike_threshold=1.5  # 50% above average volume
         self.rsi_oversold_threshold = 35   # RSI below 35 indicates oversold
         
         # Advanced pattern requirements
@@ -154,7 +154,7 @@ class WSBDipDetector:
         
     async def detect_wsb_dip_pattern(self, ticker: str, 
                                    price_history: List[PriceBar])->Optional[PatternSignal]:
-        """Detect WSB - style dip - after-run pattern with multiple confirmations"""
+        """Detect WSB - style dip - after - run pattern with multiple confirmations"""
         try: 
             if len(price_history)  <  30:  # Need at least 30 days of data
                 return None
@@ -193,11 +193,11 @@ class WSBDipDetector:
             confidence = min(0.95, signal_strength / 10.0)
             
             return PatternSignal(
-                ticker = ticker,
+                ticker=ticker,
                 signal_type = "WSB_DIP_AFTER_RUN",
-                confidence = confidence,
+                confidence=confidence,
                 entry_price = closes[-1],
-                signal_strength = signal_strength,
+                signal_strength=signal_strength,
                 metadata = {
                     'run_percentage': run_analysis['run_percentage'],
                     'dip_percentage': dip_analysis['dip_percentage'],

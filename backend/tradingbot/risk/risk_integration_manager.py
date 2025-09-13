@@ -39,25 +39,25 @@ from .database_schema import RiskDatabaseManager
 @dataclass
 class RiskLimits: 
     """Risk limits configuration"""
-    max_total_var: float = 0.05  # 5% max total VaR
-    max_total_cvar: float = 0.07  # 7% max total CVaR
-    max_position_var: float = 0.02  # 2% max per position VaR
-    max_drawdown: float = 0.15  # 15% max drawdown
-    max_concentration: float = 0.30  # 30% max concentration
-    max_greeks_risk: float = 0.10  # 10% max Greeks risk
+    max_total_var: float=0.05  # 5% max total VaR
+    max_total_cvar: float=0.07  # 7% max total CVaR
+    max_position_var: float=0.02  # 2% max per position VaR
+    max_drawdown: float=0.15  # 15% max drawdown
+    max_concentration: float=0.30  # 30% max concentration
+    max_greeks_risk: float=0.10  # 10% max Greeks risk
 
 
 @dataclass
 class RiskMetrics: 
     """Current risk metrics"""
-    portfolio_var: float = 0.0
-    portfolio_cvar: float = 0.0
-    portfolio_lvar: float = 0.0
-    total_exposure: float = 0.0
-    concentration_risk: float = 0.0
-    greeks_risk: float = 0.0
-    stress_test_score: float = 0.0
-    ml_risk_score: float = 0.0
+    portfolio_var: float=0.0
+    portfolio_cvar: float=0.0
+    portfolio_lvar: float=0.0
+    total_exposure: float=0.0
+    concentration_risk: float=0.0
+    greeks_risk: float=0.0
+    stress_test_score: float=0.0
+    ml_risk_score: float=0.0
     within_limits: bool = True
     alerts: List[str] = field(default_factory=list)
 
@@ -75,10 +75,10 @@ class RiskIntegrationManager:
     """
     
     def __init__(self, 
-                 risk_limits: RiskLimits = None,
-                 enable_ml: bool = True,
-                 enable_stress_testing: bool = True,
-                 enable_dashboard: bool = True):
+                 risk_limits: RiskLimits=None,
+                 enable_ml: bool=True,
+                 enable_stress_testing: bool=True,
+                 enable_dashboard: bool=True):
         """
         Initialize risk integration manager
         
@@ -88,21 +88,21 @@ class RiskIntegrationManager:
             enable_stress_testing: Enable stress testing
             enable_dashboard: Enable risk dashboard
         """
-        self.risk_limits = risk_limits or RiskLimits()
-        self.logger = logging.getLogger(__name__)
+        self.risk_limits=risk_limits or RiskLimits()
+        self.logger=logging.getLogger(__name__)
         
         # Initialize risk engines
-        self.var_engine = AdvancedVaREngine()
-        self.stress_engine = StressTesting2025() if enable_stress_testing else None
-        self.ml_predictor = MLRiskPredictor() if enable_ml else None
-        self.dashboard = RiskDashboard2025() if enable_dashboard else None
-        self.db_manager = RiskDatabaseManager()
+        self.var_engine=AdvancedVaREngine()
+        self.stress_engine=StressTesting2025() if enable_stress_testing else None
+        self.ml_predictor=MLRiskPredictor() if enable_ml else None
+        self.dashboard=RiskDashboard2025() if enable_dashboard else None
+        self.db_manager=RiskDatabaseManager()
         
         # Risk state
-        self.current_metrics = RiskMetrics()
-        self.portfolio_positions = {}
-        self.strategy_risks = {}
-        self.risk_history = []
+        self.current_metrics=RiskMetrics()
+        self.portfolio_positions={}
+        self.strategy_risks={}
+        self.risk_history=[]
         
         # Performance tracking
         self.last_calculation = None
@@ -128,7 +128,7 @@ class RiskIntegrationManager:
         try: 
             self.portfolio_positions = positions
             self.calculation_count += 1
-            self.last_calculation = datetime.now()
+            self.last_calculation=datetime.now()
             
             # Calculate portfolio returns
             portfolio_returns = self._calculate_portfolio_returns(positions, market_data)
@@ -153,7 +153,7 @@ class RiskIntegrationManager:
             ml_score = await self._calculate_ml_risk_score(market_data, portfolio_value)
             
             # Check risk limits
-            within_limits, alerts = self._check_risk_limits(
+            within_limits, alerts=self._check_risk_limits(
                 var_metrics, concentration_risk, greeks_risk, stress_score, ml_score
             )
             
@@ -163,13 +163,12 @@ class RiskIntegrationManager:
                 portfolio_cvar = var_metrics['cvar_99'],
                 portfolio_lvar = var_metrics['lvar_99'],
                 total_exposure = sum(pos.get('value', 0) for pos in positions.values()),
-                concentration_risk = concentration_risk,
-                greeks_risk = greeks_risk,
-                stress_test_score = stress_score,
-                ml_risk_score = ml_score,
-                within_limits = within_limits,
-                alerts = alerts
-            )
+                concentration_risk=concentration_risk,
+                greeks_risk=greeks_risk,
+                stress_test_score=stress_score,
+                ml_risk_score=ml_score,
+                within_limits=within_limits,
+                alerts = alerts)
             
             # Store in database
             await self._store_risk_metrics(self.current_metrics, portfolio_value)
@@ -178,8 +177,8 @@ class RiskIntegrationManager:
             if self.dashboard: 
                 await self._update_dashboard(positions, self.current_metrics)
             
-            self.logger.info(f"Portfolio risk calculated: VaR = {var_metrics['var_99']:.2%}, "
-                           f"CVaR = {var_metrics['cvar_99']: .2%}, Within limits: {within_limits}")
+            self.logger.info(f"Portfolio risk calculated: VaR={var_metrics['var_99']:.2%}, "
+                           f"CVaR={var_metrics['cvar_99']: .2%}, Within limits: {within_limits}")
             
             return self.current_metrics
             
@@ -221,13 +220,13 @@ class RiskIntegrationManager:
                             prev_date = data.index[data.index  <  date]
                             if len(prev_date)  >  0: 
                                 prev_price = data.loc[prev_date[-1], 'Close']
-                                daily_return += (price / prev_price - 1) * pos.get('value', 0)
+                                daily_return += (price / prev_price-1) * pos.get('value', 0)
                                 total_weight += pos.get('value', 0)
                 
                 if total_weight  >  0: 
                     portfolio_returns.append(daily_return / total_weight)
             
-            return pd.Series(portfolio_returns, index = common_dates[-len(portfolio_returns): ])
+            return pd.Series(portfolio_returns, index=common_dates[-len(portfolio_returns): ])
             
         except Exception as e: 
             self.logger.error(f"Error calculating portfolio returns: {e}")
@@ -245,10 +244,10 @@ class RiskIntegrationManager:
             hist_cvar_99 = cvar_historical(portfolio_returns, 0.99)
             
             # Parametric VaR with Cornish - Fisher
-            param_var_95 = var_parametric(portfolio_returns, 0.95, use_student_t = True, cornish_fisher = True)
-            param_var_99 = var_parametric(portfolio_returns, 0.99, use_student_t = True, cornish_fisher = True)
-            param_cvar_95 = cvar_parametric(portfolio_returns, 0.95, use_student_t = True)
-            param_cvar_99 = cvar_parametric(portfolio_returns, 0.99, use_student_t = True)
+            param_var_95 = var_parametric(portfolio_returns, 0.95, use_student_t=True, cornish_fisher=True)
+            param_var_99 = var_parametric(portfolio_returns, 0.99, use_student_t=True, cornish_fisher=True)
+            param_cvar_95 = cvar_parametric(portfolio_returns, 0.95, use_student_t=True)
+            param_cvar_99 = cvar_parametric(portfolio_returns, 0.99, use_student_t=True)
             
             # Monte Carlo VaR
             if len(portfolio_returns)  >=  30: 
@@ -256,10 +255,10 @@ class RiskIntegrationManager:
                 cov = np.array([[portfolio_returns.var()]])
                 weights = np.array([1.0])
                 
-                mc_var_95, mc_cvar_95 = var_cvar_mc(mu, cov, weights, 0.95, n_paths = 10000, student_t = True)
-                mc_var_99, mc_cvar_99 = var_cvar_mc(mu, cov, weights, 0.99, n_paths = 10000, student_t = True)
+                mc_var_95, mc_cvar_95=var_cvar_mc(mu, cov, weights, 0.95, n_paths=10000, student_t=True)
+                mc_var_99, mc_cvar_99=var_cvar_mc(mu, cov, weights, 0.99, n_paths=10000, student_t=True)
             else: 
-                mc_var_95 = mc_var_99 = mc_cvar_95 = mc_cvar_99 = 0.0
+                mc_var_95 = mc_var_99 = mc_cvar_95 = mc_cvar_99=0.0
             
             # Use conservative estimate (max of methods)
             var_95 = max(hist_var_95, param_var_95, mc_var_95)
@@ -268,8 +267,8 @@ class RiskIntegrationManager:
             cvar_99 = max(hist_cvar_99, param_cvar_99, mc_cvar_99)
             
             # Liquidity - adjusted VaR
-            lvar_95 = liquidity_adjusted_var(var_95, bid_ask_bps = 10.0, slippage_bps = 5.0)
-            lvar_99 = liquidity_adjusted_var(var_99, bid_ask_bps = 10.0, slippage_bps = 5.0)
+            lvar_95 = liquidity_adjusted_var(var_95, bid_ask_bps=10.0, slippage_bps=5.0)
+            lvar_99 = liquidity_adjusted_var(var_99, bid_ask_bps=10.0, slippage_bps=5.0)
             
             return {
                 'var_95': var_95,
@@ -358,7 +357,7 @@ class RiskIntegrationManager:
             
             # Get ML risk prediction
             risk_forecast = await self.ml_predictor.predict_risk(
-                data, horizon_days = 5
+                data, horizon_days=5
             )
             
             return risk_forecast.risk_score / 100.0  # Convert to 0 - 1 scale
@@ -414,7 +413,7 @@ class RiskIntegrationManager:
         try: 
             await self.db_manager.store_risk_result(
                 timestamp = datetime.now(),
-                portfolio_value = portfolio_value,
+                portfolio_value=portfolio_value,
                 var_99 = metrics.portfolio_var,
                 cvar_99 = metrics.portfolio_cvar,
                 lvar_99 = metrics.portfolio_lvar,
@@ -535,7 +534,7 @@ class RiskIntegrationManager:
                                    portfolio_value: float)->float:
         """Calculate concentration risk if this trade is added"""
         current_value = self.portfolio_positions.get(symbol, {}).get('value', 0)
-        new_value = current_value + trade_value
+        new_value = current_value+trade_value
         return new_value / portfolio_value
     
     async def get_risk_summary(self)->Dict[str, Any]: 

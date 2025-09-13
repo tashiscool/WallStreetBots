@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Create executable for WallStreetBots
 This script creates platform - specific executables and shortcuts
@@ -25,8 +25,8 @@ def create_windows_executable():
         "pyinstaller",
         "--onefile",
         "--noconsole",
-        "--name = WallStreetBots",
-        "--icon = icon.ico" if Path("icon.ico").exists() else "",
+        "--name=WallStreetBots",
+        "--icon=icon.ico" if Path("icon.ico").exists() else "",
         "run_wallstreetbots.py"
     ]
     
@@ -62,8 +62,8 @@ OPTIONS = {
 }
 
 setup(
-    app = APP,
-    data_files = DATA_FILES,
+    app=APP,
+    data_files=DATA_FILES,
     options = {'py2app': OPTIONS},
     setup_requires = ['py2app'],
 )
@@ -88,9 +88,9 @@ def create_desktop_shortcut():
             
             shell = win32com.client.Dispatch("WScript.Shell")
             shortcut = shell.CreateShortCut(str(shortcut_path))
-            shortcut.Targetpath = str(Path.cwd() / "run_wallstreetbots.bat")
-            shortcut.WorkingDirectory = str(Path.cwd())
-            shortcut.Description = "WallStreetBots Trading System"
+            shortcut.Targetpath=str(Path.cwd() / "run_wallstreetbots.bat")
+            shortcut.WorkingDirectory=str(Path.cwd())
+            shortcut.Description="WallStreetBots Trading System"
             shortcut.save()
             
             print(f"✅ Desktop shortcut created: {shortcut_path}")
@@ -168,11 +168,11 @@ def main():
     print("\n✅ Done!")
     print("\nYou can now launch WallStreetBots using: ")
     if system ==  "windows": 
-        print("  • Double - click the desktop shortcut")
-        print("  • Double - click run_wallstreetbots.bat")
+        print("  • Double-click the desktop shortcut")
+        print("  • Double-click run_wallstreetbots.bat")
         print("  • Run 'python run_wallstreetbots.py' in terminal")
     else: 
-        print("  • Double - click the desktop shortcut")
+        print("  • Double-click the desktop shortcut")
         print("  • Run './run_wallstreetbots.sh' in terminal")
         print("  • Run 'python3 run_wallstreetbots.py' in terminal")
 

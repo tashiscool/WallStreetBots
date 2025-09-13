@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Test Integrated Advanced Risk System
 Complete integration test for all Month 1 - 6 risk management features
@@ -7,7 +7,7 @@ This test validates:
 - Integration of all risk management components
 - Compatibility with existing WallStreetBots ecosystem  
 - Month 5 - 6 advanced features working within the system
-- End - to-end risk management workflow
+- End - to - end risk management workflow
 """
 
 import asyncio
@@ -28,7 +28,7 @@ from backend.tradingbot.risk.integrated_advanced_risk_manager import (
 def generate_test_data(): 
     """Generate realistic test data for comprehensive testing"""
     # Create 1 year of market data
-    dates = pd.date_range('2023 - 01-01', '2024 - 01-01', freq = 'D')
+    dates = pd.date_range('2023 - 01 - 01', '2024 - 01 - 01', freq='D')
     np.random.seed(42)
     
     symbols = ['AAPL', 'GOOGL', 'TSLA', 'SPY', 'BTC', 'EURUSD', 'GOLD']
@@ -36,8 +36,8 @@ def generate_test_data():
     
     for symbol in symbols: 
         # Generate realistic price movements
-        if symbol  ==  'BTC': returns = np.random.normal(0.001, 0.05, len(dates))  # High volatility crypto
-        elif symbol ==  'EURUSD': returns = np.random.normal(0.0002, 0.008, len(dates))  # Lower vol forex
+        if symbol  ==  'BTC': returns=np.random.normal(0.001, 0.05, len(dates))  # High volatility crypto
+        elif symbol ==  'EURUSD': returns=np.random.normal(0.0002, 0.008, len(dates))  # Lower vol forex
         else: 
             returns = np.random.normal(0.0008, 0.02, len(dates))  # Equity volatility
             
@@ -49,7 +49,7 @@ def generate_test_data():
             'Low': prices * 0.98,
             'Close': prices,
             'Volume': np.random.randint(1000000, 10000000, len(dates))
-        }, index = dates)
+        }, index=dates)
     
     # Create test positions
     positions = {
@@ -99,7 +99,7 @@ async def test_comprehensive_risk_assessment():
     try: 
         # Setup
         risk_system = await create_integrated_risk_system(portfolio_value=100000)
-        market_data, positions = generate_test_data()
+        market_data, positions=generate_test_data()
         
         # Run comprehensive assessment
         results = await risk_system.comprehensive_risk_assessment(positions, market_data)
@@ -163,7 +163,7 @@ async def test_continuous_monitoring():
     try: 
         # Setup
         risk_system = await create_integrated_risk_system(portfolio_value=100000)
-        market_data, positions = generate_test_data()
+        market_data, positions=generate_test_data()
         
         # Start monitoring for a short period
         print("   Starting monitoring for 10 seconds...")
@@ -235,7 +235,7 @@ async def test_system_compatibility():
         
         # Test integrated system with existing components
         risk_system = await create_integrated_risk_system()
-        market_data, positions = generate_test_data()
+        market_data, positions=generate_test_data()
         
         # Test individual components still work
         np.random.seed(42)
@@ -262,14 +262,14 @@ async def test_performance_benchmarks():
     
     try: 
         risk_system = await create_integrated_risk_system(portfolio_value=500000)
-        market_data, positions = generate_test_data()
+        market_data, positions=generate_test_data()
         
         # Time comprehensive assessment
         start_time = datetime.now()
         results = await risk_system.comprehensive_risk_assessment(positions, market_data)
         end_time = datetime.now()
         
-        duration = (end_time - start_time).total_seconds()
+        duration = (end_time-start_time).total_seconds()
         
         print(f"✅ Performance benchmark completed")
         print(f"   Assessment Duration: {duration:.2f} seconds")

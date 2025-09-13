@@ -54,8 +54,8 @@ class SystemStatus(Enum):
 @dataclass
 class SystemHealthCheck: 
     """System health check result"""
-    timestamp: datetime = field(default_factory=datetime.now)
-    overall_status: SystemStatus = SystemStatus.INITIALIZING
+    timestamp: datetime=field(default_factory=datetime.now)
+    overall_status: SystemStatus=SystemStatus.INITIALIZING
     database_status: bool = False
     trading_interface_status: bool = False
     data_provider_status: bool = False
@@ -63,8 +63,8 @@ class SystemHealthCheck:
     phase3_status: bool = False
     phase4_status: bool = False
     active_strategies: int = 0
-    total_account_risk: Decimal = Decimal('0.00')
-    daily_pnl: Decimal = Decimal('0.00')
+    total_account_risk: Decimal=Decimal('0.00')
+    daily_pnl: Decimal=Decimal('0.00')
     alerts: List[str] = field(default_factory=list)
     performance_metrics: Dict[str, Any] = field(default_factory=dict)
 
@@ -78,8 +78,8 @@ class StrategyAllocation:
     max_positions: int
     enabled: bool = True
     validation_required: bool = True
-    min_sharpe_ratio: Decimal = Decimal('0.5')
-    max_drawdown: Decimal = Decimal('0.20')
+    min_sharpe_ratio: Decimal=Decimal('0.5')
+    max_drawdown: Decimal=Decimal('0.20')
 
 
 class Phase4IntegrationManager: 
@@ -91,12 +91,12 @@ class Phase4IntegrationManager:
     
     def __init__(self, config_file_path: Optional[str] = None):
         # Load configuration
-        self.config_manager = create_config_manager()
-        self.config = self.config_manager.load_config()
+        self.config_manager=create_config_manager()
+        self.config=self.config_manager.load_config()
         
-        self.logger = create_production_logger("phase4_integration")
-        self.error_handler = ErrorHandler(self.logger)
-        self.metrics = MetricsCollector(self.logger)
+        self.logger=create_production_logger("phase4_integration")
+        self.error_handler=ErrorHandler(self.logger)
+        self.metrics=MetricsCollector(self.logger)
         
         # System components
         self.database: Optional[ProductionDatabaseManager] = None
@@ -110,12 +110,12 @@ class Phase4IntegrationManager:
         self.high_risk_orchestrator: Optional[HighRiskStrategyOrchestrator] = None
         
         # System state
-        self.system_status = SystemStatus.INITIALIZING
+        self.system_status=SystemStatus.INITIALIZING
         self.validation_results: Dict[str, StrategyBacktestResults] = {}
         self.active_strategies: Dict[str, Any] = {}
         
         # Strategy allocation configuration
-        self.strategy_allocations = {
+        self.strategy_allocations={
             'wheel': StrategyAllocation(
                 strategy_name = 'wheel',
                 allocation_percentage = Decimal('0.30'),  # 30% allocation
@@ -167,7 +167,7 @@ class Phase4IntegrationManager:
         """
         try: 
             self.logger.info("🚀 Initializing complete WallStreetBots production system...")
-            self.system_status = SystemStatus.INITIALIZING
+            self.system_status=SystemStatus.INITIALIZING
             
             # Step 1: Initialize database
             if not await self._initialize_database(): 
@@ -190,12 +190,12 @@ class Phase4IntegrationManager:
                 raise Exception("Phase 4 components initialization failed")
             
             self.logger.info("✅ System initialization completed successfully")
-            self.system_status = SystemStatus.READY
+            self.system_status=SystemStatus.READY
             return True
             
         except Exception as e: 
             self.error_handler.handle_error(e, {"operation": "initialize_system"})
-            self.system_status = SystemStatus.ERROR
+            self.system_status=SystemStatus.ERROR
             return False
     
     async def _initialize_database(self)->bool: 
@@ -210,7 +210,7 @@ class Phase4IntegrationManager:
                 'db_password': self.config.database.password if hasattr(self.config, 'database') else 'password'
             }
             
-            self.database = create_database_manager(db_config)
+            self.database=create_database_manager(db_config)
             success = await self.database.initialize()
             
             if success: 
@@ -237,7 +237,7 @@ class Phase4IntegrationManager:
                 'alpha_vantage_api_key': self.config.data_providers.alpha_vantage_api_key,
             }
             
-            self.data_provider = create_data_provider(data_config)
+            self.data_provider=create_data_provider(data_config)
             
             # Test data provider
             test_data = await self.data_provider.get_market_data('SPY')
@@ -266,7 +266,7 @@ class Phase4IntegrationManager:
                 'default_commission': self.config.risk.default_commission
             }
             
-            self.trading_interface = create_trading_interface(trading_config)
+            self.trading_interface=create_trading_interface(trading_config)
             
             # Test trading interface
             account_info = await self.trading_interface.get_account()
@@ -287,11 +287,11 @@ class Phase4IntegrationManager:
             self.logger.info("Initializing phase managers...")
             
             # Initialize Phase 2 (Low - risk strategies)
-            self.phase2_manager = Phase2StrategyManager(self.config)
+            self.phase2_manager=Phase2StrategyManager(self.config)
             await self.phase2_manager.initialize()
             
             # Initialize Phase 3 (Medium - risk strategies)  
-            self.phase3_manager = Phase3StrategyManager(self.config)
+            self.phase3_manager=Phase3StrategyManager(self.config)
             await self.phase3_manager.initialize()
             
             self.logger.info("✅ Phase managers initialized successfully")
@@ -307,10 +307,10 @@ class Phase4IntegrationManager:
             self.logger.info("Initializing Phase 4 components...")
             
             # Initialize backtest engine
-            self.backtest_engine = create_production_backtest_engine(self.config, self.database)
+            self.backtest_engine=create_production_backtest_engine(self.config, self.database)
             
             # Initialize high - risk orchestrator
-            self.high_risk_orchestrator = create_high_risk_orchestrator(self.config, self.database)
+            self.high_risk_orchestrator=create_high_risk_orchestrator(self.config, self.database)
             
             self.logger.info("✅ Phase 4 components initialized successfully")
             return True
@@ -319,14 +319,14 @@ class Phase4IntegrationManager:
             self.error_handler.handle_error(e, {"operation": "_initialize_phase4_components"})
             return False
     
-    async def validate_all_strategies(self, force_revalidation: bool = False)->bool:
+    async def validate_all_strategies(self, force_revalidation: bool=False)->bool:
         """
         CRITICAL: Validate all strategies before allowing real money trading
         This is the safety check that prevents deploying bad strategies
         """
         try: 
             self.logger.info("🧪 Starting comprehensive strategy validation...")
-            self.system_status = SystemStatus.VALIDATING
+            self.system_status=SystemStatus.VALIDATING
             
             # Configure validation period (last 2 years)
             validation_config = BacktestConfig(
@@ -350,8 +350,7 @@ class Phase4IntegrationManager:
                     
                     # Run comprehensive validation
                     backtest_results, monte_carlo_results = await self.backtest_engine.validate_strategy(
-                        strategy_name, validation_config, monte_carlo = True
-                    )
+                        strategy_name, validation_config, monte_carlo=True)
                     
                     # Check if strategy meets minimum requirements
                     strategy_passed = await self._evaluate_strategy_performance(
@@ -386,16 +385,16 @@ class Phase4IntegrationManager:
             
             if validation_passed: 
                 self.logger.info("🎉 ALL STRATEGIES VALIDATED SUCCESSFULLY - READY FOR PRODUCTION")
-                self.system_status = SystemStatus.READY
+                self.system_status=SystemStatus.READY
             else: 
                 self.logger.error("⚠️ STRATEGY VALIDATION FAILED - SYSTEM NOT READY FOR PRODUCTION")
-                self.system_status = SystemStatus.ERROR
+                self.system_status=SystemStatus.ERROR
             
             return validation_passed
             
         except Exception as e: 
             self.error_handler.handle_error(e, {"operation": "validate_all_strategies"})
-            self.system_status = SystemStatus.ERROR
+            self.system_status=SystemStatus.ERROR
             return False
     
     async def _evaluate_strategy_performance(self, strategy_name: str, 
@@ -441,7 +440,7 @@ class Phase4IntegrationManager:
             self.error_handler.handle_error(e, {"strategy": strategy_name, "operation": "_evaluate_strategy_performance"})
             return False
     
-    async def start_production_trading(self, paper_trading: bool = True)->bool:
+    async def start_production_trading(self, paper_trading: bool=True)->bool:
         """
         Start production trading system
         CRITICAL: Only starts if all validations pass
@@ -473,7 +472,7 @@ class Phase4IntegrationManager:
                     self.error_handler.handle_error(e, {"strategy": strategy_name})
                     self.logger.error(f"Failed to start strategy: {strategy_name}")
             
-            self.system_status = SystemStatus.RUNNING
+            self.system_status=SystemStatus.RUNNING
             
             # Start monitoring loop
             monitoring_task = asyncio.create_task(self._monitoring_loop())
@@ -487,7 +486,7 @@ class Phase4IntegrationManager:
             
         except Exception as e: 
             self.error_handler.handle_error(e, {"operation": "start_production_trading"})
-            self.system_status = SystemStatus.ERROR
+            self.system_status=SystemStatus.ERROR
             return False
     
     async def _start_strategy(self, strategy_name: str, allocation: StrategyAllocation, 
@@ -573,7 +572,7 @@ class Phase4IntegrationManager:
         """Perform comprehensive system health check"""
         try: 
             health_check = SystemHealthCheck()
-            health_check.overall_status = self.system_status
+            health_check.overall_status=self.system_status
             
             # Check database
             try: 
@@ -594,7 +593,7 @@ class Phase4IntegrationManager:
                     
                     if account_info: 
                         # Extract P & L info
-                        health_check.daily_pnl = Decimal(str(account_info.get('daytrading_buying_power', 0))) - \
+                        health_check.daily_pnl=Decimal(str(account_info.get('daytrading_buying_power', 0))) - \
                             self.config.risk.account_size
             except: 
                 health_check.trading_interface_status = False
@@ -604,13 +603,13 @@ class Phase4IntegrationManager:
             try: 
                 if self.data_provider: 
                     test_data = await self.data_provider.get_market_data('SPY')
-                    health_check.data_provider_status = test_data.price  >  0
+                    health_check.data_provider_status=test_data.price  >  0
             except: 
                 health_check.data_provider_status = False
                 health_check.alerts.append("Data provider connectivity issue")
             
             # Check strategy health
-            health_check.active_strategies = len([s for s in self.active_strategies.values() 
+            health_check.active_strategies=len([s for s in self.active_strategies.values() 
                                                 if not s['task'].done()])
             
             # Calculate total risk
@@ -634,9 +633,9 @@ class Phase4IntegrationManager:
             # Overall system status
             if (health_check.database_status and health_check.trading_interface_status and 
                 health_check.data_provider_status and health_check.active_strategies  >  0): 
-                health_check.overall_status = SystemStatus.RUNNING
+                health_check.overall_status=SystemStatus.RUNNING
             else: 
-                health_check.overall_status = SystemStatus.ERROR
+                health_check.overall_status=SystemStatus.ERROR
             
             return health_check
             
@@ -657,7 +656,7 @@ class Phase4IntegrationManager:
                     
                     # Wait for graceful shutdown
                     try: 
-                        await asyncio.wait_for(strategy_info['task'], timeout = 30.0)
+                        await asyncio.wait_for(strategy_info['task'], timeout=30.0)
                     except asyncio.TimeoutError: 
                         self.logger.warning(f"Strategy {strategy_name} did not stop gracefully")
                     except asyncio.CancelledError: 
@@ -667,7 +666,7 @@ class Phase4IntegrationManager:
                     self.error_handler.handle_error(e, {"strategy": strategy_name})
             
             self.active_strategies.clear()
-            self.system_status = SystemStatus.STOPPED
+            self.system_status=SystemStatus.STOPPED
             
             self.logger.info("✅ All strategies stopped")
             
@@ -696,7 +695,7 @@ class Phase4IntegrationManager:
             except Exception as e: 
                 self.logger.critical(f"Failed to close positions during emergency: {e}")
             
-            self.system_status = SystemStatus.ERROR
+            self.system_status=SystemStatus.ERROR
             self.logger.critical("🚨 EMERGENCY SHUTDOWN COMPLETE")
             
         except Exception as e: 
@@ -784,7 +783,7 @@ async def main():
         
         # Get system summary
         summary = await manager.get_system_summary()
-        print(f"📈 System Summary: {json.dumps(summary, indent = 2)}")
+        print(f"📈 System Summary: {json.dumps(summary, indent=2)}")
         
         # Stop system
         print("🛑 Stopping system...")

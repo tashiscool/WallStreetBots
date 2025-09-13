@@ -15,7 +15,7 @@ def multiply(value, arg):
 
 @register.filter
 def find_percent(change_today): 
-    return round(float(change_today)*100, 2)
+    return round(float(change_today) * 100, 2)
 
 
 @register.filter

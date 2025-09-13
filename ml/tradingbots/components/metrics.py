@@ -42,7 +42,7 @@ class MovingAverageSharpeRatio(Metric):
         start = (datetime.datetime.now(datetime.timezone.utc) - timedelta(days=self.past_days)).isoformat()
         end = datetime.datetime.now(datetime.timezone.utc).isoformat()
         for stock in self.stocks: 
-            prices, _ = self.fetcher.get_past_price(stock, self.timestep, start, end)
+            prices, _=self.fetcher.get_past_price(stock, self.timestep, start, end)
             prices = prices[: self.max_n][::-1] if self.max_n  <  len(prices) else prices[::-1]
             all_prices.loc[: , stock] = prices
         return all_prices
@@ -52,7 +52,7 @@ class MovingAverageSharpeRatio(Metric):
         one time configuration of the covariance matrix
         """
         prices = self.generate_stock_returns()
-        self.n_points = len(prices)
+        self.n_points=len(prices)
         returns = prices.pct_change()
         cov = returns.cov()
         self.returns = returns
@@ -64,8 +64,8 @@ class MovingAverageSharpeRatio(Metric):
         Args: 
             weights: 1D np.array() with weights of each stock
         """
-        # rp = (self.returns.mean() * 252) @ weights
-        # port_var = weights @ (self.cov * 252) @ weights
+        # rp=(self.returns.mean() * 252) @ weights
+        # port_var=weights @ (self.cov * 252) @ weights
         rp = (self.returns.mean() * self.n_points) @ weights
         port_var = weights @ (self.cov * self.n_points) @ weights
         sharpe = (rp - self.rf) / np.sqrt(port_var)

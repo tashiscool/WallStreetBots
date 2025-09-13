@@ -64,8 +64,8 @@ class IEXDataProvider:
     
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.base_url = "https: //cloud.iexapis.com / stable"
-        self.logger = logging.getLogger(__name__)
+        self.base_url="https: //cloud.iexapis.com / stable"
+        self.logger=logging.getLogger(__name__)
     
     async def get_quote(self, ticker: str)->MarketData:
         """Get real - time quote"""
@@ -74,11 +74,11 @@ class IEXDataProvider:
                 url = f"{self.base_url}/stock / {ticker}/quote"
                 params = {'token': self.api_key}
                 
-                async with session.get(url, params = params) as response: 
+                async with session.get(url, params=params) as response: 
                     if response.status ==  200: 
                         data = await response.json()
                         return MarketData(
-                            ticker = ticker,
+                            ticker=ticker,
                             price = float(data.get('latestPrice', 0)),
                             change = float(data.get('change', 0)),
                             change_percent = float(data.get('changePercent', 0)),
@@ -99,7 +99,7 @@ class IEXDataProvider:
     def _get_fallback_data(self, ticker: str)->MarketData:
         """Fallback data when API fails"""
         return MarketData(
-            ticker = ticker,
+            ticker=ticker,
             price = 0.0,
             change = 0.0,
             change_percent = 0.0,
@@ -117,35 +117,35 @@ class PolygonDataProvider:
     
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.base_url = "https: //api.polygon.io"
-        self.logger = logging.getLogger(__name__)
+        self.base_url="https: //api.polygon.io"
+        self.logger=logging.getLogger(__name__)
     
     async def get_options_chain(self, ticker: str, expiry_date: Optional[str] = None)->List[OptionsData]:
         """Get options chain data"""
         try: 
             async with aiohttp.ClientSession() as session: 
                 if expiry_date: 
-                    url = f"{self.base_url}/v3 / reference/options / contracts"
+                    url = f"{self.base_url}/v3 / reference / options / contracts"
                     params = {
                         'underlying_ticker': ticker,
                         'expiration_date': expiry_date,
                         'apikey': self.api_key
                     }
                 else: 
-                    url = f"{self.base_url}/v3 / reference/options / contracts"
+                    url = f"{self.base_url}/v3 / reference / options / contracts"
                     params = {
                         'underlying_ticker': ticker,
                         'apikey': self.api_key
                     }
                 
-                async with session.get(url, params = params) as response: 
+                async with session.get(url, params=params) as response: 
                     if response.status ==  200: 
                         data = await response.json()
                         options = []
                         
                         for contract in data.get('results', []): 
                             options.append(OptionsData(
-                                ticker = ticker,
+                                ticker=ticker,
                                 expiry_date = contract.get('expiration_date', ''),
                                 strike = float(contract.get('strike_price', 0)),
                                 option_type = contract.get('contract_type', 'call'),
@@ -173,14 +173,14 @@ class PolygonDataProvider:
         """Get real - time quote from Polygon"""
         try: 
             async with aiohttp.ClientSession() as session: 
-                url = f"{self.base_url}/v2 / last/trade / {ticker}"
+                url = f"{self.base_url}/v2 / last / trade / {ticker}"
                 params = {'apikey': self.api_key}
                 
-                async with session.get(url, params = params) as response: 
+                async with session.get(url, params=params) as response: 
                     if response.status ==  200: 
                         data = await response.json()
                         return MarketData(
-                            ticker = ticker,
+                            ticker=ticker,
                             price = float(data.get('results', {}).get('p', 0)),
                             change = 0.0,  # Would need additional data
                             change_percent = 0.0,
@@ -201,7 +201,7 @@ class PolygonDataProvider:
     def _get_fallback_data(self, ticker: str)->MarketData:
         """Fallback data when API fails"""
         return MarketData(
-            ticker = ticker,
+            ticker=ticker,
             price = 0.0,
             change = 0.0,
             change_percent = 0.0,
@@ -219,10 +219,10 @@ class EarningsDataProvider:
     
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.base_url = "https: //financialmodelingprep.com / api/v3"
-        self.logger = logging.getLogger(__name__)
+        self.base_url="https: //financialmodelingprep.com / api / v3"
+        self.logger=logging.getLogger(__name__)
     
-    async def get_upcoming_earnings(self, days_ahead: int = 7)->List[EarningsEvent]:
+    async def get_upcoming_earnings(self, days_ahead: int=7)->List[EarningsEvent]:
         """Get upcoming earnings events"""
         try: 
             async with aiohttp.ClientSession() as session: 
@@ -233,7 +233,7 @@ class EarningsDataProvider:
                     'to': (datetime.now() + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
                 }
                 
-                async with session.get(url, params = params) as response: 
+                async with session.get(url, params=params) as response: 
                     if response.status ==  200: 
                         data = await response.json()
                         events = []
@@ -255,21 +255,21 @@ class EarningsDataProvider:
             self.logger.error(f"Error fetching earnings data: {e}")
             return []
     
-    async def get_earnings_history(self, ticker: str, limit: int = 4)->List[EarningsEvent]:
+    async def get_earnings_history(self, ticker: str, limit: int=4)->List[EarningsEvent]:
         """Get historical earnings data"""
         try: 
             async with aiohttp.ClientSession() as session: 
                 url = f"{self.base_url}/historical / earning_calendar / {ticker}"
                 params = {'apikey': self.api_key, 'limit': limit}
                 
-                async with session.get(url, params = params) as response: 
+                async with session.get(url, params=params) as response: 
                     if response.status ==  200: 
                         data = await response.json()
                         events = []
                         
                         for event in data: 
                             events.append(EarningsEvent(
-                                ticker = ticker,
+                                ticker=ticker,
                                 earnings_date = datetime.strptime(event.get('date', ''), '%Y-%m-%d'),
                                 time = event.get('time', 'AMC'),
                                 expected_move = 0.0,
@@ -292,10 +292,10 @@ class NewsDataProvider:
     
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.base_url = "https: //newsapi.org / v2"
-        self.logger = logging.getLogger(__name__)
+        self.base_url="https: //newsapi.org / v2"
+        self.logger=logging.getLogger(__name__)
     
-    async def get_ticker_news(self, ticker: str, days_back: int = 1)->List[Dict[str, Any]]: 
+    async def get_ticker_news(self, ticker: str, days_back: int=1)->List[Dict[str, Any]]: 
         """Get recent news for ticker"""
         try: 
             async with aiohttp.ClientSession() as session: 
@@ -308,7 +308,7 @@ class NewsDataProvider:
                     'pageSize': 20
                 }
                 
-                async with session.get(url, params = params) as response: 
+                async with session.get(url, params=params) as response: 
                     if response.status ==  200: 
                         data = await response.json()
                         return data.get('articles', [])
@@ -359,11 +359,11 @@ class UnifiedDataProvider:
     """Unified data provider that aggregates multiple sources"""
     
     def __init__(self, config: Dict[str, str]): 
-        self.iex = IEXDataProvider(config.get('iex_api_key', ''))
-        self.polygon = PolygonDataProvider(config.get('polygon_api_key', ''))
-        self.earnings = EarningsDataProvider(config.get('fmp_api_key', ''))
-        self.news = NewsDataProvider(config.get('news_api_key', ''))
-        self.logger = logging.getLogger(__name__)
+        self.iex=IEXDataProvider(config.get('iex_api_key', ''))
+        self.polygon=PolygonDataProvider(config.get('polygon_api_key', ''))
+        self.earnings=EarningsDataProvider(config.get('fmp_api_key', ''))
+        self.news=NewsDataProvider(config.get('news_api_key', ''))
+        self.logger=logging.getLogger(__name__)
     
     async def get_market_data(self, ticker: str)->MarketData:
         """Get market data from best available source"""
@@ -380,7 +380,7 @@ class UnifiedDataProvider:
             
             # Return fallback data
             return MarketData(
-                ticker = ticker,
+                ticker=ticker,
                 price = 0.0,
                 change = 0.0,
                 change_percent = 0.0,
@@ -394,7 +394,7 @@ class UnifiedDataProvider:
         except Exception as e: 
             self.logger.error(f"Error getting market data for {ticker}: {e}")
             return MarketData(
-                ticker = ticker,
+                ticker=ticker,
                 price = 0.0,
                 change = 0.0,
                 change_percent = 0.0,
@@ -410,7 +410,7 @@ class UnifiedDataProvider:
         """Get options data from Polygon"""
         return await self.polygon.get_options_chain(ticker, expiry_date)
     
-    async def get_earnings_data(self, ticker: str, days_ahead: int = 7)->List[EarningsEvent]:
+    async def get_earnings_data(self, ticker: str, days_ahead: int=7)->List[EarningsEvent]:
         """Get earnings data from FMP"""
         return await self.earnings.get_upcoming_earnings(days_ahead)
     

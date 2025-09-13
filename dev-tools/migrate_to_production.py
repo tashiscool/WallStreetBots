@@ -28,8 +28,8 @@ class ProductionMigration:
     
     def __init__(self, config: ProductionConfig):
         self.config = config
-        self.logger = ProductionLogger("migration")
-        self.migration_stats = {
+        self.logger=ProductionLogger("migration")
+        self.migration_stats={
             'strategies_created': 0,
             'positions_migrated': 0,
             'trades_migrated': 0,
@@ -99,7 +99,7 @@ class ProductionMigration:
             },
             {
                 'name': 'Lotto Scanner',
-                'description': 'Extreme - risk lottery plays',
+                'description': 'Extreme-risk lottery plays',
                 'risk_level': 'extreme',
                 'status': 'testing',
                 'max_position_risk': 0.01,
@@ -149,10 +149,9 @@ class ProductionMigration:
         
         for strategy_data in strategies_data: 
             try: 
-                strategy, created = Strategy.objects.get_or_create(
+                strategy, created=Strategy.objects.get_or_create(
                     name = strategy_data['name'],
-                    defaults = strategy_data
-                )
+                    defaults = strategy_data)
                 
                 if created: 
                     self.migration_stats['strategies_created'] += 1
@@ -195,8 +194,8 @@ class ProductionMigration:
         
         for strategy in strategies: 
             try: 
-                risk_limit, created = RiskLimit.objects.get_or_create(
-                    strategy = strategy,
+                risk_limit, created=RiskLimit.objects.get_or_create(
+                    strategy=strategy,
                     defaults = {
                         'max_position_risk': strategy.max_position_risk,
                         'max_total_risk': strategy.max_total_risk,
@@ -279,10 +278,9 @@ class ProductionMigration:
         
         for config_data in default_configs: 
             try: 
-                config, created = Configuration.objects.get_or_create(
+                config, created=Configuration.objects.get_or_create(
                     key = config_data['key'],
-                    defaults = config_data
-                )
+                    defaults = config_data)
                 
                 if created: 
                     self.logger.info(f"Created configuration: {config.key}")
@@ -304,9 +302,9 @@ class ProductionMigration:
         }
         
         # Save report to file
-        report_file = f"migration_report_{datetime.now().strftime('%Y % m%d_ % H%M % S')}.json"
+        report_file = f"migration_report_{datetime.now().strftime('%Y % m % d_ % H % M % S')}.json"
         with open(report_file, 'w') as f: 
-            json.dump(report, f, indent = 2)
+            json.dump(report, f, indent=2)
         
         self.logger.info(f"Migration report saved to {report_file}")
         
@@ -321,7 +319,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser): 
         parser.add_argument(
             '--config - file',
-            type = str,
+            type=str,
             default = 'config / production.json',
             help = 'Configuration file path'
         )
@@ -347,7 +345,7 @@ class Command(BaseCommand):
         
         if options['dry_run']: 
             self.stdout.write(
-                self.style.WARNING("Dry run mode - no changes will be made")
+                self.style.WARNING("Dry run mode-no changes will be made")
             )
             return
         

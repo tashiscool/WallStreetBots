@@ -41,10 +41,10 @@ class ProductionConfig:
     user_id: int = 1
     
     # Risk management
-    max_position_size: float = 0.20  # 20% max per position
-    max_total_risk: float = 0.50     # 50% max total risk
-    stop_loss_pct: float = 0.50      # 50% stop loss
-    take_profit_multiplier: float = 3.0  # 3x profit target
+    max_position_size: float=0.20  # 20% max per position
+    max_total_risk: float=0.50     # 50% max total risk
+    stop_loss_pct: float=0.50      # 50% stop loss
+    take_profit_multiplier: float=3.0  # 3x profit target
     
     # Strategy settings
     enabled_strategies: List[str] = field(default_factory=lambda: [
@@ -78,7 +78,7 @@ class ProductionManager:
     
     def __init__(self, config: ProductionConfig):
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Initialize core components
         self.integration_manager = create_production_integration(
@@ -126,7 +126,7 @@ class ProductionManager:
         try: 
             strategy_config = StrategyConfig(
                 name = "default",
-                enabled = True,
+                enabled=True,
                 max_position_size = self.config.max_position_size,
                 max_total_risk = self.config.max_total_risk,
                 stop_loss_pct = self.config.stop_loss_pct,
@@ -175,7 +175,7 @@ class ProductionManager:
             
             # Start monitoring tasks
             self.is_running = True
-            self.start_time = datetime.now()
+            self.start_time=datetime.now()
             
             # Start background tasks
             asyncio.create_task(self._monitoring_loop())
@@ -215,7 +215,7 @@ class ProductionManager:
         """Validate production configuration"""
         try: 
             # Validate Alpaca connection
-            success, message = self.integration_manager.alpaca_manager.validate_api()
+            success, message=self.integration_manager.alpaca_manager.validate_api()
             if not success: 
                 self.logger.error(f"Alpaca validation failed: {message}")
                 return False
@@ -242,14 +242,14 @@ class ProductionManager:
         """Initialize database connections and models"""
         try: 
             # Ensure user exists
-            user, created = User.objects.get_or_create(
+            user, created=User.objects.get_or_create(
                 id = self.config.user_id,
                 defaults = {'username': f'production_user_{self.config.user_id}'}
             )
             
             # Ensure portfolio exists
-            portfolio, created = Portfolio.objects.get_or_create(
-                user = user,
+            portfolio, created=Portfolio.objects.get_or_create(
+                user=user,
                 defaults = {'name': 'Production Portfolio', 'cash': Decimal('0.00')}
             )
             
@@ -269,10 +269,10 @@ class ProductionManager:
             # Get Alpaca account info
             cash_balance = self.integration_manager.alpaca_manager.get_balance()
             if cash_balance: 
-                portfolio.cash = Decimal(str(cash_balance))
+                portfolio.cash=Decimal(str(cash_balance))
                 portfolio.save()
                 
-                self.logger.info(f"Portfolio synced: Cash = {portfolio.cash}")
+                self.logger.info(f"Portfolio synced: Cash={portfolio.cash}")
             
         except Exception as e: 
             self.logger.error(f"Portfolio sync error: {e}")
@@ -301,7 +301,7 @@ class ProductionManager:
         """Heartbeat loop for system monitoring"""
         while self.is_running: 
             try: 
-                self.last_heartbeat = datetime.now()
+                self.last_heartbeat=datetime.now()
                 
                 # Send heartbeat alert
                 if self.config.enable_alerts: 
@@ -345,7 +345,7 @@ class ProductionManager:
         """System health check"""
         try: 
             # Check Alpaca connection
-            success, message = self.integration_manager.alpaca_manager.validate_api()
+            success, message=self.integration_manager.alpaca_manager.validate_api()
             if not success: 
                 await self.integration_manager.alert_system.send_alert(
                     "SYSTEM_ERROR",
@@ -377,7 +377,7 @@ class ProductionManager:
                 strategy_performance[strategy_name] = strategy.get_strategy_status()
             
             # Update metrics
-            self.performance_metrics = {
+            self.performance_metrics={
                 'timestamp': datetime.now().isoformat(),
                 'system_uptime': (datetime.now() - self.start_time).total_seconds() if self.start_time else 0,
                 'portfolio': portfolio_summary,
@@ -413,8 +413,8 @@ class ProductionManager:
             }
             
             # Save report
-            with open(f'production_report_{datetime.now().strftime("%Y % m%d_ % H%M % S")}.json', 'w') as f: 
-                json.dump(report, f, indent = 2, default = str)
+            with open(f'production_report_{datetime.now().strftime("%Y % m % d_ % H % M % S")}.json', 'w') as f: 
+                json.dump(report, f, indent=2, default=str)
             
             self.logger.info("Final report generated")
             

@@ -37,12 +37,12 @@ class TestPhase4Backtesting(unittest.TestCase):
     """Test Phase 4 backtesting functionality"""
     
     def setUp(self): 
-        self.logger = Mock(spec=ProductionLogger)
-        self.config = Mock(spec=ConfigManager)
-        self.config.trading = Mock()
-        self.config.trading.universe = ["AAPL", "MSFT", "GOOGL"]
+        self.logger=Mock(spec=ProductionLogger)
+        self.config=Mock(spec=ConfigManager)
+        self.config.trading=Mock()
+        self.config.trading.universe=["AAPL", "MSFT", "GOOGL"]
         
-        self.backtest_engine = BacktestEngine(self.config, self.logger)
+        self.backtest_engine=BacktestEngine(self.config, self.logger)
     
     def test_backtest_config_creation(self): 
         """Test backtest configuration creation"""
@@ -137,7 +137,7 @@ class TestPhase4Backtesting(unittest.TestCase):
         )
         
         results = BacktestResults(
-            config = config,
+            config=config,
             start_date = config.start_date,
             end_date = config.end_date,
             total_trades = 10,
@@ -173,11 +173,11 @@ class TestPhase4Optimization(unittest.TestCase):
     """Test Phase 4 optimization functionality"""
     
     def setUp(self): 
-        self.logger = Mock(spec=ProductionLogger)
-        self.config = Mock(spec=ConfigManager)
-        self.backtest_engine = Mock(spec=BacktestEngine)
+        self.logger=Mock(spec=ProductionLogger)
+        self.config=Mock(spec=ConfigManager)
+        self.backtest_engine=Mock(spec=BacktestEngine)
         
-        self.optimizer = StrategyOptimizer(self.backtest_engine, self.config, self.logger)
+        self.optimizer=StrategyOptimizer(self.backtest_engine, self.config, self.logger)
     
     def test_parameter_range_creation(self): 
         """Test parameter range creation"""
@@ -207,9 +207,8 @@ class TestPhase4Optimization(unittest.TestCase):
             method = OptimizationMethod.GRID_SEARCH,
             metric = OptimizationMetric.SHARPE_RATIO,
             max_iterations = 100,
-            parameter_ranges = param_ranges,
-            backtest_config = backtest_config
-        )
+            parameter_ranges=param_ranges,
+            backtest_config = backtest_config)
         
         self.assertEqual(config.method, OptimizationMethod.GRID_SEARCH)
         self.assertEqual(config.metric, OptimizationMetric.SHARPE_RATIO)
@@ -249,9 +248,9 @@ class TestPhase4Optimization(unittest.TestCase):
     def test_score_calculation(self): 
         """Test optimization score calculation"""
         mock_results = Mock(spec=BacktestResults)
-        mock_results.sharpe_ratio = 1.5
-        mock_results.total_return = 0.15
-        mock_results.max_drawdown = 0.05
+        mock_results.sharpe_ratio=1.5
+        mock_results.total_return=0.15
+        mock_results.max_drawdown=0.05
         
         # Test Sharpe ratio metric
         score = self.optimizer._calculate_score(mock_results, OptimizationMetric.SHARPE_RATIO)
@@ -270,10 +269,10 @@ class TestPhase4Monitoring(unittest.TestCase):
     """Test Phase 4 monitoring functionality"""
     
     def setUp(self): 
-        self.logger = Mock(spec=ProductionLogger)
-        self.config = Mock(spec=ConfigManager)
+        self.logger=Mock(spec=ProductionLogger)
+        self.config=Mock(spec=ConfigManager)
         
-        self.monitoring = Phase4Monitoring(self.config, self.logger)
+        self.monitoring=Phase4Monitoring(self.config, self.logger)
     
     def test_metric_creation(self): 
         """Test metric creation"""
@@ -363,10 +362,10 @@ class TestPhase4Deployment(unittest.TestCase):
     """Test Phase 4 deployment functionality"""
     
     def setUp(self): 
-        self.logger = Mock(spec=ProductionLogger)
-        self.config = Mock(spec=ConfigManager)
+        self.logger=Mock(spec=ProductionLogger)
+        self.config=Mock(spec=ConfigManager)
         
-        self.deployment = Phase4Deployment(self.config, self.logger)
+        self.deployment=Phase4Deployment(self.config, self.logger)
     
     def test_deployment_config_creation(self): 
         """Test deployment configuration creation"""
@@ -458,13 +457,13 @@ class TestPhase4Integration(unittest.TestCase):
     """Test Phase 4 integration functionality"""
     
     def setUp(self): 
-        self.logger = Mock(spec=ProductionLogger)
-        self.config = Mock(spec=ConfigManager)
-        self.config.trading = Mock()
-        self.config.trading.universe = ["AAPL", "MSFT", "GOOGL"]
+        self.logger=Mock(spec=ProductionLogger)
+        self.config=Mock(spec=ConfigManager)
+        self.config.trading=Mock()
+        self.config.trading.universe=["AAPL", "MSFT", "GOOGL"]
     
     def test_end_to_end_workflow(self): 
-        """Test end - to-end Phase 4 workflow"""
+        """Test end - to - end Phase 4 workflow"""
         # This would test the complete workflow from backtesting to deployment
         # For now, we'll test that all components can be instantiated together
         

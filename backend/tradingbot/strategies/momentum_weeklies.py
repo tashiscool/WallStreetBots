@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 WSB Strategy #2: Momentum Weeklies Scanner
 Detects intraday reversals and news momentum for weekly options plays
@@ -40,7 +40,7 @@ class MomentumSignal:
 
 class MomentumWeekliesScanner: 
     def __init__(self): 
-        self.mega_caps = [
+        self.mega_caps=[
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX",
             "CRM", "ADBE", "ORCL", "INTC", "AMD", "QCOM", "TXN", "AVGO"
         ]
@@ -64,7 +64,7 @@ class MomentumWeekliesScanner:
         try: 
             stock = yf.Ticker(ticker)
             # Get intraday data
-            data = stock.history(period="5d", interval = "5m")
+            data = stock.history(period="5d", interval="5m")
             if data.empty: 
                 return False, 0.0
                 
@@ -87,7 +87,7 @@ class MomentumWeekliesScanner:
         """Detect bullish reversal patterns"""
         try: 
             stock = yf.Ticker(ticker)
-            data = stock.history(period="2d", interval = "5m")
+            data = stock.history(period="2d", interval="5m")
             if len(data)  <  20: 
                 return False, "insufficient_data", 0.0
                 
@@ -107,7 +107,7 @@ class MomentumWeekliesScanner:
             low_price = recent_prices[low_idx]
             
             # Check if we've bounced significantly from low
-            bounce_pct = (current_price - low_price) / low_price
+            bounce_pct = (current_price-low_price) / low_price
             
             # Reversal criteria: 
             # 1. At least 1.5% bounce from recent low
@@ -127,7 +127,7 @@ class MomentumWeekliesScanner:
         """Detect breakout above resistance"""
         try: 
             stock = yf.Ticker(ticker)
-            data = stock.history(period="5d", interval = "15m")
+            data = stock.history(period="5d", interval="15m")
             if len(data)  <  50: 
                 return False, 0.0
                 
@@ -144,7 +144,7 @@ class MomentumWeekliesScanner:
                 avg_vol = volumes[: -5].mean()  # Historical volume
                 
                 if current_vol  >  avg_vol * 1.5:  # Volume confirmation
-                    breakout_strength = (current_price - resistance) / resistance
+                    breakout_strength = (current_price-resistance) / resistance
                     return True, breakout_strength
                     
             return False, 0.0
@@ -179,10 +179,10 @@ class MomentumWeekliesScanner:
             time_value = max(0.5, 5.0 - days_to_exp * 0.3)  # Rough time value
             
             if strike  >  current_price:  # OTM
-                otm_discount = max(0.1, 1.0 - (strike - current_price) / current_price * 10)
+                otm_discount = max(0.1, 1.0 - (strike-current_price) / current_price * 10)
                 return time_value * otm_discount
             else:  # ITM
-                intrinsic = current_price - strike
+                intrinsic = current_price-strike
                 return intrinsic + time_value * 0.3
                 
         except Exception: 
@@ -198,20 +198,20 @@ class MomentumWeekliesScanner:
         for ticker in self.mega_caps: 
             try: 
                 # Check volume spike
-                has_volume_spike, vol_multiple = self.detect_volume_spike(ticker)
+                has_volume_spike, vol_multiple=self.detect_volume_spike(ticker)
                 
                 # Check for reversal pattern
-                has_reversal, pattern_type, bounce_pct = self.detect_reversal_pattern(ticker)
+                has_reversal, pattern_type, bounce_pct=self.detect_reversal_pattern(ticker)
                 
                 # Check for breakout
-                has_breakout, breakout_strength = self.detect_breakout_momentum(ticker)
+                has_breakout, breakout_strength=self.detect_breakout_momentum(ticker)
                 
-                # Need at least volume spike + (reversal OR breakout)
+                # Need at least volume spike+(reversal OR breakout)
                 if has_volume_spike and (has_reversal or has_breakout): 
                     
                     # Get current price
                     stock = yf.Ticker(ticker)
-                    current_data = stock.history(period="1d", interval = "1m")
+                    current_data = stock.history(period="1d", interval="1m")
                     if current_data.empty: 
                         continue
                         
@@ -245,19 +245,18 @@ class MomentumWeekliesScanner:
                     stop_loss = current_price * 0.985  # 1.5% stop
                     
                     signal = MomentumSignal(
-                        ticker = ticker,
+                        ticker=ticker,
                         signal_time = datetime.now(),
-                        current_price = current_price,
-                        reversal_type = signal_type,
-                        volume_spike = vol_multiple,
-                        price_momentum = momentum,
-                        weekly_expiry = weekly_expiry,
-                        target_strike = target_strike,
-                        premium_estimate = premium,
-                        risk_level = risk,
-                        exit_target = exit_target,
-                        stop_loss = stop_loss
-                    )
+                        current_price=current_price,
+                        reversal_type=signal_type,
+                        volume_spike=vol_multiple,
+                        price_momentum=momentum,
+                        weekly_expiry=weekly_expiry,
+                        target_strike=target_strike,
+                        premium_estimate=premium,
+                        risk_level=risk,
+                        exit_target=exit_target,
+                        stop_loss = stop_loss)
                     
                     signals.append(signal)
                     print(f"📈 MOMENTUM SIGNAL: {ticker}")
@@ -284,7 +283,7 @@ class MomentumWeekliesScanner:
         for i, signal in enumerate(signals, 1): 
             output += f"\n{i}. {signal.ticker} - {signal.reversal_type.upper()}\n"
             output += f"   Current: ${signal.current_price:.2f}\n"
-            output += f"   Volume Spike: {signal.volume_spike:.1f}x\n"
+            output += f"   Volume Spike: {signal.volume_spike:.1f}x + n"
             output += f"   Momentum: {signal.price_momentum:.2%}\n"
             output += f"   Target Strike: ${signal.target_strike} ({signal.weekly_expiry})\n"
             output += f"   Premium Est: ${signal.premium_estimate:.2f}\n"
@@ -293,8 +292,8 @@ class MomentumWeekliesScanner:
             output += f"   Risk Level: {signal.risk_level.upper()}\n"
             
         output += "\n⚠️  WEEKLY OPTIONS WARNING: \n"
-        output += "• Extreme time decay - exit same / next day\n"
-        output += "• High IV crush risk if momentum stalls\n"
+        output += "• Extreme time decay - exit same / next day + n"
+        output += "• High IV crush risk if momentum stalls + n"
         output += "• Use small position sizes (1 - 3% account risk)\n"
         
         return output
@@ -302,11 +301,11 @@ class MomentumWeekliesScanner:
 
 def main(): 
     parser = argparse.ArgumentParser(description="WSB Momentum Weeklies Scanner")
-    parser.add_argument('--output', choices = ['json', 'text'], default = 'text',
+    parser.add_argument('--output', choices=['json', 'text'], default='text',
                        help = 'Output format')
-    parser.add_argument('--min - volume-spike', type = float, default = 3.0,
+    parser.add_argument('--min - volume-spike', type=float, default=3.0,
                        help = 'Minimum volume spike multiple')
-    parser.add_argument('--continuous', action = 'store_true',
+    parser.add_argument('--continuous', action='store_true',
                        help = 'Run continuous scanning (5 - minute intervals)')
     
     args = parser.parse_args()
@@ -320,7 +319,7 @@ def main():
                 signals = scanner.scan_momentum_signals()
                 
                 if signals: 
-                    if args.output ==  'json': print(json.dumps([asdict(s) for s in signals], indent = 2, default = str))
+                    if args.output ==  'json': print(json.dumps([asdict(s) for s in signals], indent=2, default=str))
                     else: 
                         print(scanner.format_signals_output(signals))
                 else: 
@@ -334,7 +333,7 @@ def main():
         # Single scan
         signals = scanner.scan_momentum_signals()
         
-        if args.output ==  'json': print(json.dumps([asdict(s) for s in signals], indent = 2, default = str))
+        if args.output ==  'json': print(json.dumps([asdict(s) for s in signals], indent=2, default=str))
         else: 
             print(scanner.format_signals_output(signals))
 

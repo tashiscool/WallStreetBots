@@ -52,7 +52,7 @@ class ProductionCLI:
             )
             
             # Create manager
-            self.manager = ProductionManager(config)
+            self.manager=ProductionManager(config)
             
             # Start system
             success = await self.manager.start_production_system()
@@ -204,34 +204,34 @@ class ProductionCLI:
 def main(): 
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(description='Production Trading System CLI')
-    subparsers = parser.add_subparsers(dest='command', help = 'Available commands')
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
     # Start command
-    start_parser = subparsers.add_parser('start', help = 'Start production system')
-    start_parser.add_argument('--alpaca - api-key', help = 'Alpaca API key')
-    start_parser.add_argument('--alpaca - secret-key', help = 'Alpaca secret key')
-    start_parser.add_argument('--paper - trading', action = 'store_true', default = True, help = 'Use paper trading')
-    start_parser.add_argument('--live - trading', action = 'store_true', help = 'Use live trading (DANGEROUS)')
-    start_parser.add_argument('--user - id', type = int, default = 1, help = 'Django user ID')
-    start_parser.add_argument('--max - position-size', type = float, default = 0.20, help = 'Max position size (0.20 = 20%)')
-    start_parser.add_argument('--max - total-risk', type = float, default = 0.50, help = 'Max total risk (0.50 = 50%)')
-    start_parser.add_argument('--strategies', help = 'Comma - separated list of strategies to enable')
+    start_parser = subparsers.add_parser('start', help='Start production system')
+    start_parser.add_argument('--alpaca - api - key', help='Alpaca API key')
+    start_parser.add_argument('--alpaca - secret - key', help='Alpaca secret key')
+    start_parser.add_argument('--paper - trading', action='store_true', default=True, help='Use paper trading')
+    start_parser.add_argument('--live-trading', action='store_true', help='Use live trading (DANGEROUS)')
+    start_parser.add_argument('--user - id', type=int, default=1, help='Django user ID')
+    start_parser.add_argument('--max - position - size', type=float, default=0.20, help='Max position size (0.20 = 20%)')
+    start_parser.add_argument('--max - total - risk', type=float, default=0.50, help='Max total risk (0.50 = 50%)')
+    start_parser.add_argument('--strategies', help='Comma - separated list of strategies to enable')
     
     # Status command
-    status_parser = subparsers.add_parser('status', help = 'Show system status')
+    status_parser = subparsers.add_parser('status', help='Show system status')
     
     # Portfolio command
-    portfolio_parser = subparsers.add_parser('portfolio', help = 'Show portfolio summary')
+    portfolio_parser = subparsers.add_parser('portfolio', help='Show portfolio summary')
     
     # Trade command
-    trade_parser = subparsers.add_parser('trade', help = 'Execute manual trade')
-    trade_parser.add_argument('ticker', help = 'Stock ticker')
-    trade_parser.add_argument('side', choices = ['buy', 'sell'], help = 'Buy or sell')
-    trade_parser.add_argument('quantity', type = int, help = 'Number of shares')
-    trade_parser.add_argument('price', type = float, help = 'Price per share')
+    trade_parser = subparsers.add_parser('trade', help='Execute manual trade')
+    trade_parser.add_argument('ticker', help='Stock ticker')
+    trade_parser.add_argument('side', choices=['buy', 'sell'], help='Buy or sell')
+    trade_parser.add_argument('quantity', type=int, help='Number of shares')
+    trade_parser.add_argument('price', type=float, help='Price per share')
     
     # List strategies command
-    list_parser = subparsers.add_parser('list - strategies', help = 'List available strategies')
+    list_parser = subparsers.add_parser('list - strategies', help='List available strategies')
     
     args = parser.parse_args()
     

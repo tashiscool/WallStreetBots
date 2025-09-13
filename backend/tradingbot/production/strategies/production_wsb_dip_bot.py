@@ -54,20 +54,20 @@ class ProductionWSBDipBot:
         self.integration = integration_manager
         self.data_provider = data_provider
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Strategy parameters
-        self.run_lookback_days = config.get('run_lookback_days', 10)
-        self.run_threshold = config.get('run_threshold', 0.10)  # 10%
-        self.dip_threshold = config.get('dip_threshold', -0.03)  # -3%
-        self.target_dte_days = config.get('target_dte_days', 30)
-        self.otm_percentage = config.get('otm_percentage', 0.05)  # 5%
-        self.max_position_size = config.get('max_position_size', 0.20)  # 20%
-        self.target_multiplier = config.get('target_multiplier', 3.0)  # 3x profit
-        self.delta_target = config.get('delta_target', 0.60)  # Delta exit
+        self.run_lookback_days=config.get('run_lookback_days', 10)
+        self.run_threshold=config.get('run_threshold', 0.10)  # 10%
+        self.dip_threshold=config.get('dip_threshold', -0.03)  # -3%
+        self.target_dte_days=config.get('target_dte_days', 30)
+        self.otm_percentage=config.get('otm_percentage', 0.05)  # 5%
+        self.max_position_size=config.get('max_position_size', 0.20)  # 20%
+        self.target_multiplier=config.get('target_multiplier', 3.0)  # 3x profit
+        self.delta_target=config.get('delta_target', 0.60)  # Delta exit
         
         # Universe of stocks to scan
-        self.universe = config.get('universe', [
+        self.universe=config.get('universe', [
             'AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA', 'AMD', 'AVGO', 'TSLA',
             'AMZN', 'NFLX', 'CRM', 'COST', 'ADBE', 'V', 'MA', 'LIN'
         ])
@@ -93,8 +93,8 @@ class ProductionWSBDipBot:
                     if signal: 
                         signals.append(signal)
                         self.logger.info(f"Dip signal detected for {ticker}: "
-                                       f"run = {signal.run_percentage: .2%}, "
-                                       f"dip = {signal.dip_percentage: .2%}")
+                                       f"run={signal.run_percentage: .2%}, "
+                                       f"dip={signal.dip_percentage: .2%}")
                 except Exception as e: 
                     self.logger.error(f"Error checking {ticker}: {e}")
                     continue
@@ -107,7 +107,7 @@ class ProductionWSBDipBot:
             return []
     
     async def _perform_preflight_checks(self): 
-        """Perform pre - trading safety checks"""
+        """Perform pre-trading safety checks"""
         try: 
             # Check position reconciliation
             reconciliation_report = await self.position_reconciler.reconcile_all_positions(auto_halt=True)
@@ -117,7 +117,7 @@ class ProductionWSBDipBot:
                 self.logger.error(f"Trading disabled due to position discrepancies: {reconciliation_report.critical_discrepancies} critical")
                 return
             
-            self.last_reconciliation = reconciliation_report.timestamp
+            self.last_reconciliation=reconciliation_report.timestamp
             
             # Check data source health
             data_health = await self.data_provider.get_data_source_health()
@@ -136,8 +136,8 @@ class ProductionWSBDipBot:
         """Advanced dip detection algorithm with technical indicators"""
         try: 
             # Get extended price history (30 days)
-            price_history = await self.data_provider.get_price_history(ticker, days = 30)
-            volume_history = await self.data_provider.get_volume_history(ticker, days = 30)
+            price_history = await self.data_provider.get_price_history(ticker, days=30)
+            volume_history = await self.data_provider.get_volume_history(ticker, days=30)
             
             if len(price_history)  <  30 or len(volume_history)  <  30: 
                 self.logger.warning(f"Insufficient data for {ticker}: {len(price_history)} price points, {len(volume_history)} volume points")
@@ -166,7 +166,7 @@ class ProductionWSBDipBot:
             volume_spike = recent_volume / avg_volume if avg_volume  >  0 else 1.0
             
             # 4. Technical indicators
-            rsi = self._calculate_rsi(price_history, period = 14)
+            rsi = self._calculate_rsi(price_history, period=14)
             bb_position = self._calculate_bollinger_position(price_history)
             
             # Signal strength scoring
@@ -187,14 +187,14 @@ class ProductionWSBDipBot:
                 risk_amount = expected_premium * Decimal('100')  # 1 contract = 100 shares
                 
                 return DipSignal(
-                    ticker = ticker,
-                    current_price = current_price,
-                    run_percentage = run_percentage,
-                    dip_percentage = dip_percentage,
-                    target_strike = target_strike,
+                    ticker=ticker,
+                    current_price=current_price,
+                    run_percentage=run_percentage,
+                    dip_percentage=dip_percentage,
+                    target_strike=target_strike,
                     target_expiry = datetime.now() + timedelta(days=self.target_dte_days),
-                    expected_premium = expected_premium,
-                    risk_amount = risk_amount,
+                    expected_premium=expected_premium,
+                    risk_amount=risk_amount,
                     confidence = min(0.95, signal_strength / 6.0),  # Scale to 0 - 95%
                     metadata = {
                         'volume_spike': volume_spike,
@@ -213,7 +213,7 @@ class ProductionWSBDipBot:
             self.logger.error(f"Error in advanced dip detection for {ticker}: {e}")
             return None
     
-    def _calculate_rsi(self, prices: List[Decimal], period: int = 14)->float:
+    def _calculate_rsi(self, prices: List[Decimal], period: int=14)->float:
         """Calculate RSI (Relative Strength Index)"""
         try: 
             if len(prices)  <  period + 1: 
@@ -246,7 +246,7 @@ class ProductionWSBDipBot:
             self.logger.error(f"Error calculating RSI: {e}")
             return 50.0
     
-    def _calculate_bollinger_position(self, prices: List[Decimal], period: int = 20, std_dev: float = 2.0)->float:
+    def _calculate_bollinger_position(self, prices: List[Decimal], period: int=20, std_dev: float=2.0)->float:
         """Calculate Bollinger Band position (0 - 1, where 0.5 is middle)"""
         try: 
             if len(prices)  <  period: 
@@ -267,11 +267,11 @@ class ProductionWSBDipBot:
             upper_band = sma + (std_dev * std)
             lower_band = sma - (std_dev * std)
             
-            # Calculate position (0 = lower band, 1 = upper band)
+            # Calculate position (0=lower band, 1=upper band)
             if upper_band ==  lower_band: 
                 return 0.5  # Avoid division by zero
             
-            position = (current_price - lower_band) / (upper_band - lower_band)
+            position = (current_price-lower_band) / (upper_band - lower_band)
             return max(0.0, min(1.0, position))  # Clamp to 0 - 1
             
         except Exception as e: 
@@ -318,12 +318,12 @@ class ProductionWSBDipBot:
                 return None
             
             # Select best option based on bid - ask spread and volume
-            best_option = min(suitable_options, key = lambda x: x['spread_ratio'])
+            best_option = min(suitable_options, key=lambda x: x['spread_ratio'])
             
             self.logger.info(f"Selected option for {dip_signal.ticker}: "
-                           f"Strike = {best_option['strike']}, "
-                           f"Bid = {best_option['bid']: .2f}, "
-                           f"Volume = {best_option['volume']}")
+                           f"Strike={best_option['strike']}, "
+                           f"Bid={best_option['bid']: .2f}, "
+                           f"Volume={best_option['volume']}")
             
             return best_option
             
@@ -454,7 +454,7 @@ class ProductionWSBDipBot:
         """Get recent volatility for dynamic profit targets"""
         try: 
             # Get recent price history
-            price_history = await self.data_provider.get_price_history(ticker, days = 20)
+            price_history = await self.data_provider.get_price_history(ticker, days=20)
             
             if len(price_history)  <  10: 
                 return 0.20  # Default moderate volatility
@@ -523,16 +523,15 @@ class ProductionWSBDipBot:
             
             # Calculate theoretical option price
             theoretical_price = await pricing_engine.calculate_theoretical_price(
-                ticker = ticker,
-                strike = strike,
-                expiry_date = expiry_date,
+                ticker=ticker,
+                strike=strike,
+                expiry_date=expiry_date,
                 option_type = "call",  # WSB dip bot uses calls
-                current_price = spot_price
-            )
+                current_price = spot_price)
             
             self.logger.info(
-                f"Real option pricing for {ticker}: Strike = ${strike}, "
-                f"Expiry = {expiry_date}, Spot = ${spot_price}, Premium = ${theoretical_price}"
+                f"Real option pricing for {ticker}: Strike=${strike}, "
+                f"Expiry={expiry_date}, Spot=${spot_price}, Premium=${theoretical_price}"
             )
             
             return theoretical_price
@@ -541,9 +540,9 @@ class ProductionWSBDipBot:
             self.logger.error(f"Error getting real option premium: {e}")
             
             # Fallback to simple intrinsic + minimal time value
-            intrinsic_value = max(Decimal('0.00'), spot_price - strike)
+            intrinsic_value = max(Decimal('0.00'), spot_price-strike)
             time_value = spot_price * Decimal('0.02')  # 2% of stock price as minimal time value
-            fallback_premium = intrinsic_value + time_value
+            fallback_premium = intrinsic_value+time_value
             
             self.logger.warning(f"Using fallback premium: ${fallback_premium}")
             return max(Decimal('0.01'), fallback_premium)  # Minimum $0.01
@@ -564,7 +563,7 @@ class ProductionWSBDipBot:
                 ticker = signal.ticker,
                 side = OrderSide.BUY,
                 order_type = OrderType.MARKET,
-                quantity = quantity,
+                quantity=quantity,
                 price = float(signal.expected_premium),
                 trade_type = "option",  # Would be "option" in real implementation
                 risk_amount = signal.risk_amount,
@@ -629,7 +628,7 @@ class ProductionWSBDipBot:
             # Check profit target (3x)
             # In real implementation, would check actual option price
             # For now, use simplified calculation
-            price_appreciation = float((current_price - position.current_price) / position.current_price)
+            price_appreciation = float((current_price-position.current_price) / position.current_price)
             
             if price_appreciation  >=  (self.target_multiplier - 1): 
                 return "profit_target"

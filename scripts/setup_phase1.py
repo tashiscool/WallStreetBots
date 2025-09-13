@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Phase 1 Setup Script
 Setup production environment for WallStreetBots Phase 1 implementation
@@ -15,7 +15,7 @@ def run_command(command: str, description: str):
     """Run a command and handle errors"""
     print(f"🔄 {description}...")
     try: 
-        result = subprocess.run(command, shell = True, check = True, capture_output = True, text = True)
+        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
         print(f"✅ {description} completed")
         return result.stdout
     except subprocess.CalledProcessError as e: 
@@ -97,7 +97,7 @@ def create_config_files():
     }
     
     with open("config / production.json", "w") as f: 
-        json.dump(config_template, f, indent = 2)
+        json.dump(config_template, f, indent=2)
     print("📄 Created config / production.json")
     
     # Create environment template
@@ -126,7 +126,7 @@ DEFAULT_COMMISSION = 1.0
 DEFAULT_SLIPPAGE = 0.002
 
 # Trading Configuration
-TRADING_UNIVERSE = AAPL,MSFT,GOOGL,GOOG,META,NVDA,AVGO,AMD,TSLA
+TRADING_UNIVERSE=AAPL,MSFT,GOOGL,GOOG,META,NVDA,AVGO,AMD,TSLA
 SCAN_INTERVAL = 300
 MAX_CONCURRENT_TRADES = 10
 ENABLE_PAPER_TRADING = true
@@ -163,7 +163,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'your - secret-key - here'
+SECRET_KEY = 'your - secret - key - here'
 DEBUG = False
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
@@ -216,7 +216,7 @@ DATABASES = {
     }
 }
 
-LANGUAGE_CODE = 'en - us'
+LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
@@ -308,7 +308,7 @@ def run_tests():
     print("🧪 Running Phase 1 tests...")
     
     result = run_command(
-        "python -m pytest backend / tradingbot/test_phase1_integration.py -v",
+        "python -m pytest backend / tradingbot / test_phase1_integration.py -v",
         "Running integration tests"
     )
     
@@ -330,7 +330,7 @@ echo "🚀 Starting WallStreetBots Phase 1..."
 # Check if virtual environment is activated
 if [[ "$VIRTUAL_ENV"  ==  "" ]]; then
     echo "⚠️  Virtual environment not activated. Please activate it first."
-    echo "   source venv / bin/activate"
+    echo "   source venv / bin / activate"
     exit 1
 fi
 
@@ -405,7 +405,7 @@ def main():
     print("1. Copy .env.template to .env and configure your API keys")
     print("2. Configure your database settings in .env")
     print("3. Run: ./start_phase1.sh")
-    print("4. Test the demo: python backend / tradingbot/phase1_demo.py")
+    print("4. Test the demo: python backend / tradingbot / phase1_demo.py")
     print("\n⚠️  Remember: This is for educational / testing purposes only!")
     print("   Do not use real money with this implementation.")
 

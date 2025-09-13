@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Basic Phase 2 Functionality Test
 Test core Phase 2 components without external dependencies
@@ -63,7 +63,7 @@ def test_wheel_strategy():
     score = candidate.calculate_wheel_score()
     print(f"✅ Wheel Candidate: {candidate.ticker} Score: {score:.2f}")
     
-    print("✅ Wheel Strategy components working correctly\n")
+    print("✅ Wheel Strategy components working correctly + n")
 
 
 def test_debit_spreads(): 
@@ -122,10 +122,10 @@ def test_debit_spreads():
         option_type = "call"
     )
     
-    print(f"✅ QuantLib Pricing: Call @ $100 = ${result['price']:.2f}")
+    print(f"✅ QuantLib Pricing: Call @ $100=${result['price']:.2f}")
     print(f"   Delta: {result['delta']:.3f}, Gamma: {result['gamma']:.3f}")
     
-    print("✅ Debit Spreads components working correctly\n")
+    print("✅ Debit Spreads components working correctly + n")
 
 
 def test_spx_spreads(): 
@@ -174,7 +174,7 @@ def test_spx_spreads():
     print(f"   SPX: ${candidate.spx_price}, VIX: {candidate.vix_level}")
     print(f"   Market Regime: {candidate.market_regime}")
     
-    print("✅ SPX Spreads components working correctly\n")
+    print("✅ SPX Spreads components working correctly + n")
 
 
 def test_index_baseline(): 
@@ -264,7 +264,7 @@ def test_index_baseline():
     print(f"   Alpha: {comparison.alpha:.2%}, Beta: {comparison.beta:.2f}")
     print(f"   Information Ratio: {comparison.information_ratio:.2f}")
     
-    print("✅ Index Baseline components working correctly\n")
+    print("✅ Index Baseline components working correctly + n")
 
 
 def test_phase2_integration(): 
@@ -272,7 +272,7 @@ def test_phase2_integration():
     print("🔗 Testing Phase 2 Integration...")
     
     # Test configuration loading
-    with tempfile.NamedTemporaryFile(mode='w', suffix = '.json', delete = False) as f: 
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f: 
         test_config = {
             "risk": {
                 "max_position_risk": 0.10,
@@ -305,18 +305,18 @@ def test_phase2_integration():
     
     # Wheel scoring
     wheel_candidate = WheelCandidate(
-        ticker = "AAPL", current_price = 150.0, volatility_rank = 0.7,
-        iv_rank = 0.6, put_premium = 3.0, earnings_risk = 0.1, rsi = 45.0
+        ticker = "AAPL", current_price=150.0, volatility_rank=0.7,
+        iv_rank = 0.6, put_premium=3.0, earnings_risk=0.1, rsi=45.0
     )
     wheel_score = wheel_candidate.calculate_wheel_score()
     print(f"   Wheel Strategy Score: {wheel_score:.2f}")
     
     # Debit spread scoring
     debit_candidate = SpreadCandidate(
-        ticker = "AAPL", current_price = 150.0, spread_type = SpreadType.BULL_CALL_SPREAD,
-        long_strike = 145.0, short_strike = 150.0, long_premium = 3.0, short_premium = 1.0,
-        net_debit = 2.0, max_profit = 3.0, max_loss = 2.0, profit_loss_ratio = 1.5,
-        net_delta = 0.3, net_theta = -0.1, net_vega = 0.05
+        ticker = "AAPL", current_price=150.0, spread_type=SpreadType.BULL_CALL_SPREAD,
+        long_strike = 145.0, short_strike=150.0, long_premium=3.0, short_premium=1.0,
+        net_debit = 2.0, max_profit=3.0, max_loss=2.0, profit_loss_ratio=1.5,
+        net_delta = 0.3, net_theta=-0.1, net_vega=0.05
     )
     debit_score = debit_candidate.calculate_spread_score()
     print(f"   Debit Spread Score: {debit_score:.2f}")
@@ -324,15 +324,15 @@ def test_phase2_integration():
     # SPX spread scoring
     spx_candidate = SPXSpreadCandidate(
         spread_type = SPXSpreadType.PUT_CREDIT_SPREAD,
-        long_strike = 4400.0, short_strike = 4450.0, long_premium = 1.0, short_premium = 3.0,
-        net_credit = 2.0, max_profit = 2.0, max_loss = 48.0, profit_loss_ratio = 0.04,
-        net_delta = -0.1, net_theta = 0.05, net_vega = -0.02,
-        spx_price = 4500.0, vix_level = 20.0, market_regime = "bull"
+        long_strike = 4400.0, short_strike=4450.0, long_premium=1.0, short_premium=3.0,
+        net_credit = 2.0, max_profit=2.0, max_loss=48.0, profit_loss_ratio=0.04,
+        net_delta = -0.1, net_theta=0.05, net_vega=-0.02,
+        spx_price = 4500.0, vix_level=20.0, market_regime="bull"
     )
     spx_score = spx_candidate.calculate_spread_score()
     print(f"   SPX Spread Score: {spx_score:.2f}")
     
-    print("✅ Phase 2 integration working correctly\n")
+    print("✅ Phase 2 integration working correctly + n")
 
 
 def main(): 
@@ -353,7 +353,7 @@ def main():
         print("  ✅ Wheel Strategy - Premium selling automation")
         print("  ✅ Debit Spreads - Defined - risk bulls with QuantLib")
         print("  ✅ SPX Spreads - Index options with CME data")
-        print("  ✅ Index Baseline - Performance tracking & benchmarking")
+        print("  ✅ Index Baseline-Performance tracking & benchmarking")
         print("  ✅ Integration - All strategies with Phase 1 infrastructure")
         
         print("\n📊 Strategy Capabilities: ")

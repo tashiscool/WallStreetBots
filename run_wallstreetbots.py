@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 WallStreetBots Launcher - Cross - platform executable launcher
 This script acts like a .exe/.bat file to launch the trading system
@@ -12,9 +12,9 @@ from pathlib import Path
 
 class WallStreetBotsLauncher: 
     def __init__(self): 
-        self.base_dir = Path(__file__).parent
-        self.system = platform.system().lower()
-        self.venv_path = self.base_dir / "venv"
+        self.base_dir=Path(__file__).parent
+        self.system=platform.system().lower()
+        self.venv_path=self.base_dir / "venv"
         
     def get_python_executable(self): 
         """Get the correct Python executable path for the platform"""
@@ -50,7 +50,7 @@ class WallStreetBotsLauncher:
         python_exe = self.get_python_executable()
         try: 
             result = subprocess.run([python_exe, "--version"], 
-                                  capture_output = True, text = True, timeout = 10)
+                                  capture_output=True, text=True, timeout=10)
             if result.returncode ==  0: 
                 print(f"✅ Python: {result.stdout.strip()}")
             else: 
@@ -79,11 +79,11 @@ class WallStreetBotsLauncher:
         try: 
             # Upgrade pip first
             subprocess.run([python_exe, "-m", "pip", "install", "--upgrade", "pip"], 
-                          check = True, cwd = self.base_dir)
+                          check=True, cwd=self.base_dir)
             
             # Install requirements
             subprocess.run([python_exe, "-m", "pip", "install", "-r", "requirements.txt"], 
-                          check = True, cwd = self.base_dir)
+                          check=True, cwd=self.base_dir)
             
             print("✅ Dependencies installed successfully")
             return True
@@ -107,7 +107,7 @@ class WallStreetBotsLauncher:
         print("9. ❌ Exit")
         print(" = "*50)
     
-    def run_simple_bot(self, real_money = False): 
+    def run_simple_bot(self, real_money=False): 
         """Run the simple trading bot"""
         python_exe = self.get_python_executable()
         
@@ -129,14 +129,14 @@ class WallStreetBotsLauncher:
             
             print(f"🚀 Starting {'Real Money' if real_money else 'Paper'} Trading Bot...")
             subprocess.run([python_exe, "simple_bot.py"], 
-                          cwd = self.base_dir, env = env)
+                          cwd = self.base_dir, env=env)
                           
         except KeyboardInterrupt: 
             print("\n🛑 Bot stopped by user")
         except subprocess.CalledProcessError as e: 
             print(f"❌ Bot failed to start: {e}")
     
-    def run_tests(self, test_type = "risk"): 
+    def run_tests(self, test_type="risk"): 
         """Run various test suites"""
         python_exe = self.get_python_executable()
         
@@ -154,7 +154,7 @@ class WallStreetBotsLauncher:
             
             print(f"🧪 Running {test_type} tests...")
             subprocess.run([python_exe, test_file], 
-                          cwd = self.base_dir, env = env)
+                          cwd = self.base_dir, env=env)
                           
         except subprocess.CalledProcessError as e: 
             print(f"❌ Tests failed: {e}")
@@ -170,7 +170,7 @@ class WallStreetBotsLauncher:
             print("🔧 Starting Django development server...")
             print("   Access admin at: http://localhost: 8000 / admin/")
             subprocess.run([python_exe, "manage.py", "runserver"], 
-                          cwd = self.base_dir, env = env)
+                          cwd = self.base_dir, env=env)
                           
         except KeyboardInterrupt: 
             print("\n🛑 Django server stopped")
@@ -187,7 +187,7 @@ class WallStreetBotsLauncher:
             
             print("📊 Running Risk Models Demo...")
             subprocess.run([python_exe, "demo_risk_models.py"], 
-                          cwd = self.base_dir, env = env)
+                          cwd = self.base_dir, env=env)
                           
         except subprocess.CalledProcessError as e: 
             print(f"❌ Demo failed: {e}")

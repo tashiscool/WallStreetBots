@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 # -*- coding: utf - 8 -*-
 """
 risk_engine_complete.py
@@ -31,7 +31,7 @@ def _validate_matrix(cov: np.ndarray)->np.ndarray:
     if cov.shape[0]  !=  cov.shape[1]: 
         raise RiskEngineError("covariance matrix must be square.")
     # make PSD
-    eigvals, eigvecs = np.linalg.eigh((cov + cov.T) / 2.0)
+    eigvals, eigvecs=np.linalg.eigh((cov + cov.T) / 2.0)
     eigvals[eigvals  <  0] = 0.0
     return (eigvecs @ np.diag(eigvals) @ eigvecs.T)
 
@@ -57,58 +57,58 @@ def _z(alpha: float)->float:
     phigh = 1 - plow
     if p  <  plow: 
         q = math.sqrt(-2 * math.log(p))
-        return (((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]) / \
-               ((((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1)
+        return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / \
+               ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1)
     if phigh  <  p: 
         q = math.sqrt(-2 * math.log(1 - p))
-        return -(((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]) / \
-                 ((((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1)
+        return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / \
+                 ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1)
     q = p - 0.5
     r = q * q
-    return (((((a[0]*r + a[1])*r + a[2])*r + a[3])*r + a[4])*r + a[5])*q / \
-           (((((b[0]*r + b[1])*r + b[2])*r + b[3])*r + b[4])*r + 1)
+    return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / \
+           (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1)
 
-def var_historical(returns: pd.Series, alpha: float = 0.99)->float:
+def var_historical(returns: pd.Series, alpha: float=0.99)->float:
     r = _validate_series(returns)
-    cutoff = np.quantile(r.values, 1 - alpha, interpolation = "linear")
+    cutoff = np.quantile(r.values, 1 - alpha, interpolation="linear")
     return float(-cutoff)
 
-def cvar_historical(returns: pd.Series, alpha: float = 0.99)->float:
+def cvar_historical(returns: pd.Series, alpha: float=0.99)->float:
     r = _validate_series(returns)
-    q = np.quantile(r.values, 1 - alpha, interpolation = "linear")
+    q = np.quantile(r.values, 1 - alpha, interpolation="linear")
     tail = r[r  <=  q]
     if tail.empty: 
         return float(-q)
     return float(-tail.mean())
 
-def var_parametric(returns: pd.Series, alpha: float = 0.99, use_student_t: bool = False, cornish_fisher: bool = True)->float:
+def var_parametric(returns: pd.Series, alpha: float=0.99, use_student_t: bool=False, cornish_fisher: bool=True)->float:
     r = _validate_series(returns)
-    mu, sigma = float(r.mean()), float(r.std(ddof=1))
+    mu, sigma=float(r.mean()), float(r.std(ddof=1))
     if sigma ==  0.0: 
         return 0.0
     zq = _z(alpha)
     if use_student_t: 
-        # Student t scale with nu = 5 fallback, heavier tails without scipy.
+        # Student t scale with nu=5 fallback, heavier tails without scipy.
         nu = 5.0
-        # t - quantile ~ Normal quantile * sqrt((nu - 2)/nu)
+        # t - quantile ~ Normal quantile * sqrt((nu - 2) / nu)
         zq *= math.sqrt((nu - 2.0) / nu)
     if cornish_fisher: 
         s = float(((r - mu) ** 3).mean() / (sigma ** 3 + 1e-12))
         k = float(((r - mu) ** 4).mean() / (sigma ** 4 + 1e-12)) - 3.0
-        z_adj = zq + (1 / 6)*(zq**2 - 1)*s + (1 / 24)*(zq**3 - 3 * zq)*k - (1 / 36)*(2 * zq**3 - 5 * zq)*(s**2)
+        z_adj = zq + (1 / 6)*(zq**2 - 1) * s + (1 / 24)*(zq**3 - 3 * zq) * k - (1 / 36)*(2 * zq**3 - 5 * zq)*(s**2)
         return float(-(mu + z_adj * sigma))
     return float(-(mu + zq * sigma))
 
-def cvar_parametric(returns: pd.Series, alpha: float = 0.99, use_student_t: bool = False)->float:
+def cvar_parametric(returns: pd.Series, alpha: float=0.99, use_student_t: bool=False)->float:
     r = _validate_series(returns)
-    mu, sigma = float(r.mean()), float(r.std(ddof=1))
+    mu, sigma=float(r.mean()), float(r.std(ddof=1))
     if sigma ==  0.0: 
         return 0.0
     zq = _z(alpha)
     if use_student_t: 
         nu = 5.0
         zq *= math.sqrt((nu - 2.0) / nu)
-    # Normal ES formula approximation (no scipy): ES = phi(z)/(1 - alpha)
+    # Normal ES formula approximation (no scipy): ES=phi(z)/(1 - alpha)
     phi = (1/ math.sqrt(2 * math.pi)) * math.exp(-0.5 * zq * zq)
     es = (phi / (1 - alpha))
     return float(-(mu + sigma * es))
@@ -117,18 +117,18 @@ def var_cvar_mc(
     mu: np.ndarray,
     cov: np.ndarray,
     weights: np.ndarray,
-    alpha: float = 0.99,
-    n_paths: int = 100_000,
-    student_t: bool = True,
-    df: int = 5
+    alpha: float=0.99,
+    n_paths: int=100_000,
+    student_t: bool=True,
+    df: int=5
 )->Tuple[float, float]: 
     if any(x is None for x in [mu, cov, weights]): 
         raise RiskEngineError("mu, cov, weights required")
-    mu = np.asarray(mu, dtype = float).reshape(-1)
-    weights = np.asarray(weights, dtype = float).reshape(-1)
-    cov = _validate_matrix(np.asarray(cov, dtype = float))
+    mu = np.asarray(mu, dtype=float).reshape(-1)
+    weights = np.asarray(weights, dtype=float).reshape(-1)
+    cov = _validate_matrix(np.asarray(cov, dtype=float))
     if mu.shape[0]  !=  cov.shape[0] or mu.shape[0]  !=  weights.shape[0]: 
-        raise RiskEngineError("Shape mismatch among mu / cov/weights")
+        raise RiskEngineError("Shape mismatch among mu / cov / weights")
 
     # Cholesky (with PSD guard)
     L = np.linalg.cholesky(cov + 1e-12 * np.eye(cov.shape[0]))
@@ -136,7 +136,7 @@ def var_cvar_mc(
     Z = np.random.standard_normal(size=(k, n_paths))
     if student_t: 
         # t - copula: scale normals by sqrt(df / ChiSq(df))
-        chi = np.random.chisquare(df, size = n_paths)
+        chi = np.random.chisquare(df, size=n_paths)
         Z = Z / np.sqrt(chi / df)
 
     sims = (mu.reshape(k,1) + L @ Z).T  # (n_paths x k)
@@ -146,7 +146,7 @@ def var_cvar_mc(
     cvar = -float(port[port  <=  q].mean()) if (port  <=  q).any() else var
     return var, cvar
 
-def liquidity_adjusted_var(var: float, bid_ask_bps: float = 10.0, slippage_bps: float = 5.0)->float:
+def liquidity_adjusted_var(var: float, bid_ask_bps: float=10.0, slippage_bps: float=5.0)->float:
     """Simple LVaR: add half - spread and slippage to VaR."""
     if var  <  0: 
         raise RiskEngineError("VaR must be non - negative")
@@ -156,7 +156,7 @@ def liquidity_adjusted_var(var: float, bid_ask_bps: float = 10.0, slippage_bps: 
 # ---------- Backtesting ----------
 
 def kupiec_pof(num_exceptions: int, T: int, alpha: float)->Dict[str, float]: 
-    """Kupiec Proportion - of-Failures test (likelihood ratio)."""
+    """Kupiec Proportion - of - Failures test (likelihood ratio)."""
     if T  <=  0 or not (0  <  alpha  <  1): 
         raise RiskEngineError("Invalid T or alpha.")
     pi = num_exceptions / T
@@ -166,15 +166,15 @@ def kupiec_pof(num_exceptions: int, T: int, alpha: float)->Dict[str, float]:
                  - ( (T - num_exceptions) * math.log(1 - pi) + num_exceptions * math.log(pi) ) )
     return {"exceptions": num_exceptions, "T": T, "alpha": alpha, "LR_pof": lr}
 
-def rolling_var_exceptions(returns: pd.Series, window: int = 250, alpha: float = 0.99)->Dict[str, float]: 
+def rolling_var_exceptions(returns: pd.Series, window: int=250, alpha: float=0.99)->Dict[str, float]: 
     r = _validate_series(returns)
     ex = 0
     for i in range(window, len(r)): 
         hist = r.iloc[i - window: i]
-        v = var_historical(hist, alpha = alpha)
+        v = var_historical(hist, alpha=alpha)
         if r.iloc[i]  <  -v: 
             ex += 1
-    stats = kupiec_pof(ex, len(r)-window, alpha)
+    stats = kupiec_pof(ex, len(r) - window, alpha)
     return {"exceptions": ex, **stats}
 
 # ---------- Stress Testing ----------
@@ -204,7 +204,7 @@ def stress_test_scenarios()->Dict[str, Dict[str, float]]:
         }
     }
 
-def apply_stress_scenario(returns: pd.Series, scenario: str, portfolio_value: float = 100000.0)->float:
+def apply_stress_scenario(returns: pd.Series, scenario: str, portfolio_value: float=100000.0)->float:
     """Apply stress scenario to portfolio returns."""
     scenarios = stress_test_scenarios()
     if scenario not in scenarios: 
@@ -228,8 +228,8 @@ def apply_stress_scenario(returns: pd.Series, scenario: str, portfolio_value: fl
 
 def calculate_greeks_risk(
     positions: List[Dict],
-    underlying_shock: float = 0.03,
-    vol_shock: float = 0.05
+    underlying_shock: float=0.03,
+    vol_shock: float=0.05
 )->Dict[str, float]: 
     """
     Calculate options Greeks risk for portfolio.
@@ -284,8 +284,8 @@ def check_risk_limits(
     var: float,
     cvar: float,
     portfolio_value: float,
-    max_var_pct: float = 0.05,
-    max_cvar_pct: float = 0.08
+    max_var_pct: float=0.05,
+    max_cvar_pct: float=0.08
 )->Dict[str, bool]: 
     """Check if risk metrics are within limits."""
     max_var = portfolio_value * max_var_pct
@@ -326,11 +326,11 @@ def calculate_strategy_risk_budget(
 if __name__ ==  "__main__": 
     np.random.seed(42)
     # Synthetic daily returns series
-    s = pd.Series(np.random.standard_t(df=5, size = 1500) * 0.01)
+    s = pd.Series(np.random.standard_t(df=5, size=1500) * 0.01)
     print("Hist VaR(99%): ", var_historical(s, 0.99))
     print("Hist CVaR(99%): ", cvar_historical(s, 0.99))
-    print("Param VaR(99%, CF): ", var_parametric(s, 0.99, use_student_t = True, cornish_fisher = True))
-    print("Param CVaR(99%, t): ", cvar_parametric(s, 0.99, use_student_t = True))
+    print("Param VaR(99%, CF): ", var_parametric(s, 0.99, use_student_t=True, cornish_fisher=True))
+    print("Param CVaR(99%, t): ", cvar_parametric(s, 0.99, use_student_t=True))
 
     # Portfolio Monte Carlo (3 assets)
     mu = np.array([0.0003, 0.0002, 0.0001])
@@ -338,12 +338,12 @@ if __name__ ==  "__main__":
                     [0.00003, 0.0002,  0.00004],
                     [0.00002, 0.00004, 0.00015]])
     w = np.array([0.5, 0.3, 0.2])
-    v, cv = var_cvar_mc(mu, cov, w, alpha = 0.99, n_paths = 100000, student_t = True, df = 5)
+    v, cv=var_cvar_mc(mu, cov, w, alpha=0.99, n_paths=100000, student_t=True, df=5)
     print("MC VaR(99%): ", v, "MC CVaR(99%): ", cv)
     print("LVaR(+15bps): ", liquidity_adjusted_var(v, 10, 5))
     
     # Backtesting
-    backtest_results = rolling_var_exceptions(s, window = 250, alpha = 0.99)
+    backtest_results = rolling_var_exceptions(s, window=250, alpha=0.99)
     print("Backtest - Exceptions: ", backtest_results['exceptions'])
     print("Backtest - Kupiec LR: ", backtest_results['LR_pof'])
     

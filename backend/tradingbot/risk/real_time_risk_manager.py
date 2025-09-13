@@ -39,8 +39,8 @@ class TradeSignal:
     option_type: Optional[str] = None
     strike: Optional[Decimal] = None
     expiry_date: Optional[datetime] = None
-    strategy: str = "UNKNOWN"
-    confidence: float = 0.0
+    strategy: str="UNKNOWN"
+    confidence: float=0.0
     
     @property
     def total_value(self)->Decimal: 
@@ -101,27 +101,27 @@ class RiskValidationResult:
 class RealTimeRiskManager: 
     """Advanced real - time risk management system"""
     
-    def __init__(self, alpaca_manager = None): 
+    def __init__(self, alpaca_manager=None): 
         self.alpaca_manager = alpaca_manager
         
         # Risk parameters (configurable)
-        self.max_portfolio_risk = Decimal('0.20')  # 20% max portfolio risk
-        self.max_single_position_risk = Decimal('0.05')  # 5% max per position
-        self.max_daily_loss = Decimal('0.10')  # 10% max daily loss
-        self.max_options_allocation = Decimal('0.15')  # 15% max in options
-        self.min_buying_power_buffer = Decimal('0.20')  # 20% buying power buffer
-        self.max_correlation_risk = Decimal('0.30')  # 30% max in correlated positions
+        self.max_portfolio_risk=Decimal('0.20')  # 20% max portfolio risk
+        self.max_single_position_risk=Decimal('0.05')  # 5% max per position
+        self.max_daily_loss=Decimal('0.10')  # 10% max daily loss
+        self.max_options_allocation=Decimal('0.15')  # 15% max in options
+        self.min_buying_power_buffer=Decimal('0.20')  # 20% buying power buffer
+        self.max_correlation_risk=Decimal('0.30')  # 30% max in correlated positions
         
         # Day trading limits
         self.max_day_trades = 3  # For non - PDT accounts
-        self.pdt_threshold = Decimal('25000')  # PDT threshold
+        self.pdt_threshold=Decimal('25000')  # PDT threshold
         
         # Risk tracking
-        self.risk_events = []
-        self.daily_losses = Decimal('0')
+        self.risk_events=[]
+        self.daily_losses=Decimal('0')
         self.last_account_update = None
         self.cached_account = None
-        self.cached_positions = []
+        self.cached_positions=[]
         
     async def validate_trade_safety(self, trade_signal: TradeSignal)->RiskValidationResult:
         """
@@ -134,7 +134,7 @@ class RealTimeRiskManager:
             
             # Initialize validation result
             result = RiskValidationResult(
-                approved = False,
+                approved=False,
                 validation_result = ValidationResult.REJECTED,
                 original_quantity = trade_signal.quantity,
                 approved_quantity = 0,
@@ -158,7 +158,7 @@ class RealTimeRiskManager:
             ]
             
             # Execute all checks concurrently
-            check_results = await asyncio.gather(*checks, return_exceptions = True)
+            check_results = await asyncio.gather(*checks, return_exceptions=True)
             
             # Process check results
             all_passed = True
@@ -197,16 +197,16 @@ class RealTimeRiskManager:
             
             if not all_passed: 
                 result.approved = False
-                result.validation_result = ValidationResult.REJECTED
-                result.reason = "Failed risk validation checks"
+                result.validation_result=ValidationResult.REJECTED
+                result.reason="Failed risk validation checks"
             elif approved_qty  <  trade_signal.quantity: 
                 result.approved = True
-                result.validation_result = ValidationResult.MODIFIED
+                result.validation_result=ValidationResult.MODIFIED
                 result.reason = f"Position size reduced from {trade_signal.quantity} to {approved_qty}"
             else: 
                 result.approved = True
-                result.validation_result = ValidationResult.APPROVED
-                result.reason = "All risk checks passed"
+                result.validation_result=ValidationResult.APPROVED
+                result.reason="All risk checks passed"
             
             # Log validation result
             await self._log_validation_result(trade_signal, result)
@@ -216,7 +216,7 @@ class RealTimeRiskManager:
         except Exception as e: 
             logger.error(f"Risk validation failed for {trade_signal.ticker}: {e}")
             return RiskValidationResult(
-                approved = False,
+                approved=False,
                 validation_result = ValidationResult.REJECTED,
                 original_quantity = trade_signal.quantity,
                 approved_quantity = 0,
@@ -256,7 +256,7 @@ class RealTimeRiskManager:
             
             # Cache the result
             self.cached_account = account_snapshot
-            self.last_account_update = datetime.now()
+            self.last_account_update=datetime.now()
             
             return account_snapshot
             
@@ -284,12 +284,11 @@ class RealTimeRiskManager:
                 position_summaries.append(PositionSummary(
                     ticker = pos.symbol,
                     quantity = int(pos.qty),
-                    market_value = market_val,
+                    market_value=market_val,
                     unrealized_pnl = Decimal(str(pos.unrealized_pnl)),
                     cost_basis = Decimal(str(pos.cost_basis)),
-                    position_type = position_type,
-                    risk_exposure = risk_exposure
-                ))
+                    position_type=position_type,
+                    risk_exposure = risk_exposure))
             
             self.cached_positions = position_summaries
             return position_summaries
@@ -455,13 +454,13 @@ class RealTimeRiskManager:
             )
             
             # Add proposed trade
-            total_options_value = current_options_value + trade_signal.total_value
+            total_options_value = current_options_value+trade_signal.total_value
             options_percentage = total_options_value / account.portfolio_value
             
             if options_percentage  >  self.max_options_allocation: 
                 # Calculate max allowed options quantity
                 max_options_value = account.portfolio_value * self.max_options_allocation
-                available_options_capacity = max_options_value - current_options_value
+                available_options_capacity = max_options_value-current_options_value
                 max_quantity = int(available_options_capacity / trade_signal.price) if trade_signal.price  >  0 else 0
                 
                 return (
@@ -488,7 +487,7 @@ class RealTimeRiskManager:
             )
             
             # This is a simplified check - in practice would use sector / correlation data
-            total_exposure = same_ticker_exposure + trade_signal.total_value
+            total_exposure = same_ticker_exposure+trade_signal.total_value
             
             # For now, just check if more than 10% in same ticker
             max_single_ticker = Decimal('0.10')  # 10% max in single ticker
@@ -537,7 +536,7 @@ class RealTimeRiskManager:
                 'current_risk_exposure': float(current_value),
                 'proposed_trade_value': float(trade_signal.total_value),
                 'portfolio_risk_percentage': float(current_value / account.portfolio_value),
-                'buying_power_utilization': float((account.portfolio_value - account.buying_power) / account.portfolio_value),
+                'buying_power_utilization': float((account.portfolio_value-account.buying_power) / account.portfolio_value),
                 'options_allocation': float(sum(
                     abs(pos.market_value) for pos in positions 
                     if pos.position_type ==  "option"
@@ -572,7 +571,7 @@ class RealTimeRiskManager:
             
             # Keep only last 1000 events
             if len(self.risk_events)  >  1000: 
-                self.risk_events = self.risk_events[-1000: ]
+                self.risk_events=self.risk_events[-1000: ]
                 
         except Exception as e: 
             logger.error(f"Failed to log validation result: {e}")

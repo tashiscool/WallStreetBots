@@ -52,7 +52,7 @@ class Metric:
     value: float
     timestamp: datetime
     labels: Dict[str, str] = field(default_factory=dict)
-    metric_type: MetricType = MetricType.GAUGE
+    metric_type: MetricType=MetricType.GAUGE
 
 
 @dataclass
@@ -74,11 +74,11 @@ class MetricsCollector:
     
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
-        self.metrics = defaultdict(lambda: deque(maxlen=10000))  # Store last 10k metrics per name
-        self.counters = defaultdict(float)
-        self.gauges = defaultdict(float)
-        self.histograms = defaultdict(list)
-        self.summaries = defaultdict(list)
+        self.metrics=defaultdict(lambda: deque(maxlen=10000))  # Store last 10k metrics per name
+        self.counters=defaultdict(float)
+        self.gauges=defaultdict(float)
+        self.histograms=defaultdict(list)
+        self.summaries=defaultdict(list)
         
         self.logger.info("MetricsCollector initialized")
     
@@ -102,7 +102,7 @@ class MetricsCollector:
         except Exception as e: 
             self.logger.error(f"Error recording metric: {e}")
     
-    def get_metric_value(self, name: str, metric_type: MetricType = MetricType.GAUGE)->float:
+    def get_metric_value(self, name: str, metric_type: MetricType=MetricType.GAUGE)->float:
         """Get current metric value"""
         try: 
             if metric_type ==  MetricType.COUNTER: 
@@ -122,7 +122,7 @@ class MetricsCollector:
             self.logger.error(f"Error getting metric value: {e}")
             return 0.0
     
-    def get_metric_history(self, name: str, minutes: int = 60)->List[Metric]:
+    def get_metric_history(self, name: str, minutes: int=60)->List[Metric]:
         """Get metric history for specified time period"""
         try: 
             cutoff_time = datetime.now() - timedelta(minutes=minutes)
@@ -134,7 +134,7 @@ class MetricsCollector:
             self.logger.error(f"Error getting metric history: {e}")
             return []
     
-    def get_metric_stats(self, name: str, minutes: int = 60)->Dict[str, float]: 
+    def get_metric_stats(self, name: str, minutes: int=60)->Dict[str, float]: 
         """Get metric statistics for specified time period"""
         try: 
             history = self.get_metric_history(name, minutes)
@@ -163,9 +163,9 @@ class AlertManager:
     def __init__(self, metrics_collector: MetricsCollector, logger: ProductionLogger):
         self.metrics_collector = metrics_collector
         self.logger = logger
-        self.alert_rules = {}
-        self.active_alerts = {}
-        self.alert_handlers = {}
+        self.alert_rules={}
+        self.active_alerts={}
+        self.alert_handlers={}
         
         self.logger.info("AlertManager initialized")
     
@@ -248,17 +248,17 @@ class AlertManager:
             metric_value = self.metrics_collector.get_metric_value(rule.condition)
             
             alert = Alert(
-                id = alert_id,
+                id=alert_id,
                 rule_name = rule.name,
                 level = rule.level,
                 message = f"Alert triggered: {rule.condition} {rule.comparison} {rule.threshold} (current: {metric_value:.2f})",
                 timestamp = datetime.now(),
-                value = metric_value,
+                value=metric_value,
                 threshold = rule.threshold
             )
             
             self.active_alerts[rule.name] = alert
-            rule.last_triggered = datetime.now()
+            rule.last_triggered=datetime.now()
             
             # Send to handlers
             await self._send_alert(alert)
@@ -274,7 +274,7 @@ class AlertManager:
             if rule_name in self.active_alerts: 
                 alert = self.active_alerts[rule_name]
                 alert.resolved = True
-                alert.resolved_at = datetime.now()
+                alert.resolved_at=datetime.now()
                 
                 del self.active_alerts[rule_name]
                 
@@ -324,7 +324,7 @@ class SystemMonitor:
                 return
             
             self.monitoring_active = True
-            self.monitoring_thread = threading.Thread(target=self._monitoring_loop, daemon = True)
+            self.monitoring_thread=threading.Thread(target=self._monitoring_loop, daemon=True)
             self.monitoring_thread.start()
             
             self.logger.info("System monitoring started")
@@ -373,7 +373,7 @@ class SystemMonitor:
             cpu_percent = psutil.cpu_percent(interval=1)
             self.metrics_collector.record_metric(Metric(
                 name = "system.cpu.usage",
-                value = cpu_percent,
+                value=cpu_percent,
                 timestamp = datetime.now(),
                 metric_type = MetricType.GAUGE
             ))
@@ -392,7 +392,7 @@ class SystemMonitor:
             disk_percent = (disk.used / disk.total) * 100
             self.metrics_collector.record_metric(Metric(
                 name = "system.disk.usage",
-                value = disk_percent,
+                value=disk_percent,
                 timestamp = datetime.now(),
                 metric_type = MetricType.GAUGE
             ))
@@ -582,7 +582,7 @@ class MonitoringDashboard:
             self.logger.error(f"Error getting active alerts: {e}")
             return []
     
-    def _get_recent_alerts(self, limit: int = 10)->List[Dict[str, Any]]: 
+    def _get_recent_alerts(self, limit: int=10)->List[Dict[str, Any]]: 
         """Get recent alerts"""
         try: 
             # Mock recent alerts - in production, this would come from a database
@@ -638,15 +638,15 @@ class Phase4Monitoring:
         self.logger = logger
         
         # Initialize components
-        self.metrics_collector = MetricsCollector(logger)
-        self.alert_manager = AlertManager(self.metrics_collector, logger)
+        self.metrics_collector=MetricsCollector(logger)
+        self.alert_manager=AlertManager(self.metrics_collector, logger)
         self.system_monitor = SystemMonitor(
             self.metrics_collector, 
             self.alert_manager, 
             config, 
             logger
         )
-        self.alert_handlers = AlertHandlers(logger)
+        self.alert_handlers=AlertHandlers(logger)
         self.dashboard = MonitoringDashboard(
             self.metrics_collector, 
             self.alert_manager, 
@@ -752,17 +752,16 @@ class Phase4Monitoring:
         """Get monitoring dashboard data"""
         return self.dashboard.get_dashboard_data()
     
-    def add_custom_metric(self, name: str, value: float, metric_type: MetricType = MetricType.GAUGE, 
+    def add_custom_metric(self, name: str, value: float, metric_type: MetricType=MetricType.GAUGE, 
                          labels: Dict[str, str] = None): 
         """Add a custom metric"""
         try: 
             metric = Metric(
-                name = name,
-                value = value,
+                name=name,
+                value=value,
                 timestamp = datetime.now(),
                 labels = labels or {},
-                metric_type = metric_type
-            )
+                metric_type = metric_type)
             
             self.metrics_collector.record_metric(metric)
             

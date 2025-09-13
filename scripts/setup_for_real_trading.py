@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 WallStreetBots - Complete Setup for Real Money Trading
 
@@ -40,9 +40,9 @@ This setup will configure WallStreetBots for REAL MONEY TRADING.
    ✅ Creates .env file with API key placeholders
    ✅ Validates production infrastructure
    ✅ Runs comprehensive test suite
-   ✅ Provides step - by-step setup instructions
+   ✅ Provides step - by - step setup instructions
 
-Do you want to continue? (y / N): """, end = "")
+Do you want to continue? (y / N): """, end="")
     
     response = input().strip().lower()
     if response  !=  'y': 
@@ -69,24 +69,24 @@ def install_dependencies():
         # Create virtual environment if it doesn't exist
         if not os.path.exists('venv'): 
             print("Creating virtual environment...")
-            subprocess.run([sys.executable, '-m', 'venv', 'venv'], check = True)
+            subprocess.run([sys.executable, '-m', 'venv', 'venv'], check=True)
             print("✅ Virtual environment created")
         
         # Determine pip path
         if os.name ==  'nt': # Windows
-            pip_path = 'venv\\Scripts\\pip'
-            python_path = 'venv\\Scripts\\python'
-        else:  # Unix / Linux/Mac
-            pip_path = 'venv / bin/pip'
-            python_path = 'venv / bin/python'
+            pip_path = 'venv + Scripts + pip'
+            python_path = 'venv + Scripts + python'
+        else:  # Unix / Linux / Mac
+            pip_path = 'venv / bin / pip'
+            python_path = 'venv / bin / python'
         
         # Upgrade pip
         print("Upgrading pip...")
-        subprocess.run([python_path, '-m', 'pip', 'install', '--upgrade', 'pip'], check = True)
+        subprocess.run([python_path, '-m', 'pip', 'install', '--upgrade', 'pip'], check=True)
         
         # Install requirements
         print("Installing requirements...")
-        subprocess.run([pip_path, 'install', '-r', 'requirements.txt'], check = True)
+        subprocess.run([pip_path, 'install', '-r', 'requirements.txt'], check=True)
         
         print("✅ All dependencies installed successfully")
         
@@ -131,15 +131,15 @@ def run_tests():
     try: 
         # Determine python path
         if os.name ==  'nt': # Windows
-            python_path = 'venv\\Scripts\\python'
-        else:  # Unix / Linux/Mac
-            python_path = 'venv / bin/python'
+            python_path = 'venv + Scripts + python'
+        else:  # Unix / Linux / Mac
+            python_path = 'venv / bin / python'
         
         print("Running all tests...")
         result = subprocess.run([
             python_path, '-m', 'pytest', 
             'backend / tradingbot/', '-v', '--tb = short'
-        ], capture_output = True, text = True)
+        ], capture_output=True, text=True)
         
         if result.returncode ==  0: 
             print("✅ All tests passed!")
@@ -158,7 +158,7 @@ def print_api_key_instructions():
     print_header("🔑 API Key Setup Instructions")
     
     instructions = """
-📋 STEP - BY-STEP API KEY SETUP: 
+📋 STEP - BY - STEP API KEY SETUP: 
 
 1. 🏦 ALPACA (Stock / Options Broker) - REQUIRED
    • Go to: https://alpaca.markets/
@@ -236,7 +236,7 @@ def print_usage_instructions():
    ✅ All API keys configured in backend/.env
    ✅ Set PAPER_TRADING_MODE = true initially
    ✅ Set reasonable position limits (1 - 2% max)
-   ✅ Tests passing (run: venv / bin/python -m pytest backend / tradingbot/)
+   ✅ Tests passing (run: venv / bin / python -m pytest backend / tradingbot/)
 
 2. 🧪 PAPER TRADING (SAFE): 
    # Test individual strategies
@@ -249,7 +249,7 @@ def print_usage_instructions():
 
 3. 💰 LIVE TRADING (REAL MONEY - BE CAREFUL): 
    # Start with safest strategies and tiny position sizes
-   python production_runner.py --live --strategies wheel --max - position-risk 0.01
+   python production_runner.py --live --strategies wheel --max - position - risk 0.01
    
    # NEVER start with high - risk strategies
    # python production_runner.py --live --strategies wsb_dip_bot  # DON'T DO THIS FIRST!
@@ -290,7 +290,7 @@ def print_usage_instructions():
 
 🎓 LEARNING RESOURCES: 
    • Read README_EXACT_CLONE.md for WSB strategy details
-   • Check backend / tradingbot/test_*.py for strategy behavior
+   • Check backend / tradingbot / test_*.py for strategy behavior
    • Monitor Phase 4 backtesting results
    • Join r / WallStreetBets for strategy discussions (carefully!)
 """

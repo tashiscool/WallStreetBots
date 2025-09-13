@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Simple Bot Test - Test the basic functionality
 """
@@ -17,11 +17,10 @@ async def test_simple_bot():
     manager = AlpacaManager(
         os.getenv('ALPACA_API_KEY', 'PKFUYPUACYYICLF36RE3'),
         os.getenv('ALPACA_SECRET_KEY', 'AiV6GeLGENOsL4wG93CCp123wVmkaHbg93dn2ws2'),
-        paper_trading = True
-    )
+        paper_trading = True)
     
     # Test connection
-    success, msg = manager.validate_api()
+    success, msg=manager.validate_api()
     print(f"✅ Connection: {success} - {msg}")
     
     if success: 
@@ -35,7 +34,7 @@ async def test_simple_bot():
         print(f"📊 Open positions: {len(positions)}")
         
         # Test a simple price check
-        success, price = manager.get_price('AAPL')
+        success, price=manager.get_price('AAPL')
         if success: 
             print(f"🍎 AAPL price: ${price:.2f}")
         else: 

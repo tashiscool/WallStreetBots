@@ -64,7 +64,7 @@ class OptionsAnalysis:
     break_even_price: Decimal
     max_profit_potential: Optional[Decimal]
     
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -72,15 +72,15 @@ class SelectionCriteria:
     """Options selection criteria"""
     target_dte_min: int = 21          # Minimum days to expiry
     target_dte_max: int = 45          # Maximum days to expiry
-    target_otm_min: float = 0.02      # Minimum 2% OTM
-    target_otm_max: float = 0.10      # Maximum 10% OTM
+    target_otm_min: float=0.02      # Minimum 2% OTM
+    target_otm_max: float=0.10      # Maximum 10% OTM
     min_volume: int = 50              # Minimum daily volume
     min_open_interest: int = 100      # Minimum open interest
-    max_spread_percentage: float = 0.15  # Maximum 15% bid - ask spread
-    min_liquidity_rating: LiquidityRating = LiquidityRating.FAIR
-    target_delta_min: float = 0.15    # Minimum delta
-    target_delta_max: float = 0.45    # Maximum delta
-    max_premium_to_stock_ratio: float = 0.05  # Max 5% of stock price
+    max_spread_percentage: float=0.15  # Maximum 15% bid - ask spread
+    min_liquidity_rating: LiquidityRating=LiquidityRating.FAIR
+    target_delta_min: float=0.15    # Minimum delta
+    target_delta_max: float=0.45    # Maximum delta
+    max_premium_to_stock_ratio: float=0.05  # Max 5% of stock price
 
 
 class SmartOptionsSelector: 
@@ -95,16 +95,16 @@ class SmartOptionsSelector:
     - WSB suitability scoring
     """
     
-    def __init__(self, data_provider = None, pricing_engine = None): 
+    def __init__(self, data_provider=None, pricing_engine=None): 
         self.data_provider = data_provider
         self.pricing_engine = pricing_engine
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Default selection criteria (can be overridden)
-        self.default_criteria = SelectionCriteria()
+        self.default_criteria=SelectionCriteria()
         
         # Liquidity thresholds
-        self.liquidity_thresholds = {
+        self.liquidity_thresholds={
             'excellent': {'min_volume':1000, 'min_oi': 5000, 'max_spread': 0.05},
             'good': {'min_volume':500, 'min_oi': 2000, 'max_spread': 0.08},
             'fair': {'min_volume':100, 'min_oi': 500, 'max_spread': 0.15},
@@ -114,7 +114,7 @@ class SmartOptionsSelector:
         self.logger.info("SmartOptionsSelector initialized")
     
     async def select_optimal_call_option(self, ticker: str, spot_price: Decimal, 
-                                       signal_strength: int = 5,
+                                       signal_strength: int=5,
                                        custom_criteria: Optional[SelectionCriteria] = None)->Optional[OptionsAnalysis]:
         """
         Select optimal call option for WSB dip bot strategy
@@ -164,7 +164,7 @@ class SmartOptionsSelector:
                 return None
             
             # Sort by overall score and return best option
-            analyzed_options.sort(key=lambda x: x.overall_score, reverse = True)
+            analyzed_options.sort(key=lambda x: x.overall_score, reverse=True)
             best_option = analyzed_options[0]
             
             self.logger.info(
@@ -185,25 +185,25 @@ class SmartOptionsSelector:
         
         # Adjust criteria based on signal strength
         if signal_strength  >=  8:  # Very strong signal
-            criteria.target_otm_min = 0.01  # 1% OTM
-            criteria.target_otm_max = 0.05  # 5% OTM
+            criteria.target_otm_min=0.01  # 1% OTM
+            criteria.target_otm_max=0.05  # 5% OTM
             criteria.target_dte_min = 25    # Slightly more time
             criteria.target_dte_max = 40
             criteria.min_volume = 25        # Accept lower volume for better strikes
             criteria.min_open_interest = 50
         elif signal_strength  >=  6:  # Strong signal
-            criteria.target_otm_min = 0.02  # 2% OTM
-            criteria.target_otm_max = 0.07  # 7% OTM
+            criteria.target_otm_min=0.02  # 2% OTM
+            criteria.target_otm_max=0.07  # 7% OTM
             criteria.target_dte_min = 21
             criteria.target_dte_max = 42
         elif signal_strength  >=  4:  # Medium signal
-            criteria.target_otm_min = 0.03  # 3% OTM
-            criteria.target_otm_max = 0.08  # 8% OTM
+            criteria.target_otm_min=0.03  # 3% OTM
+            criteria.target_otm_max=0.08  # 8% OTM
             criteria.target_dte_min = 21
             criteria.target_dte_max = 45
         else:  # Weaker signal
-            criteria.target_otm_min = 0.05  # 5% OTM
-            criteria.target_otm_max = 0.10  # 10% OTM
+            criteria.target_otm_min=0.05  # 5% OTM
+            criteria.target_otm_max=0.10  # 10% OTM
             criteria.target_dte_min = 28    # More time for weaker signals
             criteria.target_dte_max = 50
             criteria.min_volume = 100       # Higher liquidity requirements
@@ -261,13 +261,13 @@ class SmartOptionsSelector:
             if isinstance(expiry_date, datetime): 
                 expiry_date = expiry_date.date()
             
-            days_to_expiry = (expiry_date - date.today()).days
+            days_to_expiry = (expiry_date-date.today()).days
             
             # Calculate premium to stock ratio
             premium_to_stock_ratio = float(mid_price / spot_price) if spot_price  >  0 else 0
             
             # Calculate break - even
-            break_even_price = option.strike + mid_price
+            break_even_price = option.strike+mid_price
             
             # Assess liquidity
             liquidity_rating = self._assess_liquidity(option.volume, option.open_interest, spread_percentage)
@@ -295,30 +295,30 @@ class SmartOptionsSelector:
             return OptionsAnalysis(
                 ticker = option.ticker,
                 strike = option.strike,
-                expiry = expiry_date,
+                expiry=expiry_date,
                 option_type = option.option_type,
                 bid = option.bid,
                 ask = option.ask,
-                mid_price = mid_price,
+                mid_price=mid_price,
                 last_price = option.last_price,
                 volume = option.volume,
                 open_interest = option.open_interest,
-                bid_ask_spread = bid_ask_spread,
-                spread_percentage = spread_percentage,
-                liquidity_rating = liquidity_rating,
+                bid_ask_spread=bid_ask_spread,
+                spread_percentage=spread_percentage,
+                liquidity_rating=liquidity_rating,
                 delta = option.delta,
                 gamma = option.gamma,
                 theta = option.theta,
                 vega = option.vega,
                 implied_volatility = option.implied_volatility,
-                wsb_suitability_score = wsb_suitability_score,
-                liquidity_score = liquidity_score,
-                value_score = value_score,
-                overall_score = overall_score,
-                days_to_expiry = days_to_expiry,
-                moneyness = moneyness,
-                premium_to_stock_ratio = premium_to_stock_ratio,
-                break_even_price = break_even_price,
+                wsb_suitability_score=wsb_suitability_score,
+                liquidity_score=liquidity_score,
+                value_score=value_score,
+                overall_score=overall_score,
+                days_to_expiry=days_to_expiry,
+                moneyness=moneyness,
+                premium_to_stock_ratio=premium_to_stock_ratio,
+                break_even_price=break_even_price,
                 max_profit_potential = None  # Unlimited for calls
             )
             
@@ -548,7 +548,7 @@ class SmartOptionsSelector:
             return False
     
     async def get_selection_summary(self, ticker: str, spot_price: Decimal, 
-                                  signal_strength: int = 5)->Dict[str, Any]: 
+                                  signal_strength: int=5)->Dict[str, Any]: 
         """Get comprehensive summary of available options"""
         try: 
             criteria = self._get_dynamic_criteria(signal_strength)
@@ -574,8 +574,8 @@ class SmartOptionsSelector:
                         meeting_criteria.append(analysis)
             
             # Sort by score
-            analyzed_options.sort(key=lambda x: x.overall_score, reverse = True)
-            meeting_criteria.sort(key=lambda x: x.overall_score, reverse = True)
+            analyzed_options.sort(key=lambda x: x.overall_score, reverse=True)
+            meeting_criteria.sort(key=lambda x: x.overall_score, reverse=True)
             
             return {
                 'ticker': ticker,
@@ -612,6 +612,6 @@ class SmartOptionsSelector:
             return {'error': str(e)}
 
 
-def create_smart_options_selector(data_provider=None, pricing_engine = None)->SmartOptionsSelector: 
+def create_smart_options_selector(data_provider=None, pricing_engine=None)->SmartOptionsSelector: 
     """Factory function to create smart options selector"""
     return SmartOptionsSelector(data_provider, pricing_engine)

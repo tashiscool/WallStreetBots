@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Demo Advanced Risk Models - 2025 Implementation
 Practical demonstration of sophisticated risk management capabilities
@@ -86,7 +86,7 @@ def demo_var_analysis():
     # Calculate comprehensive VaR suite
     print("Calculating VaR Suite...")
     var_suite = var_engine.calculate_var_suite(
-        returns = returns,
+        returns=returns,
         confidence_levels = [0.95, 0.99, 0.999],
         methods = ['parametric', 'historical', 'monte_carlo', 'evt']
     )
@@ -131,7 +131,7 @@ def demo_var_analysis():
 
 def demo_stress_testing(): 
     """Demonstrate stress testing capabilities"""
-    print("\n\n🚨 Stress Testing Demo")
+    print("\n + n🚨 Stress Testing Demo")
     print(" = " * 50)
     
     # Create portfolio
@@ -164,7 +164,7 @@ def demo_stress_testing():
 
 def demo_ml_risk_prediction(): 
     """Demonstrate ML risk prediction capabilities"""
-    print("\n\n🤖 ML Risk Prediction Demo")
+    print("\n + n🤖 ML Risk Prediction Demo")
     print(" = " * 50)
     
     # Create portfolio with market data
@@ -176,7 +176,7 @@ def demo_ml_risk_prediction():
     
     # Volatility prediction
     print("Volatility Prediction: ")
-    vol_forecast = ml_predictor.predict_volatility_regime(market_data, horizon_days = 5)
+    vol_forecast = ml_predictor.predict_volatility_regime(market_data, horizon_days=5)
     
     print(f"  Predicted Volatility (5 - day): {vol_forecast.predicted_volatility:.2%}")
     print(f"  Confidence Interval: {vol_forecast.confidence_interval[0]:.2%} - {vol_forecast.confidence_interval[1]: .2%}")
@@ -202,7 +202,7 @@ def demo_ml_risk_prediction():
 
 def demo_risk_dashboard(): 
     """Demonstrate comprehensive risk dashboard"""
-    print("\n\n📊 Risk Dashboard Demo")
+    print("\n + n📊 Risk Dashboard Demo")
     print(" = " * 50)
     
     # Create portfolio
@@ -273,7 +273,7 @@ def demo_risk_dashboard():
 
 def demo_risk_management_workflow(): 
     """Demonstrate complete risk management workflow"""
-    print("\n\n🔄 Complete Risk Management Workflow Demo")
+    print("\n + n🔄 Complete Risk Management Workflow Demo")
     print(" = " * 60)
     
     # Create portfolio
@@ -289,19 +289,19 @@ def demo_risk_management_workflow():
     
     print("\nStep 2: VaR Analysis")
     print("-" * 30)
-    var_engine, var_suite = demo_var_analysis()
+    var_engine, var_suite=demo_var_analysis()
     
     print("\nStep 3: Stress Testing")
     print("-" * 30)
-    stress_tester, stress_report = demo_stress_testing()
+    stress_tester, stress_report=demo_stress_testing()
     
     print("\nStep 4: ML Risk Prediction")
     print("-" * 30)
-    ml_predictor, risk_prediction = demo_ml_risk_prediction()
+    ml_predictor, risk_prediction=demo_ml_risk_prediction()
     
     print("\nStep 5: Risk Dashboard")
     print("-" * 30)
-    dashboard, dashboard_data = demo_risk_dashboard()
+    dashboard, dashboard_data=demo_risk_dashboard()
     
     print("\nStep 6: Risk Management Recommendations")
     print("-" * 30)
@@ -346,7 +346,7 @@ def main():
         # Run complete workflow demo
         demo_risk_management_workflow()
         
-        print("\n\n🎉 Demo completed successfully!")
+        print("\n + n🎉 Demo completed successfully!")
         print("\nKey Features Demonstrated: ")
         print("✅ Multi - method VaR calculation (Parametric, Historical, Monte Carlo, EVT)")
         print("✅ FCA - compliant stress testing with 6 regulatory scenarios")

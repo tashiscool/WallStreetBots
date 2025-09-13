@@ -36,16 +36,16 @@ class TestWheelStrategy(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.mock_trading = Mock()
-        self.mock_data = Mock()
-        self.mock_config = Mock()
-        self.mock_logger = Mock()
+        self.mock_trading=Mock()
+        self.mock_data=Mock()
+        self.mock_config=Mock()
+        self.mock_logger=Mock()
         
         # Setup mock config
         self.mock_config.trading.max_concurrent_trades = 5
-        self.mock_config.risk.max_position_risk = 0.10
-        self.mock_config.risk.account_size = 100000.0
-        self.mock_config.trading.universe = ["AAPL", "MSFT", "GOOGL"]
+        self.mock_config.risk.max_position_risk=0.10
+        self.mock_config.risk.account_size=100000.0
+        self.mock_config.trading.universe=["AAPL", "MSFT", "GOOGL"]
         
         self.wheel_strategy = ProductionWheelStrategy(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
@@ -112,7 +112,7 @@ class TestWheelStrategy(unittest.TestCase):
         self.assertEqual(pnl, 200.0)  # Full premium if stock stays above strike
         
         # Cash secured put - loss scenario
-        position.current_price = 140.0  # Stock below strike
+        position.current_price=140.0  # Stock below strike
         pnl = position.calculate_unrealized_pnl()
         expected_loss = (145.0 - 140.0) * 100  # $500 loss
         expected_pnl = 200.0 - expected_loss  # Premium - loss
@@ -147,17 +147,17 @@ class TestWheelStrategy(unittest.TestCase):
         
         # Mock market data
         mock_market_data = Mock()
-        mock_market_data.price = 150.0
-        mock_data_instance.get_market_data = AsyncMock(return_value=mock_market_data)
+        mock_market_data.price=150.0
+        mock_data_instance.get_market_data=AsyncMock(return_value=mock_market_data)
         
         # Mock options data
         mock_options_data = [
-            Mock(strike=145.0, option_type = 'put', bid = 2.0, ask = 2.2, delta = -0.3, theta = -0.05, vega = 0.1)
+            Mock(strike=145.0, option_type='put', bid=2.0, ask=2.2, delta=-0.3, theta=-0.05, vega=0.1)
         ]
-        mock_data_instance.get_options_data = AsyncMock(return_value=mock_options_data)
+        mock_data_instance.get_options_data=AsyncMock(return_value=mock_options_data)
         
         # Mock earnings data
-        mock_data_instance.get_earnings_data = AsyncMock(return_value=[])
+        mock_data_instance.get_earnings_data=AsyncMock(return_value=[])
         
         # Create strategy with mocked data
         strategy = ProductionWheelStrategy(
@@ -177,16 +177,16 @@ class TestDebitSpreads(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.mock_trading = Mock()
-        self.mock_data = Mock()
-        self.mock_config = Mock()
-        self.mock_logger = Mock()
+        self.mock_trading=Mock()
+        self.mock_data=Mock()
+        self.mock_config=Mock()
+        self.mock_logger=Mock()
         
         # Setup mock config
         self.mock_config.trading.max_concurrent_trades = 5
-        self.mock_config.risk.max_position_risk = 0.10
-        self.mock_config.risk.account_size = 100000.0
-        self.mock_config.trading.universe = ["AAPL", "MSFT", "GOOGL"]
+        self.mock_config.risk.max_position_risk=0.10
+        self.mock_config.risk.account_size=100000.0
+        self.mock_config.trading.universe=["AAPL", "MSFT", "GOOGL"]
         
         self.debit_spreads = ProductionDebitSpreads(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
@@ -295,15 +295,15 @@ class TestSPXSpreads(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.mock_trading = Mock()
-        self.mock_data = Mock()
-        self.mock_config = Mock()
-        self.mock_logger = Mock()
+        self.mock_trading=Mock()
+        self.mock_data=Mock()
+        self.mock_config=Mock()
+        self.mock_logger=Mock()
         
         # Setup mock config
         self.mock_config.trading.max_concurrent_trades = 5
-        self.mock_config.risk.max_position_risk = 0.10
-        self.mock_config.risk.account_size = 100000.0
+        self.mock_config.risk.max_position_risk=0.10
+        self.mock_config.risk.account_size=100000.0
         
         self.spx_spreads = ProductionSPXSpreads(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
@@ -400,10 +400,10 @@ class TestIndexBaseline(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.mock_trading = Mock()
-        self.mock_data = Mock()
-        self.mock_config = Mock()
-        self.mock_logger = Mock()
+        self.mock_trading=Mock()
+        self.mock_data=Mock()
+        self.mock_config=Mock()
+        self.mock_logger=Mock()
         
         self.index_baseline = ProductionIndexBaseline(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
@@ -513,7 +513,7 @@ class TestIndexBaseline(unittest.TestCase):
         strategy_returns = [0.01, 0.02, -0.01, 0.015, 0.005]
         benchmark_returns = [0.008, 0.018, -0.012, 0.012, 0.003]
         
-        alpha, beta = calculator.calculate_alpha_beta(strategy_returns, benchmark_returns)
+        alpha, beta=calculator.calculate_alpha_beta(strategy_returns, benchmark_returns)
         
         self.assertIsInstance(alpha, float)
         self.assertIsInstance(beta, float)
@@ -525,8 +525,8 @@ class TestPhase2Integration(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.temp_dir = tempfile.mkdtemp()
-        self.config_file = os.path.join(self.temp_dir, "test_config.json")
+        self.temp_dir=tempfile.mkdtemp()
+        self.config_file=os.path.join(self.temp_dir, "test_config.json")
         
         # Create test configuration
         test_config = {
@@ -584,10 +584,10 @@ class TestPhase2Integration(unittest.TestCase):
     async def test_phase2_strategy_manager(self, mock_logger, mock_config, mock_data, mock_trading): 
         """Test Phase 2 strategy manager"""
         # Mock the factory functions
-        mock_trading.return_value = Mock()
-        mock_data.return_value = Mock()
-        mock_config.return_value.load_config.return_value = Mock()
-        mock_logger.return_value = Mock()
+        mock_trading.return_value=Mock()
+        mock_data.return_value=Mock()
+        mock_config.return_value.load_config.return_value=Mock()
+        mock_logger.return_value=Mock()
         
         # Create strategy manager
         config = Mock()
@@ -607,20 +607,20 @@ class TestPhase2Integration(unittest.TestCase):
 
 
 class TestPhase2EndToEnd(unittest.TestCase): 
-    """End - to-end tests for Phase 2"""
+    """End - to - end tests for Phase 2"""
     
     def setUp(self): 
         """Setup test environment"""
-        self.mock_trading = Mock()
-        self.mock_data = Mock()
-        self.mock_config = Mock()
-        self.mock_logger = Mock()
+        self.mock_trading=Mock()
+        self.mock_data=Mock()
+        self.mock_config=Mock()
+        self.mock_logger=Mock()
         
         # Setup comprehensive mock config
         self.mock_config.trading.max_concurrent_trades = 5
-        self.mock_config.risk.max_position_risk = 0.10
-        self.mock_config.risk.account_size = 100000.0
-        self.mock_config.trading.universe = ["AAPL", "MSFT", "GOOGL"]
+        self.mock_config.risk.max_position_risk=0.10
+        self.mock_config.risk.account_size=100000.0
+        self.mock_config.trading.universe=["AAPL", "MSFT", "GOOGL"]
     
     def test_wheel_strategy_workflow(self): 
         """Test complete wheel strategy workflow"""

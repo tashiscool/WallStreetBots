@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 🧪 Complete Risk Bundle Test Suite
 
@@ -41,17 +41,17 @@ class TestCompleteRiskBundle(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.risk_engine = RiskEngine('test_risk.db')
-        self.db = RiskDatabase('test_database.db')
+        self.risk_engine=RiskEngine('test_risk.db')
+        self.db=RiskDatabase('test_database.db')
         self.db.setup()
         
         # Create test portfolio data
-        self.test_symbols = ['AAPL', 'GOOGL', 'TSLA']
-        self.test_weights = [0.4, 0.4, 0.2]
+        self.test_symbols=['AAPL', 'GOOGL', 'TSLA']
+        self.test_weights=[0.4, 0.4, 0.2]
         
         # Generate synthetic returns for testing
         np.random.seed(42)  # Reproducible tests
-        dates = pd.date_range(start='2023 - 01-01', end = '2024 - 12-31', freq = 'D')
+        dates = pd.date_range(start='2023 - 01 - 01', end='2024 - 12 - 31', freq='D')
         
         # Create realistic return data with proper characteristics
         for symbol in self.test_symbols: 
@@ -63,7 +63,7 @@ class TestCompleteRiskBundle(unittest.TestCase):
                 'High': prices * 1.02,
                 'Low': prices * 0.98,
                 'Volume': np.random.randint(1000000, 10000000, len(dates))
-            }, index = dates)
+            }, index=dates)
             
             self.risk_engine.portfolio_data[symbol] = {
                 'data': hist_data,

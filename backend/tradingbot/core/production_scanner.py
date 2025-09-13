@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Production Hard Dip Scanner - Integrated Best of Both Worlds
 
@@ -65,7 +65,7 @@ def to_pct(value: float)->str:
     """Format as percentage"""
     return f"{value * 100: .2f}%"
 
-def round_to_increment(x: float, inc: float = 1.0)->float:
+def round_to_increment(x: float, inc: float=1.0)->float:
     """Round to nearest increment (for strikes)"""
     return round(x / inc) * inc
 
@@ -81,7 +81,7 @@ def nearest_expiry(expiries: List[str], target_days: int)->Optional[str]:
     for expiry_str in expiries: 
         try: 
             expiry_date = datetime.strptime(expiry_str, "%Y-%m-%d").date()
-            days_diff = abs((expiry_date - today).days - target_days)
+            days_diff = abs((expiry_date-today).days - target_days)
             if days_diff  <  best_diff: 
                 best_diff = days_diff
                 best_expiry = expiry_str
@@ -101,7 +101,7 @@ def bs_call_price(spot: float, strike: float, t_years: float,
     if any(val  <=  0 for val in [spot, strike, t_years, iv]): 
         raise ValueError("Invalid BS parameters")
 
-    d1 = (math.log(spot / strike) + (r - q + 0.5 * iv*iv)*t_years) / (iv * math.sqrt(t_years))
+    d1 = (math.log(spot / strike) + (r - q + 0.5 * iv * iv) * t_years) / (iv * math.sqrt(t_years))
     d2 = d1 - iv * math.sqrt(t_years)
 
     call_value = (spot * math.exp(-q * t_years) * _norm_cdf(d1) -
@@ -174,11 +174,11 @@ class ScanResults:
 
 
 # ---------- Market Data Functions ----------
-def fetch_daily_history(ticker: str, period: str = "90d")->pd.DataFrame:
+def fetch_daily_history(ticker: str, period: str="90d")->pd.DataFrame:
     """Fetch daily price history with error handling"""
     try: 
         ticker_obj = yf.Ticker(ticker)
-        df = ticker_obj.history(period=period, interval = "1d", auto_adjust = False)
+        df = ticker_obj.history(period=period, interval="1d", auto_adjust=False)
 
         if df.empty: 
             raise ValueError(f"No data returned for {ticker}")
@@ -200,13 +200,13 @@ def fetch_current_price(ticker: str)->Optional[Dict[str, float]]:
         ticker_obj = yf.Ticker(ticker)
 
         # Get prior close from daily data
-        daily_hist = ticker_obj.history(period="5d", interval = "1d")
+        daily_hist = ticker_obj.history(period="5d", interval="1d")
         if len(daily_hist)  <  2: 
             return None
         prior_close = float(daily_hist["Close"].iloc[-2])
 
         # Get recent price from 5 - minute data
-        intraday_hist = ticker_obj.history(period="2d", interval = "5m")
+        intraday_hist = ticker_obj.history(period="2d", interval="5m")
         if intraday_hist.empty: 
             return None
         current_price = float(intraday_hist["Close"].iloc[-1])
@@ -248,10 +248,10 @@ def get_options_chain_data(ticker: str, expiry: str, target_strike: float)->Opti
 
 # ---------- Signal Detection ----------
 def detect_eod_signal(ticker: str,
-                      run_lookback: int = RUN_LOOKBACK,
-                      run_pct: float = RUN_PCT,
-                      dip_pct: float = DIP_PCT)->Optional[DipSignal]:
-    """Detect end - of-day hard dip signal after big run"""
+                      run_lookback: int=RUN_LOOKBACK,
+                      run_pct: float=RUN_PCT,
+                      dip_pct: float=DIP_PCT)->Optional[DipSignal]:
+    """Detect end - of - day hard dip signal after big run"""
 
     try: 
         df = fetch_daily_history(ticker)
@@ -281,12 +281,12 @@ def detect_eod_signal(ticker: str,
             return None
 
         return DipSignal(
-            ticker = ticker,
+            ticker=ticker,
             timestamp_ny = now_ny().isoformat(),
             spot_price = float(today["Close"]),
             prior_close = float(yesterday["Close"]),
             dip_percentage = float(day_change),
-            run_lookback_days = run_lookback,
+            run_lookback_days=run_lookback,
             run_return = float(run_return),
             signal_type = "eod"
         )
@@ -295,9 +295,9 @@ def detect_eod_signal(ticker: str,
         return None
 
 def detect_intraday_signal(ticker: str,
-                          run_lookback: int = RUN_LOOKBACK,
-                          run_pct: float = RUN_PCT,
-                          dip_pct: float = DIP_PCT)->Optional[DipSignal]:
+                          run_lookback: int=RUN_LOOKBACK,
+                          run_pct: float=RUN_PCT,
+                          dip_pct: float=DIP_PCT)->Optional[DipSignal]:
     """Detect intraday hard dip signal after big run"""
 
     try: 
@@ -332,12 +332,12 @@ def detect_intraday_signal(ticker: str,
             return None
 
         return DipSignal(
-            ticker = ticker,
+            ticker=ticker,
             timestamp_ny = now_ny().isoformat(),
             spot_price = float(current_price),
             prior_close = float(prior_close),
             dip_percentage = float(intraday_change),
-            run_lookback_days = run_lookback,
+            run_lookback_days=run_lookback,
             run_return = float(run_return),
             signal_type = "intraday"
         )
@@ -349,10 +349,10 @@ def detect_intraday_signal(ticker: str,
 # ---------- Options Plan Generation ----------
 def create_exact_clone_plan(signal: DipSignal,
                            account_size: float,
-                           deploy_pct: float = DEPLOY_PCT_DEFAULT,
-                           target_dte: int = TARGET_DTE_DAYS,
-                           otm_pct: float = OTM_PCT,
-                           use_options_chain: bool = True)->ExactClonePlan:
+                           deploy_pct: float=DEPLOY_PCT_DEFAULT,
+                           target_dte: int=TARGET_DTE_DAYS,
+                           otm_pct: float=OTM_PCT,
+                           use_options_chain: bool=True)->ExactClonePlan:
     """Create exact clone options trade plan"""
 
     ticker = signal.ticker
@@ -379,7 +379,7 @@ def create_exact_clone_plan(signal: DipSignal,
         actual_dte = target_dte
 
     # Get option pricing
-    bid, ask, mid = 0.0, 0.0, 0.0
+    bid, ask, mid=0.0, 0.0, 0.0
     premium_per_contract = 0.0
     pricing_source = "black_scholes"
     final_strike = target_strike
@@ -407,13 +407,12 @@ def create_exact_clone_plan(signal: DipSignal,
         try: 
             t_years = max(actual_dte, 1) / 365.0
             bs_price_per_share = bs_call_price(
-                spot = spot,
-                strike = final_strike,
-                t_years = t_years,
-                r = DEFAULT_RATE,
-                q = DEFAULT_DIV_YIELD,
-                iv = DEFAULT_IV
-            )
+                spot=spot,
+                strike=final_strike,
+                t_years=t_years,
+                r=DEFAULT_RATE,
+                q=DEFAULT_DIV_YIELD,
+                iv = DEFAULT_IV)
             premium_per_contract = bs_price_per_share * 100.0
             mid = premium_per_contract / 100.0
             pricing_source = "black_scholes"
@@ -421,7 +420,7 @@ def create_exact_clone_plan(signal: DipSignal,
             premium_per_contract = 100.0  # Conservative fallback
             mid = 1.0
 
-    # Position sizing (exact clone style - high deployment)
+    # Position sizing (exact clone style-high deployment)
     deploy_capital = account_size * deploy_pct
     contracts = int(deploy_capital / premium_per_contract) if premium_per_contract  >  0 else 0
     total_cost = contracts * premium_per_contract
@@ -432,25 +431,25 @@ def create_exact_clone_plan(signal: DipSignal,
     effective_leverage = notional_exposure / total_cost if total_cost  >  0 else 0
 
     # Breakeven and exit targets
-    breakeven = final_strike + (premium_per_contract / 100.0)
+    breakeven = final_strike+(premium_per_contract / 100.0)
     exit_3x = premium_per_contract * 3.0
     exit_4x = premium_per_contract * 4.0
 
     return ExactClonePlan(
-        ticker = ticker,
+        ticker=ticker,
         timestamp_ny = signal.timestamp_ny,
-        spot_price = spot,
+        spot_price=spot,
         expiry_date = expiry_date or "Unknown",
-        strike = final_strike,
-        dte_days = actual_dte,
-        otm_percentage = otm_pct,
+        strike=final_strike,
+        dte_days=actual_dte,
+        otm_percentage=otm_pct,
         premium_per_contract = round(premium_per_contract, 2),
-        bid = bid,
-        ask = ask,
-        mid = mid,
-        pricing_source = pricing_source,
-        deploy_percentage = actual_deploy_pct,
-        contracts = contracts,
+        bid=bid,
+        ask=ask,
+        mid=mid,
+        pricing_source=pricing_source,
+        deploy_percentage=actual_deploy_pct,
+        contracts=contracts,
         total_cost = round(total_cost, 2),
         breakeven_at_expiry = round(breakeven, 2),
         effective_leverage = round(effective_leverage, 1),
@@ -466,7 +465,7 @@ def run_eod_scan(universe: List[str],
                  account_size: float,
                  deploy_pct: float,
                  use_options_chain: bool)->ScanResults:
-    """Run end - of-day scan"""
+    """Run end - of - day scan"""
 
     signals = []
     trade_plans = []
@@ -487,17 +486,16 @@ def run_eod_scan(universe: List[str],
 
                 # Generate trade plan
                 plan = create_exact_clone_plan(
-                    signal = signal,
-                    account_size = account_size,
-                    deploy_pct = deploy_pct,
-                    use_options_chain = use_options_chain
-                )
+                    signal=signal,
+                    account_size=account_size,
+                    deploy_pct=deploy_pct,
+                    use_options_chain = use_options_chain)
 
                 print("   📋 TRADE PLAN: ")
                 print(f"      Strike: ${plan.strike} ({plan.otm_percentage: .1%} OTM)")
                 print(f"      Expiry: {plan.expiry_date} ({plan.dte_days} DTE)")
                 print(f"      Premium: ${plan.premium_per_contract:.2f} per contract ({plan.pricing_source})")
-                print(f"      Position: {plan.contracts:,} contracts = ${plan.total_cost: ,.0f}")
+                print(f"      Position: {plan.contracts:,} contracts=${plan.total_cost: ,.0f}")
                 print(f"      Risk: {plan.ruin_risk_percentage:.1f}% of account")
                 print(f"      Leverage: {plan.effective_leverage:.1f}x")
                 print(f"      Breakeven: ${plan.breakeven_at_expiry:.2f}")
@@ -512,11 +510,10 @@ def run_eod_scan(universe: List[str],
     return ScanResults(
         scan_mode = "eod",
         scan_timestamp = now_ny().isoformat(),
-        universe_scanned = universe,
+        universe_scanned=universe,
         signals_found = len(signals),
-        signals = signals,
-        trade_plans = trade_plans
-    )
+        signals=signals,
+        trade_plans = trade_plans)
 
 def run_intraday_scan(universe: List[str],
                      account_size: float,
@@ -564,17 +561,16 @@ def run_intraday_scan(universe: List[str],
 
                         # Generate trade plan
                         plan = create_exact_clone_plan(
-                            signal = signal,
-                            account_size = account_size,
-                            deploy_pct = deploy_pct,
-                            use_options_chain = use_options_chain
-                        )
+                            signal=signal,
+                            account_size=account_size,
+                            deploy_pct=deploy_pct,
+                            use_options_chain = use_options_chain)
 
                         print("   📋 TRADE PLAN: ")
                         print(f"      Strike: ${plan.strike} ({plan.otm_percentage: .1%} OTM)")
                         print(f"      Expiry: {plan.expiry_date} ({plan.dte_days} DTE)")
                         print(f"      Premium: ${plan.premium_per_contract:.2f} per contract ({plan.pricing_source})")
-                        print(f"      Position: {plan.contracts:,} contracts = ${plan.total_cost: ,.0f}")
+                        print(f"      Position: {plan.contracts:,} contracts=${plan.total_cost: ,.0f}")
                         print(f"      Risk: {plan.ruin_risk_percentage:.1f}% of account")
                         print(f"      Leverage: {plan.effective_leverage:.1f}x")
                         print(f"      Exit targets: ${plan.exit_3x_target:.2f} (3x) | ${plan.exit_4x_target: .2f} (4x)")
@@ -599,11 +595,10 @@ def run_intraday_scan(universe: List[str],
     return ScanResults(
         scan_mode = "intraday",
         scan_timestamp = now_ny().isoformat(),
-        universe_scanned = universe,
+        universe_scanned=universe,
         signals_found = len(all_signals),
-        signals = all_signals,
-        trade_plans = all_plans
-    )
+        signals=all_signals,
+        trade_plans = all_plans)
 
 
 # ---------- Output Functions ----------
@@ -613,18 +608,18 @@ def write_results(results: ScanResults, output_prefix: str)->None:
     # Write signals
     if results.signals: 
         signals_df = pd.DataFrame([asdict(s) for s in results.signals])
-        signals_df.to_csv(f"{output_prefix}_signals.csv", index = False)
+        signals_df.to_csv(f"{output_prefix}_signals.csv", index=False)
 
         with open(f"{output_prefix}_signals.json", "w") as f: 
-            json.dump([asdict(s) for s in results.signals], f, indent = 2)
+            json.dump([asdict(s) for s in results.signals], f, indent=2)
 
     # Write trade plans
     if results.trade_plans: 
         plans_df = pd.DataFrame([asdict(p) for p in results.trade_plans])
-        plans_df.to_csv(f"{output_prefix}_plans.csv", index = False)
+        plans_df.to_csv(f"{output_prefix}_plans.csv", index=False)
 
         with open(f"{output_prefix}_plans.json", "w") as f: 
-            json.dump([asdict(p) for p in results.trade_plans], f, indent = 2)
+            json.dump([asdict(p) for p in results.trade_plans], f, indent=2)
 
     # Write summary
     summary = {
@@ -636,7 +631,7 @@ def write_results(results: ScanResults, output_prefix: str)->None:
     }
 
     with open(f"{output_prefix}_summary.json", "w") as f: 
-        json.dump(summary, f, indent = 2)
+        json.dump(summary, f, indent=2)
 
     print(f"\n📁 Results written to {output_prefix}_*.csv / json")
 
@@ -649,11 +644,11 @@ def main():
         epilog = """
 Examples: 
   # EOD scan with 90% deployment
-  python production_scanner.py --mode eod --account - size 450000 --deploy - pct 0.90 --use - options-chain
+  python production_scanner.py --mode eod --account - size 450000 --deploy - pct 0.90 --use-options - chain
 
   # Intraday scan for 2 hours, checking every 2 minutes
   python production_scanner.py --mode intraday --poll - seconds 120 --max - minutes 120 \\
-    --account - size 450000 --deploy - pct 1.0 --use - options-chain
+    --account - size 450000 --deploy - pct 1.0 --use-options - chain
 
   # Paper trading with smaller size
   python production_scanner.py --mode eod --account - size 50000 --deploy - pct 0.10
@@ -661,37 +656,37 @@ Examples:
     )
 
     # Basic options
-    parser.add_argument("--mode", choices = ["eod", "intraday"], default = "eod",
+    parser.add_argument("--mode", choices=["eod", "intraday"], default="eod",
                        help = "Scan mode: eod (end of day) or intraday (live)")
-    parser.add_argument("--universe", type = str, default = ",".join(DEFAULT_UNIVERSE),
+    parser.add_argument("--universe", type=str, default=",".join(DEFAULT_UNIVERSE),
                        help = "Comma - separated list of tickers to scan")
 
     # Account sizing
-    parser.add_argument("--account - size", type = float, default = 500000.0,
+    parser.add_argument("--account - size", type=float, default=500000.0,
                        help = "Total account size in dollars")
-    parser.add_argument("--deploy - pct", type = float, default = DEPLOY_PCT_DEFAULT,
+    parser.add_argument("--deploy - pct", type=float, default=DEPLOY_PCT_DEFAULT,
                        help = "Percentage of account to deploy per trade (0.0 - 1.0)")
 
     # Options
-    parser.add_argument("--use - options-chain", action = "store_true",
+    parser.add_argument("--use-options - chain", action="store_true",
                        help = "Use real options chain data (vs Black - Scholes)")
 
     # Intraday options
-    parser.add_argument("--poll - seconds", type = int, default = 90,
+    parser.add_argument("--poll - seconds", type=int, default=90,
                        help = "Polling interval for intraday mode (seconds)")
-    parser.add_argument("--max - minutes", type = int, default = 0,
-                       help = "Maximum scan duration for intraday mode (0 = unlimited)")
+    parser.add_argument("--max - minutes", type=int, default=0,
+                       help = "Maximum scan duration for intraday mode (0=unlimited)")
 
     # Signal parameters
-    parser.add_argument("--run - lookback", type = int, default = RUN_LOOKBACK,
+    parser.add_argument("--run - lookback", type=int, default=RUN_LOOKBACK,
                        help = "Days to look back for big run")
-    parser.add_argument("--run - pct", type = float, default = RUN_PCT,
+    parser.add_argument("--run - pct", type=float, default=RUN_PCT,
                        help = "Minimum run percentage to qualify")
-    parser.add_argument("--dip - pct", type = float, default = DIP_PCT,
+    parser.add_argument("--dip - pct", type=float, default=DIP_PCT,
                        help = "Minimum dip percentage (negative)")
 
     # Output
-    parser.add_argument("--output - prefix", type = str, default = "hard_dip_scan",
+    parser.add_argument("--output - prefix", type=str, default="hard_dip_scan",
                        help = "Prefix for output files")
 
     args = parser.parse_args()
@@ -701,15 +696,15 @@ Examples:
     universe = [t for t in universe if t]  # Remove empty strings
 
     if not universe: 
-        print("❌ Empty ticker universe", file = sys.stderr)
+        print("❌ Empty ticker universe", file=sys.stderr)
         sys.exit(1)
 
     if not (0.0  <  args.deploy_pct  <=  1.0): 
-        print("❌ Deploy percentage must be between 0 and 1", file = sys.stderr)
+        print("❌ Deploy percentage must be between 0 and 1", file=sys.stderr)
         sys.exit(1)
 
     if args.account_size  <=  0: 
-        print("❌ Account size must be positive", file = sys.stderr)
+        print("❌ Account size must be positive", file=sys.stderr)
         sys.exit(1)
 
     # Update global thresholds
@@ -721,14 +716,14 @@ Examples:
     try: 
         # Run scan
         if args.mode  ==  "eod": results = run_eod_scan(
-                universe = universe,
+                universe=universe,
                 account_size = args.account_size,
                 deploy_pct = args.deploy_pct,
                 use_options_chain = args.use_options_chain
             )
         else: 
             results = run_intraday_scan(
-                universe = universe,
+                universe=universe,
                 account_size = args.account_size,
                 deploy_pct = args.deploy_pct,
                 use_options_chain = args.use_options_chain,
@@ -759,7 +754,7 @@ Examples:
     except KeyboardInterrupt: 
         print("\n⛔ Stopped by user")
     except Exception as e: 
-        print(f"❌ Fatal error: {e}", file = sys.stderr)
+        print(f"❌ Fatal error: {e}", file=sys.stderr)
         sys.exit(1)
 
 

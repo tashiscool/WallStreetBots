@@ -23,9 +23,9 @@ class Phase2StrategyManager:
     
     def __init__(self, config: ProductionConfig):
         self.config = config
-        self.logger = create_production_logger("phase2_manager")
-        self.error_handler = ErrorHandler(self.logger)
-        self.metrics = MetricsCollector(self.logger)
+        self.logger=create_production_logger("phase2_manager")
+        self.error_handler=ErrorHandler(self.logger)
+        self.metrics=MetricsCollector(self.logger)
         
         # Initialize core components
         self.trading_interface = None
@@ -53,7 +53,7 @@ class Phase2StrategyManager:
         
         try: 
             # Initialize core components
-            self.data_provider = create_data_provider(self.config.data_providers.__dict__)
+            self.data_provider=create_data_provider(self.config.data_providers.__dict__)
             
             # Create flat config for trading interface
             trading_config = {
@@ -64,7 +64,7 @@ class Phase2StrategyManager:
                 'max_position_risk': self.config.risk.max_position_risk,
                 'default_commission': self.config.risk.default_commission
             }
-            self.trading_interface = create_trading_interface(trading_config)
+            self.trading_interface=create_trading_interface(trading_config)
             
             # Initialize strategies
             self.wheel_strategy = create_wheel_strategy(

@@ -86,7 +86,7 @@ class TestTechnicalIndicators:
         """Test Bollinger Bands calculation"""
         # Create price series with known properties
         base_price = 100
-        prices = [Decimal(str(base_price + i % 5)) for i in range(25)]
+        prices = [Decimal(str(base_price+i % 5)) for i in range(25)]
         
         bb = TechnicalIndicators.calculate_bollinger_bands(prices, 20, 2.0)
         
@@ -111,7 +111,7 @@ class TestTechnicalIndicators:
         spike_ratio = TechnicalIndicators.calculate_volume_spike(volumes, 20)
         
         assert spike_ratio is not None
-        assert abs(spike_ratio - 2.5)  <  0.01  # 2500 / 1000 = 2.5
+        assert abs(spike_ratio - 2.5)  <  0.01  # 2500 / 1000=2.5
     
     def test_calculate_volume_spike_no_spike(self): 
         """Test volume spike with no unusual activity"""
@@ -120,7 +120,7 @@ class TestTechnicalIndicators:
         spike_ratio = TechnicalIndicators.calculate_volume_spike(volumes, 20)
         
         assert spike_ratio is not None
-        assert abs(spike_ratio - 1.0)  <  0.01  # No spike = 1.0 ratio
+        assert abs(spike_ratio - 1.0)  <  0.01  # No spike=1.0 ratio
 
 
 class TestWSBDipDetector: 
@@ -128,10 +128,10 @@ class TestWSBDipDetector:
     
     def setup_method(self): 
         """Set up test fixtures"""
-        self.detector = WSBDipDetector()
+        self.detector=WSBDipDetector()
     
     def create_price_bars(self, prices: List[float], volumes: List[int] = None, 
-                         base_date: datetime = None)->List[PriceBar]:
+                         base_date: datetime=None)->List[PriceBar]:
         """Helper to create price bar data"""
         if base_date is None: 
             base_date = datetime.now() - timedelta(days=len(prices))
@@ -141,24 +141,23 @@ class TestWSBDipDetector:
         
         bars = []
         for i, (price, volume) in enumerate(zip(prices, volumes)): 
-            timestamp = base_date + timedelta(days=i)
+            timestamp = base_date+timedelta(days=i)
             price_decimal = Decimal(str(price))
             
             bar = PriceBar(
-                timestamp = timestamp,
-                open = price_decimal,
+                timestamp=timestamp,
+                open=price_decimal,
                 high = price_decimal * Decimal('1.01'),  # 1% higher high
                 low = price_decimal * Decimal('0.99'),   # 1% lower low
-                close = price_decimal,
-                volume = volume
-            )
+                close=price_decimal,
+                volume = volume)
             bars.append(bar)
         
         return bars
     
     @pytest.mark.asyncio
     async def test_detect_valid_wsb_dip_pattern(self): 
-        """Test detection of valid WSB dip - after-run pattern"""
+        """Test detection of valid WSB dip - after - run pattern"""
         # Simplified working scenario - need to understand run_duration calculation
         # High will be at index 29, looking back 5 - 20 days means indices 9 - 24
         # Base price will be min of indices 9 - 24, then run duration = 29 - base_index
@@ -391,7 +390,7 @@ class TestPatternDetectionIntegration:
         base_date = datetime.now() - timedelta(days=len(prices))
         
         for i, (price, volume) in enumerate(zip(prices, volumes)): 
-            timestamp = base_date + timedelta(days=i)
+            timestamp = base_date+timedelta(days=i)
             price_decimal = Decimal(str(price))
             
             # Realistic OHLC with some intraday movement
@@ -400,13 +399,12 @@ class TestPatternDetectionIntegration:
             low_price = price_decimal * Decimal('0.985')
             
             bar = PriceBar(
-                timestamp = timestamp,
-                open = open_price,
-                high = high_price,
-                low = low_price,
-                close = price_decimal,
-                volume = volume
-            )
+                timestamp=timestamp,
+                open=open_price,
+                high=high_price,
+                low=low_price,
+                close=price_decimal,
+                volume = volume)
             bars.append(bar)
         
         pattern = await detector.detect_wsb_dip_pattern("AAPL", bars)

@@ -27,11 +27,11 @@ class TestProductionConfig(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.temp_dir = tempfile.mkdtemp()
-        self.config_file = os.path.join(self.temp_dir, "test_config.json")
+        self.temp_dir=tempfile.mkdtemp()
+        self.config_file=os.path.join(self.temp_dir, "test_config.json")
 
         # Store original environment variables
-        self.original_env = {}
+        self.original_env={}
         env_vars_to_save = ['ALPACA_API_KEY', 'ALPACA_SECRET_KEY', 'IEX_API_KEY', 'POLYGON_API_KEY']
         for var in env_vars_to_save: 
             if var in os.environ: 
@@ -132,16 +132,16 @@ class TestProductionLogging(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.logger = ProductionLogger("test_logger", "DEBUG")
-        self.error_handler = ErrorHandler(self.logger)
+        self.logger=ProductionLogger("test_logger", "DEBUG")
+        self.error_handler=ErrorHandler(self.logger)
     
     def test_logging(self): 
         """Test logging functionality"""
         # Test different log levels
-        self.logger.info("Test info message", test_param = "value")
-        self.logger.warning("Test warning message", test_param = "value")
-        self.logger.error("Test error message", test_param = "value")
-        self.logger.debug("Test debug message", test_param = "value")
+        self.logger.info("Test info message", test_param="value")
+        self.logger.warning("Test warning message", test_param="value")
+        self.logger.error("Test error message", test_param="value")
+        self.logger.debug("Test debug message", test_param="value")
     
     def test_error_handling(self): 
         """Test error handling"""
@@ -157,7 +157,7 @@ class TestProductionLogging(unittest.TestCase):
     
     def test_circuit_breaker(self): 
         """Test circuit breaker functionality"""
-        circuit_breaker = CircuitBreaker(failure_threshold=2, timeout = 1.0)
+        circuit_breaker = CircuitBreaker(failure_threshold=2, timeout=1.0)
         
         # Test successful calls
         def success_func(): 
@@ -176,7 +176,7 @@ class TestProductionLogging(unittest.TestCase):
             circuit_breaker.call(failure_func)
         self.assertEqual(circuit_breaker.state, "CLOSED")
         
-        # Second failure - should open circuit
+        # Second failure-should open circuit
         with self.assertRaises(Exception): 
             circuit_breaker.call(failure_func)
         self.assertEqual(circuit_breaker.state, "OPEN")
@@ -189,7 +189,7 @@ class TestProductionLogging(unittest.TestCase):
         """Test retry decorator"""
         call_count = 0
         
-        @retry_with_backoff(max_attempts=3, exceptions = (ValueError,), base_delay = 0.01)
+        @retry_with_backoff(max_attempts=3, exceptions=(ValueError,), base_delay=0.01)
         def flaky_function(): 
             nonlocal call_count
             call_count += 1
@@ -216,8 +216,8 @@ class TestHealthChecker(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.logger = ProductionLogger("test_health", "DEBUG")
-        self.health_checker = HealthChecker(self.logger)
+        self.logger=ProductionLogger("test_health", "DEBUG")
+        self.health_checker=HealthChecker(self.logger)
     
     def test_health_check_registration(self): 
         """Test health check registration"""
@@ -261,8 +261,8 @@ class TestMetricsCollector(unittest.TestCase):
     
     def setUp(self): 
         """Setup test environment"""
-        self.logger = ProductionLogger("test_metrics", "DEBUG")
-        self.metrics_collector = MetricsCollector(self.logger)
+        self.logger=ProductionLogger("test_metrics", "DEBUG")
+        self.metrics_collector=MetricsCollector(self.logger)
     
     def test_metric_recording(self): 
         """Test metric recording"""
@@ -318,7 +318,7 @@ class TestDataProviders(unittest.TestCase):
         
         data = OptionsData(
             ticker = "AAPL",
-            expiry_date = "2024 - 01-19",
+            expiry_date = "2024 - 01 - 19",
             strike = 150.0,
             option_type = "call",
             bid = 2.50,
@@ -390,14 +390,14 @@ class TestTradingInterface(unittest.TestCase):
             quantity: int
             limit_price: float = None
             stop_price: float = None
-            time_in_force: str = "gtc"
-            reason: str = ""
-            confidence: float = 0.0
+            time_in_force: str="gtc"
+            reason: str=""
+            confidence: float=0.0
             timestamp: datetime = None
             
             def __post_init__(self): 
                 if self.timestamp is None: 
-                    self.timestamp = datetime.now()
+                    self.timestamp=datetime.now()
         
         signal = TradeSignal(
             strategy_name = "test_strategy",
@@ -452,14 +452,14 @@ class TestTradingInterface(unittest.TestCase):
             quantity: int
             limit_price: float = None
             stop_price: float = None
-            time_in_force: str = "gtc"
-            reason: str = ""
-            confidence: float = 0.0
+            time_in_force: str="gtc"
+            reason: str=""
+            confidence: float=0.0
             timestamp: datetime = None
             
             def __post_init__(self): 
                 if self.timestamp is None: 
-                    self.timestamp = datetime.now()
+                    self.timestamp=datetime.now()
         
         @dataclass
         class TradeResult: 
@@ -468,13 +468,13 @@ class TestTradingInterface(unittest.TestCase):
             status: TradeStatus
             filled_quantity: int = 0
             filled_price: float = None
-            commission: float = 0.0
+            commission: float=0.0
             timestamp: datetime = None
             error_message: str = None
             
             def __post_init__(self): 
                 if self.timestamp is None: 
-                    self.timestamp = datetime.now()
+                    self.timestamp=datetime.now()
         
         signal = TradeSignal(
             strategy_name = "test_strategy",
@@ -486,7 +486,7 @@ class TestTradingInterface(unittest.TestCase):
         
         result = TradeResult(
             trade_id = "test_123",
-            signal = signal,
+            signal=signal,
             status = TradeStatus.FILLED,
             filled_quantity = 100,
             filled_price = 150.0,

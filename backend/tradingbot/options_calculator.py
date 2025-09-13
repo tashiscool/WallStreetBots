@@ -15,7 +15,7 @@ getcontext().prec = 10
 
 
 class BlackScholesCalculator: 
-    """Black - Scholes-Merton options pricing calculator"""
+    """Black - Scholes - Merton options pricing calculator"""
 
     @staticmethod
     def _norm_cdf(x: float)->float:
@@ -51,7 +51,7 @@ class BlackScholesCalculator:
         # Calculate d1 and d2
         d1 = (
             math.log(spot / strike) +
-            (risk_free_rate - dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
+            (risk_free_rate-dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
         ) / (implied_volatility * math.sqrt(time_to_expiry_years))
 
         d2 = d1 - implied_volatility * math.sqrt(time_to_expiry_years)
@@ -79,7 +79,7 @@ class BlackScholesCalculator:
 
         d1 = (
             math.log(spot / strike) +
-            (risk_free_rate - dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
+            (risk_free_rate-dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
         ) / (implied_volatility * math.sqrt(time_to_expiry_years))
 
         return math.exp(-dividend_yield * time_to_expiry_years) * BlackScholesCalculator._norm_cdf(d1)
@@ -99,7 +99,7 @@ class BlackScholesCalculator:
 
         d1 = (
             math.log(spot / strike) +
-            (risk_free_rate - dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
+            (risk_free_rate-dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
         ) / (implied_volatility * math.sqrt(time_to_expiry_years))
 
         d2 = d1 - implied_volatility * math.sqrt(time_to_expiry_years)
@@ -126,7 +126,7 @@ class BlackScholesCalculator:
 
         d1 = (
             math.log(spot / strike) +
-            (risk_free_rate - dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
+            (risk_free_rate-dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
         ) / (implied_volatility * math.sqrt(time_to_expiry_years))
 
         # Standard normal PDF
@@ -152,7 +152,7 @@ class BlackScholesCalculator:
 
         d1 = (
             math.log(spot / strike) +
-            (risk_free_rate - dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
+            (risk_free_rate-dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
         ) / (implied_volatility * math.sqrt(time_to_expiry_years))
 
         d2 = d1 - implied_volatility * math.sqrt(time_to_expiry_years)
@@ -187,7 +187,7 @@ class BlackScholesCalculator:
 
         d1 = (
             math.log(spot / strike) +
-            (risk_free_rate - dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
+            (risk_free_rate-dividend_yield + 0.5 * implied_volatility ** 2) * time_to_expiry_years
         ) / (implied_volatility * math.sqrt(time_to_expiry_years))
         
         # Standard normal PDF
@@ -212,23 +212,23 @@ class OptionsStrategySetup:
     target_dte_min: int = 21
     target_dte_max: int = 45
     target_dte_optimal: int = 30
-    otm_percentage: float = 0.05  # 5% out of money
+    otm_percentage: float=0.05  # 5% out of money
     target_delta_range: Tuple[float, float] = (0.30, 0.40)
 
     # Risk management (learned from existential bet)
-    max_single_trade_risk_pct: float = 0.15  # Max 15% of account per trade
-    recommended_risk_pct: float = 0.10       # Recommended 10% per trade
-    max_kelly_fraction: float = 0.50         # Never exceed 50% Kelly
+    max_single_trade_risk_pct: float=0.15  # Max 15% of account per trade
+    recommended_risk_pct: float=0.10       # Recommended 10% per trade
+    max_kelly_fraction: float=0.50         # Never exceed 50% Kelly
 
     # Market regime filters
-    min_iv_percentile: float = 0.0   # Prefer low IV
-    max_iv_percentile: float = 40.0  # Avoid high IV entries
+    min_iv_percentile: float=0.0   # Prefer low IV
+    max_iv_percentile: float=40.0  # Avoid high IV entries
 
     # Exit discipline
     profit_take_levels: List[float] = field(default_factory=lambda: [1.0, 2.0, 2.5])  # 100%, 200%, 250%
-    stop_loss_pct: float = 0.45      # Stop at 45% loss
+    stop_loss_pct: float=0.45      # Stop at 45% loss
     max_hold_days: int = 5           # Time stop if no progress
-    delta_exit_threshold: float = 0.60  # Exit when delta  >=  0.60
+    delta_exit_threshold: float=0.60  # Exit when delta  >=  0.60
 
 
 @dataclass
@@ -250,7 +250,7 @@ class OptionsSetup:
     @property
     def breakeven(self)->float: 
         """Breakeven price at expiration"""
-        return self.strike + self.premium_paid
+        return self.strike+self.premium_paid
     
     @property
     def intrinsic_value(self)->float: 
@@ -292,7 +292,7 @@ class TradeCalculation:
 === OPTIONS TRADE CALCULATION===
 Ticker: {self.ticker}
 Current Price: ${self.spot_price:.2f}
-Strike: ${self.strike:.2f} ({((self.strike / self.spot_price - 1) * 100):+.1f}% OTM)
+Strike: ${self.strike:.2f} ({((self.strike / self.spot_price-1) * 100):+.1f}% OTM)
 Expiry: {self.expiry_date} ({self.days_to_expiry} DTE)
 
 POSITION SIZING: 
@@ -312,11 +312,11 @@ Max Loss: ${self.risk_amount:,.0f}
 class OptionsTradeCalculator: 
     """Main calculator implementing the successful options playbook"""
 
-    def __init__(self, setup: OptionsStrategySetup = None):
-        self.setup = setup or OptionsStrategySetup()
-        self.bs_calc = BlackScholesCalculator()
+    def __init__(self, setup: OptionsStrategySetup=None):
+        self.setup=setup or OptionsStrategySetup()
+        self.bs_calc=BlackScholesCalculator()
 
-    def find_optimal_expiry(self, target_dte: int = None)->date:
+    def find_optimal_expiry(self, target_dte: int=None)->date:
         """Find the Friday closest to target DTE within acceptable range"""
         target_dte = target_dte or self.setup.target_dte_optimal
 
@@ -325,10 +325,10 @@ class OptionsTradeCalculator:
 
         # Find nearest Friday
         days_to_friday = (4 - base_date.weekday()) % 7  # Friday is weekday 4
-        candidate_date = base_date + timedelta(days=days_to_friday)
+        candidate_date = base_date+timedelta(days=days_to_friday)
 
         # Ensure within acceptable DTE range
-        actual_dte = (candidate_date - date.today()).days
+        actual_dte = (candidate_date-date.today()).days
 
         if actual_dte  <  self.setup.target_dte_min: 
             # Move to next Friday
@@ -339,7 +339,7 @@ class OptionsTradeCalculator:
 
         return candidate_date
 
-    def calculate_otm_strike(self, spot_price: float, increment: float = 1.0)->float:
+    def calculate_otm_strike(self, spot_price: float, increment: float=1.0)->float:
         """Calculate 5% OTM strike rounded to proper increment"""
         raw_strike = spot_price * (1 + self.setup.otm_percentage)
         return round(raw_strike / increment) * increment
@@ -350,11 +350,10 @@ class OptionsTradeCalculator:
         spot_price: float,
         account_size: float,
         implied_volatility: float,
-        risk_pct: float = None,
-        risk_free_rate: float = 0.04,
-        dividend_yield: float = 0.0,
-        custom_dte: int = None
-    )->TradeCalculation: 
+        risk_pct: float=None,
+        risk_free_rate: float=0.04,
+        dividend_yield: float=0.0,
+        custom_dte: int=None)->TradeCalculation: 
         """
         Calculate complete options trade based on successful playbook
 
@@ -381,32 +380,30 @@ class OptionsTradeCalculator:
 
         # Calculate expiry and strike
         expiry_date = self.find_optimal_expiry(custom_dte)
-        days_to_expiry = (expiry_date - date.today()).days
+        days_to_expiry = (expiry_date-date.today()).days
         time_to_expiry_years = days_to_expiry / 365.0
 
         strike = self.calculate_otm_strike(spot_price)
 
         # Calculate option premium using Black - Scholes
         premium_per_share = self.bs_calc.call_price(
-            spot = spot_price,
-            strike = strike,
-            time_to_expiry_years = time_to_expiry_years,
-            risk_free_rate = risk_free_rate,
-            dividend_yield = dividend_yield,
-            implied_volatility = implied_volatility
-        )
+            spot=spot_price,
+            strike=strike,
+            time_to_expiry_years=time_to_expiry_years,
+            risk_free_rate=risk_free_rate,
+            dividend_yield=dividend_yield,
+            implied_volatility = implied_volatility)
 
         premium_per_contract = max(premium_per_share * 100, 0.01)
 
         # Calculate delta
         estimated_delta = self.bs_calc.delta(
-            spot = spot_price,
-            strike = strike,
-            time_to_expiry_years = time_to_expiry_years,
-            risk_free_rate = risk_free_rate,
-            dividend_yield = dividend_yield,
-            implied_volatility = implied_volatility
-        )
+            spot=spot_price,
+            strike=strike,
+            time_to_expiry_years=time_to_expiry_years,
+            risk_free_rate=risk_free_rate,
+            dividend_yield=dividend_yield,
+            implied_volatility = implied_volatility)
 
         # Position sizing
         risk_amount = account_size * risk_pct
@@ -415,23 +412,23 @@ class OptionsTradeCalculator:
         actual_risk_pct = total_cost / account_size
 
         # Calculate metrics
-        breakeven_price = strike + (premium_per_contract / 100)
+        breakeven_price = strike+(premium_per_contract / 100)
         notional_exposure = recommended_contracts * 100 * spot_price
         leverage_ratio = notional_exposure / total_cost if total_cost  >  0 else 0
 
         return TradeCalculation(
-            ticker = ticker,
-            spot_price = spot_price,
-            strike = strike,
-            expiry_date = expiry_date,
-            days_to_expiry = days_to_expiry,
-            estimated_premium = premium_per_contract,
-            recommended_contracts = recommended_contracts,
-            total_cost = total_cost,
-            breakeven_price = breakeven_price,
-            estimated_delta = estimated_delta,
-            leverage_ratio = leverage_ratio,
-            risk_amount = total_cost,
+            ticker=ticker,
+            spot_price=spot_price,
+            strike=strike,
+            expiry_date=expiry_date,
+            days_to_expiry=days_to_expiry,
+            estimated_premium=premium_per_contract,
+            recommended_contracts=recommended_contracts,
+            total_cost=total_cost,
+            breakeven_price=breakeven_price,
+            estimated_delta=estimated_delta,
+            leverage_ratio=leverage_ratio,
+            risk_amount=total_cost,
             account_risk_pct = actual_risk_pct * 100
         )
 
@@ -440,9 +437,9 @@ class OptionsTradeCalculator:
         trade_calc: TradeCalculation,
         spot_moves: List[float],
         implied_volatility: float,
-        days_passed: int = 0,
-        risk_free_rate: float = 0.04,
-        dividend_yield: float = 0.0
+        days_passed: int=0,
+        risk_free_rate: float=0.04,
+        dividend_yield: float=0.0
     )->List[Dict]: 
         """
         Generate scenario analysis for different spot price moves
@@ -466,13 +463,12 @@ class OptionsTradeCalculator:
 
             try: 
                 new_premium_per_share = self.bs_calc.call_price(
-                    spot = new_spot,
+                    spot=new_spot,
                     strike = trade_calc.strike,
-                    time_to_expiry_years = time_to_expiry_years,
-                    risk_free_rate = risk_free_rate,
-                    dividend_yield = dividend_yield,
-                    implied_volatility = implied_volatility
-                )
+                    time_to_expiry_years=time_to_expiry_years,
+                    risk_free_rate=risk_free_rate,
+                    dividend_yield=dividend_yield,
+                    implied_volatility = implied_volatility)
 
                 new_premium_per_contract = new_premium_per_share * 100
                 pnl_per_contract = new_premium_per_contract - trade_calc.estimated_premium
@@ -527,7 +523,7 @@ def validate_successful_trade():
     print(f"Total Proceeds: ${proceeds:,.0f}")
     print(f"Profit: ${profit:,.0f}")
     print(f"ROI: {roi:+.1%}")
-    print(f"Breakeven: ${strike + entry_premium}")
+    print(f"Breakeven: ${strike+entry_premium}")
     print(f"Effective Leverage: {(contracts * 100 * spot_at_entry) / cost:.1f}x")
 
 

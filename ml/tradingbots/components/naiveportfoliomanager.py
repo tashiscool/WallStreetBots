@@ -4,7 +4,7 @@ from .portfoliomanager import PortfolioManager
 
 class NaiveHMMPortfolioUpdate(PortfolioManager): 
     def __init__(self, portfolio, data_fetcher, HMMdatafetcher,
-                 start, end, HMM, num_hidden_states, covar_type, n_iter, buffer = 0.05): 
+                 start, end, HMM, num_hidden_states, covar_type, n_iter, buffer=0.05): 
         """
         Args: 
             portfolio: portfolio dictionary contains cash and stocks with qty
@@ -20,7 +20,7 @@ class NaiveHMMPortfolioUpdate(PortfolioManager):
         self.end = end
         self.HMMdatafetcher = HMMdatafetcher
         self.HMM = HMM
-        self.num_hidden_states, self.covar_type, self.n_iter = num_hidden_states, covar_type, n_iter
+        self.num_hidden_states, self.covar_type, self.n_iter=num_hidden_states, covar_type, n_iter
         self.utils()
 
     def utils(self): 

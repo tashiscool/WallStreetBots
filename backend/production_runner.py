@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Production Trading System Runner
 READY FOR REAL MONEY TRADING
@@ -16,7 +16,7 @@ Usage:
     python production_runner.py --paper
 
     # Real money trading (DANGEROUS - use small sizes)
-    python production_runner.py --live --strategies wheel,debit_spreads --max - account-risk 0.02
+    python production_runner.py --live --strategies wheel,debit_spreads --max - account - risk 0.02
 
     # Run specific phase
     python production_runner.py --phase 2 --live
@@ -56,18 +56,18 @@ class ProductionTradingRunner:
     
     def __init__(self, args): 
         self.args = args
-        self.logger = create_production_logger("production_runner")
+        self.logger=create_production_logger("production_runner")
         
         # Load configuration
-        self.config_manager = create_config_manager()
-        self.config = self.config_manager.load_config()
+        self.config_manager=create_config_manager()
+        self.config=self.config_manager.load_config()
         
         # Validate configuration
         self._validate_config()
         
         # Create core components
-        self.data_provider = create_data_provider(self._get_data_config())
-        self.trading_interface = create_trading_interface(self.config)
+        self.data_provider=create_data_provider(self._get_data_config())
+        self.trading_interface=create_trading_interface(self.config)
         
         self.logger.info("Production trading system initialized")
     
@@ -297,50 +297,50 @@ Examples:
     python production_runner.py --paper --strategies wheel,debit_spreads
     
     # Live trading with conservative risk
-    python production_runner.py --live --strategies wheel --max - account-risk 0.01
+    python production_runner.py --live --strategies wheel --max - account - risk 0.01
     
     # Run Phase 2 strategies
     python production_runner.py --phase 2 --paper
     
     # EXTREME CAUTION: High - risk strategies
-    python production_runner.py --live --strategies wsb_dip_bot --max - account-risk 0.02
+    python production_runner.py --live --strategies wsb_dip_bot --max - account - risk 0.02
         """
     )
     
     # Trading mode
     mode_group = parser.add_mutually_exclusive_group(required=True)
-    mode_group.add_argument('--paper', action = 'store_true',
+    mode_group.add_argument('--paper', action='store_true',
                            help = 'Run in paper trading mode (safe)')
-    mode_group.add_argument('--live', action = 'store_true',
+    mode_group.add_argument('--live', action='store_true',
                            help = 'Run with real money (DANGEROUS)')
     
     # Strategy selection
     strategy_group = parser.add_mutually_exclusive_group(required=True)
-    strategy_group.add_argument('--strategies', type = str,
+    strategy_group.add_argument('--strategies', type=str,
                                help = 'Comma - separated list of strategies: wheel,debit_spreads,spx_spreads (wsb_dip_bot not yet in production)')
-    strategy_group.add_argument('--phase', type = int, choices = [2, 3, 4],
-                               help = 'Run all strategies in a phase (2 = low - risk, 3 = medium - risk, 4 = high - risk with validation)')
+    strategy_group.add_argument('--phase', type=int, choices=[2, 3, 4],
+                               help = 'Run all strategies in a phase (2 = low - risk, 3=medium - risk, 4=high - risk with validation)')
     
     # Risk controls
-    parser.add_argument('--max - account-risk', type = float, default = 0.10,
+    parser.add_argument('--max - account - risk', type=float, default=0.10,
                        help = 'Maximum account risk percentage (default: 0.10 = 10%%)')
-    parser.add_argument('--max - position-risk', type = float, default = 0.02,
+    parser.add_argument('--max - position - risk', type=float, default=0.02,
                        help = 'Maximum single position risk (default: 0.02 = 2%%)')
     
     # Operational
-    parser.add_argument('--config', type = str,
+    parser.add_argument('--config', type=str,
                        help = 'Configuration file path')
-    parser.add_argument('--log - level', type = str, default = 'INFO',
+    parser.add_argument('--log - level', type=str, default='INFO',
                        choices = ['DEBUG', 'INFO', 'WARNING', 'ERROR'],
                        help = 'Logging level')
-    parser.add_argument('--dry - run', action = 'store_true',
+    parser.add_argument('--dry - run', action='store_true',
                        help = 'Show what would be done without executing')
     
     args = parser.parse_args()
     
     # Process strategy list
     if args.strategies: 
-        args.strategies = [s.strip() for s in args.strategies.split(',')]
+        args.strategies=[s.strip() for s in args.strategies.split(',')]
     
     return args
 

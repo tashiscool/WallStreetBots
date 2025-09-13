@@ -5,7 +5,7 @@ This is a production - ready version of the Index Baseline strategy that:
 - Uses real market data for performance comparison
 - Tracks actual strategy performance vs benchmarks
 - Provides real - time portfolio analysis
-- Implements buy - and-hold baseline strategies
+- Implements buy - and - hold baseline strategies
 
 Replaces all hardcoded mock performance data with live calculations.
 """
@@ -55,7 +55,7 @@ class ProductionIndexBaseline:
     Production Index Baseline Strategy
     
     Implements the "boring baseline" that beats most WSB strategies: 
-    1. SPY / VTI/QQQ buy - and-hold comparison
+    1. SPY / VTI / QQQ buy - and - hold comparison
     2. Real - time performance tracking
     3. Risk - adjusted return analysis
     4. Alpha calculations vs benchmarks
@@ -66,13 +66,13 @@ class ProductionIndexBaseline:
         self.integration = integration_manager
         self.data_provider = data_provider
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Strategy parameters
-        self.benchmarks = config.get('benchmarks', ['SPY', 'VTI', 'QQQ', 'IWM', 'DIA'])
-        self.target_allocation = config.get('target_allocation', 0.80)  # 80% in baseline
-        self.rebalance_threshold = config.get('rebalance_threshold', 0.05)  # 5% drift
-        self.tax_loss_threshold = config.get('tax_loss_threshold', -0.10)  # -10% loss
+        self.benchmarks=config.get('benchmarks', ['SPY', 'VTI', 'QQQ', 'IWM', 'DIA'])
+        self.target_allocation=config.get('target_allocation', 0.80)  # 80% in baseline
+        self.rebalance_threshold=config.get('rebalance_threshold', 0.05)  # 5% drift
+        self.tax_loss_threshold=config.get('tax_loss_threshold', -0.10)  # -10% loss
         
         # Performance tracking
         self.performance_history: Dict[str, List[BaselineComparison]] = {}
@@ -83,7 +83,7 @@ class ProductionIndexBaseline:
         
         self.logger.info("ProductionIndexBaseline initialized")
     
-    async def calculate_baseline_performance(self, period_days: int = 180)->Dict[str, BaselineComparison]: 
+    async def calculate_baseline_performance(self, period_days: int=180)->Dict[str, BaselineComparison]: 
         """Calculate baseline performance vs benchmarks"""
         comparisons = {}
         
@@ -119,7 +119,7 @@ class ProductionIndexBaseline:
             # Calculate benchmark return
             start_price = historical_data[-period_days].price
             end_price = historical_data[-1].price
-            benchmark_return = float((end_price - start_price) / start_price)
+            benchmark_return = float((end_price-start_price) / start_price)
             
             # Calculate strategy return (simplified - would use actual strategy performance)
             strategy_return = await self._calculate_strategy_return(benchmark, period_days)
@@ -137,19 +137,19 @@ class ProductionIndexBaseline:
             volatility = await self._calculate_volatility(historical_data)
             
             # Calculate win rate and trades (simplified)
-            win_rate, total_trades = await self._calculate_trade_metrics(benchmark, period_days)
+            win_rate, total_trades=await self._calculate_trade_metrics(benchmark, period_days)
             
             return BaselineComparison(
-                ticker = benchmark,
-                benchmark_return = benchmark_return,
-                strategy_return = strategy_return,
-                alpha = alpha,
-                sharpe_ratio = sharpe_ratio,
-                max_drawdown = max_drawdown,
-                volatility = volatility,
-                win_rate = win_rate,
-                total_trades = total_trades,
-                period_days = period_days,
+                ticker=benchmark,
+                benchmark_return=benchmark_return,
+                strategy_return=strategy_return,
+                alpha=alpha,
+                sharpe_ratio=sharpe_ratio,
+                max_drawdown=max_drawdown,
+                volatility=volatility,
+                win_rate=win_rate,
+                total_trades=total_trades,
+                period_days=period_days,
                 last_updated = datetime.now()
             )
             
@@ -170,7 +170,7 @@ class ProductionIndexBaseline:
             
             start_price = historical_data[-period_days].price
             end_price = historical_data[-1].price
-            benchmark_return = float((end_price - start_price) / start_price)
+            benchmark_return = float((end_price-start_price) / start_price)
             
             # Simplified strategy return (would be actual strategy performance in production)
             # Assume strategy slightly underperforms benchmark due to trading costs
@@ -193,7 +193,7 @@ class ProductionIndexBaseline:
             # Calculate daily returns
             returns = []
             for i in range(1, len(historical_data)): 
-                daily_return = float((historical_data[i].price - historical_data[i - 1].price) / historical_data[i - 1].price)
+                daily_return = float((historical_data[i].price-historical_data[i - 1].price) / historical_data[i - 1].price)
                 returns.append(daily_return)
             
             if not returns: 
@@ -248,7 +248,7 @@ class ProductionIndexBaseline:
             # Calculate daily returns
             returns = []
             for i in range(1, len(historical_data)): 
-                daily_return = float((historical_data[i].price - historical_data[i - 1].price) / historical_data[i - 1].price)
+                daily_return = float((historical_data[i].price-historical_data[i - 1].price) / historical_data[i - 1].price)
                 returns.append(daily_return)
             
             if not returns: 
@@ -338,7 +338,7 @@ class ProductionIndexBaseline:
             target_value = portfolio_value * Decimal(str(self.target_allocation))
             current_value = await self.integration.get_position_value(target_benchmark)
             
-            trade_amount = target_value - current_value
+            trade_amount = target_value-current_value
             
             if abs(trade_amount)  <  portfolio_value * Decimal('0.01'):  # Less than 1%
                 return None
@@ -354,12 +354,12 @@ class ProductionIndexBaseline:
             confidence = min(1.0, abs(current_allocation - self.target_allocation) * 10)
             
             return BaselineSignal(
-                ticker = target_benchmark,
-                signal_type = signal_type,
+                ticker=target_benchmark,
+                signal_type=signal_type,
                 current_price = current_data.price,
                 target_allocation = self.target_allocation,
-                risk_amount = risk_amount,
-                confidence = confidence,
+                risk_amount=risk_amount,
+                confidence=confidence,
                 metadata = {
                     'current_allocation': current_allocation,
                     'target_allocation': self.target_allocation,
@@ -393,11 +393,11 @@ class ProductionIndexBaseline:
                 
                 if loss_percentage  <=  self.tax_loss_threshold: 
                     signal = BaselineSignal(
-                        ticker = benchmark,
+                        ticker=benchmark,
                         signal_type = 'tax_loss_harvest',
                         current_price = current_data.price,
                         target_allocation = 0.0,
-                        risk_amount = position_value,
+                        risk_amount=position_value,
                         confidence = 0.8,
                         metadata = {
                             'loss_percentage': loss_percentage,
@@ -429,9 +429,9 @@ class ProductionIndexBaseline:
             trade_signal = ProductionTradeSignal(
                 strategy_name = "index_baseline",
                 ticker = signal.ticker,
-                side = side,
+                side=side,
                 order_type = OrderType.MARKET,
-                quantity = quantity,
+                quantity=quantity,
                 price = float(signal.current_price),
                 trade_type = "stock",
                 risk_amount = signal.risk_amount,

@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 WSB Strategy #5: 0DTE / Earnings Lotto Scanner
 High - risk, high - reward plays with strict position sizing and discipline
@@ -58,7 +58,7 @@ class EarningsEvent:
 
 
 class LottoScanner: 
-    def __init__(self, max_risk_pct: float = 1.0):
+    def __init__(self, max_risk_pct: float=1.0):
         """
         Initialize with strict risk limits
         max_risk_pct: Maximum % of account to risk per play (default 1%)
@@ -66,7 +66,7 @@ class LottoScanner:
         self.max_risk_pct = max_risk_pct / 100
         
         # High - volatility tickers suitable for lotto plays
-        self.lotto_tickers = [
+        self.lotto_tickers=[
             # Mega caps with options liquidity
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX",
             
@@ -82,11 +82,11 @@ class LottoScanner:
         ]
     
     def get_0dte_expiry(self)->Optional[str]: 
-        """Get 0DTE expiry if available (usually Monday / Wednesday/Friday)"""
+        """Get 0DTE expiry if available (usually Monday / Wednesday / Friday)"""
         today = date.today()
         
-        # Check if today has 0DTE options (Mon / Wed/Fri for SPY, daily for others)
-        weekday = today.weekday()  # 0 = Monday, 4 = Friday
+        # Check if today has 0DTE options (Mon / Wed / Fri for SPY, daily for others)
+        weekday = today.weekday()  # 0=Monday, 4 = Friday
         
         if weekday in [0, 2, 4]:  # Mon, Wed, Fri
             return today.strftime("%Y-%m-%d")
@@ -141,7 +141,7 @@ class LottoScanner:
                 
                 if not atm_put.empty: 
                     put_mid = (atm_put['bid'].iloc[0] + atm_put['ask'].iloc[0]) / 2
-                    straddle_price = mid_price + put_mid
+                    straddle_price = mid_price+put_mid
                     expected_move_pct = straddle_price / spot
                 else: 
                     expected_move_pct = (mid_price * 2) / spot  # Rough approximation
@@ -167,7 +167,7 @@ class LottoScanner:
         
         return 0.05  # Default fallback
     
-    def get_earnings_calendar(self, weeks_ahead: int = 2)->List[EarningsEvent]:
+    def get_earnings_calendar(self, weeks_ahead: int=2)->List[EarningsEvent]:
         """Get upcoming earnings events (simplified - would use real earnings API)"""
         # This is a simplified version - in practice, use Alpha Vantage, FMP, or similar API
         
@@ -199,18 +199,17 @@ class LottoScanner:
                 
                 event = EarningsEvent(
                     ticker = earning["ticker"],
-                    company_name = company_name,
-                    earnings_date = earnings_date,
+                    company_name=company_name,
+                    earnings_date=earnings_date,
                     time_of_day = earning["time"],
                     expected_move = earning["expected_move"],
                     avg_move_historical = earning["expected_move"] * 0.8,  # Estimate
-                    revenue_estimate = None,
-                    eps_estimate = None,
-                    sector = sector
-                )
+                    revenue_estimate=None,
+                    eps_estimate=None,
+                    sector = sector)
                 events.append(event)
         
-        return sorted(events, key = lambda x: x.earnings_date)
+        return sorted(events, key=lambda x: x.earnings_date)
     
     def scan_0dte_opportunities(self, account_size: float)->List[LottoPlay]:
         """Scan for 0DTE opportunities"""
@@ -287,10 +286,10 @@ class LottoScanner:
                     
                     # Calculate metrics
                     if option_type ==  "call": 
-                        breakeven = strike + mid_price
+                        breakeven = strike+mid_price
                         profit_target = breakeven * 1.5  # 50% beyond breakeven
                     else:  # put
-                        breakeven = strike - mid_price
+                        breakeven = strike-mid_price
                         profit_target = breakeven * 0.67  # 33% below breakeven
                     
                     stop_loss = mid_price * 0.5  # 50% stop loss
@@ -308,25 +307,24 @@ class LottoScanner:
                     potential_return = (target_premium - mid_price) / mid_price
                     
                     lotto_play = LottoPlay(
-                        ticker = ticker,
+                        ticker=ticker,
                         play_type = "0dte",
-                        expiry_date = expiry,
+                        expiry_date=expiry,
                         days_to_expiry = 0,
                         strike = int(strike),
-                        option_type = option_type,
-                        current_premium = mid_price,
-                        breakeven = breakeven,
-                        current_spot = spot,
+                        option_type=option_type,
+                        current_premium=mid_price,
+                        breakeven=breakeven,
+                        current_spot=spot,
                         catalyst_event = "Intraday momentum",
-                        expected_move = expected_move,
-                        max_position_size = max_dollar_risk,
-                        max_contracts = max_contracts,
+                        expected_move=expected_move,
+                        max_position_size=max_dollar_risk,
+                        max_contracts=max_contracts,
                         risk_level = "extreme",
-                        win_probability = win_prob,
-                        potential_return = potential_return,
-                        stop_loss_price = stop_loss,
-                        profit_target_price = target_premium
-                    )
+                        win_probability=win_prob,
+                        potential_return=potential_return,
+                        stop_loss_price=stop_loss,
+                        profit_target_price = target_premium)
                     
                     opportunities.append(lotto_play)
                     
@@ -337,8 +335,7 @@ class LottoScanner:
         # Sort by risk - adjusted expected value
         opportunities.sort(
             key = lambda x: x.win_probability * x.potential_return,
-            reverse = True
-        )
+            reverse = True)
         
         return opportunities[: 10]  # Top 10 plays
     
@@ -363,7 +360,7 @@ class LottoScanner:
                     available_expiries = stock.options
                     for exp_str in available_expiries: 
                         exp_date = datetime.strptime(exp_str, "%Y-%m-%d").date()
-                        diff = abs((exp_date - target_date).days)
+                        diff = abs((exp_date-target_date).days)
                         if diff  <  min_diff and exp_date  >=  target_date: 
                             min_diff = diff
                             best_expiry = exp_str
@@ -424,10 +421,10 @@ class LottoScanner:
                     
                     # Calculate metrics
                     if option_type ==  "call": 
-                        breakeven = strike + mid_price
+                        breakeven = strike+mid_price
                         win_prob = 0.3 if strike  <  expected_up else 0.2
                     else: 
-                        breakeven = strike - mid_price
+                        breakeven = strike-mid_price
                         win_prob = 0.3 if strike  >  expected_down else 0.2
                     
                     # Earnings plays aim for 3 - 5x returns
@@ -438,20 +435,20 @@ class LottoScanner:
                     lotto_play = LottoPlay(
                         ticker = event.ticker,
                         play_type = "earnings",
-                        expiry_date = best_expiry,
-                        days_to_expiry = days_to_expiry,
+                        expiry_date=best_expiry,
+                        days_to_expiry=days_to_expiry,
                         strike = int(strike),
-                        option_type = option_type,
-                        current_premium = mid_price,
-                        breakeven = breakeven,
-                        current_spot = spot,
+                        option_type=option_type,
+                        current_premium=mid_price,
+                        breakeven=breakeven,
+                        current_spot=spot,
                         catalyst_event = f"Earnings {event.earnings_date} {event.time_of_day}",
                         expected_move = event.expected_move,
-                        max_position_size = max_dollar_risk,
-                        max_contracts = max_contracts,
-                        risk_level = risk_level,
-                        win_probability = win_prob,
-                        potential_return = potential_return,
+                        max_position_size=max_dollar_risk,
+                        max_contracts=max_contracts,
+                        risk_level=risk_level,
+                        win_probability=win_prob,
+                        potential_return=potential_return,
                         stop_loss_price = mid_price * 0.5,
                         profit_target_price = mid_price * 5
                     )
@@ -465,8 +462,7 @@ class LottoScanner:
         # Sort by expected value
         opportunities.sort(
             key = lambda x: x.win_probability * x.potential_return,
-            reverse = True
-        )
+            reverse = True)
         
         return opportunities[: 15]
     
@@ -477,7 +473,7 @@ class LottoScanner:
         
         output = f"\n🎰 LOTTO PLAYS ({len(plays)} found)\n"
         output += " = " * 70 + "\n"
-        output += "⚠️  EXTREME RISK - USE ONLY 0.5 - 1% OF ACCOUNT PER PLAY\n"
+        output += "⚠️  EXTREME RISK - USE ONLY 0.5 - 1% OF ACCOUNT PER PLAY + n"
         output += " = " * 70 + "\n"
         
         for i, play in enumerate(plays, 1): 
@@ -493,32 +489,32 @@ class LottoScanner:
             output += f"   Spot: ${play.current_spot:.2f} | Strike: ${play.strike} | Premium: ${play.current_premium:.2f}\n"
             output += f"   Breakeven: ${play.breakeven:.2f} | Expected Move: {play.expected_move:.1%}\n"
             output += f"   Max Position: {play.max_contracts} contracts (${play.max_position_size: .0f})\n"
-            output += f"   Win Prob: {play.win_probability:.1%} | Target Return: {play.potential_return:.1f}x\n"
+            output += f"   Win Prob: {play.win_probability:.1%} | Target Return: {play.potential_return:.1f}x + n"
             output += f"   Stop: ${play.stop_loss_price:.2f} | Target: ${play.profit_target_price:.2f}\n"
         
         output += "\n" + " = " * 70
         output += "\n💀 LOTTO PLAY RULES (MANDATORY): \n"
-        output += "• MAX 1% of account per play\n"
-        output += "• MAX 3 positions at once\n" 
-        output += "• 50% stop loss on ALL positions\n"
-        output += "• Take profits at 3 - 5x quickly\n"
-        output += "• NO DOUBLING DOWN on losers\n"
-        output += "• Track every trade for learning\n"
-        output += "\n⚰️  EXPECTATION: Most trades will expire worthless\n"
-        output += "    The few winners must pay for many losers\n"
+        output += "• MAX 1% of account per play + n"
+        output += "• MAX 3 positions at once+n" 
+        output += "• 50% stop loss on ALL positions + n"
+        output += "• Take profits at 3 - 5x quickly + n"
+        output += "• NO DOUBLING DOWN on losers + n"
+        output += "• Track every trade for learning + n"
+        output += "\n⚰️  EXPECTATION: Most trades will expire worthless + n"
+        output += "    The few winners must pay for many losers + n"
         
         return output
 
 
 def main(): 
     parser = argparse.ArgumentParser(description="0DTE / Earnings Lotto Scanner")
-    parser.add_argument('command', choices = ['0dte', 'earnings', 'both'],
+    parser.add_argument('command', choices=['0dte', 'earnings', 'both'],
                        help = 'Type of lotto scan')
-    parser.add_argument('--account - size', type = float, required = True,
+    parser.add_argument('--account - size', type=float, required=True,
                        help = 'Account size for position sizing')
-    parser.add_argument('--max - risk-pct', type = float, default = 1.0,
+    parser.add_argument('--max - risk - pct', type=float, default=1.0,
                        help = 'Max risk %% per play (default 1%%)')
-    parser.add_argument('--output', choices = ['json', 'text'], default = 'text',
+    parser.add_argument('--output', choices=['json', 'text'], default='text',
                        help = 'Output format')
     
     args = parser.parse_args()
@@ -542,7 +538,7 @@ def main():
         all_plays.extend(earnings_plays)
     
     if args.output ==  'json': print(json.dumps([asdict(play) for play in all_plays], 
-                        indent = 2, default = str))
+                        indent = 2, default=str))
     else: 
         print(scanner.format_lotto_plays(all_plays))
 

@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Comprehensive Test Suite for Options Calculator
 Tests Black - Scholes implementation and options calculations
@@ -24,7 +24,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
     """Test Black - Scholes pricing calculations"""
     
     def setUp(self): 
-        self.bs_calc = BlackScholesCalculator()
+        self.bs_calc=BlackScholesCalculator()
     
     def test_black_scholes_accuracy_known_values(self): 
         """Test Black - Scholes accuracy against known analytical values"""
@@ -46,7 +46,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         self.assertGreater(calculated_price, 3.0)   # Reasonable lower bound
     
     def test_put_call_parity(self): 
-        """Verify put - call parity: C - P = S - K * e ^ (-r * T)"""
+        """Verify put - call parity: C - P=S - K * e ^ (-r * T)"""
         spot = 100.0
         strike = 100.0
         time_to_expiry = 0.5
@@ -64,9 +64,9 @@ class TestBlackScholesCalculator(unittest.TestCase):
         
         # Verify put - call parity
         expected_diff = spot - strike * math.exp(-risk_free_rate * time_to_expiry)
-        actual_diff = call_price - put_price
+        actual_diff = call_price-put_price
         
-        self.assertAlmostEqual(actual_diff, expected_diff, places = 6)
+        self.assertAlmostEqual(actual_diff, expected_diff, places=6)
     
     def test_greeks_accuracy(self): 
         """Test Greeks calculations against analytical benchmarks"""
@@ -82,7 +82,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         )
         
         # For ATM options, delta should be approximately 0.5
-        self.assertAlmostEqual(delta, 0.5, delta = 0.1)
+        self.assertAlmostEqual(delta, 0.5, delta=0.1)
         
         # Test delta range boundaries
         self.assertGreater(delta, 0)
@@ -155,7 +155,7 @@ class TestBlackScholesCalculator(unittest.TestCase):
         )
         
         # Should be approximately 10.45 for this scenario
-        self.assertAlmostEqual(price, 10.45, delta = 0.5)
+        self.assertAlmostEqual(price, 10.45, delta=0.5)
         self.assertGreater(price, 0)
         self.assertLess(price, 100)  # Sanity check
     
@@ -321,25 +321,25 @@ class TestBlackScholesCalculator(unittest.TestCase):
             spot, strike, time_to_expiry, risk_free_rate, dividend_yield, volatility
         )
         
-        # Put - call parity: C - P = S - K * e ^ (-r * T)
+        # Put - call parity: C - P=S - K * e ^ (-r * T)
         pv_strike = strike * math.exp(-risk_free_rate * time_to_expiry)
         expected_difference = spot - pv_strike
-        actual_difference = call_price - put_price
+        actual_difference = call_price-put_price
         
-        self.assertAlmostEqual(actual_difference, expected_difference, delta = 0.01)
+        self.assertAlmostEqual(actual_difference, expected_difference, delta=0.01)
     
     def test_time_decay_behavior(self): 
         """Test that options lose value as time passes"""
         # Price with more time
         price_1month = self.bs_calc.call_price(
-            spot = 100, strike = 105, time_to_expiry_years = 30 / 365,
-            risk_free_rate = 0.05, dividend_yield = 0.0, implied_volatility = 0.25
+            spot = 100, strike=105, time_to_expiry_years=30 / 365,
+            risk_free_rate = 0.05, dividend_yield=0.0, implied_volatility=0.25
         )
         
         # Price with less time
         price_1week = self.bs_calc.call_price(
-            spot = 100, strike = 105, time_to_expiry_years = 7 / 365,
-            risk_free_rate = 0.05, dividend_yield = 0.0, implied_volatility = 0.25
+            spot = 100, strike=105, time_to_expiry_years=7 / 365,
+            risk_free_rate = 0.05, dividend_yield=0.0, implied_volatility=0.25
         )
         
         # Option with more time should be worth more
@@ -349,14 +349,14 @@ class TestBlackScholesCalculator(unittest.TestCase):
         """Test impact of volatility on option prices"""
         # Low volatility
         price_low_vol = self.bs_calc.call_price(
-            spot = 100, strike = 105, time_to_expiry_years = 0.25,
-            risk_free_rate = 0.05, dividend_yield = 0.0, implied_volatility = 0.15
+            spot = 100, strike=105, time_to_expiry_years=0.25,
+            risk_free_rate = 0.05, dividend_yield=0.0, implied_volatility=0.15
         )
         
         # High volatility
         price_high_vol = self.bs_calc.call_price(
-            spot = 100, strike = 105, time_to_expiry_years = 0.25,
-            risk_free_rate = 0.05, dividend_yield = 0.0, implied_volatility = 0.35
+            spot = 100, strike=105, time_to_expiry_years=0.25,
+            risk_free_rate = 0.05, dividend_yield=0.0, implied_volatility=0.35
         )
         
         # Higher volatility should increase option value
@@ -367,7 +367,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
     """Test options trade calculation logic"""
     
     def setUp(self): 
-        self.calculator = OptionsTradeCalculator()
+        self.calculator=OptionsTradeCalculator()
     
     def test_otm_strike_calculation(self): 
         """Test 5% OTM strike calculation"""
@@ -376,7 +376,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         
         # Should be approximately 5% OTM (rounded to nearest $5)
         expected_strike = spot * 1.05
-        self.assertAlmostEqual(strike, expected_strike, delta = 5.0)
+        self.assertAlmostEqual(strike, expected_strike, delta=5.0)
         self.assertGreater(strike, spot)
     
     def test_expiry_calculation(self): 
@@ -401,10 +401,9 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         trade = calculator.calculate_trade(
             ticker = "GOOGL",
             spot_price = 207.0,
-            account_size = account_size,
+            account_size=account_size,
             implied_volatility = 0.28,
-            risk_pct = risk_pct
-        )
+            risk_pct = risk_pct)
         
         # Verify position sizing constraints
         expected_risk_amount = account_size * risk_pct
@@ -430,9 +429,9 @@ class TestOptionsTradeCalculator(unittest.TestCase):
             risk_pct = 0.15
         )
         
-        # Breakeven should be strike + premium paid
-        expected_breakeven = trade.strike + (trade.estimated_premium / 100)
-        self.assertAlmostEqual(trade.breakeven_price, expected_breakeven, places = 2)
+        # Breakeven should be strike+premium paid
+        expected_breakeven = trade.strike+(trade.estimated_premium / 100)
+        self.assertAlmostEqual(trade.breakeven_price, expected_breakeven, places=2)
         
         # Breakeven should be above current spot for OTM calls
         self.assertGreater(trade.breakeven_price, trade.spot_price)
@@ -453,7 +452,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         notional_value = trade.recommended_contracts * 100 * trade.spot_price
         expected_leverage = notional_value / trade.total_cost if trade.total_cost  >  0 else 0
         
-        self.assertAlmostEqual(trade.leverage_ratio, expected_leverage, places = 1)
+        self.assertAlmostEqual(trade.leverage_ratio, expected_leverage, places=1)
         
         # Leverage should be reasonable (options can have high leverage)
         self.assertGreater(trade.leverage_ratio, 2.0)
@@ -496,7 +495,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
                 expected_roi = scenario['pnl_per_contract'] / trade.estimated_premium
                 actual_roi_str = scenario['roi'].replace('%', '').replace('+', '')
                 actual_roi = float(actual_roi_str) / 100
-                self.assertAlmostEqual(expected_roi, actual_roi, places = 2)
+                self.assertAlmostEqual(expected_roi, actual_roi, places=2)
     
     def test_risk_management_validation(self): 
         """Test risk management constraints are properly enforced"""
@@ -533,10 +532,10 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         
         # Strike should be approximately 5% OTM
         expected_strike = spot_price * 1.05
-        percentage_otm = (otm_strike / spot_price - 1) * 100
+        percentage_otm = (otm_strike / spot_price-1) * 100
         
         # Should be close to 5% OTM (within 1% due to rounding)
-        self.assertAlmostEqual(percentage_otm, 5.0, delta = 1.0)
+        self.assertAlmostEqual(percentage_otm, 5.0, delta=1.0)
         
         # Strike should be rounded to proper increment
         self.assertEqual(otm_strike % 1.0, 0.0)  # Should be whole dollar
@@ -620,9 +619,9 @@ class TestOptionsTradeCalculator(unittest.TestCase):
             risk_pct = 0.04
         )
         
-        # Breakeven should be strike + premium paid per share
-        expected_breakeven = trade_calc.strike + (trade_calc.estimated_premium / 100)
-        self.assertAlmostEqual(trade_calc.breakeven_price, expected_breakeven, delta = 0.01)
+        # Breakeven should be strike+premium paid per share
+        expected_breakeven = trade_calc.strike+(trade_calc.estimated_premium / 100)
+        self.assertAlmostEqual(trade_calc.breakeven_price, expected_breakeven, delta=0.01)
     
     def test_leverage_calculation(self): 
         """Test leverage ratio calculation"""
@@ -634,11 +633,11 @@ class TestOptionsTradeCalculator(unittest.TestCase):
             risk_pct = 0.06
         )
         
-        # Leverage = (contracts * 100 * spot) / total_cost
+        # Leverage=(contracts * 100 * spot) / total_cost
         stock_value = trade_calc.recommended_contracts * 100 * trade_calc.spot_price
         expected_leverage = stock_value / trade_calc.total_cost
         
-        self.assertAlmostEqual(trade_calc.leverage_ratio, expected_leverage, delta = 0.1)
+        self.assertAlmostEqual(trade_calc.leverage_ratio, expected_leverage, delta=0.1)
         self.assertGreater(trade_calc.leverage_ratio, 1.0)  # Should provide leverage
 
 
@@ -665,7 +664,7 @@ class TestOptionsSetup(unittest.TestCase):
         
         # Test calculated properties
         self.assertEqual(setup.total_cost, 8500.0)  # 10 contracts * $8.50 * 100
-        self.assertEqual(setup.breakeven, 168.50)   # Strike + premium
+        self.assertEqual(setup.breakeven, 168.50)   # Strike+premium
     
     def test_options_setup_moneyness(self): 
         """Test moneyness calculations"""
@@ -713,12 +712,12 @@ class TestOptionsSetup(unittest.TestCase):
         
         # Test at different spot prices
         # ITM scenario
-        pnl_itm = setup.calculate_pnl(current_spot=430.0, current_premium = 12.00)
+        pnl_itm = setup.calculate_pnl(current_spot=430.0, current_premium=12.00)
         expected_pnl_itm = 15 * (12.00 - 6.00) * 100  # 15 contracts * $6 gain * 100
         self.assertEqual(pnl_itm, expected_pnl_itm)
         
         # Loss scenario
-        pnl_loss = setup.calculate_pnl(current_spot=415.0, current_premium = 3.00)
+        pnl_loss = setup.calculate_pnl(current_spot=415.0, current_premium=3.00)
         expected_pnl_loss = 15 * (3.00 - 6.00) * 100  # 15 contracts * $3 loss * 100
         self.assertEqual(pnl_loss, expected_pnl_loss)
 
@@ -759,8 +758,8 @@ class TestOptionsCalculatorIntegration(unittest.TestCase):
     """Test integration scenarios for options calculator"""
     
     def setUp(self): 
-        self.bs_calc = BlackScholesCalculator()
-        self.trade_calc = OptionsTradeCalculator()
+        self.bs_calc=BlackScholesCalculator()
+        self.trade_calc=OptionsTradeCalculator()
     
     def test_pricing_consistency(self): 
         """Test consistency between pricing and trade calculations"""
@@ -771,25 +770,24 @@ class TestOptionsCalculatorIntegration(unittest.TestCase):
         vol = 0.25
         
         theoretical_price = self.bs_calc.call_price(
-            spot = spot,
-            strike = strike,
-            time_to_expiry_years = time_to_expiry,
+            spot=spot,
+            strike=strike,
+            time_to_expiry_years=time_to_expiry,
             risk_free_rate = 0.05,
             dividend_yield = 0.0,
-            implied_volatility = vol
-        )
+            implied_volatility = vol)
         
         # Calculate trade with similar parameters
         trade = self.trade_calc.calculate_trade(
             ticker = "TEST",
-            spot_price = spot,
+            spot_price=spot,
             account_size = 50000,
-            implied_volatility = vol,
+            implied_volatility=vol,
             risk_pct = 0.05
         )
         
         # Strikes should be similar (trade calc uses 5% OTM)
-        self.assertAlmostEqual(trade.strike, strike, delta = 2.0)
+        self.assertAlmostEqual(trade.strike, strike, delta=2.0)
     
     def test_greeks_integration(self): 
         """Test Greeks calculations integration"""

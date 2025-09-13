@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Test Script for Advanced Analytics and Market Regime Adaptation
 Demonstrates the newly implemented features: 
@@ -20,7 +20,7 @@ from backend.tradingbot.analytics.advanced_analytics import AdvancedAnalytics, a
 from backend.tradingbot.analytics.market_regime_adapter import MarketRegimeAdapter, adapt_strategies_to_market
 
 
-def generate_sample_returns(days: int = 252, annual_return: float = 0.08, volatility: float = 0.15):
+def generate_sample_returns(days: int=252, annual_return: float=0.08, volatility: float=0.15):
     """Generate sample portfolio returns"""
     # Generate random returns with specified characteristics
     daily_return = annual_return / 252
@@ -50,8 +50,8 @@ async def test_advanced_analytics():
     analytics = AdvancedAnalytics(risk_free_rate=0.02)
 
     metrics = analytics.calculate_comprehensive_metrics(
-        returns = portfolio_returns,
-        benchmark_returns = benchmark_returns,
+        returns=portfolio_returns,
+        benchmark_returns=benchmark_returns,
         start_date = datetime.now() - timedelta(days=252),
         end_date = datetime.now()
     )
@@ -199,10 +199,10 @@ def test_integration_with_production():
         config = ProductionStrategyManagerConfig(
             alpaca_api_key = 'test_key',
             alpaca_secret_key = 'test_secret',
-            paper_trading = True,
+            paper_trading=True,
             profile = StrategyProfile.research_2024,
-            enable_advanced_analytics = True,
-            enable_market_regime_adaptation = True,
+            enable_advanced_analytics=True,
+            enable_market_regime_adaptation=True,
             analytics_update_interval = 300,  # 5 minutes for testing
             regime_adaptation_interval = 600   # 10 minutes for testing
         )
@@ -244,7 +244,7 @@ async def main():
         print("\n🎉 ALL TESTS COMPLETED SUCCESSFULLY!")
         print("\n📊 FEATURE SUMMARY: ")
         print("✅ Advanced Analytics: Sharpe ratio, max drawdown, comprehensive metrics")
-        print("✅ Market Regime Detection: Bull / Bear/Sideways regime identification")
+        print("✅ Market Regime Detection: Bull / Bear / Sideways regime identification")
         print("✅ Strategy Adaptation: Dynamic parameter adjustment based on market regime")
         print("✅ Production Integration: Ready for WallStreetBots production system")
 

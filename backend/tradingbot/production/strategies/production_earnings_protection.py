@@ -53,17 +53,17 @@ class ProductionEarningsProtection:
         self.integration = integration_manager
         self.data_provider = data_provider
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Strategy parameters
-        self.max_position_size = config.get('max_position_size', 0.15)  # 15%
-        self.iv_percentile_threshold = config.get('iv_percentile_threshold', 70)  # 70th percentile
-        self.min_implied_move = config.get('min_implied_move', 0.04)  # 4%
-        self.max_days_to_earnings = config.get('max_days_to_earnings', 7)  # 7 days
-        self.min_days_to_earnings = config.get('min_days_to_earnings', 1)  # 1 day
+        self.max_position_size=config.get('max_position_size', 0.15)  # 15%
+        self.iv_percentile_threshold=config.get('iv_percentile_threshold', 70)  # 70th percentile
+        self.min_implied_move=config.get('min_implied_move', 0.04)  # 4%
+        self.max_days_to_earnings=config.get('max_days_to_earnings', 7)  # 7 days
+        self.min_days_to_earnings=config.get('min_days_to_earnings', 1)  # 1 day
         
         # Strategy preferences
-        self.preferred_strategies = config.get('preferred_strategies', [
+        self.preferred_strategies=config.get('preferred_strategies', [
             'deep_itm', 'calendar_spread', 'protective_hedge'
         ])
         
@@ -103,7 +103,7 @@ class ProductionEarningsProtection:
         """Analyze earnings opportunity for protection strategy"""
         try: 
             # Check if earnings is within our time window
-            days_to_earnings = (event.earnings_date - datetime.now()).days
+            days_to_earnings = (event.earnings_date-datetime.now()).days
             if days_to_earnings  <  self.min_days_to_earnings or days_to_earnings  >  self.max_days_to_earnings: 
                 return None
             
@@ -139,11 +139,11 @@ class ProductionEarningsProtection:
                 earnings_date = event.earnings_date,
                 earnings_time = event.earnings_time,
                 current_price = current_data.price,
-                implied_move = implied_move,
-                iv_percentile = iv_percentile,
-                strategy_type = strategy_type,
-                risk_amount = risk_amount,
-                confidence = confidence,
+                implied_move=implied_move,
+                iv_percentile=iv_percentile,
+                strategy_type=strategy_type,
+                risk_amount=risk_amount,
+                confidence=confidence,
                 metadata = {
                     'days_to_earnings': days_to_earnings,
                     'estimated_eps': float(event.estimated_eps) if event.estimated_eps else None,
@@ -283,9 +283,9 @@ class ProductionEarningsProtection:
                 ticker = signal.ticker,
                 side = OrderSide.BUY,
                 order_type = OrderType.MARKET,
-                quantity = quantity,
+                quantity=quantity,
                 price = float(signal.current_price),
-                trade_type = trade_type,
+                trade_type=trade_type,
                 risk_amount = signal.risk_amount,
                 expected_return = signal.risk_amount * Decimal('0.5'),  # Conservative target
                 metadata = {
@@ -323,7 +323,7 @@ class ProductionEarningsProtection:
                 return "earnings_passed"
             
             # Check time decay (exit day before earnings)
-            days_to_earnings = (position.earnings_date - datetime.now()).days
+            days_to_earnings = (position.earnings_date-datetime.now()).days
             if days_to_earnings  <=  0: 
                 return "time_decay"
             
@@ -331,7 +331,7 @@ class ProductionEarningsProtection:
             # In production, would check actual option prices
             current_data = await self.data_provider.get_current_price(position.ticker)
             if current_data: 
-                price_change = float((current_data.price - position.current_price) / position.current_price)
+                price_change = float((current_data.price-position.current_price) / position.current_price)
                 if price_change  >=  0.25:  # 25% profit target
                     return "profit_target"
             

@@ -56,7 +56,7 @@ class ExitSignal:
     estimated_exit_price: float         # Estimated exit premium per contract
     expected_pnl: float                # Expected P & L from this exit
     reasoning: List[str] = field(default_factory=list)
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime=field(default_factory=datetime.now)
 
     def __str__(self)->str: 
         return f"{self.reason.value.upper()} - {self.strength.value} ({self.position_fraction: .1%} of position)"
@@ -92,26 +92,26 @@ class ExitStrategy:
     """Systematic exit strategy based on successful playbook"""
 
     def __init__(self): 
-        self.bs_calc = BlackScholesCalculator()
+        self.bs_calc=BlackScholesCalculator()
 
         # Exit levels from successful trade (100%, 200%, 250% gains)
-        self.default_exit_levels = [
+        self.default_exit_levels=[
             ExitLevel(
-                name = "First Take - Profit",
+                name = "First Take-Profit",
                 trigger_condition = "100% profit (2x premium)",
                 target_roi = 1.0,
                 position_fraction = 0.33,  # Close 1 / 3
                 priority = 1
             ),
             ExitLevel(
-                name = "Second Take - Profit",
+                name = "Second Take-Profit",
                 trigger_condition = "200% profit (3x premium)",
                 target_roi = 2.0,
                 position_fraction = 0.33,  # Close another 1 / 3
                 priority = 2
             ),
             ExitLevel(
-                name = "Final Take - Profit",
+                name = "Final Take-Profit",
                 trigger_condition = "250% profit or delta ≥ 0.60",
                 target_roi = 2.5,
                 position_fraction = 1.0,   # Close remaining
@@ -140,10 +140,10 @@ class ExitStrategy:
         position: Position,
         current_spot: float,
         current_iv: float,
-        trend_broken: bool = False,
-        days_since_entry: int = 0,
-        risk_free_rate: float = 0.04,
-        dividend_yield: float = 0.0
+        trend_broken: bool=False,
+        days_since_entry: int=0,
+        risk_free_rate: float=0.04,
+        dividend_yield: float=0.0
     )->List[ExitSignal]: 
         """
         Analyze current exit conditions for a position
@@ -158,28 +158,26 @@ class ExitStrategy:
 
         try: 
             current_theoretical_price = self.bs_calc.call_price(
-                spot = current_spot,
+                spot=current_spot,
                 strike = position.strike,
-                time_to_expiry_years = time_to_expiry,
-                risk_free_rate = risk_free_rate,
-                dividend_yield = dividend_yield,
-                implied_volatility = current_iv
-            ) * 100  # Convert to per - contract
+                time_to_expiry_years=time_to_expiry,
+                risk_free_rate=risk_free_rate,
+                dividend_yield=dividend_yield,
+                implied_volatility = current_iv) * 100  # Convert to per - contract
 
             current_delta = self.bs_calc.delta(
-                spot = current_spot,
+                spot=current_spot,
                 strike = position.strike,
-                time_to_expiry_years = time_to_expiry,
-                risk_free_rate = risk_free_rate,
-                dividend_yield = dividend_yield,
-                implied_volatility = current_iv
-            )
+                time_to_expiry_years=time_to_expiry,
+                risk_free_rate=risk_free_rate,
+                dividend_yield=dividend_yield,
+                implied_volatility = current_iv)
 
         except (ValueError, ZeroDivisionError): 
             current_theoretical_price = 0.01
             current_delta = 0.0
 
-        current_roi = (current_theoretical_price - position.entry_premium) / position.entry_premium
+        current_roi = (current_theoretical_price-position.entry_premium) / position.entry_premium
 
         # Check each exit level
         for exit_level in self.default_exit_levels: 
@@ -198,8 +196,8 @@ class ExitStrategy:
                 reason = ExitReason.VOLATILITY_CRUSH,
                 strength = ExitSignalStrength.MODERATE,
                 position_fraction = 0.5,
-                estimated_exit_price = current_theoretical_price,
-                expected_pnl = (current_theoretical_price - position.entry_premium) * position.contracts * 0.5,
+                estimated_exit_price=current_theoretical_price,
+                expected_pnl = (current_theoretical_price-position.entry_premium) * position.contracts * 0.5,
                 reasoning = ["Low implied volatility may limit upside", "Consider reducing exposure"]
             ))
 
@@ -209,8 +207,8 @@ class ExitStrategy:
                 reason = ExitReason.TREND_BREAK,
                 strength = ExitSignalStrength.STRONG,
                 position_fraction = 1.0,
-                estimated_exit_price = current_theoretical_price,
-                expected_pnl = (current_theoretical_price - position.entry_premium) * position.contracts,
+                estimated_exit_price=current_theoretical_price,
+                expected_pnl = (current_theoretical_price-position.entry_premium) * position.contracts,
                 reasoning = ["Bull trend broken", "Exit to preserve capital"]
             ))
 
@@ -220,12 +218,12 @@ class ExitStrategy:
                 reason = ExitReason.TIME_DECAY,
                 strength = ExitSignalStrength.URGENT,
                 position_fraction = 1.0,
-                estimated_exit_price = current_theoretical_price,
-                expected_pnl = (current_theoretical_price - position.entry_premium) * position.contracts,
+                estimated_exit_price=current_theoretical_price,
+                expected_pnl = (current_theoretical_price-position.entry_premium) * position.contracts,
                 reasoning = ["Less than 1 week to expiry", "Time decay accelerating", "Exit immediately"]
             ))
 
-        # Sort by priority (lower number = higher priority)
+        # Sort by priority (lower number=higher priority)
         signals.sort(key=lambda x: (
             0 if x.strength  ==  ExitSignalStrength.URGENT else
             1 if x.strength  ==  ExitSignalStrength.STRONG else
@@ -281,16 +279,15 @@ class ExitStrategy:
             strength = ExitSignalStrength.STRONG
 
         if triggered: 
-            expected_pnl = (current_price - position.entry_premium) * position.contracts * exit_level.position_fraction
+            expected_pnl = (current_price-position.entry_premium) * position.contracts * exit_level.position_fraction
 
             return ExitSignal(
                 reason = ExitReason.PROFIT_TARGET if exit_level.target_roi  >=  0 else ExitReason.STOP_LOSS,
-                strength = strength,
+                strength=strength,
                 position_fraction = exit_level.position_fraction,
-                estimated_exit_price = current_price,
-                expected_pnl = expected_pnl,
-                reasoning = reasoning
-            )
+                estimated_exit_price=current_price,
+                expected_pnl=expected_pnl,
+                reasoning = reasoning)
 
         return None
 
@@ -299,8 +296,8 @@ class ScenarioAnalyzer:
     """Advanced scenario analysis for exit planning"""
 
     def __init__(self): 
-        self.bs_calc = BlackScholesCalculator()
-        self.exit_strategy = ExitStrategy()
+        self.bs_calc=BlackScholesCalculator()
+        self.exit_strategy=ExitStrategy()
 
     def run_comprehensive_analysis(
         self,
@@ -308,8 +305,8 @@ class ScenarioAnalyzer:
         current_spot: float,
         current_iv: float,
         scenarios: Dict[str, Dict] = None,
-        risk_free_rate: float = 0.04,
-        dividend_yield: float = 0.0
+        risk_free_rate: float=0.04,
+        dividend_yield: float=0.0
     )->List[ScenarioResult]: 
         """
         Run comprehensive scenario analysis
@@ -406,22 +403,20 @@ class ScenarioAnalyzer:
         # Calculate option value under scenario
         try: 
             new_premium = self.bs_calc.call_price(
-                spot = new_spot,
+                spot=new_spot,
                 strike = position.strike,
-                time_to_expiry_years = time_to_expiry,
-                risk_free_rate = risk_free_rate,
-                dividend_yield = dividend_yield,
-                implied_volatility = new_iv
-            ) * 100
+                time_to_expiry_years=time_to_expiry,
+                risk_free_rate=risk_free_rate,
+                dividend_yield=dividend_yield,
+                implied_volatility = new_iv) * 100
 
             new_delta = self.bs_calc.delta(
-                spot = new_spot,
+                spot=new_spot,
                 strike = position.strike,
-                time_to_expiry_years = time_to_expiry,
-                risk_free_rate = risk_free_rate,
-                dividend_yield = dividend_yield,
-                implied_volatility = new_iv
-            )
+                time_to_expiry_years=time_to_expiry,
+                risk_free_rate=risk_free_rate,
+                dividend_yield=dividend_yield,
+                implied_volatility = new_iv)
 
         except (ValueError, ZeroDivisionError): 
             new_premium = max(0, new_spot - position.strike) if new_spot  >  position.strike else 0.01
@@ -445,12 +440,11 @@ class ScenarioAnalyzer:
 
         # Generate exit signals for this scenario
         exit_signals = self.exit_strategy.analyze_exit_conditions(
-            position, new_spot, new_iv, days_since_entry = days_forward
-        )
+            position, new_spot, new_iv, days_since_entry=days_forward)
 
         # Determine recommended action
         if exit_signals: 
-            strongest_signal = max(exit_signals, key = lambda x: x.strength.value)
+            strongest_signal = max(exit_signals, key=lambda x: x.strength.value)
             recommended_action = f"{strongest_signal.reason.value}: {strongest_signal.position_fraction:.0%}"
         else: 
             if roi  >  0.5: 
@@ -461,22 +455,21 @@ class ScenarioAnalyzer:
                 recommended_action = "MONITOR - neutral position"
 
         return ScenarioResult(
-            scenario_name = scenario_name,
-            spot_price = new_spot,
+            scenario_name=scenario_name,
+            spot_price=new_spot,
             spot_change_pct = params["spot_change"],
-            days_passed = days_forward,
-            implied_volatility = new_iv,
-            estimated_premium = new_premium,
-            position_value = position_value,
-            pnl_per_contract = pnl_per_contract,
-            total_pnl = total_pnl,
-            roi = roi,
-            delta = new_delta,
-            time_decay_impact = time_decay_impact,
-            vega_impact = vega_impact,
-            recommended_action = recommended_action,
-            exit_signals = exit_signals
-        )
+            days_passed=days_forward,
+            implied_volatility=new_iv,
+            estimated_premium=new_premium,
+            position_value=position_value,
+            pnl_per_contract=pnl_per_contract,
+            total_pnl=total_pnl,
+            roi=roi,
+            delta=new_delta,
+            time_decay_impact=time_decay_impact,
+            vega_impact=vega_impact,
+            recommended_action=recommended_action,
+            exit_signals = exit_signals)
 
     def _estimate_time_decay_impact(
         self, position: Position, spot: float, iv: float, days_forward: int,
@@ -566,8 +559,8 @@ class ScenarioAnalyzer:
             },
 
             'key_scenarios': {
-                'best_case': max(scenarios, key = lambda x: x.roi) if scenarios else None,
-                'worst_case': min(scenarios, key = lambda x: x.roi) if scenarios else None,
+                'best_case': max(scenarios, key=lambda x: x.roi) if scenarios else None,
+                'worst_case': min(scenarios, key=lambda x: x.roi) if scenarios else None,
                 'base_case': next((s for s in scenarios if 'Current' in s.scenario_name), scenarios[0] if scenarios else None)
             }
         }
@@ -615,7 +608,7 @@ if __name__ ==  "__main__": # Test the exit planning system
     exit_strategy = ExitStrategy()
 
     exit_signals = exit_strategy.analyze_exit_conditions(
-        position = sample_position,
+        position=sample_position,
         current_spot = 215.0,
         current_iv = 0.28,
         days_since_entry = 3
@@ -632,7 +625,7 @@ if __name__ ==  "__main__": # Test the exit planning system
     analyzer = ScenarioAnalyzer()
 
     scenarios = analyzer.run_comprehensive_analysis(
-        position = sample_position,
+        position=sample_position,
         current_spot = 215.0,
         current_iv = 0.28
     )

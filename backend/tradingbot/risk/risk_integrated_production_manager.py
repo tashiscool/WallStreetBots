@@ -30,14 +30,14 @@ class RiskIntegratedConfig(ProductionStrategyManagerConfig):
     """Configuration for risk - integrated production manager"""
     
     # Risk management settings
-    risk_limits: RiskLimits = field(default_factory=RiskLimits)
+    risk_limits: RiskLimits=field(default_factory=RiskLimits)
     enable_ml_risk: bool = True
     enable_stress_testing: bool = True
     enable_risk_dashboard: bool = True
     
     # Risk monitoring settings
     risk_calculation_interval: int = 30  # seconds
-    risk_alert_threshold: float = 0.8  # 80% of limits
+    risk_alert_threshold: float=0.8  # 80% of limits
     
     # Risk integration settings
     auto_position_sizing: bool = True
@@ -65,10 +65,10 @@ class RiskIntegratedProductionManager:
             config: Configuration including risk management settings
         """
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Initialize base production manager
-        self.base_manager = ProductionStrategyManager(config)
+        self.base_manager=ProductionStrategyManager(config)
         
         # Initialize risk management
         self.risk_manager = RiskIntegrationManager(
@@ -84,7 +84,7 @@ class RiskIntegratedProductionManager:
         # Risk monitoring state
         self.risk_monitoring_active = False
         self.last_risk_calculation = None
-        self.risk_alerts_sent = set()
+        self.risk_alerts_sent=set()
         
         # Performance tracking
         self.risk_calculations_count = 0
@@ -183,10 +183,10 @@ class RiskIntegratedProductionManager:
             
             # Update tracking
             self.risk_calculations_count += 1
-            self.last_risk_calculation = datetime.now()
+            self.last_risk_calculation=datetime.now()
             
-            self.logger.debug(f"Risk calculated: VaR = {risk_metrics.portfolio_var:.2%}, "
-                            f"CVaR = {risk_metrics.portfolio_cvar: .2%}, "
+            self.logger.debug(f"Risk calculated: VaR={risk_metrics.portfolio_var:.2%}, "
+                            f"CVaR={risk_metrics.portfolio_cvar: .2%}, "
                             f"Within limits: {risk_metrics.within_limits}")
             
         except Exception as e: 
@@ -261,7 +261,7 @@ class RiskIntegratedProductionManager:
             import pandas as pd
             import numpy as np
             
-            dates = pd.date_range(end=datetime.now(), periods = 252, freq = 'D')
+            dates = pd.date_range(end=datetime.now(), periods=252, freq='D')
             returns = np.random.normal(0, 0.02, 252)
             prices = 100 * np.cumprod(1 + returns)
             
@@ -272,21 +272,21 @@ class RiskIntegratedProductionManager:
                     'Low': prices * 0.98,
                     'Close': prices,
                     'Volume': np.random.randint(1000000, 5000000, 252)
-                }, index = dates),
+                }, index=dates),
                 'SPY': pd.DataFrame({
                     'Open': prices * 0.99,
                     'High': prices * 1.01,
                     'Low': prices * 0.99,
                     'Close': prices,
                     'Volume': np.random.randint(5000000, 10000000, 252)
-                }, index = dates),
+                }, index=dates),
                 'TSLA': pd.DataFrame({
                     'Open': prices * 0.95,
                     'High': prices * 1.05,
                     'Low': prices * 0.95,
                     'Close': prices,
                     'Volume': np.random.randint(2000000, 8000000, 252)
-                }, index = dates)
+                }, index=dates)
             }
         except Exception as e: 
             self.logger.error(f"Error getting market data: {e}")
@@ -307,7 +307,7 @@ class RiskIntegratedProductionManager:
                                    symbol: str,
                                    action: str,
                                    quantity: float,
-                                   price: float = None,
+                                   price: float=None,
                                    **kwargs)->Dict[str, Any]: 
         """
         Execute a trade through a specific strategy with risk management
@@ -432,7 +432,7 @@ class RiskIntegratedProductionManager:
         except Exception as e: 
             self.logger.error(f"Error updating risk limits: {e}")
     
-    def enable_risk_management(self, strategy_name: str = None):
+    def enable_risk_management(self, strategy_name: str=None):
         """Enable risk management for specific strategy or all strategies"""
         try: 
             if strategy_name: 
@@ -449,7 +449,7 @@ class RiskIntegratedProductionManager:
         except Exception as e: 
             self.logger.error(f"Error enabling risk management: {e}")
     
-    def disable_risk_management(self, strategy_name: str = None):
+    def disable_risk_management(self, strategy_name: str=None):
         """Disable risk management for specific strategy or all strategies"""
         try: 
             if strategy_name: 

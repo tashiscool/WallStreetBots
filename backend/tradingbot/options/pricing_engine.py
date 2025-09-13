@@ -89,15 +89,15 @@ class OptionsContract:
     @property
     def days_to_expiry(self)->int: 
         """Calculate days to expiry"""
-        return (self.expiry_date - date.today()).days
+        return (self.expiry_date-date.today()).days
 
 
 class BlackScholesEngine: 
     """Accurate Black - Scholes options pricing engine"""
     
     def __init__(self): 
-        self.risk_free_rate_cache = {}
-        self.dividend_yield_cache = {}
+        self.risk_free_rate_cache={}
+        self.dividend_yield_cache={}
     
     async def get_risk_free_rate(self)->Decimal: 
         """Get current risk - free rate (10 - year Treasury)"""
@@ -219,7 +219,7 @@ class BlackScholesEngine:
         except Exception as e: 
             logger.error(f"Error in Black - Scholes put calculation: {e}")
             # Fallback to intrinsic value
-            return Decimal(str(max(0.01, float(strike - spot))))
+            return Decimal(str(max(0.01, float(strike-spot))))
     
     async def calculate_greeks(self, spot: Decimal, strike: Decimal, time_to_expiry: float,
                              risk_free_rate: Decimal, dividend_yield: Decimal, 
@@ -245,7 +245,7 @@ class BlackScholesEngine:
             d2 = self._d2(d1, sigma, T)
             
             # Delta
-            if option_type.lower()  ==  'call': delta = math.exp(-q * T) * norm.cdf(d1)
+            if option_type.lower()  ==  'call': delta=math.exp(-q * T) * norm.cdf(d1)
             else: 
                 delta = -math.exp(-q * T) * norm.cdf(-d1)
             
@@ -287,17 +287,17 @@ class RealOptionsPricingEngine:
     """Production options pricing engine with real market data"""
     
     def __init__(self): 
-        self.bs_engine = BlackScholesEngine()
-        self.volatility_cache = {}
-        self.options_chain_cache = {}
+        self.bs_engine=BlackScholesEngine()
+        self.volatility_cache={}
+        self.options_chain_cache={}
         self.cache_expiry = 300  # 5 minutes
     
-    async def get_implied_volatility(self, ticker: str, days_back: int = 30)->Decimal:
+    async def get_implied_volatility(self, ticker: str, days_back: int=30)->Decimal:
         """Calculate implied volatility from historical prices"""
         cache_key = f"{ticker}_{days_back}"
         
         if cache_key in self.volatility_cache: 
-            cached_time, cached_iv = self.volatility_cache[cache_key]
+            cached_time, cached_iv=self.volatility_cache[cache_key]
             if (datetime.now() - cached_time).seconds  <  self.cache_expiry: 
                 return cached_iv
         
@@ -346,13 +346,13 @@ class RealOptionsPricingEngine:
         """Calculate theoretical option price using real market parameters"""
         try: 
             # Calculate time to expiry
-            time_to_expiry = (expiry_date - date.today()).days / 365.0
+            time_to_expiry = (expiry_date-date.today()).days / 365.0
             
             if time_to_expiry  <=  0: 
                 # Expired option
-                if option_type.lower()  ==  'call': return Decimal(str(max(0, float(current_price - strike))))
+                if option_type.lower()  ==  'call': return Decimal(str(max(0, float(current_price-strike))))
                 else: 
-                    return Decimal(str(max(0, float(strike - current_price))))
+                    return Decimal(str(max(0, float(strike-current_price))))
             
             # Get market parameters
             risk_free_rate = await self.bs_engine.get_risk_free_rate()
@@ -375,9 +375,9 @@ class RealOptionsPricingEngine:
         except Exception as e: 
             logger.error(f"Error calculating theoretical price for {ticker} {strike} {option_type}: {e}")
             # Fallback to simple intrinsic value
-            if option_type.lower()  ==  'call': return Decimal(str(max(0.01, float(current_price - strike))))
+            if option_type.lower()  ==  'call': return Decimal(str(max(0.01, float(current_price-strike))))
             else: 
-                return Decimal(str(max(0.01, float(strike - current_price))))
+                return Decimal(str(max(0.01, float(strike-current_price))))
     
     async def get_options_chain_yahoo(self, ticker: str, expiry_date: date)->List[OptionsContract]:
         """Get options chain from Yahoo Finance (free fallback)"""
@@ -394,9 +394,9 @@ class RealOptionsPricingEngine:
             # Process calls
             for _, row in options_chain.calls.iterrows(): 
                 contract = OptionsContract(
-                    ticker = ticker,
+                    ticker=ticker,
                     strike = Decimal(str(row['strike'])),
-                    expiry_date = expiry_date,
+                    expiry_date=expiry_date,
                     option_type = 'call',
                     bid = Decimal(str(row['bid'])) if row['bid']  >  0 else None,
                     ask = Decimal(str(row['ask'])) if row['ask']  >  0 else None,
@@ -410,9 +410,9 @@ class RealOptionsPricingEngine:
             # Process puts
             for _, row in options_chain.puts.iterrows(): 
                 contract = OptionsContract(
-                    ticker = ticker,
+                    ticker=ticker,
                     strike = Decimal(str(row['strike'])),
-                    expiry_date = expiry_date,
+                    expiry_date=expiry_date,
                     option_type = 'put',
                     bid = Decimal(str(row['bid'])) if row['bid']  >  0 else None,
                     ask = Decimal(str(row['ask'])) if row['ask']  >  0 else None,
@@ -431,13 +431,13 @@ class RealOptionsPricingEngine:
     
     async def find_optimal_option(self, ticker: str, current_price: Decimal,
                                 target_delta: Optional[float] = None,
-                                min_dte: int = 20, max_dte: int = 45,
-                                option_type: str = "call")->Optional[OptionsContract]:
+                                min_dte: int=20, max_dte: int=45,
+                                option_type: str="call")->Optional[OptionsContract]:
         """Find optimal options contract based on criteria"""
         try: 
             # Find suitable expiry dates
             suitable_expiries = []
-            for days_out in range(min_dte, max_dte + 1): 
+            for days_out in range(min_dte, max_dte+1): 
                 expiry = date.today() + timedelta(days=days_out)
                 # Skip weekends (options expire on Fridays)
                 if expiry.weekday()  ==  4:  # Friday

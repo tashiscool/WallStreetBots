@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Production LEAPS Tracker Strategy
 Long - term positions on secular growth trends with systematic profit - taking
@@ -85,24 +85,24 @@ class ProductionLEAPSTracker:
     - Maximum 10% per individual LEAPS position
     - Maximum 5 concurrent LEAPS positions
     - Stop loss at -50% to preserve capital
-    - Time - based exits before expiration year
+    - Time-based exits before expiration year
     - Theme diversification requirements
     """
     
     def __init__(self, integration_manager, data_provider: ReliableDataProvider, config: dict):
-        self.strategy_name = "leaps_tracker"
+        self.strategy_name="leaps_tracker"
         self.integration_manager = integration_manager
         self.data_provider = data_provider
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Core components
-        self.options_selector = SmartOptionsSelector(data_provider)
-        self.risk_manager = RealTimeRiskManager()
-        self.bs_engine = BlackScholesEngine()
+        self.options_selector=SmartOptionsSelector(data_provider)
+        self.risk_manager=RealTimeRiskManager()
+        self.bs_engine=BlackScholesEngine()
         
         # Strategy configuration
-        self.secular_themes = config.get('secular_themes', {
+        self.secular_themes=config.get('secular_themes', {
             "ai_revolution": SecularTrend(
                 theme = "AI Revolution",
                 description = "Artificial intelligence transforming industries",
@@ -134,24 +134,24 @@ class ProductionLEAPSTracker:
         })
         
         # Risk parameters
-        self.max_positions = config.get('max_positions', 5)
-        self.max_position_size = config.get('max_position_size', 0.10)  # 10% per LEAPS
-        self.max_total_allocation = config.get('max_total_allocation', 0.30)  # 30% total
-        self.min_dte = config.get('min_dte', 365)  # Minimum 1 year
-        self.max_dte = config.get('max_dte', 730)  # Maximum 2 years
+        self.max_positions=config.get('max_positions', 5)
+        self.max_position_size=config.get('max_position_size', 0.10)  # 10% per LEAPS
+        self.max_total_allocation=config.get('max_total_allocation', 0.30)  # 30% total
+        self.min_dte=config.get('min_dte', 365)  # Minimum 1 year
+        self.max_dte=config.get('max_dte', 730)  # Maximum 2 years
         
         # Scoring thresholds
-        self.min_composite_score = config.get('min_composite_score', 60)
-        self.min_entry_timing_score = config.get('min_entry_timing_score', 50)
-        self.max_exit_timing_score = config.get('max_exit_timing_score', 70)
+        self.min_composite_score=config.get('min_composite_score', 60)
+        self.min_entry_timing_score=config.get('min_entry_timing_score', 50)
+        self.max_exit_timing_score=config.get('max_exit_timing_score', 70)
         
         # Profit taking levels
-        self.profit_levels = config.get('profit_levels', [100, 200, 300, 400])  # 2x, 3x, 4x, 5x
-        self.scale_out_percentage = config.get('scale_out_percentage', 25)  # 25% each level
+        self.profit_levels=config.get('profit_levels', [100, 200, 300, 400])  # 2x, 3x, 4x, 5x
+        self.scale_out_percentage=config.get('scale_out_percentage', 25)  # 25% each level
         
         # Exit criteria
-        self.stop_loss = config.get('stop_loss', 0.50)  # 50% loss
-        self.time_exit_dte = config.get('time_exit_dte', 90)  # Exit 3 months before expiry
+        self.stop_loss=config.get('stop_loss', 0.50)  # 50% loss
+        self.time_exit_dte=config.get('time_exit_dte', 90)  # Exit 3 months before expiry
         
         # Active positions tracking
         self.active_positions: List[Dict[str, Any]] = []
@@ -167,12 +167,12 @@ class ProductionLEAPSTracker:
             if hist_data.empty or len(hist_data)  <  250: 
                 return MovingAverageCross(
                     cross_type = "neutral",
-                    cross_date = None,
-                    days_since_cross = None,
+                    cross_date=None,
+                    days_since_cross=None,
                     sma_50 = 0.0,
                     sma_200 = 0.0,
-                    price_above_50sma = False,
-                    price_above_200sma = False,
+                    price_above_50sma=False,
+                    price_above_200sma=False,
                     cross_strength = 0.0,
                     trend_direction = "sideways"
                 )
@@ -195,12 +195,12 @@ class ProductionLEAPSTracker:
             if len(sma_50_series)  <  50 or len(sma_200_series)  <  50: 
                 return MovingAverageCross(
                     cross_type = "neutral",
-                    cross_date = None,
-                    days_since_cross = None,
-                    sma_50 = sma_50,
-                    sma_200 = sma_200,
-                    price_above_50sma = price_above_50,
-                    price_above_200sma = price_above_200,
+                    cross_date=None,
+                    days_since_cross=None,
+                    sma_50=sma_50,
+                    sma_200=sma_200,
+                    price_above_50sma=price_above_50,
+                    price_above_200sma=price_above_200,
                     cross_strength = 0.0,
                     trend_direction = "sideways"
                 )
@@ -249,27 +249,26 @@ class ProductionLEAPSTracker:
                 trend_direction = "sideways"
             
             return MovingAverageCross(
-                cross_type = cross_type,
-                cross_date = cross_date,
-                days_since_cross = days_since_cross,
-                sma_50 = sma_50,
-                sma_200 = sma_200,
-                price_above_50sma = price_above_50,
-                price_above_200sma = price_above_200,
-                cross_strength = cross_strength,
-                trend_direction = trend_direction
-            )
+                cross_type=cross_type,
+                cross_date=cross_date,
+                days_since_cross=days_since_cross,
+                sma_50=sma_50,
+                sma_200=sma_200,
+                price_above_50sma=price_above_50,
+                price_above_200sma=price_above_200,
+                cross_strength=cross_strength,
+                trend_direction = trend_direction)
             
         except Exception as e: 
             self.logger.error(f"Error analyzing MA cross for {ticker}: {e}")
             return MovingAverageCross(
                 cross_type = "neutral",
-                cross_date = None,
-                days_since_cross = None,
+                cross_date=None,
+                days_since_cross=None,
                 sma_50 = 0.0,
                 sma_200 = 0.0,
-                price_above_50sma = False,
-                price_above_200sma = False,
+                price_above_50sma=False,
+                price_above_200sma=False,
                 cross_strength = 0.0,
                 trend_direction = "sideways"
             )
@@ -327,11 +326,11 @@ class ProductionLEAPSTracker:
         
         # Adjust for trend strength
         if ma_cross.trend_direction  ==  "bullish": 
-            entry_score = min(95.0, entry_score + 5.0)
-            exit_score = max(5.0, exit_score - 5.0)
+            entry_score = min(95.0, entry_score+5.0)
+            exit_score = max(5.0, exit_score-5.0)
         elif ma_cross.trend_direction ==  "bearish": 
-            entry_score = max(5.0, entry_score - 10.0)
-            exit_score = min(95.0, exit_score + 10.0)
+            entry_score = max(5.0, entry_score-10.0)
+            exit_score = min(95.0, exit_score+10.0)
         
         return entry_score, exit_score
     
@@ -442,7 +441,7 @@ class ProductionLEAPSTracker:
             for exp_str in expiries: 
                 try: 
                     exp_date = datetime.strptime(exp_str, "%Y-%m-%d").date()
-                    days_out = (exp_date - today).days
+                    days_out = (exp_date-today).days
                     
                     # LEAPS: within our DTE range and prefer January expiries
                     if self.min_dte  <=  days_out  <=  self.max_dte: 
@@ -560,11 +559,11 @@ class ProductionLEAPSTracker:
                     # Use nearest LEAPS expiry
                     expiry = leaps_expiries[0]
                     premium = await self.estimate_leaps_premium(ticker, target_strike, expiry)
-                    breakeven = target_strike + premium
+                    breakeven = target_strike+premium
                     
                     # Return targets
-                    target_1y = ((target_strike * 1.3) / current_price - 1) * 100
-                    target_3y = ((target_strike * 2.0) / current_price - 1) * 100
+                    target_1y = ((target_strike * 1.3) / current_price-1) * 100
+                    target_3y = ((target_strike * 2.0) / current_price-1) * 100
                     
                     # Risk factors
                     risk_factors = []
@@ -581,26 +580,25 @@ class ProductionLEAPSTracker:
                         risk_factors.append("Recent death cross")
                     
                     candidate = LEAPSCandidate(
-                        ticker = ticker,
-                        company_name = ticker,  # Simplified for production
+                        ticker=ticker,
+                        company_name=ticker,  # Simplified for production
                         theme = theme.theme,
-                        current_price = current_price,
-                        trend_score = trend_score,
-                        financial_score = financial_score,
-                        momentum_score = momentum_score,
-                        valuation_score = valuation_score,
-                        composite_score = composite_score,
-                        expiry_date = expiry,
-                        recommended_strike = target_strike,
-                        premium_estimate = premium,
-                        break_even = breakeven,
-                        target_return_1y = target_1y,
-                        target_return_3y = target_3y,
-                        risk_factors = risk_factors,
-                        ma_cross_signal = ma_cross_signal,
-                        entry_timing_score = entry_timing_score,
-                        exit_timing_score = exit_timing_score
-                    )
+                        current_price=current_price,
+                        trend_score=trend_score,
+                        financial_score=financial_score,
+                        momentum_score=momentum_score,
+                        valuation_score=valuation_score,
+                        composite_score=composite_score,
+                        expiry_date=expiry,
+                        recommended_strike=target_strike,
+                        premium_estimate=premium,
+                        break_even=breakeven,
+                        target_return_1y=target_1y,
+                        target_return_3y=target_3y,
+                        risk_factors=risk_factors,
+                        ma_cross_signal=ma_cross_signal,
+                        entry_timing_score=entry_timing_score,
+                        exit_timing_score = exit_timing_score)
                     
                     candidates.append(candidate)
                     self.logger.info(f"LEAPS candidate: {ticker} Score: {composite_score:.0f}")
@@ -610,7 +608,7 @@ class ProductionLEAPSTracker:
                     continue
         
         # Sort by composite score
-        candidates.sort(key=lambda x: x.composite_score, reverse = True)
+        candidates.sort(key=lambda x: x.composite_score, reverse=True)
         return candidates
     
     async def execute_leaps_trade(self, candidate: LEAPSCandidate)->bool:
@@ -640,7 +638,7 @@ class ProductionLEAPSTracker:
             trade_signal = ProductionTradeSignal(
                 symbol = candidate.ticker,
                 action = "BUY",
-                quantity = contracts,
+                quantity=contracts,
                 option_type = "CALL",
                 strike_price = Decimal(str(candidate.recommended_strike)),
                 expiration_date = datetime.strptime(candidate.expiry_date, "%Y-%m-%d").date(),
@@ -724,7 +722,7 @@ class ProductionLEAPSTracker:
                 
                 # Calculate P & L
                 current_value = current_premium * contracts * 100
-                pnl = current_value - position['cost_basis']
+                pnl = current_value-position['cost_basis']
                 pnl_pct = (pnl / position['cost_basis']) * 100 if position['cost_basis']  >  0 else 0
                 
                 # Check exit conditions
@@ -747,7 +745,7 @@ class ProductionLEAPSTracker:
                     should_exit = True
                     exit_reason = "STOP_LOSS"
                 
-                # Time - based exit
+                # Time-based exit
                 elif (position['expiry_date'] - date.today()).days  <=  self.time_exit_dte: 
                     should_exit = True
                     exit_reason = "TIME_EXIT"
@@ -760,14 +758,14 @@ class ProductionLEAPSTracker:
                         should_exit = True
                         exit_reason = "DEATH_CROSS_EXIT"
                 
-                # Execute scale - out or full exit
+                # Execute scale-out or full exit
                 if should_exit or should_scale_out: 
                     exit_contracts = contracts if should_exit else max(1, int(contracts * scale_out_percentage / 100))
                     
                     exit_signal = ProductionTradeSignal(
-                        symbol = ticker,
+                        symbol=ticker,
                         action = "SELL",
-                        quantity = exit_contracts,
+                        quantity=exit_contracts,
                         option_type = "CALL",
                         strike_price = position['trade_signal'].strike_price,
                         expiration_date = position['trade_signal'].expiration_date,
@@ -795,14 +793,14 @@ class ProductionLEAPSTracker:
                             positions_to_remove.append(i)
                             self.logger.info(f"LEAPS position closed: {ticker} {exit_reason}")
                         else: 
-                            # Update position after scale - out
+                            # Update position after scale-out
                             position['contracts'] -= exit_contracts
                             position['cost_basis'] -= entry_premium * exit_contracts * 100
                             
                             await self.integration_manager.alert_system.send_alert(
                                 "LEAPS_SCALE_OUT",
                                 "LOW",
-                                f"LEAPS Scale - Out: {ticker} {exit_reason} "
+                                f"LEAPS Scale-Out: {ticker} {exit_reason} "
                                 f"Sold {exit_contracts} contracts at {pnl_pct: .1%} gain"
                             )
                             self.logger.info(f"LEAPS scaled out: {ticker} {exit_reason}")

@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 WSB Strategy #3: Debit Call Spreads
 More repeatable than naked calls with reduced theta / IV risk
@@ -47,7 +47,7 @@ class SpreadOpportunity:
 
 class DebitSpreadScanner: 
     def __init__(self): 
-        self.watchlist = [
+        self.watchlist=[
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX",
             "CRM", "ADBE", "ORCL", "AMD", "QCOM", "UBER", "SNOW", "COIN",
             "PLTR", "ROKU", "ZM", "SHOP", "SQ", "PYPL", "TWLO"
@@ -62,7 +62,7 @@ class DebitSpreadScanner:
         if T  <=  0 or sigma  <=  0: 
             return max(S - K, 0), 1.0 if S  >  K else 0.0
             
-        d1 = (math.log(S / K) + (r + 0.5 * sigma*sigma)*T) / (sigma * math.sqrt(T))
+        d1 = (math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * math.sqrt(T))
         d2 = d1 - sigma * math.sqrt(T)
         
         call_price = S * self.norm_cdf(d1) - K * math.exp(-r * T) * self.norm_cdf(d2)
@@ -126,9 +126,9 @@ class DebitSpreadScanner:
             momentum = (current / prices[-10] - 1) * 5  # Scale to 0 - 1
             scores.append(max(0, min(1, momentum)))
             
-            # 3. Trend consistency (fewer whipsaws = higher score)
+            # 3. Trend consistency (fewer whipsaws=higher score)
             direction_changes = 0
-            for i in range(len(prices)-10, len(prices)-1): 
+            for i in range(len(prices) - 10, len(prices) - 1): 
                 if i  <=  0: 
                     continue
                 curr_trend = prices[i + 1]  >  prices[i]
@@ -139,7 +139,7 @@ class DebitSpreadScanner:
             consistency = max(0, 1 - direction_changes / 10)
             scores.append(consistency)
             
-            # 4. Volume trend (rising volume = conviction)
+            # 4. Volume trend (rising volume=conviction)
             volumes = hist['Volume'].values
             recent_vol = np.mean(volumes[-10: ])
             past_vol = np.mean(volumes[-30: -10])
@@ -207,7 +207,7 @@ class DebitSpreadScanner:
         for width in [5, 10, 15, 20]: 
             for _, long_call in suitable_calls.iterrows(): 
                 long_strike = long_call['strike']
-                short_strike = long_strike + width
+                short_strike = long_strike+width
                 
                 # Find matching short call
                 short_calls = suitable_calls[
@@ -229,7 +229,7 @@ class DebitSpreadScanner:
                     
                 max_profit = width - net_debit
                 max_profit_pct = (max_profit / net_debit) * 100
-                breakeven = long_strike + net_debit
+                breakeven = long_strike+net_debit
                 
                 # Risk - reward ratio
                 risk_reward = max_profit / net_debit
@@ -266,34 +266,32 @@ class DebitSpreadScanner:
                     trend_strength = self.assess_trend_strength(ticker)
                     
                     opportunity = SpreadOpportunity(
-                        ticker = ticker,
+                        ticker=ticker,
                         scan_date = date.today(),
-                        spot_price = spot,
-                        trend_strength = trend_strength,
-                        expiry_date = expiry,
-                        days_to_expiry = days_to_exp,
+                        spot_price=spot,
+                        trend_strength=trend_strength,
+                        expiry_date=expiry,
+                        days_to_expiry=days_to_exp,
                         long_strike = int(long_strike),
                         short_strike = int(short_strike),
-                        spread_width = width,
-                        long_premium = long_premium,
-                        short_premium = short_premium,
-                        net_debit = net_debit,
-                        max_profit = max_profit,
-                        max_profit_pct = max_profit_pct,
-                        breakeven = breakeven,
-                        prob_profit = prob_profit,
-                        risk_reward = risk_reward,
-                        iv_rank = iv_rank,
-                        volume_score = volume_score
-                    )
+                        spread_width=width,
+                        long_premium=long_premium,
+                        short_premium=short_premium,
+                        net_debit=net_debit,
+                        max_profit=max_profit,
+                        max_profit_pct=max_profit_pct,
+                        breakeven=breakeven,
+                        prob_profit=prob_profit,
+                        risk_reward=risk_reward,
+                        iv_rank=iv_rank,
+                        volume_score = volume_score)
                     
                     opportunities.append(opportunity)
         
         # Sort by risk - adjusted return
         opportunities.sort(
             key = lambda x: x.risk_reward * x.prob_profit * x.volume_score * x.trend_strength, 
-            reverse = True
-        )
+            reverse = True)
         
         return opportunities[: 3]  # Top 3 per ticker
     
@@ -303,15 +301,15 @@ class DebitSpreadScanner:
             iv = 0.25  # Initial guess
             
             for _ in range(20):  # Max iterations
-                price, delta = self.black_scholes_call(S, K, T, 0.04, iv)
+                price, delta=self.black_scholes_call(S, K, T, 0.04, iv)
                 vega = S * math.sqrt(T) * self.norm_cdf(
-                    (math.log(S / K) + (0.04 + 0.5 * iv*iv)*T) / (iv * math.sqrt(T))
+                    (math.log(S / K) + (0.04 + 0.5 * iv * iv) * T) / (iv * math.sqrt(T))
                 ) * math.exp(-0.04 * T)
                 
                 if abs(vega)  <  1e-6: 
                     break
                     
-                diff = price - market_price
+                diff = price-market_price
                 if abs(diff)  <  0.01: 
                     break
                     
@@ -323,7 +321,7 @@ class DebitSpreadScanner:
         except: 
             return 0.25
     
-    def scan_all_spreads(self, min_days: int = 20, max_days: int = 60)->List[SpreadOpportunity]:
+    def scan_all_spreads(self, min_days: int=20, max_days: int=60)->List[SpreadOpportunity]:
         """Scan all tickers for spread opportunities"""
         all_opportunities = []
         
@@ -355,7 +353,7 @@ class DebitSpreadScanner:
                 for exp_str in expiries: 
                     try: 
                         exp_date = datetime.strptime(exp_str, "%Y-%m-%d").date()
-                        days = (exp_date - today).days
+                        days = (exp_date-today).days
                         if min_days  <=  days  <=  max_days: 
                             valid_expiries.append(exp_str)
                     except: 
@@ -389,12 +387,11 @@ class DebitSpreadScanner:
                 x.trend_strength * 
                 (1 + x.max_profit_pct / 100)
             ),
-            reverse = True
-        )
+            reverse = True)
         
         return all_opportunities
     
-    def format_opportunities(self, opportunities: List[SpreadOpportunity], limit: int = 10)->str:
+    def format_opportunities(self, opportunities: List[SpreadOpportunity], limit: int=10)->str:
         """Format opportunities for display"""
         if not opportunities: 
             return "🔍 No suitable debit spread opportunities found."
@@ -412,17 +409,17 @@ class DebitSpreadScanner:
             output += f"   Volume Score: {opp.volume_score:.2f}\n"
         
         output += "\n💡 DEBIT SPREAD ADVANTAGES: \n"
-        output += "• Lower cost than naked calls\n"
-        output += "• Reduced theta decay risk\n"
-        output += "• Less IV crush exposure\n"
-        output += "• More consistent profit potential\n"
-        output += "• Better risk management\n"
+        output += "• Lower cost than naked calls + n"
+        output += "• Reduced theta decay risk + n"
+        output += "• Less IV crush exposure+n"
+        output += "• More consistent profit potential + n"
+        output += "• Better risk management + n"
         
         output += "\n⚠️  RISK WARNINGS: \n"
-        output += "• Limited upside vs naked calls\n"
-        output += "• Both legs can expire worthless\n"
-        output += "• Liquidity risk on both strikes\n"
-        output += "• Early assignment risk on short leg\n"
+        output += "• Limited upside vs naked calls + n"
+        output += "• Both legs can expire worthless + n"
+        output += "• Liquidity risk on both strikes + n"
+        output += "• Early assignment risk on short leg + n"
         
         return output
     
@@ -431,9 +428,9 @@ class DebitSpreadScanner:
         if not opportunities: 
             return
             
-        with open(filename, 'w', newline = '') as csvfile: 
+        with open(filename, 'w', newline='') as csvfile: 
             fieldnames = opportunities[0].__dict__.keys()
-            writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             
             for opp in opportunities: 
@@ -444,17 +441,17 @@ class DebitSpreadScanner:
 
 def main(): 
     parser = argparse.ArgumentParser(description="WSB Debit Spread Scanner")
-    parser.add_argument('--min - days', type = int, default = 20,
+    parser.add_argument('--min - days', type=int, default=20,
                        help = 'Minimum days to expiry')
-    parser.add_argument('--max - days', type = int, default = 60,
+    parser.add_argument('--max - days', type=int, default=60,
                        help = 'Maximum days to expiry') 
-    parser.add_argument('--output', choices = ['json', 'text', 'csv'], default = 'text',
+    parser.add_argument('--output', choices=['json', 'text', 'csv'], default='text',
                        help = 'Output format')
-    parser.add_argument('--limit', type = int, default = 10,
+    parser.add_argument('--limit', type=int, default=10,
                        help = 'Maximum results to show')
-    parser.add_argument('--min - risk-reward', type = float, default = 1.2,
+    parser.add_argument('--min - risk - reward', type=float, default=1.2,
                        help = 'Minimum risk - reward ratio')
-    parser.add_argument('--save - csv', type = str,
+    parser.add_argument('--save-csv', type=str,
                        help = 'Save results to CSV file')
     
     args = parser.parse_args()
@@ -469,7 +466,7 @@ def main():
         scanner.save_to_csv(opportunities, args.save_csv)
     
     if args.output ==  'json': print(json.dumps([asdict(opp) for opp in opportunities[:args.limit]], 
-                        indent = 2, default = str))
+                        indent = 2, default=str))
     elif args.output ==  'csv': scanner.save_to_csv(opportunities[:args.limit], 'debit_spreads.csv')
     else: 
         print(scanner.format_opportunities(opportunities, args.limit))

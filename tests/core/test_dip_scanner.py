@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Comprehensive Test Suite for Dip Scanner
 Tests real - time dip scanning functionality and market hours logic
@@ -23,7 +23,7 @@ class TestMarketHours(unittest.TestCase):
     """Test market hours configuration and logic"""
     
     def setUp(self): 
-        self.market_hours = MarketHours()
+        self.market_hours=MarketHours()
     
     def test_default_market_hours(self): 
         """Test default market hours configuration"""
@@ -53,11 +53,11 @@ class TestLiveDipScanner(unittest.TestCase):
     def setUp(self): 
         """Set up test fixtures"""
         # Mock dependencies
-        self.mock_system = Mock()
-        self.mock_system.universe = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"]
+        self.mock_system=Mock()
+        self.mock_system.universe=["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"]
         
         # Create scanner
-        self.scanner = LiveDipScanner(self.mock_system)
+        self.scanner=LiveDipScanner(self.mock_system)
     
     def test_scanner_initialization(self): 
         """Test scanner initialization"""
@@ -74,7 +74,7 @@ class TestLiveDipScanner(unittest.TestCase):
     def test_is_market_open_during_hours(self, mock_datetime): 
         """Test market open detection during trading hours"""
         # Mock market hours (11: 00 AM)
-        mock_datetime.now.return_value.time.return_value = time(11, 0)
+        mock_datetime.now.return_value.time.return_value=time(11, 0)
         
         result = self.scanner.is_market_open()
         self.assertTrue(result)
@@ -82,8 +82,8 @@ class TestLiveDipScanner(unittest.TestCase):
     @patch('backend.tradingbot.dip_scanner.datetime')
     def test_is_market_open_before_hours(self, mock_datetime): 
         """Test market open detection before trading hours"""
-        # Mock pre - market (8: 00 AM)
-        mock_datetime.now.return_value.time.return_value = time(8, 0)
+        # Mock pre-market (8: 00 AM)
+        mock_datetime.now.return_value.time.return_value=time(8, 0)
         
         result = self.scanner.is_market_open()
         self.assertFalse(result)
@@ -92,7 +92,7 @@ class TestLiveDipScanner(unittest.TestCase):
     def test_is_market_open_after_hours(self, mock_datetime): 
         """Test market open detection after trading hours"""
         # Mock after - hours (5: 00 PM)
-        mock_datetime.now.return_value.time.return_value = time(17, 0)
+        mock_datetime.now.return_value.time.return_value=time(17, 0)
         
         result = self.scanner.is_market_open()
         self.assertFalse(result)
@@ -101,7 +101,7 @@ class TestLiveDipScanner(unittest.TestCase):
     def test_is_optimal_entry_time_optimal(self, mock_datetime): 
         """Test optimal entry time detection during optimal window"""
         # Mock optimal time (12: 00 PM)
-        mock_datetime.now.return_value.time.return_value = time(12, 0)
+        mock_datetime.now.return_value.time.return_value=time(12, 0)
         
         result = self.scanner.is_optimal_entry_time()
         self.assertTrue(result)
@@ -110,7 +110,7 @@ class TestLiveDipScanner(unittest.TestCase):
     def test_is_optimal_entry_time_early(self, mock_datetime): 
         """Test optimal entry time detection early in session"""
         # Mock early market (9: 45 AM)
-        mock_datetime.now.return_value.time.return_value = time(9, 45)
+        mock_datetime.now.return_value.time.return_value=time(9, 45)
         
         result = self.scanner.is_optimal_entry_time()
         self.assertFalse(result)
@@ -119,14 +119,14 @@ class TestLiveDipScanner(unittest.TestCase):
     def test_is_optimal_entry_time_late(self, mock_datetime): 
         """Test optimal entry time detection late in session"""
         # Mock late market (3: 30 PM)
-        mock_datetime.now.return_value.time.return_value = time(15, 30)
+        mock_datetime.now.return_value.time.return_value=time(15, 30)
         
         result = self.scanner.is_optimal_entry_time()
         self.assertFalse(result)
     
     def test_should_scan_market_closed(self): 
         """Test scan decision when market is closed"""
-        with patch.object(self.scanner, 'is_market_open', return_value = False): 
+        with patch.object(self.scanner, 'is_market_open', return_value=False): 
             result = self.scanner.should_scan()
             self.assertFalse(result)
     
@@ -134,7 +134,7 @@ class TestLiveDipScanner(unittest.TestCase):
         """Test scan decision when already scanning"""
         self.scanner.is_scanning = True
         
-        with patch.object(self.scanner, 'is_market_open', return_value = True): 
+        with patch.object(self.scanner, 'is_market_open', return_value=True): 
             result = self.scanner.should_scan()
             self.assertFalse(result)
     
@@ -144,9 +144,9 @@ class TestLiveDipScanner(unittest.TestCase):
         # Set last scan time to 30 seconds ago
         now = datetime(2024, 1, 1, 12, 0, 0)
         mock_datetime.now.return_value = now
-        self.scanner.last_scan_time = datetime(2024, 1, 1, 11, 59, 30)
+        self.scanner.last_scan_time=datetime(2024, 1, 1, 11, 59, 30)
         
-        with patch.object(self.scanner, 'is_market_open', return_value = True): 
+        with patch.object(self.scanner, 'is_market_open', return_value=True): 
             result = self.scanner.should_scan()
             self.assertFalse(result)
     
@@ -156,39 +156,39 @@ class TestLiveDipScanner(unittest.TestCase):
         # Set last scan time to 90 seconds ago
         now = datetime(2024, 1, 1, 12, 0, 0)
         mock_datetime.now.return_value = now
-        self.scanner.last_scan_time = datetime(2024, 1, 1, 11, 58, 30)
+        self.scanner.last_scan_time=datetime(2024, 1, 1, 11, 58, 30)
         
-        with patch.object(self.scanner, 'is_market_open', return_value = True): 
+        with patch.object(self.scanner, 'is_market_open', return_value=True): 
             result = self.scanner.should_scan()
             self.assertTrue(result)
     
-    @patch('backend.tradingbot.dip_scanner.asyncio.sleep', new_callable = AsyncMock)
+    @patch('backend.tradingbot.dip_scanner.asyncio.sleep', new_callable=AsyncMock)
     async def test_scan_universe_basic(self, mock_sleep): 
         """Test basic universe scanning functionality"""
         # Mock dip detector to return signals
         mock_dip_signal = Mock()
-        mock_dip_signal.ticker = "AAPL"
+        mock_dip_signal.ticker="AAPL"
         mock_dip_signal.dip_percent = -3.5
-        mock_dip_signal.confidence_score = 0.85
+        mock_dip_signal.confidence_score=0.85
         
-        with patch.object(self.scanner.dip_detector, 'scan_for_dips', return_value = [mock_dip_signal]): 
+        with patch.object(self.scanner.dip_detector, 'scan_for_dips', return_value=[mock_dip_signal]): 
             signals = await self.scanner.scan_universe()
             
             self.assertEqual(len(signals), 1)
             self.assertEqual(signals[0].ticker, "AAPL")
             self.assertEqual(signals[0].dip_percent, -3.5)
     
-    @patch('backend.tradingbot.dip_scanner.asyncio.sleep', new_callable = AsyncMock)
+    @patch('backend.tradingbot.dip_scanner.asyncio.sleep', new_callable=AsyncMock)
     async def test_scan_universe_no_signals(self, mock_sleep): 
         """Test universe scanning with no signals"""
-        with patch.object(self.scanner.dip_detector, 'scan_for_dips', return_value = []): 
+        with patch.object(self.scanner.dip_detector, 'scan_for_dips', return_value=[]): 
             signals = await self.scanner.scan_universe()
             self.assertEqual(len(signals), 0)
     
-    @patch('backend.tradingbot.dip_scanner.asyncio.sleep', new_callable = AsyncMock)
+    @patch('backend.tradingbot.dip_scanner.asyncio.sleep', new_callable=AsyncMock)
     async def test_scan_universe_error_handling(self, mock_sleep): 
         """Test universe scanning error handling"""
-        with patch.object(self.scanner.dip_detector, 'scan_for_dips', side_effect = Exception("Network error")): 
+        with patch.object(self.scanner.dip_detector, 'scan_for_dips', side_effect=Exception("Network error")): 
             signals = await self.scanner.scan_universe()
             self.assertEqual(len(signals), 0)  # Should return empty list on error
     
@@ -196,18 +196,18 @@ class TestLiveDipScanner(unittest.TestCase):
         """Test processing valid dip signals"""
         # Create mock signals
         strong_signal = Mock()
-        strong_signal.ticker = "AAPL"
-        strong_signal.confidence_score = 0.85
+        strong_signal.ticker="AAPL"
+        strong_signal.confidence_score=0.85
         strong_signal.dip_percent = -4.2
         
         weak_signal = Mock()
-        weak_signal.ticker = "GOOGL"
-        weak_signal.confidence_score = 0.55
+        weak_signal.ticker="GOOGL"
+        weak_signal.confidence_score=0.55
         weak_signal.dip_percent = -1.8
         
         signals = [strong_signal, weak_signal]
         
-        with patch.object(self.scanner, 'is_optimal_entry_time', return_value = True): 
+        with patch.object(self.scanner, 'is_optimal_entry_time', return_value=True): 
             processed_signals = self.scanner.process_dip_signals(signals)
             
             # Should filter out weak signal
@@ -217,13 +217,13 @@ class TestLiveDipScanner(unittest.TestCase):
     def test_process_dip_signals_suboptimal_time(self): 
         """Test processing signals during suboptimal time"""
         strong_signal = Mock()
-        strong_signal.ticker = "AAPL"
-        strong_signal.confidence_score = 0.85
+        strong_signal.ticker="AAPL"
+        strong_signal.confidence_score=0.85
         strong_signal.dip_percent = -4.2
         
         signals = [strong_signal]
         
-        with patch.object(self.scanner, 'is_optimal_entry_time', return_value = False): 
+        with patch.object(self.scanner, 'is_optimal_entry_time', return_value=False): 
             processed_signals = self.scanner.process_dip_signals(signals)
             
             # Should still process but with lower priority
@@ -236,13 +236,13 @@ class TestLiveDipScanner(unittest.TestCase):
         self.assertEqual(self.scanner.trades_executed_today, 0)
         
         # Update stats
-        self.scanner.update_daily_stats(opportunities_found=3, trades_executed = 1)
+        self.scanner.update_daily_stats(opportunities_found=3, trades_executed=1)
         
         self.assertEqual(self.scanner.opportunities_found_today, 3)
         self.assertEqual(self.scanner.trades_executed_today, 1)
         
         # Update again
-        self.scanner.update_daily_stats(opportunities_found=2, trades_executed = 1)
+        self.scanner.update_daily_stats(opportunities_found=2, trades_executed=1)
         
         self.assertEqual(self.scanner.opportunities_found_today, 5)
         self.assertEqual(self.scanner.trades_executed_today, 2)
@@ -251,7 +251,7 @@ class TestLiveDipScanner(unittest.TestCase):
     def test_reset_daily_stats(self, mock_datetime): 
         """Test daily statistics reset"""
         # Set up mock to return a real datetime
-        mock_datetime.now.return_value = datetime(2024, 1, 1, 12, 0, 0)
+        mock_datetime.now.return_value=datetime(2024, 1, 1, 12, 0, 0)
         
         # Set some stats
         self.scanner.opportunities_found_today = 10
@@ -270,7 +270,7 @@ class TestLiveDipScanner(unittest.TestCase):
         self.scanner.is_scanning = True
         self.scanner.opportunities_found_today = 5
         self.scanner.trades_executed_today = 2
-        self.scanner.last_scan_time = datetime(2024, 1, 1, 12, 0, 0)
+        self.scanner.last_scan_time=datetime(2024, 1, 1, 12, 0, 0)
         
         status = self.scanner.get_scanner_status()
         
@@ -286,23 +286,23 @@ class TestLiveDipScannerIntegration(unittest.TestCase):
     """Test dip scanner integration scenarios"""
     
     def setUp(self): 
-        self.mock_system = Mock()
-        self.mock_system.universe = ["AAPL", "GOOGL", "MSFT"]
-        self.scanner = LiveDipScanner(self.mock_system)
+        self.mock_system=Mock()
+        self.mock_system.universe=["AAPL", "GOOGL", "MSFT"]
+        self.scanner=LiveDipScanner(self.mock_system)
     
-    @patch('backend.tradingbot.dip_scanner.asyncio.sleep', new_callable = AsyncMock)
+    @patch('backend.tradingbot.dip_scanner.asyncio.sleep', new_callable=AsyncMock)
     async def test_full_scan_cycle(self, mock_sleep): 
         """Test complete scan cycle"""
         # Mock dependencies
         mock_dip_signal = Mock()
-        mock_dip_signal.ticker = "AAPL"
-        mock_dip_signal.confidence_score = 0.90
+        mock_dip_signal.ticker="AAPL"
+        mock_dip_signal.confidence_score=0.90
         mock_dip_signal.dip_percent = -5.2
         
-        with patch.object(self.scanner.dip_detector, 'scan_for_dips', return_value = [mock_dip_signal]), \
-             patch.object(self.scanner, 'is_market_open', return_value = True), \
-             patch.object(self.scanner, 'is_optimal_entry_time', return_value = True), \
-             patch.object(self.scanner, 'should_scan', return_value = True): 
+        with patch.object(self.scanner.dip_detector, 'scan_for_dips', return_value=[mock_dip_signal]), \
+             patch.object(self.scanner, 'is_market_open', return_value=True), \
+             patch.object(self.scanner, 'is_optimal_entry_time', return_value=True), \
+             patch.object(self.scanner, 'should_scan', return_value=True): 
             
             # Run single scan cycle
             signals = await self.scanner.scan_universe()
@@ -315,13 +315,13 @@ class TestLiveDipScannerIntegration(unittest.TestCase):
     
     async def test_scanner_main_loop_market_closed(self): 
         """Test main scanning loop when market is closed"""
-        with patch.object(self.scanner, 'is_market_open', return_value = False), \
-             patch.object(self.scanner, 'should_scan', return_value = False): 
+        with patch.object(self.scanner, 'is_market_open', return_value=False), \
+             patch.object(self.scanner, 'should_scan', return_value=False): 
             
             # Mock short sleep to prevent infinite loop
-            with patch('asyncio.sleep', new_callable = AsyncMock) as mock_sleep: 
+            with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep: 
                 # Set up to break loop after one iteration
-                mock_sleep.side_effect = [None, asyncio.CancelledError()]
+                mock_sleep.side_effect=[None, asyncio.CancelledError()]
                 
                 with self.assertRaises(asyncio.CancelledError): 
                     await self.scanner.start_scanning()
@@ -331,7 +331,7 @@ class TestLiveDipScannerIntegration(unittest.TestCase):
     
     def test_error_recovery(self): 
         """Test error recovery and logging"""
-        with patch.object(self.scanner.system, 'scan_for_dip_opportunities', side_effect = Exception("Test error")), \
+        with patch.object(self.scanner.system, 'scan_for_dip_opportunities', side_effect=Exception("Test error")), \
              patch.object(self.scanner.logger, 'error') as mock_logger: 
             
             # Process should handle error gracefully
@@ -350,7 +350,7 @@ class TestLiveDipScannerIntegration(unittest.TestCase):
         self.scanner.scan_interval = 0
         
         # Should handle gracefully
-        with patch.object(self.scanner, 'is_market_open', return_value = True): 
+        with patch.object(self.scanner, 'is_market_open', return_value=True): 
             result = self.scanner.should_scan()
             # Logic should still work despite invalid interval
             self.assertIsInstance(result, bool)
@@ -367,7 +367,7 @@ class TestLiveDipScannerIntegration(unittest.TestCase):
             self.scanner.reset_daily_stats()
             
             # Update stats
-            self.scanner.update_daily_stats(opportunities_found=3, trades_executed = 1)
+            self.scanner.update_daily_stats(opportunities_found=3, trades_executed=1)
             
             # Check metrics
             self.assertEqual(self.scanner.opportunities_found_today, 3)

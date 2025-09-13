@@ -28,7 +28,7 @@ def send_slack(msg: str)->bool:
     if not webhook: 
         return False
     try: 
-        r = requests.post(webhook, json = {"text": msg}, timeout = 5)
+        r = requests.post(webhook, json={"text": msg}, timeout=5)
         return r.ok
     except Exception: 
         return False
@@ -45,7 +45,7 @@ def send_email(subject: str, body: str)->bool:
     try: 
         msg = MIMEText(body)
         msg["Subject"] = subject; msg["From"] = sender; msg["To"] = recipient
-        with smtplib.SMTP(host, port, timeout = 10) as s: 
+        with smtplib.SMTP(host, port, timeout=10) as s: 
             s.starttls(); s.login(user, pwd); s.sendmail(sender, [recipient], msg.as_string())
         return True
     except Exception: 
@@ -90,8 +90,8 @@ class Alert:
     ticker: str
     title: str
     message: str
-    data: Dict = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=datetime.now)
+    data: Dict=field(default_factory=dict)
+    timestamp: datetime=field(default_factory=datetime.now)
     channels: List[AlertChannel] = field(default_factory=list)
     acknowledged: bool = False
 
@@ -105,7 +105,7 @@ class Alert:
             data['priority'] = data['priority'].value
         if 'channel' in data and hasattr(data['channel'], 'value'): 
             data['channel'] = data['channel'].value
-        return json.dumps(data, default = str)
+        return json.dumps(data, default=str)
 
 
 @dataclass
@@ -115,12 +115,12 @@ class ChecklistItem:
     description: str
     completed: bool = False
     timestamp: Optional[datetime] = None
-    notes: str = ""
+    notes: str=""
 
-    def complete(self, notes: str = ""):
+    def complete(self, notes: str=""):
         """Mark item as completed"""
         self.completed = True
-        self.timestamp = datetime.now()
+        self.timestamp=datetime.now()
         self.notes = notes
 
 
@@ -131,7 +131,7 @@ class ExecutionChecklist:
     ticker: str
     checklist_type: str  # "entry", "monitoring", "exit"
     items: List[ChecklistItem] = field(default_factory=list)
-    created_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime=field(default_factory=datetime.now)
     completed_at: Optional[datetime] = None
 
     @property
@@ -147,7 +147,7 @@ class ExecutionChecklist:
         """Check if all items are completed"""
         return all(item.completed for item in self.items)
 
-    def complete_step(self, step: int, notes: str = ""):
+    def complete_step(self, step: int, notes: str=""):
         """Complete a specific step"""
         for item in self.items: 
             if item.step ==  step: 
@@ -155,7 +155,7 @@ class ExecutionChecklist:
                 break
 
         if self.is_complete and not self.completed_at: 
-            self.completed_at = datetime.now()
+            self.completed_at=datetime.now()
 
 
 class AlertHandler(ABC): 
@@ -177,7 +177,7 @@ class EmailAlertHandler(AlertHandler):
         """Send email alert using send_email function"""
         from .alert_system import send_email
         subject = f"Trading Alert: {alert.title}"
-        body = f"{alert.message}\n\nTicker: {alert.ticker}\nTime: {alert.timestamp}"
+        body = f"{alert.message}\n + nTicker: {alert.ticker}\nTime: {alert.timestamp}"
         result = send_email(subject, body)
         logging.info(f"EMAIL ALERT: {alert.title} - {alert.message}")
         return result
@@ -208,7 +208,7 @@ class DesktopAlertHandler(AlertHandler):
             result = subprocess.run([
                 'osascript', '-e', 
                 f'display notification "{message}" with title "Trading Alert"'
-            ], check = True, capture_output = True, timeout = 5)
+            ], check=True, capture_output=True, timeout=5)
             logging.info(f"DESKTOP ALERT: {alert.title} - {alert.message}")
             return True
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e: 
@@ -228,11 +228,11 @@ class TradingAlertSystem:
         self.alert_history: List[Alert] = []
         self.active_alerts: List[Alert] = []
         self.max_history: int = 100  # Default max history
-        self.signal_generator = SignalGenerator()
-        self.options_calculator = OptionsTradeCalculator()
+        self.signal_generator=SignalGenerator()
+        self.options_calculator=OptionsTradeCalculator()
 
         # Default alert preferences
-        self.alert_preferences = {
+        self.alert_preferences={
             AlertType.ENTRY_SIGNAL: [AlertChannel.DESKTOP, AlertChannel.WEBHOOK],
             AlertType.PROFIT_TARGET: [AlertChannel.DESKTOP],
             AlertType.STOP_LOSS: [AlertChannel.DESKTOP, AlertChannel.EMAIL],
@@ -255,7 +255,7 @@ class TradingAlertSystem:
             # Store in history but don't send
             self.alert_history.append(alert)
             if len(self.alert_history)  >  self.max_history: 
-                self.alert_history = self.alert_history[-self.max_history: ]
+                self.alert_history=self.alert_history[-self.max_history: ]
             return results  # Return empty results for low / medium priority
 
         # Use alert - specific channels or fall back to preferences
@@ -279,7 +279,7 @@ class TradingAlertSystem:
         
         # Enforce history limit
         if len(self.alert_history)  >  self.max_history: 
-            self.alert_history = self.alert_history[-self.max_history: ]
+            self.alert_history=self.alert_history[-self.max_history: ]
 
         # Add to active alerts if high priority
         if alert.priority in [AlertPriority.HIGH, AlertPriority.URGENT]: 
@@ -287,7 +287,7 @@ class TradingAlertSystem:
 
         return results
 
-    async def send_alert(self, alert_type_or_alert, priority = None, message = None, ticker = None)->Dict[AlertChannel, bool]: 
+    async def send_alert(self, alert_type_or_alert, priority=None, message=None, ticker=None)->Dict[AlertChannel, bool]: 
         """
         Send alert with flexible parameters - supports both Alert objects and string parameters
         
@@ -314,8 +314,8 @@ class TradingAlertSystem:
                     priority_obj = priority or AlertPriority.MEDIUM
                 
                 alert = Alert(
-                    alert_type = alert_type,
-                    priority = priority_obj,
+                    alert_type=alert_type,
+                    priority=priority_obj,
                     ticker = ticker or "UNKNOWN",
                     title = alert_type_or_alert.upper() if isinstance(alert_type_or_alert, str) else str(alert_type_or_alert),
                     message = message or "Alert triggered"
@@ -337,7 +337,7 @@ class TradingAlertSystem:
             # Store in history but don't send
             self.alert_history.append(alert)
             if len(self.alert_history)  >  self.max_history: 
-                self.alert_history = self.alert_history[-self.max_history: ]
+                self.alert_history=self.alert_history[-self.max_history: ]
             return results  # Return empty results for low / medium priority
         
         # Use alert - specific channels or fall back to preferences
@@ -361,7 +361,7 @@ class TradingAlertSystem:
         
         # Enforce history limit
         if len(self.alert_history)  >  self.max_history: 
-            self.alert_history = self.alert_history[-self.max_history: ]
+            self.alert_history=self.alert_history[-self.max_history: ]
 
         # Add to active alerts if high priority
         if alert.priority in [AlertPriority.HIGH, AlertPriority.URGENT]: 
@@ -374,9 +374,8 @@ class TradingAlertSystem:
         ticker: str,
         current_indicators: TechnicalIndicators,
         previous_indicators: TechnicalIndicators,
-        earnings_risk: bool = False,
-        macro_risk: bool = False
-    ): 
+        earnings_risk: bool=False,
+        macro_risk: bool=False): 
         """Check for market signals and generate alerts"""
 
         signal = self.signal_generator.generate_signal(
@@ -399,7 +398,7 @@ class TradingAlertSystem:
         # Calculate recommended trade
         try: 
             trade_calc = self.options_calculator.calculate_trade(
-                ticker = ticker,
+                ticker=ticker,
                 spot_price = indicators.price,
                 account_size = 500000,  # Default account size
                 implied_volatility = 0.28  # Default IV estimate
@@ -408,7 +407,7 @@ class TradingAlertSystem:
             alert = Alert(
                 alert_type = AlertType.ENTRY_SIGNAL,
                 priority = AlertPriority.HIGH,
-                ticker = ticker,
+                ticker=ticker,
                 title = f"🚀 BUY SIGNAL: {ticker}",
                 message = "Bull pullback reversal detected. Consider ~5% OTM calls.\n"
                        f"Recommended: {trade_calc.recommended_contracts} contracts @ ${trade_calc.estimated_premium: .2f}\n"
@@ -436,7 +435,7 @@ class TradingAlertSystem:
         alert = Alert(
             alert_type = AlertType.SETUP_DETECTED,
             priority = AlertPriority.MEDIUM,
-            ticker = ticker,
+            ticker=ticker,
             title = f"⚠️ SETUP: {ticker}",
             message = "Pullback setup detected. Monitor for reversal trigger.\n"
                    f"Price: ${indicators.price:.2f} | RSI: {indicators.rsi_14:.0f}",
@@ -460,7 +459,7 @@ class TradingAlertSystem:
         if not exit_signals: 
             return
 
-        strongest_signal = max(exit_signals, key = lambda x: x.strength.value)
+        strongest_signal = max(exit_signals, key=lambda x: x.strength.value)
 
         # Determine alert type and priority
         if "profit" in strongest_signal.reason.value: 
@@ -473,12 +472,12 @@ class TradingAlertSystem:
             emoji = "🛑"
 
         alert = Alert(
-            alert_type = alert_type,
-            priority = priority,
-            ticker = ticker,
+            alert_type=alert_type,
+            priority=priority,
+            ticker=ticker,
             title = f"{emoji} EXIT SIGNAL: {ticker}",
             message = f"{strongest_signal.reason.value.title()} triggered.\n"
-                   f"Action: Close {strongest_signal.position_fraction:.0%} of position\n"
+                   f"Action: Close {strongest_signal.position_fraction:.0%} of position + n"
                    f"Expected P & L: ${strongest_signal.expected_pnl:,.0f}",
             data = {
                 "exit_signals": [asdict(sig) for sig in exit_signals],
@@ -488,7 +487,7 @@ class TradingAlertSystem:
 
         self.send_alert(alert)
 
-    def create_risk_alert(self, message: str, data: Dict = None):
+    def create_risk_alert(self, message: str, data: Dict=None):
         """Create risk management alert"""
 
         alert = Alert(
@@ -496,7 +495,7 @@ class TradingAlertSystem:
             priority = AlertPriority.HIGH,
             ticker = "PORTFOLIO",
             title = "⚠️ RISK ALERT",
-            message = message,
+            message=message,
             data = data or {}
         )
 
@@ -519,7 +518,7 @@ class ExecutionChecklistManager:
     def create_entry_checklist(self, ticker: str, trade_calc: TradeCalculation)->str:
         """Create entry execution checklist"""
 
-        trade_id = f"{ticker}_{datetime.now().strftime('%Y % m%d_ % H%M % S')}"
+        trade_id = f"{ticker}_{datetime.now().strftime('%Y % m % d_ % H % M % S')}"
 
         items = [
             ChecklistItem(1, f"Verify bull regime: {ticker}  >  50 - EMA, 50 - EMA  >  200 - EMA"),
@@ -537,11 +536,10 @@ class ExecutionChecklistManager:
         ]
 
         checklist = ExecutionChecklist(
-            trade_id = trade_id,
-            ticker = ticker,
+            trade_id=trade_id,
+            ticker=ticker,
             checklist_type = "entry",
-            items = items
-        )
+            items = items)
 
         self.checklists[trade_id] = checklist
         return trade_id
@@ -560,14 +558,13 @@ class ExecutionChecklistManager:
             ChecklistItem(8, "Update exit plan based on current scenario analysis")
         ]
 
-        monitoring_id = f"{trade_id}_monitoring_{datetime.now().strftime('%Y % m%d')}"
+        monitoring_id = f"{trade_id}_monitoring_{datetime.now().strftime('%Y % m % d')}"
 
         checklist = ExecutionChecklist(
-            trade_id = monitoring_id,
-            ticker = ticker,
+            trade_id=monitoring_id,
+            ticker=ticker,
             checklist_type = "monitoring",
-            items = items
-        )
+            items = items)
 
         self.checklists[monitoring_id] = checklist
         return checklist
@@ -588,14 +585,13 @@ class ExecutionChecklistManager:
             ChecklistItem(10, "Plan next potential setup if position closed")
         ]
 
-        exit_id = f"{trade_id}_exit_{datetime.now().strftime('%Y % m%d_ % H%M % S')}"
+        exit_id = f"{trade_id}_exit_{datetime.now().strftime('%Y % m % d_ % H % M % S')}"
 
         checklist = ExecutionChecklist(
-            trade_id = exit_id,
-            ticker = ticker,
+            trade_id=exit_id,
+            ticker=ticker,
             checklist_type = "exit",
-            items = items
-        )
+            items = items)
 
         self.checklists[exit_id] = checklist
         return checklist
@@ -604,7 +600,7 @@ class ExecutionChecklistManager:
         """Get checklist by ID"""
         return self.checklists.get(checklist_id)
 
-    def complete_item(self, checklist_id: str, step: int, notes: str = ""):
+    def complete_item(self, checklist_id: str, step: int, notes: str=""):
         """Complete a checklist item"""
         checklist = self.checklists.get(checklist_id)
         if checklist: 
@@ -622,7 +618,7 @@ class MarketScreener:
 
     def __init__(self, alert_system: TradingAlertSystem):
         self.alert_system = alert_system
-        self.mega_cap_tickers = [
+        self.mega_cap_tickers=[
             'AAPL', 'MSFT', 'GOOGL', 'GOOG', 'META', 'NVDA', 'AVGO', 'AMD', 'TSLA'
         ]
 

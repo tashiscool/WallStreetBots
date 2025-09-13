@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Production Momentum Weeklies Strategy
 Detects intraday reversals and news momentum for weekly options plays
@@ -47,7 +47,7 @@ class ProductionMomentumWeeklies:
        - Breakout momentum above resistance
     3. Targets weekly options 2 - 5% OTM based on momentum strength
     4. Quick exits: 25 - 50% profit target or 50% loss stop
-    5. Time - based exits: Close before final trading day
+    5. Time-based exits: Close before final trading day
     
     Risk Management: 
     - Maximum 5% account risk per position
@@ -57,39 +57,39 @@ class ProductionMomentumWeeklies:
     """
     
     def __init__(self, integration_manager, data_provider: ReliableDataProvider, config: dict):
-        self.strategy_name = "momentum_weeklies"
+        self.strategy_name="momentum_weeklies"
         self.integration_manager = integration_manager
         self.data_provider = data_provider
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         
         # Core components
-        self.options_selector = SmartOptionsSelector(data_provider)
-        self.risk_manager = RealTimeRiskManager()
-        self.bs_engine = BlackScholesEngine()
+        self.options_selector=SmartOptionsSelector(data_provider)
+        self.risk_manager=RealTimeRiskManager()
+        self.bs_engine=BlackScholesEngine()
         
         # Strategy configuration
-        self.mega_caps = config.get('watchlist', [
+        self.mega_caps=config.get('watchlist', [
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX",
             "CRM", "ADBE", "ORCL", "INTC", "AMD", "QCOM", "TXN", "AVGO",
             "PYPL", "DIS", "V", "MA", "JPM", "BAC", "WMT", "HD"
         ])
         
         # Risk parameters
-        self.max_positions = config.get('max_positions', 3)
-        self.max_position_size = config.get('max_position_size', 0.05)  # 5% per position
-        self.min_volume_spike = config.get('min_volume_spike', 3.0)
-        self.min_momentum_threshold = config.get('min_momentum_threshold', 0.015)  # 1.5%
+        self.max_positions=config.get('max_positions', 3)
+        self.max_position_size=config.get('max_position_size', 0.05)  # 5% per position
+        self.min_volume_spike=config.get('min_volume_spike', 3.0)
+        self.min_momentum_threshold=config.get('min_momentum_threshold', 0.015)  # 1.5%
         
         # Option targeting
-        self.target_dte_range = config.get('target_dte_range', (0, 4))  # 0 - 4 days for weeklies
-        self.otm_range = config.get('otm_range', (0.02, 0.05))  # 2 - 5% OTM
-        self.min_premium = config.get('min_premium', 0.50)  # Minimum $0.50 premium
+        self.target_dte_range=config.get('target_dte_range', (0, 4))  # 0 - 4 days for weeklies
+        self.otm_range=config.get('otm_range', (0.02, 0.05))  # 2 - 5% OTM
+        self.min_premium=config.get('min_premium', 0.50)  # Minimum $0.50 premium
         
         # Exit criteria
-        self.profit_target = config.get('profit_target', 0.25)  # 25% profit target
-        self.stop_loss = config.get('stop_loss', 0.50)  # 50% loss stop
-        self.time_exit_hours = config.get('time_exit_hours', 4)  # Exit if no profit in 4 hours
+        self.profit_target=config.get('profit_target', 0.25)  # 25% profit target
+        self.stop_loss=config.get('stop_loss', 0.50)  # 50% loss stop
+        self.time_exit_hours=config.get('time_exit_hours', 4)  # Exit if no profit in 4 hours
         
         # Active positions tracking
         self.active_positions: List[Dict[str, Any]] = []
@@ -115,7 +115,7 @@ class ProductionMomentumWeeklies:
         try: 
             # Get intraday volume data
             volume_data = await self.data_provider.get_intraday_data(
-                ticker, interval = "5min", period = "5d"
+                ticker, interval="5min", period="5d"
             )
             
             if volume_data.empty: 
@@ -142,7 +142,7 @@ class ProductionMomentumWeeklies:
         try: 
             # Get recent price action (2 hours of 5 - minute bars)
             price_data = await self.data_provider.get_intraday_data(
-                ticker, interval = "5min", period = "2d"
+                ticker, interval="5min", period="2d"
             )
             
             if len(price_data)  <  24:  # Need at least 2 hours of data
@@ -158,7 +158,7 @@ class ProductionMomentumWeeklies:
             low_price = prices[low_idx]
             
             # Calculate bounce from low
-            bounce_pct = (current_price - low_price) / low_price
+            bounce_pct = (current_price-low_price) / low_price
             
             # Reversal criteria: 
             # 1. Significant bounce from recent low ( > 1.5%)
@@ -183,7 +183,7 @@ class ProductionMomentumWeeklies:
         try: 
             # Get extended price data for resistance calculation
             price_data = await self.data_provider.get_intraday_data(
-                ticker, interval = "15min", period = "5d"
+                ticker, interval="15min", period="5d"
             )
             
             if len(price_data)  <  50: 
@@ -207,7 +207,7 @@ class ProductionMomentumWeeklies:
                 avg_vol = volumes[-50: -5].mean()
                 
                 if recent_vol  >  avg_vol * 1.5:  # 50% volume increase
-                    breakout_strength = (current_price - resistance) / resistance
+                    breakout_strength = (current_price-resistance) / resistance
                     return True, breakout_strength
             
             return False, 0.0
@@ -217,7 +217,7 @@ class ProductionMomentumWeeklies:
             return False, 0.0
     
     async def calculate_option_premium(self, ticker: str, strike: float, expiry: str, 
-                                     option_type: str = 'call')->float:
+                                     option_type: str='call')->float:
         """Calculate theoretical option premium"""
         try: 
             # Get current stock data
@@ -231,7 +231,7 @@ class ProductionMomentumWeeklies:
             
             # Calculate time to expiry
             expiry_date = datetime.strptime(expiry, "%Y-%m-%d").date()
-            days_to_expiry = (expiry_date - date.today()).days
+            days_to_expiry = (expiry_date-date.today()).days
             time_to_expiry = max(0.01, days_to_expiry / 365.0)  # Minimum 0.01 years
             
             # Risk - free rate (approximate)
@@ -262,17 +262,17 @@ class ProductionMomentumWeeklies:
                     continue
                 
                 # Check volume spike
-                has_volume_spike, vol_multiple = await self.detect_volume_spike(ticker)
+                has_volume_spike, vol_multiple=await self.detect_volume_spike(ticker)
                 if not has_volume_spike: 
                     continue
                 
                 # Check for reversal pattern
-                has_reversal, pattern_type, bounce_pct = await self.detect_reversal_pattern(ticker)
+                has_reversal, pattern_type, bounce_pct=await self.detect_reversal_pattern(ticker)
                 
                 # Check for breakout
-                has_breakout, breakout_strength = await self.detect_breakout_momentum(ticker)
+                has_breakout, breakout_strength=await self.detect_breakout_momentum(ticker)
                 
-                # Need volume spike + (reversal OR breakout)
+                # Need volume spike+(reversal OR breakout)
                 if not (has_reversal or has_breakout): 
                     continue
                 
@@ -314,33 +314,32 @@ class ProductionMomentumWeeklies:
                     continue  # Skip if premium too low
                 
                 # Calculate targets
-                expected_move = otm_pct + 0.02  # Need to move beyond strike + 2%
+                expected_move = otm_pct + 0.02  # Need to move beyond strike+2%
                 exit_target = current_price * (1 + expected_move)
                 stop_loss = current_price * 0.985  # 1.5% stock stop
                 
                 signal = MomentumSignal(
-                    ticker = ticker,
+                    ticker=ticker,
                     signal_time = datetime.now(),
-                    current_price = current_price,
-                    reversal_type = signal_type,
-                    volume_spike = vol_multiple,
-                    price_momentum = momentum,
-                    weekly_expiry = weekly_expiry,
-                    target_strike = target_strike,
-                    premium_estimate = premium,
-                    risk_level = risk,
-                    exit_target = exit_target,
-                    stop_loss = stop_loss,
-                    confidence = confidence,
-                    expected_move = expected_move
-                )
+                    current_price=current_price,
+                    reversal_type=signal_type,
+                    volume_spike=vol_multiple,
+                    price_momentum=momentum,
+                    weekly_expiry=weekly_expiry,
+                    target_strike=target_strike,
+                    premium_estimate=premium,
+                    risk_level=risk,
+                    exit_target=exit_target,
+                    stop_loss=stop_loss,
+                    confidence=confidence,
+                    expected_move = expected_move)
                 
                 signals.append(signal)
                 
                 self.logger.info(
                     f"Momentum signal: {ticker} {signal_type} "
-                    f"vol = {vol_multiple: .1f}x momentum = {momentum: .2%} "
-                    f"strike = ${target_strike} premium = ${premium: .2f}"
+                    f"vol={vol_multiple: .1f}x momentum={momentum: .2%} "
+                    f"strike=${target_strike} premium = ${premium: .2f}"
                 )
                 
             except Exception as e: 
@@ -348,7 +347,7 @@ class ProductionMomentumWeeklies:
                 continue
         
         # Sort by confidence and momentum strength
-        signals.sort(key=lambda s: (s.confidence, s.price_momentum), reverse = True)
+        signals.sort(key=lambda s: (s.confidence, s.price_momentum), reverse=True)
         
         return signals
     
@@ -372,7 +371,7 @@ class ProductionMomentumWeeklies:
             trade_signal = ProductionTradeSignal(
                 symbol = signal.ticker,
                 action = "BUY",
-                quantity = contracts,
+                quantity=contracts,
                 option_type = "CALL",
                 strike_price = Decimal(str(signal.target_strike)),
                 expiration_date = datetime.strptime(signal.weekly_expiry, "%Y-%m-%d").date(),
@@ -405,7 +404,7 @@ class ProductionMomentumWeeklies:
                     'exit_target': signal.exit_target,
                     'stop_loss': signal.stop_loss,
                     'risk_level': signal.risk_level,
-                    'time_limit': signal.signal_time + timedelta(hours=self.time_exit_hours)
+                    'time_limit': signal.signal_time+timedelta(hours=self.time_exit_hours)
                 }
                 
                 self.active_positions.append(position)
@@ -467,7 +466,7 @@ class ProductionMomentumWeeklies:
                     should_exit = True
                     exit_reason = "STOP_LOSS"
                 
-                # Time - based exit
+                # Time-based exit
                 elif datetime.now()  >=  position['time_limit']: 
                     should_exit = True
                     exit_reason = "TIME_LIMIT"
@@ -480,9 +479,9 @@ class ProductionMomentumWeeklies:
                 if should_exit: 
                     # Create exit trade signal
                     exit_signal = ProductionTradeSignal(
-                        symbol = ticker,
+                        symbol=ticker,
                         action = "SELL",
-                        quantity = contracts,
+                        quantity=contracts,
                         option_type = "CALL",
                         strike_price = position['trade_signal'].strike_price,
                         expiration_date = position['trade_signal'].expiration_date,

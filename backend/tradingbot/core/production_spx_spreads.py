@@ -53,20 +53,20 @@ class SPXSpreadPosition:
     short_option: Dict[str, Any]  # Short option details
     
     # Pricing
-    current_value: float = 0.0
-    unrealized_pnl: float = 0.0
-    profit_pct: float = 0.0
+    current_value: float=0.0
+    unrealized_pnl: float=0.0
+    profit_pct: float=0.0
     
     # Timing
-    entry_date: datetime = field(default_factory=datetime.now)
-    expiry_date: datetime = field(default_factory=lambda: datetime.now() + timedelta(days=1))  # 0DTE
-    last_update: datetime = field(default_factory=datetime.now)
+    entry_date: datetime=field(default_factory=datetime.now)
+    expiry_date: datetime=field(default_factory=lambda: datetime.now() + timedelta(days=1))  # 0DTE
+    last_update: datetime=field(default_factory=datetime.now)
     
     # Greeks
-    net_delta: float = 0.0
-    net_gamma: float = 0.0
-    net_theta: float = 0.0
-    net_vega: float = 0.0
+    net_delta: float=0.0
+    net_gamma: float=0.0
+    net_theta: float=0.0
+    net_vega: float=0.0
     
     def update_pricing(self, long_option_data: OptionsData, short_option_data: OptionsData):
         """Update spread pricing with current option data"""
@@ -74,19 +74,19 @@ class SPXSpreadPosition:
         long_value = long_option_data.ask
         short_value = short_option_data.bid
         
-        self.current_value = (short_value - long_value) * self.quantity * 100
+        self.current_value=(short_value-long_value) * self.quantity * 100
         
         # Calculate P & L
-        self.unrealized_pnl = (self.net_credit * self.quantity * 100) - self.current_value
-        self.profit_pct = self.unrealized_pnl / (self.net_credit * self.quantity * 100)
+        self.unrealized_pnl=(self.net_credit * self.quantity * 100) - self.current_value
+        self.profit_pct=self.unrealized_pnl / (self.net_credit * self.quantity * 100)
         
         # Update Greeks
-        self.net_delta = (short_option_data.delta - long_option_data.delta) * self.quantity * 100
-        self.net_gamma = (short_option_data.gamma - long_option_data.gamma) * self.quantity * 100
-        self.net_theta = (short_option_data.theta - long_option_data.theta) * self.quantity * 100
-        self.net_vega = (short_option_data.vega - long_option_data.vega) * self.quantity * 100
+        self.net_delta=(short_option_data.delta - long_option_data.delta) * self.quantity * 100
+        self.net_gamma=(short_option_data.gamma - long_option_data.gamma) * self.quantity * 100
+        self.net_theta=(short_option_data.theta - long_option_data.theta) * self.quantity * 100
+        self.net_vega=(short_option_data.vega - long_option_data.vega) * self.quantity * 100
         
-        self.last_update = datetime.now()
+        self.last_update=datetime.now()
     
     def calculate_max_profit(self)->float: 
         """Calculate maximum profit potential"""
@@ -95,14 +95,14 @@ class SPXSpreadPosition:
     def calculate_max_loss(self)->float: 
         """Calculate maximum loss potential"""
         if self.spread_type ==  SPXSpreadType.PUT_CREDIT_SPREAD: 
-            return (self.long_strike - self.short_strike) * self.quantity * 100 - self.net_credit * self.quantity * 100
+            return (self.long_strike-self.short_strike) * self.quantity * 100 - self.net_credit * self.quantity * 100
         elif self.spread_type ==  SPXSpreadType.CALL_CREDIT_SPREAD: 
-            return (self.short_strike - self.long_strike) * self.quantity * 100 - self.net_credit * self.quantity * 100
+            return (self.short_strike-self.long_strike) * self.quantity * 100 - self.net_credit * self.quantity * 100
         return 0.0
     
     def calculate_days_to_expiry(self)->int: 
         """Calculate days to expiry"""
-        delta = self.expiry_date - datetime.now()
+        delta = self.expiry_date-datetime.now()
         return max(0, delta.days)
 
 
@@ -134,8 +134,8 @@ class SPXSpreadCandidate:
     market_regime: str  # 'bull', 'bear', 'neutral'
     
     # Scoring
-    spread_score: float = 0.0
-    risk_score: float = 0.0
+    spread_score: float=0.0
+    risk_score: float=0.0
     
     def calculate_spread_score(self)->float: 
         """Calculate SPX spread strategy score"""
@@ -159,17 +159,17 @@ class SPXSpreadCandidate:
             elif self.market_regime  ==  'bear': score -= 0.2
         
         # Strike width (reasonable width)
-        strike_width = abs(self.short_strike - self.long_strike)
+        strike_width = abs(self.short_strike-self.long_strike)
         if 10  <=  strike_width  <=  50:  # SPX typical widths
             score += 0.1
         
         # Distance from current price
         if self.spread_type ==  SPXSpreadType.PUT_CREDIT_SPREAD: 
-            distance = (self.short_strike - self.spx_price) / self.spx_price
+            distance = (self.short_strike-self.spx_price) / self.spx_price
             if 0.02  <=  distance  <=  0.05:  # 2 - 5% OTM
                 score += 0.1
         
-        self.spread_score = max(0.0, min(1.0, score))
+        self.spread_score=max(0.0, min(1.0, score))
         return self.spread_score
 
 
@@ -178,9 +178,9 @@ class CMEDataProvider:
     
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
-        self.base_url = "https: //www.cmegroup.com / CmeWS/mvc / ProductSlate/V2 / List"
+        self.base_url="https: //www.cmegroup.com / CmeWS / mvc / ProductSlate / V2 / List"
     
-    async def get_spx_options(self, expiry_date: str = None)->List[OptionsData]:
+    async def get_spx_options(self, expiry_date: str=None)->List[OptionsData]:
         """Get SPX options data from CME"""
         try: 
             # In production, would integrate with CME API
@@ -199,9 +199,9 @@ class CMEDataProvider:
                     expiry_date = expiry_date or datetime.now().strftime('%Y-%m-%d'),
                     strike = float(strike),
                     option_type = "put",
-                    bid = max(0.1, (strike - spx_price) * 0.01),
-                    ask = max(0.1, (strike - spx_price) * 0.01 + 0.5),
-                    last_price = max(0.1, (strike - spx_price) * 0.01 + 0.25),
+                    bid = max(0.1, (strike-spx_price) * 0.01),
+                    ask = max(0.1, (strike-spx_price) * 0.01 + 0.5),
+                    last_price = max(0.1, (strike-spx_price) * 0.01 + 0.25),
                     volume = 1000,
                     open_interest = 5000,
                     implied_volatility = 0.20,
@@ -218,9 +218,9 @@ class CMEDataProvider:
                     expiry_date = expiry_date or datetime.now().strftime('%Y-%m-%d'),
                     strike = float(strike),
                     option_type = "call",
-                    bid = max(0.1, (spx_price - strike) * 0.01),
-                    ask = max(0.1, (spx_price - strike) * 0.01 + 0.5),
-                    last_price = max(0.1, (spx_price - strike) * 0.01 + 0.25),
+                    bid = max(0.1, (spx_price-strike) * 0.01),
+                    ask = max(0.1, (spx_price-strike) * 0.01 + 0.5),
+                    last_price = max(0.1, (spx_price-strike) * 0.01 + 0.25),
                     volume = 1000,
                     open_interest = 5000,
                     implied_volatility = 0.20,
@@ -272,16 +272,16 @@ class ProductionSPXSpreads:
         self.data = data_provider
         self.config = config
         self.logger = logger
-        self.error_handler = ErrorHandler(logger)
-        self.metrics = MetricsCollector(logger)
-        self.cme_data = CMEDataProvider(logger)
+        self.error_handler=ErrorHandler(logger)
+        self.metrics=MetricsCollector(logger)
+        self.cme_data=CMEDataProvider(logger)
         
         # Strategy parameters
-        self.max_positions = config.trading.max_concurrent_trades
-        self.max_position_size = config.risk.max_position_risk
-        self.profit_target = 0.50  # Close at 50% profit
-        self.stop_loss = 0.25  # Close at 25% loss
-        self.min_profit_loss_ratio = 3.0  # Minimum 3: 1 ratio for SPX
+        self.max_positions=config.trading.max_concurrent_trades
+        self.max_position_size=config.risk.max_position_risk
+        self.profit_target=0.50  # Close at 50% profit
+        self.stop_loss=0.25  # Close at 25% loss
+        self.min_profit_loss_ratio=3.0  # Minimum 3: 1 ratio for SPX
         
         # Position tracking
         self.positions: Dict[str, SPXSpreadPosition] = {}
@@ -289,7 +289,7 @@ class ProductionSPXSpreads:
         
         # Strategy state
         self.last_scan_time: Optional[datetime] = None
-        self.scan_interval = timedelta(minutes=5)  # More frequent for 0DTE
+        self.scan_interval=timedelta(minutes=5)  # More frequent for 0DTE
         
         self.logger.info("SPX Credit Spreads Strategy initialized",
                         max_positions = self.max_positions,
@@ -331,10 +331,9 @@ class ProductionSPXSpreads:
                     net_delta = spread['net_delta'],
                     net_theta = spread['net_theta'],
                     net_vega = spread['net_vega'],
-                    spx_price = spx_price,
-                    vix_level = vix_level,
-                    market_regime = market_regime
-                )
+                    spx_price=spx_price,
+                    vix_level=vix_level,
+                    market_regime = market_regime)
                 
                 candidate.calculate_spread_score()
                 
@@ -342,9 +341,9 @@ class ProductionSPXSpreads:
                     candidates.append(candidate)
             
             # Sort by spread score
-            candidates.sort(key=lambda x: x.spread_score, reverse = True)
+            candidates.sort(key=lambda x: x.spread_score, reverse=True)
             
-            self.candidates = candidates[: 5]  # Top 5 candidates
+            self.candidates=candidates[: 5]  # Top 5 candidates
             
             self.logger.info(f"Found {len(self.candidates)} SPX spread candidates")
             self.metrics.record_metric("spx_spread_candidates_found", len(self.candidates))
@@ -371,7 +370,7 @@ class ProductionSPXSpreads:
                 if long_option.strike  >=  short_option.strike:  # Long strike must be lower
                     continue
                 
-                if short_option.strike - long_option.strike  >  50:  # Max 50 - point width
+                if short_option.strike-long_option.strike  >  50:  # Max 50 - point width
                     continue
                 
                 # Calculate spread metrics
@@ -380,7 +379,7 @@ class ProductionSPXSpreads:
                     continue
                 
                 max_profit = net_credit * 100
-                max_loss = (short_option.strike - long_option.strike) * 100 - net_credit * 100
+                max_loss = (short_option.strike-long_option.strike) * 100 - net_credit * 100
                 profit_loss_ratio = max_profit / max_loss if max_loss  >  0 else 0
                 
                 # Filter by minimum profit / loss ratio
@@ -409,7 +408,7 @@ class ProductionSPXSpreads:
                 })
         
         # Sort by profit / loss ratio
-        spreads.sort(key=lambda x: x['profit_loss_ratio'], reverse = True)
+        spreads.sort(key=lambda x: x['profit_loss_ratio'], reverse=True)
         
         return spreads[: 3]  # Top 3 spreads
     
@@ -435,7 +434,7 @@ class ProductionSPXSpreads:
                 ticker = "SPX",
                 side = OrderSide.SELL,  # Sell short option
                 order_type = OrderType.LIMIT,
-                quantity = position_size,
+                quantity=position_size,
                 limit_price = candidate.short_premium,
                 reason = f"SPX spread: Sell {candidate.short_strike} put",
                 confidence = candidate.spread_score
@@ -453,7 +452,7 @@ class ProductionSPXSpreads:
                 ticker = "SPX",
                 side = OrderSide.BUY,  # Buy long option
                 order_type = OrderType.LIMIT,
-                quantity = position_size,
+                quantity=position_size,
                 limit_price = candidate.long_premium,
                 reason = f"SPX spread: Buy {candidate.long_strike} put",
                 confidence = candidate.spread_score
@@ -474,7 +473,7 @@ class ProductionSPXSpreads:
                 status = SPXSpreadStatus.ACTIVE,
                 long_strike = candidate.long_strike,
                 short_strike = candidate.short_strike,
-                quantity = position_size,
+                quantity=position_size,
                 net_credit = candidate.net_credit,
                 max_profit = candidate.max_profit,
                 max_loss = candidate.max_loss,
@@ -632,10 +631,10 @@ class ProductionSPXSpreads:
                 long_result.status.value  ==  "filled"): 
                 
                 # Update position
-                position.status = SPXSpreadStatus.CLOSED
+                position.status=SPXSpreadStatus.CLOSED
                 
                 self.logger.info(f"SPX spread closed",
-                               reason = reason,
+                               reason=reason,
                                pnl = position.unrealized_pnl,
                                profit_pct = position.profit_pct)
                 

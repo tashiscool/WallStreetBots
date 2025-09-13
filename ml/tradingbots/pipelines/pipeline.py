@@ -5,8 +5,8 @@ class Pipeline:
     def __init__(self, name, portfolio): 
         self.name = name
         self.portfolio = portfolio
-        self.portfolio_cash = portfolio["cash"]
-        self.portfolio_stocks = portfolio["stocks"]
+        self.portfolio_cash=portfolio["cash"]
+        self.portfolio_stocks=portfolio["stocks"]
 
     def __str__(self): 
         return self.name
@@ -18,7 +18,7 @@ class Pipeline:
         """
         return self.portfolio_stocks
 
-    def calc_actions(self, order_type = 'M'): 
+    def calc_actions(self, order_type='M'): 
         """
         generate a list of actions based on the change in portfolio
         Args: 
@@ -29,7 +29,7 @@ class Pipeline:
         """
 
         # run the pipline and get the portfolio before and after
-        PreP, PostP = self.portfolio_stocks, self.pipeline()
+        PreP, PostP=self.portfolio_stocks, self.pipeline()
 
         def get_transaction_type(qty): 
             if qty  <  0: 
@@ -44,9 +44,9 @@ class Pipeline:
             qty = qty2 - qty1
             if get_transaction_type(qty): 
                 return Action(
-                    order_type = order_type,
+                    order_type=order_type,
                     transaction_type = get_transaction_type(qty),
-                    ticker = key,
+                    ticker=key,
                     quantity = abs(qty)
                 )
             else: 
@@ -55,7 +55,7 @@ class Pipeline:
         tickers = set().union(*[PreP, PostP])  # get all tickers
         return [get_action(key) for key in tickers]
 
-    def rebalance(self, order_type = 'M'): 
+    def rebalance(self, order_type='M'): 
         """
         call this method to get the rebalanced portfolio
         by default, it is expected to override the pipeline method, and the orders

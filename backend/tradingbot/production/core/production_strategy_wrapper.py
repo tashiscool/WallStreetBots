@@ -38,11 +38,11 @@ class StrategyConfig:
     """Configuration for production strategy"""
     name: str
     enabled: bool = True
-    max_position_size: float = 0.20  # Max 20% of portfolio per position
-    max_total_risk: float = 0.50  # Max 50% of portfolio at risk
-    stop_loss_pct: float = 0.50  # 50% stop loss
-    take_profit_multiplier: float = 3.0  # 3x profit target
-    min_account_size: float = 10000.0  # Minimum account size
+    max_position_size: float=0.20  # Max 20% of portfolio per position
+    max_total_risk: float=0.50  # Max 50% of portfolio at risk
+    stop_loss_pct: float=0.50  # 50% stop loss
+    take_profit_multiplier: float=3.0  # 3x profit target
+    min_account_size: float=10000.0  # Minimum account size
     trading_hours_only: bool = True  # Only trade during market hours
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -63,7 +63,7 @@ class ProductionStrategyWrapper:
         self.strategy_name = strategy_name
         self.integration = integration_manager
         self.config = config
-        self.logger = logging.getLogger(f"{__name__}.{strategy_name}")
+        self.logger=logging.getLogger(f"{__name__}.{strategy_name}")
         
         # Strategy state
         self.is_running = False
@@ -203,11 +203,11 @@ class ProductionStrategyWrapper:
         try: 
             # Simple market hours check (9: 30 AM - 4: 00 PM ET)
             now = datetime.now()
-            market_open = now.replace(hour=9, minute = 30, second = 0, microsecond = 0)
-            market_close = now.replace(hour=16, minute = 0, second = 0, microsecond = 0)
+            market_open = now.replace(hour=9, minute=30, second=0, microsecond=0)
+            market_close = now.replace(hour=16, minute=0, second=0, microsecond=0)
             
             # Check if it's a weekday
-            if now.weekday()  >=  5:  # Saturday = 5, Sunday = 6
+            if now.weekday()  >=  5:  # Saturday=5, Sunday = 6
                 return False
             
             return market_open  <=  now  <=  market_close
@@ -230,7 +230,7 @@ class ProductionStrategyWrapper:
             total_realized_pnl = sum(pos.realized_pnl for pos in strategy_positions)
             total_risk = sum(pos.risk_amount for pos in strategy_positions)
             
-            self.performance_metrics = {
+            self.performance_metrics={
                 'active_positions': len(strategy_positions),
                 'total_unrealized_pnl': float(total_unrealized_pnl),
                 'total_realized_pnl': float(total_realized_pnl),
@@ -266,15 +266,15 @@ class ProductionWSBDipBot(ProductionStrategyWrapper):
         
         # WSB - specific parameters
         self.dip_threshold = -0.03  # -3% dip
-        self.run_threshold = 0.10   # +10% run over 10 days
-        self.otm_percentage = 0.05  # 5% out of the money
-        self.target_multiplier = 3.0  # 3x profit target
-        self.delta_target = 0.60  # Delta target for exit
+        self.run_threshold=0.10   # +10% run over 10 days
+        self.otm_percentage=0.05  # 5% out of the money
+        self.target_multiplier=3.0  # 3x profit target
+        self.delta_target=0.60  # Delta target for exit
     
     async def _run_strategy_scan(self): 
         """Run WSB Dip Bot scan"""
         try: 
-            self.last_scan_time = datetime.now()
+            self.last_scan_time=datetime.now()
             
             # Get mega - cap tickers
             mega_caps = ['AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA', 'TSLA', 'AMZN']
@@ -292,12 +292,12 @@ class ProductionWSBDipBot(ProductionStrategyWrapper):
         try: 
             # Get 10 - day historical data
             end_date = datetime.now()
-            start_date = end_date - timedelta(days=15)
+            start_date = end_date-timedelta(days=15)
             
             bars = self.integration.alpaca_manager.get_bars(
-                symbol = ticker,
-                start = start_date,
-                end = end_date,
+                symbol=ticker,
+                start=start_date,
+                end=end_date,
                 timeframe = '1Day'
             )
             
@@ -315,7 +315,7 @@ class ProductionWSBDipBot(ProductionStrategyWrapper):
             # Check for dip ( <=  -3% vs prior close)
             current_price = prices[-1]
             prior_close = prices[-2]
-            daily_return = (current_price - prior_close) / prior_close
+            daily_return = (current_price-prior_close) / prior_close
             
             return daily_return  <=  self.dip_threshold
             
@@ -338,13 +338,13 @@ class ProductionWSBDipBot(ProductionStrategyWrapper):
             if quantity  >  0: 
                 signal = ProductionTradeSignal(
                     strategy_name = self.strategy_name,
-                    ticker = ticker,
+                    ticker=ticker,
                     side = OrderSide.BUY,
                     order_type = OrderType.MARKET,
-                    quantity = quantity,
+                    quantity=quantity,
                     price = float(current_price),
                     trade_type = 'stock',  # Simplified - would be 'option' in real implementation
-                    risk_amount = risk_amount,
+                    risk_amount=risk_amount,
                     expected_return = risk_amount * Decimal(str(self.target_multiplier)),
                     metadata = {
                         'pattern': 'dip_after_run',
@@ -371,14 +371,14 @@ class ProductionMomentumWeeklies(ProductionStrategyWrapper):
         super().__init__("momentum_weeklies", integration_manager, config)
         
         # Momentum - specific parameters
-        self.min_volume_spike = 3.0  # 3x average volume
-        self.momentum_threshold = 0.02  # 2% momentum
+        self.min_volume_spike=3.0  # 3x average volume
+        self.momentum_threshold=0.02  # 2% momentum
         self.max_expiry_days = 7  # Weekly options
     
     async def _run_strategy_scan(self): 
         """Run Momentum Weeklies scan"""
         try: 
-            self.last_scan_time = datetime.now()
+            self.last_scan_time=datetime.now()
             
             # Get high - volume tickers
             high_volume_tickers = await self._get_high_volume_tickers()
@@ -426,13 +426,13 @@ class ProductionMomentumWeeklies(ProductionStrategyWrapper):
             if quantity  >  0: 
                 signal = ProductionTradeSignal(
                     strategy_name = self.strategy_name,
-                    ticker = ticker,
+                    ticker=ticker,
                     side = OrderSide.BUY,
                     order_type = OrderType.MARKET,
-                    quantity = quantity,
+                    quantity=quantity,
                     price = float(current_price),
                     trade_type = 'stock',
-                    risk_amount = risk_amount,
+                    risk_amount=risk_amount,
                     expected_return = risk_amount * Decimal(str(self.config.take_profit_multiplier)),
                     metadata = {'pattern': 'momentum_breakout'}
                 )

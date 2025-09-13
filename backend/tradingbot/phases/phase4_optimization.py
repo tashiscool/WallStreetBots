@@ -52,8 +52,8 @@ class OptimizationConfig:
     parameter_ranges: List[ParameterRange]
     backtest_config: BacktestConfig
     population_size: int = 50
-    mutation_rate: float = 0.1
-    crossover_rate: float = 0.8
+    mutation_rate: float=0.1
+    crossover_rate: float=0.8
     elite_size: int = 5
 
 
@@ -99,17 +99,17 @@ class StrategyOptimizer:
                 raise ValueError(f"Unsupported optimization method: {optimization_config.method}")
             
             # Find best result
-            best_result = max(all_results, key = lambda x: x[1])
+            best_result = max(all_results, key=lambda x: x[1])
             best_parameters, best_score, best_backtest_results = best_result
             
             optimization_time = (datetime.now() - start_time).total_seconds()
             
             result = OptimizationResult(
-                best_parameters = best_parameters,
-                best_score = best_score,
-                best_results = best_backtest_results,
-                all_results = all_results,
-                optimization_time = optimization_time,
+                best_parameters=best_parameters,
+                best_score=best_score,
+                best_results=best_backtest_results,
+                all_results=all_results,
+                optimization_time=optimization_time,
                 iterations_completed = len(all_results)
             )
             
@@ -210,7 +210,7 @@ class StrategyOptimizer:
                     results.append((params, score, backtest_results))
                 
                 # Sort by score
-                generation_results.sort(key=lambda x: x[1], reverse = True)
+                generation_results.sort(key=lambda x: x[1], reverse=True)
                 
                 # Select elite
                 elite = [individual for individual, score, _ in generation_results[: config.elite_size]]
@@ -225,7 +225,7 @@ class StrategyOptimizer:
                     
                     # Crossover
                     if random.random()  <  config.crossover_rate: 
-                        child1, child2 = self._crossover(parent1, parent2, config.parameter_ranges)
+                        child1, child2=self._crossover(parent1, parent2, config.parameter_ranges)
                         new_population.extend([child1, child2])
                     else: 
                         new_population.extend([parent1, parent2])
@@ -250,10 +250,10 @@ class StrategyOptimizer:
         for param_range in parameter_ranges: 
             new_combinations = []
             
-            if param_range.param_type  ==  "int": values = range(int(param_range.min_value), int(param_range.max_value) + 1, int(param_range.step))
-            elif param_range.param_type ==  "float": values = [param_range.min_value + i * param_range.step 
-                         for i in range(int((param_range.max_value - param_range.min_value) / param_range.step) + 1)]
-            elif param_range.param_type ==  "bool": values = [True, False]
+            if param_range.param_type  ==  "int": values=range(int(param_range.min_value), int(param_range.max_value) + 1, int(param_range.step))
+            elif param_range.param_type ==  "float": values=[param_range.min_value+i * param_range.step 
+                         for i in range(int((param_range.max_value-param_range.min_value) / param_range.step) + 1)]
+            elif param_range.param_type ==  "bool": values=[True, False]
             else: 
                 values = [param_range.min_value]
             
@@ -313,10 +313,10 @@ class StrategyOptimizer:
         return params
     
     def _tournament_selection(self, population_results: List[Tuple[List[float], float, BacktestResults]], 
-                            tournament_size: int = 3)->List[float]:
+                            tournament_size: int=3)->List[float]:
         """Tournament selection for genetic algorithm"""
         tournament = random.sample(population_results, min(tournament_size, len(population_results)))
-        winner = max(tournament, key = lambda x: x[1])
+        winner = max(tournament, key=lambda x: x[1])
         return winner[0]
     
     def _crossover(self, parent1: List[float], parent2: List[float], 
@@ -350,7 +350,7 @@ class StrategyOptimizer:
     async def _update_strategy_parameters(self, strategy, parameters: Dict[str, Any]): 
         """Update strategy parameters"""
         try: 
-            # Mock parameter update - in production, update actual strategy parameters
+            # Mock parameter update-in production, update actual strategy parameters
             for param_name, param_value in parameters.items(): 
                 if hasattr(strategy, param_name): 
                     setattr(strategy, param_name, param_value)

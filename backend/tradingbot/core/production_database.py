@@ -25,47 +25,47 @@ from decimal import Decimal
 class Trade: 
     """Production trade record"""
     id: Optional[int] = None
-    strategy_name: str = ""
-    ticker: str = ""
-    trade_type: str = ""  # 'stock', 'option', 'spread'
-    action: str = ""  # 'buy', 'sell', 'open', 'close'
+    strategy_name: str=""
+    ticker: str=""
+    trade_type: str=""  # 'stock', 'option', 'spread'
+    action: str=""  # 'buy', 'sell', 'open', 'close'
     quantity: int = 0
-    entry_price: Decimal = Decimal('0.00')
+    entry_price: Decimal=Decimal('0.00')
     exit_price: Optional[Decimal] = None
     pnl: Optional[Decimal] = None
-    commission: Decimal = Decimal('0.00')
-    slippage: Decimal = Decimal('0.00')
-    order_id: str = ""
+    commission: Decimal=Decimal('0.00')
+    slippage: Decimal=Decimal('0.00')
+    order_id: str=""
     fill_timestamp: Optional[datetime] = None
     exit_timestamp: Optional[datetime] = None
-    risk_amount: Decimal = Decimal('0.00')
-    expected_return: Decimal = Decimal('0.00')
+    risk_amount: Decimal=Decimal('0.00')
+    expected_return: Decimal=Decimal('0.00')
     actual_return: Optional[Decimal] = None
     win: Optional[bool] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.now)
-    updated_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime=field(default_factory=datetime.now)
+    updated_at: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
 class Position: 
     """Production position record"""
     id: Optional[int] = None
-    strategy_name: str = ""
-    ticker: str = ""
-    position_type: str = ""  # 'long', 'short', 'spread'
+    strategy_name: str=""
+    ticker: str=""
+    position_type: str=""  # 'long', 'short', 'spread'
     quantity: int = 0
-    avg_cost_basis: Decimal = Decimal('0.00')
-    current_price: Decimal = Decimal('0.00')
-    market_value: Decimal = Decimal('0.00')
-    unrealized_pnl: Decimal = Decimal('0.00')
-    realized_pnl: Decimal = Decimal('0.00')
-    total_pnl: Decimal = Decimal('0.00')
-    risk_amount: Decimal = Decimal('0.00')
+    avg_cost_basis: Decimal=Decimal('0.00')
+    current_price: Decimal=Decimal('0.00')
+    market_value: Decimal=Decimal('0.00')
+    unrealized_pnl: Decimal=Decimal('0.00')
+    realized_pnl: Decimal=Decimal('0.00')
+    total_pnl: Decimal=Decimal('0.00')
+    risk_amount: Decimal=Decimal('0.00')
     stop_loss_price: Optional[Decimal] = None
     take_profit_price: Optional[Decimal] = None
-    entry_timestamp: datetime = field(default_factory=datetime.now)
-    last_update: datetime = field(default_factory=datetime.now)
+    entry_timestamp: datetime=field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
     is_active: bool = True
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -74,46 +74,46 @@ class Position:
 class StrategyPerformance: 
     """Strategy performance metrics"""
     id: Optional[int] = None
-    strategy_name: str = ""
+    strategy_name: str=""
     total_trades: int = 0
     winning_trades: int = 0
     losing_trades: int = 0
-    win_rate: Decimal = Decimal('0.00')
-    avg_win: Decimal = Decimal('0.00')
-    avg_loss: Decimal = Decimal('0.00')
-    largest_win: Decimal = Decimal('0.00')
-    largest_loss: Decimal = Decimal('0.00')
-    total_pnl: Decimal = Decimal('0.00')
-    gross_profit: Decimal = Decimal('0.00')
-    gross_loss: Decimal = Decimal('0.00')
-    profit_factor: Decimal = Decimal('0.00')
-    sharpe_ratio: Decimal = Decimal('0.00')
-    max_drawdown: Decimal = Decimal('0.00')
-    kelly_fraction: Decimal = Decimal('0.00')
-    var_95: Decimal = Decimal('0.00')
-    expected_shortfall: Decimal = Decimal('0.00')
-    calmar_ratio: Decimal = Decimal('0.00')
-    sortino_ratio: Decimal = Decimal('0.00')
-    last_calculated: datetime = field(default_factory=datetime.now)
+    win_rate: Decimal=Decimal('0.00')
+    avg_win: Decimal=Decimal('0.00')
+    avg_loss: Decimal=Decimal('0.00')
+    largest_win: Decimal=Decimal('0.00')
+    largest_loss: Decimal=Decimal('0.00')
+    total_pnl: Decimal=Decimal('0.00')
+    gross_profit: Decimal=Decimal('0.00')
+    gross_loss: Decimal=Decimal('0.00')
+    profit_factor: Decimal=Decimal('0.00')
+    sharpe_ratio: Decimal=Decimal('0.00')
+    max_drawdown: Decimal=Decimal('0.00')
+    kelly_fraction: Decimal=Decimal('0.00')
+    var_95: Decimal=Decimal('0.00')
+    expected_shortfall: Decimal=Decimal('0.00')
+    calmar_ratio: Decimal=Decimal('0.00')
+    sortino_ratio: Decimal=Decimal('0.00')
+    last_calculated: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
 class RiskMetrics: 
     """Risk metrics record"""
     id: Optional[int] = None
-    timestamp: datetime = field(default_factory=datetime.now)
-    total_account_value: Decimal = Decimal('0.00')
-    total_risk_exposure: Decimal = Decimal('0.00')
-    risk_percentage: Decimal = Decimal('0.00')
+    timestamp: datetime=field(default_factory=datetime.now)
+    total_account_value: Decimal=Decimal('0.00')
+    total_risk_exposure: Decimal=Decimal('0.00')
+    risk_percentage: Decimal=Decimal('0.00')
     position_count: int = 0
-    max_single_position_risk: Decimal = Decimal('0.00')
-    correlation_risk: Decimal = Decimal('0.00')
+    max_single_position_risk: Decimal=Decimal('0.00')
+    correlation_risk: Decimal=Decimal('0.00')
     sector_concentration: Dict[str, Decimal] = field(default_factory=dict)
-    var_95_portfolio: Decimal = Decimal('0.00')
-    beta_portfolio: Decimal = Decimal('1.00')
-    daily_pnl: Decimal = Decimal('0.00')
-    mtd_pnl: Decimal = Decimal('0.00')
-    ytd_pnl: Decimal = Decimal('0.00')
+    var_95_portfolio: Decimal=Decimal('0.00')
+    beta_portfolio: Decimal=Decimal('1.00')
+    daily_pnl: Decimal=Decimal('0.00')
+    mtd_pnl: Decimal=Decimal('0.00')
+    ytd_pnl: Decimal=Decimal('0.00')
     alerts: List[str] = field(default_factory=list)
 
 
@@ -122,15 +122,15 @@ class ProductionDatabaseManager:
     
     def __init__(self, config: Dict[str, Any]): 
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger=logging.getLogger(__name__)
         self.pool: Optional[asyncpg.Pool] = None
         
         # Database connection parameters
-        self.db_host = config.get('db_host', 'localhost')
-        self.db_port = config.get('db_port', 5432)
-        self.db_name = config.get('db_name', 'wallstreetbots')
-        self.db_user = config.get('db_user', 'postgres')
-        self.db_password = config.get('db_password', '')
+        self.db_host=config.get('db_host', 'localhost')
+        self.db_port=config.get('db_port', 5432)
+        self.db_name=config.get('db_name', 'wallstreetbots')
+        self.db_user=config.get('db_user', 'postgres')
+        self.db_password=config.get('db_password', '')
         
         self.logger.info("Production Database Manager initialized")
     
@@ -350,7 +350,7 @@ class ProductionDatabaseManager:
                     values.append(value)
                     param_count += 1
                 
-                set_clauses.append(f"updated_at = ${param_count}")
+                set_clauses.append(f"updated_at=${param_count}")
                 values.append(datetime.now())
                 values.append(trade_id)  # For WHERE clause
                 
@@ -448,7 +448,7 @@ class ProductionDatabaseManager:
             return []
     
     async def calculate_strategy_performance(self, strategy_name: str, 
-                                           period_days: int = 30)->StrategyPerformance:
+                                           period_days: int=30)->StrategyPerformance:
         """Calculate strategy performance metrics"""
         try: 
             async with self.pool.acquire() as conn: 
@@ -499,20 +499,20 @@ class ProductionDatabaseManager:
                     kelly_fraction = Decimal('0')
                 
                 performance = StrategyPerformance(
-                    strategy_name = strategy_name,
-                    total_trades = total_trades,
-                    winning_trades = winning_trades,
-                    losing_trades = losing_trades,
-                    win_rate = win_rate,
-                    avg_win = avg_win,
-                    avg_loss = avg_loss,
-                    largest_win = largest_win,
-                    largest_loss = largest_loss,
+                    strategy_name=strategy_name,
+                    total_trades=total_trades,
+                    winning_trades=winning_trades,
+                    losing_trades=losing_trades,
+                    win_rate=win_rate,
+                    avg_win=avg_win,
+                    avg_loss=avg_loss,
+                    largest_win=largest_win,
+                    largest_loss=largest_loss,
                     total_pnl = Decimal(total_pnl),
-                    gross_profit = gross_profit,
-                    gross_loss = gross_loss,
-                    profit_factor = profit_factor,
-                    kelly_fraction = kelly_fraction,
+                    gross_profit=gross_profit,
+                    gross_loss=gross_loss,
+                    profit_factor=profit_factor,
+                    kelly_fraction=kelly_fraction,
                     last_calculated = datetime.now()
                 )
                 

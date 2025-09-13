@@ -70,12 +70,12 @@ def dashboard(request):
         if 'submit_credential' in request.POST: 
             if credential_form.is_valid(): 
                 if hasattr(user, 'credential'): 
-                    user.credential.alpaca_id = credential_form.get_id()
-                    user.credential.alpaca_key = credential_form.get_key()
+                    user.credential.alpaca_id=credential_form.get_id()
+                    user.credential.alpaca_key=credential_form.get_key()
                     user.credential.save()
                 else: 
                     from .models import Credential
-                    cred = Credential(user=request.user, alpaca_id = credential_form.get_id(),
+                    cred = Credential(user=request.user, alpaca_id=credential_form.get_id(),
                                       alpaca_key = credential_form.get_key())
                     cred.save()
                 return HttpResponseRedirect('/')
@@ -126,7 +126,7 @@ def get_portfolio_chart(request):
     API_KEY = user.credential.alpaca_id
     API_SECRET = user.credential.alpaca_key
     BASE_URL = "https: //paper - api.alpaca.markets"
-    alpaca = api.REST(key_id=API_KEY, secret_key = API_SECRET, base_url = BASE_URL, api_version = 'v2')
+    alpaca = api.REST(key_id=API_KEY, secret_key=API_SECRET, base_url=BASE_URL, api_version='v2')
     portfolio_hist = alpaca.get_portfolio_history().df
     portfolio_hist = portfolio_hist.reset_index()
     line_plot = px.line(portfolio_hist, "timestamp", "equity")
@@ -147,14 +147,14 @@ def get_stock_chart(request, symbol):
     alpaca = api.REST(API_KEY, API_SECRET)
     # Setting parameters before calling method
     timeframe = "1Day"
-    start = "2021 - 01-01"
-    # today = date.today()
-    end = "2021 - 02-01"
+    start = "2021 - 01 - 01"
+    # today=date.today()
+    end = "2021 - 02 - 01"
     # Retrieve daily bars for SPY in a dataframe and printing the first 5 rows
     spy_bars = alpaca.get_bars(symbol, timeframe, start, end).df
     candlestick_fig = go.Figure(
-        data = [go.Candlestick(x=spy_bars.index, open = spy_bars['open'],
-                             high = spy_bars['high'], low = spy_bars['low'], close = spy_bars['close'])])
+        data = [go.Candlestick(x=spy_bars.index, open=spy_bars['open'],
+                             high = spy_bars['high'], low=spy_bars['low'], close=spy_bars['close'])])
     candlestick_fig.update_layout(
         xaxis_title = "Date",
         yaxis_title = "Price ($USD)")
@@ -174,12 +174,12 @@ def orders(request):
         if 'submit_credential' in request.POST: 
             if credential_form.is_valid(): 
                 if hasattr(user, 'credential'): 
-                    user.credential.alpaca_id = credential_form.get_id()
-                    user.credential.alpaca_key = credential_form.get_key()
+                    user.credential.alpaca_id=credential_form.get_id()
+                    user.credential.alpaca_key=credential_form.get_key()
                     user.credential.save()
                 else: 
                     from .models import Credential
-                    cred = Credential(user=request.user, alpaca_id = credential_form.get_id(),
+                    cred = Credential(user=request.user, alpaca_id=credential_form.get_id(),
                                       alpaca_key = credential_form.get_key())
                     cred.save()
                 return HttpResponseRedirect('/')
@@ -259,17 +259,17 @@ def positions(request):
 
 @login_required
 def user_settings(request): 
-    return render(request, 'home / page - not-implemented.html')  # 'home / user - settings.html')
+    return render(request, 'home / page-not - implemented.html')  # 'home / user - settings.html')
 
 
 @login_required
 def machine_learning(request): 
-    return render(request, 'home / page - not-implemented.html')  # 'home / machine - learning.html')
+    return render(request, 'home / page-not - implemented.html')  # 'home / machine-learning.html')
 
 
 def logout(request): 
     log_out(request)
     return_to = urlencode({'returnTo': request.build_absolute_uri('/')})
-    logout_url = 'https: //%s / v2/logout?client_id = %s&%s' % \
+    logout_url = 'https: //%s / v2 / logout?client_id = %s&%s' % \
                  (settings.SOCIAL_AUTH_AUTH0_DOMAIN, settings.SOCIAL_AUTH_AUTH0_KEY, return_to)
     return HttpResponseRedirect(logout_url)

@@ -1,5 +1,5 @@
 """
-End - to-End Trading Integration Tests
+End - to - End Trading Integration Tests
 
 Comprehensive integration tests that validate the entire trading flow from signal generation
 to order execution and position management.
@@ -28,8 +28,8 @@ class TestEndToEndTrading:
         """Create mock trading system for testing"""
         # Mock data provider
         mock_data_provider = Mock()
-        mock_data_provider.is_market_open = AsyncMock(return_value=True)
-        mock_data_provider.get_current_price = AsyncMock(return_value=Mock(price=Decimal('150.00')))
+        mock_data_provider.is_market_open=AsyncMock(return_value=True)
+        mock_data_provider.get_current_price=AsyncMock(return_value=Mock(price=Decimal('150.00')))
         mock_data_provider.get_price_history = AsyncMock(return_value=[
             Decimal('100.00'), Decimal('102.00'), Decimal('105.00'), Decimal('108.00'),
             Decimal('110.00'), Decimal('112.00'), Decimal('115.00'), Decimal('118.00'),
@@ -39,18 +39,18 @@ class TestEndToEndTrading:
             1000000, 1100000, 1200000, 1300000, 1400000,
             1500000, 1600000, 1700000, 1800000, 2000000
         ])
-        mock_data_provider.get_options_chain = AsyncMock(return_value=[])
+        mock_data_provider.get_options_chain=AsyncMock(return_value=[])
         
         # Mock integration manager
         mock_integration = Mock()
-        mock_integration.get_portfolio_value = AsyncMock(return_value=Decimal('100000.00'))
+        mock_integration.get_portfolio_value=AsyncMock(return_value=Decimal('100000.00'))
         mock_integration.execute_trade = AsyncMock(return_value={
             'order_id': 'test_order_123',
             'status': 'FILLED',
             'filled_price': Decimal('5.00'),
             'quantity': 100
         })
-        mock_integration.get_positions = AsyncMock(return_value=[])
+        mock_integration.get_positions=AsyncMock(return_value=[])
         mock_integration.get_portfolio_summary = Mock(return_value={
             'total_value': Decimal('100000.00'),
             'cash': Decimal('50000.00'),
@@ -60,11 +60,11 @@ class TestEndToEndTrading:
         # Mock broker manager
         mock_broker = Mock()
         mock_account = Mock()
-        mock_account.status = 'ACTIVE'
-        mock_account.buying_power = Decimal('50000.00')
-        mock_account.portfolio_value = Decimal('100000.00')
-        mock_broker.get_account = AsyncMock(return_value=mock_account)
-        mock_broker.validate_api = Mock(return_value=(True, "API validation successful"))
+        mock_account.status='ACTIVE'
+        mock_account.buying_power=Decimal('50000.00')
+        mock_account.portfolio_value=Decimal('100000.00')
+        mock_broker.get_account=AsyncMock(return_value=mock_account)
+        mock_broker.validate_api=Mock(return_value=(True, "API validation successful"))
         
         # Set the broker manager on the integration manager
         mock_integration.alpaca_manager = mock_broker
@@ -73,12 +73,11 @@ class TestEndToEndTrading:
         config = ProductionStrategyManagerConfig(
             alpaca_api_key = 'test_key',
             alpaca_secret_key = 'test_secret',
-            paper_trading = True,
+            paper_trading=True,
             user_id = 1,
             max_total_risk = 0.50,
             max_position_size = 0.20,
-            enable_alerts = True
-        )
+            enable_alerts = True)
         
         strategy_manager = ProductionStrategyManager(config)
         strategy_manager.data_provider = mock_data_provider
@@ -133,7 +132,7 @@ class TestEndToEndTrading:
         )
         
         # Simulate data provider error
-        data_error = DataProviderError("Test data provider failure", provider = "test_provider")
+        data_error = DataProviderError("Test data provider failure", provider="test_provider")
         
         # Handle error
         recovery_action = await recovery_manager.handle_trading_error(data_error)
@@ -223,8 +222,8 @@ class TestEndToEndTrading:
         integration = mock_trading_system['integration']
         
         # Mock alert system
-        integration.alert_system = Mock()
-        integration.alert_system.send_alert = AsyncMock()
+        integration.alert_system=Mock()
+        integration.alert_system.send_alert=AsyncMock()
         
         # Send test alert
         await integration.alert_system.send_alert(
@@ -242,10 +241,10 @@ class TestEndToEndTrading:
         data_provider = mock_trading_system['data_provider']
         
         # Mock failover
-        data_provider.switch_to_backup = AsyncMock()
+        data_provider.switch_to_backup=AsyncMock()
         
         # Simulate primary source failure
-        data_provider.get_current_price = AsyncMock(side_effect=Exception("Primary source failed"))
+        data_provider.get_current_price=AsyncMock(side_effect=Exception("Primary source failed"))
         
         # Switch to backup
         await data_provider.switch_to_backup()
@@ -281,7 +280,7 @@ class TestEndToEndTrading:
         strategy_manager = mock_trading_system['strategy_manager']
         
         # Mock emergency halt
-        strategy_manager.emergency_halt = AsyncMock()
+        strategy_manager.emergency_halt=AsyncMock()
         
         # Trigger emergency halt
         await strategy_manager.emergency_halt("Test emergency halt")
@@ -305,7 +304,7 @@ class TestEndToEndTrading:
         
         # 4. Check system health
         health_monitor = SystemHealthMonitor(
-            trading_system = strategy_manager,
+            trading_system=strategy_manager,
             config = {
                 'data_feed_latency_threshold': 5.0,
                 'memory_usage_threshold': 0.80,
@@ -319,7 +318,7 @@ class TestEndToEndTrading:
         
         # 6. Test error recovery
         recovery_manager = TradingErrorRecoveryManager(
-            trading_system = strategy_manager,
+            trading_system=strategy_manager,
             config = {'max_retry_attempts': 2}
         )
         from backend.tradingbot.error_handling import BrokerConnectionError

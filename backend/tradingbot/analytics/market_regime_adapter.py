@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Market Regime Adapter
 Integrates market regime detection with strategy parameter adaptation
@@ -27,16 +27,16 @@ class AdaptationLevel(Enum):
 
 @dataclass
 class RegimeAdaptationConfig: 
-    """Configuration for regime - based adaptation"""
+    """Configuration for regime-based adaptation"""
     # Position sizing adjustments by regime
-    bull_position_multiplier: float = 1.2  # Increase positions in bull market
-    bear_position_multiplier: float = 0.3  # Reduce positions in bear market
-    sideways_position_multiplier: float = 0.7  # Moderate positions in sideways
+    bull_position_multiplier: float=1.2  # Increase positions in bull market
+    bear_position_multiplier: float=0.3  # Reduce positions in bear market
+    sideways_position_multiplier: float=0.7  # Moderate positions in sideways
 
     # Risk adjustments by regime
-    bull_max_risk: float = 0.05  # 5% max risk per trade in bull
-    bear_max_risk: float = 0.02  # 2% max risk per trade in bear
-    sideways_max_risk: float = 0.03  # 3% max risk per trade in sideways
+    bull_max_risk: float=0.05  # 5% max risk per trade in bull
+    bear_max_risk: float=0.02  # 2% max risk per trade in bear
+    sideways_max_risk: float=0.03  # 3% max risk per trade in sideways
 
     # Strategy selection by regime
     enabled_strategies_by_regime: Dict[str, List[str]] = field(default_factory=lambda: {
@@ -46,13 +46,13 @@ class RegimeAdaptationConfig:
         'undefined': ['index_baseline']
     })
 
-    # Time - based adaptations
+    # Time-based adaptations
     adapt_during_earnings: bool = True
     adapt_during_fomc: bool = True
     adapt_during_opex: bool = True
 
     # Confidence thresholds
-    min_regime_confidence: float = 0.7
+    min_regime_confidence: float=0.7
     regime_change_cooldown_hours: int = 4
 
 
@@ -98,20 +98,20 @@ class MarketRegimeAdapter:
     - Adapts to calendar events and volatility
     """
 
-    def __init__(self, config: RegimeAdaptationConfig = None):
+    def __init__(self, config: RegimeAdaptationConfig=None):
         """
         Initialize market regime adapter
 
         Args: 
             config: Adaptation configuration
         """
-        self.config = config or RegimeAdaptationConfig()
-        self.signal_generator = SignalGenerator()
-        self.logger = logging.getLogger(__name__)
+        self.config=config or RegimeAdaptationConfig()
+        self.signal_generator=SignalGenerator()
+        self.logger=logging.getLogger(__name__)
 
         # State tracking
-        self.current_regime = MarketRegime.UNDEFINED
-        self.regime_confidence = 0.0
+        self.current_regime=MarketRegime.UNDEFINED
+        self.regime_confidence=0.0
         self.last_regime_change = None
         self.adaptation_history: List[StrategyAdaptation] = []
 
@@ -141,7 +141,7 @@ class MarketRegimeAdapter:
             # Store in history
             self.indicator_history.append(indicators)
             if len(self.indicator_history)  >  self.max_history_length: 
-                self.indicator_history = self.indicator_history[-self.max_history_length: ]
+                self.indicator_history=self.indicator_history[-self.max_history_length: ]
 
             # Need at least 2 data points for comparison
             if len(self.indicator_history)  <  2: 
@@ -157,20 +157,19 @@ class MarketRegimeAdapter:
 
             # Generate signal (includes regime detection)
             signal = self.signal_generator.generate_signal(
-                current_indicators = current_indicators,
-                previous_indicators = previous_indicators,
-                earnings_risk = earnings_risk,
-                macro_risk = macro_risk
-            )
+                current_indicators=current_indicators,
+                previous_indicators=previous_indicators,
+                earnings_risk=earnings_risk,
+                macro_risk = macro_risk)
 
             # Update regime state
             new_regime = signal.regime
-            self.regime_confidence = signal.confidence
+            self.regime_confidence=signal.confidence
 
             # Check for regime change
             if new_regime  !=  self.current_regime: 
                 self.logger.info(f"Market regime changed: {self.current_regime.value} - >  {new_regime.value}")
-                self.last_regime_change = datetime.now()
+                self.last_regime_change=datetime.now()
                 self.current_regime = new_regime
 
             return new_regime
@@ -220,24 +219,24 @@ class MarketRegimeAdapter:
             parameter_adjustments = self._calculate_parameter_adjustments(regime, market_data)
 
             # Risk management adjustments
-            stop_loss_adj, take_profit_adj = self._calculate_risk_adjustments(regime)
+            stop_loss_adj, take_profit_adj=self._calculate_risk_adjustments(regime)
 
             # Timing adjustments
-            entry_delay, exit_urgency = self._calculate_timing_adjustments(regime, market_data)
+            entry_delay, exit_urgency=self._calculate_timing_adjustments(regime, market_data)
 
             # Create adaptation
             adaptation = StrategyAdaptation(
-                regime = regime,
+                regime=regime,
                 confidence = self.regime_confidence,
-                position_size_multiplier = position_multiplier,
-                max_risk_per_trade = max_risk,
-                recommended_strategies = recommended_strategies,
-                disabled_strategies = disabled_strategies,
-                parameter_adjustments = parameter_adjustments,
-                stop_loss_adjustment = stop_loss_adj,
-                take_profit_adjustment = take_profit_adj,
-                entry_delay = entry_delay,
-                exit_urgency = exit_urgency,
+                position_size_multiplier=position_multiplier,
+                max_risk_per_trade=max_risk,
+                recommended_strategies=recommended_strategies,
+                disabled_strategies=disabled_strategies,
+                parameter_adjustments=parameter_adjustments,
+                stop_loss_adjustment=stop_loss_adj,
+                take_profit_adjustment=take_profit_adj,
+                entry_delay=entry_delay,
+                exit_urgency=exit_urgency,
                 timestamp = datetime.now(),
                 reason = self._generate_adaptation_reason(regime, market_data),
                 next_review = datetime.now() + timedelta(hours=1)
@@ -246,7 +245,7 @@ class MarketRegimeAdapter:
             # Store in history
             self.adaptation_history.append(adaptation)
             if len(self.adaptation_history)  >  50:  # Keep last 50 adaptations
-                self.adaptation_history = self.adaptation_history[-50: ]
+                self.adaptation_history=self.adaptation_history[-50: ]
 
             self.logger.info(f"Generated strategy adaptation for {regime.value} regime")
             return adaptation
@@ -291,7 +290,7 @@ class MarketRegimeAdapter:
                 if isinstance(data, dict) and 'price' in data: 
                     price = float(data['price'])
                     return create_sample_indicators(
-                        price = price,
+                        price=price,
                         ema_20 = price * 0.98,
                         ema_50 = price * 0.95,
                         ema_200 = price * 0.90,
@@ -479,7 +478,7 @@ class MarketRegimeAdapter:
     def _create_default_adaptation(self, regime: MarketRegime)->StrategyAdaptation:
         """Create default adaptation"""
         return StrategyAdaptation(
-            regime = regime,
+            regime=regime,
             confidence = 0.5,
             position_size_multiplier = 0.5,
             max_risk_per_trade = 0.01,

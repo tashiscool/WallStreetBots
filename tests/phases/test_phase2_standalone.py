@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Standalone Phase 2 Tests
 Test Phase 2 strategies without external dependencies
@@ -45,13 +45,13 @@ class WheelPosition:
     strike_price: float
     expiry_date: datetime
     premium_received: float
-    premium_paid: float = 0.0
-    entry_date: datetime = field(default_factory=datetime.now)
-    last_update: datetime = field(default_factory=datetime.now)
+    premium_paid: float=0.0
+    entry_date: datetime=field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
     days_to_expiry: int = 0
-    delta: float = 0.0
-    theta: float = 0.0
-    iv_rank: float = 0.0
+    delta: float=0.0
+    theta: float=0.0
+    iv_rank: float=0.0
     
     def calculate_unrealized_pnl(self)->float: 
         """Calculate unrealized P & L"""
@@ -59,17 +59,17 @@ class WheelPosition:
             if self.current_price  >=  self.strike_price: 
                 return self.premium_received
             else: 
-                loss = (self.strike_price - self.current_price) * self.quantity
+                loss = (self.strike_price-self.current_price) * self.quantity
                 return self.premium_received - loss
         elif self.stage ==  WheelStage.ASSIGNED_STOCK: 
-            stock_pnl = (self.current_price - self.entry_price) * self.quantity
+            stock_pnl = (self.current_price-self.entry_price) * self.quantity
             return stock_pnl + self.premium_received
         elif self.stage ==  WheelStage.COVERED_CALL: 
-            stock_pnl = (self.current_price - self.entry_price) * self.quantity
+            stock_pnl = (self.current_price-self.entry_price) * self.quantity
             call_pnl = self.premium_received - self.premium_paid
             
             if self.current_price  >=  self.strike_price: 
-                assignment_pnl = (self.strike_price - self.entry_price) * self.quantity
+                assignment_pnl = (self.strike_price-self.entry_price) * self.quantity
                 return assignment_pnl + call_pnl
             else: 
                 return stock_pnl + call_pnl
@@ -78,7 +78,7 @@ class WheelPosition:
     def calculate_days_to_expiry(self)->int: 
         """Calculate days to expiry"""
         if self.expiry_date: 
-            delta = self.expiry_date - datetime.now()
+            delta = self.expiry_date-datetime.now()
             return max(0, delta.days)
         return 0
 
@@ -89,15 +89,15 @@ class WheelCandidate:
     current_price: float
     volatility_rank: float
     earnings_date: datetime = None
-    earnings_risk: float = 0.0
-    rsi: float = 50.0
-    support_level: float = 0.0
-    resistance_level: float = 0.0
-    put_premium: float = 0.0
-    call_premium: float = 0.0
-    iv_rank: float = 0.0
-    wheel_score: float = 0.0
-    risk_score: float = 0.0
+    earnings_risk: float=0.0
+    rsi: float=50.0
+    support_level: float=0.0
+    resistance_level: float=0.0
+    put_premium: float=0.0
+    call_premium: float=0.0
+    iv_rank: float=0.0
+    wheel_score: float=0.0
+    risk_score: float=0.0
     
     def calculate_wheel_score(self)->float: 
         """Calculate wheel strategy score"""
@@ -108,7 +108,7 @@ class WheelCandidate:
         score -= self.earnings_risk * 0.2
         if 30  <=  self.rsi  <=  70: 
             score += 0.1
-        self.wheel_score = max(0.0, min(1.0, score))
+        self.wheel_score=max(0.0, min(1.0, score))
         return self.wheel_score
 
 
@@ -139,21 +139,21 @@ class SpreadPosition:
     max_loss: float
     long_option: dict
     short_option: dict
-    current_value: float = 0.0
-    unrealized_pnl: float = 0.0
-    profit_pct: float = 0.0
-    entry_date: datetime = field(default_factory=datetime.now)
-    expiry_date: datetime = field(default_factory=lambda: datetime.now() + timedelta(days=30))
-    last_update: datetime = field(default_factory=datetime.now)
-    net_delta: float = 0.0
-    net_gamma: float = 0.0
-    net_theta: float = 0.0
-    net_vega: float = 0.0
+    current_value: float=0.0
+    unrealized_pnl: float=0.0
+    profit_pct: float=0.0
+    entry_date: datetime=field(default_factory=datetime.now)
+    expiry_date: datetime=field(default_factory=lambda: datetime.now() + timedelta(days=30))
+    last_update: datetime=field(default_factory=datetime.now)
+    net_delta: float=0.0
+    net_gamma: float=0.0
+    net_theta: float=0.0
+    net_vega: float=0.0
     
     def calculate_max_profit(self)->float: 
         """Calculate maximum profit potential"""
         if self.spread_type ==  SpreadType.BULL_CALL_SPREAD: 
-            return (self.short_strike - self.long_strike) * self.quantity * 100 - self.net_debit * self.quantity * 100
+            return (self.short_strike-self.long_strike) * self.quantity * 100 - self.net_debit * self.quantity * 100
         return 0.0
     
     def calculate_max_loss(self)->float: 
@@ -177,8 +177,8 @@ class SpreadCandidate:
     net_delta: float
     net_theta: float
     net_vega: float
-    spread_score: float = 0.0
-    risk_score: float = 0.0
+    spread_score: float=0.0
+    risk_score: float=0.0
     
     def calculate_spread_score(self)->float: 
         """Calculate spread strategy score"""
@@ -189,10 +189,10 @@ class SpreadCandidate:
         score += max(0, -self.net_theta) * 0.2
         debit_pct = self.net_debit / self.current_price
         score += max(0, 0.05 - debit_pct) * 20
-        strike_width = abs(self.short_strike - self.long_strike)
+        strike_width = abs(self.short_strike-self.long_strike)
         if 2  <=  strike_width  <=  10: 
             score += 0.1
-        self.spread_score = max(0.0, min(1.0, score))
+        self.spread_score=max(0.0, min(1.0, score))
         return self.spread_score
 
 
@@ -200,7 +200,7 @@ class QuantLibPricer:
     """QuantLib - based options pricing"""
     
     def __init__(self): 
-        self.logger = Mock()
+        self.logger=Mock()
     
     def calculate_black_scholes(self, 
                               spot_price: float,
@@ -213,11 +213,11 @@ class QuantLibPricer:
         try: 
             # Calculate d1 and d2
             d1 = (math.log(spot_price / strike_price) + 
-                  (risk_free_rate + 0.5 * volatility**2) * time_to_expiry) / (volatility * math.sqrt(time_to_expiry))
+                  (risk_free_rate+0.5 * volatility**2) * time_to_expiry) / (volatility * math.sqrt(time_to_expiry))
             d2 = d1 - volatility * math.sqrt(time_to_expiry)
             
             # Calculate option price
-            if option_type.lower()  ==  'call': price = (spot_price * self._normal_cdf(d1) - 
+            if option_type.lower()  ==  'call': price=(spot_price * self._normal_cdf(d1) - 
                         strike_price * math.exp(-risk_free_rate * time_to_expiry) * self._normal_cdf(d2))
             else:  # put
                 price = (strike_price * math.exp(-risk_free_rate * time_to_expiry) * self._normal_cdf(-d2) - 
@@ -277,7 +277,7 @@ class BenchmarkData:
     volatility: float
     sharpe_ratio: float
     max_drawdown: float
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -299,7 +299,7 @@ class StrategyPerformance:
     avg_win: float
     avg_loss: float
     profit_factor: float
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -315,7 +315,7 @@ class PerformanceComparison:
     information_ratio: float
     strategy_sharpe: float
     benchmark_sharpe: float
-    comparison_date: datetime = field(default_factory=datetime.now)
+    comparison_date: datetime=field(default_factory=datetime.now)
 
 
 class PerformanceCalculator: 
@@ -367,7 +367,7 @@ class PerformanceCalculator:
         variance = sum((r - mean_return) ** 2 for r in returns) / (len(returns) - 1)
         return math.sqrt(variance)
     
-    def calculate_sharpe_ratio(self, returns: list, risk_free_rate: float = 0.02)->float:
+    def calculate_sharpe_ratio(self, returns: list, risk_free_rate: float=0.02)->float:
         """Calculate Sharpe ratio"""
         if len(returns)  <  2: 
             return 0.0
@@ -485,7 +485,7 @@ class TestWheelStrategy(unittest.TestCase):
         self.assertEqual(pnl, 200.0)  # Full premium if stock stays above strike
         
         # Cash secured put - loss scenario
-        position.current_price = 140.0  # Stock below strike
+        position.current_price=140.0  # Stock below strike
         pnl = position.calculate_unrealized_pnl()
         expected_loss = (145.0 - 140.0) * 100  # $500 loss
         expected_pnl = 200.0 - expected_loss  # Premium - loss
@@ -720,7 +720,7 @@ class TestIndexBaseline(unittest.TestCase):
         strategy_returns = [0.01, 0.02, -0.01, 0.015, 0.005]
         benchmark_returns = [0.008, 0.018, -0.012, 0.012, 0.003]
         
-        alpha, beta = calculator.calculate_alpha_beta(strategy_returns, benchmark_returns)
+        alpha, beta=calculator.calculate_alpha_beta(strategy_returns, benchmark_returns)
         
         self.assertIsInstance(alpha, float)
         self.assertIsInstance(beta, float)
@@ -728,7 +728,7 @@ class TestIndexBaseline(unittest.TestCase):
 
 
 class TestPhase2EndToEnd(unittest.TestCase): 
-    """End - to-end tests for Phase 2"""
+    """End - to - end tests for Phase 2"""
     
     def test_wheel_strategy_workflow(self): 
         """Test complete wheel strategy workflow"""

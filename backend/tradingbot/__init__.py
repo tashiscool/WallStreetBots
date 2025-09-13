@@ -18,7 +18,7 @@ risk - managed strategy suitable for consistent profitable trading.
 Usage: 
     from backend.tradingbot import IntegratedTradingSystem, TradingConfig
 
-    config = TradingConfig(account_size=500000, max_position_risk_pct = 0.10)
+    config = TradingConfig(account_size=500000, max_position_risk_pct=0.10)
     system = IntegratedTradingSystem(config)
 
     # Calculate trade for a ticker

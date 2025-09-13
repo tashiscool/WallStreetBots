@@ -41,12 +41,12 @@ except ImportError:
 class Phase1Demo: 
     """Demonstrate Phase 1 implementation"""
     
-    def __init__(self, config_file: str = "config / production.json"):
+    def __init__(self, config_file: str="config / production.json"):
         self.config_file = config_file
-        self.logger = ProductionLogger("phase1_demo")
-        self.error_handler = ErrorHandler(self.logger)
-        self.metrics_collector = MetricsCollector(self.logger)
-        self.health_checker = HealthChecker(self.logger)
+        self.logger=ProductionLogger("phase1_demo")
+        self.error_handler=ErrorHandler(self.logger)
+        self.metrics_collector=MetricsCollector(self.logger)
+        self.health_checker=HealthChecker(self.logger)
         
         # Initialize components
         self.config_manager = None
@@ -60,8 +60,8 @@ class Phase1Demo:
         
         try: 
             # 1. Load configuration
-            self.config_manager = create_config_manager(self.config_file)
-            self.config = self.config_manager.load_config()
+            self.config_manager=create_config_manager(self.config_file)
+            self.config=self.config_manager.load_config()
             
             # Validate configuration
             errors = self.config.validate()
@@ -69,10 +69,10 @@ class Phase1Demo:
                 self.logger.warning(f"Configuration validation errors: {errors}")
             
             # 2. Create data provider
-            self.data_provider = create_data_provider(self.config.data_providers.__dict__)
+            self.data_provider=create_data_provider(self.config.data_providers.__dict__)
             
             # 3. Create trading interface
-            self.trading_interface = create_trading_interface(self.config.to_dict())
+            self.trading_interface=create_trading_interface(self.config.to_dict())
             
             # 4. Setup health checks
             await self.setup_health_checks()
@@ -120,7 +120,7 @@ class Phase1Demo:
                     data = await self.data_provider.get_market_data(ticker)
                     self.logger.info(
                         f"Market data for {ticker}",
-                        ticker = ticker,
+                        ticker=ticker,
                         price = data.price,
                         change = data.change,
                         volume = data.volume
@@ -138,7 +138,7 @@ class Phase1Demo:
             
             # Test earnings data
             try: 
-                earnings_events = await self.data_provider.get_earnings_data("AAPL", days_ahead = 7)
+                earnings_events = await self.data_provider.get_earnings_data("AAPL", days_ahead=7)
                 self.logger.info(
                     f"Found {len(earnings_events)} upcoming earnings events",
                     count = len(earnings_events)
@@ -234,7 +234,7 @@ class Phase1Demo:
                 self.logger.info("Signal passed validation and risk checks - would execute trade")
                 
                 # In a real implementation, this would execute the trade
-                # trade_result = await self.trading_interface.execute_trade(signal)
+                # trade_result=await self.trading_interface.execute_trade(signal)
                 
             else: 
                 self.logger.warning("Signal failed validation or risk checks - trade would be rejected")
@@ -248,7 +248,7 @@ class Phase1Demo:
         
         try: 
             # Test circuit breaker
-            circuit_breaker = CircuitBreaker(failure_threshold=3, timeout = 5.0)
+            circuit_breaker = CircuitBreaker(failure_threshold=3, timeout=5.0)
             
             def flaky_function(): 
                 import random
@@ -295,9 +295,8 @@ class Phase1Demo:
             
             self.logger.info(
                 "Health check results",
-                overall_health = overall_health,
-                results = health_results
-            )
+                overall_health=overall_health,
+                results = health_results)
             
             # Generate metrics summary
             metrics_summary = {}
@@ -306,10 +305,10 @@ class Phase1Demo:
                 if summary: 
                     metrics_summary[metric_name] = summary
             
-            self.logger.info("Metrics summary", summary = metrics_summary)
+            self.logger.info("Metrics summary", summary=metrics_summary)
             
             # Export metrics
-            metrics_file = f"demo_metrics_{datetime.now().strftime('%Y % m%d_ % H%M % S')}.json"
+            metrics_file = f"demo_metrics_{datetime.now().strftime('%Y % m % d_ % H % M % S')}.json"
             self.metrics_collector.export_metrics(metrics_file)
             self.logger.info(f"Metrics exported to {metrics_file}")
             

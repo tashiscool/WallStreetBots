@@ -67,7 +67,7 @@ class DockerManager:
         self.logger = logger
         self.logger.info("DockerManager initialized")
     
-    def build_image(self, dockerfile_path: str, image_name: str, tag: str = "latest")->bool:
+    def build_image(self, dockerfile_path: str, image_name: str, tag: str="latest")->bool:
         """Build Docker image"""
         try: 
             cmd = [
@@ -78,7 +78,7 @@ class DockerManager:
             ]
             
             self.logger.info(f"Building Docker image: {image_name}: {tag}")
-            result = subprocess.run(cmd, capture_output = True, text = True, check = True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             self.logger.info(f"Docker image built successfully: {image_name}: {tag}")
             return True
@@ -90,7 +90,7 @@ class DockerManager:
             self.logger.error(f"Error building Docker image: {e}")
             return False
     
-    def push_image(self, image_name: str, tag: str = "latest", registry: str = None)->bool:
+    def push_image(self, image_name: str, tag: str="latest", registry: str=None)->bool:
         """Push Docker image to registry"""
         try: 
             full_image_name = f"{registry}/{image_name}: {tag}" if registry else f"{image_name}: {tag}"
@@ -98,7 +98,7 @@ class DockerManager:
             cmd = ["docker", "push", full_image_name]
             
             self.logger.info(f"Pushing Docker image: {full_image_name}")
-            result = subprocess.run(cmd, capture_output = True, text = True, check = True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             self.logger.info(f"Docker image pushed successfully: {full_image_name}")
             return True
@@ -136,7 +136,7 @@ class DockerManager:
             cmd.append(image_name)
             
             self.logger.info(f"Running Docker container: {container_name}")
-            result = subprocess.run(cmd, capture_output = True, text = True, check = True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             self.logger.info(f"Docker container started: {container_name}")
             return True
@@ -154,7 +154,7 @@ class DockerManager:
             cmd = ["docker", "stop", container_name]
             
             self.logger.info(f"Stopping Docker container: {container_name}")
-            result = subprocess.run(cmd, capture_output = True, text = True, check = True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             self.logger.info(f"Docker container stopped: {container_name}")
             return True
@@ -172,7 +172,7 @@ class DockerManager:
             cmd = ["docker", "rm", container_name]
             
             self.logger.info(f"Removing Docker container: {container_name}")
-            result = subprocess.run(cmd, capture_output = True, text = True, check = True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             self.logger.info(f"Docker container removed: {container_name}")
             return True
@@ -184,12 +184,12 @@ class DockerManager:
             self.logger.error(f"Error removing Docker container: {e}")
             return False
     
-    def get_container_logs(self, container_name: str, lines: int = 100)->List[str]:
+    def get_container_logs(self, container_name: str, lines: int=100)->List[str]:
         """Get container logs"""
         try: 
             cmd = ["docker", "logs", "--tail", str(lines), container_name]
             
-            result = subprocess.run(cmd, capture_output = True, text = True, check = True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             logs = result.stdout.split('\n')
             
             return logs
@@ -224,7 +224,7 @@ class KubernetesManager:
             cmd = ["kubectl", "apply", "-f", temp_file]
             
             self.logger.info(f"Creating Kubernetes deployment: {deployment_config.version}")
-            result = subprocess.run(cmd, capture_output = True, text = True, check = True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             # Clean up temp file
             os.remove(temp_file)
@@ -246,7 +246,7 @@ class KubernetesManager:
                    f"{deployment_name} = {image}"]
             
             self.logger.info(f"Updating Kubernetes deployment: {deployment_name}")
-            result = subprocess.run(cmd, capture_output = True, text = True, check = True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             self.logger.info(f"Kubernetes deployment updated: {deployment_name}")
             return True
@@ -263,7 +263,7 @@ class KubernetesManager:
         try: 
             cmd = ["kubectl", "get", "deployment", deployment_name, "-o", "json"]
             
-            result = subprocess.run(cmd, capture_output = True, text = True, check = True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             status = json.loads(result.stdout)
             
             return status
@@ -336,7 +336,7 @@ class CICDManager:
             
             # Run pytest
             cmd = ["python", "-m", "pytest", "-v", "--tb = short"]
-            result = subprocess.run(cmd, capture_output = True, text = True)
+            result = subprocess.run(cmd, capture_output=True, text=True)
             
             if result.returncode ==  0: 
                 self.logger.info("All tests passed")
@@ -356,7 +356,7 @@ class CICDManager:
             
             # Run flake8
             cmd = ["flake8", "backend / tradingbot/", "--max - line-length = 100"]
-            result = subprocess.run(cmd, capture_output = True, text = True)
+            result = subprocess.run(cmd, capture_output=True, text=True)
             
             if result.returncode ==  0: 
                 self.logger.info("Linting passed")
@@ -376,7 +376,7 @@ class CICDManager:
             
             # Run bandit security linter
             cmd = ["bandit", "-r", "backend / tradingbot/", "-f", "json"]
-            result = subprocess.run(cmd, capture_output = True, text = True)
+            result = subprocess.run(cmd, capture_output=True, text=True)
             
             if result.returncode ==  0: 
                 self.logger.info("Security scan passed")
@@ -399,10 +399,10 @@ class CICDManager:
             build_dir.mkdir(exist_ok=True)
             
             # Copy source code
-            subprocess.run(["cp", "-r", "backend/", str(build_dir)], check = True)
-            subprocess.run(["cp", "requirements.txt", str(build_dir)], check = True)
-            subprocess.run(["cp", "pyproject.toml", str(build_dir)], check = True)
-            subprocess.run(["cp", "Dockerfile", str(build_dir)], check = True)
+            subprocess.run(["cp", "-r", "backend/", str(build_dir)], check=True)
+            subprocess.run(["cp", "requirements.txt", str(build_dir)], check=True)
+            subprocess.run(["cp", "pyproject.toml", str(build_dir)], check=True)
+            subprocess.run(["cp", "Dockerfile", str(build_dir)], check=True)
             
             self.logger.info("Deployment artifacts built successfully")
             return True
@@ -420,9 +420,9 @@ class DeploymentManager:
         self.logger = logger
         
         # Initialize managers
-        self.docker_manager = DockerManager(logger)
-        self.kubernetes_manager = KubernetesManager(logger)
-        self.cicd_manager = CICDManager(logger)
+        self.docker_manager=DockerManager(logger)
+        self.kubernetes_manager=KubernetesManager(logger)
+        self.cicd_manager=CICDManager(logger)
         
         self.logger.info("DeploymentManager initialized")
     
@@ -432,7 +432,7 @@ class DeploymentManager:
             deployment_id = f"deploy_{deployment_config.version}_{int(datetime.now().timestamp())}"
             
             result = DeploymentResult(
-                deployment_id = deployment_id,
+                deployment_id=deployment_id,
                 status = DeploymentStatus.IN_PROGRESS,
                 start_time = datetime.now()
             )
@@ -441,9 +441,9 @@ class DeploymentManager:
             
             # Step 1: Run CI / CD pipeline
             if not self._run_cicd_pipeline(): 
-                result.status = DeploymentStatus.FAILED
-                result.error_message = "CI / CD pipeline failed"
-                result.end_time = datetime.now()
+                result.status=DeploymentStatus.FAILED
+                result.error_message="CI / CD pipeline failed"
+                result.end_time=datetime.now()
                 return result
             
             # Step 2: Build Docker image
@@ -452,9 +452,9 @@ class DeploymentManager:
                 deployment_config.docker_image, 
                 deployment_config.version
             ): 
-                result.status = DeploymentStatus.FAILED
-                result.error_message = "Docker image build failed"
-                result.end_time = datetime.now()
+                result.status=DeploymentStatus.FAILED
+                result.error_message="Docker image build failed"
+                result.end_time=datetime.now()
                 return result
             
             # Step 3: Push image to registry
@@ -462,36 +462,36 @@ class DeploymentManager:
                 deployment_config.docker_image, 
                 deployment_config.version
             ): 
-                result.status = DeploymentStatus.FAILED
-                result.error_message = "Docker image push failed"
-                result.end_time = datetime.now()
+                result.status=DeploymentStatus.FAILED
+                result.error_message="Docker image push failed"
+                result.end_time=datetime.now()
                 return result
             
             # Step 4: Deploy to Kubernetes
             if not self.kubernetes_manager.create_deployment(deployment_config): 
-                result.status = DeploymentStatus.FAILED
-                result.error_message = "Kubernetes deployment failed"
-                result.end_time = datetime.now()
+                result.status=DeploymentStatus.FAILED
+                result.error_message="Kubernetes deployment failed"
+                result.end_time=datetime.now()
                 return result
             
             # Step 5: Health check
             if not self._health_check(deployment_config): 
-                result.status = DeploymentStatus.FAILED
-                result.error_message = "Health check failed"
-                result.end_time = datetime.now()
+                result.status=DeploymentStatus.FAILED
+                result.error_message="Health check failed"
+                result.end_time=datetime.now()
                 return result
             
-            result.status = DeploymentStatus.SUCCESS
-            result.end_time = datetime.now()
+            result.status=DeploymentStatus.SUCCESS
+            result.end_time=datetime.now()
             
             self.logger.info(f"Deployment completed successfully: {deployment_id}")
             return result
             
         except Exception as e: 
             self.logger.error(f"Error during deployment: {e}")
-            result.status = DeploymentStatus.FAILED
-            result.error_message = str(e)
-            result.end_time = datetime.now()
+            result.status=DeploymentStatus.FAILED
+            result.error_message=str(e)
+            result.end_time=datetime.now()
             return result
     
     def _run_cicd_pipeline(self)->bool: 
@@ -581,12 +581,12 @@ class Phase4Deployment:
         self.config = config
         self.logger = logger
         
-        self.deployment_manager = DeploymentManager(config, logger)
+        self.deployment_manager=DeploymentManager(config, logger)
         
         self.logger.info("Phase4Deployment initialized")
     
     async def deploy_to_environment(self, environment: DeploymentEnvironment, 
-                                  version: str = None)->DeploymentResult:
+                                  version: str=None)->DeploymentResult:
         """Deploy to specific environment"""
         try: 
             if not version: 
@@ -594,8 +594,8 @@ class Phase4Deployment:
             
             # Create deployment configuration
             deployment_config = DeploymentConfig(
-                environment = environment,
-                version = version,
+                environment=environment,
+                version=version,
                 docker_image = "wallstreetbots",
                 replicas = 3 if environment  ==  DeploymentEnvironment.PRODUCTION else 1,
                 cpu_limit = "1000m",
@@ -625,7 +625,7 @@ class Phase4Deployment:
                 error_message = str(e)
             )
     
-    async def deploy_all_environments(self, version: str = None)->Dict[str, DeploymentResult]: 
+    async def deploy_all_environments(self, version: str=None)->Dict[str, DeploymentResult]: 
         """Deploy to all environments"""
         try: 
             results = {}

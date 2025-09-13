@@ -76,7 +76,7 @@ class SecularAnalysis:
     fundamental_score: float
     technical_score: float
     overall_score: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -99,7 +99,7 @@ class LEAPSOption:
     vega: float
     intrinsic_value: float
     time_value: float
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -116,9 +116,9 @@ class LEAPSCandidate:
     risk_reward_ratio: float
     position_size: int
     recommended_option: Optional[LEAPSOption] = None
-    leaps_score: float = 0.0
-    risk_score: float = 0.0
-    last_update: datetime = field(default_factory=datetime.now)
+    leaps_score: float=0.0
+    risk_score: float=0.0
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
@@ -139,8 +139,8 @@ class LEAPSPosition:
     days_to_expiry: int
     max_profit: float
     max_loss: float
-    last_update: datetime = field(default_factory=datetime.now)
-    status: str = "active"
+    last_update: datetime=field(default_factory=datetime.now)
+    status: str="active"
 
 
 class SecularAnalyzer: 
@@ -296,9 +296,9 @@ class LEAPSOptionsProvider:
     
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
-        self.options_cache = {}
+        self.options_cache={}
     
-    async def get_leaps_options(self, ticker: str, months_to_expiry: int = 12)->List[LEAPSOption]:
+    async def get_leaps_options(self, ticker: str, months_to_expiry: int=12)->List[LEAPSOption]:
         """Get LEAPS options for ticker"""
         try: 
             # Mock implementation - in production, integrate with real options API
@@ -311,9 +311,9 @@ class LEAPSOptionsProvider:
             for strike in strikes: 
                 # Call option
                 call_option = LEAPSOption(
-                    ticker = ticker,
+                    ticker=ticker,
                     option_type = LEAPSStrategy.LONG_CALL,
-                    strike_price = strike,
+                    strike_price=strike,
                     expiry_date = datetime.now() + timedelta(days=months_to_expiry * 30),
                     days_to_expiry = months_to_expiry * 30,
                     bid_price = max(0.01, strike * 0.05),
@@ -326,16 +326,16 @@ class LEAPSOptionsProvider:
                     gamma = 0.01,
                     theta = -0.01,  # Lower theta decay for LEAPS
                     vega = 0.2,
-                    intrinsic_value = max(0, current_price - strike),
+                    intrinsic_value = max(0, current_price-strike),
                     time_value = max(0.01, strike * 0.05)
                 )
                 options.append(call_option)
                 
                 # Put option
                 put_option = LEAPSOption(
-                    ticker = ticker,
+                    ticker=ticker,
                     option_type = LEAPSStrategy.LONG_PUT,
-                    strike_price = strike,
+                    strike_price=strike,
                     expiry_date = datetime.now() + timedelta(days=months_to_expiry * 30),
                     days_to_expiry = months_to_expiry * 30,
                     bid_price = max(0.01, strike * 0.05),
@@ -348,7 +348,7 @@ class LEAPSOptionsProvider:
                     gamma = 0.01,
                     theta = -0.01,  # Lower theta decay for LEAPS
                     vega = 0.2,
-                    intrinsic_value = max(0, strike - current_price),
+                    intrinsic_value = max(0, strike-current_price),
                     time_value = max(0.01, strike * 0.05)
                 )
                 options.append(put_option)
@@ -375,7 +375,7 @@ class LEAPSOptionsProvider:
                 call_options = [opt for opt in options if opt.option_type  ==  LEAPSStrategy.LONG_CALL]
                 if call_options: 
                     # Find option with strike closest to current price
-                    best_option = min(call_options, key = lambda x: abs(x.strike_price - current_price))
+                    best_option = min(call_options, key=lambda x: abs(x.strike_price-current_price))
                     return best_option
             
             elif signal in [LEAPSSignal.STRONG_SELL, LEAPSSignal.SELL]: 
@@ -383,11 +383,11 @@ class LEAPSOptionsProvider:
                 put_options = [opt for opt in options if opt.option_type  ==  LEAPSStrategy.LONG_PUT]
                 if put_options: 
                     # Find option with strike closest to current price
-                    best_option = min(put_options, key = lambda x: abs(x.strike_price - current_price))
+                    best_option = min(put_options, key=lambda x: abs(x.strike_price-current_price))
                     return best_option
             
             # Default: find option closest to current price
-            best_option = min(options, key = lambda x: abs(x.strike_price - current_price))
+            best_option = min(options, key=lambda x: abs(x.strike_price-current_price))
             return best_option
             
         except Exception as e: 
@@ -407,18 +407,18 @@ class LEAPSTrackerStrategy:
         self.data = data_provider
         self.config = config
         self.logger = logger
-        self.secular_analyzer = SecularAnalyzer(logger)
-        self.options_provider = LEAPSOptionsProvider(logger)
-        self.active_positions = {}
-        self.leaps_candidates = {}
+        self.secular_analyzer=SecularAnalyzer(logger)
+        self.options_provider=LEAPSOptionsProvider(logger)
+        self.active_positions={}
+        self.leaps_candidates={}
         
         # Strategy parameters
         self.max_positions = 8
-        self.max_position_size = 0.08  # 8% of portfolio per position
-        self.min_leaps_score = 0.7
+        self.max_position_size=0.08  # 8% of portfolio per position
+        self.min_leaps_score=0.7
         self.max_hold_months = 24  # 2 years max hold
-        self.stop_loss_pct = 0.25  # 25% stop loss for LEAPS
-        self.take_profit_pct = 1.0  # 100% take profit for LEAPS
+        self.stop_loss_pct=0.25  # 25% stop loss for LEAPS
+        self.take_profit_pct=1.0  # 100% take profit for LEAPS
         
         self.logger.info("LEAPSTrackerStrategy initialized")
     
@@ -434,7 +434,7 @@ class LEAPSTrackerStrategy:
             for ticker in universe: 
                 try: 
                     # Get historical data
-                    historical_data = await self.data.get_historical_data(ticker, days = 200)
+                    historical_data = await self.data.get_historical_data(ticker, days=200)
                     if not historical_data or len(historical_data)  <  50: 
                         continue
                     
@@ -467,7 +467,7 @@ class LEAPSTrackerStrategy:
                     continue
             
             # Sort by overall score
-            candidates.sort(key=lambda x: x.secular_analysis.overall_score, reverse = True)
+            candidates.sort(key=lambda x: x.secular_analysis.overall_score, reverse=True)
             
             self.logger.info(f"Found {len(candidates)} LEAPS opportunities")
             return candidates
@@ -524,9 +524,8 @@ class LEAPSTrackerStrategy:
                 entry_date = datetime.now(),
                 expiry_date = best_option.expiry_date,
                 days_to_expiry = best_option.days_to_expiry,
-                max_profit = max_profit,
-                max_loss = max_loss
-            )
+                max_profit=max_profit,
+                max_loss = max_loss)
             
             self.active_positions[candidate.ticker] = position
             self.logger.info(f"Created LEAPS position for {candidate.ticker}")
@@ -623,9 +622,9 @@ class LEAPSTrackerStrategy:
             
             # Mock technical data
             technical_data = {
-                "price_momentum": (current_price - prices[-20]) / prices[-20],  # 20 - day momentum
+                "price_momentum": (current_price-prices[-20]) / prices[-20],  # 20 - day momentum
                 "volume_trend": volumes[-1] / (sum(volumes[-20:]) / 20),  # Volume trend
-                "ma_trend": (current_price - sum(prices[-50:]) / 50) / (sum(prices[-50:]) / 50),  # MA trend
+                "ma_trend": (current_price-sum(prices[-50:]) / 50) / (sum(prices[-50:]) / 50),  # MA trend
                 "rsi": 55.0,  # Mock RSI
                 "macd_signal": 0.02  # Mock MACD signal
             }
@@ -642,9 +641,9 @@ class LEAPSTrackerStrategy:
             overall_score = (secular_score * 0.4 + fundamental_score * 0.4 + technical_score * 0.2)
             
             analysis = SecularAnalysis(
-                ticker = ticker,
-                sector = sector,
-                secular_trend = secular_trend,
+                ticker=ticker,
+                sector=sector,
+                secular_trend=secular_trend,
                 market_cap = 1000000000000,  # Mock market cap
                 revenue_growth = financial_data["revenue_growth"],
                 earnings_growth = financial_data["earnings_growth"],
@@ -661,11 +660,10 @@ class LEAPSTrackerStrategy:
                 beta = financial_data["beta"],
                 analyst_rating = financial_data["analyst_rating"],
                 price_target = financial_data["price_target"],
-                secular_score = secular_score,
-                fundamental_score = fundamental_score,
-                technical_score = technical_score,
-                overall_score = overall_score
-            )
+                secular_score=secular_score,
+                fundamental_score=fundamental_score,
+                technical_score=technical_score,
+                overall_score = overall_score)
             
             return analysis
             
@@ -714,8 +712,8 @@ class LEAPSTrackerStrategy:
                 stop_loss = entry_price * (1 + self.stop_loss_pct)
             
             # Calculate risk / reward ratio
-            risk = abs(entry_price - stop_loss)
-            reward = abs(target_price - entry_price)
+            risk = abs(entry_price-stop_loss)
+            reward = abs(target_price-entry_price)
             risk_reward_ratio = reward / risk if risk  >  0 else 0
             
             # Calculate position size
@@ -728,19 +726,18 @@ class LEAPSTrackerStrategy:
             risk_score = self._calculate_risk_score(secular_analysis)
             
             candidate = LEAPSCandidate(
-                ticker = ticker,
-                secular_analysis = secular_analysis,
-                signal = signal,
-                strategy = strategy,
-                confidence = leaps_score,
-                entry_price = entry_price,
-                target_price = target_price,
-                stop_loss = stop_loss,
-                risk_reward_ratio = risk_reward_ratio,
-                position_size = position_size,
-                leaps_score = leaps_score,
-                risk_score = risk_score
-            )
+                ticker=ticker,
+                secular_analysis=secular_analysis,
+                signal=signal,
+                strategy=strategy,
+                confidence=leaps_score,
+                entry_price=entry_price,
+                target_price=target_price,
+                stop_loss=stop_loss,
+                risk_reward_ratio=risk_reward_ratio,
+                position_size=position_size,
+                leaps_score=leaps_score,
+                risk_score = risk_score)
             
             return candidate
             
@@ -751,7 +748,7 @@ class LEAPSTrackerStrategy:
     def _calculate_position_size(self, entry_price: float, stop_loss: float)->int:
         """Calculate position size based on risk"""
         # Simplified position sizing - in production, use proper risk management
-        risk_per_share = abs(entry_price - stop_loss)
+        risk_per_share = abs(entry_price-stop_loss)
         max_risk_amount = 1000.0  # $1000 max risk per LEAPS position
         position_size = int(max_risk_amount / risk_per_share) if risk_per_share  >  0 else 100
         return min(position_size, 1000)  # Cap at 1000 shares
@@ -788,14 +785,14 @@ class LEAPSTrackerStrategy:
             # Get current market data
             market_data = await self.data.get_market_data(position.ticker)
             if market_data: 
-                position.current_price = market_data.price
-                position.last_update = datetime.now()
+                position.current_price=market_data.price
+                position.last_update=datetime.now()
                 
                 # Update days to expiry
-                position.days_to_expiry = (position.expiry_date - datetime.now()).days
+                position.days_to_expiry=(position.expiry_date-datetime.now()).days
                 
                 # Recalculate P & L
-                position.unrealized_pnl = self._calculate_position_pnl(position)
+                position.unrealized_pnl=self._calculate_position_pnl(position)
             
         except Exception as e: 
             self.logger.error(f"Error updating position data for {position.ticker}: {e}")
@@ -803,7 +800,7 @@ class LEAPSTrackerStrategy:
     def _calculate_position_pnl(self, position: LEAPSPosition)->float:
         """Calculate position P & L"""
         # Simplified P & L calculation for LEAPS
-        price_change = position.current_price - position.entry_price
+        price_change = position.current_price-position.entry_price
         return price_change * position.quantity * 100  # Options are per 100 shares
     
     def _check_exit_conditions(self, position: LEAPSPosition)->Optional[str]:

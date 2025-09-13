@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Comprehensive Test Suite for Alert System
 Tests alert generation, delivery, and execution checklists
@@ -182,7 +182,7 @@ class TestTradingAlertSystem(unittest.TestCase):
     """Test main trading alert system"""
     
     def setUp(self): 
-        self.alert_system = TradingAlertSystem()
+        self.alert_system=TradingAlertSystem()
     
     def test_handler_registration(self): 
         """Test alert handler registration"""
@@ -219,7 +219,7 @@ class TestTradingAlertSystem(unittest.TestCase):
     @pytest.mark.asyncio
     async def test_alert_filtering_by_priority(self): 
         """Test alert filtering by priority levels"""
-        self.alert_system.min_priority = AlertPriority.HIGH
+        self.alert_system.min_priority=AlertPriority.HIGH
 
         # Register mock handler
         mock_handler = Mock()
@@ -293,7 +293,7 @@ class TestExecutionChecklistManager(unittest.TestCase):
     """Test execution checklist management"""
     
     def setUp(self): 
-        self.checklist_manager = ExecutionChecklistManager()
+        self.checklist_manager=ExecutionChecklistManager()
     
     def test_entry_checklist_creation(self): 
         """Test creation of entry checklist"""
@@ -301,11 +301,11 @@ class TestExecutionChecklistManager(unittest.TestCase):
         
         # Mock trade calculation
         trade_calc = Mock(spec=TradeCalculation)
-        trade_calc.ticker = "AAPL"
+        trade_calc.ticker="AAPL"
         trade_calc.recommended_contracts = 10
         trade_calc.total_cost = 5000
-        trade_calc.account_risk_pct = 2.5
-        trade_calc.estimated_premium = 5.50
+        trade_calc.account_risk_pct=2.5
+        trade_calc.estimated_premium=5.50
         
         checklist_id = self.checklist_manager.create_entry_checklist("AAPL", trade_calc)
         
@@ -350,11 +350,11 @@ class TestExecutionChecklistManager(unittest.TestCase):
         """Test checklist retrieval methods"""
         # Create test checklists
         trade_calc = Mock()
-        trade_calc.ticker = "AAPL"
+        trade_calc.ticker="AAPL"
         trade_calc.recommended_contracts = 5
         trade_calc.total_cost = 2500
-        trade_calc.account_risk_pct = 1.5
-        trade_calc.estimated_premium = 3.25
+        trade_calc.account_risk_pct=1.5
+        trade_calc.estimated_premium=3.25
         
         entry_id = self.checklist_manager.create_entry_checklist("AAPL", trade_calc)
         monitoring_id = self.checklist_manager.create_monitoring_checklist("trade_123", "AAPL")
@@ -387,7 +387,7 @@ class TestAlertUtilities(unittest.TestCase):
     @patch('requests.post')
     def test_send_slack_failure(self, mock_post): 
         """Test Slack message sending failure"""
-        mock_post.side_effect = Exception("Network error")
+        mock_post.side_effect=Exception("Network error")
         
         with patch.dict(os.environ, {'ALERT_SLACK_WEBHOOK': 'https://hooks.slack.com / test'}): 
             result = send_slack("Test message")
@@ -395,7 +395,7 @@ class TestAlertUtilities(unittest.TestCase):
     
     def test_send_slack_no_webhook(self): 
         """Test Slack sending with no webhook configured"""
-        with patch.dict(os.environ, {}, clear = True): 
+        with patch.dict(os.environ, {}, clear=True): 
             result = send_slack("Test message")
             self.assertFalse(result)
     
@@ -423,7 +423,7 @@ class TestAlertUtilities(unittest.TestCase):
     
     def test_send_email_missing_config(self): 
         """Test email sending with missing configuration"""
-        with patch.dict(os.environ, {}, clear = True): 
+        with patch.dict(os.environ, {}, clear=True): 
             result = send_email("Test Subject", "Test body")
             self.assertFalse(result)
 
@@ -432,8 +432,8 @@ class TestAlertIntegration(unittest.TestCase):
     """Test alert system integration scenarios"""
     
     def setUp(self): 
-        self.alert_system = TradingAlertSystem()
-        self.checklist_manager = ExecutionChecklistManager()
+        self.alert_system=TradingAlertSystem()
+        self.checklist_manager=ExecutionChecklistManager()
     
     @pytest.mark.asyncio
     async def test_complete_trading_workflow(self): 
@@ -458,11 +458,11 @@ class TestAlertIntegration(unittest.TestCase):
         
         # 2. Create entry checklist
         trade_calc = Mock()
-        trade_calc.ticker = "AAPL"
+        trade_calc.ticker="AAPL"
         trade_calc.recommended_contracts = 5
         trade_calc.total_cost = 2500
-        trade_calc.account_risk_pct = 2.0
-        trade_calc.estimated_premium = 4.25
+        trade_calc.account_risk_pct=2.0
+        trade_calc.estimated_premium=4.25
         
         checklist_id = self.checklist_manager.create_entry_checklist("AAPL", trade_calc)
         

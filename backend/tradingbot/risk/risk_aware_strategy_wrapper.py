@@ -42,7 +42,7 @@ class RiskAwareStrategy(ABC):
         self.strategy = strategy_instance
         self.risk_manager = risk_manager
         self.strategy_name = strategy_name
-        self.logger = logging.getLogger(f"{__name__}.{strategy_name}")
+        self.logger=logging.getLogger(f"{__name__}.{strategy_name}")
         
         # Risk state
         self.risk_enabled = True
@@ -56,8 +56,8 @@ class RiskAwareStrategy(ABC):
                           symbol: str,
                           action: str,  # 'buy', 'sell', 'hold'
                           quantity: float,
-                          price: float = None,
-                          order_type: str = 'market',
+                          price: float=None,
+                          order_type: str='market',
                           **kwargs)->Dict[str, Any]: 
         """
         Execute a trade with risk management

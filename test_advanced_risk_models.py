@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr / bin / env python3
 """
 Test Advanced Risk Models - 2025 Implementation
 Comprehensive testing of sophisticated risk management capabilities
@@ -60,7 +60,7 @@ def test_var_engine():
     print(" = " * 50)
     
     # Generate sample data
-    market_data, returns = generate_sample_data()
+    market_data, returns=generate_sample_data()
     
     # Initialize VaR engine
     var_engine = AdvancedVaREngine(portfolio_value=100000.0)
@@ -68,7 +68,7 @@ def test_var_engine():
     # Test VaR suite calculation
     print("Calculating VaR Suite...")
     var_suite = var_engine.calculate_var_suite(
-        returns = returns,
+        returns=returns,
         confidence_levels = [0.95, 0.99],
         methods = ['parametric', 'historical', 'monte_carlo']
     )
@@ -95,7 +95,7 @@ def test_var_engine():
 
 def test_stress_testing(): 
     """Test Stress Testing Engine"""
-    print("\n\n🚨 Testing Stress Testing Engine")
+    print("\n + n🚨 Testing Stress Testing Engine")
     print(" = " * 50)
     
     # Create sample portfolio
@@ -138,18 +138,18 @@ def test_stress_testing():
 
 def test_ml_risk_predictor(): 
     """Test ML Risk Predictor"""
-    print("\n\n🤖 Testing ML Risk Predictor")
+    print("\n + n🤖 Testing ML Risk Predictor")
     print(" = " * 50)
     
     # Generate sample data
-    market_data, returns = generate_sample_data()
+    market_data, returns=generate_sample_data()
     
     # Initialize ML predictor
     ml_predictor = MLRiskPredictor()
     
     # Test volatility prediction
     print("Testing volatility prediction...")
-    vol_forecast = ml_predictor.predict_volatility_regime(market_data, horizon_days = 5)
+    vol_forecast = ml_predictor.predict_volatility_regime(market_data, horizon_days=5)
     
     print(f"Predicted Volatility: {vol_forecast.predicted_volatility:.2%}")
     print(f"Confidence Interval: {vol_forecast.confidence_interval[0]:.2%} - {vol_forecast.confidence_interval[1]: .2%}")
@@ -173,7 +173,7 @@ def test_ml_risk_predictor():
 
 def test_risk_dashboard(): 
     """Test Risk Dashboard"""
-    print("\n\n📊 Testing Risk Dashboard")
+    print("\n + n📊 Testing Risk Dashboard")
     print(" = " * 50)
     
     # Create comprehensive sample portfolio
@@ -253,19 +253,19 @@ def run_comprehensive_test():
     
     try: 
         # Test VaR Engine
-        var_engine, var_suite = test_var_engine()
+        var_engine, var_suite=test_var_engine()
         
         # Test Stress Testing
-        stress_tester, stress_report = test_stress_testing()
+        stress_tester, stress_report=test_stress_testing()
         
         # Test ML Risk Predictor
-        ml_predictor, risk_prediction = test_ml_risk_predictor()
+        ml_predictor, risk_prediction=test_ml_risk_predictor()
         
         # Test Risk Dashboard
-        dashboard, dashboard_data = test_risk_dashboard()
+        dashboard, dashboard_data=test_risk_dashboard()
         
         # Summary
-        print("\n\n🎉 Test Summary")
+        print("\n + n🎉 Test Summary")
         print(" = " * 50)
         print("✅ Advanced VaR Engine: PASSED")
         print("✅ Stress Testing Engine: PASSED")

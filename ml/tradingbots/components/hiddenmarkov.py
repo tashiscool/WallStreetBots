@@ -9,13 +9,13 @@ from datetime import timedelta
 
 class APImanager():  # API manager for Alpaca
     def __init__(self, API_KEY, SECRET_KEY): 
-        self.BASE_URL = "https: //paper - api.alpaca.markets"
-        self.ACCOUNT_URL = "{}/v2 / account".format(self.BASE_URL)
+        self.BASE_URL="https: //paper - api.alpaca.markets"
+        self.ACCOUNT_URL="{}/v2 / account".format(self.BASE_URL)
         self.API_KEY = API_KEY
         self.SECRET_KEY = SECRET_KEY
-        self.api = tradeapi.REST(API_KEY, SECRET_KEY, self.BASE_URL, api_version = 'v2')
+        self.api=tradeapi.REST(API_KEY, SECRET_KEY, self.BASE_URL, api_version='v2')
 
-    def get_bar(self, symbol, timestep, start, end, price_type = "close", adjustment = 'all'): 
+    def get_bar(self, symbol, timestep, start, end, price_type="close", adjustment='all'): 
         """
         Get a list of prices from latest to oldest with a timestep
 
@@ -31,7 +31,7 @@ class APImanager():  # API manager for Alpaca
           - a list of time associated with each price
         """
         try: 
-            bars = self.api.get_bars(symbol, timestep, start, end, adjustment = adjustment).df
+            bars = self.api.get_bars(symbol, timestep, start, end, adjustment=adjustment).df
             if bars.empty: 
                 return [], []
             # print(bars)
@@ -86,7 +86,7 @@ class DataManager():
     def __init__(self, ALPACA_ID, ALPACA_KEY, tname, start_date, end_date): 
         self.ALPACA_ID = ALPACA_ID
         self.ALPACA_KEY = ALPACA_KEY
-        self.api = APImanager(ALPACA_ID, ALPACA_KEY)
+        self.api=APImanager(ALPACA_ID, ALPACA_KEY)
         self.ticker = tname
         self.start_date = start_date
         self.end_date = end_date
@@ -161,7 +161,7 @@ class DataManager():
 
     def normalize(self): 
         normalized_seq = []
-        self.first_day = []
+        self.first_day=[]
         start = 0
         for i in range(len(list(self.close['date'].value_counts().sort_index()))): 
             end = start + list(self.close['date'].value_counts().sort_index())[i]
@@ -201,13 +201,13 @@ class HMM():
         self.num_pred_acc = None
 
     def train(self, datamanager): 
-        model = hmm.GaussianHMM(self.num_hidden_states, covariance_type = self.covar_type, n_iter = self.n_iter)  # or = "full"
+        model = hmm.GaussianHMM(self.num_hidden_states, covariance_type=self.covar_type, n_iter=self.n_iter)  # or="full"
         temp_list = list(self.data.close['date'].value_counts().sort_index())
-        model.fit(np.array(self.data.normalized_close['close'].to_numpy()).reshape(-1, 1), lengths = temp_list)
+        model.fit(np.array(self.data.normalized_close['close'].to_numpy()).reshape(-1, 1), lengths=temp_list)
         self.model = model
-        self.transit = model.transmat_
-        self.mean = model.means_
-        self.var = model.covars_
+        self.transit=model.transmat_
+        self.mean=model.means_
+        self.var=model.covars_
 
     def evaluation(self, datamanager): 
         hidden_states = self.model.predict(np.array(self.data.normalized_close['close'].to_numpy()).reshape(-1, 1))
@@ -235,5 +235,5 @@ class HMM():
                 c += 1
             if true_trend: 
                 u += 1
-        self.num_uptrend = u / (len(self.pred)-1)
-        self.num_pred_acc = c / (len(self.pred)-1)
+        self.num_uptrend=u / (len(self.pred) - 1)
+        self.num_pred_acc=c / (len(self.pred) - 1)

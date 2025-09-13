@@ -1,6 +1,6 @@
 """
 Production SPX Credit Spreads Implementation
-Index options with real-time CME data integration
+Index options with real - time CME data integration
 """
 
 import asyncio
@@ -18,24 +18,24 @@ from .production_logging import ProductionLogger, ErrorHandler, MetricsCollector
 from .production_models import Strategy, Position, Trade, RiskLimit
 
 
-class SPXSpreadType(Enum):
+class SPXSpreadType(Enum): 
     """SPX spread types"""
     PUT_CREDIT_SPREAD="put_credit_spread"
-    CALL_CREDIT_SPREAD = "call_credit_spread"
-    IRON_CONDOR = "iron_condor"
-    IRON_BUTTERFLY = "iron_butterfly"
+    CALL_CREDIT_SPREAD="call_credit_spread"
+    IRON_CONDOR="iron_condor"
+    IRON_BUTTERFLY="iron_butterfly"
 
 
-class SPXSpreadStatus(Enum):
+class SPXSpreadStatus(Enum): 
     """SPX spread position status"""
     ACTIVE="active"
-    EXPIRED = "expired"
-    CLOSED = "closed"
-    ROLLED = "rolled"
+    EXPIRED="expired"
+    CLOSED="closed"
+    ROLLED="rolled"
 
 
 @dataclass
-class SPXSpreadPosition:
+class SPXSpreadPosition: 
     """SPX spread position tracking"""
     spread_type: SPXSpreadType
     status: SPXSpreadStatus
@@ -54,29 +54,29 @@ class SPXSpreadPosition:
     
     # Pricing
     current_value: float=0.0
-    unrealized_pnl: float = 0.0
-    profit_pct: float = 0.0
+    unrealized_pnl: float=0.0
+    profit_pct: float=0.0
     
     # Timing
-    entry_date: datetime = field(default_factory=datetime.now)
+    entry_date: datetime=field(default_factory=datetime.now)
     expiry_date: datetime=field(default_factory=lambda: datetime.now() + timedelta(days=1))  # 0DTE
     last_update: datetime=field(default_factory=datetime.now)
     
     # Greeks
     net_delta: float=0.0
-    net_gamma: float = 0.0
-    net_theta: float = 0.0
-    net_vega: float = 0.0
+    net_gamma: float=0.0
+    net_theta: float=0.0
+    net_vega: float=0.0
     
     def update_pricing(self, long_option_data: OptionsData, short_option_data: OptionsData):
         """Update spread pricing with current option data"""
         # Calculate current spread value
         long_value=long_option_data.ask
-        short_value = short_option_data.bid
+        short_value=short_option_data.bid
         
-        self.current_value = (short_value - long_value) * self.quantity * 100
+        self.current_value=(short_value - long_value) * self.quantity * 100
         
-        # Calculate P&L
+        # Calculate P & L
         self.unrealized_pnl=(self.net_credit * self.quantity * 100) - self.current_value
         self.profit_pct=self.unrealized_pnl / (self.net_credit * self.quantity * 100)
         
@@ -88,26 +88,26 @@ class SPXSpreadPosition:
         
         self.last_update=datetime.now()
     
-    def calculate_max_profit(self) -> float:
+    def calculate_max_profit(self) -> float: 
         """Calculate maximum profit potential"""
         return self.net_credit * self.quantity * 100
     
-    def calculate_max_loss(self) -> float:
+    def calculate_max_loss(self) -> float: 
         """Calculate maximum loss potential"""
-        if self.spread_type== SPXSpreadType.PUT_CREDIT_SPREAD:
+        if self.spread_type== SPXSpreadType.PUT_CREDIT_SPREAD: 
             return (self.long_strike - self.short_strike) * self.quantity * 100 - self.net_credit * self.quantity * 100
-        elif self.spread_type== SPXSpreadType.CALL_CREDIT_SPREAD:
+        elif self.spread_type== SPXSpreadType.CALL_CREDIT_SPREAD: 
             return (self.short_strike - self.long_strike) * self.quantity * 100 - self.net_credit * self.quantity * 100
         return 0.0
     
-    def calculate_days_to_expiry(self) -> int:
+    def calculate_days_to_expiry(self) -> int: 
         """Calculate days to expiry"""
         delta=self.expiry_date - datetime.now()
         return max(0, delta.days)
 
 
 @dataclass
-class SPXSpreadCandidate:
+class SPXSpreadCandidate: 
     """SPX spread candidate screening"""
     spread_type: SPXSpreadType
     
@@ -135,28 +135,28 @@ class SPXSpreadCandidate:
     
     # Scoring
     spread_score: float=0.0
-    risk_score: float = 0.0
+    risk_score: float=0.0
     
-    def calculate_spread_score(self) -> float:
+    def calculate_spread_score(self) -> float: 
         """Calculate SPX spread strategy score"""
         score=0.0
         
-        # Profit/Loss ratio (higher is better)
+        # Profit / Loss ratio (higher is better)
         score += min(self.profit_loss_ratio, 5.0) * 0.2
         
         # Net theta (positive is better for credit spreads)
         score += max(0, self.net_theta) * 0.3
         
         # VIX level (moderate VIX is better)
-        if 15 <= self.vix_level <= 25:
+        if 15 <= self.vix_level <= 25: 
             score += 0.2
-        elif self.vix_level > 30:
+        elif self.vix_level > 30: 
             score -= 0.1  # High VIX is risky
         
         # Market regime alignment
-        if self.spread_type== SPXSpreadType.PUT_CREDIT_SPREAD:
-            if self.market_regime == 'bull':score += 0.2
-            elif self.market_regime == 'bear':score -= 0.2
+        if self.spread_type== SPXSpreadType.PUT_CREDIT_SPREAD: 
+            if self.market_regime == 'bull': score += 0.2
+            elif self.market_regime == 'bear': score -= 0.2
         
         # Strike width (reasonable width)
         strike_width=abs(self.short_strike - self.long_strike)
@@ -164,35 +164,35 @@ class SPXSpreadCandidate:
             score += 0.1
         
         # Distance from current price
-        if self.spread_type== SPXSpreadType.PUT_CREDIT_SPREAD:
-            distance = (self.short_strike - self.spx_price) / self.spx_price
-            if 0.02 <= distance <= 0.05:  # 2-5% OTM
+        if self.spread_type== SPXSpreadType.PUT_CREDIT_SPREAD: 
+            distance=(self.short_strike - self.spx_price) / self.spx_price
+            if 0.02 <= distance <= 0.05:  # 2 - 5% OTM
                 score += 0.1
         
         self.spread_score=max(0.0, min(1.0, score))
         return self.spread_score
 
 
-class CMEDataProvider:
+class CMEDataProvider: 
     """CME data provider for SPX options"""
     
     def __init__(self, logger: ProductionLogger):
         self.logger=logger
-        self.base_url = "https://www.cmegroup.com/CmeWS/mvc/ProductSlate/V2/List"
+        self.base_url="https: //www.cmegroup.com / CmeWS/mvc / ProductSlate/V2 / List"
     
     async def get_spx_options(self, expiry_date: str=None) -> List[OptionsData]:
         """Get SPX options data from CME"""
-        try:
+        try: 
             # In production, would integrate with CME API
             # For now, return mock data
             
             spx_price=4500.0  # Mock SPX price
-            options = []
+            options=[]
             
             # Generate mock SPX options
-            strikes = range(4400, 4600, 25)  # 25-point strikes
+            strikes=range(4400, 4600, 25)  # 25 - point strikes
             
-            for strike in strikes:
+            for strike in strikes: 
                 # Put options
                 put_option=OptionsData(
                     ticker="SPX",
@@ -233,34 +233,34 @@ class CMEDataProvider:
             
             return options
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error getting SPX options: {e}")
             return []
     
-    async def get_vix_level(self) -> float:
+    async def get_vix_level(self) -> float: 
         """Get current VIX level"""
-        try:
+        try: 
             # In production, would get real VIX data
             # For now, return mock VIX
             return 20.0  # Mock VIX level
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error getting VIX: {e}")
             return 20.0
     
-    async def get_market_regime(self) -> str:
+    async def get_market_regime(self) -> str: 
         """Determine current market regime"""
-        try:
+        try: 
             # In production, would analyze market conditions
             # For now, return mock regime
             return "bull"  # Mock market regime
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error determining market regime: {e}")
             return "neutral"
 
 
-class ProductionSPXSpreads:
+class ProductionSPXSpreads: 
     """Production SPX Credit Spreads Implementation"""
     
     def __init__(self, 
@@ -269,42 +269,42 @@ class ProductionSPXSpreads:
                  config: ProductionConfig,
                  logger: ProductionLogger):
         self.trading=trading_interface
-        self.data = data_provider
-        self.config = config
-        self.logger = logger
-        self.error_handler = ErrorHandler(logger)
+        self.data=data_provider
+        self.config=config
+        self.logger=logger
+        self.error_handler=ErrorHandler(logger)
         self.metrics=MetricsCollector(logger)
         self.cme_data=CMEDataProvider(logger)
         
         # Strategy parameters
         self.max_positions=config.trading.max_concurrent_trades
-        self.max_position_size = config.risk.max_position_risk
-        self.profit_target = 0.50  # Close at 50% profit
-        self.stop_loss = 0.25  # Close at 25% loss
-        self.min_profit_loss_ratio = 3.0  # Minimum 3:1 ratio for SPX
+        self.max_position_size=config.risk.max_position_risk
+        self.profit_target=0.50  # Close at 50% profit
+        self.stop_loss=0.25  # Close at 25% loss
+        self.min_profit_loss_ratio=3.0  # Minimum 3: 1 ratio for SPX
         
         # Position tracking
-        self.positions: Dict[str, SPXSpreadPosition] = {}
-        self.candidates: List[SPXSpreadCandidate] = []
+        self.positions: Dict[str, SPXSpreadPosition]={}
+        self.candidates: List[SPXSpreadCandidate]=[]
         
         # Strategy state
-        self.last_scan_time: Optional[datetime] = None
+        self.last_scan_time: Optional[datetime]=None
         self.scan_interval=timedelta(minutes=5)  # More frequent for 0DTE
         
         self.logger.info("SPX Credit Spreads Strategy initialized",
                         max_positions=self.max_positions,
                         profit_target=self.profit_target)
     
-    async def scan_for_opportunities(self) -> List[SPXSpreadCandidate]:
+    async def scan_for_opportunities(self) -> List[SPXSpreadCandidate]: 
         """Scan for SPX spread opportunities"""
         self.logger.info("Scanning for SPX spread opportunities")
         
-        try:
+        try: 
             candidates=[]
             
             # Get SPX options data
-            spx_options = await self.cme_data.get_spx_options()
-            if not spx_options:
+            spx_options=await self.cme_data.get_spx_options()
+            if not spx_options: 
                 return []
             
             # Get market conditions
@@ -316,8 +316,8 @@ class ProductionSPXSpreads:
             spx_price=spx_data.price if spx_data.price > 0 else 4500.0
             
             # Look for put credit spreads
-            put_spreads = self._find_put_credit_spreads(spx_options, spx_price)
-            for spread in put_spreads:
+            put_spreads=self._find_put_credit_spreads(spx_options, spx_price)
+            for spread in put_spreads: 
                 candidate=SPXSpreadCandidate(
                     spread_type=SPXSpreadType.PUT_CREDIT_SPREAD,
                     long_strike=spread['long_strike'],
@@ -344,88 +344,88 @@ class ProductionSPXSpreads:
             # Sort by spread score
             candidates.sort(key=lambda x: x.spread_score, reverse=True)
             
-            self.candidates=candidates[:5]  # Top 5 candidates
+            self.candidates=candidates[: 5]  # Top 5 candidates
             
             self.logger.info(f"Found {len(self.candidates)} SPX spread candidates")
             self.metrics.record_metric("spx_spread_candidates_found", len(self.candidates))
             
             return self.candidates
             
-        except Exception as e:
-            self.error_handler.handle_error(e, {"operation":"scan_opportunities"})
+        except Exception as e: 
+            self.error_handler.handle_error(e, {"operation": "scan_opportunities"})
             return []
     
-    def _find_put_credit_spreads(self, options_data: List[OptionsData], spx_price: float) -> List[Dict[str, Any]]:
+    def _find_put_credit_spreads(self, options_data: List[OptionsData], spx_price: float) -> List[Dict[str, Any]]: 
         """Find put credit spread opportunities"""
         spreads=[]
         
         # Filter put options
-        put_options = [opt for opt in options_data if opt.option_type == 'put']
+        put_options=[opt for opt in options_data if opt.option_type == 'put']
         
         # Look for spreads with strikes below current price
-        for short_option in put_options:
+        for short_option in put_options: 
             if short_option.strike >= spx_price * 0.98:  # Short strike near ATM
                 continue
             
-            for long_option in put_options:
+            for long_option in put_options: 
                 if long_option.strike >= short_option.strike:  # Long strike must be lower
                     continue
                 
-                if short_option.strike - long_option.strike > 50:  # Max 50-point width
+                if short_option.strike - long_option.strike > 50:  # Max 50 - point width
                     continue
                 
                 # Calculate spread metrics
-                net_credit = short_option.bid - long_option.ask
+                net_credit=short_option.bid - long_option.ask
                 if net_credit <= 0:  # Must be a credit spread
                     continue
                 
-                max_profit = net_credit * 100
-                max_loss = (short_option.strike - long_option.strike) * 100 - net_credit * 100
+                max_profit=net_credit * 100
+                max_loss=(short_option.strike - long_option.strike) * 100 - net_credit * 100
                 profit_loss_ratio=max_profit / max_loss if max_loss > 0 else 0
                 
-                # Filter by minimum profit/loss ratio
-                if profit_loss_ratio < self.min_profit_loss_ratio:
+                # Filter by minimum profit / loss ratio
+                if profit_loss_ratio < self.min_profit_loss_ratio: 
                     continue
                 
                 # Calculate net Greeks
-                net_delta = short_option.delta - long_option.delta
-                net_theta = short_option.theta - long_option.theta
-                net_vega = short_option.vega - long_option.vega
+                net_delta=short_option.delta - long_option.delta
+                net_theta=short_option.theta - long_option.theta
+                net_vega=short_option.vega - long_option.vega
                 
                 spreads.append({
-                    'long_strike':long_option.strike,
-                    'short_strike':short_option.strike,
-                    'long_premium':long_option.ask,
-                    'short_premium':short_option.bid,
-                    'net_credit':net_credit,
-                    'max_profit':max_profit,
-                    'max_loss':max_loss,
-                    'profit_loss_ratio':profit_loss_ratio,
-                    'net_delta':net_delta,
-                    'net_theta':net_theta,
-                    'net_vega':net_vega,
-                    'long_option':long_option,
-                    'short_option':short_option
+                    'long_strike': long_option.strike,
+                    'short_strike': short_option.strike,
+                    'long_premium': long_option.ask,
+                    'short_premium': short_option.bid,
+                    'net_credit': net_credit,
+                    'max_profit': max_profit,
+                    'max_loss': max_loss,
+                    'profit_loss_ratio': profit_loss_ratio,
+                    'net_delta': net_delta,
+                    'net_theta': net_theta,
+                    'net_vega': net_vega,
+                    'long_option': long_option,
+                    'short_option': short_option
                 })
         
-        # Sort by profit/loss ratio
+        # Sort by profit / loss ratio
         spreads.sort(key=lambda x: x['profit_loss_ratio'], reverse=True)
         
-        return spreads[:3]  # Top 3 spreads
+        return spreads[: 3]  # Top 3 spreads
     
     async def execute_spx_spread(self, candidate: SPXSpreadCandidate) -> bool:
         """Execute SPX spread trade"""
-        try:
+        try: 
             self.logger.info(f"Executing SPX spread")
             
             # Check position limits
-            if len(self.positions) >= self.max_positions:
+            if len(self.positions) >= self.max_positions: 
                 self.logger.warning("Maximum positions reached")
                 return False
             
             # Calculate position size
             position_size=self._calculate_position_size(candidate)
-            if position_size <= 0:
+            if position_size <= 0: 
                 self.logger.error("Invalid position size")
                 return False
             
@@ -443,7 +443,7 @@ class ProductionSPXSpreads:
             
             short_result=await self.trading.execute_trade(short_signal)
             
-            if short_result.status.value != "filled":
+            if short_result.status.value != "filled": 
                 self.logger.error(f"Short option trade failed: {short_result.error_message}")
                 return False
             
@@ -461,7 +461,7 @@ class ProductionSPXSpreads:
             
             long_result=await self.trading.execute_trade(long_signal)
             
-            if long_result.status.value != "filled":
+            if long_result.status.value != "filled": 
                 self.logger.error(f"Long option trade failed: {long_result.error_message}")
                 # Try to close the short position
                 await self._close_short_position(short_signal, short_result)
@@ -469,7 +469,7 @@ class ProductionSPXSpreads:
             
             # Create spread position
             position_key=f"SPX_{candidate.long_strike}_{candidate.short_strike}"
-            position = SPXSpreadPosition(
+            position=SPXSpreadPosition(
                 spread_type=candidate.spread_type,
                 status=SPXSpreadStatus.ACTIVE,
                 long_strike=candidate.long_strike,
@@ -479,22 +479,22 @@ class ProductionSPXSpreads:
                 max_profit=candidate.max_profit,
                 max_loss=candidate.max_loss,
                 long_option={
-                    'strike':candidate.long_strike,
-                    'premium':long_result.filled_price,
-                    'delta':0.0,  # Would get from option data
-                    'theta':0.0,
-                    'vega':0.0
+                    'strike': candidate.long_strike,
+                    'premium': long_result.filled_price,
+                    'delta': 0.0,  # Would get from option data
+                    'theta': 0.0,
+                    'vega': 0.0
                 },
                 short_option={
-                    'strike':candidate.short_strike,
-                    'premium':short_result.filled_price,
-                    'delta':0.0,  # Would get from option data
-                    'theta':0.0,
-                    'vega':0.0
+                    'strike': candidate.short_strike,
+                    'premium': short_result.filled_price,
+                    'delta': 0.0,  # Would get from option data
+                    'theta': 0.0,
+                    'vega': 0.0
                 }
             )
             
-            self.positions[position_key] = position
+            self.positions[position_key]=position
             
             self.logger.info(f"SPX spread executed",
                            long_strike=candidate.long_strike,
@@ -506,13 +506,13 @@ class ProductionSPXSpreads:
             
             return True
             
-        except Exception as e:
-            self.error_handler.handle_error(e, {"operation":"execute_spx_spread"})
+        except Exception as e: 
+            self.error_handler.handle_error(e, {"operation": "execute_spx_spread"})
             return False
     
-    async def _close_short_position(self, signal: TradeSignal, result):
+    async def _close_short_position(self, signal: TradeSignal, result): 
         """Close short position if long trade fails"""
-        try:
+        try: 
             close_signal=TradeSignal(
                 strategy_name="SPX Credit Spreads",
                 ticker=signal.ticker,
@@ -524,12 +524,12 @@ class ProductionSPXSpreads:
             
             await self.trading.execute_trade(close_signal)
             
-        except Exception as e:
-            self.error_handler.handle_error(e, {"operation":"close_short_position"})
+        except Exception as e: 
+            self.error_handler.handle_error(e, {"operation": "close_short_position"})
     
     def _calculate_position_size(self, candidate: SPXSpreadCandidate) -> int:
         """Calculate position size for SPX spread"""
-        try:
+        try: 
             # Get account value
             account_value=self.config.risk.account_size
             
@@ -537,73 +537,73 @@ class ProductionSPXSpreads:
             max_position_value=account_value * 0.01
             
             # Calculate max contracts
-            max_contracts = int(max_position_value / candidate.max_loss)
+            max_contracts=int(max_position_value / candidate.max_loss)
             
             # Limit to reasonable size for SPX
             max_contracts=min(max_contracts, 3)
             
             return max(1, max_contracts)
             
-        except Exception as e:
-            self.error_handler.handle_error(e, {"operation":"position_sizing"})
+        except Exception as e: 
+            self.error_handler.handle_error(e, {"operation": "position_sizing"})
             return 1
     
-    async def manage_positions(self):
+    async def manage_positions(self): 
         """Manage existing SPX spread positions"""
         self.logger.info("Managing SPX spread positions")
         
-        for position_key, position in list(self.positions.items()):
-            try:
+        for position_key, position in list(self.positions.items()): 
+            try: 
                 await self._manage_position(position)
-            except Exception as e:
-                self.error_handler.handle_error(e, {"position":position_key, "operation":"manage_position"})
+            except Exception as e: 
+                self.error_handler.handle_error(e, {"position": position_key, "operation": "manage_position"})
     
     async def _manage_position(self, position: SPXSpreadPosition):
         """Manage individual SPX spread position"""
         # Get current SPX options data
         spx_options=await self.cme_data.get_spx_options()
         
-        if not spx_options:
+        if not spx_options: 
             return
         
         # Find current option prices
         long_option_data=None
-        short_option_data = None
+        short_option_data=None
         
-        for option in spx_options:
+        for option in spx_options: 
             if (option.strike == position.long_strike and 
-                option.option_type == 'put'):
+                option.option_type == 'put'): 
                 long_option_data=option
             elif (option.strike == position.short_strike and 
-                  option.option_type == 'put'):
+                  option.option_type == 'put'): 
                 short_option_data=option
         
-        if not long_option_data or not short_option_data:
+        if not long_option_data or not short_option_data: 
             return
         
         # Update position pricing
         position.update_pricing(long_option_data, short_option_data)
         
         # Check for management actions
-        if position.profit_pct >= self.profit_target:
+        if position.profit_pct >= self.profit_target: 
             # Close position at profit target
             await self._close_position(position, "Profit target reached")
             return
         
-        if position.profit_pct <= -self.stop_loss:
+        if position.profit_pct <= -self.stop_loss: 
             # Close position at stop loss
             await self._close_position(position, "Stop loss triggered")
             return
         
         # Check for expiry (0DTE - close before market close)
-        if position.calculate_days_to_expiry() <= 0:
+        if position.calculate_days_to_expiry() <= 0: 
             # Close position before expiry
             await self._close_position(position, "Expiry approaching")
             return
     
     async def _close_position(self, position: SPXSpreadPosition, reason: str):
         """Close SPX spread position"""
-        try:
+        try: 
             # Close short position
             short_close_signal=TradeSignal(
                 strategy_name="SPX Credit Spreads",
@@ -629,7 +629,7 @@ class ProductionSPXSpreads:
             long_result=await self.trading.execute_trade(long_close_signal)
             
             if (short_result.status.value== "filled" and 
-                long_result.status.value == "filled"):
+                long_result.status.value == "filled"): 
                 
                 # Update position
                 position.status=SPXSpreadStatus.CLOSED
@@ -643,46 +643,46 @@ class ProductionSPXSpreads:
                 
                 # Remove from active positions
                 position_key=f"SPX_{position.long_strike}_{position.short_strike}"
-                if position_key in self.positions:
+                if position_key in self.positions: 
                     del self.positions[position_key]
             
-        except Exception as e:
-            self.error_handler.handle_error(e, {"operation":"close_position"})
+        except Exception as e: 
+            self.error_handler.handle_error(e, {"operation": "close_position"})
     
-    async def get_portfolio_summary(self) -> Dict[str, Any]:
+    async def get_portfolio_summary(self) -> Dict[str, Any]: 
         """Get SPX spreads portfolio summary"""
         total_pnl=sum(pos.unrealized_pnl for pos in self.positions.values())
         total_credit=sum(pos.net_credit * pos.quantity * 100 for pos in self.positions.values())
         
         summary={
-            "total_positions":len(self.positions),
-            "total_pnl":total_pnl,
-            "total_credit_received":total_credit,
-            "positions":[]
+            "total_positions": len(self.positions),
+            "total_pnl": total_pnl,
+            "total_credit_received": total_credit,
+            "positions": []
         }
         
-        for position_key, position in self.positions.items():
+        for position_key, position in self.positions.items(): 
             summary["positions"].append({
-                "spread_type":position.spread_type.value,
-                "long_strike":position.long_strike,
-                "short_strike":position.short_strike,
-                "quantity":position.quantity,
-                "net_credit":position.net_credit,
-                "unrealized_pnl":position.unrealized_pnl,
-                "profit_pct":position.profit_pct,
-                "days_to_expiry":position.calculate_days_to_expiry()
+                "spread_type": position.spread_type.value,
+                "long_strike": position.long_strike,
+                "short_strike": position.short_strike,
+                "quantity": position.quantity,
+                "net_credit": position.net_credit,
+                "unrealized_pnl": position.unrealized_pnl,
+                "profit_pct": position.profit_pct,
+                "days_to_expiry": position.calculate_days_to_expiry()
             })
         
         return summary
     
-    async def run_strategy(self):
+    async def run_strategy(self): 
         """Run SPX spreads strategy main loop"""
         self.logger.info("Starting SPX Credit Spreads Strategy")
         
-        while True:
-            try:
+        while True: 
+            try: 
                 # Check market hours (SPX trades during market hours)
-                if not await self._is_market_open():
+                if not await self._is_market_open(): 
                     await asyncio.sleep(300)  # Wait 5 minutes
                     continue
                 
@@ -690,8 +690,8 @@ class ProductionSPXSpreads:
                 candidates=await self.scan_for_opportunities()
                 
                 # Execute new trades
-                for candidate in candidates[:1]:  # Top 1 candidate (conservative)
-                    if len(self.positions) < self.max_positions:
+                for candidate in candidates[: 1]: # Top 1 candidate (conservative)
+                    if len(self.positions) < self.max_positions: 
                         await self.execute_spx_spread(candidate)
                 
                 # Manage existing positions
@@ -708,20 +708,20 @@ class ProductionSPXSpreads:
                 # Wait for next scan
                 await asyncio.sleep(self.scan_interval.total_seconds())
                 
-            except Exception as e:
-                self.error_handler.handle_error(e, {"operation":"run_strategy"})
+            except Exception as e: 
+                self.error_handler.handle_error(e, {"operation": "run_strategy"})
                 await asyncio.sleep(60)  # Wait 1 minute on error
     
-    async def _is_market_open(self) -> bool:
+    async def _is_market_open(self) -> bool: 
         """Check if market is open"""
-        try:
+        try: 
             # In production, would check actual market hours
             # For now, return True during business hours
             now=datetime.now()
             return 9 <= now.hour < 16  # 9 AM to 4 PM
             
-        except Exception as e:
-            self.error_handler.handle_error(e, {"operation":"check_market_hours"})
+        except Exception as e: 
+            self.error_handler.handle_error(e, {"operation": "check_market_hours"})
             return False
 
 

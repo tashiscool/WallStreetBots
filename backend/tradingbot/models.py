@@ -3,36 +3,36 @@ from django.db import models
 from rest_framework import serializers
 
 
-class News(models.Model):
+class News(models.Model): 
     """News of a company"""
     headline=models.TextField()
     link=models.URLField(max_length=200)  # default=200
-    date = models.DateField(auto_now=False, auto_now_add=False)
+    date=models.DateField(auto_now=False, auto_now_add=False)
 
     # Metadata
-    class Meta:
+    class Meta: 
         ordering=['date']
 
     # Methods
-    def __str__(self):
+    def __str__(self): 
         return f'Headline: {str(self.headline)} \n Link: {self.link} \n Date: {self.date}'
 
 
-class Tweets(models.Model):
-    """Tweets/Reddits of a company"""
+class Tweets(models.Model): 
+    """Tweets / Reddits of a company"""
     content=models.TextField()
     date=models.DateField(auto_now=False, auto_now_add=False)
 
     # Metadata
-    class Meta:
+    class Meta: 
         ordering=['date']
 
     # Methods
-    def __str__(self):
+    def __str__(self): 
         return f'Content: {str(self.content)} \n Date: {self.date}'
 
 
-class Company(models.Model):
+class Company(models.Model): 
     """Company entity"""
     name=models.TextField()
     ticker=models.CharField(max_length=255, primary_key=True)
@@ -40,52 +40,52 @@ class Company(models.Model):
     tweets=models.ManyToManyField(Tweets, blank=True)
 
     # Metadata
-    class Meta:
+    class Meta: 
         ordering=['ticker']
 
     # Methods
-    def __str__(self):
+    def __str__(self): 
         return f'{self.ticker}'
 
 
-class Stock(models.Model):
+class Stock(models.Model): 
     """Stock of a company"""
     company=models.OneToOneField(Company, help_text='Company', on_delete=models.CASCADE)  # To Be Completed
     current_price=None  # To Be Completed
-    indicators = None  # To Be Completed
-    historical_prices = None  # To Be Completed
-    historical_volatility = None  # To Be Completed
+    indicators=None  # To Be Completed
+    historical_prices=None  # To Be Completed
+    historical_volatility=None  # To Be Completed
 
     # Metadata
-    class Meta:
-        ordering = ['company']
+    class Meta: 
+        ordering=['company']
 
     # Methods
-    def __str__(self):
+    def __str__(self): 
         return str(self.company)  # To Be Completed
 
 
-class Price(models.Model):
+class Price(models.Model): 
     """Price of a stock"""
     stock=models.ForeignKey(Stock, help_text='Associated stock', on_delete=models.CASCADE)
     date=models.DateField(auto_now=False, auto_now_add=False)
     value=models.DecimalField(max_digits=8, decimal_places=2, help_text='quantity')
 
     # Metadata
-    class Meta:
+    class Meta: 
         ordering=['date']
 
     # Methods
-    def __str__(self):
+    def __str__(self): 
         return f'Stock: {str(self.stock.company)} \n Date: {self.date} \n Value: {self.value}'
 
 
-class StockTrade(models.Model):
+class StockTrade(models.Model): 
     # TODO: this is an overly simplistic model.
     # need to add things like bought_price, sold_price, etc.
     # or add transaction type (buy, sell, etc.) which is probably preferable
     # should probably change to represent a single exchange instance instead of trying to
-    # show an entire buy/sell operation
+    # show an entire buy / sell operation
     company=models.ForeignKey(Company, on_delete=models.CASCADE)
     price=models.FloatField()
     amount=models.IntegerField()
@@ -93,13 +93,13 @@ class StockTrade(models.Model):
     sold_timestamp=models.DateTimeField(null=True)
 
 
-class StockTradeSerializer(serializers.ModelSerializer):
-    class Meta:
+class StockTradeSerializer(serializers.ModelSerializer): 
+    class Meta: 
         model=StockTrade
-        fields = ('company_id', 'price', 'amount', 'bought_timestamp', 'sold_timestamp')
+        fields=('company_id', 'price', 'amount', 'bought_timestamp', 'sold_timestamp')
 
 
-class Order(models.Model):
+class Order(models.Model): 
     """Historical orders for user"""
     ORDERTYPES=[
         ('M', 'Market'),
@@ -139,36 +139,36 @@ class Order(models.Model):
     filled_quantity=models.DecimalField(max_digits=8, decimal_places=2, default=0, help_text='filled quantity')
 
     # Metadata
-    class Meta:
+    class Meta: 
         ordering=['user', 'timestamp', 'order_type']
 
     # Methods
-    def __str__(self):
+    def __str__(self): 
         return f"Order {self.order_number} \n User: {self.user} \n" \
                f"Timestamp: {self.timestamp} \n Company: {str(self.stock)}" \
                f"Order type: {self.order_type} \n Price: {self.filled_avg_price} \n Quantity: {self.quantity}"
 
-    def display_order(self):
+    def display_order(self): 
         ret={
-            'stock':str(self.stock),
-            'quantity':str(self.quantity),
-            'type':f'{mapping(str(self.order_type), Order.ORDERTYPES)} '
+            'stock': str(self.stock),
+            'quantity': str(self.quantity),
+            'type': f'{mapping(str(self.order_type), Order.ORDERTYPES)} '
                     f'{mapping(str(self.transaction_type), Order.TRANSACTIONTYPES)}',
-            'timestamp':self.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-            'filled_quantity':str(self.filled_quantity),
-            'filled_avg_price':str(self.filled_avg_price),
-            'status':mapping(str(self.status), Order.STATUS),
+            'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            'filled_quantity': str(self.filled_quantity),
+            'filled_avg_price': str(self.filled_avg_price),
+            'status': mapping(str(self.status), Order.STATUS),
         }
         return ret
 
 
-def mapping(key, choices):
-    for row in choices:
-        if row[0] == key:
+def mapping(key, choices): 
+    for row in choices: 
+        if row[0] == key: 
             return row[1]
 
 
-class Portfolio(models.Model):
+class Portfolio(models.Model): 
     STRATEGY=[
         ('manual', 'Manual portfolio management'),
         ('hmm_naive_even_split', 'HMM model prediction + Even split portfolio'),  # HMMNaiveStrategy()
@@ -184,15 +184,15 @@ class Portfolio(models.Model):
                                 help_text="Portfolio Rebalancing Strategy")
 
     # Metadata
-    class Meta:
+    class Meta: 
         ordering=['user']
 
     # Methods
-    def __str__(self):
+    def __str__(self): 
         return f'Portfolio: {self.name} \n User: {str(self.user)}'
 
 
-class StockInstance(models.Model):
+class StockInstance(models.Model): 
     """An instance of a stock"""
     user=models.ForeignKey(User, help_text='Associated user', on_delete=models.CASCADE)
     portfolio=models.ForeignKey(Portfolio, help_text='Associated portfolio', on_delete=models.CASCADE)
@@ -200,10 +200,10 @@ class StockInstance(models.Model):
     quantity=models.DecimalField(max_digits=8, decimal_places=2, help_text='quantity')
 
     # Metadata
-    class Meta:
+    class Meta: 
         ordering=['user', 'portfolio']
 
     # Methods
-    def __str__(self):
+    def __str__(self): 
         return f'User: {str(self.user)} Stock: {str(self.stock)} \n Quantity: {self.quantity} \n ' \
                f'Portfolio: {self.portfolio.name}'

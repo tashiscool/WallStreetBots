@@ -1,13 +1,13 @@
 """
 Production Trading System
 
-This package contains production-ready trading strategies and infrastructure
+This package contains production - ready trading strategies and infrastructure
 for live trading with real broker integration, live data feeds, and comprehensive
 risk management.
 
-Components:
+Components: 
 - core: Core production infrastructure (integration, manager, CLI)
-- strategies: Production-ready trading strategies
+- strategies: Production - ready trading strategies
 - data: Live data integration and providers
 - tests: Comprehensive test suite for production components
 """

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr / bin/env python3
 """
 Comprehensive Phase 3 Tests
 Test all Phase 3 strategies with mocked dependencies
@@ -18,40 +18,40 @@ from typing import Optional
 
 
 # Define Phase 3 components directly for testing
-class EarningsStrategy(Enum):
+class EarningsStrategy(Enum): 
     DEEP_ITM_PROTECTION="deep_itm_protection"
-    CALENDAR_SPREAD_PROTECTION = "calendar_spread_protection"
-    PROTECTIVE_HEDGE = "protective_hedge"
-    VOLATILITY_ARBITRAGE = "volatility_arbitrage"
+    CALENDAR_SPREAD_PROTECTION="calendar_spread_protection"
+    PROTECTIVE_HEDGE="protective_hedge"
+    VOLATILITY_ARBITRAGE="volatility_arbitrage"
 
 
-class EarningsEventType(Enum):
+class EarningsEventType(Enum): 
     EARNINGS="earnings"
-    GUIDANCE = "guidance"
-    DIVIDEND = "dividend"
-    SPLIT = "split"
-    MERGER = "merger"
+    GUIDANCE="guidance"
+    DIVIDEND="dividend"
+    SPLIT="split"
+    MERGER="merger"
 
 
 @dataclass
-class EarningsEvent:
+class EarningsEvent: 
     ticker: str
     event_type: EarningsEventType
     event_date: datetime
     announcement_time: str
     fiscal_quarter: str
     fiscal_year: int
-    eps_estimate: Optional[float] = None
-    eps_actual: Optional[float] = None
-    revenue_estimate: Optional[float] = None
-    revenue_actual: Optional[float] = None
-    surprise_pct: Optional[float] = None
-    guidance_updated: bool = False
-    last_update: datetime = field(default_factory=datetime.now)
+    eps_estimate: Optional[float]=None
+    eps_actual: Optional[float]=None
+    revenue_estimate: Optional[float]=None
+    revenue_actual: Optional[float]=None
+    surprise_pct: Optional[float]=None
+    guidance_updated: bool=False
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
-class IVAnalysis:
+class IVAnalysis: 
     ticker: str
     current_iv: float
     historical_iv: float
@@ -65,7 +65,7 @@ class IVAnalysis:
 
 
 @dataclass
-class EarningsPosition:
+class EarningsPosition: 
     ticker: str
     strategy: EarningsStrategy
     position_type: str
@@ -88,7 +88,7 @@ class EarningsPosition:
 
 
 @dataclass
-class EarningsCandidate:
+class EarningsCandidate: 
     ticker: str
     earnings_date: datetime
     days_to_earnings: int
@@ -101,27 +101,27 @@ class EarningsCandidate:
     earnings_score: float
     risk_score: float
     strategy_recommended: EarningsStrategy
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
-class SwingSignal(Enum):
+class SwingSignal(Enum): 
     BUY="buy"
-    SELL = "sell"
-    HOLD = "hold"
-    EXIT_LONG = "exit_long"
-    EXIT_SHORT = "exit_short"
+    SELL="sell"
+    HOLD="hold"
+    EXIT_LONG="exit_long"
+    EXIT_SHORT="exit_short"
 
 
-class SwingStrategy(Enum):
+class SwingStrategy(Enum): 
     BREAKOUT="breakout"
-    PULLBACK = "pullback"
-    MEAN_REVERSION = "mean_reversion"
-    TREND_FOLLOWING = "trend_following"
-    MOMENTUM = "momentum"
+    PULLBACK="pullback"
+    MEAN_REVERSION="mean_reversion"
+    TREND_FOLLOWING="trend_following"
+    MOMENTUM="momentum"
 
 
 @dataclass
-class TechnicalAnalysis:
+class TechnicalAnalysis: 
     ticker: str
     current_price: float
     rsi: float
@@ -145,11 +145,11 @@ class TechnicalAnalysis:
     adx: float
     volume_sma: float
     volume_ratio: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
-class SwingPosition:
+class SwingPosition: 
     ticker: str
     strategy: SwingStrategy
     signal: SwingSignal
@@ -166,13 +166,13 @@ class SwingPosition:
     entry_date: datetime
     last_update: datetime=field(default_factory=datetime.now)
     days_held: int=0
-    status: str = "active"
-    risk_reward_ratio: float = 0.0
-    technical_score: float = 0.0
+    status: str="active"
+    risk_reward_ratio: float=0.0
+    technical_score: float=0.0
 
 
 @dataclass
-class SwingCandidate:
+class SwingCandidate: 
     ticker: str
     current_price: float
     signal: SwingSignal
@@ -185,27 +185,27 @@ class SwingCandidate:
     risk_reward_ratio: float
     position_size: int
     confidence: float
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
-class MomentumSignal(Enum):
+class MomentumSignal(Enum): 
     STRONG_BUY="strong_buy"
-    BUY = "buy"
-    HOLD = "hold"
-    SELL = "sell"
-    STRONG_SELL = "strong_sell"
+    BUY="buy"
+    HOLD="hold"
+    SELL="sell"
+    STRONG_SELL="strong_sell"
 
 
-class MomentumType(Enum):
+class MomentumType(Enum): 
     PRICE_MOMENTUM="price_momentum"
-    VOLUME_MOMENTUM = "volume_momentum"
-    EARNINGS_MOMENTUM = "earnings_momentum"
-    NEWS_MOMENTUM = "news_momentum"
-    TECHNICAL_MOMENTUM = "technical_momentum"
+    VOLUME_MOMENTUM="volume_momentum"
+    EARNINGS_MOMENTUM="earnings_momentum"
+    NEWS_MOMENTUM="news_momentum"
+    TECHNICAL_MOMENTUM="technical_momentum"
 
 
 @dataclass
-class MomentumData:
+class MomentumData: 
     ticker: str
     current_price: float
     price_change_1d: float
@@ -227,11 +227,11 @@ class MomentumData:
     volume_score: float
     technical_score: float
     overall_score: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
-class MomentumPosition:
+class MomentumPosition: 
     ticker: str
     momentum_type: MomentumType
     signal: MomentumSignal
@@ -243,30 +243,30 @@ class MomentumPosition:
     target_price: float
     stop_loss: float
     entry_date: datetime
-    expiry_date: Optional[datetime] = None
+    expiry_date: Optional[datetime]=None
     days_to_expiry: int=0
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
     status: str="active"
 
 
-class LottoSignal(Enum):
+class LottoSignal(Enum): 
     STRONG_BUY="strong_buy"
-    BUY = "buy"
-    HOLD = "hold"
-    SELL = "sell"
-    STRONG_SELL = "strong_sell"
+    BUY="buy"
+    HOLD="hold"
+    SELL="sell"
+    STRONG_SELL="strong_sell"
 
 
-class LottoType(Enum):
+class LottoType(Enum): 
     ZERO_DTE="zero_dte"
-    EARNINGS_LOTTO = "earnings_lotto"
-    VOLATILITY_SPIKE = "volatility_spike"
-    GAMMA_SQUEEZE = "gamma_squeeze"
-    MEME_STOCK = "meme_stock"
+    EARNINGS_LOTTO="earnings_lotto"
+    VOLATILITY_SPIKE="volatility_spike"
+    GAMMA_SQUEEZE="gamma_squeeze"
+    MEME_STOCK="meme_stock"
 
 
 @dataclass
-class VolatilityAnalysis:
+class VolatilityAnalysis: 
     ticker: str
     current_price: float
     implied_volatility: float
@@ -281,11 +281,11 @@ class VolatilityAnalysis:
     gamma_exposure: float
     options_volume: int
     put_call_ratio: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
-class LottoPosition:
+class LottoPosition: 
     ticker: str
     lotto_type: LottoType
     signal: LottoSignal
@@ -305,38 +305,38 @@ class LottoPosition:
     status: str="active"
 
 
-class SecularTrend(Enum):
+class SecularTrend(Enum): 
     TECHNOLOGY="technology"
-    HEALTHCARE = "healthcare"
-    CONSUMER_DISCRETIONARY = "consumer_discretionary"
-    COMMUNICATION_SERVICES = "communication_services"
-    FINANCIAL_SERVICES = "financial_services"
-    INDUSTRIAL = "industrial"
-    ENERGY = "energy"
-    MATERIALS = "materials"
-    UTILITIES = "utilities"
-    REAL_ESTATE = "real_estate"
+    HEALTHCARE="healthcare"
+    CONSUMER_DISCRETIONARY="consumer_discretionary"
+    COMMUNICATION_SERVICES="communication_services"
+    FINANCIAL_SERVICES="financial_services"
+    INDUSTRIAL="industrial"
+    ENERGY="energy"
+    MATERIALS="materials"
+    UTILITIES="utilities"
+    REAL_ESTATE="real_estate"
 
 
-class LEAPSSignal(Enum):
+class LEAPSSignal(Enum): 
     STRONG_BUY="strong_buy"
-    BUY = "buy"
-    HOLD = "hold"
-    SELL = "sell"
-    STRONG_SELL = "strong_sell"
+    BUY="buy"
+    HOLD="hold"
+    SELL="sell"
+    STRONG_SELL="strong_sell"
 
 
-class LEAPSStrategy(Enum):
+class LEAPSStrategy(Enum): 
     LONG_CALL="long_call"
-    LONG_PUT = "long_put"
-    CALL_SPREAD = "call_spread"
-    PUT_SPREAD = "put_spread"
-    CALENDAR_SPREAD = "calendar_spread"
-    DIAGONAL_SPREAD = "diagonal_spread"
+    LONG_PUT="long_put"
+    CALL_SPREAD="call_spread"
+    PUT_SPREAD="put_spread"
+    CALENDAR_SPREAD="calendar_spread"
+    DIAGONAL_SPREAD="diagonal_spread"
 
 
 @dataclass
-class SecularAnalysis:
+class SecularAnalysis: 
     ticker: str
     sector: str
     secular_trend: SecularTrend
@@ -360,11 +360,11 @@ class SecularAnalysis:
     fundamental_score: float
     technical_score: float
     overall_score: float
-    analysis_date: datetime = field(default_factory=datetime.now)
+    analysis_date: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
-class LEAPSPosition:
+class LEAPSPosition: 
     ticker: str
     secular_trend: SecularTrend
     signal: LEAPSSignal
@@ -384,10 +384,10 @@ class LEAPSPosition:
     status: str="active"
 
 
-class TestEarningsProtection(unittest.TestCase):
+class TestEarningsProtection(unittest.TestCase): 
     """Test Earnings Protection Strategy"""
     
-    def test_earnings_event_creation(self):
+    def test_earnings_event_creation(self): 
         """Test earnings event creation"""
         event=EarningsEvent(
             ticker="AAPL",
@@ -405,7 +405,7 @@ class TestEarningsProtection(unittest.TestCase):
         self.assertEqual(event.eps_estimate, 2.10)
         self.assertEqual(event.revenue_estimate, 120000000000)
     
-    def test_iv_analysis_creation(self):
+    def test_iv_analysis_creation(self): 
         """Test IV analysis creation"""
         analysis=IVAnalysis(
             ticker="AAPL",
@@ -424,7 +424,7 @@ class TestEarningsProtection(unittest.TestCase):
         self.assertEqual(analysis.iv_rank, 0.80)
         self.assertEqual(analysis.iv_crush_expected, 0.15)
     
-    def test_earnings_position_creation(self):
+    def test_earnings_position_creation(self): 
         """Test earnings position creation"""
         position=EarningsPosition(
             ticker="AAPL",
@@ -451,7 +451,7 @@ class TestEarningsProtection(unittest.TestCase):
         self.assertEqual(position.protection_level, 0.05)
         self.assertEqual(position.days_to_earnings, 5)
     
-    def test_earnings_candidate_creation(self):
+    def test_earnings_candidate_creation(self): 
         """Test earnings candidate creation"""
         candidate=EarningsCandidate(
             ticker="AAPL",
@@ -475,10 +475,10 @@ class TestEarningsProtection(unittest.TestCase):
         self.assertEqual(candidate.strategy_recommended, EarningsStrategy.DEEP_ITM_PROTECTION)
 
 
-class TestSwingTrading(unittest.TestCase):
+class TestSwingTrading(unittest.TestCase): 
     """Test Swing Trading Strategy"""
     
-    def test_technical_analysis_creation(self):
+    def test_technical_analysis_creation(self): 
         """Test technical analysis creation"""
         analysis=TechnicalAnalysis(
             ticker="AAPL",
@@ -512,7 +512,7 @@ class TestSwingTrading(unittest.TestCase):
         self.assertEqual(analysis.bb_position, 0.5)
         self.assertEqual(analysis.volume_ratio, 1.2)
     
-    def test_swing_position_creation(self):
+    def test_swing_position_creation(self): 
         """Test swing position creation"""
         position=SwingPosition(
             ticker="AAPL",
@@ -540,7 +540,7 @@ class TestSwingTrading(unittest.TestCase):
         self.assertEqual(position.risk_reward_ratio, 2.0)
         self.assertEqual(position.technical_score, 0.8)
     
-    def test_swing_candidate_creation(self):
+    def test_swing_candidate_creation(self): 
         """Test swing candidate creation"""
         candidate=SwingCandidate(
             ticker="AAPL",
@@ -564,10 +564,10 @@ class TestSwingTrading(unittest.TestCase):
         self.assertEqual(candidate.risk_reward_ratio, 2.0)
 
 
-class TestMomentumWeeklies(unittest.TestCase):
+class TestMomentumWeeklies(unittest.TestCase): 
     """Test Momentum Weeklies Strategy"""
     
-    def test_momentum_data_creation(self):
+    def test_momentum_data_creation(self): 
         """Test momentum data creation"""
         data=MomentumData(
             ticker="AAPL",
@@ -600,7 +600,7 @@ class TestMomentumWeeklies(unittest.TestCase):
         self.assertEqual(data.momentum_score, 0.7)
         self.assertEqual(data.overall_score, 0.7)
     
-    def test_momentum_position_creation(self):
+    def test_momentum_position_creation(self): 
         """Test momentum position creation"""
         position=MomentumPosition(
             ticker="AAPL",
@@ -625,10 +625,10 @@ class TestMomentumWeeklies(unittest.TestCase):
         self.assertEqual(position.days_to_expiry, 7)
 
 
-class TestLottoScanner(unittest.TestCase):
+class TestLottoScanner(unittest.TestCase): 
     """Test Lotto Scanner Strategy"""
     
-    def test_volatility_analysis_creation(self):
+    def test_volatility_analysis_creation(self): 
         """Test volatility analysis creation"""
         analysis=VolatilityAnalysis(
             ticker="AAPL",
@@ -654,7 +654,7 @@ class TestLottoScanner(unittest.TestCase):
         self.assertEqual(analysis.gamma_exposure, 0.05)
         self.assertEqual(analysis.options_volume, 50000)
     
-    def test_lotto_position_creation(self):
+    def test_lotto_position_creation(self): 
         """Test lotto position creation"""
         position=LottoPosition(
             ticker="AAPL",
@@ -682,10 +682,10 @@ class TestLottoScanner(unittest.TestCase):
         self.assertEqual(position.max_profit, 1000.0)
 
 
-class TestLEAPSTracker(unittest.TestCase):
+class TestLEAPSTracker(unittest.TestCase): 
     """Test LEAPS Tracker Strategy"""
     
-    def test_secular_analysis_creation(self):
+    def test_secular_analysis_creation(self): 
         """Test secular analysis creation"""
         analysis=SecularAnalysis(
             ticker="AAPL",
@@ -720,7 +720,7 @@ class TestLEAPSTracker(unittest.TestCase):
         self.assertEqual(analysis.secular_score, 0.8)
         self.assertEqual(analysis.overall_score, 0.7)
     
-    def test_leaps_position_creation(self):
+    def test_leaps_position_creation(self): 
         """Test LEAPS position creation"""
         position=LEAPSPosition(
             ticker="AAPL",
@@ -748,10 +748,10 @@ class TestLEAPSTracker(unittest.TestCase):
         self.assertEqual(position.max_profit, 2000.0)
 
 
-class TestPhase3EndToEnd(unittest.TestCase):
-    """End-to-end tests for Phase 3"""
+class TestPhase3EndToEnd(unittest.TestCase): 
+    """End - to-end tests for Phase 3"""
     
-    def test_earnings_protection_workflow(self):
+    def test_earnings_protection_workflow(self): 
         """Test complete earnings protection workflow"""
         # Test earnings event creation
         event=EarningsEvent(
@@ -803,7 +803,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
         self.assertEqual(candidate.earnings_score, 0.8)
         self.assertEqual(candidate.strategy_recommended, EarningsStrategy.DEEP_ITM_PROTECTION)
     
-    def test_swing_trading_workflow(self):
+    def test_swing_trading_workflow(self): 
         """Test complete swing trading workflow"""
         # Test technical analysis creation
         analysis=TechnicalAnalysis(
@@ -854,7 +854,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
         self.assertEqual(candidate.technical_score, 0.8)
         self.assertEqual(candidate.risk_reward_ratio, 2.0)
     
-    def test_momentum_weeklies_workflow(self):
+    def test_momentum_weeklies_workflow(self): 
         """Test complete momentum weeklies workflow"""
         # Test momentum data creation
         data=MomentumData(
@@ -904,7 +904,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
         self.assertEqual(position.momentum_type, MomentumType.PRICE_MOMENTUM)
         self.assertEqual(position.days_to_expiry, 7)
     
-    def test_lotto_scanner_workflow(self):
+    def test_lotto_scanner_workflow(self): 
         """Test complete lotto scanner workflow"""
         # Test volatility analysis creation
         analysis=VolatilityAnalysis(
@@ -949,7 +949,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
         self.assertEqual(position.lotto_type, LottoType.ZERO_DTE)
         self.assertEqual(position.days_to_expiry, 0)
     
-    def test_leaps_tracker_workflow(self):
+    def test_leaps_tracker_workflow(self): 
         """Test complete LEAPS tracker workflow"""
         # Test secular analysis creation
         analysis=SecularAnalysis(
@@ -1004,5 +1004,5 @@ class TestPhase3EndToEnd(unittest.TestCase):
         self.assertEqual(position.days_to_expiry, 365)
 
 
-if __name__== "__main__":# Run tests
+if __name__== "__main__": # Run tests
     unittest.main()

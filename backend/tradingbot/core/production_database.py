@@ -2,7 +2,7 @@
 Production Database Models and Management
 Implements PostgreSQL database schema for production trading system
 
-This replaces the JSON file system with proper relational database for:
+This replaces the JSON file system with proper relational database for: 
 - Trade tracking and history
 - Position management
 - Risk monitoring
@@ -22,63 +22,63 @@ from decimal import Decimal
 
 
 @dataclass
-class Trade:
+class Trade: 
     """Production trade record"""
-    id: Optional[int] = None
+    id: Optional[int]=None
     strategy_name: str=""
-    ticker: str = ""
-    trade_type: str = ""  # 'stock', 'option', 'spread'
+    ticker: str=""
+    trade_type: str=""  # 'stock', 'option', 'spread'
     action: str=""  # 'buy', 'sell', 'open', 'close'
     quantity: int=0
-    entry_price: Decimal = Decimal('0.00')
-    exit_price: Optional[Decimal] = None
-    pnl: Optional[Decimal] = None
+    entry_price: Decimal=Decimal('0.00')
+    exit_price: Optional[Decimal]=None
+    pnl: Optional[Decimal]=None
     commission: Decimal=Decimal('0.00')
     slippage: Decimal=Decimal('0.00')
     order_id: str=""
-    fill_timestamp: Optional[datetime] = None
-    exit_timestamp: Optional[datetime] = None
-    risk_amount: Decimal = Decimal('0.00')
+    fill_timestamp: Optional[datetime]=None
+    exit_timestamp: Optional[datetime]=None
+    risk_amount: Decimal=Decimal('0.00')
     expected_return: Decimal=Decimal('0.00')
-    actual_return: Optional[Decimal] = None
-    win: Optional[bool] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    actual_return: Optional[Decimal]=None
+    win: Optional[bool]=None
+    metadata: Dict[str, Any]=field(default_factory=dict)
     created_at: datetime=field(default_factory=datetime.now)
     updated_at: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
-class Position:
+class Position: 
     """Production position record"""
-    id: Optional[int] = None
+    id: Optional[int]=None
     strategy_name: str=""
-    ticker: str = ""
-    position_type: str = ""  # 'long', 'short', 'spread'
+    ticker: str=""
+    position_type: str=""  # 'long', 'short', 'spread'
     quantity: int=0
-    avg_cost_basis: Decimal = Decimal('0.00')
+    avg_cost_basis: Decimal=Decimal('0.00')
     current_price: Decimal=Decimal('0.00')
     market_value: Decimal=Decimal('0.00')
     unrealized_pnl: Decimal=Decimal('0.00')
     realized_pnl: Decimal=Decimal('0.00')
     total_pnl: Decimal=Decimal('0.00')
     risk_amount: Decimal=Decimal('0.00')
-    stop_loss_price: Optional[Decimal] = None
-    take_profit_price: Optional[Decimal] = None
+    stop_loss_price: Optional[Decimal]=None
+    take_profit_price: Optional[Decimal]=None
     entry_timestamp: datetime=field(default_factory=datetime.now)
     last_update: datetime=field(default_factory=datetime.now)
     is_active: bool=True
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any]=field(default_factory=dict)
 
 
 @dataclass
-class StrategyPerformance:
+class StrategyPerformance: 
     """Strategy performance metrics"""
-    id: Optional[int] = None
+    id: Optional[int]=None
     strategy_name: str=""
-    total_trades: int = 0
-    winning_trades: int = 0
-    losing_trades: int = 0
-    win_rate: Decimal = Decimal('0.00')
+    total_trades: int=0
+    winning_trades: int=0
+    losing_trades: int=0
+    win_rate: Decimal=Decimal('0.00')
     avg_win: Decimal=Decimal('0.00')
     avg_loss: Decimal=Decimal('0.00')
     largest_win: Decimal=Decimal('0.00')
@@ -98,32 +98,32 @@ class StrategyPerformance:
 
 
 @dataclass
-class RiskMetrics:
+class RiskMetrics: 
     """Risk metrics record"""
-    id: Optional[int] = None
+    id: Optional[int]=None
     timestamp: datetime=field(default_factory=datetime.now)
     total_account_value: Decimal=Decimal('0.00')
     total_risk_exposure: Decimal=Decimal('0.00')
     risk_percentage: Decimal=Decimal('0.00')
     position_count: int=0
-    max_single_position_risk: Decimal = Decimal('0.00')
+    max_single_position_risk: Decimal=Decimal('0.00')
     correlation_risk: Decimal=Decimal('0.00')
-    sector_concentration: Dict[str, Decimal] = field(default_factory=dict)
+    sector_concentration: Dict[str, Decimal]=field(default_factory=dict)
     var_95_portfolio: Decimal=Decimal('0.00')
     beta_portfolio: Decimal=Decimal('1.00')
     daily_pnl: Decimal=Decimal('0.00')
     mtd_pnl: Decimal=Decimal('0.00')
     ytd_pnl: Decimal=Decimal('0.00')
-    alerts: List[str] = field(default_factory=list)
+    alerts: List[str]=field(default_factory=list)
 
 
-class ProductionDatabaseManager:
+class ProductionDatabaseManager: 
     """Production PostgreSQL database manager"""
     
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any]): 
         self.config=config
-        self.logger = logging.getLogger(__name__)
-        self.pool: Optional[asyncpg.Pool] = None
+        self.logger=logging.getLogger(__name__)
+        self.pool: Optional[asyncpg.Pool]=None
         
         # Database connection parameters
         self.db_host=config.get('db_host', 'localhost')
@@ -134,9 +134,9 @@ class ProductionDatabaseManager:
         
         self.logger.info("Production Database Manager initialized")
     
-    async def initialize(self) -> bool:
+    async def initialize(self) -> bool: 
         """Initialize database connection pool"""
-        try:
+        try: 
             self.logger.info("Initializing database connection pool")
             
             # Create connection pool
@@ -157,20 +157,20 @@ class ProductionDatabaseManager:
             self.logger.info("Database initialized successfully")
             return True
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Database initialization failed: {e}")
             return False
     
-    async def close(self):
+    async def close(self): 
         """Close database connection pool"""
-        if self.pool:
+        if self.pool: 
             await self.pool.close()
             self.logger.info("Database connection pool closed")
     
-    async def _create_tables(self):
+    async def _create_tables(self): 
         """Create production database tables"""
-        try:
-            async with self.pool.acquire() as conn:
+        try: 
+            async with self.pool.acquire() as conn: 
                 # Create strategies table
                 await conn.execute("""
                     CREATE TABLE IF NOT EXISTS strategies (
@@ -295,14 +295,14 @@ class ProductionDatabaseManager:
                 
                 self.logger.info("Database tables created successfully")
                 
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error creating database tables: {e}")
             raise
     
     async def create_trade(self, trade: Trade) -> int:
         """Create new trade record"""
-        try:
-            async with self.pool.acquire() as conn:
+        try: 
+            async with self.pool.acquire() as conn: 
                 query="""
                     INSERT INTO trades (
                         strategy_name, ticker, trade_type, action, quantity,
@@ -332,21 +332,21 @@ class ProductionDatabaseManager:
                 self.logger.debug(f"Created trade record: {trade_id}")
                 return trade_id
                 
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error creating trade record: {e}")
             raise
     
-    async def update_trade(self, trade_id: int, updates: Dict[str, Any]) -> bool:
+    async def update_trade(self, trade_id: int, updates: Dict[str, Any]) -> bool: 
         """Update trade record"""
-        try:
-            async with self.pool.acquire() as conn:
+        try: 
+            async with self.pool.acquire() as conn: 
                 # Build dynamic update query
                 set_clauses=[]
-                values = []
-                param_count = 1
+                values=[]
+                param_count=1
                 
-                for field_name, value in updates.items():
-                    set_clauses.append(f"{field_name} = ${param_count}")
+                for field_name, value in updates.items(): 
+                    set_clauses.append(f"{field_name}=${param_count}")
                     values.append(value)
                     param_count += 1
                 
@@ -364,14 +364,14 @@ class ProductionDatabaseManager:
                 self.logger.debug(f"Updated trade: {trade_id}")
                 return True
                 
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error updating trade {trade_id}: {e}")
             return False
     
     async def create_position(self, position: Position) -> int:
         """Create new position record"""
-        try:
-            async with self.pool.acquire() as conn:
+        try: 
+            async with self.pool.acquire() as conn: 
                 query="""
                     INSERT INTO positions (
                         strategy_name, ticker, position_type, quantity,
@@ -402,24 +402,24 @@ class ProductionDatabaseManager:
                 self.logger.debug(f"Created position record: {position_id}")
                 return position_id
                 
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error creating position record: {e}")
             raise
     
-    async def get_active_positions(self, strategy_name: Optional[str] = None) -> List[Position]:
+    async def get_active_positions(self, strategy_name: Optional[str]=None) -> List[Position]:
         """Get active positions"""
-        try:
-            async with self.pool.acquire() as conn:
-                if strategy_name:
-                    query="SELECT * FROM positions WHERE is_active = TRUE AND strategy_name = $1"
-                    rows = await conn.fetch(query, strategy_name)
-                else:
-                    query="SELECT * FROM positions WHERE is_active = TRUE"
-                    rows = await conn.fetch(query)
+        try: 
+            async with self.pool.acquire() as conn: 
+                if strategy_name: 
+                    query="SELECT * FROM positions WHERE is_active=TRUE AND strategy_name=$1"
+                    rows=await conn.fetch(query, strategy_name)
+                else: 
+                    query="SELECT * FROM positions WHERE is_active=TRUE"
+                    rows=await conn.fetch(query)
                 
                 positions=[]
-                for row in rows:
-                    position = Position(
+                for row in rows: 
+                    position=Position(
                         id=row['id'],
                         strategy_name=row['strategy_name'],
                         ticker=row['ticker'],
@@ -443,28 +443,28 @@ class ProductionDatabaseManager:
                 
                 return positions
                 
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error getting active positions: {e}")
             return []
     
     async def calculate_strategy_performance(self, strategy_name: str, 
                                            period_days: int=30) -> StrategyPerformance:
         """Calculate strategy performance metrics"""
-        try:
-            async with self.pool.acquire() as conn:
+        try: 
+            async with self.pool.acquire() as conn: 
                 # Get trades for the period
                 since_date=datetime.now() - timedelta(days=period_days)
                 
                 trades_query="""
                     SELECT * FROM trades 
-                    WHERE strategy_name = $1 
+                    WHERE strategy_name=$1 
                     AND created_at >= $2 
                     AND exit_price IS NOT NULL
                 """
                 
-                trades = await conn.fetch(trades_query, strategy_name, since_date)
+                trades=await conn.fetch(trades_query, strategy_name, since_date)
                 
-                if not trades:
+                if not trades: 
                     return StrategyPerformance(strategy_name=strategy_name)
                 
                 # Calculate metrics
@@ -472,12 +472,12 @@ class ProductionDatabaseManager:
                 winning_trades=sum(1 for t in trades if t['pnl'] and t['pnl'] > 0)
                 losing_trades=total_trades - winning_trades
                 
-                win_rate = Decimal(winning_trades) / Decimal(total_trades) if total_trades > 0 else Decimal('0')
+                win_rate=Decimal(winning_trades) / Decimal(total_trades) if total_trades > 0 else Decimal('0')
                 
                 wins=[t['pnl'] for t in trades if t['pnl'] and t['pnl'] > 0]
-                losses = [t['pnl'] for t in trades if t['pnl'] and t['pnl'] < 0]
+                losses=[t['pnl'] for t in trades if t['pnl'] and t['pnl'] < 0]
                 
-                avg_win = Decimal(sum(wins)) / Decimal(len(wins)) if wins else Decimal('0')
+                avg_win=Decimal(sum(wins)) / Decimal(len(wins)) if wins else Decimal('0')
                 avg_loss=Decimal(sum(losses)) / Decimal(len(losses)) if losses else Decimal('0')
                 
                 largest_win=Decimal(max(wins)) if wins else Decimal('0')
@@ -490,12 +490,12 @@ class ProductionDatabaseManager:
                 profit_factor=gross_profit / gross_loss if gross_loss > 0 else Decimal('0')
                 
                 # Kelly Criterion calculation
-                if avg_loss != 0:
+                if avg_loss != 0: 
                     b=avg_win / abs(avg_loss)
                     p=win_rate
-                    q = Decimal('1') - p
+                    q=Decimal('1') - p
                     kelly_fraction=(b * p - q) / b if b > 0 else Decimal('0')
-                else:
+                else: 
                     kelly_fraction=Decimal('0')
                 
                 performance=StrategyPerformance(
@@ -521,14 +521,14 @@ class ProductionDatabaseManager:
                 
                 return performance
                 
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error calculating strategy performance: {e}")
             return StrategyPerformance(strategy_name=strategy_name)
     
     async def _save_strategy_performance(self, performance: StrategyPerformance):
         """Save strategy performance to database"""
-        try:
-            async with self.pool.acquire() as conn:
+        try: 
+            async with self.pool.acquire() as conn: 
                 query="""
                     INSERT INTO strategy_performance (
                         strategy_name, total_trades, winning_trades, losing_trades,
@@ -572,33 +572,33 @@ class ProductionDatabaseManager:
                     performance.last_calculated
                 )
                 
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error saving strategy performance: {e}")
 
 
 # Factory function for easy initialization
-def create_database_manager(config: Dict[str, Any]) -> ProductionDatabaseManager:
+def create_database_manager(config: Dict[str, Any]) -> ProductionDatabaseManager: 
     """Create production database manager"""
     return ProductionDatabaseManager(config)
 
 
 # Standalone testing
-async def main():
+async def main(): 
     """Test database functionality"""
     logging.basicConfig(level=logging.INFO)
     
     # Test configuration
     config={
-        'db_host':'localhost',
-        'db_port':5432,
-        'db_name':'wallstreetbots_test',
-        'db_user':'postgres',
-        'db_password':'password'
+        'db_host': 'localhost',
+        'db_port': 5432,
+        'db_name': 'wallstreetbots_test',
+        'db_user': 'postgres',
+        'db_password': 'password'
     }
     
     db=create_database_manager(config)
     
-    try:
+    try: 
         # Initialize database
         await db.initialize()
         
@@ -621,8 +621,8 @@ async def main():
         performance=await db.calculate_strategy_performance('test_strategy')
         print(f"Strategy performance: {performance}")
         
-    finally:
+    finally: 
         await db.close()
 
 
-if __name__== "__main__":asyncio.run(main())
+if __name__== "__main__": asyncio.run(main())

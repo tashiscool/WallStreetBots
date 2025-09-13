@@ -15,14 +15,14 @@ from ..core.production_logging import ProductionLogger
 from ..core.production_config import ConfigManager
 
 
-class BacktestPeriod(Enum):
+class BacktestPeriod(Enum): 
     DAILY="daily"
-    WEEKLY = "weekly"
-    MONTHLY = "monthly"
+    WEEKLY="weekly"
+    MONTHLY="monthly"
 
 
 @dataclass
-class BacktestConfig:
+class BacktestConfig: 
     start_date: datetime
     end_date: datetime
     initial_capital: float
@@ -38,7 +38,7 @@ class BacktestConfig:
 
 
 @dataclass
-class BacktestTrade:
+class BacktestTrade: 
     ticker: str
     strategy: str
     entry_date: datetime
@@ -57,7 +57,7 @@ class BacktestTrade:
 
 
 @dataclass
-class BacktestResults:
+class BacktestResults: 
     config: BacktestConfig
     start_date: datetime
     end_date: datetime
@@ -80,32 +80,32 @@ class BacktestResults:
     benchmark_return: float
     alpha: float
     beta: float
-    trades: List[BacktestTrade] = field(default_factory=list)
-    daily_returns: List[float] = field(default_factory=list)
-    daily_portfolio_values: List[float] = field(default_factory=list)
+    trades: List[BacktestTrade]=field(default_factory=list)
+    daily_returns: List[float]=field(default_factory=list)
+    daily_portfolio_values: List[float]=field(default_factory=list)
 
 
-class BacktestEngine:
+class BacktestEngine: 
     """Main backtesting engine"""
     
     def __init__(self, config: ConfigManager, logger: ProductionLogger):
         self.config=config
-        self.logger = logger
+        self.logger=logger
         
         # Backtesting state
-        self.current_date = None
-        self.portfolio_value = 0.0
-        self.cash = 0.0
-        self.positions = {}
-        self.trades = []
-        self.daily_portfolio_values = []
-        self.daily_returns = []
+        self.current_date=None
+        self.portfolio_value=0.0
+        self.cash=0.0
+        self.positions={}
+        self.trades=[]
+        self.daily_portfolio_values=[]
+        self.daily_returns=[]
         
         self.logger.info("BacktestEngine initialized")
     
     async def run_backtest(self, strategy, config: BacktestConfig) -> BacktestResults:
         """Run comprehensive backtest"""
-        try:
+        try: 
             self.logger.info(f"Starting backtest from {config.start_date} to {config.end_date}")
             
             # Initialize backtesting state
@@ -117,28 +117,28 @@ class BacktestEngine:
             # Calculate results
             results=await self._calculate_results(config)
             
-            self.logger.info(f"Backtest completed: {results.total_trades} trades, {results.total_return:.2%} return")
+            self.logger.info(f"Backtest completed: {results.total_trades} trades, {results.total_return: .2%} return")
             return results
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error running backtest: {e}")
             raise
     
     def _initialize_backtest(self, config: BacktestConfig):
         """Initialize backtesting state"""
         self.current_date=config.start_date
-        self.portfolio_value = config.initial_capital
-        self.cash = config.initial_capital
-        self.positions = {}
-        self.trades = []
-        self.daily_portfolio_values = []
-        self.daily_returns = []
+        self.portfolio_value=config.initial_capital
+        self.cash=config.initial_capital
+        self.positions={}
+        self.trades=[]
+        self.daily_portfolio_values=[]
+        self.daily_returns=[]
     
     async def _run_simulation(self, strategy, config: BacktestConfig):
         """Run the backtest simulation"""
         date_range=[config.start_date + timedelta(days=i) for i in range((config.end_date - config.start_date).days + 1)]
         
-        for current_date in date_range:
+        for current_date in date_range: 
             self.current_date=current_date
             
             # Update portfolio value
@@ -148,14 +148,14 @@ class BacktestEngine:
             self.daily_portfolio_values.append(self.portfolio_value)
             
             # Calculate daily return
-            if len(self.daily_portfolio_values) > 1:
+            if len(self.daily_portfolio_values) > 1: 
                 daily_return=(self.portfolio_value - self.daily_portfolio_values[-2]) / self.daily_portfolio_values[-2]
                 self.daily_returns.append(daily_return)
-            else:
+            else: 
                 self.daily_returns.append(0.0)
             
             # Check for rebalancing
-            if self._should_rebalance(current_date, config):
+            if self._should_rebalance(current_date, config): 
                 await self._rebalance_portfolio(strategy, config)
             
             # Update positions
@@ -164,61 +164,61 @@ class BacktestEngine:
             # Check for exit conditions
             await self._check_exit_conditions(config)
     
-    async def _update_portfolio_value(self):
+    async def _update_portfolio_value(self): 
         """Update portfolio value based on current positions"""
         total_value=self.cash
         
-        for ticker, position in self.positions.items():
+        for ticker, position in self.positions.items(): 
             # Mock current price update
             current_price=position['entry_price'] * (1 + 0.001)  # 0.1% daily return
-            position['current_price'] = current_price
-            position['unrealized_pnl'] = (current_price - position['entry_price']) * position['quantity']
+            position['current_price']=current_price
+            position['unrealized_pnl']=(current_price - position['entry_price']) * position['quantity']
             total_value += position['unrealized_pnl']
         
         self.portfolio_value=total_value
     
     def _should_rebalance(self, current_date: datetime, config: BacktestConfig) -> bool:
         """Check if portfolio should be rebalanced"""
-        if config.rebalance_frequency== BacktestPeriod.DAILY:
+        if config.rebalance_frequency== BacktestPeriod.DAILY: 
             return True
-        elif config.rebalance_frequency == BacktestPeriod.WEEKLY:
+        elif config.rebalance_frequency == BacktestPeriod.WEEKLY: 
             return current_date.weekday() == 0  # Monday
-        elif config.rebalance_frequency== BacktestPeriod.MONTHLY:
+        elif config.rebalance_frequency== BacktestPeriod.MONTHLY: 
             return current_date.day == 1
         
         return False
     
     async def _rebalance_portfolio(self, strategy, config: BacktestConfig):
         """Rebalance portfolio based on strategy signals"""
-        try:
+        try: 
             # Mock strategy signals
             signals=await self._get_mock_signals()
             
             # Process signals
-            for signal in signals:
+            for signal in signals: 
                 await self._process_signal(signal, config)
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error rebalancing portfolio: {e}")
     
-    async def _get_mock_signals(self) -> List[Dict[str, Any]]:
+    async def _get_mock_signals(self) -> List[Dict[str, Any]]: 
         """Generate mock trading signals"""
         # Mock signals for backtesting
         universe=self.config.trading.universe
-        signals = []
+        signals=[]
         
-        for ticker in universe[:3]:  # Limit to 3 tickers
+        for ticker in universe[: 3]: # Limit to 3 tickers
             signals.append({
-                'ticker':ticker,
-                'action':'buy' if len(signals) % 2== 0 else 'sell',
-                'quantity':100
+                'ticker': ticker,
+                'action': 'buy' if len(signals) % 2== 0 else 'sell',
+                'quantity': 100
             })
         
         return signals
     
     async def _process_signal(self, signal: Dict[str, Any], config: BacktestConfig):
         """Process individual trading signal"""
-        try:
+        try: 
             ticker=signal.get('ticker')
             action=signal.get('action')
             quantity=signal.get('quantity', 0)
@@ -226,75 +226,75 @@ class BacktestEngine:
             # Mock current price
             current_price=100.0
             
-            if action == 'buy' and quantity > 0:
+            if action == 'buy' and quantity > 0: 
                 await self._execute_buy(ticker, quantity, current_price, config)
-            elif action== 'sell' and quantity > 0:
+            elif action== 'sell' and quantity > 0: 
                 await self._execute_sell(ticker, quantity, current_price, config)
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error processing signal: {e}")
     
     async def _execute_buy(self, ticker: str, quantity: int, price: float, config: BacktestConfig):
         """Execute buy order"""
-        try:
+        try: 
             # Check if we have enough cash
             total_cost=quantity * price
-            commission = config.commission_per_trade
-            slippage = config.slippage_per_trade * total_cost
-            total_cost_with_costs = total_cost + commission + slippage
+            commission=config.commission_per_trade
+            slippage=config.slippage_per_trade * total_cost
+            total_cost_with_costs=total_cost + commission + slippage
             
-            if total_cost_with_costs > self.cash:
+            if total_cost_with_costs > self.cash: 
                 self.logger.warning(f"Insufficient cash for {ticker} buy order")
                 return
             
             # Execute the trade
             self.cash -= total_cost_with_costs
             
-            if ticker in self.positions:
+            if ticker in self.positions: 
                 # Add to existing position
                 existing_position=self.positions[ticker]
-                total_quantity = existing_position['quantity'] + quantity
-                avg_price = ((existing_position['entry_price'] * existing_position['quantity']) + 
+                total_quantity=existing_position['quantity'] + quantity
+                avg_price=((existing_position['entry_price'] * existing_position['quantity']) + 
                            (price * quantity)) / total_quantity
                 
-                existing_position['quantity'] = total_quantity
-                existing_position['entry_price'] = avg_price
-            else:
+                existing_position['quantity']=total_quantity
+                existing_position['entry_price']=avg_price
+            else: 
                 # Create new position
-                self.positions[ticker] = {
-                    'ticker':ticker,
-                    'strategy':'backtest',
-                    'entry_date':self.current_date,
-                    'entry_price':price,
-                    'quantity':quantity,
-                    'side':'long',
-                    'current_price':price,
-                    'unrealized_pnl':0.0,
-                    'realized_pnl':0.0,
-                    'days_held':0
+                self.positions[ticker]={
+                    'ticker': ticker,
+                    'strategy': 'backtest',
+                    'entry_date': self.current_date,
+                    'entry_price': price,
+                    'quantity': quantity,
+                    'side': 'long',
+                    'current_price': price,
+                    'unrealized_pnl': 0.0,
+                    'realized_pnl': 0.0,
+                    'days_held': 0
                 }
             
-            self.logger.info(f"Executed buy: {quantity} {ticker} at ${price:.2f}")
+            self.logger.info(f"Executed buy: {quantity} {ticker} at ${price: .2f}")
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error executing buy order: {e}")
     
     async def _execute_sell(self, ticker: str, quantity: int, price: float, config: BacktestConfig):
         """Execute sell order"""
-        try:
-            if ticker not in self.positions:
+        try: 
+            if ticker not in self.positions: 
                 self.logger.warning(f"No position to sell for {ticker}")
                 return
             
             position=self.positions[ticker]
             
-            if quantity > position['quantity']:
-                quantity = position['quantity']
+            if quantity > position['quantity']: 
+                quantity=position['quantity']
             
-            # Calculate P&L
-            pnl = (price - position['entry_price']) * quantity
+            # Calculate P & L
+            pnl=(price - position['entry_price']) * quantity
             commission=config.commission_per_trade
-            slippage = config.slippage_per_trade * (quantity * price)
+            slippage=config.slippage_per_trade * (quantity * price)
             net_pnl=pnl - commission - slippage
             
             # Update cash and position
@@ -324,42 +324,42 @@ class BacktestEngine:
             self.trades.append(trade)
             
             # Remove position if fully sold
-            if position['quantity'] == 0:
+            if position['quantity'] == 0: 
                 del self.positions[ticker]
             
-            self.logger.info(f"Executed sell: {quantity} {ticker} at ${price:.2f}, P&L: ${net_pnl:.2f}")
+            self.logger.info(f"Executed sell: {quantity} {ticker} at ${price: .2f}, P & L: ${net_pnl:.2f}")
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error executing sell order: {e}")
     
-    async def _update_positions(self):
+    async def _update_positions(self): 
         """Update position tracking"""
-        for ticker, position in self.positions.items():
+        for ticker, position in self.positions.items(): 
             # Mock price update
             current_price=position['entry_price'] * (1 + 0.001)  # 0.1% daily return
-            position['current_price'] = current_price
-            position['unrealized_pnl'] = (current_price - position['entry_price']) * position['quantity']
-            position['days_held'] = (self.current_date - position['entry_date']).days
+            position['current_price']=current_price
+            position['unrealized_pnl']=(current_price - position['entry_price']) * position['quantity']
+            position['days_held']=(self.current_date - position['entry_date']).days
     
     async def _check_exit_conditions(self, config: BacktestConfig):
         """Check for exit conditions (stop loss, take profit)"""
-        for ticker, position in list(self.positions.items()):
+        for ticker, position in list(self.positions.items()): 
             current_price=position['current_price']
-            entry_price = position['entry_price']
+            entry_price=position['entry_price']
             
             # Check stop loss
-            if current_price <= entry_price * (1 - config.stop_loss_pct):
+            if current_price <= entry_price * (1 - config.stop_loss_pct): 
                 await self._execute_sell(ticker, position['quantity'], current_price, config)
                 continue
             
             # Check take profit
-            if current_price >= entry_price * (1 + config.take_profit_pct):
+            if current_price >= entry_price * (1 + config.take_profit_pct): 
                 await self._execute_sell(ticker, position['quantity'], current_price, config)
                 continue
     
     async def _calculate_results(self, config: BacktestConfig) -> BacktestResults:
         """Calculate comprehensive backtest results"""
-        try:
+        try: 
             # Basic metrics
             total_trades=len(self.trades)
             winning_trades=len([t for t in self.trades if t.net_pnl > 0])
@@ -367,29 +367,29 @@ class BacktestEngine:
             win_rate=winning_trades / total_trades if total_trades > 0 else 0
             
             # Return metrics
-            total_return = (self.portfolio_value - config.initial_capital) / config.initial_capital
+            total_return=(self.portfolio_value - config.initial_capital) / config.initial_capital
             years=(config.end_date - config.start_date).days / 365.25
             annualized_return=(1 + total_return) ** (1 / years) - 1 if years > 0 else 0
             
             # Risk metrics
             volatility=0.15  # Mock volatility
-            sharpe_ratio = (annualized_return - config.risk_free_rate) / volatility if volatility > 0 else 0
+            sharpe_ratio=(annualized_return - config.risk_free_rate) / volatility if volatility > 0 else 0
             
             # Drawdown calculation
             peak=config.initial_capital
-            max_drawdown = 0
+            max_drawdown=0
             
-            for value in self.daily_portfolio_values:
-                if value > peak:
-                    peak = value
-                drawdown = (peak - value) / peak
+            for value in self.daily_portfolio_values: 
+                if value > peak: 
+                    peak=value
+                drawdown=(peak - value) / peak
                 max_drawdown=max(max_drawdown, drawdown)
             
             # Additional metrics
             calmar_ratio=annualized_return / max_drawdown if max_drawdown > 0 else 0
             
             # Profit factor
-            gross_profit = sum(t.net_pnl for t in self.trades if t.net_pnl > 0)
+            gross_profit=sum(t.net_pnl for t in self.trades if t.net_pnl > 0)
             gross_loss=abs(sum(t.net_pnl for t in self.trades if t.net_pnl < 0))
             profit_factor=gross_profit / gross_loss if gross_loss > 0 else float('inf')
             
@@ -403,11 +403,11 @@ class BacktestEngine:
             net_profit=self.portfolio_value - config.initial_capital
             
             # Benchmark comparison
-            benchmark_return = 0.10  # 10% annual return
-            alpha = annualized_return - benchmark_return
-            beta = 1.0  # Mock beta
+            benchmark_return=0.10  # 10% annual return
+            alpha=annualized_return - benchmark_return
+            beta=1.0  # Mock beta
             
-            results = BacktestResults(
+            results=BacktestResults(
                 config=config,
                 start_date=config.start_date,
                 end_date=config.end_date,
@@ -437,53 +437,53 @@ class BacktestEngine:
             
             return results
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error calculating results: {e}")
             raise
 
 
-class BacktestAnalyzer:
+class BacktestAnalyzer: 
     """Backtest results analyzer"""
     
     def __init__(self, logger: ProductionLogger):
         self.logger=logger
     
-    def generate_report(self, results: BacktestResults) -> Dict[str, Any]:
+    def generate_report(self, results: BacktestResults) -> Dict[str, Any]: 
         """Generate comprehensive backtest report"""
-        try:
+        try: 
             report={
-                "summary":{
-                    "period":f"{results.start_date.date()} to {results.end_date.date()}",
-                    "initial_capital":results.config.initial_capital,
-                    "final_value":results.daily_portfolio_values[-1] if results.daily_portfolio_values else results.config.initial_capital,
-                    "total_return":f"{results.total_return:.2%}",
-                    "annualized_return":f"{results.annualized_return:.2%}",
-                    "volatility":f"{results.volatility:.2%}",
-                    "sharpe_ratio":f"{results.sharpe_ratio:.2f}",
-                    "max_drawdown":f"{results.max_drawdown:.2%}",
-                    "calmar_ratio":f"{results.calmar_ratio:.2f}"
+                "summary": {
+                    "period": f"{results.start_date.date()} to {results.end_date.date()}",
+                    "initial_capital": results.config.initial_capital,
+                    "final_value": results.daily_portfolio_values[-1] if results.daily_portfolio_values else results.config.initial_capital,
+                    "total_return": f"{results.total_return:.2%}",
+                    "annualized_return": f"{results.annualized_return:.2%}",
+                    "volatility": f"{results.volatility:.2%}",
+                    "sharpe_ratio": f"{results.sharpe_ratio:.2f}",
+                    "max_drawdown": f"{results.max_drawdown:.2%}",
+                    "calmar_ratio": f"{results.calmar_ratio:.2f}"
                 },
-                "trading_stats":{
-                    "total_trades":results.total_trades,
-                    "winning_trades":results.winning_trades,
-                    "losing_trades":results.losing_trades,
-                    "win_rate":f"{results.win_rate:.2%}",
-                    "profit_factor":f"{results.profit_factor:.2f}",
-                    "avg_win":f"${results.avg_win:.2f}",
-                    "avg_loss":f"${results.avg_loss:.2f}",
-                    "total_commission":f"${results.total_commission:.2f}",
-                    "total_slippage":f"${results.total_slippage:.2f}",
-                    "net_profit":f"${results.net_profit:.2f}"
+                "trading_stats": {
+                    "total_trades": results.total_trades,
+                    "winning_trades": results.winning_trades,
+                    "losing_trades": results.losing_trades,
+                    "win_rate": f"{results.win_rate:.2%}",
+                    "profit_factor": f"{results.profit_factor:.2f}",
+                    "avg_win": f"${results.avg_win:.2f}",
+                    "avg_loss": f"${results.avg_loss:.2f}",
+                    "total_commission": f"${results.total_commission:.2f}",
+                    "total_slippage": f"${results.total_slippage:.2f}",
+                    "net_profit": f"${results.net_profit:.2f}"
                 },
-                "benchmark_comparison":{
-                    "benchmark_return":f"{results.benchmark_return:.2%}",
-                    "alpha":f"{results.alpha:.2%}",
-                    "beta":f"{results.beta:.2f}"
+                "benchmark_comparison": {
+                    "benchmark_return": f"{results.benchmark_return:.2%}",
+                    "alpha": f"{results.alpha:.2%}",
+                    "beta": f"{results.beta:.2f}"
                 }
             }
             
             return report
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error generating report: {e}")
-            return {"error":str(e)}
+            return {"error": str(e)}

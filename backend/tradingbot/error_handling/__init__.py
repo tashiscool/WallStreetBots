@@ -1,7 +1,7 @@
 """
 Error Handling and Recovery System
 
-Production-grade error handling and recovery mechanisms for robust trading operations.
+Production - grade error handling and recovery mechanisms for robust trading operations.
 """
 
 from .recovery_manager import TradingErrorRecoveryManager, RecoveryAction

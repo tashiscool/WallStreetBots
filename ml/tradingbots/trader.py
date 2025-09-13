@@ -1,4 +1,4 @@
-class Action:
+class Action: 
     """
     data class returned by Strategy class
 
@@ -17,37 +17,37 @@ class Action:
     ORDERTYPES=['M', 'L', 'S', 'ST', 'T', ]
     TRANSACTIONTYPES=['B', 'S', ]
 
-    def __init__(self, order_type, transaction_type, ticker, quantity):
+    def __init__(self, order_type, transaction_type, ticker, quantity): 
         self.order_type=order_type
         assert order_type in Action.ORDERTYPES
-        self.transaction_type = transaction_type
+        self.transaction_type=transaction_type
         assert transaction_type in Action.TRANSACTIONTYPES
-        self.ticker = ticker
-        self.quantity = quantity
+        self.ticker=ticker
+        self.quantity=quantity
 
-    def __dict__(self):
-        return {'order_type':self.order_type,
-                'transaction_type':self.transaction_type,
-                'ticker':self.ticker,
-                'quantity':self.quantity
+    def __dict__(self): 
+        return {'order_type': self.order_type,
+                'transaction_type': self.transaction_type,
+                'ticker': self.ticker,
+                'quantity': self.quantity
                 }
 
 
-class Strategy:
-    def __init__(self, name):
+class Strategy: 
+    def __init__(self, name): 
         self.name=name
 
-    def get_actions(self, portfolio):
+    def get_actions(self, portfolio): 
         return []
 
 
-class MonteCarloMASharpeRatioStrategy(Strategy):
-    def get_actions(self, portfolio):
+class MonteCarloMASharpeRatioStrategy(Strategy): 
+    def get_actions(self, portfolio): 
         """
-        Args:
-            portfolio:   dict in the form {cash: QTY, stocks: {SYMB1:QTY, SYMB2:QTY}}
+        Args: 
+            portfolio:   dict in the form {cash: QTY, stocks: {SYMB1: QTY, SYMB2: QTY}}
 
-        Returns:
+        Returns: 
             actions:    list of action objects
         """
         from .pipelines.monte_carlo_w_ma import MonteCarloMovingAveragePipline
@@ -56,13 +56,13 @@ class MonteCarloMASharpeRatioStrategy(Strategy):
         return actions
 
 
-class HMMNaiveStrategy(Strategy):
-    def get_actions(self, portfolio):
+class HMMNaiveStrategy(Strategy): 
+    def get_actions(self, portfolio): 
         """
-        Args:
-            portfolio:   dict in the form {cash: QTY, stocks: {SYMB1:QTY, SYMB2:QTY}}
+        Args: 
+            portfolio:   dict in the form {cash: QTY, stocks: {SYMB1: QTY, SYMB2: QTY}}
 
-        Returns:
+        Returns: 
             actions:    list of action objects
         """
         from .pipelines.hiddenmarkov_pipeline import HMMPipline

@@ -23,16 +23,16 @@ from backend.tradingbot.alert_system import TradingAlertSystem, ExecutionCheckli
 from backend.tradingbot.trading_system import IntegratedTradingSystem, TradingConfig
 
 
-class TestBlackScholesCalculator(unittest.TestCase):
-    """Test Black-Scholes pricing accuracy"""
+class TestBlackScholesCalculator(unittest.TestCase): 
+    """Test Black - Scholes pricing accuracy"""
 
-    def setUp(self):
+    def setUp(self): 
         self.bs_calc=BlackScholesCalculator()
 
-    def test_call_pricing_accuracy(self):
-        """Test Black-Scholes call pricing with known values"""
+    def test_call_pricing_accuracy(self): 
+        """Test Black - Scholes call pricing with known values"""
         # Known test case: S=100, K=100, T=1, r=0.05, q=0, IV=0.20
-        price = self.bs_calc.call_price(
+        price=self.bs_calc.call_price(
             spot=100.0,
             strike=100.0,
             time_to_expiry_years=1.0,
@@ -44,17 +44,17 @@ class TestBlackScholesCalculator(unittest.TestCase):
         # Should be approximately 10.45 based on standard BS formula
         self.assertAlmostEqual(price, 10.45, delta=0.1)
 
-    def test_successful_trade_replication(self):
+    def test_successful_trade_replication(self): 
         """Test that we can replicate the successful trade's option value"""
         # Parameters from successful trade at entry
         spot=207.0
-        strike = 220.0
-        dte = 30
-        iv = 0.28
+        strike=220.0
+        dte=30
+        iv=0.28
 
-        time_to_expiry = dte / 365.0
+        time_to_expiry=dte / 365.0
 
-        premium_per_share = self.bs_calc.call_price(
+        premium_per_share=self.bs_calc.call_price(
             spot=spot,
             strike=strike,
             time_to_expiry_years=time_to_expiry,
@@ -66,41 +66,41 @@ class TestBlackScholesCalculator(unittest.TestCase):
         premium_per_contract=premium_per_share * 100
 
         # Should be reasonably close to actual entry premium (adjusted for realistic BS calculation)
-        # For 5% OTM call with 30 DTE, expect premium around $200-250 per contract
+        # For 5% OTM call with 30 DTE, expect premium around $200 - 250 per contract
         self.assertGreater(premium_per_contract, 200.0)
         self.assertLess(premium_per_contract, 300.0)
 
-    def test_delta_calculation(self):
+    def test_delta_calculation(self): 
         """Test delta calculation"""
         delta=self.bs_calc.delta(
             spot=207.0,
             strike=220.0,
-            time_to_expiry_years=30/365.0,
+            time_to_expiry_years=30 / 365.0,
             risk_free_rate=0.04,
             dividend_yield=0.0,
             implied_volatility=0.28
         )
 
-        # 5% OTM call with 30 DTE should have delta around 0.24-0.30
+        # 5% OTM call with 30 DTE should have delta around 0.24 - 0.30
         self.assertGreater(delta, 0.20)
         self.assertLess(delta, 0.35)
 
 
-class TestOptionsTradeCalculator(unittest.TestCase):
+class TestOptionsTradeCalculator(unittest.TestCase): 
     """Test options trade calculation logic"""
 
-    def setUp(self):
+    def setUp(self): 
         self.calculator=OptionsTradeCalculator()
 
-    def test_strike_calculation(self):
+    def test_strike_calculation(self): 
         """Test 5% OTM strike calculation"""
         spot=207.0
-        strike = self.calculator.calculate_otm_strike(spot)
+        strike=self.calculator.calculate_otm_strike(spot)
 
         expected_strike=207.0 * 1.05  # 5% OTM
         self.assertAlmostEqual(strike, expected_strike, delta=1.0)
 
-    def test_expiry_calculation(self):
+    def test_expiry_calculation(self): 
         """Test optimal expiry date calculation"""
         expiry=self.calculator.find_optimal_expiry(target_dte=30)
 
@@ -112,7 +112,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         self.assertGreaterEqual(days_diff, 21)
         self.assertLessEqual(days_diff, 45)
 
-    def test_trade_calculation_comprehensive(self):
+    def test_trade_calculation_comprehensive(self): 
         """Test complete trade calculation"""
         trade_calc=self.calculator.calculate_trade(
             ticker="GOOGL",
@@ -131,29 +131,29 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         self.assertGreater(trade_calc.leverage_ratio, 1.0)  # Should have leverage
 
 
-class TestMarketRegime(unittest.TestCase):
+class TestMarketRegime(unittest.TestCase): 
     """Test market regime detection and signal generation"""
 
-    def setUp(self):
+    def setUp(self): 
         self.regime_filter=MarketRegimeFilter()
         self.signal_generator=SignalGenerator()
 
-    def test_bull_regime_detection(self):
+    def test_bull_regime_detection(self): 
         """Test bull market regime detection"""
         # Create bull regime indicators
         indicators=create_sample_indicators(
-            price=210.0,     # Above 50-EMA
+            price=210.0,     # Above 50 - EMA
             ema_20=208.0,    # Rising
-            ema_50=205.0,    # Above 200-EMA
+            ema_50=205.0,    # Above 200 - EMA
             ema_200=200.0,   # Base
             rsi=55.0
         )
         indicators.ema_20_slope=0.002  # Positive slope
 
-        regime = self.regime_filter.determine_regime(indicators)
+        regime=self.regime_filter.determine_regime(indicators)
         self.assertEqual(regime, MarketRegime.BULL)
 
-    def test_pullback_setup_detection(self):
+    def test_pullback_setup_detection(self): 
         """Test pullback setup detection"""
         # Previous day (higher)
         prev_indicators=create_sample_indicators(
@@ -164,20 +164,20 @@ class TestMarketRegime(unittest.TestCase):
             rsi=50.0
         )
 
-        # Current day (pullback to 20-EMA)
+        # Current day (pullback to 20 - EMA)
         current_indicators=create_sample_indicators(
             price=208.5,  # Declined from previous
-            ema_20=208.0, # Near 20-EMA
+            ema_20=208.0, # Near 20 - EMA
             ema_50=205.0,
             ema_200=200.0,
             rsi=42.0,     # RSI in pullback range
-            low=207.0     # Low touched 20-EMA
+            low=207.0     # Low touched 20 - EMA
         )
 
         has_setup=self.regime_filter.detect_pullback_setup(current_indicators, prev_indicators)
         self.assertTrue(has_setup)
 
-    def test_buy_signal_generation(self):
+    def test_buy_signal_generation(self): 
         """Test buy signal generation"""
         # Setup: bull regime + pullback setup + reversal trigger
         prev_indicators=create_sample_indicators(
@@ -202,22 +202,22 @@ class TestMarketRegime(unittest.TestCase):
         )
         current_indicators.ema_20_slope=0.002
 
-        signal = self.signal_generator.generate_signal(current_indicators, prev_indicators)
+        signal=self.signal_generator.generate_signal(current_indicators, prev_indicators)
 
         # Should generate hold signal (pullback setup but no reversal trigger)
         self.assertEqual(signal.signal_type, SignalType.HOLD)
         self.assertGreater(signal.confidence, 0.2)
 
 
-class TestRiskManagement(unittest.TestCase):
+class TestRiskManagement(unittest.TestCase): 
     """Test risk management and position sizing"""
 
-    def setUp(self):
+    def setUp(self): 
         self.position_sizer=PositionSizer()
         self.risk_manager=RiskManager()
         self.kelly_calc=KellyCalculator()
 
-    def test_kelly_calculation(self):
+    def test_kelly_calculation(self): 
         """Test Kelly criterion calculation"""
         # Test with parameters from successful trading
         kelly=self.kelly_calc.calculate_kelly_fraction(
@@ -230,7 +230,7 @@ class TestRiskManagement(unittest.TestCase):
         self.assertGreater(kelly, 0.0)
         self.assertLess(kelly, 1.0)  # Should be less than 100%
 
-    def test_position_sizing_safety(self):
+    def test_position_sizing_safety(self): 
         """Test that position sizing enforces safety limits"""
         sizing=self.position_sizer.calculate_position_size(
             account_value=500000,
@@ -243,16 +243,16 @@ class TestRiskManagement(unittest.TestCase):
         self.assertLessEqual(sizing['risk_percentage'], 15.0)  # Max 15%
         self.assertGreater(sizing['recommended_contracts'], 0)
 
-    def test_existential_bet_prevention(self):
+    def test_existential_bet_prevention(self): 
         """Test that system prevents existential bets like the original 95% risk"""
         # Try to replicate the original risky sizing
         account_value=500000
-        premium = 4.70
-        original_contracts = 950  # Original trade size
-        original_cost = original_contracts * premium * 100
+        premium=4.70
+        original_contracts=950  # Original trade size
+        original_cost=original_contracts * premium * 100
 
         # Calculate what system would recommend
-        sizing = self.position_sizer.calculate_position_size(
+        sizing=self.position_sizer.calculate_position_size(
             account_value=account_value,
             setup_confidence=0.9,
             premium_per_contract=premium,
@@ -263,7 +263,7 @@ class TestRiskManagement(unittest.TestCase):
         recommended_cost=sizing['total_cost']
         self.assertLess(recommended_cost, original_cost * 0.5)  # At least 50% smaller
 
-    def test_portfolio_risk_calculation(self):
+    def test_portfolio_risk_calculation(self): 
         """Test portfolio risk calculation"""
         # Add a sample position
         position=Position(
@@ -288,10 +288,10 @@ class TestRiskManagement(unittest.TestCase):
         self.assertGreater(portfolio_risk.unrealized_pnl, 0)  # Position is profitable
 
 
-class TestExitPlanning(unittest.TestCase):
+class TestExitPlanning(unittest.TestCase): 
     """Test exit strategy and scenario analysis"""
 
-    def setUp(self):
+    def setUp(self): 
         self.exit_strategy=ExitStrategy()
         self.scenario_analyzer=ScenarioAnalyzer()
 
@@ -311,13 +311,13 @@ class TestExitPlanning(unittest.TestCase):
             profit_targets=[1.0, 2.0, 2.5]
         )
 
-    def test_profit_target_detection(self):
+    def test_profit_target_detection(self): 
         """Test profit target exit signal detection"""
         # Position is currently at ~70% profit (8.00 vs 4.70 entry)
         # Update to hit first profit target
         self.sample_position.current_premium=9.40  # 100% profit
 
-        exit_signals = self.exit_strategy.analyze_exit_conditions(
+        exit_signals=self.exit_strategy.analyze_exit_conditions(
             position=self.sample_position,
             current_spot=225.0,  # In the money
             current_iv=0.25,
@@ -328,7 +328,7 @@ class TestExitPlanning(unittest.TestCase):
         profit_signals=[sig for sig in exit_signals if sig.reason == ExitReason.PROFIT_TARGET]
         self.assertGreater(len(profit_signals), 0)
 
-    def test_scenario_analysis(self):
+    def test_scenario_analysis(self): 
         """Test scenario analysis generation"""
         scenarios=self.scenario_analyzer.run_comprehensive_analysis(
             position=self.sample_position,
@@ -344,23 +344,23 @@ class TestExitPlanning(unittest.TestCase):
         self.assertIn("Current (No Change)", scenario_names)
         self.assertIn("Strong Rally (+5%)", scenario_names)
 
-        # Should have realistic P&L ranges
+        # Should have realistic P & L ranges
         rois=[s.roi for s in scenarios]
-        # Note: With Black-Scholes theoretical pricing vs actual entry premium,
+        # Note: With Black - Scholes theoretical pricing vs actual entry premium,
         # most scenarios will show positive ROIs. Adjust expectations accordingly.
         self.assertGreater(max(rois), 0)  # Some should show profits
         # Check that we have variation in scenarios
         self.assertGreater(max(rois) - min(rois), 0.1)  # Should have variation
 
 
-class TestAlertSystem(unittest.TestCase):
+class TestAlertSystem(unittest.TestCase): 
     """Test alert system and execution checklists"""
 
-    def setUp(self):
+    def setUp(self): 
         self.alert_system=TradingAlertSystem()
         self.checklist_manager=ExecutionChecklistManager()
 
-    def test_alert_creation_and_routing(self):
+    def test_alert_creation_and_routing(self): 
         """Test alert creation and routing to channels"""
         from backend.tradingbot.alert_system import DesktopAlertHandler, AlertChannel
 
@@ -387,7 +387,7 @@ class TestAlertSystem(unittest.TestCase):
         # Should be in alert history
         self.assertIn(alert, self.alert_system.alert_history)
 
-    def test_execution_checklist_creation(self):
+    def test_execution_checklist_creation(self): 
         """Test execution checklist creation and management"""
         # Create sample trade calculation
         trade_calc=TradeCalculation(
@@ -424,10 +424,10 @@ class TestAlertSystem(unittest.TestCase):
         self.assertEqual(updated_checklist.items[0].notes, "Bull regime verified")
 
 
-class TestIntegratedSystem(unittest.TestCase):
+class TestIntegratedSystem(unittest.TestCase): 
     """Test the integrated trading system"""
 
-    def setUp(self):
+    def setUp(self): 
         self.config=TradingConfig(
             account_size=500000,
             max_position_risk_pct=0.10,
@@ -435,7 +435,7 @@ class TestIntegratedSystem(unittest.TestCase):
         )
         self.system=IntegratedTradingSystem(self.config)
 
-    def test_system_initialization(self):
+    def test_system_initialization(self): 
         """Test system initializes all components correctly"""
         self.assertIsNotNone(self.system.options_calculator)
         self.assertIsNotNone(self.system.signal_generator)
@@ -447,7 +447,7 @@ class TestIntegratedSystem(unittest.TestCase):
         self.assertFalse(self.system.state.is_running)
         self.assertEqual(self.system.state.active_positions, 0)
 
-    def test_trade_calculation_integration(self):
+    def test_trade_calculation_integration(self): 
         """Test integrated trade calculation"""
         trade_calc=self.system.calculate_trade_for_ticker(
             ticker="GOOGL",
@@ -460,7 +460,7 @@ class TestIntegratedSystem(unittest.TestCase):
         self.assertGreater(trade_calc.recommended_contracts, 0)
         self.assertLessEqual(trade_calc.account_risk_pct, 10.0)
 
-    def test_portfolio_status_reporting(self):
+    def test_portfolio_status_reporting(self): 
         """Test portfolio status reporting"""
         status=self.system.get_portfolio_status()
 
@@ -475,20 +475,20 @@ class TestIntegratedSystem(unittest.TestCase):
         self.assertEqual(status["system_state"]["alerts_sent_today"], 0)
 
 
-class TestHistoricalValidation(unittest.TestCase):
+class TestHistoricalValidation(unittest.TestCase): 
     """Validate system against the actual successful trade"""
 
-    def test_successful_trade_replication(self):
+    def test_successful_trade_replication(self): 
         """Test that we can replicate the successful 240% trade"""
         # Original trade parameters
         original_spot=207.0
-        original_strike = 220.0
-        original_entry_premium = 4.70
-        original_exit_premium = 16.00
-        original_contracts = 950
+        original_strike=220.0
+        original_entry_premium=4.70
+        original_exit_premium=16.00
+        original_contracts=950
 
         # Calculate what our system would have recommended
-        calculator = OptionsTradeCalculator()
+        calculator=OptionsTradeCalculator()
 
         trade_calc=calculator.calculate_trade(
             ticker="GOOGL",
@@ -500,18 +500,18 @@ class TestHistoricalValidation(unittest.TestCase):
 
         # Our system's recommendation vs original trade
         our_contracts=trade_calc.recommended_contracts
-        our_cost = trade_calc.total_cost
-        our_risk_pct = trade_calc.account_risk_pct
+        our_cost=trade_calc.total_cost
+        our_risk_pct=trade_calc.account_risk_pct
 
-        original_cost = original_contracts * original_entry_premium * 100
-        original_risk_pct = (original_cost / 500000) * 100
+        original_cost=original_contracts * original_entry_premium * 100
+        original_risk_pct=(original_cost / 500000) * 100
 
         print("\n=== HISTORICAL VALIDATION ===")
-        print("Original Trade:")
+        print("Original Trade: ")
         print(f"  Contracts: {original_contracts:,}")
         print(f"  Cost: ${original_cost:,.0f}")
         print(f"  Risk: {original_risk_pct:.1f}%")
-        print("\nOur System Would Recommend:")
+        print("\nOur System Would Recommend: ")
         print(f"  Contracts: {our_contracts:,}")
         print(f"  Cost: ${our_cost:,.0f}")
         print(f"  Risk: {our_risk_pct:.1f}%")
@@ -521,7 +521,7 @@ class TestHistoricalValidation(unittest.TestCase):
         self.assertLess(our_contracts, original_contracts * 0.5)  # Much smaller position
 
         # But should still capture significant upside if the trade worked
-        if original_exit_premium > original_entry_premium:
+        if original_exit_premium > original_entry_premium: 
             our_theoretical_profit=our_contracts * (original_exit_premium - original_entry_premium) * 100
             our_theoretical_roi=our_theoretical_profit / our_cost
 
@@ -529,7 +529,7 @@ class TestHistoricalValidation(unittest.TestCase):
             self.assertGreater(our_theoretical_roi, 1.0)  # Should still be >100% return
 
 
-def run_comprehensive_test():
+def run_comprehensive_test(): 
     """Run all tests and generate report"""
 
     print("=" * 60)
@@ -551,7 +551,7 @@ def run_comprehensive_test():
         TestHistoricalValidation
     ]
 
-    for test_class in test_classes:
+    for test_class in test_classes: 
         tests=unittest.TestLoader().loadTestsFromTestCase(test_class)
         test_suite.addTests(tests)
 
@@ -567,30 +567,30 @@ def run_comprehensive_test():
     print(f"Failures: {len(result.failures)}")
     print(f"Errors: {len(result.errors)}")
 
-    if result.failures:
-        print("\nFAILURES:")
-        for test, traceback in result.failures:
+    if result.failures: 
+        print("\nFAILURES: ")
+        for test, traceback in result.failures: 
             print(f"  - {test}: {traceback}")
 
-    if result.errors:
-        print("\nERRORS:")
-        for test, traceback in result.errors:
+    if result.errors: 
+        print("\nERRORS: ")
+        for test, traceback in result.errors: 
             print(f"  - {test}: {traceback}")
 
     success_rate=((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun) * 100
     print(f"\nSUCCESS RATE: {success_rate:.1f}%")
 
-    if success_rate >= 95:
+    if success_rate >= 95: 
         print("🎉 SYSTEM READY FOR DEPLOYMENT!")
-    elif success_rate >= 80:
+    elif success_rate >= 80: 
         print("⚠️  System mostly ready, address failures before live trading")
-    else:
+    else: 
         print("❌ System not ready, significant issues need resolution")
 
     return result
 
 
-if __name__== "__main__":# Also validate the original successful trade
+if __name__== "__main__": # Also validate the original successful trade
     print("Validating original successful trade math...")
     validate_successful_trade()
 

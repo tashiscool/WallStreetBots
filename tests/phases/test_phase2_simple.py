@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr / bin/env python3
 """
 Simple Phase 2 Functionality Test
 Test core Phase 2 components without complex imports
@@ -14,23 +14,23 @@ from dataclasses import dataclass, field
 
 
 # Define Phase 2 enums and classes directly for testing
-class WheelStage(Enum):
+class WheelStage(Enum): 
     CASH_SECURED_PUT="cash_secured_put"
-    ASSIGNED_STOCK = "assigned_stock"
-    COVERED_CALL = "covered_call"
-    CLOSED_POSITION = "closed_position"
+    ASSIGNED_STOCK="assigned_stock"
+    COVERED_CALL="covered_call"
+    CLOSED_POSITION="closed_position"
 
 
-class WheelStatus(Enum):
+class WheelStatus(Enum): 
     ACTIVE="active"
-    EXPIRED = "expired"
-    ASSIGNED = "assigned"
-    CLOSED = "closed"
-    ROLLED = "rolled"
+    EXPIRED="expired"
+    ASSIGNED="assigned"
+    CLOSED="closed"
+    ROLLED="rolled"
 
 
 @dataclass
-class WheelPosition:
+class WheelPosition: 
     ticker: str
     stage: WheelStage
     status: WheelStatus
@@ -42,77 +42,77 @@ class WheelPosition:
     strike_price: float
     expiry_date: datetime
     premium_received: float
-    premium_paid: float = 0.0
-    entry_date: datetime = field(default_factory=datetime.now)
+    premium_paid: float=0.0
+    entry_date: datetime=field(default_factory=datetime.now)
     last_update: datetime=field(default_factory=datetime.now)
     days_to_expiry: int=0
-    delta: float = 0.0
-    theta: float = 0.0
-    iv_rank: float = 0.0
+    delta: float=0.0
+    theta: float=0.0
+    iv_rank: float=0.0
     
-    def calculate_unrealized_pnl(self) -> float:
-        """Calculate unrealized P&L"""
-        if self.stage== WheelStage.CASH_SECURED_PUT:
-            if self.current_price >= self.strike_price:
+    def calculate_unrealized_pnl(self) -> float: 
+        """Calculate unrealized P & L"""
+        if self.stage== WheelStage.CASH_SECURED_PUT: 
+            if self.current_price >= self.strike_price: 
                 return self.premium_received
-            else:
-                loss = (self.strike_price - self.current_price) * self.quantity
+            else: 
+                loss=(self.strike_price - self.current_price) * self.quantity
                 return self.premium_received - loss
         return 0.0
     
-    def calculate_days_to_expiry(self) -> int:
+    def calculate_days_to_expiry(self) -> int: 
         """Calculate days to expiry"""
-        if self.expiry_date:
+        if self.expiry_date: 
             delta=self.expiry_date - datetime.now()
             return max(0, delta.days)
         return 0
 
 
 @dataclass
-class WheelCandidate:
+class WheelCandidate: 
     ticker: str
     current_price: float
     volatility_rank: float
     earnings_date: datetime=None
-    earnings_risk: float = 0.0
-    rsi: float = 50.0
-    support_level: float = 0.0
-    resistance_level: float = 0.0
-    put_premium: float = 0.0
-    call_premium: float = 0.0
-    iv_rank: float = 0.0
-    wheel_score: float = 0.0
-    risk_score: float = 0.0
+    earnings_risk: float=0.0
+    rsi: float=50.0
+    support_level: float=0.0
+    resistance_level: float=0.0
+    put_premium: float=0.0
+    call_premium: float=0.0
+    iv_rank: float=0.0
+    wheel_score: float=0.0
+    risk_score: float=0.0
     
-    def calculate_wheel_score(self) -> float:
+    def calculate_wheel_score(self) -> float: 
         """Calculate wheel strategy score"""
         score=0.0
         score += self.volatility_rank * 0.3
         score += self.iv_rank * 0.2
         score += min(self.put_premium / self.current_price, 0.05) * 100
         score -= self.earnings_risk * 0.2
-        if 30 <= self.rsi <= 70:
+        if 30 <= self.rsi <= 70: 
             score += 0.1
         self.wheel_score=max(0.0, min(1.0, score))
         return self.wheel_score
 
 
-class SpreadType(Enum):
+class SpreadType(Enum): 
     BULL_CALL_SPREAD="bull_call_spread"
-    BEAR_PUT_SPREAD = "bear_put_spread"
-    CALENDAR_SPREAD = "calendar_spread"
-    DIAGONAL_SPREAD = "diagonal_spread"
+    BEAR_PUT_SPREAD="bear_put_spread"
+    CALENDAR_SPREAD="calendar_spread"
+    DIAGONAL_SPREAD="diagonal_spread"
 
 
-class SpreadStatus(Enum):
+class SpreadStatus(Enum): 
     ACTIVE="active"
-    EXPIRED = "expired"
-    CLOSED = "closed"
-    ROLLED = "rolled"
+    EXPIRED="expired"
+    CLOSED="closed"
+    ROLLED="rolled"
 
 
 @dataclass
-class SpreadPosition:
+class SpreadPosition: 
     ticker: str
     spread_type: SpreadType
     status: SpreadStatus
@@ -124,30 +124,30 @@ class SpreadPosition:
     max_loss: float
     long_option: dict
     short_option: dict
-    current_value: float = 0.0
-    unrealized_pnl: float = 0.0
-    profit_pct: float = 0.0
-    entry_date: datetime = field(default_factory=datetime.now)
+    current_value: float=0.0
+    unrealized_pnl: float=0.0
+    profit_pct: float=0.0
+    entry_date: datetime=field(default_factory=datetime.now)
     expiry_date: datetime=field(default_factory=lambda: datetime.now() + timedelta(days=30))
     last_update: datetime=field(default_factory=datetime.now)
     net_delta: float=0.0
-    net_gamma: float = 0.0
-    net_theta: float = 0.0
-    net_vega: float = 0.0
+    net_gamma: float=0.0
+    net_theta: float=0.0
+    net_vega: float=0.0
     
-    def calculate_max_profit(self) -> float:
+    def calculate_max_profit(self) -> float: 
         """Calculate maximum profit potential"""
-        if self.spread_type== SpreadType.BULL_CALL_SPREAD:
+        if self.spread_type== SpreadType.BULL_CALL_SPREAD: 
             return (self.short_strike - self.long_strike) * self.quantity * 100 - self.net_debit * self.quantity * 100
         return 0.0
     
-    def calculate_max_loss(self) -> float:
+    def calculate_max_loss(self) -> float: 
         """Calculate maximum loss potential"""
         return self.net_debit * self.quantity * 100
 
 
 @dataclass
-class SpreadCandidate:
+class SpreadCandidate: 
     ticker: str
     current_price: float
     spread_type: SpreadType
@@ -163,33 +163,33 @@ class SpreadCandidate:
     net_theta: float
     net_vega: float
     spread_score: float=0.0
-    risk_score: float = 0.0
+    risk_score: float=0.0
     
-    def calculate_spread_score(self) -> float:
+    def calculate_spread_score(self) -> float: 
         """Calculate spread strategy score"""
         score=0.0
         score += min(self.profit_loss_ratio, 3.0) * 0.3
-        if self.spread_type== SpreadType.BULL_CALL_SPREAD:
+        if self.spread_type== SpreadType.BULL_CALL_SPREAD: 
             score += max(0, self.net_delta) * 0.2
         score += max(0, -self.net_theta) * 0.2
         debit_pct=self.net_debit / self.current_price
         score += max(0, 0.05 - debit_pct) * 20
         strike_width=abs(self.short_strike - self.long_strike)
-        if 2 <= strike_width <= 10:
+        if 2 <= strike_width <= 10: 
             score += 0.1
         self.spread_score=max(0.0, min(1.0, score))
         return self.spread_score
 
 
-class BenchmarkType(Enum):
+class BenchmarkType(Enum): 
     SPY="spy"
-    VTI = "vti"
-    QQQ = "qqq"
-    IWM = "iwm"
+    VTI="vti"
+    QQQ="qqq"
+    IWM="iwm"
 
 
 @dataclass
-class BenchmarkData:
+class BenchmarkData: 
     ticker: str
     benchmark_type: BenchmarkType
     current_price: float
@@ -201,11 +201,11 @@ class BenchmarkData:
     volatility: float
     sharpe_ratio: float
     max_drawdown: float
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
-class StrategyPerformance:
+class StrategyPerformance: 
     strategy_name: str
     total_return: float
     daily_return: float
@@ -226,7 +226,7 @@ class StrategyPerformance:
     last_update: datetime=field(default_factory=datetime.now)
 
 
-def test_wheel_strategy():
+def test_wheel_strategy(): 
     """Test Wheel Strategy components"""
     print("🔄 Testing Wheel Strategy Components...")
     
@@ -246,11 +246,11 @@ def test_wheel_strategy():
     )
     
     print(f"✅ Wheel Position: {position.ticker} {position.stage.value} @ ${position.strike_price}")
-    print(f"   Premium: ${position.premium_received}, P&L: ${position.unrealized_pnl}")
+    print(f"   Premium: ${position.premium_received}, P & L: ${position.unrealized_pnl}")
     
-    # Test P&L calculation
+    # Test P & L calculation
     pnl=position.calculate_unrealized_pnl()
-    print(f"✅ P&L Calculation: ${pnl}")
+    print(f"✅ P & L Calculation: ${pnl}")
     
     # Test Wheel Candidate
     candidate=WheelCandidate(
@@ -269,7 +269,7 @@ def test_wheel_strategy():
     print("✅ Wheel Strategy components working correctly\n")
 
 
-def test_debit_spreads():
+def test_debit_spreads(): 
     """Test Debit Spreads components"""
     print("📈 Testing Debit Spreads Components...")
     
@@ -284,8 +284,8 @@ def test_debit_spreads():
         net_debit=2.0,
         max_profit=3.0,
         max_loss=2.0,
-        long_option={"strike":145.0, "premium":3.0},
-        short_option={"strike":150.0, "premium":1.0}
+        long_option={"strike": 145.0, "premium": 3.0},
+        short_option={"strike": 150.0, "premium": 1.0}
     )
     
     print(f"✅ Spread Position: {position.ticker} {position.spread_type.value}")
@@ -312,12 +312,12 @@ def test_debit_spreads():
     
     score=candidate.calculate_spread_score()
     print(f"✅ Spread Candidate: {candidate.ticker} Score: {score:.2f}")
-    print(f"   Profit/Loss Ratio: {candidate.profit_loss_ratio:.1f}")
+    print(f"   Profit / Loss Ratio: {candidate.profit_loss_ratio:.1f}")
     
     print("✅ Debit Spreads components working correctly\n")
 
 
-def test_index_baseline():
+def test_index_baseline(): 
     """Test Index Baseline components"""
     print("📉 Testing Index Baseline Components...")
     
@@ -368,28 +368,28 @@ def test_index_baseline():
     print("✅ Index Baseline components working correctly\n")
 
 
-def test_phase2_integration():
+def test_phase2_integration(): 
     """Test Phase 2 integration"""
     print("🔗 Testing Phase 2 Integration...")
     
     # Test configuration loading
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f: 
         test_config={
-            "risk":{
-                "max_position_risk":0.10,
-                "account_size":100000.0
+            "risk": {
+                "max_position_risk": 0.10,
+                "account_size": 100000.0
             },
-            "trading":{
-                "universe":["AAPL", "MSFT", "GOOGL"],
-                "max_concurrent_trades":5
+            "trading": {
+                "universe": ["AAPL", "MSFT", "GOOGL"],
+                "max_concurrent_trades": 5
             }
         }
         json.dump(test_config, f)
         config_file=f.name
     
-    try:
+    try: 
         # Test that we can load configuration
-        with open(config_file, 'r') as f:
+        with open(config_file, 'r') as f: 
             config=json.load(f)
         
         print(f"✅ Configuration loaded successfully")
@@ -397,11 +397,11 @@ def test_phase2_integration():
         print(f"   Max Position Risk: {config['risk']['max_position_risk']:.1%}")
         print(f"   Universe: {', '.join(config['trading']['universe'])}")
         
-    finally:
+    finally: 
         os.unlink(config_file)
     
     # Test strategy scoring systems
-    print(f"✅ Strategy Scoring Systems:")
+    print(f"✅ Strategy Scoring Systems: ")
     
     # Wheel scoring
     wheel_candidate=WheelCandidate(
@@ -424,12 +424,12 @@ def test_phase2_integration():
     print("✅ Phase 2 integration working correctly\n")
 
 
-def main():
+def main(): 
     """Run all Phase 2 tests"""
     print("🚀 WallStreetBots Phase 2 - Simple Functionality Test")
     print("=" * 60)
     
-    try:
+    try: 
         test_wheel_strategy()
         test_debit_spreads()
         test_index_baseline()
@@ -437,21 +437,21 @@ def main():
         
         print("=" * 60)
         print("✅ ALL PHASE 2 TESTS PASSED!")
-        print("\n🎯 Phase 2 Strategies Verified:")
+        print("\n🎯 Phase 2 Strategies Verified: ")
         print("  ✅ Wheel Strategy - Premium selling automation")
-        print("  ✅ Debit Spreads - Defined-risk bulls")
+        print("  ✅ Debit Spreads - Defined - risk bulls")
         print("  ✅ Index Baseline - Performance tracking & benchmarking")
         print("  ✅ Integration - Strategy scoring and configuration")
         
-        print("\n📊 Strategy Capabilities:")
+        print("\n📊 Strategy Capabilities: ")
         print("  🔄 Wheel: Automated premium selling with risk controls")
-        print("  📈 Debit Spreads: Defined-risk strategies with scoring")
-        print("  📉 Index Baseline: Multi-benchmark performance tracking")
+        print("  📈 Debit Spreads: Defined - risk strategies with scoring")
+        print("  📉 Index Baseline: Multi - benchmark performance tracking")
         
-        print("\n⚠️  Note: This is educational/testing code only!")
+        print("\n⚠️  Note: This is educational / testing code only!")
         print("   Do not use with real money without extensive validation.")
         
-    except Exception as e:
+    except Exception as e: 
         print(f"❌ Test failed: {e}")
         import traceback
         traceback.print_exc()
@@ -460,4 +460,4 @@ def main():
     return 0
 
 
-if __name__== "__main__":exit(main())
+if __name__== "__main__": exit(main())

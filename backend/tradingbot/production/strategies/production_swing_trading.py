@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+#!/usr / bin/env python3
 """
 Production Swing Trading Strategy
-Fast profit-taking swing trades with same-day exit discipline
+Fast profit - taking swing trades with same - day exit discipline
 """
 
 import asyncio
@@ -21,7 +21,7 @@ from ...options.pricing_engine import BlackScholesEngine
 
 
 @dataclass
-class SwingSignal:
+class SwingSignal: 
     """Production swing signal with enhanced metadata"""
     ticker: str
     signal_time: datetime
@@ -29,7 +29,7 @@ class SwingSignal:
     entry_price: float
     breakout_level: float
     volume_confirmation: float
-    strength_score: float  # 0-100
+    strength_score: float  # 0 - 100
     target_strike: float
     target_expiry: str
     option_premium: float
@@ -41,32 +41,32 @@ class SwingSignal:
     risk_level: str
 
 
-class ProductionSwingTrading:
+class ProductionSwingTrading: 
     """
     Production Swing Trading Strategy
     
-    Strategy Logic:
+    Strategy Logic: 
     1. Scans for breakouts, momentum continuation, and reversal setups
-    2. Uses short-term options (≤30 DTE) with fast profit-taking
-    3. Implements WSB-style same-day exit discipline
-    4. Focuses on liquid, high-beta names for maximum movement
+    2. Uses short - term options (≤30 DTE) with fast profit - taking
+    3. Implements WSB - style same - day exit discipline
+    4. Focuses on liquid, high - beta names for maximum movement
     5. Uses volume confirmation for all entries
     
-    Risk Management:
+    Risk Management: 
     - Maximum 2% account risk per swing trade
     - Maximum 5 concurrent swing positions
     - 30% stop loss with immediate exits
     - Profit targets at 25%, 50%, 100% levels
-    - Time-based exits: same-day preferred, 8 hours max
-    - End-of-day liquidation for momentum trades
+    - Time - based exits: same - day preferred, 8 hours max
+    - End - of-day liquidation for momentum trades
     """
     
     def __init__(self, integration_manager, data_provider: ReliableDataProvider, config: dict):
         self.strategy_name="swing_trading"
-        self.integration_manager = integration_manager
-        self.data_provider = data_provider
-        self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.integration_manager=integration_manager
+        self.data_provider=data_provider
+        self.config=config
+        self.logger=logging.getLogger(__name__)
         
         # Core components
         self.options_selector=SmartOptionsSelector(data_provider)
@@ -77,7 +77,7 @@ class ProductionSwingTrading:
         self.swing_tickers=config.get('watchlist', [
             # Mega caps with options liquidity
             "SPY", "QQQ", "IWM", "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META",
-            # High-beta swing favorites
+            # High - beta swing favorites
             "AMD", "NFLX", "CRM", "ADBE", "PYPL", "SQ", "ROKU", "ZM", "PLTR", "COIN",
             # Volatile ETFs good for swings
             "XLF", "XLE", "XLK", "XBI", "ARKK", "TQQQ", "SOXL", "SPXL"
@@ -101,47 +101,47 @@ class ProductionSwingTrading:
         self.end_of_day_exit_hour=config.get('end_of_day_exit_hour', 15)  # 3pm ET
         
         # Active positions tracking
-        self.active_positions: List[Dict[str, Any]] = []
+        self.active_positions: List[Dict[str, Any]]=[]
         
         self.logger.info("ProductionSwingTrading strategy initialized")
     
-    async def detect_breakout(self, ticker: str) -> Tuple[bool, float, float]:
+    async def detect_breakout(self, ticker: str) -> Tuple[bool, float, float]: 
         """Detect breakout above resistance with volume confirmation"""
-        try:
-            # Get 5 days of 15-minute data for breakout analysis
+        try: 
+            # Get 5 days of 15 - minute data for breakout analysis
             data=await self.data_provider.get_intraday_data(
                 ticker, interval="15min", period="5d"
             )
             
-            if data.empty or len(data) < 50:
+            if data.empty or len(data) < 50: 
                 return False, 0.0, 0.0
             
             prices=data['close'].values
-            volumes = data['volume'].values
-            highs = data['high'].values
+            volumes=data['volume'].values
+            highs=data['high'].values
             
-            current_price = prices[-1]
-            current_volume = volumes[-5:].mean()  # Recent 5 periods
-            avg_volume=volumes[:-10].mean()  # Historical average
+            current_price=prices[-1]
+            current_volume=volumes[-5: ].mean()  # Recent 5 periods
+            avg_volume=volumes[: -10].mean()  # Historical average
             
             # Calculate resistance levels (pivot highs)
             resistance_levels=[]
-            for i in range(20, len(prices) - 5):
-                if (prices[i] == max(prices[i-3:i+4]) and 
-                    prices[i] > prices[:i].max() * 0.98):  # Near high water mark
+            for i in range(20, len(prices) - 5): 
+                if (prices[i] == max(prices[i - 3: i + 4]) and 
+                    prices[i] > prices[: i].max() * 0.98): # Near high water mark
                     resistance_levels.append(prices[i])
             
-            if not resistance_levels:
+            if not resistance_levels: 
                 return False, 0.0, 0.0
             
             # Find key resistance level
-            key_resistance=max(resistance_levels[-3:]) if len(resistance_levels) >= 3 else max(resistance_levels)
+            key_resistance=max(resistance_levels[-3: ]) if len(resistance_levels) >= 3 else max(resistance_levels)
             
             # Volume confirmation
             volume_multiple=current_volume / avg_volume if avg_volume > 0 else 0
             
             # Breakout strength
-            breakout_strength = (current_price - key_resistance) / key_resistance
+            breakout_strength=(current_price - key_resistance) / key_resistance
             
             # Recent momentum
             recent_momentum=(prices[-1] - prices[-5]) / prices[-5]
@@ -162,77 +162,77 @@ class ProductionSwingTrading:
             
             return is_breakout, key_resistance, strength_score
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error detecting breakout for {ticker}: {e}")
             return False, 0.0, 0.0
     
-    async def detect_momentum_continuation(self, ticker: str) -> Tuple[bool, float]:
+    async def detect_momentum_continuation(self, ticker: str) -> Tuple[bool, float]: 
         """Detect strong momentum continuation patterns"""
-        try:
-            # Get 2 days of 5-minute data for momentum analysis
+        try: 
+            # Get 2 days of 5 - minute data for momentum analysis
             data=await self.data_provider.get_intraday_data(
                 ticker, interval="5min", period="2d"
             )
             
-            if data.empty or len(data) < 30:
+            if data.empty or len(data) < 30: 
                 return False, 0.0
             
             prices=data['close'].values
-            volumes = data['volume'].values
+            volumes=data['volume'].values
             
             # Moving averages for trend confirmation
-            short_ma = prices[-5:].mean()   # 25min MA
-            medium_ma=prices[-10:].mean()  # 50min MA
-            long_ma=prices[-20:].mean()   # 100min MA
+            short_ma=prices[-5: ].mean()   # 25min MA
+            medium_ma=prices[-10: ].mean()  # 50min MA
+            long_ma=prices[-20: ].mean()   # 100min MA
             
             # Check for accelerating momentum
-            if short_ma > medium_ma > long_ma:
+            if short_ma > medium_ma > long_ma: 
                 momentum_strength=(short_ma / long_ma - 1) * 100
                 
                 # Volume confirmation
-                recent_vol=volumes[-10:].mean()
-                earlier_vol=volumes[-30:-10].mean()
+                recent_vol=volumes[-10: ].mean()
+                earlier_vol=volumes[-30: -10].mean()
                 vol_increase=recent_vol / earlier_vol if earlier_vol > 0 else 1
                 
                 # Strong momentum criteria
-                if momentum_strength > 1.0 and vol_increase > 1.3:
+                if momentum_strength > 1.0 and vol_increase > 1.3: 
                     return True, momentum_strength
             
             return False, 0.0
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error detecting momentum for {ticker}: {e}")
             return False, 0.0
     
-    async def detect_reversal_setup(self, ticker: str) -> Tuple[bool, str, float]:
+    async def detect_reversal_setup(self, ticker: str) -> Tuple[bool, str, float]: 
         """Detect oversold bounce setups"""
-        try:
-            # Get 3 days of 15-minute data for reversal analysis
+        try: 
+            # Get 3 days of 15 - minute data for reversal analysis
             data=await self.data_provider.get_intraday_data(
                 ticker, interval="15min", period="3d"
             )
             
-            if data.empty or len(data) < 40:
+            if data.empty or len(data) < 40: 
                 return False, "insufficient_data", 0.0
             
             prices=data['close'].values
-            lows = data['low'].values
-            volumes = data['volume'].values
+            lows=data['low'].values
+            volumes=data['volume'].values
             
-            current_price = prices[-1]
+            current_price=prices[-1]
             
             # Look for bounce from oversold levels
-            recent_low = lows[-20:].min()  # 20-period low
+            recent_low=lows[-20: ].min()  # 20 - period low
             bounce_strength=(current_price - recent_low) / recent_low
             
             # Volume spike confirmation
-            current_vol=volumes[-3:].mean()
-            avg_vol=volumes[:-10].mean()
+            current_vol=volumes[-3: ].mean()
+            avg_vol=volumes[: -10].mean()
             vol_spike=current_vol / avg_vol if avg_vol > 0 else 1
             
             # Simple oversold condition
-            up_moves = sum(1 for i in range(len(prices)-10, len(prices)-1) 
-                          if prices[i+1] > prices[i])
+            up_moves=sum(1 for i in range(len(prices)-10, len(prices)-1) 
+                          if prices[i + 1] > prices[i])
             down_moves=10 - up_moves
             
             # Reversal criteria
@@ -244,11 +244,11 @@ class ProductionSwingTrading:
             
             return False, "no_setup", 0.0
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error detecting reversal for {ticker}: {e}")
             return False, "error", 0.0
     
-    def get_optimal_expiry(self) -> str:
+    def get_optimal_expiry(self) -> str: 
         """Get optimal expiry for swing trades (≤30 days)"""
         today=date.today()
         
@@ -258,51 +258,51 @@ class ProductionSwingTrading:
         # Find next Friday
         days_to_friday=(4 - today.weekday()) % 7
         if days_to_friday== 0:  # If today is Friday
-            days_to_friday = 7
+            days_to_friday=7
         
         # Adjust if too far out
-        if days_to_friday > target_days:
+        if days_to_friday > target_days: 
             days_to_friday -= 7
         
-        if days_to_friday <= 0:
-            days_to_friday = 7
+        if days_to_friday <= 0: 
+            days_to_friday=7
         
-        expiry_date = today + timedelta(days=days_to_friday)
+        expiry_date=today + timedelta(days=days_to_friday)
         return expiry_date.strftime("%Y-%m-%d")
     
-    def calculate_option_targets(self, premium: float) -> Tuple[float, float, float, float]:
+    def calculate_option_targets(self, premium: float) -> Tuple[float, float, float, float]: 
         """Calculate profit targets and stop loss"""
         profit_25=premium * 1.25   # 25% profit
-        profit_50 = premium * 1.50   # 50% profit  
-        profit_100 = premium * 2.00  # 100% profit
-        stop_loss = premium * 0.70   # 30% stop loss
+        profit_50=premium * 1.50   # 50% profit  
+        profit_100=premium * 2.00  # 100% profit
+        stop_loss=premium * 0.70   # 30% stop loss
         
         return profit_25, profit_50, profit_100, stop_loss
     
     async def estimate_swing_premium(self, ticker: str, strike: float, expiry: str) -> float:
         """Estimate option premium for swing trade"""
-        try:
+        try: 
             # Try to get actual options data
             options_data=await self.data_provider.get_options_chain(ticker, expiry)
-            if options_data and 'calls' in options_data:
+            if options_data and 'calls' in options_data: 
                 calls=options_data['calls']
                 
                 # Find closest strike
-                closest_call = None
-                min_diff = float('inf')
+                closest_call=None
+                min_diff=float('inf')
                 
-                for call in calls:
+                for call in calls: 
                     diff=abs(call['strike'] - strike)
-                    if diff < min_diff:
+                    if diff < min_diff: 
                         min_diff=diff
-                        closest_call = call
+                        closest_call=call
                 
-                if closest_call and closest_call.get('bid', 0) > 0 and closest_call.get('ask', 0) > 0:
+                if closest_call and closest_call.get('bid', 0) > 0 and closest_call.get('ask', 0) > 0: 
                     return (closest_call['bid'] + closest_call['ask']) / 2
             
             # Fallback estimate
             current_price=await self.data_provider.get_current_price(ticker)
-            if not current_price:
+            if not current_price: 
                 return 2.0
             
             days_to_exp=(datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
@@ -317,26 +317,26 @@ class ProductionSwingTrading:
                 intrinsic=current_price - strike
                 return intrinsic + time_premium * 0.5
                 
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error estimating premium for {ticker}: {e}")
             return 2.0
     
-    async def scan_swing_opportunities(self) -> List[SwingSignal]:
+    async def scan_swing_opportunities(self) -> List[SwingSignal]: 
         """Scan for swing trading opportunities"""
         signals=[]
-        expiry = self.get_optimal_expiry()
+        expiry=self.get_optimal_expiry()
         
         self.logger.info(f"Scanning swing opportunities targeting {expiry}")
         
-        for ticker in self.swing_tickers:
-            try:
+        for ticker in self.swing_tickers: 
+            try: 
                 # Skip if we already have a position
-                if any(pos['ticker'] == ticker for pos in self.active_positions):
+                if any(pos['ticker'] == ticker for pos in self.active_positions): 
                     continue
                 
                 # Get current price
                 current_price=await self.data_provider.get_current_price(ticker)
-                if not current_price:
+                if not current_price: 
                     continue
                 
                 # Check for different signal types
@@ -344,52 +344,52 @@ class ProductionSwingTrading:
                 
                 # 1. Breakout detection
                 is_breakout, resistance_level, breakout_strength=await self.detect_breakout(ticker)
-                if is_breakout:
+                if is_breakout: 
                     signals_found.append(("breakout", breakout_strength, resistance_level))
                 
                 # 2. Momentum continuation
                 is_momentum, momentum_strength=await self.detect_momentum_continuation(ticker)
-                if is_momentum:
+                if is_momentum: 
                     signals_found.append(("momentum", momentum_strength, current_price))
                 
                 # 3. Reversal setup
                 is_reversal, reversal_type, reversal_strength=await self.detect_reversal_setup(ticker)
-                if is_reversal and reversal_type== "oversold_bounce":signals_found.append(("reversal", reversal_strength, current_price))
+                if is_reversal and reversal_type== "oversold_bounce": signals_found.append(("reversal", reversal_strength, current_price))
                 
                 # Process signals
-                for signal_type, strength, ref_level in signals_found:
-                    if strength < self.min_strength_score:
+                for signal_type, strength, ref_level in signals_found: 
+                    if strength < self.min_strength_score: 
                         continue
                     
                     # Target strike selection based on signal type
-                    if signal_type== "breakout":
-                        strike_multiplier = 1.02  # 2% OTM for breakouts
-                        max_hold_hours = 6        # Breakouts can be held longer
-                    elif signal_type == "momentum":
-                        strike_multiplier = 1.015 # 1.5% OTM for momentum
-                        max_hold_hours = 4        # Momentum fades fast
+                    if signal_type== "breakout": 
+                        strike_multiplier=1.02  # 2% OTM for breakouts
+                        max_hold_hours=6        # Breakouts can be held longer
+                    elif signal_type == "momentum": 
+                        strike_multiplier=1.015 # 1.5% OTM for momentum
+                        max_hold_hours=4        # Momentum fades fast
                     else:  # reversal
-                        strike_multiplier = 1.025 # 2.5% OTM for reversals
-                        max_hold_hours = 8        # Reversals take time
+                        strike_multiplier=1.025 # 2.5% OTM for reversals
+                        max_hold_hours=8        # Reversals take time
                     
-                    target_strike = round(current_price * strike_multiplier, 1)
+                    target_strike=round(current_price * strike_multiplier, 1)
                     premium=await self.estimate_swing_premium(ticker, target_strike, expiry)
                     
-                    if premium < self.min_premium:
+                    if premium < self.min_premium: 
                         continue
                     
                     # Calculate targets
                     profit_25, profit_50, profit_100, stop_loss=self.calculate_option_targets(premium)
                     
                     # Risk assessment
-                    if strength > 80:
+                    if strength > 80: 
                         risk_level="low"
-                    elif strength > 60:
-                        risk_level = "medium"
-                    else:
-                        risk_level = "high"
+                    elif strength > 60: 
+                        risk_level="medium"
+                    else: 
+                        risk_level="high"
                     
-                    signal = SwingSignal(
+                    signal=SwingSignal(
                         ticker=ticker,
                         signal_time=datetime.now(),
                         signal_type=signal_type,
@@ -411,10 +411,10 @@ class ProductionSwingTrading:
                     signals.append(signal)
                     self.logger.info(
                         f"Swing signal: {ticker} {signal_type} "
-                        f"strength={strength:.0f} strike=${target_strike} premium=${premium:.2f}"
+                        f"strength={strength: .0f} strike=${target_strike} premium=${premium: .2f}"
                     )
                 
-            except Exception as e:
+            except Exception as e: 
                 self.logger.error(f"Error scanning {ticker}: {e}")
                 continue
         
@@ -424,9 +424,9 @@ class ProductionSwingTrading:
     
     async def execute_swing_trade(self, signal: SwingSignal) -> bool:
         """Execute swing trade"""
-        try:
+        try: 
             # Check if we can add more positions
-            if len(self.active_positions) >= self.max_positions:
+            if len(self.active_positions) >= self.max_positions: 
                 self.logger.info("Max swing positions reached, skipping trade")
                 return False
             
@@ -435,7 +435,7 @@ class ProductionSwingTrading:
             max_risk=portfolio_value * self.max_position_size
             
             # Size based on premium cost
-            contracts = max(1, int(max_risk / (signal.option_premium * 100)))
+            contracts=max(1, int(max_risk / (signal.option_premium * 100)))
             contracts=min(contracts, 3)  # Max 3 contracts for swing trades
             
             # Create trade signal
@@ -451,35 +451,35 @@ class ProductionSwingTrading:
                 strategy_name=self.strategy_name,
                 signal_strength=min(1.0, signal.strength_score / 100.0),
                 metadata={
-                    'swing_type':signal.signal_type,
-                    'strength_score':signal.strength_score,
-                    'breakout_level':signal.breakout_level,
-                    'max_hold_hours':signal.max_hold_hours,
-                    'profit_targets':[signal.profit_target_1, signal.profit_target_2, signal.profit_target_3],
-                    'stop_loss':signal.stop_loss,
-                    'risk_level':signal.risk_level,
-                    'volume_confirmation':signal.volume_confirmation
+                    'swing_type': signal.signal_type,
+                    'strength_score': signal.strength_score,
+                    'breakout_level': signal.breakout_level,
+                    'max_hold_hours': signal.max_hold_hours,
+                    'profit_targets': [signal.profit_target_1, signal.profit_target_2, signal.profit_target_3],
+                    'stop_loss': signal.stop_loss,
+                    'risk_level': signal.risk_level,
+                    'volume_confirmation': signal.volume_confirmation
                 }
             )
             
             # Execute the trade
             success=await self.integration_manager.execute_trade_signal(trade_signal)
             
-            if success:
+            if success: 
                 # Track position
                 position={
-                    'ticker':signal.ticker,
-                    'signal_type':signal.signal_type,
-                    'trade_signal':trade_signal,
-                    'entry_time':signal.signal_time,
-                    'entry_premium':signal.option_premium,
-                    'contracts':contracts,
-                    'cost_basis':signal.option_premium * contracts * 100,
-                    'max_hold_hours':signal.max_hold_hours,
-                    'profit_targets':[signal.profit_target_1, signal.profit_target_2, signal.profit_target_3],
-                    'stop_loss':signal.stop_loss,
-                    'hit_profit_target':0,  # Track which targets hit
-                    'expiry_date':datetime.strptime(signal.target_expiry, "%Y-%m-%d").date()
+                    'ticker': signal.ticker,
+                    'signal_type': signal.signal_type,
+                    'trade_signal': trade_signal,
+                    'entry_time': signal.signal_time,
+                    'entry_premium': signal.option_premium,
+                    'contracts': contracts,
+                    'cost_basis': signal.option_premium * contracts * 100,
+                    'max_hold_hours': signal.max_hold_hours,
+                    'profit_targets': [signal.profit_target_1, signal.profit_target_2, signal.profit_target_3],
+                    'stop_loss': signal.stop_loss,
+                    'hit_profit_target': 0,  # Track which targets hit
+                    'expiry_date': datetime.strptime(signal.target_expiry, "%Y-%m-%d").date()
                 }
                 
                 self.active_positions.append(position)
@@ -489,7 +489,7 @@ class ProductionSwingTrading:
                     "HIGH",  # Swing trades are urgent due to time sensitivity
                     f"Swing Entry: {signal.ticker} {signal.signal_type.upper()} "
                     f"${signal.target_strike} call {signal.target_expiry} "
-                    f"{contracts} contracts @ ${signal.option_premium:.2f}"
+                    f"{contracts} contracts @ ${signal.option_premium: .2f}"
                 )
                 
                 self.logger.info(f"Swing trade executed: {signal.ticker}")
@@ -497,23 +497,23 @@ class ProductionSwingTrading:
             
             return False
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error executing swing trade for {signal.ticker}: {e}")
             return False
     
-    async def manage_positions(self):
+    async def manage_positions(self): 
         """Manage existing swing positions"""
         positions_to_remove=[]
-        current_time = datetime.now()
+        current_time=datetime.now()
         
-        for i, position in enumerate(self.active_positions):
-            try:
+        for i, position in enumerate(self.active_positions): 
+            try: 
                 ticker=position['ticker']
-                contracts = position['contracts']
-                entry_premium = position['entry_premium']
+                contracts=position['contracts']
+                entry_premium=position['entry_premium']
                 
                 # Calculate hours held
-                hours_held = (current_time - position['entry_time']).total_seconds() / 3600
+                hours_held=(current_time - position['entry_time']).total_seconds() / 3600
                 
                 # Get current option price
                 current_premium=await self.data_provider.get_option_price(
@@ -523,60 +523,60 @@ class ProductionSwingTrading:
                     'call'
                 )
                 
-                if not current_premium:
+                if not current_premium: 
                     continue
                 
-                # Calculate P&L
+                # Calculate P & L
                 pnl_per_contract=current_premium - entry_premium
-                total_pnl = pnl_per_contract * contracts * 100
-                pnl_pct = (pnl_per_contract / entry_premium) * 100 if entry_premium > 0 else 0
+                total_pnl=pnl_per_contract * contracts * 100
+                pnl_pct=(pnl_per_contract / entry_premium) * 100 if entry_premium > 0 else 0
                 
                 # Check exit conditions
                 should_exit=False
-                should_scale_out = False
-                exit_reason = ""
-                scale_out_percentage = 0
+                should_scale_out=False
+                exit_reason=""
+                scale_out_percentage=0
                 
                 # 1. Profit targets
                 if current_premium >= position['profit_targets'][2]:  # 100% target
-                    should_exit = True
-                    exit_reason = "PROFIT_TARGET_100"
-                elif current_premium >= position['profit_targets'][1] and position['hit_profit_target'] < 2:
-                    should_scale_out = True
-                    scale_out_percentage = 50
-                    position['hit_profit_target'] = 2
-                    exit_reason = "PROFIT_TARGET_50"
-                elif current_premium >= position['profit_targets'][0] and position['hit_profit_target'] < 1:
-                    should_scale_out = True
-                    scale_out_percentage = 25
-                    position['hit_profit_target'] = 1
-                    exit_reason = "PROFIT_TARGET_25"
+                    should_exit=True
+                    exit_reason="PROFIT_TARGET_100"
+                elif current_premium >= position['profit_targets'][1] and position['hit_profit_target'] < 2: 
+                    should_scale_out=True
+                    scale_out_percentage=50
+                    position['hit_profit_target']=2
+                    exit_reason="PROFIT_TARGET_50"
+                elif current_premium >= position['profit_targets'][0] and position['hit_profit_target'] < 1: 
+                    should_scale_out=True
+                    scale_out_percentage=25
+                    position['hit_profit_target']=1
+                    exit_reason="PROFIT_TARGET_25"
                 
                 # 2. Stop loss
-                elif current_premium <= position['stop_loss']:
-                    should_exit = True
-                    exit_reason = "STOP_LOSS"
+                elif current_premium <= position['stop_loss']: 
+                    should_exit=True
+                    exit_reason="STOP_LOSS"
                 
-                # 3. Time-based exits
-                elif hours_held >= position['max_hold_hours']:
-                    should_exit = True
-                    exit_reason = "MAX_HOLD_TIME"
+                # 3. Time - based exits
+                elif hours_held >= position['max_hold_hours']: 
+                    should_exit=True
+                    exit_reason="MAX_HOLD_TIME"
                 
                 # 4. End of day exit for momentum trades
                 elif (position['signal_type'] == 'momentum' and 
-                      current_time.hour >= self.end_of_day_exit_hour):
+                      current_time.hour >= self.end_of_day_exit_hour): 
                     should_exit=True
-                    exit_reason = "END_OF_DAY"
+                    exit_reason="END_OF_DAY"
                 
                 # 5. Same day exit for swing trades (WSB rule)
-                elif current_time.date() > position['entry_time'].date():
-                    if position['signal_type'] in ['momentum', 'breakout'] and pnl_pct > -15:
+                elif current_time.date() > position['entry_time'].date(): 
+                    if position['signal_type'] in ['momentum', 'breakout'] and pnl_pct > -15: 
                         should_exit=True
-                        exit_reason = "NEXT_DAY_EXIT"
+                        exit_reason="NEXT_DAY_EXIT"
                 
-                # Execute exit or scale-out
-                if should_exit or should_scale_out:
-                    exit_contracts = contracts if should_exit else max(1, int(contracts * scale_out_percentage / 100))
+                # Execute exit or scale - out
+                if should_exit or should_scale_out: 
+                    exit_contracts=contracts if should_exit else max(1, int(contracts * scale_out_percentage / 100))
                     
                     exit_signal=ProductionTradeSignal(
                         symbol=ticker,
@@ -588,61 +588,61 @@ class ProductionSwingTrading:
                         premium=Decimal(str(current_premium)),
                         strategy_name=self.strategy_name,
                         metadata={
-                            'swing_action':'full_exit' if should_exit else 'scale_out',
-                            'exit_reason':exit_reason,
-                            'hours_held':hours_held,
-                            'pnl_per_contract':pnl_per_contract,
-                            'total_pnl':total_pnl,
-                            'pnl_pct':pnl_pct,
-                            'profit_target_level':position['hit_profit_target']
+                            'swing_action': 'full_exit' if should_exit else 'scale_out',
+                            'exit_reason': exit_reason,
+                            'hours_held': hours_held,
+                            'pnl_per_contract': pnl_per_contract,
+                            'total_pnl': total_pnl,
+                            'pnl_pct': pnl_pct,
+                            'profit_target_level': position['hit_profit_target']
                         }
                     )
                     
                     success=await self.integration_manager.execute_trade_signal(exit_signal)
                     
-                    if success:
-                        if should_exit:
+                    if success: 
+                        if should_exit: 
                             await self.integration_manager.alert_system.send_alert(
                                 "SWING_EXIT",
                                 "HIGH",
                                 f"Swing Exit: {ticker} {exit_reason} "
-                                f"P&L: ${total_pnl:.0f} ({pnl_pct:.1%}) "
+                                f"P & L: ${total_pnl:.0f} ({pnl_pct: .1%}) "
                                 f"Held: {hours_held:.1f}h"
                             )
                             positions_to_remove.append(i)
                             self.logger.info(f"Swing position closed: {ticker} {exit_reason}")
-                        else:
-                            # Update position after scale-out
+                        else: 
+                            # Update position after scale - out
                             position['contracts'] -= exit_contracts
                             position['cost_basis'] -= entry_premium * exit_contracts * 100
                             
                             await self.integration_manager.alert_system.send_alert(
                                 "SWING_SCALE_OUT",
                                 "MEDIUM",
-                                f"Swing Scale-Out: {ticker} {exit_reason} "
-                                f"Sold {exit_contracts} contracts at {pnl_pct:.1%} gain"
+                                f"Swing Scale - Out: {ticker} {exit_reason} "
+                                f"Sold {exit_contracts} contracts at {pnl_pct: .1%} gain"
                             )
                             self.logger.info(f"Swing scaled out: {ticker} {exit_reason}")
                 
-            except Exception as e:
+            except Exception as e: 
                 self.logger.error(f"Error managing swing position {i}: {e}")
         
         # Remove fully closed positions
-        for i in reversed(positions_to_remove):
+        for i in reversed(positions_to_remove): 
             self.active_positions.pop(i)
     
-    async def scan_opportunities(self) -> List[ProductionTradeSignal]:
+    async def scan_opportunities(self) -> List[ProductionTradeSignal]: 
         """Main strategy execution: scan and generate trade signals"""
-        try:
+        try: 
             # First manage existing positions
             await self.manage_positions()
             
             # Then scan for new opportunities if we have capacity
-            if len(self.active_positions) >= self.max_positions:
+            if len(self.active_positions) >= self.max_positions: 
                 return []
             
             # Only scan during market hours for swing trades
-            if not await self.data_provider.is_market_open():
+            if not await self.data_provider.is_market_open(): 
                 return []
             
             # Don't initiate new swings near market close
@@ -655,11 +655,11 @@ class ProductionSwingTrading:
             
             # Execute top signals
             trade_signals=[]
-            max_new_positions = self.max_positions - len(self.active_positions)
+            max_new_positions=self.max_positions - len(self.active_positions)
             
-            for signal in swing_signals[:max_new_positions]:
+            for signal in swing_signals[: max_new_positions]:
                 success=await self.execute_swing_trade(signal)
-                if success:
+                if success: 
                     # Return trade signal for tracking
                     trade_signal=ProductionTradeSignal(
                         symbol=signal.ticker,
@@ -677,74 +677,74 @@ class ProductionSwingTrading:
             
             return trade_signals
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error in swing trading scan: {e}")
             return []
     
-    def get_strategy_status(self) -> Dict[str, Any]:
+    def get_strategy_status(self) -> Dict[str, Any]: 
         """Get current strategy status"""
-        try:
+        try: 
             total_cost_basis=sum(pos['cost_basis'] for pos in self.active_positions)
             position_details=[]
             
-            for position in self.active_positions:
-                hours_held = (datetime.now() - position['entry_time']).total_seconds() / 3600
+            for position in self.active_positions: 
+                hours_held=(datetime.now() - position['entry_time']).total_seconds() / 3600
                 
                 position_details.append({
-                    'ticker':position['ticker'],
-                    'signal_type':position['signal_type'],
-                    'strike':float(position['trade_signal'].strike_price),
-                    'expiry':position['expiry_date'].isoformat(),
-                    'contracts':position['contracts'],
-                    'entry_premium':position['entry_premium'],
-                    'cost_basis':position['cost_basis'],
-                    'max_hold_hours':position['max_hold_hours'],
-                    'hours_held':round(hours_held, 1),
-                    'hit_profit_target':position['hit_profit_target'],
-                    'entry_time':position['entry_time'].isoformat()
+                    'ticker': position['ticker'],
+                    'signal_type': position['signal_type'],
+                    'strike': float(position['trade_signal'].strike_price),
+                    'expiry': position['expiry_date'].isoformat(),
+                    'contracts': position['contracts'],
+                    'entry_premium': position['entry_premium'],
+                    'cost_basis': position['cost_basis'],
+                    'max_hold_hours': position['max_hold_hours'],
+                    'hours_held': round(hours_held, 1),
+                    'hit_profit_target': position['hit_profit_target'],
+                    'entry_time': position['entry_time'].isoformat()
                 })
             
             return {
-                'strategy_name':self.strategy_name,
-                'is_active':True,
-                'active_positions':len(self.active_positions),
-                'max_positions':self.max_positions,
-                'total_cost_basis':total_cost_basis,
-                'position_details':position_details,
-                'last_scan':datetime.now().isoformat(),
-                'config':{
-                    'max_positions':self.max_positions,
-                    'max_position_size':self.max_position_size,
-                    'max_expiry_days':self.max_expiry_days,
-                    'min_strength_score':self.min_strength_score,
-                    'profit_targets':self.profit_targets,
-                    'stop_loss_pct':self.stop_loss_pct,
-                    'max_hold_hours':self.max_hold_hours
+                'strategy_name': self.strategy_name,
+                'is_active': True,
+                'active_positions': len(self.active_positions),
+                'max_positions': self.max_positions,
+                'total_cost_basis': total_cost_basis,
+                'position_details': position_details,
+                'last_scan': datetime.now().isoformat(),
+                'config': {
+                    'max_positions': self.max_positions,
+                    'max_position_size': self.max_position_size,
+                    'max_expiry_days': self.max_expiry_days,
+                    'min_strength_score': self.min_strength_score,
+                    'profit_targets': self.profit_targets,
+                    'stop_loss_pct': self.stop_loss_pct,
+                    'max_hold_hours': self.max_hold_hours
                 }
             }
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error getting swing trading status: {e}")
-            return {'strategy_name':self.strategy_name, 'error':str(e)}
+            return {'strategy_name': self.strategy_name, 'error': str(e)}
 
 
-    async def run_strategy(self):
+    async def run_strategy(self): 
         """Main strategy execution loop"""
         self.logger.info("Starting Production Swing Trading Strategy")
         
-        try:
-            while True:
+        try: 
+            while True: 
                 # Scan for swing trading opportunities
                 signals=await self.scan_opportunities()
                 
                 # Execute trades for signals
-                if signals:
+                if signals: 
                     await self.execute_trades(signals)
                 
                 # Wait before next scan (swing trading is active)
                 await asyncio.sleep(120)  # 2 minutes between scans
                 
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error in swing trading strategy main loop: {e}")
 
 

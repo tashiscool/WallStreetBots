@@ -1,6 +1,6 @@
 """
 Tests for Options Pricing Engine
-Tests the Black-Scholes implementation and real options pricing functionality
+Tests the Black - Scholes implementation and real options pricing functionality
 """
 
 import pytest
@@ -22,23 +22,23 @@ from backend.tradingbot.options.pricing_engine import (
 getcontext().prec=28
 
 
-class TestBlackScholesEngine:
-    """Test Black-Scholes mathematical engine"""
+class TestBlackScholesEngine: 
+    """Test Black - Scholes mathematical engine"""
     
-    def setup_method(self):
+    def setup_method(self): 
         """Set up test fixtures"""
         self.bs_engine=BlackScholesEngine()
     
     @pytest.mark.asyncio
-    async def test_get_risk_free_rate(self):
-        """Test risk-free rate retrieval"""
+    async def test_get_risk_free_rate(self): 
+        """Test risk - free rate retrieval"""
         rate=await self.bs_engine.get_risk_free_rate()
         
         assert isinstance(rate, Decimal)
         assert 0 <= float(rate) <= 0.20  # 0% to 20% is reasonable range
     
     @pytest.mark.asyncio
-    async def test_get_dividend_yield_known_ticker(self):
+    async def test_get_dividend_yield_known_ticker(self): 
         """Test dividend yield for known tickers"""
         # Test Apple (known to have small dividend)
         aapl_yield=await self.bs_engine.get_dividend_yield('AAPL')
@@ -50,36 +50,36 @@ class TestBlackScholesEngine:
         assert float(amzn_yield) == 0.0
     
     @pytest.mark.asyncio
-    async def test_get_dividend_yield_unknown_ticker(self):
+    async def test_get_dividend_yield_unknown_ticker(self): 
         """Test dividend yield for unknown ticker (should use default)"""
         unknown_yield=await self.bs_engine.get_dividend_yield('UNKNOWN')
         
         assert isinstance(unknown_yield, Decimal)
         assert float(unknown_yield) == 0.015  # Default 1.5%
     
-    def test_d1_calculation(self):
+    def test_d1_calculation(self): 
         """Test d1 parameter calculation"""
         # Standard parameters
         S=100.0  # Spot price
-        K = 105.0  # Strike price
-        T = 0.25   # 3 months
-        r = 0.05   # 5% risk-free rate
-        q = 0.02   # 2% dividend yield
-        sigma = 0.20  # 20% volatility
+        K=105.0  # Strike price
+        T=0.25   # 3 months
+        r=0.05   # 5% risk - free rate
+        q=0.02   # 2% dividend yield
+        sigma=0.20  # 20% volatility
         
-        d1 = self.bs_engine._d1(S, K, T, r, q, sigma)
+        d1=self.bs_engine._d1(S, K, T, r, q, sigma)
         
         # d1 should be negative for OTM call (S < K)
         assert d1 < 0
         assert -1 < d1 < 1  # Reasonable range
     
-    def test_d2_calculation(self):
+    def test_d2_calculation(self): 
         """Test d2 parameter calculation"""
         d1=-0.25
-        sigma = 0.20
-        T = 0.25
+        sigma=0.20
+        T=0.25
         
-        d2 = self.bs_engine._d2(d1, sigma, T)
+        d2=self.bs_engine._d2(d1, sigma, T)
         
         # d2=d1 - sigma * sqrt(T)
         expected_d2=d1 - sigma * math.sqrt(T)
@@ -87,12 +87,12 @@ class TestBlackScholesEngine:
         assert d2 < d1  # d2 should always be less than d1
     
     @pytest.mark.asyncio
-    async def test_black_scholes_call_itm(self):
-        """Test Black-Scholes call pricing for ITM option"""
+    async def test_black_scholes_call_itm(self): 
+        """Test Black - Scholes call pricing for ITM option"""
         spot=Decimal('110')      # ITM call
         strike=Decimal('100')
         time_to_expiry=0.25      # 3 months
-        risk_free_rate = Decimal('0.05')
+        risk_free_rate=Decimal('0.05')
         dividend_yield=Decimal('0.02')
         volatility=Decimal('0.20')
         
@@ -113,12 +113,12 @@ class TestBlackScholesEngine:
         assert 10 < float(call_price) < 15
     
     @pytest.mark.asyncio
-    async def test_black_scholes_call_otm(self):
-        """Test Black-Scholes call pricing for OTM option"""
+    async def test_black_scholes_call_otm(self): 
+        """Test Black - Scholes call pricing for OTM option"""
         spot=Decimal('95')       # OTM call
         strike=Decimal('100')
         time_to_expiry=0.25
-        risk_free_rate = Decimal('0.05')
+        risk_free_rate=Decimal('0.05')
         dividend_yield=Decimal('0.02')
         volatility=Decimal('0.20')
         
@@ -136,12 +136,12 @@ class TestBlackScholesEngine:
         assert 0.5 < float(call_price) < 5
     
     @pytest.mark.asyncio
-    async def test_black_scholes_put_itm(self):
-        """Test Black-Scholes put pricing for ITM option"""
+    async def test_black_scholes_put_itm(self): 
+        """Test Black - Scholes put pricing for ITM option"""
         spot=Decimal('90')       # ITM put
         strike=Decimal('100')
         time_to_expiry=0.25
-        risk_free_rate = Decimal('0.05')
+        risk_free_rate=Decimal('0.05')
         dividend_yield=Decimal('0.02')
         volatility=Decimal('0.20')
         
@@ -159,12 +159,12 @@ class TestBlackScholesEngine:
         assert 10 < float(put_price) < 15
     
     @pytest.mark.asyncio
-    async def test_black_scholes_put_call_parity(self):
-        """Test put-call parity: C - P=S - K*e^(-r*T)"""
+    async def test_black_scholes_put_call_parity(self): 
+        """Test put - call parity: C - P=S - K * e ^ (-r * T)"""
         spot=Decimal('100')
         strike=Decimal('100')  # ATM
         time_to_expiry=0.25
-        risk_free_rate = Decimal('0.05')
+        risk_free_rate=Decimal('0.05')
         dividend_yield=Decimal('0.0')  # No dividends for simple parity
         volatility=Decimal('0.20')
         
@@ -176,20 +176,20 @@ class TestBlackScholesEngine:
             spot, strike, time_to_expiry, risk_free_rate, dividend_yield, volatility
         )
         
-        # Put-call parity: C - P=S - K*e^(-r*T)
+        # Put - call parity: C - P=S - K * e ^ (-r * T)
         left_side=call_price - put_price
-        right_side = spot - strike * Decimal(str(math.exp(-float(risk_free_rate) * time_to_expiry)))
+        right_side=spot - strike * Decimal(str(math.exp(-float(risk_free_rate) * time_to_expiry)))
         
         # Should be equal within small tolerance
         assert abs(float(left_side - right_side)) < 0.01
     
     @pytest.mark.asyncio
-    async def test_expired_option_pricing(self):
+    async def test_expired_option_pricing(self): 
         """Test pricing of expired options"""
         spot=Decimal('110')
         strike=Decimal('100')
         time_to_expiry=0.0  # Expired
-        risk_free_rate = Decimal('0.05')
+        risk_free_rate=Decimal('0.05')
         dividend_yield=Decimal('0.02')
         volatility=Decimal('0.20')
         
@@ -210,12 +210,12 @@ class TestBlackScholesEngine:
         assert otm_call_price >= Decimal('0.00')  # Should not be negative
     
     @pytest.mark.asyncio
-    async def test_zero_volatility_handling(self):
+    async def test_zero_volatility_handling(self): 
         """Test handling of zero volatility"""
         spot=Decimal('110')
         strike=Decimal('100')
         time_to_expiry=0.25
-        risk_free_rate = Decimal('0.05')
+        risk_free_rate=Decimal('0.05')
         dividend_yield=Decimal('0.02')
         volatility=Decimal('0.0')  # Zero volatility
         
@@ -228,12 +228,12 @@ class TestBlackScholesEngine:
         assert abs(float(call_price - intrinsic_value)) < 0.01
     
     @pytest.mark.asyncio
-    async def test_calculate_greeks(self):
+    async def test_calculate_greeks(self): 
         """Test Greeks calculation"""
         spot=Decimal('100')
         strike=Decimal('105')
         time_to_expiry=0.25
-        risk_free_rate = Decimal('0.05')
+        risk_free_rate=Decimal('0.05')
         dividend_yield=Decimal('0.02')
         volatility=Decimal('0.20')
         
@@ -259,12 +259,12 @@ class TestBlackScholesEngine:
         assert float(greeks['vega']) > 0
     
     @pytest.mark.asyncio
-    async def test_calculate_greeks_put(self):
+    async def test_calculate_greeks_put(self): 
         """Test Greeks calculation for puts"""
         spot=Decimal('95')   # OTM put
         strike=Decimal('100')
         time_to_expiry=0.25
-        risk_free_rate = Decimal('0.05')
+        risk_free_rate=Decimal('0.05')
         dividend_yield=Decimal('0.02')
         volatility=Decimal('0.20')
         
@@ -282,15 +282,15 @@ class TestBlackScholesEngine:
         assert float(greeks['vega']) > 0
 
 
-class TestRealOptionsPricingEngine:
+class TestRealOptionsPricingEngine: 
     """Test real options pricing engine with market data integration"""
     
-    def setup_method(self):
+    def setup_method(self): 
         """Set up test fixtures"""
         self.pricing_engine=RealOptionsPricingEngine()
     
     @pytest.mark.asyncio
-    async def test_get_implied_volatility_known_ticker(self):
+    async def test_get_implied_volatility_known_ticker(self): 
         """Test implied volatility for known tickers"""
         iv=await self.pricing_engine.get_implied_volatility('AAPL')
         
@@ -298,9 +298,9 @@ class TestRealOptionsPricingEngine:
         assert 0.10 <= float(iv) <= 1.00  # 10% to 100% is reasonable range
     
     @pytest.mark.asyncio
-    async def test_get_implied_volatility_high_vol_ticker(self):
+    async def test_get_implied_volatility_high_vol_ticker(self): 
         """Test implied volatility for high volatility tickers"""
-        # GME and TSLA are known high-vol stocks
+        # GME and TSLA are known high - vol stocks
         gme_iv=await self.pricing_engine.get_implied_volatility('GME')
         tsla_iv=await self.pricing_engine.get_implied_volatility('TSLA')
         aapl_iv=await self.pricing_engine.get_implied_volatility('AAPL')
@@ -310,7 +310,7 @@ class TestRealOptionsPricingEngine:
         assert float(tsla_iv) > float(aapl_iv)
     
     @pytest.mark.asyncio
-    async def test_get_implied_volatility_caching(self):
+    async def test_get_implied_volatility_caching(self): 
         """Test that volatility is cached properly"""
         # First call
         iv1=await self.pricing_engine.get_implied_volatility('AAPL')
@@ -325,13 +325,13 @@ class TestRealOptionsPricingEngine:
         assert elapsed < 0.01  # Should be very fast (cached)
     
     @pytest.mark.asyncio
-    async def test_calculate_theoretical_price(self):
+    async def test_calculate_theoretical_price(self): 
         """Test theoretical price calculation"""
         ticker='AAPL'
-        strike = Decimal('200')
+        strike=Decimal('200')
         expiry_date=date.today() + timedelta(days=30)
         option_type='call'
-        current_price = Decimal('195')
+        current_price=Decimal('195')
         
         theoretical_price=await self.pricing_engine.calculate_theoretical_price(
             ticker, strike, expiry_date, option_type, current_price
@@ -344,13 +344,13 @@ class TestRealOptionsPricingEngine:
         assert 1 < float(theoretical_price) < 20
     
     @pytest.mark.asyncio
-    async def test_calculate_theoretical_price_deep_itm(self):
+    async def test_calculate_theoretical_price_deep_itm(self): 
         """Test theoretical price for deep ITM option"""
         ticker='AAPL'
-        strike = Decimal('150')      # Deep ITM
+        strike=Decimal('150')      # Deep ITM
         expiry_date=date.today() + timedelta(days=30)
         option_type='call'
-        current_price = Decimal('195')
+        current_price=Decimal('195')
         
         theoretical_price=await self.pricing_engine.calculate_theoretical_price(
             ticker, strike, expiry_date, option_type, current_price
@@ -362,13 +362,13 @@ class TestRealOptionsPricingEngine:
         assert theoretical_price < current_price  # But not more than stock price
     
     @pytest.mark.asyncio
-    async def test_calculate_theoretical_price_expired(self):
+    async def test_calculate_theoretical_price_expired(self): 
         """Test theoretical price for expired option"""
         ticker='AAPL'
-        strike = Decimal('190')
+        strike=Decimal('190')
         expiry_date=date.today() - timedelta(days=1)  # Expired yesterday
         option_type='call'
-        current_price = Decimal('195')
+        current_price=Decimal('195')
         
         theoretical_price=await self.pricing_engine.calculate_theoretical_price(
             ticker, strike, expiry_date, option_type, current_price
@@ -379,13 +379,13 @@ class TestRealOptionsPricingEngine:
         assert abs(float(theoretical_price - intrinsic_value)) < 0.01
     
     @pytest.mark.asyncio
-    async def test_calculate_theoretical_price_put(self):
+    async def test_calculate_theoretical_price_put(self): 
         """Test theoretical price calculation for puts"""
         ticker='AAPL'
-        strike = Decimal('200')      # ITM put
+        strike=Decimal('200')      # ITM put
         expiry_date=date.today() + timedelta(days=30)
         option_type='put'
-        current_price = Decimal('195')
+        current_price=Decimal('195')
         
         theoretical_price=await self.pricing_engine.calculate_theoretical_price(
             ticker, strike, expiry_date, option_type, current_price
@@ -396,7 +396,7 @@ class TestRealOptionsPricingEngine:
         assert theoretical_price > intrinsic_value
         assert 5 < float(theoretical_price) < 15
     
-    def test_get_options_chain_yahoo_success(self):
+    def test_get_options_chain_yahoo_success(self): 
         """Test successful options chain retrieval from Yahoo Finance"""
         # This test simply verifies the options parsing logic by directly testing
         # the contract creation and data structure functionality
@@ -525,16 +525,16 @@ class TestRealOptionsPricingEngine:
         assert first_call.volume== 1500
         
         # Check mid price calculation
-        expected_mid = (Decimal('8.50') + Decimal('8.75')) / 2
+        expected_mid=(Decimal('8.50') + Decimal('8.75')) / 2
         assert first_call.mid_price== expected_mid
         
-        # Test bid-ask spread
-        expected_spread = Decimal('8.75') - Decimal('8.50')
+        # Test bid - ask spread
+        expected_spread=Decimal('8.75') - Decimal('8.50')
         assert first_call.bid_ask_spread== expected_spread
     
     @pytest.mark.asyncio
     @patch('yfinance.Ticker')
-    async def test_get_options_chain_yahoo_failure(self, mock_ticker):
+    async def test_get_options_chain_yahoo_failure(self, mock_ticker): 
         """Test handling of Yahoo Finance API failure"""
         # Mock Yahoo Finance to raise exception
         mock_ticker.side_effect=Exception("API Error")
@@ -546,10 +546,10 @@ class TestRealOptionsPricingEngine:
         assert options== []
     
     @pytest.mark.asyncio
-    async def test_find_optimal_option(self):
+    async def test_find_optimal_option(self): 
         """Test finding optimal options contract"""
         ticker='AAPL'
-        current_price = Decimal('195')
+        current_price=Decimal('195')
         
         # Mock some options data
         self.pricing_engine.get_options_chain_yahoo=AsyncMock(return_value=[
@@ -583,15 +583,15 @@ class TestRealOptionsPricingEngine:
         assert optimal_option.ticker== ticker
         assert optimal_option.option_type == 'call'
         
-        # Should prefer the OTM option (3-8% OTM gets bonus points)
+        # Should prefer the OTM option (3 - 8% OTM gets bonus points)
         # $200 strike=2.6% OTM, $205 strike=5.1% OTM (gets bonus)
         assert optimal_option.strike== Decimal('205')
     
     @pytest.mark.asyncio
-    async def test_find_optimal_option_no_suitable_options(self):
+    async def test_find_optimal_option_no_suitable_options(self): 
         """Test finding optimal option when none meet criteria"""
         ticker='AAPL'
-        current_price = Decimal('195')
+        current_price=Decimal('195')
         
         # Mock illiquid options that shouldn't be selected
         self.pricing_engine.get_options_chain_yahoo=AsyncMock(return_value=[
@@ -615,10 +615,10 @@ class TestRealOptionsPricingEngine:
         assert optimal_option is None
 
 
-class TestOptionsContract:
+class TestOptionsContract: 
     """Test OptionsContract data structure"""
     
-    def test_options_contract_creation(self):
+    def test_options_contract_creation(self): 
         """Test creating options contract"""
         contract=OptionsContract(
             ticker='AAPL',
@@ -639,7 +639,7 @@ class TestOptionsContract:
         assert contract.bid == Decimal('5.20')
         assert contract.ask== Decimal('5.40')
     
-    def test_mid_price_calculation(self):
+    def test_mid_price_calculation(self): 
         """Test mid price calculation"""
         contract=OptionsContract(
             ticker='AAPL',
@@ -653,8 +653,8 @@ class TestOptionsContract:
         expected_mid=(Decimal('5.20') + Decimal('5.40')) / 2
         assert contract.mid_price== expected_mid
     
-    def test_mid_price_no_bid_ask(self):
-        """Test mid price when no bid/ask available"""
+    def test_mid_price_no_bid_ask(self): 
+        """Test mid price when no bid / ask available"""
         contract=OptionsContract(
             ticker='AAPL',
             strike=Decimal('200'),
@@ -665,8 +665,8 @@ class TestOptionsContract:
         
         assert contract.mid_price== Decimal('5.30')
     
-    def test_bid_ask_spread_calculation(self):
-        """Test bid-ask spread calculation"""
+    def test_bid_ask_spread_calculation(self): 
+        """Test bid - ask spread calculation"""
         contract=OptionsContract(
             ticker='AAPL',
             strike=Decimal('200'),
@@ -679,7 +679,7 @@ class TestOptionsContract:
         expected_spread=Decimal('5.40') - Decimal('5.20')
         assert contract.bid_ask_spread== expected_spread
     
-    def test_days_to_expiry_calculation(self):
+    def test_days_to_expiry_calculation(self): 
         """Test days to expiry calculation"""
         future_date=date.today() + timedelta(days=30)
         
@@ -694,10 +694,10 @@ class TestOptionsContract:
         assert 29 <= contract.days_to_expiry <= 31
 
 
-class TestIntegration:
+class TestIntegration: 
     """Integration tests for options pricing engine"""
     
-    def test_create_options_pricing_engine_factory(self):
+    def test_create_options_pricing_engine_factory(self): 
         """Test factory function"""
         engine=create_options_pricing_engine()
         
@@ -706,18 +706,18 @@ class TestIntegration:
         assert engine.cache_expiry== 300  # 5 minutes
     
     @pytest.mark.asyncio
-    async def test_full_pricing_pipeline(self):
+    async def test_full_pricing_pipeline(self): 
         """Test complete pricing pipeline from start to finish"""
         engine=create_options_pricing_engine()
         
         # Test realistic scenario
         ticker='AAPL'
-        strike = Decimal('200')
+        strike=Decimal('200')
         expiry_date=date.today() + timedelta(days=30)
         option_type='call'
-        current_price = Decimal('195')
+        current_price=Decimal('195')
         
-        # This should work end-to-end
+        # This should work end - to-end
         theoretical_price=await engine.calculate_theoretical_price(
             ticker, strike, expiry_date, option_type, current_price
         )
@@ -725,11 +725,11 @@ class TestIntegration:
         assert isinstance(theoretical_price, Decimal)
         assert theoretical_price > Decimal('0.01')
         
-        # Price should be reasonable for 5-point OTM call with 30 DTE
+        # Price should be reasonable for 5 - point OTM call with 30 DTE
         assert 0.5 < float(theoretical_price) < 10
     
     @pytest.mark.asyncio
-    async def test_pricing_accuracy_vs_known_values(self):
+    async def test_pricing_accuracy_vs_known_values(self): 
         """Test pricing accuracy against known theoretical values"""
         engine=create_options_pricing_engine()
         
@@ -756,7 +756,7 @@ class TestIntegration:
         )
         
         # For ATM options with these parameters, call and put should be similar
-        # (due to put-call parity with no dividends)
+        # (due to put - call parity with no dividends)
         price_difference=abs(float(call_price - put_price))
         assert price_difference < 1.5  # Allow for some numerical differences
         
@@ -765,19 +765,19 @@ class TestIntegration:
         assert 3 < float(put_price) < 6
     
     @pytest.mark.asyncio
-    async def test_error_handling_robustness(self):
+    async def test_error_handling_robustness(self): 
         """Test error handling throughout the system"""
         engine=create_options_pricing_engine()
         
-        # Test with invalid/extreme inputs
-        try:
+        # Test with invalid / extreme inputs
+        try: 
             # Negative price
             price=await engine.calculate_theoretical_price(
                 'TEST', Decimal('-100'), date.today(), 'call', Decimal('100')
             )
             # Should handle gracefully, not crash
             assert isinstance(price, Decimal)
-        except Exception:
+        except Exception: 
             pytest.fail("Should handle negative strike gracefully")
         
         # Test with very far expiry
@@ -789,7 +789,7 @@ class TestIntegration:
         assert price > Decimal('0')
     
     @pytest.mark.asyncio
-    async def test_performance_caching(self):
+    async def test_performance_caching(self): 
         """Test that caching improves performance"""
         engine=create_options_pricing_engine()
         
@@ -814,14 +814,14 @@ class TestIntegration:
         assert second_call_time < first_call_time * 0.5 or second_call_time < 0.001
 
 
-if __name__== "__main__":# Run specific test for debugging
+if __name__== "__main__": # Run specific test for debugging
     import asyncio
     
-    async def run_single_test():
+    async def run_single_test(): 
         test=TestBlackScholesEngine()
         test.setup_method()
         await test.test_black_scholes_call_itm()
-        print("✅ Black-Scholes ITM call test passed!")
+        print("✅ Black - Scholes ITM call test passed!")
         
         test2=TestRealOptionsPricingEngine()
         test2.setup_method()

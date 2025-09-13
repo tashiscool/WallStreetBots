@@ -1,7 +1,7 @@
 """
 System Health Monitor
 
-Real-time health monitoring for all system components with comprehensive alerting.
+Real - time health monitoring for all system components with comprehensive alerting.
 """
 
 import asyncio
@@ -16,28 +16,28 @@ from enum import Enum
 from ..error_handling import TradingErrorRecoveryManager
 
 
-class HealthStatus(Enum):
+class HealthStatus(Enum): 
     """System health status levels"""
     HEALTHY="healthy"
-    DEGRADED = "degraded"
-    CRITICAL = "critical"
-    UNKNOWN = "unknown"
+    DEGRADED="degraded"
+    CRITICAL="critical"
+    UNKNOWN="unknown"
 
 
 @dataclass
-class ComponentHealth:
+class ComponentHealth: 
     """Health status of a system component"""
     component_name: str
     status: HealthStatus
     last_check: datetime
     response_time_ms: float
-    error_count: int = 0
-    details: Dict[str, Any] = field(default_factory=dict)
-    recommendations: List[str] = field(default_factory=list)
+    error_count: int=0
+    details: Dict[str, Any]=field(default_factory=dict)
+    recommendations: List[str]=field(default_factory=list)
 
 
 @dataclass
-class SystemHealthReport:
+class SystemHealthReport: 
     """Comprehensive system health report"""
     timestamp: datetime
     overall_status: HealthStatus
@@ -46,17 +46,17 @@ class SystemHealthReport:
     database_status: ComponentHealth
     resource_status: ComponentHealth
     trading_status: ComponentHealth
-    components: Dict[str, ComponentHealth] = field(default_factory=dict)
-    recommendations: List[str] = field(default_factory=list)
+    components: Dict[str, ComponentHealth]=field(default_factory=dict)
+    recommendations: List[str]=field(default_factory=list)
     uptime_seconds: float=0.0
-    total_errors: int = 0
+    total_errors: int=0
 
 
-class SystemHealthMonitor:
+class SystemHealthMonitor: 
     """
-    Real-time system health monitoring
+    Real - time system health monitoring
     
-    Monitors all critical system components:
+    Monitors all critical system components: 
     - Data feed health and latency
     - Broker connection status
     - Database performance
@@ -64,32 +64,32 @@ class SystemHealthMonitor:
     - Trading performance metrics
     """
     
-    def __init__(self, trading_system=None, alert_system=None, config: Dict[str, Any] = None):
+    def __init__(self, trading_system=None, alert_system=None, config: Dict[str, Any]=None): 
         self.trading_system=trading_system
-        self.alert_system = alert_system
-        self.config = config or {}
-        self.logger = logging.getLogger(__name__)
+        self.alert_system=alert_system
+        self.config=config or {}
+        self.logger=logging.getLogger(__name__)
         
         # Health thresholds
         self.alert_thresholds={
-            'data_feed_latency':config.get('data_feed_latency_threshold', 5.0),  # seconds
-            'order_execution_time':config.get('order_execution_time_threshold', 30.0),  # seconds
-            'error_rate':config.get('error_rate_threshold', 0.05),  # 5% error rate
-            'memory_usage':config.get('memory_usage_threshold', 0.80),  # 80% memory usage
-            'cpu_usage':config.get('cpu_usage_threshold', 0.90),  # 90% CPU usage
-            'disk_usage':config.get('disk_usage_threshold', 0.85),  # 85% disk usage
+            'data_feed_latency': config.get('data_feed_latency_threshold', 5.0),  # seconds
+            'order_execution_time': config.get('order_execution_time_threshold', 30.0),  # seconds
+            'error_rate': config.get('error_rate_threshold', 0.05),  # 5% error rate
+            'memory_usage': config.get('memory_usage_threshold', 0.80),  # 80% memory usage
+            'cpu_usage': config.get('cpu_usage_threshold', 0.90),  # 90% CPU usage
+            'disk_usage': config.get('disk_usage_threshold', 0.85),  # 85% disk usage
         }
         
         # Monitoring state
         self.start_time=datetime.now()
         self.health_history=[]
-        self.component_checks = {}
+        self.component_checks={}
         
         self.logger.info("SystemHealthMonitor initialized")
     
-    async def check_system_health(self) -> SystemHealthReport:
+    async def check_system_health(self) -> SystemHealthReport: 
         """Comprehensive system health check"""
-        try:
+        try: 
             start_time=time.time()
             
             # Run all health checks in parallel
@@ -124,11 +124,11 @@ class SystemHealthMonitor:
                 resource_status=resource_health,
                 trading_status=trading_health,
                 components={
-                    'data_feed':data_feed_health,
-                    'broker':broker_health,
-                    'database':db_health,
-                    'resources':resource_health,
-                    'trading':trading_health
+                    'data_feed': data_feed_health,
+                    'broker': broker_health,
+                    'database': db_health,
+                    'resources': resource_health,
+                    'trading': trading_health
                 },
                 uptime_seconds=(datetime.now() - self.start_time).total_seconds()
             )
@@ -139,33 +139,33 @@ class SystemHealthMonitor:
             # Store in history
             self.health_history.append(report)
             if len(self.health_history) > 100:  # Keep last 100 reports
-                self.health_history=self.health_history[-100:]
+                self.health_history=self.health_history[-100: ]
             
             # Send alerts if unhealthy
-            if overall_status in [HealthStatus.DEGRADED, HealthStatus.CRITICAL]:
+            if overall_status in [HealthStatus.DEGRADED, HealthStatus.CRITICAL]: 
                 await self._send_health_alert(report)
             
             check_duration=time.time() - start_time
-            self.logger.info(f"System health check completed in {check_duration:.2f}s - Status: {overall_status.value}")
+            self.logger.info(f"System health check completed in {check_duration: .2f}s - Status: {overall_status.value}")
             
             return report
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error in system health check: {e}")
             return self._create_critical_report(str(e))
     
-    async def _check_data_feed_health(self) -> ComponentHealth:
+    async def _check_data_feed_health(self) -> ComponentHealth: 
         """Check data feed health and latency"""
-        try:
+        try: 
             start_time=time.time()
             
             # Test data feed connectivity
-            if self.trading_system and hasattr(self.trading_system, 'data_provider'):
+            if self.trading_system and hasattr(self.trading_system, 'data_provider'): 
                 # Test a simple data request
                 test_price=await self.trading_system.data_provider.get_current_price('AAPL')
                 response_time=(time.time() - start_time) * 1000  # Convert to ms
                 
-                if test_price:
+                if test_price: 
                     status=HealthStatus.HEALTHY if response_time < self.alert_thresholds['data_feed_latency'] * 1000 else HealthStatus.DEGRADED
                     return ComponentHealth(
                         component_name="data_feed",
@@ -173,54 +173,54 @@ class SystemHealthMonitor:
                         last_check=datetime.now(),
                         response_time_ms=response_time,
                         details={
-                            'test_ticker':'AAPL',
-                            'test_price':float(test_price.price) if hasattr(test_price, 'price') else None,
-                            'latency_threshold_ms':self.alert_thresholds['data_feed_latency'] * 1000
+                            'test_ticker': 'AAPL',
+                            'test_price': float(test_price.price) if hasattr(test_price, 'price') else None,
+                            'latency_threshold_ms': self.alert_thresholds['data_feed_latency'] * 1000
                         },
                         recommendations=[] if status == HealthStatus.HEALTHY else ['Consider switching to backup data source']
                     )
-                else:
+                else: 
                     return ComponentHealth(
                         component_name="data_feed",
                         status=HealthStatus.CRITICAL,
                         last_check=datetime.now(),
                         response_time_ms=response_time,
                         error_count=1,
-                        details={'error':'No data returned from test request'},
+                        details={'error': 'No data returned from test request'},
                         recommendations=['Switch to backup data source', 'Check data provider configuration']
                     )
-            else:
+            else: 
                 return ComponentHealth(
                     component_name="data_feed",
                     status=HealthStatus.UNKNOWN,
                     last_check=datetime.now(),
                     response_time_ms=0,
-                    details={'error':'No trading system or data provider available'},
+                    details={'error': 'No trading system or data provider available'},
                     recommendations=['Initialize trading system with data provider']
                 )
                 
-        except Exception as e:
+        except Exception as e: 
             return ComponentHealth(
                 component_name="data_feed",
                 status=HealthStatus.CRITICAL,
                 last_check=datetime.now(),
                 response_time_ms=0,
                 error_count=1,
-                details={'error':str(e)},
+                details={'error': str(e)},
                 recommendations=['Check data provider connection', 'Review error logs']
             )
     
-    async def _check_broker_connection(self) -> ComponentHealth:
+    async def _check_broker_connection(self) -> ComponentHealth: 
         """Check broker connection health"""
-        try:
+        try: 
             start_time=time.time()
             
-            if self.trading_system and hasattr(self.trading_system, 'broker_manager'):
+            if self.trading_system and hasattr(self.trading_system, 'broker_manager'): 
                 # Test broker connection
                 account_info=await self.trading_system.broker_manager.get_account()
                 response_time=(time.time() - start_time) * 1000
                 
-                if account_info:
+                if account_info: 
                     status=HealthStatus.HEALTHY if response_time < 5000 else HealthStatus.DEGRADED  # 5 second threshold
                     return ComponentHealth(
                         component_name="broker",
@@ -228,46 +228,46 @@ class SystemHealthMonitor:
                         last_check=datetime.now(),
                         response_time_ms=response_time,
                         details={
-                            'account_status':getattr(account_info, 'status', 'unknown'),
-                            'buying_power':getattr(account_info, 'buying_power', 0),
-                            'portfolio_value':getattr(account_info, 'portfolio_value', 0)
+                            'account_status': getattr(account_info, 'status', 'unknown'),
+                            'buying_power': getattr(account_info, 'buying_power', 0),
+                            'portfolio_value': getattr(account_info, 'portfolio_value', 0)
                         },
                         recommendations=[] if status == HealthStatus.HEALTHY else ['Check broker API connection']
                     )
-                else:
+                else: 
                     return ComponentHealth(
                         component_name="broker",
                         status=HealthStatus.CRITICAL,
                         last_check=datetime.now(),
                         response_time_ms=response_time,
                         error_count=1,
-                        details={'error':'No account info returned'},
+                        details={'error': 'No account info returned'},
                         recommendations=['Check broker API credentials', 'Verify account status']
                     )
-            else:
+            else: 
                 return ComponentHealth(
                     component_name="broker",
                     status=HealthStatus.UNKNOWN,
                     last_check=datetime.now(),
                     response_time_ms=0,
-                    details={'error':'No broker manager available'},
+                    details={'error': 'No broker manager available'},
                     recommendations=['Initialize broker manager']
                 )
                 
-        except Exception as e:
+        except Exception as e: 
             return ComponentHealth(
                 component_name="broker",
                 status=HealthStatus.CRITICAL,
                 last_check=datetime.now(),
                 response_time_ms=0,
                 error_count=1,
-                details={'error':str(e)},
+                details={'error': str(e)},
                 recommendations=['Check broker connection', 'Review API credentials']
             )
     
-    async def _check_database_performance(self) -> ComponentHealth:
+    async def _check_database_performance(self) -> ComponentHealth: 
         """Check database performance"""
-        try:
+        try: 
             start_time=time.time()
             
             # Test database connectivity (simplified)
@@ -284,27 +284,27 @@ class SystemHealthMonitor:
                 last_check=datetime.now(),
                 response_time_ms=response_time,
                 details={
-                    'connection_pool_size':10,  # Placeholder
-                    'active_connections':3,     # Placeholder
-                    'query_count':1000          # Placeholder
+                    'connection_pool_size': 10,  # Placeholder
+                    'active_connections': 3,     # Placeholder
+                    'query_count': 1000          # Placeholder
                 },
                 recommendations=[] if status == HealthStatus.HEALTHY else ['Optimize database queries', 'Check connection pool']
             )
             
-        except Exception as e:
+        except Exception as e: 
             return ComponentHealth(
                 component_name="database",
                 status=HealthStatus.CRITICAL,
                 last_check=datetime.now(),
                 response_time_ms=0,
                 error_count=1,
-                details={'error':str(e)},
+                details={'error': str(e)},
                 recommendations=['Check database connection', 'Review database logs']
             )
     
-    async def _check_system_resources(self) -> ComponentHealth:
+    async def _check_system_resources(self) -> ComponentHealth: 
         """Check system resource usage"""
-        try:
+        try: 
             # Get system resource usage
             cpu_percent=psutil.cpu_percent(interval=1)
             memory=psutil.virtual_memory()
@@ -312,29 +312,29 @@ class SystemHealthMonitor:
             
             # Determine status based on thresholds
             status=HealthStatus.HEALTHY
-            recommendations = []
+            recommendations=[]
             
-            if cpu_percent > self.alert_thresholds['cpu_usage'] * 100:
-                status = HealthStatus.CRITICAL
+            if cpu_percent > self.alert_thresholds['cpu_usage'] * 100: 
+                status=HealthStatus.CRITICAL
                 recommendations.append('High CPU usage - consider scaling or optimization')
-            elif cpu_percent > self.alert_thresholds['cpu_usage'] * 100 * 0.8:
+            elif cpu_percent > self.alert_thresholds['cpu_usage'] * 100 * 0.8: 
                 status=HealthStatus.DEGRADED
                 recommendations.append('CPU usage approaching threshold')
             
-            if memory.percent > self.alert_thresholds['memory_usage'] * 100:
+            if memory.percent > self.alert_thresholds['memory_usage'] * 100: 
                 status=HealthStatus.CRITICAL
                 recommendations.append('High memory usage - consider memory optimization')
-            elif memory.percent > self.alert_thresholds['memory_usage'] * 100 * 0.8:
-                if status== HealthStatus.HEALTHY:
-                    status = HealthStatus.DEGRADED
+            elif memory.percent > self.alert_thresholds['memory_usage'] * 100 * 0.8: 
+                if status== HealthStatus.HEALTHY: 
+                    status=HealthStatus.DEGRADED
                 recommendations.append('Memory usage approaching threshold')
             
-            if disk.percent > self.alert_thresholds['disk_usage'] * 100:
+            if disk.percent > self.alert_thresholds['disk_usage'] * 100: 
                 status=HealthStatus.CRITICAL
                 recommendations.append('High disk usage - cleanup required')
-            elif disk.percent > self.alert_thresholds['disk_usage'] * 100 * 0.8:
-                if status== HealthStatus.HEALTHY:
-                    status = HealthStatus.DEGRADED
+            elif disk.percent > self.alert_thresholds['disk_usage'] * 100 * 0.8: 
+                if status== HealthStatus.HEALTHY: 
+                    status=HealthStatus.DEGRADED
                 recommendations.append('Disk usage approaching threshold')
             
             return ComponentHealth(
@@ -343,46 +343,46 @@ class SystemHealthMonitor:
                 last_check=datetime.now(),
                 response_time_ms=0,
                 details={
-                    'cpu_percent':cpu_percent,
-                    'memory_percent':memory.percent,
-                    'memory_available_gb':memory.available / (1024**3),
-                    'disk_percent':disk.percent,
-                    'disk_free_gb':disk.free / (1024**3)
+                    'cpu_percent': cpu_percent,
+                    'memory_percent': memory.percent,
+                    'memory_available_gb': memory.available / (1024**3),
+                    'disk_percent': disk.percent,
+                    'disk_free_gb': disk.free / (1024**3)
                 },
                 recommendations=recommendations
             )
             
-        except Exception as e:
+        except Exception as e: 
             return ComponentHealth(
                 component_name="resources",
                 status=HealthStatus.CRITICAL,
                 last_check=datetime.now(),
                 response_time_ms=0,
                 error_count=1,
-                details={'error':str(e)},
+                details={'error': str(e)},
                 recommendations=['Check system resource monitoring', 'Review system logs']
             )
     
-    async def _check_trading_performance(self) -> ComponentHealth:
+    async def _check_trading_performance(self) -> ComponentHealth: 
         """Check trading performance metrics"""
-        try:
+        try: 
             # This would check actual trading performance in a real implementation
             # For now, we'll simulate some metrics
             
             status=HealthStatus.HEALTHY
-            recommendations = []
+            recommendations=[]
             
             # Simulate some trading metrics
-            total_trades = 100  # Placeholder
-            successful_trades = 95  # Placeholder
-            error_rate = (total_trades - successful_trades) / total_trades if total_trades > 0 else 0
+            total_trades=100  # Placeholder
+            successful_trades=95  # Placeholder
+            error_rate=(total_trades - successful_trades) / total_trades if total_trades > 0 else 0
             
-            if error_rate > self.alert_thresholds['error_rate']:
+            if error_rate > self.alert_thresholds['error_rate']: 
                 status=HealthStatus.CRITICAL
                 recommendations.append('High trading error rate - review strategy logic')
-            elif error_rate > self.alert_thresholds['error_rate'] * 0.5:
-                if status== HealthStatus.HEALTHY:
-                    status = HealthStatus.DEGRADED
+            elif error_rate > self.alert_thresholds['error_rate'] * 0.5: 
+                if status== HealthStatus.HEALTHY: 
+                    status=HealthStatus.DEGRADED
                 recommendations.append('Trading error rate approaching threshold')
             
             return ComponentHealth(
@@ -392,64 +392,64 @@ class SystemHealthMonitor:
                 response_time_ms=0,
                 error_count=int((total_trades - successful_trades)),
                 details={
-                    'total_trades':total_trades,
-                    'successful_trades':successful_trades,
-                    'error_rate':error_rate,
-                    'avg_execution_time_ms':150  # Placeholder
+                    'total_trades': total_trades,
+                    'successful_trades': successful_trades,
+                    'error_rate': error_rate,
+                    'avg_execution_time_ms': 150  # Placeholder
                 },
                 recommendations=recommendations
             )
             
-        except Exception as e:
+        except Exception as e: 
             return ComponentHealth(
                 component_name="trading",
                 status=HealthStatus.CRITICAL,
                 last_check=datetime.now(),
                 response_time_ms=0,
                 error_count=1,
-                details={'error':str(e)},
+                details={'error': str(e)},
                 recommendations=['Check trading system', 'Review trading logs']
             )
     
     def _calculate_overall_health(self, component_healths: List[ComponentHealth]) -> HealthStatus:
         """Calculate overall system health from component healths"""
-        if not component_healths:
+        if not component_healths: 
             return HealthStatus.UNKNOWN
         
         # Count statuses
         status_counts={}
-        for health in component_healths:
-            status_counts[health.status] = status_counts.get(health.status, 0) + 1
+        for health in component_healths: 
+            status_counts[health.status]=status_counts.get(health.status, 0) + 1
         
         # Determine overall status
-        if status_counts.get(HealthStatus.CRITICAL, 0) > 0:
+        if status_counts.get(HealthStatus.CRITICAL, 0) > 0: 
             return HealthStatus.CRITICAL
-        elif status_counts.get(HealthStatus.DEGRADED, 0) > 0:
+        elif status_counts.get(HealthStatus.DEGRADED, 0) > 0: 
             return HealthStatus.DEGRADED
-        elif status_counts.get(HealthStatus.HEALTHY, 0) == len(component_healths):
+        elif status_counts.get(HealthStatus.HEALTHY, 0) == len(component_healths): 
             return HealthStatus.HEALTHY
-        else:
+        else: 
             return HealthStatus.UNKNOWN
     
     def _generate_recommendations(self, report: SystemHealthReport) -> List[str]:
-        """Generate system-wide recommendations based on health report"""
+        """Generate system - wide recommendations based on health report"""
         recommendations=[]
         
         # Collect all component recommendations
-        for component in report.components.values():
+        for component in report.components.values(): 
             recommendations.extend(component.recommendations)
         
-        # Add system-wide recommendations
-        if report.overall_status== HealthStatus.CRITICAL:
+        # Add system - wide recommendations
+        if report.overall_status== HealthStatus.CRITICAL: 
             recommendations.append('System in critical state - immediate attention required')
-        elif report.overall_status== HealthStatus.DEGRADED:
+        elif report.overall_status== HealthStatus.DEGRADED: 
             recommendations.append('System performance degraded - monitor closely')
         
         return list(set(recommendations))  # Remove duplicates
     
     async def _send_health_alert(self, report: SystemHealthReport):
         """Send health alert if system is unhealthy"""
-        if self.alert_system:
+        if self.alert_system: 
             priority="CRITICAL" if report.overall_status == HealthStatus.CRITICAL else "HIGH"
             await self.alert_system.send_health_alert(
                 f"System Health Alert: {report.overall_status.value.upper()}",
@@ -467,7 +467,7 @@ class SystemHealthMonitor:
             last_check=datetime.now(),
             response_time_ms=0,
             error_count=1,
-            details={'error':str(error)},
+            details={'error': str(error)},
             recommendations=['Check component configuration', 'Review error logs']
         )
     
@@ -489,14 +489,14 @@ class SystemHealthMonitor:
         cutoff_time=datetime.now() - timedelta(hours=hours)
         return [report for report in self.health_history if report.timestamp >= cutoff_time]
     
-    def get_uptime_stats(self) -> Dict[str, Any]:
+    def get_uptime_stats(self) -> Dict[str, Any]: 
         """Get system uptime statistics"""
         uptime=datetime.now() - self.start_time
         return {
-            'start_time':self.start_time,
-            'uptime_seconds':uptime.total_seconds(),
-            'uptime_hours':uptime.total_seconds() / 3600,
-            'uptime_days':uptime.days
+            'start_time': self.start_time,
+            'uptime_seconds': uptime.total_seconds(),
+            'uptime_hours': uptime.total_seconds() / 3600,
+            'uptime_days': uptime.days
         }
 
 

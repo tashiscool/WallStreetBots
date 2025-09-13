@@ -1,6 +1,6 @@
 """
 Production Earnings IV Crush Protection Strategy
-Advanced earnings protection with real-time data and sophisticated hedging
+Advanced earnings protection with real - time data and sophisticated hedging
 """
 
 import asyncio
@@ -18,25 +18,25 @@ from .trading_interface import TradingInterface
 from .unified_data_provider import UnifiedDataProvider
 
 
-class EarningsStrategy(Enum):
+class EarningsStrategy(Enum): 
     """Earnings protection strategies"""
     DEEP_ITM_PROTECTION="deep_itm_protection"
-    CALENDAR_SPREAD_PROTECTION = "calendar_spread_protection"
-    PROTECTIVE_HEDGE = "protective_hedge"
-    VOLATILITY_ARBITRAGE = "volatility_arbitrage"
+    CALENDAR_SPREAD_PROTECTION="calendar_spread_protection"
+    PROTECTIVE_HEDGE="protective_hedge"
+    VOLATILITY_ARBITRAGE="volatility_arbitrage"
 
 
-class EarningsEventType(Enum):
+class EarningsEventType(Enum): 
     """Types of earnings events"""
     EARNINGS="earnings"
-    GUIDANCE = "guidance"
-    DIVIDEND = "dividend"
-    SPLIT = "split"
-    MERGER = "merger"
+    GUIDANCE="guidance"
+    DIVIDEND="dividend"
+    SPLIT="split"
+    MERGER="merger"
 
 
 @dataclass
-class EarningsEvent:
+class EarningsEvent: 
     """Earnings event data"""
     ticker: str
     event_type: EarningsEventType
@@ -44,17 +44,17 @@ class EarningsEvent:
     announcement_time: str  # "AMC", "BMO", "DURING"
     fiscal_quarter: str
     fiscal_year: int
-    eps_estimate: Optional[float] = None
-    eps_actual: Optional[float] = None
-    revenue_estimate: Optional[float] = None
-    revenue_actual: Optional[float] = None
-    surprise_pct: Optional[float] = None
+    eps_estimate: Optional[float]=None
+    eps_actual: Optional[float]=None
+    revenue_estimate: Optional[float]=None
+    revenue_actual: Optional[float]=None
+    surprise_pct: Optional[float]=None
     guidance_updated: bool=False
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
-class IVAnalysis:
+class IVAnalysis: 
     """Implied volatility analysis"""
     ticker: str
     current_iv: float
@@ -69,7 +69,7 @@ class IVAnalysis:
 
 
 @dataclass
-class EarningsPosition:
+class EarningsPosition: 
     """Earnings protection position"""
     ticker: str
     strategy: EarningsStrategy
@@ -93,7 +93,7 @@ class EarningsPosition:
 
 
 @dataclass
-class EarningsCandidate:
+class EarningsCandidate: 
     """Earnings protection candidate"""
     ticker: str
     earnings_date: datetime
@@ -107,20 +107,20 @@ class EarningsCandidate:
     earnings_score: float
     risk_score: float
     strategy_recommended: EarningsStrategy
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
-class EarningsDataProvider:
-    """Real-time earnings data provider"""
+class EarningsDataProvider: 
+    """Real - time earnings data provider"""
     
     def __init__(self, logger: ProductionLogger):
         self.logger=logger
-        self.earnings_cache = {}
-        self.iv_cache = {}
+        self.earnings_cache={}
+        self.iv_cache={}
     
     async def get_earnings_calendar(self, days_ahead: int=30) -> List[EarningsEvent]:
         """Get upcoming earnings events"""
-        try:
+        try: 
             # Mock implementation - in production, integrate with real earnings API
             mock_earnings=[
                 EarningsEvent(
@@ -158,13 +158,13 @@ class EarningsDataProvider:
             self.logger.info(f"Retrieved {len(mock_earnings)} earnings events")
             return mock_earnings
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error fetching earnings calendar: {e}")
             return []
     
     async def get_iv_analysis(self, ticker: str) -> Optional[IVAnalysis]:
         """Get implied volatility analysis for ticker"""
-        try:
+        try: 
             # Mock IV analysis - in production, use real options data
             mock_iv=IVAnalysis(
                 ticker=ticker,
@@ -181,44 +181,44 @@ class EarningsDataProvider:
             self.logger.info(f"Retrieved IV analysis for {ticker}")
             return mock_iv
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error fetching IV analysis for {ticker}: {e}")
             return None
     
     async def get_earnings_history(self, ticker: str, quarters: int=8) -> List[Dict]:
         """Get historical earnings data"""
-        try:
+        try: 
             # Mock historical earnings data
             mock_history=[
                 {
-                    "quarter":"Q4 2023",
-                    "eps_estimate":2.05,
-                    "eps_actual":2.18,
-                    "surprise_pct":0.063,
-                    "revenue_estimate":118000000000,
-                    "revenue_actual":119600000000,
-                    "surprise_pct_revenue":0.014
+                    "quarter": "Q4 2023",
+                    "eps_estimate": 2.05,
+                    "eps_actual": 2.18,
+                    "surprise_pct": 0.063,
+                    "revenue_estimate": 118000000000,
+                    "revenue_actual": 119600000000,
+                    "surprise_pct_revenue": 0.014
                 },
                 {
-                    "quarter":"Q3 2023",
-                    "eps_estimate":1.95,
-                    "eps_actual":1.46,
-                    "surprise_pct":-0.251,
-                    "revenue_estimate":112000000000,
-                    "revenue_actual":109000000000,
-                    "surprise_pct_revenue":-0.027
+                    "quarter": "Q3 2023",
+                    "eps_estimate": 1.95,
+                    "eps_actual": 1.46,
+                    "surprise_pct": -0.251,
+                    "revenue_estimate": 112000000000,
+                    "revenue_actual": 109000000000,
+                    "surprise_pct_revenue": -0.027
                 }
             ]
             
             self.logger.info(f"Retrieved {len(mock_history)} quarters of earnings history for {ticker}")
             return mock_history
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error fetching earnings history for {ticker}: {e}")
             return []
 
 
-class EarningsProtectionStrategy:
+class EarningsProtectionStrategy: 
     """Main earnings protection strategy"""
     
     def __init__(self, 
@@ -227,53 +227,53 @@ class EarningsProtectionStrategy:
                  config: ConfigManager,
                  logger: ProductionLogger):
         self.trading=trading_interface
-        self.data = data_provider
-        self.config = config
-        self.logger = logger
-        self.earnings_provider = EarningsDataProvider(logger)
+        self.data=data_provider
+        self.config=config
+        self.logger=logger
+        self.earnings_provider=EarningsDataProvider(logger)
         self.active_positions={}
-        self.earnings_candidates = {}
+        self.earnings_candidates={}
         
         # Strategy parameters
-        self.max_earnings_exposure = 0.15  # 15% max exposure to earnings
-        self.min_days_to_earnings = 3
-        self.max_days_to_earnings = 30
-        self.min_iv_rank = 0.60
-        self.max_protection_cost = 0.05  # 5% max protection cost
+        self.max_earnings_exposure=0.15  # 15% max exposure to earnings
+        self.min_days_to_earnings=3
+        self.max_days_to_earnings=30
+        self.min_iv_rank=0.60
+        self.max_protection_cost=0.05  # 5% max protection cost
         
         self.logger.info("EarningsProtectionStrategy initialized")
     
-    async def scan_for_earnings_opportunities(self) -> List[EarningsCandidate]:
+    async def scan_for_earnings_opportunities(self) -> List[EarningsCandidate]: 
         """Scan for earnings protection opportunities"""
-        try:
+        try: 
             self.logger.info("Scanning for earnings protection opportunities")
             
             # Get upcoming earnings events
             earnings_events=await self.earnings_provider.get_earnings_calendar()
             candidates=[]
             
-            for event in earnings_events:
-                if event.event_type != EarningsEventType.EARNINGS:
+            for event in earnings_events: 
+                if event.event_type != EarningsEventType.EARNINGS: 
                     continue
                 
-                days_to_earnings = (event.event_date - datetime.now()).days
+                days_to_earnings=(event.event_date - datetime.now()).days
                 
                 # Filter by days to earnings
-                if not (self.min_days_to_earnings <= days_to_earnings <= self.max_days_to_earnings):
+                if not (self.min_days_to_earnings <= days_to_earnings <= self.max_days_to_earnings): 
                     continue
                 
                 # Get IV analysis
                 iv_analysis=await self.earnings_provider.get_iv_analysis(event.ticker)
-                if not iv_analysis:
+                if not iv_analysis: 
                     continue
                 
                 # Filter by IV rank
-                if iv_analysis.iv_rank < self.min_iv_rank:
+                if iv_analysis.iv_rank < self.min_iv_rank: 
                     continue
                 
                 # Get current market data
                 market_data=await self.data.get_market_data(event.ticker)
-                if not market_data:
+                if not market_data: 
                     continue
                 
                 # Calculate expected move
@@ -287,7 +287,7 @@ class EarningsProtectionStrategy:
                 )
                 
                 # Filter by protection cost
-                if protection_cost > self.max_protection_cost:
+                if protection_cost > self.max_protection_cost: 
                     continue
                 
                 # Calculate earnings score
@@ -326,112 +326,112 @@ class EarningsProtectionStrategy:
             self.logger.info(f"Found {len(candidates)} earnings protection opportunities")
             return candidates
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error scanning for earnings opportunities: {e}")
             return []
     
     async def execute_earnings_protection(self, candidate: EarningsCandidate) -> Optional[EarningsPosition]:
         """Execute earnings protection strategy"""
-        try:
+        try: 
             self.logger.info(f"Executing earnings protection for {candidate.ticker}")
             
             # Check if we already have a position
-            if candidate.ticker in self.active_positions:
+            if candidate.ticker in self.active_positions: 
                 self.logger.warning(f"Already have earnings position for {candidate.ticker}")
                 return None
             
             # Check portfolio exposure
-            if not self._check_portfolio_exposure(candidate):
+            if not self._check_portfolio_exposure(candidate): 
                 self.logger.warning(f"Portfolio exposure limit reached for {candidate.ticker}")
                 return None
             
             # Execute strategy based on recommendation
-            if candidate.strategy_recommended== EarningsStrategy.DEEP_ITM_PROTECTION:
-                position = await self._execute_deep_itm_protection(candidate)
-            elif candidate.strategy_recommended== EarningsStrategy.CALENDAR_SPREAD_PROTECTION:
-                position = await self._execute_calendar_spread_protection(candidate)
-            elif candidate.strategy_recommended== EarningsStrategy.PROTECTIVE_HEDGE:
-                position = await self._execute_protective_hedge(candidate)
-            elif candidate.strategy_recommended== EarningsStrategy.VOLATILITY_ARBITRAGE:
-                position = await self._execute_volatility_arbitrage(candidate)
-            else:
+            if candidate.strategy_recommended== EarningsStrategy.DEEP_ITM_PROTECTION: 
+                position=await self._execute_deep_itm_protection(candidate)
+            elif candidate.strategy_recommended== EarningsStrategy.CALENDAR_SPREAD_PROTECTION: 
+                position=await self._execute_calendar_spread_protection(candidate)
+            elif candidate.strategy_recommended== EarningsStrategy.PROTECTIVE_HEDGE: 
+                position=await self._execute_protective_hedge(candidate)
+            elif candidate.strategy_recommended== EarningsStrategy.VOLATILITY_ARBITRAGE: 
+                position=await self._execute_volatility_arbitrage(candidate)
+            else: 
                 self.logger.error(f"Unknown strategy: {candidate.strategy_recommended}")
                 return None
             
-            if position:
-                self.active_positions[candidate.ticker] = position
+            if position: 
+                self.active_positions[candidate.ticker]=position
                 self.logger.info(f"Created earnings protection position for {candidate.ticker}")
             
             return position
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error executing earnings protection for {candidate.ticker}: {e}")
             return None
     
-    async def monitor_earnings_positions(self) -> Dict[str, Any]:
+    async def monitor_earnings_positions(self) -> Dict[str, Any]: 
         """Monitor active earnings positions"""
-        try:
+        try: 
             self.logger.info("Monitoring earnings positions")
             
             monitoring_results={
-                "positions_monitored":len(self.active_positions),
-                "positions_closed":0,
-                "positions_rolled":0,
-                "total_pnl":0.0,
-                "risk_alerts":[]
+                "positions_monitored": len(self.active_positions),
+                "positions_closed": 0,
+                "positions_rolled": 0,
+                "total_pnl": 0.0,
+                "risk_alerts": []
             }
             
             positions_to_close=[]
             
-            for ticker, position in self.active_positions.items():
+            for ticker, position in self.active_positions.items(): 
                 # Update position data
                 await self._update_position_data(position)
                 
                 # Check if earnings has passed
-                if position.days_to_earnings <= 0:
+                if position.days_to_earnings <= 0: 
                     positions_to_close.append(ticker)
                     continue
                 
                 # Check for risk alerts
                 risk_alerts=self._check_position_risks(position)
-                if risk_alerts:
+                if risk_alerts: 
                     monitoring_results["risk_alerts"].extend(risk_alerts)
                 
                 # Check for profit targets
-                if self._check_profit_targets(position):
+                if self._check_profit_targets(position): 
                     positions_to_close.append(ticker)
                     continue
                 
                 # Check for roll opportunities
-                if self._check_roll_opportunities(position):
+                if self._check_roll_opportunities(position): 
                     monitoring_results["positions_rolled"] += 1
                     await self._roll_position(position)
                 
                 monitoring_results["total_pnl"] += position.unrealized_pnl
             
             # Close positions that need to be closed
-            for ticker in positions_to_close:
+            for ticker in positions_to_close: 
                 await self._close_position(ticker)
                 monitoring_results["positions_closed"] += 1
             
             self.logger.info(f"Monitoring complete: {monitoring_results}")
             return monitoring_results
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error monitoring earnings positions: {e}")
-            return {"error":str(e)}
+            return {"error": str(e)}
     
     def _calculate_expected_move(self, price: float, iv: float, days_to_expiry: int) -> float:
         """Calculate expected move based on IV and time to expiry"""
         time_to_expiry=days_to_expiry / 365.0
-        expected_move = price * iv * math.sqrt(time_to_expiry)
+        expected_move=price * iv * math.sqrt(time_to_expiry)
         return expected_move
     
     def _calculate_protection_cost(self, price: float, iv: float, days_to_expiry: int) -> float:
         """Calculate protection cost as percentage of stock price"""
         # Simplified calculation - in production, use real options pricing
         time_to_expiry=days_to_expiry / 365.0
-        protection_cost = price * iv * math.sqrt(time_to_expiry) * 0.5
+        protection_cost=price * iv * math.sqrt(time_to_expiry) * 0.5
         return protection_cost / price
     
     def _calculate_earnings_score(self, iv_analysis: IVAnalysis, 
@@ -452,12 +452,12 @@ class EarningsProtectionStrategy:
         score += cost_score * 0.25
         
         # Days to earnings component (optimal range)
-        if 5 <= days_to_earnings <= 15:
+        if 5 <= days_to_earnings <= 15: 
             days_score=1.0
-        elif 3 <= days_to_earnings <= 20:
-            days_score = 0.8
-        else:
-            days_score = 0.5
+        elif 3 <= days_to_earnings <= 20: 
+            days_score=0.8
+        else: 
+            days_score=0.5
         score += days_score * 0.2
         
         return max(0.0, min(1.0, score))
@@ -468,7 +468,7 @@ class EarningsProtectionStrategy:
         risk=0.0
         
         # IV spike risk
-        if iv_analysis.current_iv > iv_analysis.iv_spike_threshold:
+        if iv_analysis.current_iv > iv_analysis.iv_spike_threshold: 
             risk += 0.3
         
         # Expected move risk
@@ -476,9 +476,9 @@ class EarningsProtectionStrategy:
             risk += 0.3
         
         # Days to earnings risk
-        if days_to_earnings < 5:
+        if days_to_earnings < 5: 
             risk += 0.2
-        elif days_to_earnings > 20:
+        elif days_to_earnings > 20: 
             risk += 0.1
         
         # IV crush risk
@@ -490,13 +490,13 @@ class EarningsProtectionStrategy:
     def _recommend_strategy(self, iv_analysis: IVAnalysis, 
                           expected_move: float, days_to_earnings: int) -> EarningsStrategy:
         """Recommend earnings protection strategy"""
-        if iv_analysis.iv_rank > 0.80 and expected_move > 0.10:
+        if iv_analysis.iv_rank > 0.80 and expected_move > 0.10: 
             return EarningsStrategy.VOLATILITY_ARBITRAGE
-        elif days_to_earnings > 15:
+        elif days_to_earnings > 15: 
             return EarningsStrategy.CALENDAR_SPREAD_PROTECTION
-        elif iv_analysis.iv_crush_expected > 0.15:
+        elif iv_analysis.iv_crush_expected > 0.15: 
             return EarningsStrategy.PROTECTIVE_HEDGE
-        else:
+        else: 
             return EarningsStrategy.DEEP_ITM_PROTECTION
     
     def _check_portfolio_exposure(self, candidate: EarningsCandidate) -> bool:
@@ -513,7 +513,7 @@ class EarningsProtectionStrategy:
     
     async def _execute_deep_itm_protection(self, candidate: EarningsCandidate) -> Optional[EarningsPosition]:
         """Execute deep ITM protection strategy"""
-        try:
+        try: 
             # Mock implementation - in production, execute real options trades
             position=EarningsPosition(
                 ticker=candidate.ticker,
@@ -537,13 +537,13 @@ class EarningsProtectionStrategy:
             self.logger.info(f"Executed deep ITM protection for {candidate.ticker}")
             return position
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error executing deep ITM protection: {e}")
             return None
     
     async def _execute_calendar_spread_protection(self, candidate: EarningsCandidate) -> Optional[EarningsPosition]:
         """Execute calendar spread protection strategy"""
-        try:
+        try: 
             # Mock implementation - in production, execute real calendar spreads
             position=EarningsPosition(
                 ticker=candidate.ticker,
@@ -567,13 +567,13 @@ class EarningsProtectionStrategy:
             self.logger.info(f"Executed calendar spread protection for {candidate.ticker}")
             return position
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error executing calendar spread protection: {e}")
             return None
     
     async def _execute_protective_hedge(self, candidate: EarningsCandidate) -> Optional[EarningsPosition]:
         """Execute protective hedge strategy"""
-        try:
+        try: 
             # Mock implementation - in production, execute real protective hedges
             position=EarningsPosition(
                 ticker=candidate.ticker,
@@ -597,13 +597,13 @@ class EarningsProtectionStrategy:
             self.logger.info(f"Executed protective hedge for {candidate.ticker}")
             return position
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error executing protective hedge: {e}")
             return None
     
     async def _execute_volatility_arbitrage(self, candidate: EarningsCandidate) -> Optional[EarningsPosition]:
         """Execute volatility arbitrage strategy"""
-        try:
+        try: 
             # Mock implementation - in production, execute real volatility arbitrage
             position=EarningsPosition(
                 ticker=candidate.ticker,
@@ -627,38 +627,38 @@ class EarningsProtectionStrategy:
             self.logger.info(f"Executed volatility arbitrage for {candidate.ticker}")
             return position
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error executing volatility arbitrage: {e}")
             return None
     
     async def _update_position_data(self, position: EarningsPosition):
         """Update position data with current market information"""
-        try:
+        try: 
             # Get current market data
             market_data=await self.data.get_market_data(position.ticker)
-            if market_data:
+            if market_data: 
                 position.current_price=market_data.price
-                position.last_update = datetime.now()
+                position.last_update=datetime.now()
                 
-                # Recalculate P&L
+                # Recalculate P & L
                 position.unrealized_pnl=self._calculate_position_pnl(position)
                 
                 # Update days to earnings
                 position.days_to_earnings=(position.earnings_date - datetime.now()).days
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error updating position data for {position.ticker}: {e}")
     
     def _calculate_position_pnl(self, position: EarningsPosition) -> float:
-        """Calculate position P&L"""
-        # Simplified P&L calculation - in production, use real options pricing
-        if position.strategy== EarningsStrategy.DEEP_ITM_PROTECTION:
+        """Calculate position P & L"""
+        # Simplified P & L calculation - in production, use real options pricing
+        if position.strategy== EarningsStrategy.DEEP_ITM_PROTECTION: 
             return (position.current_price - position.entry_price) * position.quantity
-        elif position.strategy== EarningsStrategy.CALENDAR_SPREAD_PROTECTION:
+        elif position.strategy== EarningsStrategy.CALENDAR_SPREAD_PROTECTION: 
             return position.theta_exposure * position.quantity * 10  # Mock theta decay
-        elif position.strategy == EarningsStrategy.PROTECTIVE_HEDGE:
+        elif position.strategy == EarningsStrategy.PROTECTIVE_HEDGE: 
             return -position.delta_exposure * (position.current_price - position.entry_price) * position.quantity
-        elif position.strategy== EarningsStrategy.VOLATILITY_ARBITRAGE:
+        elif position.strategy== EarningsStrategy.VOLATILITY_ARBITRAGE: 
             return position.vega_exposure * position.quantity * 5  # Mock vega exposure
         return 0.0
     
@@ -667,15 +667,15 @@ class EarningsProtectionStrategy:
         alerts=[]
         
         # Check for large unrealized losses
-        if position.unrealized_pnl < -position.max_loss * 0.8:
+        if position.unrealized_pnl < -position.max_loss * 0.8: 
             alerts.append(f"Large unrealized loss for {position.ticker}: ${position.unrealized_pnl:.2f}")
         
         # Check for approaching earnings
-        if position.days_to_earnings <= 2:
+        if position.days_to_earnings <= 2: 
             alerts.append(f"Earnings approaching for {position.ticker}: {position.days_to_earnings} days")
         
         # Check for high IV exposure
-        if abs(position.vega_exposure) > 0.1:
+        if abs(position.vega_exposure) > 0.1: 
             alerts.append(f"High vega exposure for {position.ticker}: {position.vega_exposure:.3f}")
         
         return alerts
@@ -695,49 +695,49 @@ class EarningsProtectionStrategy:
     
     async def _roll_position(self, position: EarningsPosition):
         """Roll position to next expiration"""
-        try:
+        try: 
             self.logger.info(f"Rolling position for {position.ticker}")
             # Mock implementation - in production, execute roll trades
             position.entry_date=datetime.now()
             position.unrealized_pnl=0.0
             self.logger.info(f"Position rolled for {position.ticker}")
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error rolling position for {position.ticker}: {e}")
     
     async def _close_position(self, ticker: str):
         """Close earnings position"""
-        try:
-            if ticker in self.active_positions:
+        try: 
+            if ticker in self.active_positions: 
                 position=self.active_positions.pop(ticker)
-                self.logger.info(f"Closed earnings position for {ticker}: P&L ${position.unrealized_pnl:.2f}")
+                self.logger.info(f"Closed earnings position for {ticker}: P & L ${position.unrealized_pnl:.2f}")
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error closing position for {ticker}: {e}")
     
-    async def get_strategy_status(self) -> Dict[str, Any]:
+    async def get_strategy_status(self) -> Dict[str, Any]: 
         """Get current strategy status"""
-        try:
+        try: 
             total_pnl=sum(pos.unrealized_pnl for pos in self.active_positions.values())
             total_exposure=sum(pos.protection_level for pos in self.active_positions.values())
             
             return {
-                "active_positions":len(self.active_positions),
-                "total_pnl":total_pnl,
-                "total_exposure":total_exposure,
-                "max_exposure":self.max_earnings_exposure,
-                "positions":[
+                "active_positions": len(self.active_positions),
+                "total_pnl": total_pnl,
+                "total_exposure": total_exposure,
+                "max_exposure": self.max_earnings_exposure,
+                "positions": [
                     {
-                        "ticker":pos.ticker,
-                        "strategy":pos.strategy.value,
-                        "days_to_earnings":pos.days_to_earnings,
-                        "unrealized_pnl":pos.unrealized_pnl,
-                        "protection_level":pos.protection_level
+                        "ticker": pos.ticker,
+                        "strategy": pos.strategy.value,
+                        "days_to_earnings": pos.days_to_earnings,
+                        "unrealized_pnl": pos.unrealized_pnl,
+                        "protection_level": pos.protection_level
                     }
                     for pos in self.active_positions.values()
                 ]
             }
             
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Error getting strategy status: {e}")
-            return {"error":str(e)}
+            return {"error": str(e)}

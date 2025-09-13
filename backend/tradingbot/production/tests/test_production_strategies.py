@@ -1,13 +1,13 @@
 """
 Production Strategies Integration Tests
-Comprehensive tests for production-ready trading strategies
+Comprehensive tests for production - ready trading strategies
 
-This module tests the complete production strategy integration:
+This module tests the complete production strategy integration: 
 - WSB Dip Bot with real data integration
 - Earnings Protection with live earnings calendar
 - Index Baseline with real performance tracking
 - Strategy Manager orchestration
-- End-to-end trading flow
+- End - to-end trading flow
 
 Verifies that all strategies work together for live trading.
 """
@@ -28,45 +28,45 @@ from ..data.production_data_integration import ReliableDataProvider as Productio
 from ...core.trading_interface import OrderSide, OrderType
 
 
-class TestProductionWSBDipBot:
+class TestProductionWSBDipBot: 
     """Test production WSB Dip Bot strategy"""
     
     @pytest.fixture
-    def mock_integration(self):
+    def mock_integration(self): 
         """Mock ProductionIntegrationManager"""
         mock_integration=Mock()
         mock_integration.get_portfolio_value=AsyncMock(return_value=Decimal('100000.00'))
         mock_integration.get_current_price=AsyncMock(return_value=Decimal('150.00'))
         mock_integration.execute_trade=AsyncMock()
         mock_integration.execute_trade.return_value.status.value='FILLED'
-        mock_integration.active_positions = {}
-        mock_integration.alert_system = Mock()
+        mock_integration.active_positions={}
+        mock_integration.alert_system=Mock()
         mock_integration.alert_system.send_alert=AsyncMock()
         return mock_integration
     
     @pytest.fixture
-    def mock_data_provider(self):
+    def mock_data_provider(self): 
         """Mock ProductionDataProvider"""
         mock_provider=Mock()
         mock_provider.is_market_open=AsyncMock(return_value=True)
         
         # Mock price history for advanced dip detection (need 30+ points)
         price_history=[]
-        volume_history = []
+        volume_history=[]
         
-        # Generate 30 days of data with a clear dip-after-run pattern
-        base_price = 100.00
-        for i in range(30):
-            if i < 20:
+        # Generate 30 days of data with a clear dip - after-run pattern
+        base_price=100.00
+        for i in range(30): 
+            if i < 20: 
                 # Build up to a run (20% gain over 20 days)
                 price=base_price + (i * 0.8)  # Gradual increase
                 volume=1000000 + (i * 50000)  # Gradual volume increase
-            elif i < 25:
-                # Peak period (days 20-24)
+            elif i < 25: 
+                # Peak period (days 20 - 24)
                 price=base_price + 16.0  # Peak at ~116
-                volume = 2000000
-            else:
-                # Dip after run (days 25-29)
+                volume=2000000
+            else: 
+                # Dip after run (days 25 - 29)
                 price=base_price + 16.0 - ((i - 24) * 2.0)  # Drop to ~108
                 volume=2500000  # Volume spike during dip
             
@@ -97,40 +97,40 @@ class TestProductionWSBDipBot:
         return mock_provider
     
     @pytest.fixture
-    def wsb_dip_bot(self, mock_integration, mock_data_provider):
+    def wsb_dip_bot(self, mock_integration, mock_data_provider): 
         """Create ProductionWSBDipBot for testing"""
         config={
-            'run_lookback_days':10,
-            'run_threshold':0.10,
-            'dip_threshold':-0.03,
-            'target_dte_days':30,
-            'otm_percentage':0.05,
-            'max_position_size':0.20,
-            'target_multiplier':3.0,
-            'delta_target':0.60,
-            'universe':['AAPL', 'MSFT', 'GOOGL']
+            'run_lookback_days': 10,
+            'run_threshold': 0.10,
+            'dip_threshold': -0.03,
+            'target_dte_days': 30,
+            'otm_percentage': 0.05,
+            'max_position_size': 0.20,
+            'target_multiplier': 3.0,
+            'delta_target': 0.60,
+            'universe': ['AAPL', 'MSFT', 'GOOGL']
         }
         return ProductionWSBDipBot(mock_integration, mock_data_provider, config)
     
     @pytest.mark.asyncio
-    async def test_dip_signal_detection(self, wsb_dip_bot):
+    async def test_dip_signal_detection(self, wsb_dip_bot): 
         """Test dip after run signal detection"""
         # Test the advanced dip detection directly
         signal=await wsb_dip_bot._detect_advanced_dip_pattern('AAPL')
         
-        if signal:
-            print(f"Signal detected: run={signal.run_percentage:.2%}, dip={signal.dip_percentage:.2%}, confidence={signal.confidence:.2f}")
+        if signal: 
+            print(f"Signal detected: run={signal.run_percentage:.2%}, dip={signal.dip_percentage: .2%}, confidence={signal.confidence: .2f}")
             assert signal.run_percentage >= 0.20  # 20% run (advanced algorithm requirement)
             assert signal.dip_percentage >= 0.05  # 5% dip (advanced algorithm requirement)
             assert signal.confidence > 0
-        else:
+        else: 
             # If no signal, let's check what the algorithm is seeing
             print("No signal detected - checking algorithm logic...")
             # For now, just ensure the method doesn't crash
             assert signal is None or signal is not None  # Always true, just testing execution
     
     @pytest.mark.asyncio
-    async def test_trade_execution(self, wsb_dip_bot):
+    async def test_trade_execution(self, wsb_dip_bot): 
         """Test trade execution"""
         signal=DipSignal(
             ticker="AAPL",
@@ -150,7 +150,7 @@ class TestProductionWSBDipBot:
         # Verify trade was executed
         wsb_dip_bot.integration.execute_trade.assert_called_once()
     
-    def test_strategy_status(self, wsb_dip_bot):
+    def test_strategy_status(self, wsb_dip_bot): 
         """Test strategy status"""
         status=wsb_dip_bot.get_strategy_status()
         
@@ -160,23 +160,23 @@ class TestProductionWSBDipBot:
         assert status['parameters']['dip_threshold'] == -0.03
 
 
-class TestProductionEarningsProtection:
+class TestProductionEarningsProtection: 
     """Test production Earnings Protection strategy"""
     
     @pytest.fixture
-    def mock_integration(self):
+    def mock_integration(self): 
         """Mock ProductionIntegrationManager"""
         mock_integration=Mock()
         mock_integration.get_portfolio_value=AsyncMock(return_value=Decimal('100000.00'))
         mock_integration.execute_trade=AsyncMock()
         mock_integration.execute_trade.return_value.status.value='FILLED'
-        mock_integration.active_positions = {}
-        mock_integration.alert_system = Mock()
+        mock_integration.active_positions={}
+        mock_integration.alert_system=Mock()
         mock_integration.alert_system.send_alert=AsyncMock()
         return mock_integration
     
     @pytest.fixture
-    def mock_data_provider(self):
+    def mock_data_provider(self): 
         """Mock ProductionDataProvider"""
         mock_provider=Mock()
         mock_provider.get_earnings_calendar=AsyncMock(return_value=[
@@ -196,20 +196,20 @@ class TestProductionEarningsProtection:
         return mock_provider
     
     @pytest.fixture
-    def earnings_protection(self, mock_integration, mock_data_provider):
+    def earnings_protection(self, mock_integration, mock_data_provider): 
         """Create ProductionEarningsProtection for testing"""
         config={
-            'max_position_size':0.15,
-            'iv_percentile_threshold':70,
-            'min_implied_move':0.04,
-            'max_days_to_earnings':7,
-            'min_days_to_earnings':1,
-            'preferred_strategies':['deep_itm', 'calendar_spread']
+            'max_position_size': 0.15,
+            'iv_percentile_threshold': 70,
+            'min_implied_move': 0.04,
+            'max_days_to_earnings': 7,
+            'min_days_to_earnings': 1,
+            'preferred_strategies': ['deep_itm', 'calendar_spread']
         }
         return ProductionEarningsProtection(mock_integration, mock_data_provider, config)
     
     @pytest.mark.asyncio
-    async def test_earnings_signal_detection(self, earnings_protection):
+    async def test_earnings_signal_detection(self, earnings_protection): 
         """Test earnings signal detection"""
         signals=await earnings_protection.scan_for_earnings_signals()
         
@@ -218,14 +218,14 @@ class TestProductionEarningsProtection:
         assert isinstance(signals, list)
         
         # If signals are generated, verify their structure
-        if len(signals) > 0:
+        if len(signals) > 0: 
             signal=signals[0]
             assert signal.ticker == "AAPL"
             assert signal.strategy_type in ['deep_itm', 'calendar_spread', 'protective_hedge']
             assert signal.confidence > 0
     
     @pytest.mark.asyncio
-    async def test_trade_execution(self, earnings_protection):
+    async def test_trade_execution(self, earnings_protection): 
         """Test trade execution"""
         signal=EarningsSignal(
             ticker="AAPL",
@@ -245,7 +245,7 @@ class TestProductionEarningsProtection:
         # Verify trade was executed
         earnings_protection.integration.execute_trade.assert_called_once()
     
-    def test_strategy_status(self, earnings_protection):
+    def test_strategy_status(self, earnings_protection): 
         """Test strategy status"""
         status=earnings_protection.get_strategy_status()
         
@@ -254,24 +254,24 @@ class TestProductionEarningsProtection:
         assert status['parameters']['iv_percentile_threshold'] == 70
 
 
-class TestProductionIndexBaseline:
+class TestProductionIndexBaseline: 
     """Test production Index Baseline strategy"""
     
     @pytest.fixture
-    def mock_integration(self):
+    def mock_integration(self): 
         """Mock ProductionIntegrationManager"""
         mock_integration=Mock()
         mock_integration.get_portfolio_value=AsyncMock(return_value=Decimal('100000.00'))
         mock_integration.get_position_value=AsyncMock(return_value=Decimal('50000.00'))
         mock_integration.execute_trade=AsyncMock()
         mock_integration.execute_trade.return_value.status.value='FILLED'
-        mock_integration.active_positions = {}
-        mock_integration.alert_system = Mock()
+        mock_integration.active_positions={}
+        mock_integration.alert_system=Mock()
         mock_integration.alert_system.send_alert=AsyncMock()
         return mock_integration
     
     @pytest.fixture
-    def mock_data_provider(self):
+    def mock_data_provider(self): 
         """Mock ProductionDataProvider"""
         mock_provider=Mock()
         # Create enough historical data for the test
@@ -284,30 +284,30 @@ class TestProductionIndexBaseline:
         return mock_provider
     
     @pytest.fixture
-    def index_baseline(self, mock_integration, mock_data_provider):
+    def index_baseline(self, mock_integration, mock_data_provider): 
         """Create ProductionIndexBaseline for testing"""
         config={
-            'benchmarks':['SPY', 'VTI', 'QQQ'],
-            'target_allocation':0.80,
-            'rebalance_threshold':0.05,
-            'tax_loss_threshold':-0.10
+            'benchmarks': ['SPY', 'VTI', 'QQQ'],
+            'target_allocation': 0.80,
+            'rebalance_threshold': 0.05,
+            'tax_loss_threshold': -0.10
         }
         return ProductionIndexBaseline(mock_integration, mock_data_provider, config)
     
     @pytest.mark.asyncio
-    async def test_baseline_performance_calculation(self, index_baseline):
+    async def test_baseline_performance_calculation(self, index_baseline): 
         """Test baseline performance calculation"""
         performance=await index_baseline.calculate_baseline_performance(30)
         
         # Should calculate performance for benchmarks
         assert len(performance) > 0
-        for benchmark, comparison in performance.items():
+        for benchmark, comparison in performance.items(): 
             assert comparison.benchmark_return is not None
             assert comparison.alpha is not None
             assert comparison.sharpe_ratio is not None
     
     @pytest.mark.asyncio
-    async def test_signal_generation(self, index_baseline):
+    async def test_signal_generation(self, index_baseline): 
         """Test signal generation"""
         signals=await index_baseline.generate_baseline_signals()
         
@@ -315,7 +315,7 @@ class TestProductionIndexBaseline:
         # Just verify the method runs without error
         assert isinstance(signals, list)
     
-    def test_strategy_status(self, index_baseline):
+    def test_strategy_status(self, index_baseline): 
         """Test strategy status"""
         status=index_baseline.get_strategy_status()
         
@@ -324,41 +324,41 @@ class TestProductionIndexBaseline:
         assert status['parameters']['target_allocation'] == 0.80
 
 
-class TestProductionStrategyManager:
+class TestProductionStrategyManager: 
     """Test production strategy manager orchestration"""
     
     @pytest.fixture
-    def mock_integration_manager(self):
+    def mock_integration_manager(self): 
         """Mock ProductionIntegrationManager"""
         mock_manager=Mock()
         mock_manager.alpaca_manager.validate_api.return_value=(True, "OK")
         mock_manager.get_portfolio_value=AsyncMock(return_value=Decimal('100000.00'))
         mock_manager.get_total_risk=AsyncMock(return_value=Decimal('20000.00'))
         mock_manager.get_portfolio_summary.return_value={
-            'total_positions':0,
-            'total_trades':0,
-            'total_unrealized_pnl':0.0,
-            'total_realized_pnl':0.0
+            'total_positions': 0,
+            'total_trades': 0,
+            'total_unrealized_pnl': 0.0,
+            'total_realized_pnl': 0.0
         }
         mock_manager.alert_system=Mock()
         mock_manager.alert_system.send_alert=AsyncMock()
         return mock_manager
     
     @pytest.fixture
-    def mock_data_provider(self):
+    def mock_data_provider(self): 
         """Mock ProductionDataProvider"""
         mock_provider=Mock()
         mock_provider.is_market_open=AsyncMock(return_value=True)
         mock_provider.clear_cache=Mock()
         mock_provider.get_cache_stats.return_value={
-            'price_cache_size':0,
-            'options_cache_size':0,
-            'earnings_cache_size':0
+            'price_cache_size': 0,
+            'options_cache_size': 0,
+            'earnings_cache_size': 0
         }
         return mock_provider
     
     @pytest.fixture
-    def strategy_manager_config(self):
+    def strategy_manager_config(self): 
         """Create ProductionStrategyManagerConfig for testing"""
         return ProductionStrategyManagerConfig(
             alpaca_api_key='test_key',
@@ -366,19 +366,19 @@ class TestProductionStrategyManager:
             paper_trading=True,
             user_id=1,
             strategies={
-                'wsb_dip_bot':StrategyConfig(
+                'wsb_dip_bot': StrategyConfig(
                     name='wsb_dip_bot',
                     enabled=True,
                     max_position_size=0.20,
                     risk_tolerance='high'
                 ),
-                'earnings_protection':StrategyConfig(
+                'earnings_protection': StrategyConfig(
                     name='earnings_protection',
                     enabled=True,
                     max_position_size=0.15,
                     risk_tolerance='medium'
                 ),
-                'index_baseline':StrategyConfig(
+                'index_baseline': StrategyConfig(
                     name='index_baseline',
                     enabled=True,
                     max_position_size=0.80,
@@ -388,10 +388,10 @@ class TestProductionStrategyManager:
         )
     
     @pytest.mark.asyncio
-    async def test_strategy_manager_initialization(self, strategy_manager_config):
+    async def test_strategy_manager_initialization(self, strategy_manager_config): 
         """Test strategy manager initialization"""
-        with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager', return_value=Mock()):
-            with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider', return_value=Mock()):
+        with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager', return_value=Mock()): 
+            with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider', return_value=Mock()): 
                 manager=ProductionStrategyManager(strategy_manager_config)
                 
                 assert len(manager.strategies) == 3
@@ -400,10 +400,10 @@ class TestProductionStrategyManager:
                 assert 'index_baseline' in manager.strategies
     
     @pytest.mark.asyncio
-    async def test_strategy_start_stop(self, strategy_manager_config):
-        """Test strategy start/stop"""
-        with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager', return_value=Mock()):
-            with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider', return_value=Mock()):
+    async def test_strategy_start_stop(self, strategy_manager_config): 
+        """Test strategy start / stop"""
+        with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager', return_value=Mock()): 
+            with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider', return_value=Mock()): 
                 manager=ProductionStrategyManager(strategy_manager_config)
                 
                 # Mock the validation and strategy start methods
@@ -418,13 +418,13 @@ class TestProductionStrategyManager:
                 await manager.stop_all_strategies()
                 assert manager.is_running is False
     
-    def test_system_status(self, strategy_manager_config):
+    def test_system_status(self, strategy_manager_config): 
         """Test system status"""
-        with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager', return_value=Mock()):
-            with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider', return_value=Mock()):
+        with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager', return_value=Mock()): 
+            with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider', return_value=Mock()): 
                 manager=ProductionStrategyManager(strategy_manager_config)
                 manager.is_running=True
-                manager.start_time = datetime.now()
+                manager.start_time=datetime.now()
                 
                 status=manager.get_system_status()
                 
@@ -435,13 +435,13 @@ class TestProductionStrategyManager:
                 assert 'index_baseline' in status['strategy_status']
 
 
-class TestProductionStrategyIntegration:
+class TestProductionStrategyIntegration: 
     """Test complete production strategy integration"""
     
     @pytest.mark.asyncio
-    async def test_end_to_end_strategy_flow(self):
-        """Test complete end-to-end strategy flow"""
-        # This test would verify the complete flow:
+    async def test_end_to_end_strategy_flow(self): 
+        """Test complete end - to-end strategy flow"""
+        # This test would verify the complete flow: 
         # 1. Strategy Manager initializes all strategies
         # 2. Strategies scan for signals using real data
         # 3. Signals are executed via production integration
@@ -449,11 +449,11 @@ class TestProductionStrategyIntegration:
         # 5. Performance is tracked and reported
         
         # Mock all external dependencies
-        with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager') as mock_integration:
-            with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider') as mock_data:
-                with patch('backend.tradingbot.production.strategies.production_wsb_dip_bot.ProductionWSBDipBot') as mock_wsb:
-                    with patch('backend.tradingbot.production.strategies.production_earnings_protection.ProductionEarningsProtection') as mock_earnings:
-                        with patch('backend.tradingbot.production.strategies.production_index_baseline.ProductionIndexBaseline') as mock_baseline:
+        with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager') as mock_integration: 
+            with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider') as mock_data: 
+                with patch('backend.tradingbot.production.strategies.production_wsb_dip_bot.ProductionWSBDipBot') as mock_wsb: 
+                    with patch('backend.tradingbot.production.strategies.production_earnings_protection.ProductionEarningsProtection') as mock_earnings: 
+                        with patch('backend.tradingbot.production.strategies.production_index_baseline.ProductionIndexBaseline') as mock_baseline: 
                             
                             # Setup mocks
                             mock_integration.return_value.alpaca_manager.validate_api.return_value=(True, "OK")
@@ -463,21 +463,21 @@ class TestProductionStrategyIntegration:
                             # Mock strategy instances
                             mock_wsb_instance=Mock()
                             mock_wsb_instance.run_strategy=AsyncMock()
-                            mock_wsb_instance.get_strategy_status.return_value={'strategy_name':'wsb_dip_bot'}
-                            mock_wsb.return_value = mock_wsb_instance
+                            mock_wsb_instance.get_strategy_status.return_value={'strategy_name': 'wsb_dip_bot'}
+                            mock_wsb.return_value=mock_wsb_instance
                             
-                            mock_earnings_instance = Mock()
+                            mock_earnings_instance=Mock()
                             mock_earnings_instance.run_strategy=AsyncMock()
-                            mock_earnings_instance.get_strategy_status.return_value={'strategy_name':'earnings_protection'}
-                            mock_earnings.return_value = mock_earnings_instance
+                            mock_earnings_instance.get_strategy_status.return_value={'strategy_name': 'earnings_protection'}
+                            mock_earnings.return_value=mock_earnings_instance
                             
-                            mock_baseline_instance = Mock()
+                            mock_baseline_instance=Mock()
                             mock_baseline_instance.run_strategy=AsyncMock()
-                            mock_baseline_instance.get_strategy_status.return_value={'strategy_name':'index_baseline'}
-                            mock_baseline.return_value = mock_baseline_instance
+                            mock_baseline_instance.get_strategy_status.return_value={'strategy_name': 'index_baseline'}
+                            mock_baseline.return_value=mock_baseline_instance
                             
                             # Create strategy manager
-                            config = ProductionStrategyManagerConfig(
+                            config=ProductionStrategyManagerConfig(
                                 alpaca_api_key='test_key',
                                 alpaca_secret_key='test_secret',
                                 paper_trading=True
@@ -505,4 +505,4 @@ class TestProductionStrategyIntegration:
                             assert status['is_running'] is True
 
 
-if __name__== '__main__':pytest.main([__file__, '-v'])
+if __name__== '__main__': pytest.main([__file__, '-v'])

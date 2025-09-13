@@ -1,12 +1,12 @@
-#!/usr/bin/env python3
+#!/usr / bin/env python3
 """
-Test Risk-Strategy Integration
-Demonstrates Month 3-4: Integration with WallStreetBots
+Test Risk - Strategy Integration
+Demonstrates Month 3 - 4: Integration with WallStreetBots
 
-This script tests the integration of sophisticated risk models with trading strategies:
-- Real-time risk assessment during trading
+This script tests the integration of sophisticated risk models with trading strategies: 
+- Real - time risk assessment during trading
 - Automated risk controls and position sizing
-- Cross-strategy risk coordination
+- Cross - strategy risk coordination
 - Risk alerts and monitoring integration
 """
 
@@ -35,15 +35,15 @@ logging.basicConfig(
 logger=logging.getLogger(__name__)
 
 
-async def test_risk_strategy_integration():
-    """Test the complete risk-strategy integration"""
+async def test_risk_strategy_integration(): 
+    """Test the complete risk - strategy integration"""
     
-    print("🚀 Testing Risk-Strategy Integration - Month 3-4")
+    print("🚀 Testing Risk - Strategy Integration - Month 3 - 4")
     print("=" * 60)
     
-    try:
-        # 1. Initialize Risk-Integrated Production Manager
-        print("\n1. Initializing Risk-Integrated Production Manager...")
+    try: 
+        # 1. Initialize Risk - Integrated Production Manager
+        print("\n1. Initializing Risk - Integrated Production Manager...")
         
         # Configure risk limits
         risk_limits=RiskLimits(
@@ -73,7 +73,7 @@ async def test_risk_strategy_integration():
         
         # Initialize manager
         manager=RiskIntegratedProductionManager(config)
-        print("✅ Risk-Integrated Production Manager initialized")
+        print("✅ Risk - Integrated Production Manager initialized")
         
         # 2. Test Risk Management Components
         print("\n2. Testing Risk Management Components...")
@@ -87,9 +87,9 @@ async def test_risk_strategy_integration():
         
         # Simulate portfolio positions
         positions={
-            'AAPL':{'qty':100, 'value':15000, 'delta':0.6, 'gamma':0.01, 'vega':0.5},
-            'SPY':{'qty':50, 'value':20000, 'delta':0.5, 'gamma':0.005, 'vega':0.3},
-            'TSLA':{'qty':25, 'value':5000, 'delta':0.8, 'gamma':0.02, 'vega':0.8}
+            'AAPL': {'qty':100, 'value': 15000, 'delta': 0.6, 'gamma': 0.01, 'vega': 0.5},
+            'SPY': {'qty':50, 'value': 20000, 'delta': 0.5, 'gamma': 0.005, 'vega': 0.3},
+            'TSLA': {'qty':25, 'value': 5000, 'delta': 0.8, 'gamma': 0.02, 'vega': 0.8}
         }
         
         # Simulate market data
@@ -101,37 +101,37 @@ async def test_risk_strategy_integration():
         prices=100 * np.cumprod(1 + returns)
         
         market_data={
-            'AAPL':pd.DataFrame({
-                'Open':prices * 0.99,
-                'High':prices * 1.02,
-                'Low':prices * 0.98,
-                'Close':prices,
-                'Volume':np.random.randint(1000000, 5000000, 252)
+            'AAPL': pd.DataFrame({
+                'Open': prices * 0.99,
+                'High': prices * 1.02,
+                'Low': prices * 0.98,
+                'Close': prices,
+                'Volume': np.random.randint(1000000, 5000000, 252)
             }, index=dates),
-            'SPY':pd.DataFrame({
-                'Open':prices * 0.99,
-                'High':prices * 1.01,
-                'Low':prices * 0.99,
-                'Close':prices,
-                'Volume':np.random.randint(5000000, 10000000, 252)
+            'SPY': pd.DataFrame({
+                'Open': prices * 0.99,
+                'High': prices * 1.01,
+                'Low': prices * 0.99,
+                'Close': prices,
+                'Volume': np.random.randint(5000000, 10000000, 252)
             }, index=dates),
-            'TSLA':pd.DataFrame({
-                'Open':prices * 0.95,
-                'High':prices * 1.05,
-                'Low':prices * 0.95,
-                'Close':prices,
-                'Volume':np.random.randint(2000000, 8000000, 252)
+            'TSLA': pd.DataFrame({
+                'Open': prices * 0.95,
+                'High': prices * 1.05,
+                'Low': prices * 0.95,
+                'Close': prices,
+                'Volume': np.random.randint(2000000, 8000000, 252)
             }, index=dates)
         }
         
         portfolio_value=100000.0
         
         # Calculate risk metrics
-        risk_metrics = await risk_manager.calculate_portfolio_risk(
+        risk_metrics=await risk_manager.calculate_portfolio_risk(
             positions, market_data, portfolio_value
         )
         
-        print(f"✅ Risk calculated:")
+        print(f"✅ Risk calculated: ")
         print(f"   Portfolio VaR: {risk_metrics.portfolio_var:.2%}")
         print(f"   Portfolio CVaR: {risk_metrics.portfolio_cvar:.2%}")
         print(f"   Portfolio LVaR: {risk_metrics.portfolio_lvar:.2%}")
@@ -139,11 +139,11 @@ async def test_risk_strategy_integration():
         print(f"   Greeks Risk: {risk_metrics.greeks_risk:.2%}")
         print(f"   Within Limits: {risk_metrics.within_limits}")
         
-        if risk_metrics.alerts:
+        if risk_metrics.alerts: 
             print(f"   Alerts: {', '.join(risk_metrics.alerts)}")
         
-        # 4. Test Risk-Adjusted Position Sizing
-        print("\n4. Testing Risk-Adjusted Position Sizing...")
+        # 4. Test Risk - Adjusted Position Sizing
+        print("\n4. Testing Risk - Adjusted Position Sizing...")
         
         # Test position sizing for different scenarios
         test_cases=[
@@ -152,16 +152,16 @@ async def test_risk_strategy_integration():
             ("TSLA", 2000, "Volatile stock")
         ]
         
-        for symbol, base_size, description in test_cases:
+        for symbol, base_size, description in test_cases: 
             risk_adjusted_size=await risk_manager.get_risk_adjusted_position_size(
                 "test_strategy", symbol, base_size, portfolio_value
             )
             
             adjustment_factor=risk_adjusted_size / base_size if base_size > 0 else 0
             
-            print(f"   {symbol} ({description}):")
+            print(f"   {symbol} ({description}): ")
             print(f"     Base size: ${base_size:,.0f}")
-            print(f"     Risk-adjusted: ${risk_adjusted_size:,.0f}")
+            print(f"     Risk - adjusted: ${risk_adjusted_size:,.0f}")
             print(f"     Adjustment factor: {adjustment_factor:.1%}")
         
         # 5. Test Trade Allowance
@@ -174,14 +174,14 @@ async def test_risk_strategy_integration():
             ("TSLA", 5000, "Medium trade")
         ]
         
-        for symbol, trade_value, description in trade_tests:
+        for symbol, trade_value, description in trade_tests: 
             allowed, reason=await risk_manager.should_allow_trade(
                 "test_strategy", symbol, trade_value, portfolio_value
             )
             
             status="✅ ALLOWED" if allowed else "❌ BLOCKED"
-            print(f"   {symbol} ${trade_value:,} ({description}): {status}")
-            if not allowed:
+            print(f"   {symbol} ${trade_value: ,} ({description}): {status}")
+            if not allowed: 
                 print(f"     Reason: {reason}")
         
         # 6. Test Risk Summary
@@ -189,7 +189,7 @@ async def test_risk_strategy_integration():
         
         risk_summary=await risk_manager.get_risk_summary()
         
-        print("✅ Risk Summary Generated:")
+        print("✅ Risk Summary Generated: ")
         print(f"   Timestamp: {risk_summary['timestamp']}")
         print(f"   Calculation Count: {risk_summary['calculation_count']}")
         print(f"   Portfolio VaR: {risk_summary['metrics']['portfolio_var']:.2%}")
@@ -214,7 +214,7 @@ async def test_risk_strategy_integration():
             "wsb_dip_bot", "AAPL", "buy", 100, 150.0
         )
         print(f"   WSB Dip Bot trade: {wsb_result['success']}")
-        if not wsb_result['success']:
+        if not wsb_result['success']: 
             print(f"     Reason: {wsb_result['reason']}")
         
         # Test Earnings Protection trade
@@ -222,7 +222,7 @@ async def test_risk_strategy_integration():
             "earnings_protection", "SPY", "buy", 50, 400.0
         )
         print(f"   Earnings Protection trade: {earnings_result['success']}")
-        if not earnings_result['success']:
+        if not earnings_result['success']: 
             print(f"     Reason: {earnings_result['reason']}")
         
         # 8. Test System Status
@@ -230,14 +230,14 @@ async def test_risk_strategy_integration():
         
         system_status=await manager.get_system_status()
         
-        print("✅ System Status Retrieved:")
+        print("✅ System Status Retrieved: ")
         print(f"   Risk Management Enabled: {system_status['risk_management']['enabled']}")
         print(f"   Monitoring Active: {system_status['risk_management']['monitoring_active']}")
         print(f"   Within Limits: {system_status['risk_management']['within_limits']}")
         
-        if system_status['risk_management']['alerts']:
+        if system_status['risk_management']['alerts']: 
             print(f"   Active Alerts: {len(system_status['risk_management']['alerts'])}")
-            for alert in system_status['risk_management']['alerts']:
+            for alert in system_status['risk_management']['alerts']: 
                 print(f"     - {alert}")
         
         # 9. Performance Metrics
@@ -269,11 +269,11 @@ async def test_risk_strategy_integration():
             "wsb_dip_bot", "TSLA", "buy", 200, 200.0
         )
         print(f"   Trade with new limits: {test_result['success']}")
-        if not test_result['success']:
+        if not test_result['success']: 
             print(f"     Reason: {test_result['reason']}")
         
-        print("\n🎉 Risk-Strategy Integration Test Completed Successfully!")
-        print("\n📊 Summary:")
+        print("\n🎉 Risk - Strategy Integration Test Completed Successfully!")
+        print("\n📊 Summary: ")
         print("✅ Risk Integration Manager: Working")
         print("✅ Risk Calculations: Working")
         print("✅ Position Sizing: Working")
@@ -283,40 +283,40 @@ async def test_risk_strategy_integration():
         print("✅ System Status: Working")
         print("✅ Risk Limits Update: Working")
         
-        print("\n🚀 Month 3-4 Integration Status: COMPLETE")
-        print("   - Real-time risk assessment: ✅")
+        print("\n🚀 Month 3 - 4 Integration Status: COMPLETE")
+        print("   - Real - time risk assessment: ✅")
         print("   - Automated risk controls: ✅")
-        print("   - Cross-strategy coordination: ✅")
+        print("   - Cross - strategy coordination: ✅")
         print("   - Risk alerts and monitoring: ✅")
-        print("   - Portfolio-level risk management: ✅")
+        print("   - Portfolio - level risk management: ✅")
         
         return True
         
-    except Exception as e:
-        logger.error(f"Error in risk-strategy integration test: {e}")
+    except Exception as e: 
+        logger.error(f"Error in risk - strategy integration test: {e}")
         print(f"\n❌ Test failed with error: {e}")
         return False
 
 
-async def main():
+async def main(): 
     """Main test function"""
-    print("Starting Risk-Strategy Integration Test...")
+    print("Starting Risk - Strategy Integration Test...")
     
     success=await test_risk_strategy_integration()
     
-    if success:
-        print("\n🎯 All tests passed! Risk-strategy integration is working correctly.")
-        print("\nNext steps for Month 3-4:")
+    if success: 
+        print("\n🎯 All tests passed! Risk - strategy integration is working correctly.")
+        print("\nNext steps for Month 3 - 4: ")
         print("1. Integrate with real broker data")
         print("2. Connect to live market feeds")
-        print("3. Implement real-time monitoring dashboard")
+        print("3. Implement real - time monitoring dashboard")
         print("4. Add advanced alerting system")
         print("5. Performance optimization")
-    else:
+    else: 
         print("\n❌ Some tests failed. Please check the logs for details.")
         sys.exit(1)
 
 
-if __name__== "__main__":asyncio.run(main())
+if __name__== "__main__": asyncio.run(main())
 
 

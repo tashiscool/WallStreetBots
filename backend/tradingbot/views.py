@@ -6,15 +6,15 @@ from .apimanagers import AlpacaManager
 from .models import Stock, Order, Portfolio
 
 
-def index(request):
+def index(request): 
     # ALPACA SECRET KEY
     return HttpResponse("Hello World, welcome to tradingbot!")
 
 
 @login_required
-def stock_trade(request):
+def stock_trade(request): 
     user=request.user
-    transaction_side = request.POST.get('transaction_side')
+    transaction_side=request.POST.get('transaction_side')
     transaction_type=request.POST.get('transaction_type')
     ticker=request.POST.get('ticker')
     # price is used for other order types, commented out for linter for now
@@ -23,11 +23,11 @@ def stock_trade(request):
     alpaca_api=AlpacaManager(user.credential.alpaca_id, user.credential.alpaca_key)
     quantity=int(request.POST.get('quantity'))
 
-    if transaction_side== 'sell':return HttpResponse(status=status.HTTP_501_NOT_IMPLEMENTED)
+    if transaction_side== 'sell': return HttpResponse(status=status.HTTP_501_NOT_IMPLEMENTED)
 
-    if transaction_side== 'buy':
-        if transaction_type == 'market':
-            if not alpaca_api.market_buy(ticker, quantity):
+    if transaction_side== 'buy': 
+        if transaction_type == 'market': 
+            if not alpaca_api.market_buy(ticker, quantity): 
                 return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             portfolio_name=Portfolio.objects.get(user=user, name=portfolio_name)
             stock=Stock.objects.get(ticker=ticker)

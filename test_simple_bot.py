@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr / bin/env python3
 """
 Simple Bot Test - Test the basic functionality
 """
@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 from backend.tradingbot.apimanagers import AlpacaManager
 
-async def test_simple_bot():
+async def test_simple_bot(): 
     """Test the simple bot functionality"""
     print("🤖 Testing Simple Trading Bot...")
     print(f"📅 {datetime.now()}")
@@ -24,7 +24,7 @@ async def test_simple_bot():
     success, msg=manager.validate_api()
     print(f"✅ Connection: {success} - {msg}")
     
-    if success:
+    if success: 
         # Get account info
         account_value=manager.get_account_value()
         balance=manager.get_balance()
@@ -36,15 +36,15 @@ async def test_simple_bot():
         
         # Test a simple price check
         success, price=manager.get_price('AAPL')
-        if success:
+        if success: 
             print(f"🍎 AAPL price: ${price:.2f}")
-        else:
+        else: 
             print(f"❌ Could not get AAPL price: {price}")
     
     print("\n🎉 Simple bot test complete!")
     print("✅ Ready for paper trading!")
 
-if __name__== "__main__":
+if __name__== "__main__": 
     import django
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
     django.setup()

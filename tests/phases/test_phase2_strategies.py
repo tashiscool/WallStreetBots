@@ -1,6 +1,6 @@
 """
 Phase 2 Strategy Tests
-Test all low-risk strategy implementations
+Test all low - risk strategy implementations
 """
 
 import unittest
@@ -29,10 +29,10 @@ from backend.tradingbot.core.production_index_baseline import (
 )
 
 
-class TestWheelStrategy(unittest.TestCase):
+class TestWheelStrategy(unittest.TestCase): 
     """Test Wheel Strategy implementation"""
     
-    def setUp(self):
+    def setUp(self): 
         """Setup test environment"""
         self.mock_trading=Mock()
         self.mock_data=Mock()
@@ -41,15 +41,15 @@ class TestWheelStrategy(unittest.TestCase):
         
         # Setup mock config
         self.mock_config.trading.max_concurrent_trades=5
-        self.mock_config.risk.max_position_risk = 0.10
-        self.mock_config.risk.account_size = 100000.0
-        self.mock_config.trading.universe = ["AAPL", "MSFT", "GOOGL"]
+        self.mock_config.risk.max_position_risk=0.10
+        self.mock_config.risk.account_size=100000.0
+        self.mock_config.trading.universe=["AAPL", "MSFT", "GOOGL"]
         
         self.wheel_strategy=ProductionWheelStrategy(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
         )
     
-    def test_wheel_position_creation(self):
+    def test_wheel_position_creation(self): 
         """Test wheel position creation"""
         position=WheelPosition(
             ticker="AAPL",
@@ -71,7 +71,7 @@ class TestWheelStrategy(unittest.TestCase):
         self.assertEqual(position.quantity, 100)
         self.assertEqual(position.unrealized_pnl, 500.0)
     
-    def test_wheel_candidate_scoring(self):
+    def test_wheel_candidate_scoring(self): 
         """Test wheel candidate scoring"""
         candidate=WheelCandidate(
             ticker="AAPL",
@@ -89,8 +89,8 @@ class TestWheelStrategy(unittest.TestCase):
         self.assertLessEqual(score, 1.0)
         self.assertEqual(candidate.wheel_score, score)
     
-    def test_wheel_position_pnl_calculation(self):
-        """Test wheel position P&L calculation"""
+    def test_wheel_position_pnl_calculation(self): 
+        """Test wheel position P & L calculation"""
         # Cash secured put - profitable
         position=WheelPosition(
             ticker="AAPL",
@@ -111,16 +111,16 @@ class TestWheelStrategy(unittest.TestCase):
         
         # Cash secured put - loss scenario
         position.current_price=140.0  # Stock below strike
-        pnl = position.calculate_unrealized_pnl()
+        pnl=position.calculate_unrealized_pnl()
         expected_loss=(145.0 - 140.0) * 100  # $500 loss
         expected_pnl=200.0 - expected_loss  # Premium - loss
         self.assertEqual(pnl, expected_pnl)
 
 
-class TestDebitSpreads(unittest.TestCase):
+class TestDebitSpreads(unittest.TestCase): 
     """Test Debit Spreads implementation"""
     
-    def setUp(self):
+    def setUp(self): 
         """Setup test environment"""
         self.mock_trading=Mock()
         self.mock_data=Mock()
@@ -129,15 +129,15 @@ class TestDebitSpreads(unittest.TestCase):
         
         # Setup mock config
         self.mock_config.trading.max_concurrent_trades=5
-        self.mock_config.risk.max_position_risk = 0.10
-        self.mock_config.risk.account_size = 100000.0
-        self.mock_config.trading.universe = ["AAPL", "MSFT", "GOOGL"]
+        self.mock_config.risk.max_position_risk=0.10
+        self.mock_config.risk.account_size=100000.0
+        self.mock_config.trading.universe=["AAPL", "MSFT", "GOOGL"]
         
         self.debit_spreads=ProductionDebitSpreads(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
         )
     
-    def test_spread_position_creation(self):
+    def test_spread_position_creation(self): 
         """Test spread position creation"""
         position=SpreadPosition(
             ticker="AAPL",
@@ -149,8 +149,8 @@ class TestDebitSpreads(unittest.TestCase):
             net_debit=2.0,
             max_profit=3.0,
             max_loss=2.0,
-            long_option={"strike":145.0, "premium":3.0},
-            short_option={"strike":150.0, "premium":1.0}
+            long_option={"strike": 145.0, "premium": 3.0},
+            short_option={"strike": 150.0, "premium": 1.0}
         )
         
         self.assertEqual(position.ticker, "AAPL")
@@ -159,7 +159,7 @@ class TestDebitSpreads(unittest.TestCase):
         self.assertEqual(position.short_strike, 150.0)
         self.assertEqual(position.net_debit, 2.0)
     
-    def test_spread_candidate_scoring(self):
+    def test_spread_candidate_scoring(self): 
         """Test spread candidate scoring"""
         candidate=SpreadCandidate(
             ticker="AAPL",
@@ -184,11 +184,11 @@ class TestDebitSpreads(unittest.TestCase):
         self.assertLessEqual(score, 1.0)
         self.assertEqual(candidate.spread_score, score)
     
-    def test_quantlib_pricer(self):
+    def test_quantlib_pricer(self): 
         """Test QuantLib pricer"""
         pricer=QuantLibPricer()
         
-        # Test Black-Scholes calculation
+        # Test Black - Scholes calculation
         result=pricer.calculate_black_scholes(
             spot_price=100.0,
             strike_price=100.0,
@@ -212,10 +212,10 @@ class TestDebitSpreads(unittest.TestCase):
         self.assertLessEqual(result['delta'], 1.0)
 
 
-class TestSPXSpreads(unittest.TestCase):
+class TestSPXSpreads(unittest.TestCase): 
     """Test SPX Spreads implementation"""
     
-    def setUp(self):
+    def setUp(self): 
         """Setup test environment"""
         self.mock_trading=Mock()
         self.mock_data=Mock()
@@ -224,14 +224,14 @@ class TestSPXSpreads(unittest.TestCase):
         
         # Setup mock config
         self.mock_config.trading.max_concurrent_trades=5
-        self.mock_config.risk.max_position_risk = 0.10
-        self.mock_config.risk.account_size = 100000.0
+        self.mock_config.risk.max_position_risk=0.10
+        self.mock_config.risk.account_size=100000.0
         
-        self.spx_spreads = ProductionSPXSpreads(
+        self.spx_spreads=ProductionSPXSpreads(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
         )
     
-    def test_spx_spread_position_creation(self):
+    def test_spx_spread_position_creation(self): 
         """Test SPX spread position creation"""
         position=SPXSpreadPosition(
             spread_type=SPXSpreadType.PUT_CREDIT_SPREAD,
@@ -242,8 +242,8 @@ class TestSPXSpreads(unittest.TestCase):
             net_credit=2.0,
             max_profit=2.0,
             max_loss=48.0,
-            long_option={"strike":4400.0, "premium":1.0},
-            short_option={"strike":4450.0, "premium":3.0}
+            long_option={"strike": 4400.0, "premium": 1.0},
+            short_option={"strike": 4450.0, "premium": 3.0}
         )
         
         self.assertEqual(position.spread_type, SPXSpreadType.PUT_CREDIT_SPREAD)
@@ -251,7 +251,7 @@ class TestSPXSpreads(unittest.TestCase):
         self.assertEqual(position.short_strike, 4450.0)
         self.assertEqual(position.net_credit, 2.0)
     
-    def test_spx_spread_candidate_scoring(self):
+    def test_spx_spread_candidate_scoring(self): 
         """Test SPX spread candidate scoring"""
         candidate=SPXSpreadCandidate(
             spread_type=SPXSpreadType.PUT_CREDIT_SPREAD,
@@ -277,7 +277,7 @@ class TestSPXSpreads(unittest.TestCase):
         self.assertLessEqual(score, 1.0)
         self.assertEqual(candidate.spread_score, score)
     
-    def test_cme_data_provider(self):
+    def test_cme_data_provider(self): 
         """Test CME data provider"""
         logger=Mock()
         cme_provider=CMEDataProvider(logger)
@@ -291,10 +291,10 @@ class TestSPXSpreads(unittest.TestCase):
         self.assertIn(regime, ["bull", "bear", "neutral"])
 
 
-class TestIndexBaseline(unittest.TestCase):
+class TestIndexBaseline(unittest.TestCase): 
     """Test Index Baseline implementation"""
     
-    def setUp(self):
+    def setUp(self): 
         """Setup test environment"""
         self.mock_trading=Mock()
         self.mock_data=Mock()
@@ -305,7 +305,7 @@ class TestIndexBaseline(unittest.TestCase):
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
         )
     
-    def test_benchmark_data_creation(self):
+    def test_benchmark_data_creation(self): 
         """Test benchmark data creation"""
         benchmark=BenchmarkData(
             ticker="SPY",
@@ -326,7 +326,7 @@ class TestIndexBaseline(unittest.TestCase):
         self.assertEqual(benchmark.current_price, 450.0)
         self.assertEqual(benchmark.sharpe_ratio, 1.2)
     
-    def test_strategy_performance_creation(self):
+    def test_strategy_performance_creation(self): 
         """Test strategy performance creation"""
         performance=StrategyPerformance(
             strategy_name="Wheel Strategy",
@@ -353,7 +353,7 @@ class TestIndexBaseline(unittest.TestCase):
         self.assertEqual(performance.win_rate, 0.65)
         self.assertEqual(performance.profit_factor, 1.3)
     
-    def test_performance_calculator(self):
+    def test_performance_calculator(self): 
         """Test performance calculator"""
         calculator=PerformanceCalculator(Mock())
         
@@ -381,7 +381,7 @@ class TestIndexBaseline(unittest.TestCase):
         max_dd=calculator.calculate_max_drawdown(prices)
         self.assertGreaterEqual(max_dd, 0.0)
     
-    def test_performance_comparison_creation(self):
+    def test_performance_comparison_creation(self): 
         """Test performance comparison creation"""
         comparison=PerformanceComparison(
             strategy_name="Wheel Strategy",
@@ -403,43 +403,43 @@ class TestIndexBaseline(unittest.TestCase):
         self.assertEqual(comparison.beta, 0.8)
 
 
-class TestPhase2Integration(unittest.TestCase):
+class TestPhase2Integration(unittest.TestCase): 
     """Test Phase 2 integration"""
     
-    def setUp(self):
+    def setUp(self): 
         """Setup test environment"""
         self.temp_dir=tempfile.mkdtemp()
         self.config_file=os.path.join(self.temp_dir, "test_config.json")
         
         # Create test configuration
         test_config={
-            "data_providers":{
-                "iex_api_key":"test_key",
-                "polygon_api_key":"test_key"
+            "data_providers": {
+                "iex_api_key": "test_key",
+                "polygon_api_key": "test_key"
             },
-            "broker":{
-                "alpaca_api_key":"test_key",
-                "alpaca_secret_key":"test_secret"
+            "broker": {
+                "alpaca_api_key": "test_key",
+                "alpaca_secret_key": "test_secret"
             },
-            "risk":{
-                "max_position_risk":0.10,
-                "account_size":100000.0
+            "risk": {
+                "max_position_risk": 0.10,
+                "account_size": 100000.0
             },
-            "trading":{
-                "universe":["AAPL", "MSFT", "GOOGL"],
-                "max_concurrent_trades":5
+            "trading": {
+                "universe": ["AAPL", "MSFT", "GOOGL"],
+                "max_concurrent_trades": 5
             }
         }
         
-        with open(self.config_file, 'w') as f:
+        with open(self.config_file, 'w') as f: 
             json.dump(test_config, f)
     
-    def tearDown(self):
+    def tearDown(self): 
         """Cleanup test environment"""
         import shutil
         shutil.rmtree(self.temp_dir)
     
-    def test_phase2_components_creation(self):
+    def test_phase2_components_creation(self): 
         """Test Phase 2 components can be created"""
         from backend.tradingbot.core.production_config import ConfigManager
         from backend.tradingbot.core.production_logging import ProductionLogger
@@ -461,5 +461,5 @@ class TestPhase2Integration(unittest.TestCase):
         self.assertEqual(len(config.trading.universe), 3)
 
 
-if __name__== "__main__":# Run tests
+if __name__== "__main__": # Run tests
     unittest.main()

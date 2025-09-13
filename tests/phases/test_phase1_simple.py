@@ -22,51 +22,51 @@ from backend.tradingbot.core.production_logging import (
 )
 
 
-class TestProductionConfig(unittest.TestCase):
+class TestProductionConfig(unittest.TestCase): 
     """Test configuration management"""
     
-    def setUp(self):
+    def setUp(self): 
         """Setup test environment"""
         self.temp_dir=tempfile.mkdtemp()
         self.config_file=os.path.join(self.temp_dir, "test_config.json")
 
         # Store original environment variables
-        self.original_env = {}
-        env_vars_to_save = ['ALPACA_API_KEY', 'ALPACA_SECRET_KEY', 'IEX_API_KEY', 'POLYGON_API_KEY']
-        for var in env_vars_to_save:
-            if var in os.environ:
-                self.original_env[var] = os.environ[var]
+        self.original_env={}
+        env_vars_to_save=['ALPACA_API_KEY', 'ALPACA_SECRET_KEY', 'IEX_API_KEY', 'POLYGON_API_KEY']
+        for var in env_vars_to_save: 
+            if var in os.environ: 
+                self.original_env[var]=os.environ[var]
                 del os.environ[var]  # Remove from environment during test
 
         # Create test configuration
         test_config={
-            "data_providers":{
-                "iex_api_key":"test_iex_key",
-                "polygon_api_key":"test_polygon_key"
+            "data_providers": {
+                "iex_api_key": "test_iex_key",
+                "polygon_api_key": "test_polygon_key"
             },
-            "broker":{
-                "alpaca_api_key":"test_alpaca_key",
-                "alpaca_secret_key":"test_alpaca_secret"
+            "broker": {
+                "alpaca_api_key": "test_alpaca_key",
+                "alpaca_secret_key": "test_alpaca_secret"
             },
-            "risk":{
-                "max_position_risk":0.15,
-                "account_size":50000.0
+            "risk": {
+                "max_position_risk": 0.15,
+                "account_size": 50000.0
             }
         }
 
-        with open(self.config_file, 'w') as f:
+        with open(self.config_file, 'w') as f: 
             json.dump(test_config, f)
     
-    def tearDown(self):
+    def tearDown(self): 
         """Cleanup test environment"""
         import shutil
         shutil.rmtree(self.temp_dir)
 
         # Restore original environment variables
-        for var, value in self.original_env.items():
-            os.environ[var] = value
+        for var, value in self.original_env.items(): 
+            os.environ[var]=value
     
-    def test_config_creation(self):
+    def test_config_creation(self): 
         """Test configuration creation"""
         config=ProductionConfig()
         
@@ -75,7 +75,7 @@ class TestProductionConfig(unittest.TestCase):
         self.assertIsInstance(config.risk, RiskConfig)
         self.assertIsInstance(config.trading, TradingConfig)
     
-    def test_config_loading(self):
+    def test_config_loading(self): 
         """Test configuration loading from file"""
         config_manager=ConfigManager(self.config_file)
         config=config_manager.load_config()
@@ -86,7 +86,7 @@ class TestProductionConfig(unittest.TestCase):
         self.assertEqual(config.risk.max_position_risk, 0.15)
         self.assertEqual(config.risk.account_size, 50000.0)
     
-    def test_config_validation(self):
+    def test_config_validation(self): 
         """Test configuration validation"""
         # Create a config with missing required fields
         empty_config=ProductionConfig()
@@ -106,36 +106,36 @@ class TestProductionConfig(unittest.TestCase):
         # This is actually correct behavior - the config is valid
         self.assertIsInstance(errors, list)  # Just check it returns a list
     
-    def test_env_override(self):
+    def test_env_override(self): 
         """Test environment variable override"""
         import os
         
         # Set environment variables
-        os.environ['IEX_API_KEY'] = 'env_iex_key'
-        os.environ['MAX_POSITION_RISK'] = '0.20'
+        os.environ['IEX_API_KEY']='env_iex_key'
+        os.environ['MAX_POSITION_RISK']='0.20'
         
-        try:
+        try: 
             config_manager=ConfigManager(self.config_file)
             config=config_manager.load_config()
             
             # Should override file values
             self.assertEqual(config.data_providers.iex_api_key, "env_iex_key")
             self.assertEqual(config.risk.max_position_risk, 0.20)
-        finally:
+        finally: 
             # Cleanup environment variables
             del os.environ['IEX_API_KEY']
             del os.environ['MAX_POSITION_RISK']
 
 
-class TestProductionLogging(unittest.TestCase):
+class TestProductionLogging(unittest.TestCase): 
     """Test production logging system"""
     
-    def setUp(self):
+    def setUp(self): 
         """Setup test environment"""
         self.logger=ProductionLogger("test_logger", "DEBUG")
         self.error_handler=ErrorHandler(self.logger)
     
-    def test_logging(self):
+    def test_logging(self): 
         """Test logging functionality"""
         # Test different log levels
         self.logger.info("Test info message", test_param="value")
@@ -143,10 +143,10 @@ class TestProductionLogging(unittest.TestCase):
         self.logger.error("Test error message", test_param="value")
         self.logger.debug("Test debug message", test_param="value")
     
-    def test_error_handling(self):
+    def test_error_handling(self): 
         """Test error handling"""
         error=ValueError("Test error")
-        context={"ticker":"AAPL", "strategy":"test"}
+        context={"ticker": "AAPL", "strategy": "test"}
         
         result=self.error_handler.handle_error(error, context)
         
@@ -155,12 +155,12 @@ class TestProductionLogging(unittest.TestCase):
         self.assertEqual(result['error_count'], 1)
         self.assertFalse(result['threshold_exceeded'])
     
-    def test_circuit_breaker(self):
+    def test_circuit_breaker(self): 
         """Test circuit breaker functionality"""
         circuit_breaker=CircuitBreaker(failure_threshold=2, timeout=1.0)
         
         # Test successful calls
-        def success_func():
+        def success_func(): 
             return "success"
         
         result=circuit_breaker.call(success_func)
@@ -168,41 +168,41 @@ class TestProductionLogging(unittest.TestCase):
         self.assertEqual(circuit_breaker.state, "CLOSED")
         
         # Test failure threshold
-        def failure_func():
+        def failure_func(): 
             raise Exception("Test failure")
         
         # First failure
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception): 
             circuit_breaker.call(failure_func)
         self.assertEqual(circuit_breaker.state, "CLOSED")
         
         # Second failure - should open circuit
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception): 
             circuit_breaker.call(failure_func)
         self.assertEqual(circuit_breaker.state, "OPEN")
         
         # Third call should be blocked
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception): 
             circuit_breaker.call(success_func)
     
-    def test_retry_decorator(self):
+    def test_retry_decorator(self): 
         """Test retry decorator"""
         call_count=0
         
         @retry_with_backoff(max_attempts=3, exceptions=(ValueError,), base_delay=0.01)
-        def flaky_function():
+        def flaky_function(): 
             nonlocal call_count
             call_count += 1
-            if call_count < 3:
+            if call_count < 3: 
                 raise ValueError("Temporary failure")
             return "success"
         
         # Test that the decorator at least executes the function
-        try:
+        try: 
             result=flaky_function()
             # If it succeeds, great
             self.assertEqual(result, "success")
-        except ValueError:
+        except ValueError: 
             # If it fails, that's also acceptable for this test
             # The important thing is that the decorator was applied
             pass
@@ -211,31 +211,31 @@ class TestProductionLogging(unittest.TestCase):
         self.assertGreaterEqual(call_count, 1)
 
 
-class TestHealthChecker(unittest.TestCase):
+class TestHealthChecker(unittest.TestCase): 
     """Test health checker functionality"""
     
-    def setUp(self):
+    def setUp(self): 
         """Setup test environment"""
         self.logger=ProductionLogger("test_health", "DEBUG")
         self.health_checker=HealthChecker(self.logger)
     
-    def test_health_check_registration(self):
+    def test_health_check_registration(self): 
         """Test health check registration"""
-        def test_check():
+        def test_check(): 
             return True
         
         self.health_checker.register_check("test_check", test_check)
         self.assertIn("test_check", self.health_checker.health_checks)
     
-    def test_health_check_execution(self):
+    def test_health_check_execution(self): 
         """Test health check execution"""
-        def healthy_check():
+        def healthy_check(): 
             return True
         
-        def unhealthy_check():
+        def unhealthy_check(): 
             return False
         
-        def error_check():
+        def error_check(): 
             raise Exception("Check failed")
         
         # Register checks
@@ -256,26 +256,26 @@ class TestHealthChecker(unittest.TestCase):
         self.assertEqual(overall_health, "unhealthy")  # 1 healthy, 2 unhealthy
 
 
-class TestMetricsCollector(unittest.TestCase):
+class TestMetricsCollector(unittest.TestCase): 
     """Test metrics collector functionality"""
     
-    def setUp(self):
+    def setUp(self): 
         """Setup test environment"""
         self.logger=ProductionLogger("test_metrics", "DEBUG")
         self.metrics_collector=MetricsCollector(self.logger)
     
-    def test_metric_recording(self):
+    def test_metric_recording(self): 
         """Test metric recording"""
-        self.metrics_collector.record_metric("test_metric", 100.0, {"tag1":"value1"})
-        self.metrics_collector.record_metric("test_metric", 150.0, {"tag1":"value2"})
-        self.metrics_collector.record_metric("test_metric", 200.0, {"tag1":"value1"})
+        self.metrics_collector.record_metric("test_metric", 100.0, {"tag1": "value1"})
+        self.metrics_collector.record_metric("test_metric", 150.0, {"tag1": "value2"})
+        self.metrics_collector.record_metric("test_metric", 200.0, {"tag1": "value1"})
         
         self.assertEqual(len(self.metrics_collector.metrics["test_metric"]), 3)
     
-    def test_metric_summary(self):
+    def test_metric_summary(self): 
         """Test metric summary generation"""
         # Record some metrics
-        for i in range(10):
+        for i in range(10): 
             self.metrics_collector.record_metric("test_metric", float(i * 10))
         
         summary=self.metrics_collector.get_metric_summary("test_metric")
@@ -287,10 +287,10 @@ class TestMetricsCollector(unittest.TestCase):
         self.assertEqual(summary["latest"], 90.0)
 
 
-class TestDataProviders(unittest.TestCase):
+class TestDataProviders(unittest.TestCase): 
     """Test data provider components"""
     
-    def test_market_data_structure(self):
+    def test_market_data_structure(self): 
         """Test market data structure"""
         from backend.tradingbot.core.data_providers import MarketData
         
@@ -312,13 +312,13 @@ class TestDataProviders(unittest.TestCase):
         self.assertEqual(data.change, 2.5)
         self.assertEqual(data.volume, 1000000)
     
-    def test_options_data_structure(self):
+    def test_options_data_structure(self): 
         """Test options data structure"""
         from backend.tradingbot.core.data_providers import OptionsData
         
         data=OptionsData(
             ticker="AAPL",
-            expiry_date="2024-01-19",
+            expiry_date="2024 - 01-19",
             strike=150.0,
             option_type="call",
             bid=2.50,
@@ -339,7 +339,7 @@ class TestDataProviders(unittest.TestCase):
         self.assertEqual(data.bid, 2.50)
         self.assertEqual(data.delta, 0.50)
     
-    def test_earnings_event_structure(self):
+    def test_earnings_event_structure(self): 
         """Test earnings event structure"""
         from backend.tradingbot.core.data_providers import EarningsEvent
         
@@ -359,44 +359,44 @@ class TestDataProviders(unittest.TestCase):
         self.assertEqual(event.actual_eps, 2.10)
 
 
-class TestTradingInterface(unittest.TestCase):
+class TestTradingInterface(unittest.TestCase): 
     """Test trading interface components"""
     
-    def test_trade_signal_creation(self):
+    def test_trade_signal_creation(self): 
         """Test trade signal creation"""
         # Import the enums directly to avoid dependency issues
         from enum import Enum
         
-        class OrderType(Enum):
+        class OrderType(Enum): 
             MARKET="market"
-            LIMIT = "limit"
-            STOP = "stop"
-            STOP_LIMIT = "stop_limit"
+            LIMIT="limit"
+            STOP="stop"
+            STOP_LIMIT="stop_limit"
         
-        class OrderSide(Enum):
+        class OrderSide(Enum): 
             BUY="buy"
-            SELL = "sell"
+            SELL="sell"
         
         # Create a simple TradeSignal class for testing
         from dataclasses import dataclass
         from datetime import datetime
         
         @dataclass
-        class TradeSignal:
+        class TradeSignal: 
             strategy_name: str
             ticker: str
             side: OrderSide
             order_type: OrderType
             quantity: int
-            limit_price: float = None
-            stop_price: float = None
-            time_in_force: str = "gtc"
-            reason: str = ""
-            confidence: float = 0.0
-            timestamp: datetime = None
+            limit_price: float=None
+            stop_price: float=None
+            time_in_force: str="gtc"
+            reason: str=""
+            confidence: float=0.0
+            timestamp: datetime=None
             
-            def __post_init__(self):
-                if self.timestamp is None:
+            def __post_init__(self): 
+                if self.timestamp is None: 
                     self.timestamp=datetime.now()
         
         signal=TradeSignal(
@@ -416,64 +416,64 @@ class TestTradingInterface(unittest.TestCase):
         self.assertEqual(signal.quantity, 100)
         self.assertEqual(signal.confidence, 0.8)
     
-    def test_trade_result_creation(self):
+    def test_trade_result_creation(self): 
         """Test trade result creation"""
         # Import the enums directly to avoid dependency issues
         from enum import Enum
         
-        class OrderType(Enum):
+        class OrderType(Enum): 
             MARKET="market"
-            LIMIT = "limit"
-            STOP = "stop"
-            STOP_LIMIT = "stop_limit"
+            LIMIT="limit"
+            STOP="stop"
+            STOP_LIMIT="stop_limit"
         
-        class OrderSide(Enum):
+        class OrderSide(Enum): 
             BUY="buy"
-            SELL = "sell"
+            SELL="sell"
         
-        class TradeStatus(Enum):
+        class TradeStatus(Enum): 
             PENDING="pending"
-            SUBMITTED = "submitted"
-            FILLED = "filled"
-            PARTIALLY_FILLED = "partially_filled"
-            CANCELLED = "cancelled"
-            REJECTED = "rejected"
+            SUBMITTED="submitted"
+            FILLED="filled"
+            PARTIALLY_FILLED="partially_filled"
+            CANCELLED="cancelled"
+            REJECTED="rejected"
         
         # Create simple classes for testing
         from dataclasses import dataclass
         from datetime import datetime
         
         @dataclass
-        class TradeSignal:
+        class TradeSignal: 
             strategy_name: str
             ticker: str
             side: OrderSide
             order_type: OrderType
             quantity: int
-            limit_price: float = None
-            stop_price: float = None
-            time_in_force: str = "gtc"
-            reason: str = ""
-            confidence: float = 0.0
-            timestamp: datetime = None
+            limit_price: float=None
+            stop_price: float=None
+            time_in_force: str="gtc"
+            reason: str=""
+            confidence: float=0.0
+            timestamp: datetime=None
             
-            def __post_init__(self):
-                if self.timestamp is None:
+            def __post_init__(self): 
+                if self.timestamp is None: 
                     self.timestamp=datetime.now()
         
         @dataclass
-        class TradeResult:
+        class TradeResult: 
             trade_id: str
             signal: TradeSignal
             status: TradeStatus
             filled_quantity: int=0
-            filled_price: float = None
-            commission: float = 0.0
-            timestamp: datetime = None
-            error_message: str = None
+            filled_price: float=None
+            commission: float=0.0
+            timestamp: datetime=None
+            error_message: str=None
             
-            def __post_init__(self):
-                if self.timestamp is None:
+            def __post_init__(self): 
+                if self.timestamp is None: 
                     self.timestamp=datetime.now()
         
         signal=TradeSignal(
@@ -500,5 +500,5 @@ class TestTradingInterface(unittest.TestCase):
         self.assertEqual(result.commission, 1.0)
 
 
-if __name__== "__main__":# Run tests
+if __name__== "__main__": # Run tests
     unittest.main()

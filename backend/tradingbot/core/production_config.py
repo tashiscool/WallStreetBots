@@ -1,6 +1,6 @@
 """
 Production Configuration Management
-Environment-based configuration with validation
+Environment - based configuration with validation
 """
 
 import os
@@ -11,174 +11,174 @@ from typing import Dict, List, Any, Optional
 from pathlib import Path
 
 # Load environment variables from .env file if it exists
-try:
+try: 
     from dotenv import load_dotenv
     load_dotenv()
-except ImportError:
+except ImportError: 
     # dotenv not available, skip loading .env file
     pass
 
 
 @dataclass
-class DataProviderConfig:
+class DataProviderConfig: 
     """Data provider configuration"""
     iex_api_key: str=""
-    polygon_api_key: str = ""
-    fmp_api_key: str = ""
-    news_api_key: str = ""
-    alpha_vantage_api_key: str = ""
+    polygon_api_key: str=""
+    fmp_api_key: str=""
+    news_api_key: str=""
+    alpha_vantage_api_key: str=""
     
-    def validate(self) -> List[str]:
+    def validate(self) -> List[str]: 
         """Validate data provider configuration"""
         errors=[]
         
-        if not self.iex_api_key:
+        if not self.iex_api_key: 
             errors.append("IEX API key is required")
         
-        if not self.polygon_api_key:
+        if not self.polygon_api_key: 
             errors.append("Polygon API key is required")
         
         return errors
 
 
 @dataclass
-class BrokerConfig:
+class BrokerConfig: 
     """Broker configuration"""
     alpaca_api_key: str=""
-    alpaca_secret_key: str = ""
-    alpaca_base_url: str = "https://paper-api.alpaca.markets"
-    ibkr_host: str = ""
-    ibkr_port: int = 7497
-    ibkr_client_id: int = 1
+    alpaca_secret_key: str=""
+    alpaca_base_url: str="https://paper - api.alpaca.markets"
+    ibkr_host: str=""
+    ibkr_port: int=7497
+    ibkr_client_id: int=1
     
-    def validate(self) -> List[str]:
+    def validate(self) -> List[str]: 
         """Validate broker configuration"""
         errors=[]
         
-        if not self.alpaca_api_key:
+        if not self.alpaca_api_key: 
             errors.append("Alpaca API key is required")
         
-        if not self.alpaca_secret_key:
+        if not self.alpaca_secret_key: 
             errors.append("Alpaca secret key is required")
         
         return errors
 
 
 @dataclass
-class RiskConfig:
+class RiskConfig: 
     """Risk management configuration"""
     max_position_risk: float=0.10  # 10% per position
-    max_total_risk: float = 0.30      # 30% total portfolio risk
-    max_drawdown: float = 0.20       # 20% max drawdown
-    max_correlation: float = 0.25    # 25% max correlation
-    account_size: float = 100000.0   # Default account size
-    default_commission: float = 1.0  # Default commission per trade
-    default_slippage: float = 0.002   # Default slippage (0.2%)
+    max_total_risk: float=0.30      # 30% total portfolio risk
+    max_drawdown: float=0.20       # 20% max drawdown
+    max_correlation: float=0.25    # 25% max correlation
+    account_size: float=100000.0   # Default account size
+    default_commission: float=1.0  # Default commission per trade
+    default_slippage: float=0.002   # Default slippage (0.2%)
     
-    def validate(self) -> List[str]:
+    def validate(self) -> List[str]: 
         """Validate risk configuration"""
         errors=[]
         
-        if not 0 < self.max_position_risk <= 1:
+        if not 0 < self.max_position_risk <= 1: 
             errors.append("max_position_risk must be between 0 and 1")
         
-        if not 0 < self.max_total_risk <= 1:
+        if not 0 < self.max_total_risk <= 1: 
             errors.append("max_total_risk must be between 0 and 1")
         
-        if not 0 < self.max_drawdown <= 1:
+        if not 0 < self.max_drawdown <= 1: 
             errors.append("max_drawdown must be between 0 and 1")
         
-        if self.account_size <= 0:
+        if self.account_size <= 0: 
             errors.append("account_size must be positive")
         
         return errors
 
 
 @dataclass
-class TradingConfig:
+class TradingConfig: 
     """Trading system configuration"""
-    universe: List[str] = field(default_factory=lambda: [
+    universe: List[str]=field(default_factory=lambda: [
         'AAPL', 'MSFT', 'GOOGL', 'GOOG', 'META', 'NVDA', 'AVGO', 'AMD', 'TSLA'
     ])
     scan_interval: int=300  # 5 minutes
-    max_concurrent_trades: int = 10
-    enable_paper_trading: bool = True
-    enable_live_trading: bool = False
+    max_concurrent_trades: int=10
+    enable_paper_trading: bool=True
+    enable_live_trading: bool=False
     
-    def validate(self) -> List[str]:
+    def validate(self) -> List[str]: 
         """Validate trading configuration"""
         errors=[]
         
-        if not self.universe:
+        if not self.universe: 
             errors.append("Trading universe cannot be empty")
         
-        if self.scan_interval < 60:
+        if self.scan_interval < 60: 
             errors.append("scan_interval must be at least 60 seconds")
         
-        if self.max_concurrent_trades <= 0:
+        if self.max_concurrent_trades <= 0: 
             errors.append("max_concurrent_trades must be positive")
         
         return errors
 
 
 @dataclass
-class AlertConfig:
+class AlertConfig: 
     """Alert system configuration"""
     enable_slack: bool=False
-    slack_webhook_url: str = ""
-    enable_email: bool = False
-    email_smtp_server: str = ""
-    email_smtp_port: int = 587
-    email_username: str = ""
-    email_password: str = ""
-    email_recipients: List[str] = field(default_factory=list)
+    slack_webhook_url: str=""
+    enable_email: bool=False
+    email_smtp_server: str=""
+    email_smtp_port: int=587
+    email_username: str=""
+    email_password: str=""
+    email_recipients: List[str]=field(default_factory=list)
     
-    def validate(self) -> List[str]:
+    def validate(self) -> List[str]: 
         """Validate alert configuration"""
         errors=[]
         
-        if self.enable_slack and not self.slack_webhook_url:
+        if self.enable_slack and not self.slack_webhook_url: 
             errors.append("Slack webhook URL is required when Slack alerts are enabled")
         
-        if self.enable_email:
-            if not self.email_smtp_server:
+        if self.enable_email: 
+            if not self.email_smtp_server: 
                 errors.append("Email SMTP server is required when email alerts are enabled")
-            if not self.email_username:
+            if not self.email_username: 
                 errors.append("Email username is required when email alerts are enabled")
-            if not self.email_password:
+            if not self.email_password: 
                 errors.append("Email password is required when email alerts are enabled")
-            if not self.email_recipients:
+            if not self.email_recipients: 
                 errors.append("Email recipients list cannot be empty when email alerts are enabled")
         
         return errors
 
 
 @dataclass
-class DatabaseConfig:
+class DatabaseConfig: 
     """Database configuration"""
     engine: str="postgresql"
-    host: str = "localhost"
-    port: int = 5432
-    name: str = "wallstreetbots"
-    username: str = "postgres"
-    password: str = ""
-    ssl_mode: str = "prefer"
+    host: str="localhost"
+    port: int=5432
+    name: str="wallstreetbots"
+    username: str="postgres"
+    password: str=""
+    ssl_mode: str="prefer"
     
-    def validate(self) -> List[str]:
+    def validate(self) -> List[str]: 
         """Validate database configuration"""
         errors=[]
         
-        if not self.name:
+        if not self.name: 
             errors.append("Database name is required")
         
-        if not self.username:
+        if not self.username: 
             errors.append("Database username is required")
         
         return errors
 
 
 @dataclass
-class ProductionConfig:
+class ProductionConfig: 
     """Complete production configuration"""
     data_providers: DataProviderConfig=field(default_factory=DataProviderConfig)
     broker: BrokerConfig=field(default_factory=BrokerConfig)
@@ -187,7 +187,7 @@ class ProductionConfig:
     alerts: AlertConfig=field(default_factory=AlertConfig)
     database: DatabaseConfig=field(default_factory=DatabaseConfig)
     
-    def validate(self) -> List[str]:
+    def validate(self) -> List[str]: 
         """Validate entire configuration"""
         errors=[]
         
@@ -200,81 +200,81 @@ class ProductionConfig:
         
         return errors
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]: 
         """Convert configuration to dictionary"""
         return {
-            'data_providers':{
-                'iex_api_key':self.data_providers.iex_api_key,
-                'polygon_api_key':self.data_providers.polygon_api_key,
-                'fmp_api_key':self.data_providers.fmp_api_key,
-                'news_api_key':self.data_providers.news_api_key,
-                'alpha_vantage_api_key':self.data_providers.alpha_vantage_api_key,
+            'data_providers': {
+                'iex_api_key': self.data_providers.iex_api_key,
+                'polygon_api_key': self.data_providers.polygon_api_key,
+                'fmp_api_key': self.data_providers.fmp_api_key,
+                'news_api_key': self.data_providers.news_api_key,
+                'alpha_vantage_api_key': self.data_providers.alpha_vantage_api_key,
             },
-            'broker':{
-                'alpaca_api_key':self.broker.alpaca_api_key,
-                'alpaca_secret_key':self.broker.alpaca_secret_key,
-                'alpaca_base_url':self.broker.alpaca_base_url,
-                'ibkr_host':self.broker.ibkr_host,
-                'ibkr_port':self.broker.ibkr_port,
-                'ibkr_client_id':self.broker.ibkr_client_id,
+            'broker': {
+                'alpaca_api_key': self.broker.alpaca_api_key,
+                'alpaca_secret_key': self.broker.alpaca_secret_key,
+                'alpaca_base_url': self.broker.alpaca_base_url,
+                'ibkr_host': self.broker.ibkr_host,
+                'ibkr_port': self.broker.ibkr_port,
+                'ibkr_client_id': self.broker.ibkr_client_id,
             },
-            'risk':{
-                'max_position_risk':self.risk.max_position_risk,
-                'max_total_risk':self.risk.max_total_risk,
-                'max_drawdown':self.risk.max_drawdown,
-                'max_correlation':self.risk.max_correlation,
-                'account_size':self.risk.account_size,
-                'default_commission':self.risk.default_commission,
-                'default_slippage':self.risk.default_slippage,
+            'risk': {
+                'max_position_risk': self.risk.max_position_risk,
+                'max_total_risk': self.risk.max_total_risk,
+                'max_drawdown': self.risk.max_drawdown,
+                'max_correlation': self.risk.max_correlation,
+                'account_size': self.risk.account_size,
+                'default_commission': self.risk.default_commission,
+                'default_slippage': self.risk.default_slippage,
             },
-            'trading':{
-                'universe':self.trading.universe,
-                'scan_interval':self.trading.scan_interval,
-                'max_concurrent_trades':self.trading.max_concurrent_trades,
-                'enable_paper_trading':self.trading.enable_paper_trading,
-                'enable_live_trading':self.trading.enable_live_trading,
+            'trading': {
+                'universe': self.trading.universe,
+                'scan_interval': self.trading.scan_interval,
+                'max_concurrent_trades': self.trading.max_concurrent_trades,
+                'enable_paper_trading': self.trading.enable_paper_trading,
+                'enable_live_trading': self.trading.enable_live_trading,
             },
-            'alerts':{
-                'enable_slack':self.alerts.enable_slack,
-                'slack_webhook_url':self.alerts.slack_webhook_url,
-                'enable_email':self.alerts.enable_email,
-                'email_smtp_server':self.alerts.email_smtp_server,
-                'email_smtp_port':self.alerts.email_smtp_port,
-                'email_username':self.alerts.email_username,
-                'email_password':self.alerts.email_password,
-                'email_recipients':self.alerts.email_recipients,
+            'alerts': {
+                'enable_slack': self.alerts.enable_slack,
+                'slack_webhook_url': self.alerts.slack_webhook_url,
+                'enable_email': self.alerts.enable_email,
+                'email_smtp_server': self.alerts.email_smtp_server,
+                'email_smtp_port': self.alerts.email_smtp_port,
+                'email_username': self.alerts.email_username,
+                'email_password': self.alerts.email_password,
+                'email_recipients': self.alerts.email_recipients,
             },
-            'database':{
-                'engine':self.database.engine,
-                'host':self.database.host,
-                'port':self.database.port,
-                'name':self.database.name,
-                'username':self.database.username,
-                'password':self.database.password,
-                'ssl_mode':self.database.ssl_mode,
+            'database': {
+                'engine': self.database.engine,
+                'host': self.database.host,
+                'port': self.database.port,
+                'name': self.database.name,
+                'username': self.database.username,
+                'password': self.database.password,
+                'ssl_mode': self.database.ssl_mode,
             }
         }
 
 
-class ConfigManager:
+class ConfigManager: 
     """Configuration manager with environment variable support"""
     
-    def __init__(self, config_file: Optional[str] = None):
-        self.config_file=config_file or "config/production.json"
-        self.logger = logging.getLogger(__name__)
+    def __init__(self, config_file: Optional[str]=None):
+        self.config_file=config_file or "config / production.json"
+        self.logger=logging.getLogger(__name__)
     
-    def load_config(self) -> ProductionConfig:
+    def load_config(self) -> ProductionConfig: 
         """Load configuration from file and environment variables"""
         # Start with defaults
         config=ProductionConfig()
         
         # Load from file if it exists
-        if os.path.exists(self.config_file):
-            try:
-                with open(self.config_file, 'r') as f:
+        if os.path.exists(self.config_file): 
+            try: 
+                with open(self.config_file, 'r') as f: 
                     file_config=json.load(f)
                 config=self._merge_config(config, file_config)
-            except Exception as e:
+            except Exception as e: 
                 self.logger.warning(f"Could not load config file {self.config_file}: {e}")
         
         # Override with environment variables - THIS IS WHERE REAL CONFIG HAPPENS
@@ -282,21 +282,21 @@ class ConfigManager:
         
         return config
     
-    def _merge_config(self, base_config: ProductionConfig, file_config: Dict[str, Any]) -> ProductionConfig:
+    def _merge_config(self, base_config: ProductionConfig, file_config: Dict[str, Any]) -> ProductionConfig: 
         """Merge file configuration into base configuration"""
         # Data providers
-        if 'data_providers' in file_config:
+        if 'data_providers' in file_config: 
             dp_config=file_config['data_providers']
-            base_config.data_providers.iex_api_key = dp_config.get('iex_api_key', base_config.data_providers.iex_api_key)
+            base_config.data_providers.iex_api_key=dp_config.get('iex_api_key', base_config.data_providers.iex_api_key)
             base_config.data_providers.polygon_api_key=dp_config.get('polygon_api_key', base_config.data_providers.polygon_api_key)
             base_config.data_providers.fmp_api_key=dp_config.get('fmp_api_key', base_config.data_providers.fmp_api_key)
             base_config.data_providers.news_api_key=dp_config.get('news_api_key', base_config.data_providers.news_api_key)
             base_config.data_providers.alpha_vantage_api_key=dp_config.get('alpha_vantage_api_key', base_config.data_providers.alpha_vantage_api_key)
         
         # Broker
-        if 'broker' in file_config:
+        if 'broker' in file_config: 
             broker_config=file_config['broker']
-            base_config.broker.alpaca_api_key = broker_config.get('alpaca_api_key', base_config.broker.alpaca_api_key)
+            base_config.broker.alpaca_api_key=broker_config.get('alpaca_api_key', base_config.broker.alpaca_api_key)
             base_config.broker.alpaca_secret_key=broker_config.get('alpaca_secret_key', base_config.broker.alpaca_secret_key)
             base_config.broker.alpaca_base_url=broker_config.get('alpaca_base_url', base_config.broker.alpaca_base_url)
             base_config.broker.ibkr_host=broker_config.get('ibkr_host', base_config.broker.ibkr_host)
@@ -304,9 +304,9 @@ class ConfigManager:
             base_config.broker.ibkr_client_id=broker_config.get('ibkr_client_id', base_config.broker.ibkr_client_id)
         
         # Risk
-        if 'risk' in file_config:
+        if 'risk' in file_config: 
             risk_config=file_config['risk']
-            base_config.risk.max_position_risk = risk_config.get('max_position_risk', base_config.risk.max_position_risk)
+            base_config.risk.max_position_risk=risk_config.get('max_position_risk', base_config.risk.max_position_risk)
             base_config.risk.max_total_risk=risk_config.get('max_total_risk', base_config.risk.max_total_risk)
             base_config.risk.max_drawdown=risk_config.get('max_drawdown', base_config.risk.max_drawdown)
             base_config.risk.max_correlation=risk_config.get('max_correlation', base_config.risk.max_correlation)
@@ -315,18 +315,18 @@ class ConfigManager:
             base_config.risk.default_slippage=risk_config.get('default_slippage', base_config.risk.default_slippage)
         
         # Trading
-        if 'trading' in file_config:
+        if 'trading' in file_config: 
             trading_config=file_config['trading']
-            base_config.trading.universe = trading_config.get('universe', base_config.trading.universe)
+            base_config.trading.universe=trading_config.get('universe', base_config.trading.universe)
             base_config.trading.scan_interval=trading_config.get('scan_interval', base_config.trading.scan_interval)
             base_config.trading.max_concurrent_trades=trading_config.get('max_concurrent_trades', base_config.trading.max_concurrent_trades)
             base_config.trading.enable_paper_trading=trading_config.get('enable_paper_trading', base_config.trading.enable_paper_trading)
             base_config.trading.enable_live_trading=trading_config.get('enable_live_trading', base_config.trading.enable_live_trading)
         
         # Alerts
-        if 'alerts' in file_config:
+        if 'alerts' in file_config: 
             alert_config=file_config['alerts']
-            base_config.alerts.enable_slack = alert_config.get('enable_slack', base_config.alerts.enable_slack)
+            base_config.alerts.enable_slack=alert_config.get('enable_slack', base_config.alerts.enable_slack)
             base_config.alerts.slack_webhook_url=alert_config.get('slack_webhook_url', base_config.alerts.slack_webhook_url)
             base_config.alerts.enable_email=alert_config.get('enable_email', base_config.alerts.enable_email)
             base_config.alerts.email_smtp_server=alert_config.get('email_smtp_server', base_config.alerts.email_smtp_server)
@@ -336,9 +336,9 @@ class ConfigManager:
             base_config.alerts.email_recipients=alert_config.get('email_recipients', base_config.alerts.email_recipients)
         
         # Database
-        if 'database' in file_config:
+        if 'database' in file_config: 
             db_config=file_config['database']
-            base_config.database.engine = db_config.get('engine', base_config.database.engine)
+            base_config.database.engine=db_config.get('engine', base_config.database.engine)
             base_config.database.host=db_config.get('host', base_config.database.host)
             base_config.database.port=db_config.get('port', base_config.database.port)
             base_config.database.name=db_config.get('name', base_config.database.name)
@@ -376,7 +376,7 @@ class ConfigManager:
         
         # Trading
         universe_str=os.getenv('TRADING_UNIVERSE', '')
-        if universe_str:
+        if universe_str: 
             config.trading.universe=[ticker.strip() for ticker in universe_str.split(',')]
         config.trading.scan_interval=int(os.getenv('SCAN_INTERVAL', config.trading.scan_interval))
         config.trading.max_concurrent_trades=int(os.getenv('MAX_CONCURRENT_TRADES', config.trading.max_concurrent_trades))
@@ -392,7 +392,7 @@ class ConfigManager:
         config.alerts.email_username=os.getenv('EMAIL_USERNAME', config.alerts.email_username)
         config.alerts.email_password=os.getenv('EMAIL_PASSWORD', config.alerts.email_password)
         email_recipients_str=os.getenv('EMAIL_RECIPIENTS', '')
-        if email_recipients_str:
+        if email_recipients_str: 
             config.alerts.email_recipients=[email.strip() for email in email_recipients_str.split(',')]
         
         # Database
@@ -408,23 +408,23 @@ class ConfigManager:
     
     def save_config(self, config: ProductionConfig) -> bool:
         """Save configuration to file"""
-        try:
+        try: 
             # Ensure config directory exists
             config_dir=Path(self.config_file).parent
             config_dir.mkdir(parents=True, exist_ok=True)
             
-            with open(self.config_file, 'w') as f:
+            with open(self.config_file, 'w') as f: 
                 json.dump(config.to_dict(), f, indent=2)
             
             self.logger.info(f"Configuration saved to {self.config_file}")
             return True
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Could not save configuration: {e}")
             return False
     
     def create_env_template(self, output_file: str=".env.template") -> bool:
         """Create environment variable template file"""
-        try:
+        try: 
             template="""# WallStreetBots Production Configuration
 # Copy this file to .env and fill in your actual values
 
@@ -438,7 +438,7 @@ ALPHA_VANTAGE_API_KEY=your_alpha_vantage_api_key_here
 # Broker Configuration
 ALPACA_API_KEY=your_alpaca_api_key_here
 ALPACA_SECRET_KEY=your_alpaca_secret_key_here
-ALPACA_BASE_URL=https://paper-api.alpaca.markets
+ALPACA_BASE_URL=https: //paper - api.alpaca.markets
 IBKR_HOST=localhost
 IBKR_PORT=7497
 IBKR_CLIENT_ID=1
@@ -479,17 +479,17 @@ DB_PASSWORD=your_db_password_here
 DB_SSL_MODE=prefer
 """
             
-            with open(output_file, 'w') as f:
+            with open(output_file, 'w') as f: 
                 f.write(template)
             
             self.logger.info(f"Environment template created: {output_file}")
             return True
-        except Exception as e:
+        except Exception as e: 
             self.logger.error(f"Could not create environment template: {e}")
             return False
 
 
 # Factory function for easy initialization
-def create_config_manager(config_file: Optional[str] = None) -> ConfigManager:
+def create_config_manager(config_file: Optional[str]=None) -> ConfigManager:
     """Create configuration manager"""
     return ConfigManager(config_file)

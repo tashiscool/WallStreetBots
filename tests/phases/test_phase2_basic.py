@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr / bin/env python3
 """
 Basic Phase 2 Functionality Test
 Test core Phase 2 components without external dependencies
@@ -14,7 +14,7 @@ from enum import Enum
 from unittest.mock import Mock
 
 # Add the backend directory to the path
-sys.path.append('backend/tradingbot')
+sys.path.append('backend / tradingbot')
 
 # Import Phase 2 components (without external dependencies)
 from backend.tradingbot.core.production_wheel_strategy import WheelStage, WheelStatus, WheelPosition, WheelCandidate  # noqa: E402
@@ -23,7 +23,7 @@ from backend.tradingbot.core.production_spx_spreads import SPXSpreadType, SPXSpr
 from backend.tradingbot.core.production_index_baseline import BenchmarkType, BenchmarkData, StrategyPerformance, PerformanceComparison, PerformanceCalculator  # noqa: E402
 
 
-def test_wheel_strategy():
+def test_wheel_strategy(): 
     """Test Wheel Strategy components"""
     print("🔄 Testing Wheel Strategy Components...")
     
@@ -43,11 +43,11 @@ def test_wheel_strategy():
     )
     
     print(f"✅ Wheel Position: {position.ticker} {position.stage.value} @ ${position.strike_price}")
-    print(f"   Premium: ${position.premium_received}, P&L: ${position.unrealized_pnl}")
+    print(f"   Premium: ${position.premium_received}, P & L: ${position.unrealized_pnl}")
     
-    # Test P&L calculation
+    # Test P & L calculation
     pnl=position.calculate_unrealized_pnl()
-    print(f"✅ P&L Calculation: ${pnl}")
+    print(f"✅ P & L Calculation: ${pnl}")
     
     # Test Wheel Candidate
     candidate=WheelCandidate(
@@ -66,7 +66,7 @@ def test_wheel_strategy():
     print("✅ Wheel Strategy components working correctly\n")
 
 
-def test_debit_spreads():
+def test_debit_spreads(): 
     """Test Debit Spreads components"""
     print("📈 Testing Debit Spreads Components...")
     
@@ -81,8 +81,8 @@ def test_debit_spreads():
         net_debit=2.0,
         max_profit=3.0,
         max_loss=2.0,
-        long_option={"strike":145.0, "premium":3.0},
-        short_option={"strike":150.0, "premium":1.0}
+        long_option={"strike": 145.0, "premium": 3.0},
+        short_option={"strike": 150.0, "premium": 1.0}
     )
     
     print(f"✅ Spread Position: {position.ticker} {position.spread_type.value}")
@@ -109,7 +109,7 @@ def test_debit_spreads():
     
     score=candidate.calculate_spread_score()
     print(f"✅ Spread Candidate: {candidate.ticker} Score: {score:.2f}")
-    print(f"   Profit/Loss Ratio: {candidate.profit_loss_ratio:.1f}")
+    print(f"   Profit / Loss Ratio: {candidate.profit_loss_ratio:.1f}")
     
     # Test QuantLib Pricer
     pricer=QuantLibPricer()
@@ -128,7 +128,7 @@ def test_debit_spreads():
     print("✅ Debit Spreads components working correctly\n")
 
 
-def test_spx_spreads():
+def test_spx_spreads(): 
     """Test SPX Spreads components"""
     print("📊 Testing SPX Spreads Components...")
     
@@ -142,8 +142,8 @@ def test_spx_spreads():
         net_credit=2.0,
         max_profit=2.0,
         max_loss=48.0,
-        long_option={"strike":4400.0, "premium":1.0},
-        short_option={"strike":4450.0, "premium":3.0}
+        long_option={"strike": 4400.0, "premium": 1.0},
+        short_option={"strike": 4450.0, "premium": 3.0}
     )
     
     print(f"✅ SPX Spread: {position.spread_type.value}")
@@ -177,7 +177,7 @@ def test_spx_spreads():
     print("✅ SPX Spreads components working correctly\n")
 
 
-def test_index_baseline():
+def test_index_baseline(): 
     """Test Index Baseline components"""
     print("📉 Testing Index Baseline Components...")
     
@@ -232,7 +232,7 @@ def test_index_baseline():
     prices=[100.0, 101.0, 102.0, 101.5, 103.0]
     returns=calculator.calculate_returns(prices)
     
-    print(f"✅ Performance Calculator:")
+    print(f"✅ Performance Calculator: ")
     print(f"   Daily Return: {returns['daily_return']:.2%}")
     print(f"   YTD Return: {returns['ytd_return']:.2%}")
     
@@ -267,29 +267,29 @@ def test_index_baseline():
     print("✅ Index Baseline components working correctly\n")
 
 
-def test_phase2_integration():
+def test_phase2_integration(): 
     """Test Phase 2 integration"""
     print("🔗 Testing Phase 2 Integration...")
     
     # Test configuration loading
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f: 
         test_config={
-            "risk":{
-                "max_position_risk":0.10,
-                "account_size":100000.0
+            "risk": {
+                "max_position_risk": 0.10,
+                "account_size": 100000.0
             },
-            "trading":{
-                "universe":["AAPL", "MSFT", "GOOGL"],
-                "max_concurrent_trades":5
+            "trading": {
+                "universe": ["AAPL", "MSFT", "GOOGL"],
+                "max_concurrent_trades": 5
             }
         }
         json.dump(test_config, f)
         config_file=f.name
     
-    try:
+    try: 
         from backend.tradingbot.core.production_config import ConfigManager
         
-        config_manager = ConfigManager(config_file)
+        config_manager=ConfigManager(config_file)
         config=config_manager.load_config()
         
         print(f"✅ Configuration loaded successfully")
@@ -297,11 +297,11 @@ def test_phase2_integration():
         print(f"   Max Position Risk: {config.risk.max_position_risk:.1%}")
         print(f"   Universe: {', '.join(config.trading.universe)}")
         
-    finally:
+    finally: 
         os.unlink(config_file)
     
     # Test strategy scoring systems
-    print(f"✅ Strategy Scoring Systems:")
+    print(f"✅ Strategy Scoring Systems: ")
     
     # Wheel scoring
     wheel_candidate=WheelCandidate(
@@ -335,12 +335,12 @@ def test_phase2_integration():
     print("✅ Phase 2 integration working correctly\n")
 
 
-def main():
+def main(): 
     """Run all Phase 2 tests"""
     print("🚀 WallStreetBots Phase 2 - Basic Functionality Test")
     print("=" * 60)
     
-    try:
+    try: 
         test_wheel_strategy()
         test_debit_spreads()
         test_spx_spreads()
@@ -349,23 +349,23 @@ def main():
         
         print("=" * 60)
         print("✅ ALL PHASE 2 TESTS PASSED!")
-        print("\n🎯 Phase 2 Strategies Verified:")
+        print("\n🎯 Phase 2 Strategies Verified: ")
         print("  ✅ Wheel Strategy - Premium selling automation")
-        print("  ✅ Debit Spreads - Defined-risk bulls with QuantLib")
+        print("  ✅ Debit Spreads - Defined - risk bulls with QuantLib")
         print("  ✅ SPX Spreads - Index options with CME data")
         print("  ✅ Index Baseline - Performance tracking & benchmarking")
         print("  ✅ Integration - All strategies with Phase 1 infrastructure")
         
-        print("\n📊 Strategy Capabilities:")
+        print("\n📊 Strategy Capabilities: ")
         print("  🔄 Wheel: Automated premium selling with risk controls")
         print("  📈 Debit Spreads: QuantLib pricing with Greeks calculation")
-        print("  📊 SPX Spreads: Real-time CME data with market regime analysis")
-        print("  📉 Index Baseline: Multi-benchmark performance tracking")
+        print("  📊 SPX Spreads: Real - time CME data with market regime analysis")
+        print("  📉 Index Baseline: Multi - benchmark performance tracking")
         
-        print("\n⚠️  Note: This is educational/testing code only!")
+        print("\n⚠️  Note: This is educational / testing code only!")
         print("   Do not use with real money without extensive validation.")
         
-    except Exception as e:
+    except Exception as e: 
         print(f"❌ Test failed: {e}")
         import traceback
         traceback.print_exc()
@@ -374,12 +374,12 @@ def main():
     return 0
 
 
-if __name__== "__main__":# Mock class for testing
-    class Mock:
-        def info(self, *args, **kwargs):
+if __name__== "__main__": # Mock class for testing
+    class Mock: 
+        def info(self, *args, **kwargs): 
             pass
 
-        def error(self, *args, **kwargs):
+        def error(self, *args, **kwargs): 
             pass
 
     exit(main())

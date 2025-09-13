@@ -8,15 +8,15 @@ from pathlib import Path
 BASE_DIR=Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY='test-secret-key-for-testing-only'
+SECRET_KEY='test - secret-key - for-testing - only'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG=True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS=['*']
 
 # Application definition
-INSTALLED_APPS = [
+INSTALLED_APPS=[
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'django.contrib.sessions',
@@ -37,13 +37,13 @@ MIDDLEWARE=[
 
 ROOT_URLCONF='backend.urls'
 
-TEMPLATES = [
+TEMPLATES=[
     {
-        'BACKEND':'django.template.backends.django.DjangoTemplates',
-        'DIRS':[],
-        'APP_DIRS':True,
-        'OPTIONS':{
-            'context_processors':[
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -55,38 +55,38 @@ TEMPLATES = [
 
 # Database
 DATABASES={
-    'default':{
-        'ENGINE':'django.db.backends.sqlite3',
-        'NAME':BASE_DIR / 'db.sqlite3',
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
 # Internationalization
-LANGUAGE_CODE='en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
+LANGUAGE_CODE='en - us'
+TIME_ZONE='UTC'
+USE_I18N=True
+USE_TZ=True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL='/static/'
 
 # Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD='django.db.models.BigAutoField'
 
 # Email backend for testing
-EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend'
 
 # Logging
-LOGGING = {
-    'version':1,
-    'disable_existing_loggers':False,
-    'handlers':{
-        'console':{
-            'class':'logging.StreamHandler',
+LOGGING={
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
         },
     },
-    'root':{
-        'handlers':['console'],
-        'level':'INFO',
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
     },
 }

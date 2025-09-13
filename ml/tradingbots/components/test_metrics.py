@@ -3,10 +3,10 @@ import metrics
 from utils import DummyFetcher
 
 
-class MovingAverageSharpeRatioTestCase(unittest.TestCase):
-    def test_sharpe_ratio(self):
+class MovingAverageSharpeRatioTestCase(unittest.TestCase): 
+    def test_sharpe_ratio(self): 
         """
-        test on:
+        test on: 
         AAPL        MSFT
         99          99
         100         100
@@ -31,4 +31,4 @@ class MovingAverageSharpeRatioTestCase(unittest.TestCase):
         self.assertEqual(round(sharpe, 3), 0.228)  # add assertion here
 
 
-if __name__== '__main__':unittest.main()
+if __name__== '__main__': unittest.main()

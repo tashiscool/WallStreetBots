@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr / bin/env python3
 """
 Focused tests for ProductionStrategyManager 
 Tests the core functionality we just implemented
@@ -25,7 +25,7 @@ from backend.tradingbot.production.core.production_strategy_manager import (
 )
 
 
-def test_strategy_manager_initialization():
+def test_strategy_manager_initialization(): 
     """Test that ProductionStrategyManager initializes correctly"""
     print("Testing ProductionStrategyManager initialization...")
     
@@ -38,7 +38,7 @@ def test_strategy_manager_initialization():
     
     with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager'), \
          patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider'), \
-         patch.object(ProductionStrategyManager, '_create_strategy', return_value=None):
+         patch.object(ProductionStrategyManager, '_create_strategy', return_value=None): 
         
         manager=ProductionStrategyManager(config)
         
@@ -53,7 +53,7 @@ def test_strategy_manager_initialization():
         print("✅ Initialization test passed")
 
 
-def test_strategy_config_dataclass():
+def test_strategy_config_dataclass(): 
     """Test StrategyConfig dataclass functionality"""
     print("Testing StrategyConfig dataclass...")
     
@@ -62,7 +62,7 @@ def test_strategy_config_dataclass():
         enabled=True,
         max_position_size=0.15,
         risk_tolerance="high",
-        parameters={"param1":"value1", "param2":100}
+        parameters={"param1": "value1", "param2": 100}
     )
     
     assert config.name== "test_strategy"
@@ -75,7 +75,7 @@ def test_strategy_config_dataclass():
     print("✅ StrategyConfig dataclass test passed")
 
 
-def test_production_strategy_manager_config_dataclass():
+def test_production_strategy_manager_config_dataclass(): 
     """Test ProductionStrategyManagerConfig dataclass"""
     print("Testing ProductionStrategyManagerConfig dataclass...")
     
@@ -100,7 +100,7 @@ def test_production_strategy_manager_config_dataclass():
     print("✅ ProductionStrategyManagerConfig dataclass test passed")
 
 
-def test_create_strategy_method_exists():
+def test_create_strategy_method_exists(): 
     """Test that _create_strategy method exists and handles unknown strategies"""
     print("Testing _create_strategy method...")
     
@@ -113,7 +113,7 @@ def test_create_strategy_method_exists():
     
     with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager'), \
          patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider'), \
-         patch.object(ProductionStrategyManager, '_create_strategy', return_value=None):
+         patch.object(ProductionStrategyManager, '_create_strategy', return_value=None): 
         
         manager=ProductionStrategyManager(config)
         
@@ -128,7 +128,7 @@ def test_create_strategy_method_exists():
 
 
 @pytest.mark.asyncio
-async def test_async_methods_exist():
+async def test_async_methods_exist(): 
     """Test that async methods exist and have correct signatures"""
     print("Testing async methods exist...")
     
@@ -141,19 +141,19 @@ async def test_async_methods_exist():
     
     with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager') as MockIntegration, \
          patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider') as MockData, \
-         patch.object(ProductionStrategyManager, '_create_strategy', return_value=None):
+         patch.object(ProductionStrategyManager, '_create_strategy', return_value=None): 
         
         # Setup mocks
         mock_integration=Mock()
         mock_integration.alpaca_manager.validate_api.return_value=(True, "Success")
         mock_integration.get_portfolio_value.return_value=50000.0
-        MockIntegration.return_value = mock_integration
+        MockIntegration.return_value=mock_integration
         
-        mock_data = Mock()
+        mock_data=Mock()
         mock_data.is_market_open.return_value=True
-        MockData.return_value = mock_data
+        MockData.return_value=mock_data
         
-        manager = ProductionStrategyManager(config)
+        manager=ProductionStrategyManager(config)
         
         # Test that async methods exist
         assert hasattr(manager, 'start_all_strategies')
@@ -174,7 +174,7 @@ async def test_async_methods_exist():
         print("✅ Async methods test passed")
 
 
-def test_strategy_factory_methods_mapping():
+def test_strategy_factory_methods_mapping(): 
     """Test that all strategy names map to factory methods in _create_strategy"""
     print("Testing strategy factory methods mapping...")
     
@@ -201,12 +201,12 @@ def test_strategy_factory_methods_mapping():
     
     with patch('backend.tradingbot.production.core.production_strategy_manager.ProductionIntegrationManager'), \
          patch('backend.tradingbot.production.core.production_strategy_manager.ProductionDataProvider'), \
-         patch.object(ProductionStrategyManager, '_create_strategy', return_value=Mock()) as mock_create:
+         patch.object(ProductionStrategyManager, '_create_strategy', return_value=Mock()) as mock_create: 
         
         manager=ProductionStrategyManager(config)
         
         # Test each expected strategy
-        for strategy_name in expected_strategies:
+        for strategy_name in expected_strategies: 
             strategy_config=StrategyConfig(name=strategy_name, enabled=True)
             
             # Reset mock call count
@@ -221,11 +221,11 @@ def test_strategy_factory_methods_mapping():
         print("✅ Strategy factory methods mapping test passed")
 
 
-def test_all_strategy_imports_available():
+def test_all_strategy_imports_available(): 
     """Test that all required strategy imports are available"""
     print("Testing all strategy imports...")
     
-    try:
+    try: 
         from backend.tradingbot.production.strategies.production_wsb_dip_bot import create_production_wsb_dip_bot
         from backend.tradingbot.production.strategies.production_earnings_protection import create_production_earnings_protection
         from backend.tradingbot.production.strategies.production_index_baseline import create_production_index_baseline
@@ -239,17 +239,17 @@ def test_all_strategy_imports_available():
         
         print("✅ All strategy imports available")
         
-    except ImportError as e:
+    except ImportError as e: 
         print(f"❌ Strategy import failed: {e}")
         raise
 
 
-def run_all_tests():
+def run_all_tests(): 
     """Run all focused tests"""
     print("🧪 PRODUCTION STRATEGY MANAGER FOCUSED TESTS")
     print("=" * 60)
     
-    try:
+    try: 
         # Basic functionality tests
         test_strategy_manager_initialization()
         test_strategy_config_dataclass()
@@ -265,7 +265,7 @@ def run_all_tests():
         print("\n" + "=" * 60)
         print("✅ ALL FOCUSED TESTS COMPLETED SUCCESSFULLY")
         
-        print("\n🎯 KEY VALIDATIONS:")
+        print("\n🎯 KEY VALIDATIONS: ")
         print("✓ ProductionStrategyManager initializes correctly")
         print("✓ All dataclasses work properly")
         print("✓ Strategy creation method exists and handles unknown strategies")
@@ -273,7 +273,7 @@ def run_all_tests():
         print("✓ All strategy imports are available")
         print("✓ Async methods exist and have correct structure")
         
-        print("\n📊 INTEGRATION STATUS:")
+        print("\n📊 INTEGRATION STATUS: ")
         print("✅ ProductionStrategyManager: FULLY TESTED")
         print("✅ All 10 strategies: IMPORT VALIDATED")
         print("✅ Configuration system: VALIDATED")
@@ -281,13 +281,13 @@ def run_all_tests():
         
         return True
         
-    except Exception as e:
+    except Exception as e: 
         print(f"\n❌ TEST FAILED: {e}")
         import traceback
         traceback.print_exc()
         return False
 
 
-if __name__== "__main__":
-    success = run_all_tests()
+if __name__== "__main__": 
+    success=run_all_tests()
     sys.exit(0 if success else 1)

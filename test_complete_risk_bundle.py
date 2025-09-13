@@ -1,17 +1,17 @@
-#!/usr/bin/env python3
+#!/usr / bin/env python3
 """
 🧪 Complete Risk Bundle Test Suite
 
 This provides comprehensive testing of all sophisticated risk management features
 to ensure 100% compatibility with institutional risk bundles.
 
-Tests cover:
-✅ Multi-method VaR calculations
-✅ Liquidity-Adjusted VaR (LVaR) 
+Tests cover: 
+✅ Multi - method VaR calculations
+✅ Liquidity - Adjusted VaR (LVaR) 
 ✅ Backtesting validation with Kupiec POF
 ✅ Options Greeks risk management
 ✅ Database integration and audit trail
-✅ Real-time risk monitoring
+✅ Real - time risk monitoring
 ✅ Regulatory compliance checking
 
 Run: python test_complete_risk_bundle.py
@@ -32,14 +32,14 @@ from risk_engine_complete import RiskEngine, RiskMetrics
 from database_schema import RiskDatabase
 
 
-class TestCompleteRiskBundle(unittest.TestCase):
+class TestCompleteRiskBundle(unittest.TestCase): 
     """
     🏆 Comprehensive Test Suite for Complete Risk Bundle
     
     Tests every feature mentioned in institutional risk systems
     """
     
-    def setUp(self):
+    def setUp(self): 
         """Setup test environment"""
         self.risk_engine=RiskEngine('test_risk.db')
         self.db=RiskDatabase('test_database.db')
@@ -51,38 +51,38 @@ class TestCompleteRiskBundle(unittest.TestCase):
         
         # Generate synthetic returns for testing
         np.random.seed(42)  # Reproducible tests
-        dates=pd.date_range(start='2023-01-01', end='2024-12-31', freq='D')
+        dates=pd.date_range(start='2023 - 01-01', end='2024 - 12-31', freq='D')
         
         # Create realistic return data with proper characteristics
-        for symbol in self.test_symbols:
+        for symbol in self.test_symbols: 
             returns=np.random.normal(0.001, 0.02, len(dates))  # Daily returns
             prices=100 * np.exp(np.cumsum(returns))  # Price series
             
             hist_data=pd.DataFrame({
-                'Close':prices,
-                'High':prices * 1.02,
-                'Low':prices * 0.98,
-                'Volume':np.random.randint(1000000, 10000000, len(dates))
+                'Close': prices,
+                'High': prices * 1.02,
+                'Low': prices * 0.98,
+                'Volume': np.random.randint(1000000, 10000000, len(dates))
             }, index=dates)
             
-            self.risk_engine.portfolio_data[symbol] = {
-                'data':hist_data,
-                'weight':self.test_weights[self.test_symbols.index(symbol)],
-                'bid_ask_spread':0.001 + np.random.random() * 0.002,  # 0.1-0.3% spread
-                'returns':hist_data['Close'].pct_change().dropna()
+            self.risk_engine.portfolio_data[symbol]={
+                'data': hist_data,
+                'weight': self.test_weights[self.test_symbols.index(symbol)],
+                'bid_ask_spread': 0.001 + np.random.random() * 0.002,  # 0.1 - 0.3% spread
+                'returns': hist_data['Close'].pct_change().dropna()
             }
             
-    def tearDown(self):
+    def tearDown(self): 
         """Cleanup test databases"""
-        try:
+        try: 
             os.remove('test_risk.db')
             os.remove('test_database.db')
-        except:
+        except: 
             pass
             
-    def test_multi_method_var_calculation(self):
-        """✅ Test multi-method VaR calculation"""
-        print("\n🔍 Testing multi-method VaR calculations...")
+    def test_multi_method_var_calculation(self): 
+        """✅ Test multi - method VaR calculation"""
+        print("\n🔍 Testing multi - method VaR calculations...")
         
         var_methods=self.risk_engine.calculate_var_methods(0.95)
         
@@ -93,7 +93,7 @@ class TestCompleteRiskBundle(unittest.TestCase):
         self.assertIn('monte_carlo', var_methods)
         
         # VaR should be positive (loss values)
-        for method in ['historical', 'parametric_normal', 'parametric_t', 'monte_carlo']:
+        for method in ['historical', 'parametric_normal', 'parametric_t', 'monte_carlo']: 
             self.assertGreater(var_methods[method], 0)
             self.assertLess(var_methods[method], 1)  # Should be reasonable
             
@@ -103,12 +103,12 @@ class TestCompleteRiskBundle(unittest.TestCase):
         
         print(f"  ✅ Historical VaR: {var_methods['historical']:.4f}")
         print(f"  ✅ Parametric Normal VaR: {var_methods['parametric_normal']:.4f}")
-        print(f"  ✅ Parametric t-VaR: {var_methods['parametric_t']:.4f}")
+        print(f"  ✅ Parametric t - VaR: {var_methods['parametric_t']:.4f}")
         print(f"  ✅ Monte Carlo VaR: {var_methods['monte_carlo']:.4f}")
         
-    def test_liquidity_adjusted_var(self):
-        """✅ Test Liquidity-Adjusted VaR (LVaR)"""
-        print("\n🔍 Testing Liquidity-Adjusted VaR...")
+    def test_liquidity_adjusted_var(self): 
+        """✅ Test Liquidity - Adjusted VaR (LVaR)"""
+        print("\n🔍 Testing Liquidity - Adjusted VaR...")
         
         var_95=self.risk_engine.calculate_var_methods(0.95)['historical']
         lvar_95=self.risk_engine.calculate_lvar(0.95)
@@ -123,9 +123,9 @@ class TestCompleteRiskBundle(unittest.TestCase):
         
         print(f"  ✅ VaR 95%: {var_95:.4f}")
         print(f"  ✅ LVaR 95%: {lvar_95:.4f}")
-        print(f"  ✅ Liquidity Penalty: {liquidity_penalty:.4f} ({liquidity_penalty/var_95:.1%})")
+        print(f"  ✅ Liquidity Penalty: {liquidity_penalty:.4f} ({liquidity_penalty / var_95: .1%})")
         
-    def test_comprehensive_risk_report(self):
+    def test_comprehensive_risk_report(self): 
         """✅ Test comprehensive risk report generation"""
         print("\n🔍 Testing comprehensive risk report...")
         
@@ -140,7 +140,7 @@ class TestCompleteRiskBundle(unittest.TestCase):
             'max_drawdown', 'sharpe_ratio', 'volatility', 'skewness', 'kurtosis'
         ]
         
-        for field in required_fields:
+        for field in required_fields: 
             self.assertTrue(hasattr(metrics, field))
             value=getattr(metrics, field)
             self.assertIsInstance(value, (int, float))
@@ -159,7 +159,7 @@ class TestCompleteRiskBundle(unittest.TestCase):
         print(f"  ✅ Volatility: {metrics.volatility:.3f}")
 
 
-def run_comprehensive_test_suite():
+def run_comprehensive_test_suite(): 
     """
     🏆 Run complete test suite for institutional risk management
     
@@ -167,7 +167,7 @@ def run_comprehensive_test_suite():
     """
     print("🚀 WALLSTREETBOTS COMPLETE RISK BUNDLE TEST SUITE")
     print("=" * 60)
-    print("🎯 Testing institutional-grade risk management features...")
+    print("🎯 Testing institutional - grade risk management features...")
     print("=" * 60)
     
     # Create test suite
@@ -180,7 +180,7 @@ def run_comprehensive_test_suite():
         'test_comprehensive_risk_report'
     ]
     
-    for method in test_methods:
+    for method in test_methods: 
         suite.addTest(TestCompleteRiskBundle(method))
     
     # Run tests
@@ -192,22 +192,22 @@ def run_comprehensive_test_suite():
     print("🏆 TEST SUITE SUMMARY")
     print("=" * 60)
     
-    if result.wasSuccessful():
+    if result.wasSuccessful(): 
         print("✅ ALL TESTS PASSED!")
         print("🎉 Complete risk bundle is 100% compatible with institutional systems!")
-        print("\n📊 Features validated:")
-        print("   ✅ Multi-method VaR calculations")
-        print("   ✅ Liquidity-Adjusted VaR (LVaR)")
+        print("\n📊 Features validated: ")
+        print("   ✅ Multi - method VaR calculations")
+        print("   ✅ Liquidity - Adjusted VaR (LVaR)")
         print("   ✅ Comprehensive risk reporting")
         
-    else:
+    else: 
         print(f"❌ TESTS FAILED: {len(result.failures)} failures, {len(result.errors)} errors")
         
     print("=" * 60)
     return result.wasSuccessful()
 
 
-if __name__== "__main__":# Run the complete test suite
-    success = run_comprehensive_test_suite()
+if __name__== "__main__": # Run the complete test suite
+    success=run_comprehensive_test_suite()
     sys.exit(0 if success else 1)
 

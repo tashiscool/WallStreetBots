@@ -4,18 +4,18 @@ Options Trading System - Implementing the Successful 240% Playbook
 This module implements a comprehensive options trading system based on the successful
 240% GOOGL call trade, with proper risk management to prevent existential bets.
 
-Key Components:
-- Black-Scholes options pricing and Greeks calculation
+Key Components: 
+- Black - Scholes options pricing and Greeks calculation
 - Market regime detection (bull pullback reversal signals)
 - Sophisticated position sizing and risk management
 - Systematic exit planning with profit targets and stop losses
-- Real-time alerts and execution checklists
+- Real - time alerts and execution checklists
 - Comprehensive scenario analysis
 
 The system transforms the successful but risky trade into a repeatable,
-risk-managed strategy suitable for consistent profitable trading.
+risk - managed strategy suitable for consistent profitable trading.
 
-Usage:
+Usage: 
     from backend.tradingbot import IntegratedTradingSystem, TradingConfig
 
     config=TradingConfig(account_size=500000, max_position_risk_pct=0.10)
@@ -83,9 +83,9 @@ from .trading_system import (
 )
 
 __version__="1.0.0"
-__author__ = "WallStreetBots Team"
+__author__="WallStreetBots Team"
 
-__all__ = [
+__all__=[
     # Main system
     "IntegratedTradingSystem",
     "TradingConfig",

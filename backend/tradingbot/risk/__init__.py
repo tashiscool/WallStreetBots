@@ -11,14 +11,14 @@ from .risk_integration_manager import RiskIntegrationManager, RiskLimits, RiskMe
 from .database_schema import RiskDatabaseManager
 
 # Import complete risk engine utilities
-try:
+try: 
     from .risk_engine_complete import RiskEngine, RiskMetrics as CompleteRiskMetrics
-except ImportError:
+except ImportError: 
     # Fallback if complete engine not available
     pass
 
-# Month 5-6: Advanced Features and Automation
-try:
+# Month 5 - 6: Advanced Features and Automation
+try: 
     from .advanced_ml_risk_agents import (
         MultiAgentRiskCoordinator, RiskEnvironment, RiskState, RiskActionType,
         PPORiskAgent, DDPGRiskAgent
@@ -30,10 +30,10 @@ try:
         RegulatoryComplianceManager, RegulatoryAuthority, ComplianceStatus, ComplianceRule
     )
     ADVANCED_FEATURES_AVAILABLE=True
-except ImportError:
-    ADVANCED_FEATURES_AVAILABLE = False
+except ImportError: 
+    ADVANCED_FEATURES_AVAILABLE=False
 
-__all__ = [
+__all__=[
     'AdvancedVaREngine',
     'VaRResult', 
     'VaRSuite',
@@ -53,7 +53,7 @@ __all__ = [
 ]
 
 # Add advanced features if available
-if ADVANCED_FEATURES_AVAILABLE:
+if ADVANCED_FEATURES_AVAILABLE: 
     __all__.extend([
         'MultiAgentRiskCoordinator',
         'RiskEnvironment',
@@ -72,5 +72,5 @@ if ADVANCED_FEATURES_AVAILABLE:
 
 # Version information
 __version__="2025.1.0"
-__author__ = "WallStreetBots Risk Management Team"
-__description__ = "Advanced risk management models for algorithmic trading"
+__author__="WallStreetBots Risk Management Team"
+__description__="Advanced risk management models for algorithmic trading"

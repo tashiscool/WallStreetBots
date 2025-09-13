@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr / bin/env python3
 """
 Standalone Phase 2 Tests
 Test Phase 2 strategies without external dependencies
@@ -17,23 +17,23 @@ from dataclasses import dataclass, field
 
 
 # Define Phase 2 components directly for testing
-class WheelStage(Enum):
+class WheelStage(Enum): 
     CASH_SECURED_PUT="cash_secured_put"
-    ASSIGNED_STOCK = "assigned_stock"
-    COVERED_CALL = "covered_call"
-    CLOSED_POSITION = "closed_position"
+    ASSIGNED_STOCK="assigned_stock"
+    COVERED_CALL="covered_call"
+    CLOSED_POSITION="closed_position"
 
 
-class WheelStatus(Enum):
+class WheelStatus(Enum): 
     ACTIVE="active"
-    EXPIRED = "expired"
-    ASSIGNED = "assigned"
-    CLOSED = "closed"
-    ROLLED = "rolled"
+    EXPIRED="expired"
+    ASSIGNED="assigned"
+    CLOSED="closed"
+    ROLLED="rolled"
 
 
 @dataclass
-class WheelPosition:
+class WheelPosition: 
     ticker: str
     stage: WheelStage
     status: WheelStatus
@@ -45,89 +45,89 @@ class WheelPosition:
     strike_price: float
     expiry_date: datetime
     premium_received: float
-    premium_paid: float = 0.0
-    entry_date: datetime = field(default_factory=datetime.now)
+    premium_paid: float=0.0
+    entry_date: datetime=field(default_factory=datetime.now)
     last_update: datetime=field(default_factory=datetime.now)
     days_to_expiry: int=0
-    delta: float = 0.0
-    theta: float = 0.0
-    iv_rank: float = 0.0
+    delta: float=0.0
+    theta: float=0.0
+    iv_rank: float=0.0
     
-    def calculate_unrealized_pnl(self) -> float:
-        """Calculate unrealized P&L"""
-        if self.stage== WheelStage.CASH_SECURED_PUT:
-            if self.current_price >= self.strike_price:
+    def calculate_unrealized_pnl(self) -> float: 
+        """Calculate unrealized P & L"""
+        if self.stage== WheelStage.CASH_SECURED_PUT: 
+            if self.current_price >= self.strike_price: 
                 return self.premium_received
-            else:
-                loss = (self.strike_price - self.current_price) * self.quantity
+            else: 
+                loss=(self.strike_price - self.current_price) * self.quantity
                 return self.premium_received - loss
-        elif self.stage== WheelStage.ASSIGNED_STOCK:
-            stock_pnl = (self.current_price - self.entry_price) * self.quantity
+        elif self.stage== WheelStage.ASSIGNED_STOCK: 
+            stock_pnl=(self.current_price - self.entry_price) * self.quantity
             return stock_pnl + self.premium_received
-        elif self.stage== WheelStage.COVERED_CALL:
-            stock_pnl = (self.current_price - self.entry_price) * self.quantity
+        elif self.stage== WheelStage.COVERED_CALL: 
+            stock_pnl=(self.current_price - self.entry_price) * self.quantity
             call_pnl=self.premium_received - self.premium_paid
             
-            if self.current_price >= self.strike_price:
-                assignment_pnl = (self.strike_price - self.entry_price) * self.quantity
+            if self.current_price >= self.strike_price: 
+                assignment_pnl=(self.strike_price - self.entry_price) * self.quantity
                 return assignment_pnl + call_pnl
-            else:
+            else: 
                 return stock_pnl + call_pnl
         return 0.0
     
-    def calculate_days_to_expiry(self) -> int:
+    def calculate_days_to_expiry(self) -> int: 
         """Calculate days to expiry"""
-        if self.expiry_date:
+        if self.expiry_date: 
             delta=self.expiry_date - datetime.now()
             return max(0, delta.days)
         return 0
 
 
 @dataclass
-class WheelCandidate:
+class WheelCandidate: 
     ticker: str
     current_price: float
     volatility_rank: float
     earnings_date: datetime=None
-    earnings_risk: float = 0.0
-    rsi: float = 50.0
-    support_level: float = 0.0
-    resistance_level: float = 0.0
-    put_premium: float = 0.0
-    call_premium: float = 0.0
-    iv_rank: float = 0.0
-    wheel_score: float = 0.0
-    risk_score: float = 0.0
+    earnings_risk: float=0.0
+    rsi: float=50.0
+    support_level: float=0.0
+    resistance_level: float=0.0
+    put_premium: float=0.0
+    call_premium: float=0.0
+    iv_rank: float=0.0
+    wheel_score: float=0.0
+    risk_score: float=0.0
     
-    def calculate_wheel_score(self) -> float:
+    def calculate_wheel_score(self) -> float: 
         """Calculate wheel strategy score"""
         score=0.0
         score += self.volatility_rank * 0.3
         score += self.iv_rank * 0.2
         score += min(self.put_premium / self.current_price, 0.05) * 100
         score -= self.earnings_risk * 0.2
-        if 30 <= self.rsi <= 70:
+        if 30 <= self.rsi <= 70: 
             score += 0.1
         self.wheel_score=max(0.0, min(1.0, score))
         return self.wheel_score
 
 
-class SpreadType(Enum):
+class SpreadType(Enum): 
     BULL_CALL_SPREAD="bull_call_spread"
-    BEAR_PUT_SPREAD = "bear_put_spread"
-    CALENDAR_SPREAD = "calendar_spread"
-    DIAGONAL_SPREAD = "diagonal_spread"
+    BEAR_PUT_SPREAD="bear_put_spread"
+    CALENDAR_SPREAD="calendar_spread"
+    DIAGONAL_SPREAD="diagonal_spread"
 
 
-class SpreadStatus(Enum):
+class SpreadStatus(Enum): 
     ACTIVE="active"
-    EXPIRED = "expired"
-    CLOSED = "closed"
-    ROLLED = "rolled"
+    EXPIRED="expired"
+    CLOSED="closed"
+    ROLLED="rolled"
 
 
 @dataclass
-class SpreadPosition:
+class SpreadPosition: 
     ticker: str
     spread_type: SpreadType
     status: SpreadStatus
@@ -139,30 +139,30 @@ class SpreadPosition:
     max_loss: float
     long_option: dict
     short_option: dict
-    current_value: float = 0.0
-    unrealized_pnl: float = 0.0
-    profit_pct: float = 0.0
-    entry_date: datetime = field(default_factory=datetime.now)
+    current_value: float=0.0
+    unrealized_pnl: float=0.0
+    profit_pct: float=0.0
+    entry_date: datetime=field(default_factory=datetime.now)
     expiry_date: datetime=field(default_factory=lambda: datetime.now() + timedelta(days=30))
     last_update: datetime=field(default_factory=datetime.now)
     net_delta: float=0.0
-    net_gamma: float = 0.0
-    net_theta: float = 0.0
-    net_vega: float = 0.0
+    net_gamma: float=0.0
+    net_theta: float=0.0
+    net_vega: float=0.0
     
-    def calculate_max_profit(self) -> float:
+    def calculate_max_profit(self) -> float: 
         """Calculate maximum profit potential"""
-        if self.spread_type== SpreadType.BULL_CALL_SPREAD:
+        if self.spread_type== SpreadType.BULL_CALL_SPREAD: 
             return (self.short_strike - self.long_strike) * self.quantity * 100 - self.net_debit * self.quantity * 100
         return 0.0
     
-    def calculate_max_loss(self) -> float:
+    def calculate_max_loss(self) -> float: 
         """Calculate maximum loss potential"""
         return self.net_debit * self.quantity * 100
 
 
 @dataclass
-class SpreadCandidate:
+class SpreadCandidate: 
     ticker: str
     current_price: float
     spread_type: SpreadType
@@ -178,28 +178,28 @@ class SpreadCandidate:
     net_theta: float
     net_vega: float
     spread_score: float=0.0
-    risk_score: float = 0.0
+    risk_score: float=0.0
     
-    def calculate_spread_score(self) -> float:
+    def calculate_spread_score(self) -> float: 
         """Calculate spread strategy score"""
         score=0.0
         score += min(self.profit_loss_ratio, 3.0) * 0.3
-        if self.spread_type== SpreadType.BULL_CALL_SPREAD:
+        if self.spread_type== SpreadType.BULL_CALL_SPREAD: 
             score += max(0, self.net_delta) * 0.2
         score += max(0, -self.net_theta) * 0.2
         debit_pct=self.net_debit / self.current_price
         score += max(0, 0.05 - debit_pct) * 20
         strike_width=abs(self.short_strike - self.long_strike)
-        if 2 <= strike_width <= 10:
+        if 2 <= strike_width <= 10: 
             score += 0.1
         self.spread_score=max(0.0, min(1.0, score))
         return self.spread_score
 
 
-class QuantLibPricer:
-    """QuantLib-based options pricing"""
+class QuantLibPricer: 
+    """QuantLib - based options pricing"""
     
-    def __init__(self):
+    def __init__(self): 
         self.logger=Mock()
     
     def calculate_black_scholes(self, 
@@ -209,15 +209,15 @@ class QuantLibPricer:
                               volatility: float,
                               time_to_expiry: float,
                               option_type: str) -> dict:
-        """Calculate Black-Scholes price and Greeks"""
-        try:
+        """Calculate Black - Scholes price and Greeks"""
+        try: 
             # Calculate d1 and d2
             d1=(math.log(spot_price / strike_price) + 
                   (risk_free_rate + 0.5 * volatility**2) * time_to_expiry) / (volatility * math.sqrt(time_to_expiry))
             d2=d1 - volatility * math.sqrt(time_to_expiry)
             
             # Calculate option price
-            if option_type.lower() == 'call':price=(spot_price * self._normal_cdf(d1) - 
+            if option_type.lower() == 'call': price=(spot_price * self._normal_cdf(d1) - 
                         strike_price * math.exp(-risk_free_rate * time_to_expiry) * self._normal_cdf(d2))
             else:  # put
                 price=(strike_price * math.exp(-risk_free_rate * time_to_expiry) * self._normal_cdf(-d2) - 
@@ -231,21 +231,21 @@ class QuantLibPricer:
             vega=spot_price * self._normal_pdf(d1) * math.sqrt(time_to_expiry)
             
             return {
-                'price':price,
-                'delta':delta,
-                'gamma':gamma,
-                'theta':theta,
-                'vega':vega
+                'price': price,
+                'delta': delta,
+                'gamma': gamma,
+                'theta': theta,
+                'vega': vega
             }
             
-        except Exception as e:
-            self.logger.error(f"Black-Scholes calculation error: {e}")
+        except Exception as e: 
+            self.logger.error(f"Black - Scholes calculation error: {e}")
             return {
-                'price':0.0,
-                'delta':0.0,
-                'gamma':0.0,
-                'theta':0.0,
-                'vega':0.0
+                'price': 0.0,
+                'delta': 0.0,
+                'gamma': 0.0,
+                'theta': 0.0,
+                'vega': 0.0
             }
     
     def _normal_cdf(self, x: float) -> float:
@@ -257,15 +257,15 @@ class QuantLibPricer:
         return math.exp(-0.5 * x**2) / math.sqrt(2 * math.pi)
 
 
-class BenchmarkType(Enum):
+class BenchmarkType(Enum): 
     SPY="spy"
-    VTI = "vti"
-    QQQ = "qqq"
-    IWM = "iwm"
+    VTI="vti"
+    QQQ="qqq"
+    IWM="iwm"
 
 
 @dataclass
-class BenchmarkData:
+class BenchmarkData: 
     ticker: str
     benchmark_type: BenchmarkType
     current_price: float
@@ -277,11 +277,11 @@ class BenchmarkData:
     volatility: float
     sharpe_ratio: float
     max_drawdown: float
-    last_update: datetime = field(default_factory=datetime.now)
+    last_update: datetime=field(default_factory=datetime.now)
 
 
 @dataclass
-class StrategyPerformance:
+class StrategyPerformance: 
     strategy_name: str
     total_return: float
     daily_return: float
@@ -303,7 +303,7 @@ class StrategyPerformance:
 
 
 @dataclass
-class PerformanceComparison:
+class PerformanceComparison: 
     strategy_name: str
     benchmark_ticker: str
     strategy_return: float
@@ -318,21 +318,21 @@ class PerformanceComparison:
     comparison_date: datetime=field(default_factory=datetime.now)
 
 
-class PerformanceCalculator:
+class PerformanceCalculator: 
     """Performance calculation utilities"""
     
-    def __init__(self, logger):
+    def __init__(self, logger): 
         self.logger=logger
     
     def calculate_returns(self, prices: list) -> dict:
         """Calculate various return metrics"""
-        if len(prices) < 2:
+        if len(prices) < 2: 
             return {
-                'daily_return':0.0,
-                'weekly_return':0.0,
-                'monthly_return':0.0,
-                'ytd_return':0.0,
-                'annual_return':0.0
+                'daily_return': 0.0,
+                'weekly_return': 0.0,
+                'monthly_return': 0.0,
+                'ytd_return': 0.0,
+                'annual_return': 0.0
             }
         
         # Daily return
@@ -351,16 +351,16 @@ class PerformanceCalculator:
         annual_return=ytd_return * (252 / len(prices)) if len(prices) > 0 else 0.0
         
         return {
-            'daily_return':daily_return,
-            'weekly_return':weekly_return,
-            'monthly_return':monthly_return,
-            'ytd_return':ytd_return,
-            'annual_return':annual_return
+            'daily_return': daily_return,
+            'weekly_return': weekly_return,
+            'monthly_return': monthly_return,
+            'ytd_return': ytd_return,
+            'annual_return': annual_return
         }
     
     def calculate_volatility(self, returns: list) -> float:
         """Calculate volatility (standard deviation of returns)"""
-        if len(returns) < 2:
+        if len(returns) < 2: 
             return 0.0
         
         mean_return=sum(returns) / len(returns)
@@ -369,30 +369,30 @@ class PerformanceCalculator:
     
     def calculate_sharpe_ratio(self, returns: list, risk_free_rate: float=0.02) -> float:
         """Calculate Sharpe ratio"""
-        if len(returns) < 2:
+        if len(returns) < 2: 
             return 0.0
         
         mean_return=sum(returns) / len(returns)
         volatility=self.calculate_volatility(returns)
         
-        if volatility== 0:
+        if volatility== 0: 
             return 0.0
         
         return (mean_return - risk_free_rate) / volatility
     
     def calculate_max_drawdown(self, prices: list) -> float:
         """Calculate maximum drawdown"""
-        if len(prices) < 2:
+        if len(prices) < 2: 
             return 0.0
         
         peak=prices[0]
-        max_dd = 0.0
+        max_dd=0.0
         
-        for price in prices:
-            if price > peak:
-                peak = price
-            else:
-                drawdown = (peak - price) / peak
+        for price in prices: 
+            if price > peak: 
+                peak=price
+            else: 
+                drawdown=(peak - price) / peak
                 max_dd=max(max_dd, drawdown)
         
         return max_dd
@@ -400,7 +400,7 @@ class PerformanceCalculator:
     def calculate_alpha_beta(self, strategy_returns: list, 
                            benchmark_returns: list) -> tuple:
         """Calculate alpha and beta"""
-        if len(strategy_returns) != len(benchmark_returns) or len(strategy_returns) < 2:
+        if len(strategy_returns) != len(benchmark_returns) or len(strategy_returns) < 2: 
             return 0.0, 1.0
         
         # Calculate covariance and variance
@@ -412,19 +412,19 @@ class PerformanceCalculator:
         
         benchmark_variance=sum((b - benchmark_mean) ** 2 for b in benchmark_returns) / len(benchmark_returns)
         
-        if benchmark_variance== 0:
+        if benchmark_variance== 0: 
             return 0.0, 1.0
         
         beta=covariance / benchmark_variance
-        alpha = strategy_mean - beta * benchmark_mean
+        alpha=strategy_mean - beta * benchmark_mean
         
         return alpha, beta
 
 
-class TestWheelStrategy(unittest.TestCase):
+class TestWheelStrategy(unittest.TestCase): 
     """Test Wheel Strategy implementation"""
     
-    def test_wheel_position_creation(self):
+    def test_wheel_position_creation(self): 
         """Test wheel position creation"""
         position=WheelPosition(
             ticker="AAPL",
@@ -446,7 +446,7 @@ class TestWheelStrategy(unittest.TestCase):
         self.assertEqual(position.quantity, 100)
         self.assertEqual(position.unrealized_pnl, 500.0)
     
-    def test_wheel_candidate_scoring(self):
+    def test_wheel_candidate_scoring(self): 
         """Test wheel candidate scoring"""
         candidate=WheelCandidate(
             ticker="AAPL",
@@ -464,8 +464,8 @@ class TestWheelStrategy(unittest.TestCase):
         self.assertLessEqual(score, 1.0)
         self.assertEqual(candidate.wheel_score, score)
     
-    def test_wheel_position_pnl_calculation(self):
-        """Test wheel position P&L calculation"""
+    def test_wheel_position_pnl_calculation(self): 
+        """Test wheel position P & L calculation"""
         # Cash secured put - profitable
         position=WheelPosition(
             ticker="AAPL",
@@ -486,12 +486,12 @@ class TestWheelStrategy(unittest.TestCase):
         
         # Cash secured put - loss scenario
         position.current_price=140.0  # Stock below strike
-        pnl = position.calculate_unrealized_pnl()
+        pnl=position.calculate_unrealized_pnl()
         expected_loss=(145.0 - 140.0) * 100  # $500 loss
         expected_pnl=200.0 - expected_loss  # Premium - loss
         self.assertEqual(pnl, expected_pnl)
     
-    def test_wheel_position_days_to_expiry(self):
+    def test_wheel_position_days_to_expiry(self): 
         """Test days to expiry calculation"""
         position=WheelPosition(
             ticker="AAPL",
@@ -512,10 +512,10 @@ class TestWheelStrategy(unittest.TestCase):
         self.assertLessEqual(days, 30)
 
 
-class TestDebitSpreads(unittest.TestCase):
+class TestDebitSpreads(unittest.TestCase): 
     """Test Debit Spreads implementation"""
     
-    def test_spread_position_creation(self):
+    def test_spread_position_creation(self): 
         """Test spread position creation"""
         position=SpreadPosition(
             ticker="AAPL",
@@ -527,8 +527,8 @@ class TestDebitSpreads(unittest.TestCase):
             net_debit=2.0,
             max_profit=3.0,
             max_loss=2.0,
-            long_option={"strike":145.0, "premium":3.0},
-            short_option={"strike":150.0, "premium":1.0}
+            long_option={"strike": 145.0, "premium": 3.0},
+            short_option={"strike": 150.0, "premium": 1.0}
         )
         
         self.assertEqual(position.ticker, "AAPL")
@@ -537,7 +537,7 @@ class TestDebitSpreads(unittest.TestCase):
         self.assertEqual(position.short_strike, 150.0)
         self.assertEqual(position.net_debit, 2.0)
     
-    def test_spread_candidate_scoring(self):
+    def test_spread_candidate_scoring(self): 
         """Test spread candidate scoring"""
         candidate=SpreadCandidate(
             ticker="AAPL",
@@ -562,11 +562,11 @@ class TestDebitSpreads(unittest.TestCase):
         self.assertLessEqual(score, 1.0)
         self.assertEqual(candidate.spread_score, score)
     
-    def test_quantlib_pricer(self):
+    def test_quantlib_pricer(self): 
         """Test QuantLib pricer"""
         pricer=QuantLibPricer()
         
-        # Test Black-Scholes calculation
+        # Test Black - Scholes calculation
         result=pricer.calculate_black_scholes(
             spot_price=100.0,
             strike_price=100.0,
@@ -589,8 +589,8 @@ class TestDebitSpreads(unittest.TestCase):
         self.assertGreaterEqual(result['delta'], 0.0)
         self.assertLessEqual(result['delta'], 1.0)
     
-    def test_spread_position_max_profit_loss(self):
-        """Test spread position max profit/loss calculations"""
+    def test_spread_position_max_profit_loss(self): 
+        """Test spread position max profit / loss calculations"""
         position=SpreadPosition(
             ticker="AAPL",
             spread_type=SpreadType.BULL_CALL_SPREAD,
@@ -601,8 +601,8 @@ class TestDebitSpreads(unittest.TestCase):
             net_debit=2.0,
             max_profit=3.0,
             max_loss=2.0,
-            long_option={"strike":145.0, "premium":3.0},
-            short_option={"strike":150.0, "premium":1.0}
+            long_option={"strike": 145.0, "premium": 3.0},
+            short_option={"strike": 150.0, "premium": 1.0}
         )
         
         max_profit=position.calculate_max_profit()
@@ -613,10 +613,10 @@ class TestDebitSpreads(unittest.TestCase):
         self.assertEqual(max_loss, 2.0 * 10 * 100)  # net_debit * quantity * 100
 
 
-class TestIndexBaseline(unittest.TestCase):
+class TestIndexBaseline(unittest.TestCase): 
     """Test Index Baseline implementation"""
     
-    def test_benchmark_data_creation(self):
+    def test_benchmark_data_creation(self): 
         """Test benchmark data creation"""
         benchmark=BenchmarkData(
             ticker="SPY",
@@ -637,7 +637,7 @@ class TestIndexBaseline(unittest.TestCase):
         self.assertEqual(benchmark.current_price, 450.0)
         self.assertEqual(benchmark.sharpe_ratio, 1.2)
     
-    def test_strategy_performance_creation(self):
+    def test_strategy_performance_creation(self): 
         """Test strategy performance creation"""
         performance=StrategyPerformance(
             strategy_name="Wheel Strategy",
@@ -664,7 +664,7 @@ class TestIndexBaseline(unittest.TestCase):
         self.assertEqual(performance.win_rate, 0.65)
         self.assertEqual(performance.profit_factor, 1.3)
     
-    def test_performance_calculator(self):
+    def test_performance_calculator(self): 
         """Test performance calculator"""
         calculator=PerformanceCalculator(Mock())
         
@@ -692,7 +692,7 @@ class TestIndexBaseline(unittest.TestCase):
         max_dd=calculator.calculate_max_drawdown(prices)
         self.assertGreaterEqual(max_dd, 0.0)
     
-    def test_performance_comparison_creation(self):
+    def test_performance_comparison_creation(self): 
         """Test performance comparison creation"""
         comparison=PerformanceComparison(
             strategy_name="Wheel Strategy",
@@ -713,7 +713,7 @@ class TestIndexBaseline(unittest.TestCase):
         self.assertEqual(comparison.alpha, 0.02)
         self.assertEqual(comparison.beta, 0.8)
     
-    def test_alpha_beta_calculation(self):
+    def test_alpha_beta_calculation(self): 
         """Test alpha and beta calculation"""
         calculator=PerformanceCalculator(Mock())
         
@@ -727,10 +727,10 @@ class TestIndexBaseline(unittest.TestCase):
         self.assertGreater(beta, 0.0)  # Beta should be positive
 
 
-class TestPhase2EndToEnd(unittest.TestCase):
-    """End-to-end tests for Phase 2"""
+class TestPhase2EndToEnd(unittest.TestCase): 
+    """End - to-end tests for Phase 2"""
     
-    def test_wheel_strategy_workflow(self):
+    def test_wheel_strategy_workflow(self): 
         """Test complete wheel strategy workflow"""
         # Test candidate creation
         candidate=WheelCandidate(
@@ -761,7 +761,7 @@ class TestPhase2EndToEnd(unittest.TestCase):
             premium_received=200.0
         )
         
-        # Test P&L calculation
+        # Test P & L calculation
         pnl=position.calculate_unrealized_pnl()
         self.assertEqual(pnl, 200.0)
         
@@ -769,7 +769,7 @@ class TestPhase2EndToEnd(unittest.TestCase):
         days=position.calculate_days_to_expiry()
         self.assertGreaterEqual(days, 0)
     
-    def test_debit_spreads_workflow(self):
+    def test_debit_spreads_workflow(self): 
         """Test complete debit spreads workflow"""
         # Test candidate creation
         candidate=SpreadCandidate(
@@ -803,18 +803,18 @@ class TestPhase2EndToEnd(unittest.TestCase):
             net_debit=2.0,
             max_profit=3.0,
             max_loss=2.0,
-            long_option={"strike":145.0, "premium":3.0},
-            short_option={"strike":150.0, "premium":1.0}
+            long_option={"strike": 145.0, "premium": 3.0},
+            short_option={"strike": 150.0, "premium": 1.0}
         )
         
-        # Test max profit/loss calculations
+        # Test max profit / loss calculations
         max_profit=position.calculate_max_profit()
         max_loss=position.calculate_max_loss()
         
         self.assertGreater(max_profit, 0.0)
         self.assertGreater(max_loss, 0.0)
     
-    def test_index_baseline_workflow(self):
+    def test_index_baseline_workflow(self): 
         """Test complete index baseline workflow"""
         # Test benchmark creation
         benchmark=BenchmarkData(
@@ -877,5 +877,5 @@ class TestPhase2EndToEnd(unittest.TestCase):
         self.assertEqual(comparison.beta, 0.8)
 
 
-if __name__== "__main__":# Run tests
+if __name__== "__main__": # Run tests
     unittest.main()

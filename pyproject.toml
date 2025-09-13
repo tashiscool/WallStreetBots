@@ -114,12 +114,13 @@ markers = [
 DJANGO_SETTINGS_MODULE = "backend.settings"
 
 [tool.ruff]
-# Exclude directories
+# Exclude directories and files
 exclude = [
     ".bzr", ".direnv", ".eggs", ".git", ".git-rewrite", ".hg",
     ".mypy_cache", ".nox", ".pants.d", ".pytype", ".ruff_cache",
     ".svn", ".tox", ".venv", "__pypackages__", "_build", "buck-out",
-    "build", "dist", "node_modules", "venv", "migrations",
+    "build", "dist", "node_modules", "venv", 
+    "**/migrations/**",  # Django migration files
 ]
 
 # Line length
@@ -274,6 +275,13 @@ max-complexity = 10
 ]
 "**/forms.py" = [
     "RUF012",  # Django form choice fields are expected patterns
+]
+
+# Django migration files are auto-generated and shouldn't be linted
+"**/migrations/*.py" = [
+    "RUF012",  # Mutable class attributes in Django migrations
+    "E501",    # Line too long in Django migrations
+    "F401",    # Unused imports in Django migrations
 ]
 
 # ML and dev-tools patterns

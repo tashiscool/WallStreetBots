@@ -729,7 +729,8 @@ class SwingTradingStrategy:
                 position.unrealized_pnl=self._calculate_position_pnl(position)
                 
                 # Update max favorable/adverse moves
-                if position.position_type== "long":position.max_favorable_move = max(position.max_favorable_move, 
+                if position.position_type== "long":
+                    position.max_favorable_move = max(position.max_favorable_move, 
                                                    position.current_price - position.entry_price)
                     position.max_adverse_move=min(position.max_adverse_move, 
                                                  position.current_price - position.entry_price)
@@ -751,14 +752,16 @@ class SwingTradingStrategy:
     def _check_exit_conditions(self, position: SwingPosition) -> Optional[SwingSignal]:
         """Check for exit conditions"""
         # Check stop loss
-        if position.position_type== "long":if position.current_price <= position.stop_loss:
+        if position.position_type== "long":
+            if position.current_price <= position.stop_loss:
                 return SwingSignal.EXIT_LONG
         else:
             if position.current_price >= position.stop_loss:
                 return SwingSignal.EXIT_SHORT
         
         # Check take profit
-        if position.position_type == "long":if position.current_price >= position.take_profit:
+        if position.position_type == "long":
+            if position.current_price >= position.take_profit:
                 return SwingSignal.EXIT_LONG
         else:
             if position.current_price <= position.take_profit:
@@ -772,7 +775,8 @@ class SwingTradingStrategy:
     
     def _update_trailing_stop(self, position: SwingPosition):
         """Update trailing stop"""
-        if position.position_type== "long":if position.current_price > position.trailing_stop:
+        if position.position_type== "long":
+            if position.current_price > position.trailing_stop:
                 new_trailing_stop = position.current_price * (1 - self.stop_loss_pct)
                 position.trailing_stop=max(position.trailing_stop, new_trailing_stop)
         else:

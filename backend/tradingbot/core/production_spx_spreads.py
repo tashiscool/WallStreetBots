@@ -443,7 +443,8 @@ class ProductionSPXSpreads:
             
             short_result=await self.trading.execute_trade(short_signal)
             
-            if short_result.status.value != "filled":self.logger.error(f"Short option trade failed: {short_result.error_message}")
+            if short_result.status.value != "filled":
+                self.logger.error(f"Short option trade failed: {short_result.error_message}")
                 return False
             
             # Execute long option trade (buy put)
@@ -460,7 +461,8 @@ class ProductionSPXSpreads:
             
             long_result=await self.trading.execute_trade(long_signal)
             
-            if long_result.status.value != "filled":self.logger.error(f"Long option trade failed: {long_result.error_message}")
+            if long_result.status.value != "filled":
+                self.logger.error(f"Long option trade failed: {long_result.error_message}")
                 # Try to close the short position
                 await self._close_short_position(short_signal, short_result)
                 return False

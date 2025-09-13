@@ -599,11 +599,11 @@ class ProductionWSBDipBot:
             
             if order_result.get('status') == 'filled':self.logger.info(f"Position exited successfully: {ticker}")
                 
-                # Update P&L tracking
-                fill_price=float(order_result.get('fill_price', 0))
-                # Would calculate P&L based on entry price
-                
-                self.metrics.record_metric("positions_closed", 1, {
+            # Update P&L tracking
+            fill_price=float(order_result.get('fill_price', 0))
+            # Would calculate P&L based on entry price
+            
+            self.metrics.record_metric("positions_closed", 1, {
                     "ticker":ticker,
                     "reason":reason
                 })

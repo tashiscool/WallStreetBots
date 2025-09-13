@@ -104,5 +104,6 @@ class SimpleTradingBot:
         print("🛑 Trading bot stopped")
 
 # Simple command line interface
-if __name__== "__main__":bot = SimpleTradingBot()
+if __name__== "__main__":
+    bot = SimpleTradingBot()
     asyncio.run(bot.start_trading())

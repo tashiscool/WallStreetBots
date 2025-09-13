@@ -323,7 +323,8 @@ def calculate_strategy_risk_budget(
     return budget
 
 # ---------- Example usage ----------
-if __name__== "__main__":np.random.seed(42)
+if __name__== "__main__":
+    np.random.seed(42)
     # Synthetic daily returns series
     s=pd.Series(np.random.standard_t(df=5, size=1500) * 0.01)
     print("Hist VaR(99%):", var_historical(s, 0.99))

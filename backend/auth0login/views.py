@@ -170,7 +170,8 @@ def orders(request):
     credential_form=CredentialForm(request.POST or None)
     order_form=OrderForm(request.POST or None)
     strategy_form=StrategyForm(request.POST or None)
-    if request.method== 'POST':if 'submit_credential' in request.POST:
+    if request.method== 'POST':
+        if 'submit_credential' in request.POST:
             if credential_form.is_valid():
                 if hasattr(user, 'credential'):
                     user.credential.alpaca_id=credential_form.get_id()
@@ -226,7 +227,8 @@ def positions(request):
     user, userdata, auth0user, user_details=get_user_information(request)
     watchlist_form=WatchListForm(request.POST or None)
     strategy_form=StrategyForm(request.POST or None)
-    if request.method== 'POST':if 'add_to_watchlist' in request.POST:
+    if request.method== 'POST':
+        if 'add_to_watchlist' in request.POST:
             if watchlist_form.is_valid():
                 response=watchlist_form.add_to_watchlist(user)
                 return render(request, 'home/positions.html', {

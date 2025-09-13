@@ -356,7 +356,8 @@ class ProductionWSBDipBot:
                 }
             
             # 2. Delta-based exits (for options)
-            if position.get('instrument_type') == "option":if current_data.get('delta', 0) >= 0.60:  # Deep ITM
+            if position.get('instrument_type') == "option":
+                if current_data.get('delta', 0) >= 0.60:  # Deep ITM
                     return {
                         'should_exit':True, 
                         'reason':'DELTA_TARGET', 
@@ -490,7 +491,8 @@ class ProductionWSBDipBot:
                 stop_loss = base_stop_loss  # 20% stop loss
             
             # Adjust based on time to expiry (for options)
-            if position.get('instrument_type') == 'option':days_to_expiry=position.get('days_to_expiry', 30)
+            if position.get('instrument_type') == 'option':
+                days_to_expiry=position.get('days_to_expiry', 30)
                 if days_to_expiry <= 7:
                     stop_loss *= 0.5  # Tighter stop loss for near expiry
                 elif days_to_expiry <= 14:

@@ -376,7 +376,8 @@ class Phase4IntegrationManager:
             # Print validation summary
             self.logger.info("📊 STRATEGY VALIDATION SUMMARY:")
             for strategy, result in validation_summary.items():
-                if result== "PASSED":backtest = self.validation_results[strategy]
+                if result== "PASSED":
+                    backtest = self.validation_results[strategy]
                     self.logger.info(f"   ✅ {strategy}: {backtest.annualized_return:.2%} return, "
                                    f"{backtest.sharpe_ratio:.2f} Sharpe, "
                                    f"{backtest.max_drawdown:.2%} max DD")

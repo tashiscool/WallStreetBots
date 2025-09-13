@@ -286,7 +286,8 @@ class LottoScanner:
                         continue
                     
                     # Calculate metrics
-                    if option_type== "call":breakeven = strike + mid_price
+                    if option_type== "call":
+                        breakeven = strike + mid_price
                         profit_target = breakeven * 1.5  # 50% beyond breakeven
                     else:  # put
                         breakeven = strike - mid_price
@@ -295,7 +296,8 @@ class LottoScanner:
                     stop_loss = mid_price * 0.5  # 50% stop loss
                     
                     # Rough win probability (very rough estimate)
-                    if option_type== "call":distance_to_breakeven = (breakeven - spot) / spot
+                    if option_type== "call":
+                        distance_to_breakeven = (breakeven - spot) / spot
                         win_prob=max(0.05, 0.4 - distance_to_breakeven * 10)
                     else:
                         distance_to_breakeven=(spot - breakeven) / spot  
@@ -421,7 +423,8 @@ class LottoScanner:
                         continue
                     
                     # Calculate metrics
-                    if option_type== "call":breakeven = strike + mid_price
+                    if option_type== "call":
+                        breakeven = strike + mid_price
                         win_prob = 0.3 if strike < expected_up else 0.2
                     else:
                         breakeven = strike - mid_price

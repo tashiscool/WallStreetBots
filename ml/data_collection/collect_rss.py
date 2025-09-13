@@ -46,6 +46,7 @@ urls=[
     'https://www.economist.com/the-americas/rss.xml'
 ]
 
-if __name__== "__main__":for url in urls:
+if __name__== "__main__":
+    for url in urls:
         rss_sources.append(RssSource(url, process_rss_feed_entry))
     wait_for_newest_rss_feed_entry()

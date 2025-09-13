@@ -153,18 +153,22 @@ def main():
     
     if choice== "1" or choice == "3":create_desktop_shortcut()
     
-    if choice== "2" or choice == "3":if system == "windows":create_windows_executable()
+    if choice== "2" or choice == "3":
+        if system == "windows":
+            create_windows_executable()
         elif system== "darwin":create_macos_app()
         else:
             print("⚠️ Standalone executables not supported on Linux")
             print("   Use the desktop shortcut or run ./run_wallstreetbots.sh directly")
     
-    elif choice== "4":print("👋 Goodbye!")
+    elif choice== "4":
+        print("👋 Goodbye!")
         return
     
     print("\n✅ Done!")
     print("\nYou can now launch WallStreetBots using:")
-    if system== "windows":print("  • Double-click the desktop shortcut")
+    if system== "windows":
+        print("  • Double-click the desktop shortcut")
         print("  • Double-click run_wallstreetbots.bat")
         print("  • Run 'python run_wallstreetbots.py' in terminal")
     else:

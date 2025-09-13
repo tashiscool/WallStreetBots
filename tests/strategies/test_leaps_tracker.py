@@ -620,7 +620,8 @@ class TestLEAPSDisplayEnhancements(unittest.TestCase):
             cross_strength=60.0, trend_direction="bullish"
         )
         
-        if golden_cross.cross_type== "golden_cross":cross_icon = "✨"
+        if golden_cross.cross_type== "golden_cross":
+            cross_icon = "✨"
             cross_info = f"Golden Cross ({golden_cross.days_since_cross}d ago)"
         else:
             cross_icon="📊"
@@ -639,7 +640,8 @@ class TestLEAPSDisplayEnhancements(unittest.TestCase):
             cross_strength=45.0, trend_direction="bearish"
         )
         
-        if death_cross.cross_type== "death_cross":cross_icon = "💀"
+        if death_cross.cross_type== "death_cross":
+            cross_icon = "💀"
             cross_info = f"Death Cross ({death_cross.days_since_cross}d ago)"
         else:
             cross_icon="📊"

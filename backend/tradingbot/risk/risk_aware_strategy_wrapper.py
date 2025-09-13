@@ -209,9 +209,11 @@ class RiskAwareStrategy(ABC):
                 current_positions[symbol] = {'value':0, 'qty':0}
             
             # Update position based on action
-            if action== 'buy':current_positions[symbol]['qty'] += quantity
+            if action== 'buy':
+                current_positions[symbol]['qty'] += quantity
                 current_positions[symbol]['value'] += trade_value
-            elif action == 'sell':current_positions[symbol]['qty'] -= quantity
+            elif action == 'sell':
+                current_positions[symbol]['qty'] -= quantity
                 current_positions[symbol]['value'] -= trade_value
             
             # Remove zero positions

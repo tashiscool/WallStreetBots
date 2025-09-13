@@ -63,5 +63,6 @@ class FinVizArticles(NewsSourceInterface):
         return df
 
 
-if __name__== '__main__':finviz_source = FinVizArticles('amzn')
+if __name__== '__main__':
+    finviz_source = FinVizArticles('amzn')
     print(finviz_source.get_news())

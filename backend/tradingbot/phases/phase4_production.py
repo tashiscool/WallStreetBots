@@ -293,7 +293,8 @@ class ProductionBacktestEngine:
                     # Update portfolio state
                     for trade in executed_trades:
                         trades.append(trade)
-                        if trade.side== 'long':cash -= trade.entry_price * trade.quantity + trade.commission + trade.slippage
+                        if trade.side== 'long':
+                            cash -= trade.entry_price * trade.quantity + trade.commission + trade.slippage
                             positions[trade.ticker] = {
                                 'quantity':trade.quantity,
                                 'entry_price':trade.entry_price,

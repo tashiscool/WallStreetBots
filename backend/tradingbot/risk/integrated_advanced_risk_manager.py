@@ -293,7 +293,8 @@ class IntegratedAdvancedRiskManager:
             return np.array([])
     
     def _create_risk_state(self, positions: Dict[str, Dict], 
-                          market_data: Dict[str, Any]) -> 'RiskState':"""Create risk state for ML agents"""
+                          market_data: Dict[str, Any]) -> 'RiskState':
+        """Create risk state for ML agents"""
         try:
             portfolio_returns=self._calculate_portfolio_returns(positions, market_data)
             
@@ -342,7 +343,8 @@ class IntegratedAdvancedRiskManager:
                 total_exposure=100000.0, cash_ratio=0.1
             )
     
-    def _determine_asset_class(self, symbol: str) -> 'AssetClass':"""Determine asset class from symbol"""
+    def _determine_asset_class(self, symbol: str) -> 'AssetClass':
+        """Determine asset class from symbol"""
         symbol_upper=symbol.upper()
         
         if symbol_upper in ['BTC', 'ETH', 'BITCOIN', 'ETHEREUM']:
@@ -363,7 +365,8 @@ class IntegratedAdvancedRiskManager:
         self.logger.info("Starting continuous risk monitoring")
         self.system_status="monitoring"
         
-        while self.system_status == "monitoring":try:
+        while self.system_status == "monitoring":
+            try:
                 # Perform risk assessment
                 risk_results = await self.comprehensive_risk_assessment(positions, market_data)
                 

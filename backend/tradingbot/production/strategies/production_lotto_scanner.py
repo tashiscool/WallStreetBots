@@ -426,7 +426,8 @@ class ProductionLottoScanner:
             # Calculate metrics
             days_to_expiry=(datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
             
-            if option_type== "call":breakeven = strike + mid_price
+            if option_type== "call":
+                breakeven = strike + mid_price
                 distance_to_breakeven = (breakeven - current_spot) / current_spot
             else:
                 breakeven=strike - mid_price

@@ -598,7 +598,7 @@ def main():
     if args.command== 'scan':candidates = wheel.scan_wheel_candidates()
         
         # Filter by minimum return
-        candidates=[c for c in candidates if c.wheel_annual_return >= args.min_return]
+        candidates = [c for c in candidates if c.wheel_annual_return >= args.min_return]
         
         if args.save_csv:
             with open(args.save_csv, 'w', newline='') as csvfile:

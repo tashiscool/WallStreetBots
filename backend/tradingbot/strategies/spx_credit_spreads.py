@@ -205,7 +205,8 @@ class SPXCreditSpreadsScanner:
                 for _, option in options_df.iterrows():
                     strike_adj=option['strike'] * multiplier
                     
-                    if option_type == "put":_, delta=self.black_scholes_put(spot_price, strike_adj, time_to_exp, 0.04, iv_estimate)
+                    if option_type == "put":
+                        _, delta=self.black_scholes_put(spot_price, strike_adj, time_to_exp, 0.04, iv_estimate)
                         delta_diff=abs(abs(delta) - target_delta)
                     else:
                         _, delta=self.black_scholes_call(spot_price, strike_adj, time_to_exp, 0.04, iv_estimate)

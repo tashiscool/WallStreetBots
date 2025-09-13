@@ -261,9 +261,11 @@ def generate_summary(import_results, functionality_results):
     print(f"   • Index Fund Baseline Comparison ('WSB Reality Check')")
     print(f"   • LEAPS with Golden/Death Cross Timing (Enhanced)")
     
-    if readiness== "READY":print(f"\n🚀 READY FOR TESTING!")
+    if readiness== "READY":
+        print(f"\n🚀 READY FOR TESTING!")
         print(f"   All modules can be used for paper trading and development")
-    elif readiness== "MOSTLY_READY":print(f"\n🔧 MOSTLY READY")
+    elif readiness== "MOSTLY_READY":
+        print(f"\n🔧 MOSTLY READY")
         print(f"   Most functionality works, some edge cases may need attention")
     
     return readiness
@@ -292,5 +294,6 @@ def main():
         traceback.print_exc()
         return False
 
-if __name__== "__main__":success = main()
+if __name__== "__main__":
+    success = main()
     exit(0 if success else 1)

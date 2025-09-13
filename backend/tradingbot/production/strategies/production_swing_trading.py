@@ -362,9 +362,11 @@ class ProductionSwingTrading:
                         continue
                     
                     # Target strike selection based on signal type
-                    if signal_type== "breakout":strike_multiplier = 1.02  # 2% OTM for breakouts
+                    if signal_type== "breakout":
+                        strike_multiplier = 1.02  # 2% OTM for breakouts
                         max_hold_hours = 6        # Breakouts can be held longer
-                    elif signal_type == "momentum":strike_multiplier = 1.015 # 1.5% OTM for momentum
+                    elif signal_type == "momentum":
+                        strike_multiplier = 1.015 # 1.5% OTM for momentum
                         max_hold_hours = 4        # Momentum fades fast
                     else:  # reversal
                         strike_multiplier = 1.025 # 2.5% OTM for reversals

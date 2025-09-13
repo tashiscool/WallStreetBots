@@ -467,7 +467,7 @@ def main():
 if __name__== "__main__":readiness_status = main()
     
     # Exit with appropriate code
-    exit_codes={
+    exit_codes = {
         "READY":0,
         "MOSTLY_READY":1, 
         "NEEDS_WORK":2,

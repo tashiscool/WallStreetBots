@@ -45,7 +45,8 @@ This setup will configure WallStreetBots for REAL MONEY TRADING.
 Do you want to continue? (y/N): """, end="")
     
     response=input().strip().lower()
-    if response != 'y':print("Setup cancelled. Good choice to be cautious! 🛡️")
+    if response != 'y':
+        print("Setup cancelled. Good choice to be cautious! 🛡️")
         sys.exit(0)
 
 
@@ -108,7 +109,8 @@ def create_env_file():
     if env_file.exists():
         print("📄 .env file already exists")
         overwrite=input("Overwrite existing .env file? (y/N): ").strip().lower()
-        if overwrite != 'y':print("Keeping existing .env file")
+        if overwrite != 'y':
+            print("Keeping existing .env file")
             return
     
     # Copy example to .env

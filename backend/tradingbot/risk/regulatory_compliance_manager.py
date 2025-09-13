@@ -542,7 +542,8 @@ class RegulatoryComplianceManager:
                     actions.append("Consider capital injection")
             
             # Generic actions
-            if rule.severity== "critical":actions.append("Immediate management notification required")
+            if rule.severity== "critical":
+                actions.append("Immediate management notification required")
                 actions.append("Suspend trading until compliance restored")
             
             return actions
@@ -722,7 +723,7 @@ class RegulatoryComplianceManager:
         """
         try:
             # Calculate portfolio metrics
-            total_value=sum(pos.get('value', 0) for pos in positions.values())
+            total_value = sum(pos.get('value', 0) for pos in positions.values())
             max_position=max(pos.get('value', 0) for pos in positions.values()) if positions else 0
             concentration_risk=max_position / total_value if total_value > 0 else 0
             

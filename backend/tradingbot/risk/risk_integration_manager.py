@@ -22,7 +22,10 @@ from dataclasses import dataclass, field
 
 # Import from complete risk engine if available
 try:
-    from .risk_engine_complete import RiskEngine
+    from .risk_engine_complete import (
+        RiskEngine, var_historical, cvar_historical, var_parametric, 
+        cvar_parametric, var_cvar_mc, liquidity_adjusted_var
+    )
     COMPLETE_ENGINE_AVAILABLE=True
 except ImportError:
     COMPLETE_ENGINE_AVAILABLE = False

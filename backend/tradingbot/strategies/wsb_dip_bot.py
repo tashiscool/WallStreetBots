@@ -522,14 +522,16 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args=parse_args()
 
-    if args.cmd== "scan-eod":universe = [t.strip().upper() for t in args.universe.split(",") if t.strip()]
+    if args.cmd== "scan-eod":
+        universe = [t.strip().upper() for t in args.universe.split(",") if t.strip()]
         if not (0 < args.risk_pct <= 1.0):
             print("risk-pct must be in (0,1].", file=sys.stderr)
             sys.exit(2)
         run_scan_eod(universe, args.account_size, args.risk_pct, args.use_options_chain,
                      args.run_lookback, args.run_pct, args.dip_pct, args.out_prefix)
 
-    elif args.cmd== "scan-intraday":universe = [t.strip().upper() for t in args.universe.split(",") if t.strip()]
+    elif args.cmd== "scan-intraday":
+        universe = [t.strip().upper() for t in args.universe.split(",") if t.strip()]
         if not (0 < args.risk_pct <= 1.0):
             print("risk-pct must be in (0,1].", file=sys.stderr)
             sys.exit(2)
@@ -537,7 +539,8 @@ def main() -> None:
                           args.run_lookback, args.run_pct, args.dip_pct,
                           args.poll_seconds, args.max_minutes, args.out_prefix)
 
-    elif args.cmd== "plan":if not (0 < args.risk_pct <= 1.0):
+    elif args.cmd== "plan":
+        if not (0 < args.risk_pct <= 1.0):
             print("risk-pct must be in (0,1].", file=sys.stderr)
             sys.exit(2)
         run_plan_one(args.ticker.upper(), args.spot, args.account_size, args.risk_pct, args.use_options_chain)
@@ -554,7 +557,8 @@ def main() -> None:
             max_minutes=args.max_minutes
         )
 
-if __name__== "__main__":try:
+if __name__== "__main__":
+    try:
         main()
     except KeyboardInterrupt:
         print("\nStopped by user.")

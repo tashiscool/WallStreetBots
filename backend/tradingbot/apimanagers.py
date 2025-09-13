@@ -52,7 +52,8 @@ class AlpacaManager:
         self.paper_trading = paper_trading
         self.alpaca_available = ALPACA_AVAILABLE
         
-        if ALPACA_AVAILABLE and API_KEY and SECRET_KEY and API_KEY != 'test_key':try:
+        if ALPACA_AVAILABLE and API_KEY and SECRET_KEY and API_KEY != 'test_key':
+            try:
                 # Initialize trading client
                 self.trading_client = TradingClient(
                     api_key=API_KEY,

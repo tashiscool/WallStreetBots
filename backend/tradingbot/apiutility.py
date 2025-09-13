@@ -46,10 +46,12 @@ def place_general_order(user, user_details, ticker, quantity, transaction_type, 
     check, price=backend_api.get_price(ticker)
     if not check:
         raise ValidationError(f'Failed to get price for {ticker}, are you sure that the ticker name is correct?')
-    if transaction_type== 'B':a_transaction_type = 'buy'
+    if transaction_type== 'B':
+        a_transaction_type = 'buy'
         a_order_type = buy_order_check(order_type=order_type, price=price, quantity=quantity,
                                        usable_cash=user_details['usable_cash'])
-    elif transaction_type== 'S':a_transaction_type = 'sell'
+    elif transaction_type== 'S':
+        a_transaction_type = 'sell'
         a_order_type = sell_order_check(order_type=order_type, price=price, quantity=quantity,
                                         usable_cash=user_details['usable_cash'])
     else:
@@ -95,7 +97,8 @@ def add_stock_to_database(user, ticker):
 
 def buy_order_check(order_type, price, quantity, usable_cash):
     a_order_type=''
-    if order_type == 'M':a_order_type = 'market'
+    if order_type == 'M':
+        a_order_type = 'market'
         if float(price) * float(quantity) > float(usable_cash):
             raise ValidationError('Not enough cash to perform this operation. Marginal trading is not supported.')
     elif order_type== 'L':pass

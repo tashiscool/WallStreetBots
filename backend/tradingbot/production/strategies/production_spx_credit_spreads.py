@@ -235,7 +235,8 @@ class ProductionSPXCreditSpreads:
                 else:
                     # Estimate using Black-Scholes
                     iv_estimate=0.20  # Default IV
-                    if option_type == "put":_, delta=self.black_scholes_put(spot_price, strike, time_to_exp, 0.04, iv_estimate)
+                    if option_type == "put":
+                        _, delta=self.black_scholes_put(spot_price, strike, time_to_exp, 0.04, iv_estimate)
                         actual_delta=abs(delta)
                     else:
                         _, delta=self.black_scholes_call(spot_price, strike, time_to_exp, 0.04, iv_estimate)

@@ -129,7 +129,8 @@ def sync_alpaca(user):  # noqa: C901
             continue
         if alpaca_order.status== 'accepted':order.status = 'A'
         elif alpaca_order.status == 'new':order.status = 'N'
-        elif alpaca_order.status == 'filled':order.status = 'F'
+        elif alpaca_order.status == 'filled':
+            order.status = 'F'
             order.filled_avg_price = float(alpaca_order.filled_avg_price)
             order.filled_timestamp=alpaca_order.filled_at.to_pydatetime()
             order.filled_quantity=float(alpaca_order.filled_qty)
@@ -140,7 +141,8 @@ def sync_alpaca(user):  # noqa: C901
     usable_cash=float(account.cash)
     for order in alpaca_open_orders:
         # get usable trading cash
-        if order.order_type== 'market' and order.side == 'buy':backendapi = validate_backend()
+        if order.order_type== 'market' and order.side == 'buy':
+            backendapi = validate_backend()
             _, price=backendapi.get_price(order.symbol)
             # print(f"{order.symbol}, {price}")
             usable_cash -= float(price) * float(order.qty)

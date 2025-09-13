@@ -166,7 +166,8 @@ class ProductionCLI:
             # Execute trade
             result=await self.manager.integration_manager.execute_trade(signal)
             
-            if result.status.value== 'FILLED':print(f"✅ Trade executed successfully!")
+            if result.status.value== 'FILLED':
+                print(f"✅ Trade executed successfully!")
                 print(f"   Order ID: {result.trade_id}")
                 print(f"   Fill Price: ${result.fill_price}")
                 print(f"   Commission: ${result.commission}")

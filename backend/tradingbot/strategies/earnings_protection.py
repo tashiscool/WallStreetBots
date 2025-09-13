@@ -491,7 +491,8 @@ class EarningsProtectionScanner:
             print(f"   IV Crush Risk: {event.iv_crush_risk.upper()}")
             
             # Skip if IV crush risk is low (regular options might be fine)
-            if event.iv_crush_risk== "low":print("   ✅ Low IV crush risk - regular strategies may work")
+            if event.iv_crush_risk== "low":
+                print("   ✅ Low IV crush risk - regular strategies may work")
                 continue
             
             # Create protection strategies

@@ -44,7 +44,8 @@ async def test_simple_bot():
     print("\n🎉 Simple bot test complete!")
     print("✅ Ready for paper trading!")
 
-if __name__== "__main__":import django
+if __name__== "__main__":
+    import django
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
     django.setup()
     

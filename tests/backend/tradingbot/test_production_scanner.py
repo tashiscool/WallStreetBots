@@ -420,7 +420,8 @@ def test_exact_clone_math():
     print(f"  Cost difference: ${actual_cost - original_cost:,.0f}")
     print(f"  Risk reduction: {95 - risk_pct:.1f} percentage points")
 
-if __name__== "__main__":print("🧪 PRODUCTION SCANNER VALIDATION TESTS")
+if __name__== "__main__":
+    print("🧪 PRODUCTION SCANNER VALIDATION TESTS")
     print("=" * 50)
 
     try:

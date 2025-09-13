@@ -776,14 +776,16 @@ class MomentumWeekliesStrategy:
     def _check_exit_conditions(self, position: MomentumPosition) -> Optional[str]:
         """Check for exit conditions"""
         # Check stop loss
-        if position.position_type== "option":if position.current_price <= position.stop_loss:
+        if position.position_type== "option":
+            if position.current_price <= position.stop_loss:
                 return "stop_loss"
         else:
             if position.current_price <= position.stop_loss:
                 return "stop_loss"
         
         # Check take profit
-        if position.position_type == "option":if position.current_price >= position.target_price:
+        if position.position_type == "option":
+            if position.current_price >= position.target_price:
                 return "take_profit"
         else:
             if position.current_price >= position.target_price:

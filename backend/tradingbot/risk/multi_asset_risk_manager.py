@@ -658,7 +658,8 @@ class MultiAssetRiskManager:
 
 
 # Example usage and testing
-if __name__== "__main__":async def test_multi_asset_risk():
+if __name__== "__main__":
+    async def test_multi_asset_risk():
         # Initialize multi-asset risk manager
         risk_manager=MultiAssetRiskManager(
             base_currency="USD",

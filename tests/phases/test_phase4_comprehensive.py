@@ -533,5 +533,6 @@ def run_phase4_tests():
     return success
 
 
-if __name__== "__main__":success = run_phase4_tests()
+if __name__== "__main__":
+    success = run_phase4_tests()
     exit(0 if success else 1)

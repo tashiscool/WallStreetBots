@@ -254,7 +254,8 @@ class BlackScholesEngine:
             
             # Theta
             first_term=-(S * norm.pdf(d1) * sigma * math.exp(-q * T)) / (2 * math.sqrt(T))
-            if option_type.lower() == 'call':second_term=r * K * math.exp(-r * T) * norm.cdf(d2)
+            if option_type.lower() == 'call':
+                second_term=r * K * math.exp(-r * T) * norm.cdf(d2)
                 third_term=-q * S * math.exp(-q * T) * norm.cdf(d1)
             else:
                 second_term=-r * K * math.exp(-r * T) * norm.cdf(-d2)
@@ -474,7 +475,8 @@ class RealOptionsPricingEngine:
                             score += spread_score
                         
                         # For WSB dip bot, prefer slightly OTM calls
-                        if option_type.lower() == 'call':moneyness=float(contract.strike / current_price)
+                        if option_type.lower() == 'call':
+                            moneyness=float(contract.strike / current_price)
                             if 1.03 <= moneyness <= 1.08:  # 3-8% OTM
                                 score += 3
                             elif 1.00 <= moneyness <= 1.10:  # ATM to 10% OTM

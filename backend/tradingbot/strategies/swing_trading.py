@@ -309,9 +309,11 @@ class SwingTradingScanner:
                 # Process signals
                 for signal_type, strength, ref_level in signals_found:
                     # Target strike selection based on signal type
-                    if signal_type== "breakout":strike_multiplier = 1.02  # 2% OTM for breakouts
+                    if signal_type== "breakout":
+                        strike_multiplier = 1.02  # 2% OTM for breakouts
                         max_hold_hours = 6        # Breakouts can be held longer
-                    elif signal_type == "momentum":strike_multiplier = 1.015 # 1.5% OTM for momentum
+                    elif signal_type == "momentum":
+                        strike_multiplier = 1.015 # 1.5% OTM for momentum
                         max_hold_hours = 4        # Momentum fades fast
                     else:  # reversal
                         strike_multiplier = 1.025 # 2.5% OTM for reversals
@@ -495,9 +497,10 @@ def main():
     if args.command== 'scan':signals = scanner.scan_swing_opportunities()
         
         # Filter by minimum strength
-        signals=[s for s in signals if s.strength_score >= args.min_strength]
+        signals = [s for s in signals if s.strength_score >= args.min_strength]
         
-        if args.output == 'json':print(json.dumps([asdict(s) for s in signals], indent=2, default=str))
+        if args.output == 'json':
+            print(json.dumps([asdict(s) for s in signals], indent=2, default=str))
         else:
             print(scanner.format_signals(signals))
     

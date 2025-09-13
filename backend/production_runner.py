@@ -223,7 +223,8 @@ class ProductionTradingRunner:
         for strategy_name in strategy_names:
             self.logger.info(f"Starting strategy: {strategy_name}")
             
-            if strategy_name== 'wheel':strategy = create_wheel_strategy(
+            if strategy_name== 'wheel':
+                strategy = create_wheel_strategy(
                     self.trading_interface, 
                     self.data_provider, 
                     self.config, 
@@ -231,15 +232,17 @@ class ProductionTradingRunner:
                 )
                 await strategy.run()
             
-            elif strategy_name== 'debit_spreads':strategy = create_debit_spreads_strategy(
-                    self.trading_interface,
-                    self.data_provider,
-                    self.config,
-                    self.logger
-                )
+            elif strategy_name== 'debit_spreads':
+                strategy = create_debit_spreads_strategy(
+                self.trading_interface,
+                self.data_provider,
+                self.config,
+                self.logger
+            )
                 await strategy.run()
             
-            elif strategy_name== 'spx_spreads':strategy = create_spx_spreads_strategy(
+            elif strategy_name== 'spx_spreads':
+                strategy = create_spx_spreads_strategy(
                     self.trading_interface,
                     self.data_provider,
                     self.config,

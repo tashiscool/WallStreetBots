@@ -344,9 +344,11 @@ class LEAPSTracker:
                 exit_score = 65.0
         
         # Adjust for trend strength
-        if ma_cross.trend_direction == "bullish":entry_score = min(95.0, entry_score + 5.0)
+        if ma_cross.trend_direction == "bullish":
+            entry_score = min(95.0, entry_score + 5.0)
             exit_score=max(5.0, exit_score - 5.0)
-        elif ma_cross.trend_direction== "bearish":entry_score = max(5.0, entry_score - 10.0)
+        elif ma_cross.trend_direction== "bearish":
+            entry_score = max(5.0, entry_score - 10.0)
             exit_score=min(95.0, exit_score + 10.0)
         
         return entry_score, exit_score
@@ -702,9 +704,11 @@ class LEAPSTracker:
             timing_icon="🟢" if cand.entry_timing_score > 70 else "🟡" if cand.entry_timing_score > 50 else "🔴"
             
             # Cross type indicators
-            if cand.ma_cross_signal.cross_type == "golden_cross":cross_icon = "✨"
+            if cand.ma_cross_signal.cross_type == "golden_cross":
+                cross_icon = "✨"
                 cross_info = f"Golden Cross ({cand.ma_cross_signal.days_since_cross}d ago)" if cand.ma_cross_signal.days_since_cross else "Golden Cross"
-            elif cand.ma_cross_signal.cross_type== "death_cross":cross_icon = "💀"
+            elif cand.ma_cross_signal.cross_type== "death_cross":
+                cross_icon = "💀"
                 cross_info = f"Death Cross ({cand.ma_cross_signal.days_since_cross}d ago)" if cand.ma_cross_signal.days_since_cross else "Death Cross"
             else:
                 cross_icon="📊"
@@ -812,7 +816,7 @@ def main():
     if args.command== 'scan':candidates = tracker.scan_secular_winners()
         
         # Filter by minimum score
-        candidates=[c for c in candidates if c.composite_score >= args.min_score]
+        candidates = [c for c in candidates if c.composite_score >= args.min_score]
         
         # Sort by timing score if requested
         if args.sort_by_timing:

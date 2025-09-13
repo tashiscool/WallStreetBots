@@ -55,5 +55,6 @@ def get_news(ticker):
     return pd.DataFrame(table[1:], columns=table[0])
 
 
-if __name__== '__main__':news = get_news('amzn')
+if __name__== '__main__':
+    news = get_news('amzn')
     print(news)

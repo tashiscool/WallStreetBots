@@ -273,7 +273,8 @@ class CircuitBreaker:
     
     def call(self, func: Callable, *args, **kwargs):
         """Execute function with circuit breaker protection"""
-        if self.state== "OPEN":if self._should_attempt_reset():
+        if self.state== "OPEN":
+            if self._should_attempt_reset():
                 self.state="HALF_OPEN"
                 self.logger.info("Circuit breaker transitioning to HALF_OPEN")
             else:
@@ -289,7 +290,8 @@ class CircuitBreaker:
     
     async def call_async(self, func: Callable, *args, **kwargs):
         """Execute async function with circuit breaker protection"""
-        if self.state== "OPEN":if self._should_attempt_reset():
+        if self.state== "OPEN":
+            if self._should_attempt_reset():
                 self.state="HALF_OPEN"
                 self.logger.info("Circuit breaker transitioning to HALF_OPEN")
             else:
@@ -313,7 +315,8 @@ class CircuitBreaker:
     def _on_success(self):
         """Handle successful call"""
         self.failure_count=0
-        if self.state == "HALF_OPEN":self.state = "CLOSED"
+        if self.state == "HALF_OPEN":
+            self.state = "CLOSED"
             self.logger.info("Circuit breaker reset to CLOSED")
     
     def _on_failure(self):

@@ -326,9 +326,11 @@ class ProductionLEAPSTracker:
                 exit_score = 65.0
         
         # Adjust for trend strength
-        if ma_cross.trend_direction == "bullish":entry_score = min(95.0, entry_score + 5.0)
+        if ma_cross.trend_direction == "bullish":
+            entry_score = min(95.0, entry_score + 5.0)
             exit_score=max(5.0, exit_score - 5.0)
-        elif ma_cross.trend_direction== "bearish":entry_score = max(5.0, entry_score - 10.0)
+        elif ma_cross.trend_direction== "bearish":
+            entry_score = max(5.0, entry_score - 10.0)
             exit_score=min(95.0, exit_score + 10.0)
         
         return entry_score, exit_score

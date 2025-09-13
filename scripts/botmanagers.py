@@ -17,7 +17,8 @@ class StocksManagerNaive:
             balance=bot.balance
             share_price = bot.stock.cur_price
             symbol = bot.stock.symbol
-            if decision == 'buy':n_shares = int(balance / share_price)
+            if decision == 'buy':
+                n_shares = int(balance / share_price)
                 if n_shares != 0:
                     if symbol in action_dict.keys():
                         action_dict[symbol] = action_dict[symbol] + n_shares
@@ -28,7 +29,8 @@ class StocksManagerNaive:
 
                     print("-> buying", symbol, "for", n_shares, "shares for $", share_price, "per share")
 
-            elif decision== 'sell':if bot.shares != 0:
+            elif decision== 'sell':
+                if bot.shares != 0:
                     if symbol in action_dict.keys():
                         action_dict[symbol] = action_dict[symbol] + -1 * bot.shares
                     else:

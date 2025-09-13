@@ -25,7 +25,9 @@ def stock_trade(request):
 
     if transaction_side== 'sell':return HttpResponse(status=status.HTTP_501_NOT_IMPLEMENTED)
 
-    if transaction_side== 'buy':if transaction_type == 'market':if not alpaca_api.market_buy(ticker, quantity):
+    if transaction_side== 'buy':
+        if transaction_type == 'market':
+            if not alpaca_api.market_buy(ticker, quantity):
                 return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             portfolio_name=Portfolio.objects.get(user=user, name=portfolio_name)
             stock=Stock.objects.get(ticker=ticker)

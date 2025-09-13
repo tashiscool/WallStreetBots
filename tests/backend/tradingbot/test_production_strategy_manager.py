@@ -601,7 +601,8 @@ def test_all_strategy_imports():
         pytest.fail(f"Failed to import production strategies: {e}")
 
 
-if __name__== "__main__":print("🧪 PRODUCTION STRATEGY MANAGER TESTS")
+if __name__== "__main__":
+    print("🧪 PRODUCTION STRATEGY MANAGER TESTS")
     print("=" * 50)
     
     # Run basic import tests

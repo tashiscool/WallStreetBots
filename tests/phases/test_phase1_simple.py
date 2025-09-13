@@ -1,15 +1,20 @@
-"""Simplified Phase 1 Tests
+"""Simplified Phase 1 Tests.
+
 Test core functionality without external dependencies.
 """
 
 import asyncio
 import json
 import os
+import shutil
 import tempfile
 import unittest
+from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 
 # Test the core components that don't require external dependencies
+from backend.tradingbot.core.data_providers import EarningsEvent, MarketData, OptionsData
 from backend.tradingbot.core.production_config import (
     BrokerConfig,
     ConfigManager,
@@ -62,8 +67,6 @@ class TestProductionConfig(unittest.TestCase):
 
     def tearDown(self):
         """Cleanup test environment."""
-        import shutil
-
         shutil.rmtree(self.temp_dir)
 
         # Restore original environment variables
@@ -112,8 +115,6 @@ class TestProductionConfig(unittest.TestCase):
 
     def test_env_override(self):
         """Test environment variable override."""
-        import os
-
         # Set environment variables
         os.environ["IEX_API_KEY"] = "env_iex_key"
         os.environ["MAX_POSITION_RISK"] = "0.20"
@@ -298,8 +299,6 @@ class TestDataProviders(unittest.TestCase):
 
     def test_market_data_structure(self):
         """Test market data structure."""
-        from backend.tradingbot.core.data_providers import MarketData
-
         data = MarketData(
             ticker="AAPL",
             price=150.0,
@@ -320,8 +319,6 @@ class TestDataProviders(unittest.TestCase):
 
     def test_options_data_structure(self):
         """Test options data structure."""
-        from backend.tradingbot.core.data_providers import OptionsData
-
         data = OptionsData(
             ticker="AAPL",
             expiry_date="2024 - 01 - 19",
@@ -347,8 +344,6 @@ class TestDataProviders(unittest.TestCase):
 
     def test_earnings_event_structure(self):
         """Test earnings event structure."""
-        from backend.tradingbot.core.data_providers import EarningsEvent
-
         event = EarningsEvent(
             ticker="AAPL",
             earnings_date=datetime(2024, 1, 15),
@@ -371,8 +366,6 @@ class TestTradingInterface(unittest.TestCase):
     def test_trade_signal_creation(self):
         """Test trade signal creation."""
         # Import the enums directly to avoid dependency issues
-        from enum import Enum
-
         class OrderType(Enum):
             MARKET = "market"
             LIMIT = "limit"
@@ -384,9 +377,6 @@ class TestTradingInterface(unittest.TestCase):
             SELL = "sell"
 
         # Create a simple TradeSignal class for testing
-        from dataclasses import dataclass
-        from datetime import datetime
-
         @dataclass
         class TradeSignal:
             strategy_name: str
@@ -425,8 +415,6 @@ class TestTradingInterface(unittest.TestCase):
     def test_trade_result_creation(self):
         """Test trade result creation."""
         # Import the enums directly to avoid dependency issues
-        from enum import Enum
-
         class OrderType(Enum):
             MARKET = "market"
             LIMIT = "limit"
@@ -446,9 +434,6 @@ class TestTradingInterface(unittest.TestCase):
             REJECTED = "rejected"
 
         # Create simple classes for testing
-        from dataclasses import dataclass
-        from datetime import datetime
-
         @dataclass
         class TradeSignal:
             strategy_name: str

@@ -193,7 +193,7 @@ class ProductionMigration:
 
         for strategy in strategies:
             try:
-                risk_limit, created = RiskLimit.objects.get_or_create(
+                _risk_limit, created = RiskLimit.objects.get_or_create(
                     strategy=strategy,
                     defaults={
                         "max_position_risk": strategy.max_position_risk,

@@ -1,5 +1,6 @@
 #!/usr / bin / env python3
-"""Standalone Phase 2 Tests
+"""Standalone Phase 2 Tests.
+
 Test Phase 2 strategies without external dependencies.
 """
 

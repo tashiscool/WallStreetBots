@@ -1,5 +1,6 @@
 #!/usr / bin / env python3
-"""Comprehensive Test Suite for Swing Trading WSB Strategy Module
+"""Comprehensive Test Suite for Swing Trading WSB Strategy Module.
+
 Tests all components of the swing trading scanner and strategy logic.
 """
 

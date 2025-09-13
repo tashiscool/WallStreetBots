@@ -215,7 +215,7 @@ class MomentumWeekliesScanner:
                 has_volume_spike, vol_multiple = self.detect_volume_spike(ticker)
 
                 # Check for reversal pattern
-                has_reversal, pattern_type, bounce_pct = self.detect_reversal_pattern(ticker)
+                has_reversal, _pattern_type, bounce_pct = self.detect_reversal_pattern(ticker)
 
                 # Check for breakout
                 has_breakout, breakout_strength = self.detect_breakout_momentum(ticker)

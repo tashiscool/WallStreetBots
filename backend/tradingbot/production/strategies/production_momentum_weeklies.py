@@ -292,7 +292,7 @@ class ProductionMomentumWeeklies:
                     continue
 
                 # Check for reversal pattern
-                has_reversal, pattern_type, bounce_pct = await self.detect_reversal_pattern(ticker)
+                has_reversal, _pattern_type, bounce_pct = await self.detect_reversal_pattern(ticker)
 
                 # Check for breakout
                 has_breakout, breakout_strength = await self.detect_breakout_momentum(ticker)

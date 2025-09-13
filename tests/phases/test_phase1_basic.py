@@ -1,5 +1,6 @@
 #!/usr / bin / env python3
-"""Basic Phase 1 Functionality Test
+"""Basic Phase 1 Functionality Test.
+
 Test core Phase 1 components without complex dependencies.
 """
 
@@ -8,7 +9,10 @@ import json
 import os
 import sys
 import tempfile
+import traceback
+from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 
 # Add the backend directory to the path
 sys.path.append("backend / tradingbot")
@@ -191,8 +195,6 @@ def test_trading_interface():
     print("💼 Testing Trading Interface Components...")
 
     # Test trade signal creation
-    from enum import Enum
-
     class OrderType(Enum):
         MARKET = "market"
         LIMIT = "limit"
@@ -202,8 +204,6 @@ def test_trading_interface():
     class OrderSide(Enum):
         BUY = "buy"
         SELL = "sell"
-
-    from dataclasses import dataclass
 
     @dataclass
     class TradeSignal:
@@ -298,8 +298,6 @@ def main():
 
     except Exception as e:
         print(f"❌ Test failed: {e}")
-        import traceback
-
         traceback.print_exc()
         return 1
 

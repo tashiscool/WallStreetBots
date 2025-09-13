@@ -1,4 +1,5 @@
-"""Phase 1 Integration Tests
+"""Phase 1 Integration Tests.
+
 Test the unified trading interface and production components.
 """
 

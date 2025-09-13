@@ -135,7 +135,7 @@ def dashboard(request):
 
 @login_required()
 def get_portfolio_chart(request):
-    user, userdata, auth0user, user_details = get_user_information(request)
+    user, _userdata, _auth0user, user_details = get_user_information(request)
     if user_details is None:
         return
     API_KEY = user.credential.alpaca_id
@@ -152,7 +152,7 @@ def get_portfolio_chart(request):
 
 @login_required
 def get_stock_chart(request, symbol):
-    user, userdata, auth0user, user_details = get_user_information(request)
+    user, _userdata, _auth0user, _user_details = get_user_information(request)
 
     API_KEY = user.credential.alpaca_id
     API_SECRET = user.credential.alpaca_key
@@ -256,7 +256,7 @@ def orders(request):
 def positions(request):
     from backend.auth0login.forms import StrategyForm, WatchListForm
 
-    user, userdata, auth0user, user_details = get_user_information(request)
+    user, userdata, auth0user, _user_details = get_user_information(request)
     watchlist_form = WatchListForm(request.POST or None)
     strategy_form = StrategyForm(request.POST or None)
     if request.method == "POST":

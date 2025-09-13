@@ -206,7 +206,7 @@ class AdvancedVaREngine:
 
         # Fit Generalized Pareto Distribution
         try:
-            shape, loc, scale = stats.genpareto.fit(excesses, floc=0)
+            shape, _loc, scale = stats.genpareto.fit(excesses, floc=0)
 
             # Calculate VaR using GPD
             var_return = threshold + scale * ((1 - confidence_level) ** (-shape) - 1) / shape

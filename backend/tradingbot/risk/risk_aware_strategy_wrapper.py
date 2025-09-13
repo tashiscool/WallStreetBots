@@ -355,7 +355,7 @@ class RiskAwareWSBDipBot(RiskAwareStrategy):
             trade_value = quantity * await self._get_current_price(symbol)
 
             # Check if trade is allowed
-            allowed, reason = await self.risk_manager.should_allow_trade(
+            allowed, _reason = await self.risk_manager.should_allow_trade(
                 self.strategy_name, symbol, trade_value, portfolio_value
             )
 
@@ -472,7 +472,7 @@ class RiskAwareEarningsProtection(RiskAwareStrategy):
             trade_value = quantity * await self._get_current_price(symbol)
 
             # Check if trade is allowed
-            allowed, reason = await self.risk_manager.should_allow_trade(
+            allowed, _reason = await self.risk_manager.should_allow_trade(
                 self.strategy_name, symbol, trade_value, portfolio_value
             )
 

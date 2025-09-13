@@ -297,19 +297,19 @@ def demo_risk_management_workflow():
 
     print("\nStep 2: VaR Analysis")
     print("-" * 30)
-    var_engine, var_suite = demo_var_analysis()
+    _var_engine, var_suite = demo_var_analysis()
 
     print("\nStep 3: Stress Testing")
     print("-" * 30)
-    stress_tester, stress_report = demo_stress_testing()
+    _stress_tester, stress_report = demo_stress_testing()
 
     print("\nStep 4: ML Risk Prediction")
     print("-" * 30)
-    ml_predictor, risk_prediction = demo_ml_risk_prediction()
+    _ml_predictor, risk_prediction = demo_ml_risk_prediction()
 
     print("\nStep 5: Risk Dashboard")
     print("-" * 30)
-    dashboard, dashboard_data = demo_risk_dashboard()
+    _dashboard, dashboard_data = demo_risk_dashboard()
 
     print("\nStep 6: Risk Management Recommendations")
     print("-" * 30)

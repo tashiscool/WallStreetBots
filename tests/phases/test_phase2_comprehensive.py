@@ -1,4 +1,5 @@
-"""Comprehensive Phase 2 Tests
+"""Comprehensive Phase 2 Tests.
+
 Test all Phase 2 strategies with mocked dependencies.
 """
 

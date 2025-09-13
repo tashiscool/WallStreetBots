@@ -273,7 +273,7 @@ class ProductionBacktestEngine:
             for current_date in trading_days:
                 try:
                     # Update portfolio with current market prices
-                    portfolio_value, unrealized_pnl = await self._update_portfolio_value(
+                    portfolio_value, _unrealized_pnl = await self._update_portfolio_value(
                         positions, cash, current_date, historical_data
                     )
                     daily_values.append(portfolio_value)
@@ -824,7 +824,7 @@ class ProductionBacktestEngine:
         for strategy_name in strategies:
             try:
                 self.logger.info(f"Validating strategy: {strategy_name}")
-                backtest_results, monte_carlo_results = await self.validate_strategy(
+                backtest_results, _monte_carlo_results = await self.validate_strategy(
                     strategy_name, config, monte_carlo=True
                 )
                 results[strategy_name] = backtest_results

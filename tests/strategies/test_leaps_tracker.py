@@ -1,5 +1,6 @@
 #!/usr / bin / env python3
-"""Comprehensive Test Suite for Enhanced LEAPS Tracker WSB Strategy Module
+"""Comprehensive Test Suite for Enhanced LEAPS Tracker WSB Strategy Module.
+
 Tests all components including golden / death cross timing signals.
 """
 
@@ -541,7 +542,7 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
             trend_direction="bullish",
         )
 
-        entry_score, exit_score = self.tracker.calculate_entry_exit_timing_scores(
+        _entry_score, exit_score = self.tracker.calculate_entry_exit_timing_scores(
             golden_cross_signal, position.current_spot
         )
 

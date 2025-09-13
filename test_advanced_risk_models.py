@@ -57,7 +57,7 @@ def test_var_engine():
     print(" = " * 50)
 
     # Generate sample data
-    market_data, returns = generate_sample_data()
+    _market_data, returns = generate_sample_data()
 
     # Initialize VaR engine
     var_engine = AdvancedVaREngine(portfolio_value=100000.0)
@@ -141,7 +141,7 @@ def test_ml_risk_predictor():
     print(" = " * 50)
 
     # Generate sample data
-    market_data, returns = generate_sample_data()
+    market_data, _returns = generate_sample_data()
 
     # Initialize ML predictor
     ml_predictor = MLRiskPredictor()
@@ -260,16 +260,16 @@ def run_comprehensive_test():
 
     try:
         # Test VaR Engine
-        var_engine, var_suite = test_var_engine()
+        _var_engine, _var_suite = test_var_engine()
 
         # Test Stress Testing
-        stress_tester, stress_report = test_stress_testing()
+        _stress_tester, _stress_report = test_stress_testing()
 
         # Test ML Risk Predictor
-        ml_predictor, risk_prediction = test_ml_risk_predictor()
+        _ml_predictor, _risk_prediction = test_ml_risk_predictor()
 
         # Test Risk Dashboard
-        dashboard, dashboard_data = test_risk_dashboard()
+        _dashboard, _dashboard_data = test_risk_dashboard()
 
         # Summary
         print("\n + n🎉 Test Summary")

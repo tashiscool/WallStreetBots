@@ -387,7 +387,7 @@ class ProductionDebitSpreads:
             iv = 0.25  # Initial guess
 
             for _ in range(20):
-                price, delta = self.black_scholes_call(S, K, T, 0.04, iv)
+                price, _delta = self.black_scholes_call(S, K, T, 0.04, iv)
 
                 # Calculate vega
                 d1 = (math.log(S / K) + (0.04 + 0.5 * iv * iv) * T) / (iv * math.sqrt(T))

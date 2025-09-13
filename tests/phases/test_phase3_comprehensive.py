@@ -1,5 +1,6 @@
 #!/usr / bin / env python3
-"""Comprehensive Phase 3 Tests
+"""Comprehensive Phase 3 Tests.
+
 Test all Phase 3 strategies with mocked dependencies.
 """
 

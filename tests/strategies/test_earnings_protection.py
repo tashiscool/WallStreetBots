@@ -1,5 +1,6 @@
 #!/usr / bin / env python3
-"""Comprehensive Test Suite for Earnings Protection WSB Strategy Module
+"""Comprehensive Test Suite for Earnings Protection WSB Strategy Module.
+
 Tests all components of the earnings IV crush protection system.
 """
 

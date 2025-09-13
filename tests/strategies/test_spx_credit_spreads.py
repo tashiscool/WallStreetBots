@@ -1,5 +1,6 @@
 #!/usr / bin / env python3
-"""Comprehensive Test Suite for SPX Credit Spreads WSB Strategy Module
+"""Comprehensive Test Suite for SPX Credit Spreads WSB Strategy Module.
+
 Tests all components of the 0DTE credit spreads scanner and strategy logic.
 """
 

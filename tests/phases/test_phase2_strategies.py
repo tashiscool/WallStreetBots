@@ -1,4 +1,5 @@
-"""Phase 2 Strategy Tests
+"""Phase 2 Strategy Tests.
+
 Test all low - risk strategy implementations.
 """
 

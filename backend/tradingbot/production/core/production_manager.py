@@ -251,7 +251,7 @@ class ProductionManager:
             )
 
             # Ensure portfolio exists
-            portfolio, created = Portfolio.objects.get_or_create(
+            portfolio, _created = Portfolio.objects.get_or_create(
                 user=user, defaults={"name": "Production Portfolio", "cash": Decimal("0.00")}
             )
 

@@ -1,5 +1,6 @@
 #!/usr / bin / env python3
-"""Comprehensive Test Suite for Index Baseline Comparison WSB Strategy Module
+"""Comprehensive Test Suite for Index Baseline Comparison WSB Strategy Module.
+
 Tests all components of the SPY / VTI baseline performance comparison system.
 """
 

@@ -360,7 +360,7 @@ class Phase4IntegrationManager:
                     # Run comprehensive validation
                     (
                         backtest_results,
-                        monte_carlo_results,
+                        _monte_carlo_results,
                     ) = await self.backtest_engine.validate_strategy(
                         strategy_name, validation_config, monte_carlo=True
                     )

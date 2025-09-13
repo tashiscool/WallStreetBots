@@ -293,7 +293,7 @@ class ProductionIntegrationManager:
                 ticker=signal.ticker, defaults={"name": signal.ticker}
             )
 
-            stock, created = await sync_to_async(Stock.objects.get_or_create)(
+            stock, _created = await sync_to_async(Stock.objects.get_or_create)(
                 company=company, defaults={}
             )
 

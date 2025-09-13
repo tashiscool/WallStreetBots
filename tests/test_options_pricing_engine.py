@@ -1,4 +1,5 @@
-"""Tests for Options Pricing Engine
+"""Tests for Options Pricing Engine.
+
 Tests the Black - Scholes implementation and real options pricing functionality.
 """
 
@@ -59,14 +60,14 @@ class TestBlackScholesEngine:
     def test_d1_calculation(self):
         """Test d1 parameter calculation."""
         # Standard parameters
-        S = 100.0  # Spot price
-        K = 105.0  # Strike price
-        T = 0.25  # 3 months
+        s = 100.0  # Spot price
+        k = 105.0  # Strike price
+        t = 0.25  # 3 months
         r = 0.05  # 5% risk - free rate
         q = 0.02  # 2% dividend yield
         sigma = 0.20  # 20% volatility
 
-        d1 = self.bs_engine._d1(S, K, T, r, q, sigma)
+        d1 = self.bs_engine._d1(s, k, t, r, q, sigma)
 
         # d1 should be negative for OTM call (S  <  K)
         assert d1 < 0
@@ -76,12 +77,12 @@ class TestBlackScholesEngine:
         """Test d2 parameter calculation."""
         d1 = -0.25
         sigma = 0.20
-        T = 0.25
+        t = 0.25
 
-        d2 = self.bs_engine._d2(d1, sigma, T)
+        d2 = self.bs_engine._d2(d1, sigma, t)
 
-        # d2=d1 - sigma * sqrt(T)
-        expected_d2 = d1 - sigma * math.sqrt(T)
+        # d2=d1 - sigma * sqrt(t)
+        expected_d2 = d1 - sigma * math.sqrt(t)
         assert abs(d2 - expected_d2) < 1e-10
         assert d2 < d1  # d2 should always be less than d1
 

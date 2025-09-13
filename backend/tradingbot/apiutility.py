@@ -122,7 +122,7 @@ def add_stock_to_database(user, ticker):
     # 1. check if ticker exists
     ticker = ticker.upper()
     backend_api = validate_backend()
-    check, price = backend_api.get_price(ticker)
+    check, _price = backend_api.get_price(ticker)
     if not check:
         raise ValidationError(
             f"Failed to get price for {ticker}, are you sure that the ticker name is correct?"

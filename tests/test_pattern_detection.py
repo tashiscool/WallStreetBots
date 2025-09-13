@@ -1,4 +1,5 @@
-"""Tests for Pattern Detection Module
+"""Tests for Pattern Detection Module.
+
 Tests the advanced WSB dip detection and technical analysis functionality.
 """
 

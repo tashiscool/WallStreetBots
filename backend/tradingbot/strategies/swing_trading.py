@@ -335,7 +335,7 @@ class SwingTradingScanner:
                     signals_found.append(("momentum", momentum_strength, current_price))
 
                 # 3. Reversal setup
-                is_reversal, reversal_type, reversal_strength = self.detect_reversal_setup(ticker)
+                is_reversal, _reversal_type, reversal_strength = self.detect_reversal_setup(ticker)
                 if is_reversal:
                     signals_found.append(("reversal", reversal_strength, current_price))
 

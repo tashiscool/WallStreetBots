@@ -285,7 +285,7 @@ class RiskDashboard2025:
         positions = portfolio.get("positions", [])
         market_data = portfolio.get("market_data", {})
 
-        var_1d, var_5d, cvar_99 = self._calculate_core_risk_metrics(positions, market_data)
+        var_1d, _var_5d, _cvar_99 = self._calculate_core_risk_metrics(positions, market_data)
         concentration_risk = self._calculate_concentration_risk(positions)
 
         # Check VaR limits

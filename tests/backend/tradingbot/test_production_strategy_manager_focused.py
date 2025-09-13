@@ -1,4 +1,4 @@
-#!/usr / bin/env python3
+#!/usr/bin/env python3
 """
 Focused tests for ProductionStrategyManager 
 Tests the core functionality we just implemented
@@ -13,10 +13,7 @@ from unittest.mock import Mock, patch
 # Add parent directory to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-# Set up Django environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
-import django
-django.setup()
+# Django setup is handled by conftest.py
 
 from backend.tradingbot.production.core.production_strategy_manager import (
     ProductionStrategyManager,

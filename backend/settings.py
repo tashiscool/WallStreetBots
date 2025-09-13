@@ -5,10 +5,10 @@ import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR=Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY='test - secret-key - for-testing - only'
+SECRET_KEY = 'test-secret-key-for-testing-only'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG=True
@@ -16,7 +16,7 @@ DEBUG=True
 ALLOWED_HOSTS=['*']
 
 # Application definition
-INSTALLED_APPS=[
+INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'django.contrib.sessions',
@@ -25,7 +25,7 @@ INSTALLED_APPS=[
     'backend.tradingbot',
 ]
 
-MIDDLEWARE=[
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -35,9 +35,9 @@ MIDDLEWARE=[
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF='backend.urls'
+ROOT_URLCONF = 'backend.urls'
 
-TEMPLATES=[
+TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
@@ -54,7 +54,7 @@ TEMPLATES=[
 ]
 
 # Database
-DATABASES={
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
@@ -62,22 +62,22 @@ DATABASES={
 }
 
 # Internationalization
-LANGUAGE_CODE='en - us'
-TIME_ZONE='UTC'
-USE_I18N=True
-USE_TZ=True
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL='/static/'
+STATIC_URL = '/static/'
 
 # Default primary key field type
-DEFAULT_AUTO_FIELD='django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email backend for testing
-EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
 # Logging
-LOGGING={
+LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {

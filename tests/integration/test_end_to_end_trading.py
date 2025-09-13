@@ -1,12 +1,12 @@
 """End - to - End Trading Integration Tests.
 
-# Test constants
-TEST_API_KEY = "test_key"
-TEST_SECRET_KEY = "test_secret"
-
 Comprehensive integration tests that validate the entire trading flow from signal generation
 to order execution and position management.
 """
+
+# Test constants
+TEST_API_KEY = "test_key"
+TEST_SECRET_KEY = "test_secret"
 
 import asyncio
 from datetime import datetime

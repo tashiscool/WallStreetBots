@@ -376,7 +376,8 @@ class DipTradingBot:
     def force_scan(self):
         """Force an immediate scan."""
         if self.scanner.is_market_open():
-            task = task = task = asyncio.create_task(self.scanner._scan_cycle(); self.tasks.append(task))
+            task = asyncio.create_task(self.scanner._scan_cycle())
+            self.tasks.append(task)
         else:
             self.logger.warning("Market is closed - cannot force scan")
 

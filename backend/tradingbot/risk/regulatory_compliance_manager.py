@@ -811,7 +811,7 @@ class RegulatoryComplianceManager:
             self.compliance_rules[rule.rule_id] = rule
 
             # Log audit trail
-            task = task = task = asyncio.create_task(
+            task = asyncio.create_task(
                 self._log_audit_trail(
                     user_id="admin",
                     action="add_rule",
@@ -820,8 +820,9 @@ class RegulatoryComplianceManager:
                     old_values={},
                     new_values={"rule_id": rule.rule_id, "description": rule.description},
                     reason="Added new compliance rule",
-                ); self.tasks.append(task)
+                )
             )
+            self.tasks.append(task)
 
             self.logger.info(f"Added compliance rule: {rule.rule_id}")
 
@@ -844,7 +845,7 @@ class RegulatoryComplianceManager:
             old_rule.last_updated = datetime.now()
 
             # Log audit trail
-            task = task = task = asyncio.create_task(
+            task = asyncio.create_task(
                 self._log_audit_trail(
                     user_id="admin",
                     action="update_rule",
@@ -853,8 +854,9 @@ class RegulatoryComplianceManager:
                     old_values={"threshold": old_rule.threshold, "severity": old_rule.severity},
                     new_values=updates,
                     reason="Updated compliance rule",
-                ); self.tasks.append(task)
+                )
             )
+            self.tasks.append(task)
 
             self.logger.info(f"Updated compliance rule: {rule_id}")
 

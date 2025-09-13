@@ -212,7 +212,7 @@ def fetch_daily_history(ticker: str, period: str = "90d") -> pd.DataFrame:
         return df
 
     except Exception as e:
-        raise RuntimeError(f"Failed to fetch daily history for {ticker}: {e}")
+        raise RuntimeError(f"Failed to fetch daily history for {ticker}: {e}") from e
 
 
 def fetch_current_price(ticker: str) -> dict[str, float] | None:

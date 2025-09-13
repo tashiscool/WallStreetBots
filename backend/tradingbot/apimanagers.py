@@ -641,7 +641,7 @@ class AlpacaManager:
             return f"{underlying}{exp_str}{opt_type}{strike_str}"
 
         except Exception as e:
-            raise ValueError(f"Invalid option parameters: {e}")
+            raise ValueError(f"Invalid option parameters: {e}") from e
 
     def get_clock(self):
         """Get market clock information.

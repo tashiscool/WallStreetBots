@@ -3,6 +3,7 @@ Parameter tuning and strategy optimization.
 """
 
 import math
+import random
 import secrets  # More secure random
 from dataclasses import dataclass
 from datetime import datetime
@@ -304,8 +305,8 @@ class StrategyOptimizer:
         for param_range in parameter_ranges:
             if param_range.param_type == "int":
                 params[param_range.name] = secrets.randbelow(
-                    int(param_range.min_value), int(param_range.max_value)
-                )
+                    int(param_range.max_value) - int(param_range.min_value) + 1
+                ) + int(param_range.min_value)
             elif param_range.param_type == "float":
                 params[param_range.name] = random.uniform(
                     param_range.min_value, param_range.max_value

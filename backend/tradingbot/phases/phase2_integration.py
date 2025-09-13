@@ -95,22 +95,26 @@ class Phase2StrategyManager:
 
             if strategy_name == "wheel" and self.wheel_strategy:
                 # Start wheel strategy in background
-                task = task = task = asyncio.create_task(self.wheel_strategy.run_strategy(); self.tasks.append(task))
+                task = asyncio.create_task(self.wheel_strategy.run_strategy())
+                self.tasks.append(task)
                 self.strategy_status["wheel"] = True
 
             elif strategy_name == "debit_spreads" and self.debit_spreads:
                 # Start debit spreads in background
-                task = task = task = asyncio.create_task(self.debit_spreads.run_strategy(); self.tasks.append(task))
+                task = asyncio.create_task(self.debit_spreads.run_strategy())
+                self.tasks.append(task)
                 self.strategy_status["debit_spreads"] = True
 
             elif strategy_name == "spx_spreads" and self.spx_spreads:
                 # Start SPX spreads in background
-                task = task = task = asyncio.create_task(self.spx_spreads.run_strategy(); self.tasks.append(task))
+                task = asyncio.create_task(self.spx_spreads.run_strategy())
+                self.tasks.append(task)
                 self.strategy_status["spx_spreads"] = True
 
             elif strategy_name == "index_baseline" and self.index_baseline:
                 # Start index baseline in background
-                task = task = task = asyncio.create_task(self.index_baseline.run_baseline_tracking(); self.tasks.append(task))
+                task = asyncio.create_task(self.index_baseline.run_baseline_tracking())
+                self.tasks.append(task)
                 self.strategy_status["index_baseline"] = True
 
             else:

@@ -188,11 +188,12 @@ class EmailAlertHandler(AlertHandler):
     def __init__(self, smtp_config: dict):
         self.smtp_config = smtp_config
 
+    def send_alert(self, alert: Alert) -> bool:
         """Send email alert using send_email function."""
         from .alert_system import send_email
 
         subject = f"Trading Alert: {alert.title}"
-        body = f"{alert.message}\n + nTicker: {alert.ticker}\nTime: {alert.timestamp}"
+        body = f"{alert.message}\nTicker: {alert.ticker}\nTime: {alert.timestamp}"
         result = send_email(subject, body)
         logging.info(f"EMAIL ALERT: {alert.title} - {alert.message}")
         return result
@@ -263,49 +264,6 @@ class TradingAlertSystem:
     def register_handler(self, channel: AlertChannel, handler: AlertHandler):
         """Register an alert handler for a channel."""
         self.handlers[channel] = handler
-
-        """Send alert through configured channels."""
-        results = {}
-
-        # Filter by priority (only send HIGH and URGENT alerts by default)
-        # But allow all alerts to be stored in history
-        if alert.priority in [AlertPriority.LOW, AlertPriority.MEDIUM]:
-            # Store in history but don't send
-            self.alert_history.append(alert)
-            if len(self.alert_history) > self.max_history:
-                self.alert_history = self.alert_history[-self.max_history :]
-            return results  # Return empty results for low / medium priority
-
-        # Use alert - specific channels or fall back to preferences
-        channels = alert.channels or self.alert_preferences.get(
-            alert.alert_type, [AlertChannel.DESKTOP]
-        )
-
-        for alert_channel in channels:
-            handler = self.handlers.get(alert_channel)
-            if handler:
-                try:
-                    success = handler.send_alert(alert)
-                    results[alert_channel] = success
-                except Exception as e:
-                    logging.error(f"Failed to send alert via {alert_channel}: {e}")
-                    results[alert_channel] = False
-            else:
-                logging.warning(f"No handler registered for channel: {alert_channel}")
-                results[channel] = False
-
-        # Store alert in history
-        self.alert_history.append(alert)
-
-        # Enforce history limit
-        if len(self.alert_history) > self.max_history:
-            self.alert_history = self.alert_history[-self.max_history :]
-
-        # Add to active alerts if high priority
-        if alert.priority in [AlertPriority.HIGH, AlertPriority.URGENT]:
-            self.active_alerts.append(alert)
-
-        return results
 
     async def send_alert(
         self, alert_type_or_alert, priority=None, message=None, ticker=None
@@ -379,7 +337,7 @@ class TradingAlertSystem:
                     results[alert_channel] = False
             else:
                 logging.warning(f"No handler registered for channel: {alert_channel}")
-                results[channel] = False
+                results[alert_channel] = False
 
         # Store alert in history
         self.alert_history.append(alert)

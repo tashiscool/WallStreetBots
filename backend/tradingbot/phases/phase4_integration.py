@@ -503,7 +503,8 @@ class Phase4IntegrationManager:
             self.system_status = SystemStatus.RUNNING
 
             # Start monitoring loop
-            task = task = task = asyncio.create_task(self._monitoring_loop(); self.tasks.append(task))
+            task = asyncio.create_task(self._monitoring_loop())
+            self.tasks.append(task)
 
             mode_str = "PAPER TRADING" if paper_trading else "LIVE TRADING"
             self.logger.info(f"🎉 Production system started successfully in {mode_str} mode")
@@ -549,7 +550,8 @@ class Phase4IntegrationManager:
                 raise ValueError(f"Unknown strategy: {strategy_name}")
 
             # Start strategy in background
-            strategy_task = task = task = task = asyncio.create_task(strategy.run_strategy(); self.tasks.append(task))
+            strategy_task = asyncio.create_task(strategy.run_strategy())
+            self.tasks.append(strategy_task)
 
             self.active_strategies[strategy_name] = {
                 "strategy": strategy,
@@ -626,7 +628,7 @@ class Phase4IntegrationManager:
                     async with self.database.pool.acquire() as conn:
                         await conn.fetchval("SELECT 1")
                     health_check.database_status = True
-            except:
+            except Exception:
                 health_check.database_status = False
                 health_check.alerts.append("Database connectivity issue")
 
@@ -642,7 +644,7 @@ class Phase4IntegrationManager:
                             Decimal(str(account_info.get("daytrading_buying_power", 0)))
                             - self.config.risk.account_size
                         )
-            except:
+            except Exception:
                 health_check.trading_interface_status = False
                 health_check.alerts.append("Trading interface connectivity issue")
 
@@ -651,7 +653,7 @@ class Phase4IntegrationManager:
                 if self.data_provider:
                     test_data = await self.data_provider.get_market_data("SPY")
                     health_check.data_provider_status = test_data.price > 0
-            except:
+            except Exception:
                 health_check.data_provider_status = False
                 health_check.alerts.append("Data provider connectivity issue")
 
@@ -671,7 +673,7 @@ class Phase4IntegrationManager:
                 if risk_pct > Decimal("0.15"):  # 15% total risk warning
                     health_check.alerts.append(f"High account risk: {risk_pct:.1%}")
 
-            except:
+            except Exception:
                 health_check.alerts.append("Unable to calculate account risk")
 
             # Daily loss check

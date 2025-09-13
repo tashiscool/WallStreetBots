@@ -1093,6 +1093,9 @@ class ProductionStrategyManager:
         self.is_running = False
         self.start_time: datetime | None = None
         self.last_heartbeat: datetime | None = None
+        
+        # Task management
+        self.tasks: list[asyncio.Task] = []
 
         # Performance tracking
         self.performance_metrics: dict[str, Any] = {}
@@ -1270,7 +1273,8 @@ class ProductionStrategyManager:
             for strategy_name, strategy in self.strategies.items():
                 try:
                     # Start strategy in background
-                    task = task = task = asyncio.create_task(strategy.run_strategy(); self.tasks.append(task))
+                    task = asyncio.create_task(strategy.run_strategy())
+                    self.tasks.append(task)
                     started_count += 1
                     self.logger.info(f"Started strategy: {strategy_name}")
                 except Exception as e:
@@ -1281,15 +1285,20 @@ class ProductionStrategyManager:
                 self.start_time = datetime.now()
 
                 # Start monitoring tasks
-                task = task = task = asyncio.create_task(self._monitoring_loop(); self.tasks.append(task))
-                task = task = task = asyncio.create_task(self._heartbeat_loop(); self.tasks.append(task))
-                task = task = task = asyncio.create_task(self._performance_tracking_loop(); self.tasks.append(task))
+                task = asyncio.create_task(self._monitoring_loop())
+                self.tasks.append(task)
+                task = asyncio.create_task(self._heartbeat_loop())
+                self.tasks.append(task)
+                task = asyncio.create_task(self._performance_tracking_loop())
+                self.tasks.append(task)
 
                 # Start advanced analytics and regime adaptation tasks
                 if self.config.enable_advanced_analytics:
-                    task = task = task = asyncio.create_task(self._analytics_loop(); self.tasks.append(task))
+                    task = asyncio.create_task(self._analytics_loop())
+                    self.tasks.append(task)
                 if self.config.enable_market_regime_adaptation:
-                    task = task = task = asyncio.create_task(self._regime_adaptation_loop(); self.tasks.append(task))
+                    task = asyncio.create_task(self._regime_adaptation_loop())
+                    self.tasks.append(task)
 
                 self.logger.info(f"Started {started_count} strategies successfully")
                 return True

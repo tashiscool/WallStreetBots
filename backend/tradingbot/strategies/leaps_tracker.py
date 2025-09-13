@@ -458,7 +458,7 @@ class LEAPSTracker:
                 if financial_factors:
                     financial_score = np.mean(financial_factors)
 
-            except:
+            except Exception:
                 pass
 
             # 4. Valuation Score (inverted - lower valuations get higher scores)
@@ -479,7 +479,7 @@ class LEAPSTracker:
                     else:
                         valuation_score = 10
 
-            except:
+            except Exception:
                 pass
 
             return momentum_score, trend_alignment, financial_score, valuation_score
@@ -505,12 +505,12 @@ class LEAPSTracker:
                     if days_out >= 365:
                         leaps_expiries.append(exp_str)
 
-                except:
+                except Exception:
                     continue
 
             return sorted(leaps_expiries)[:3]  # Top 3 LEAPS dates
 
-        except:
+        except Exception:
             return []
 
     def estimate_leaps_premium(self, ticker: str, strike: int, expiry: str) -> float:
@@ -529,7 +529,7 @@ class LEAPSTracker:
                         ask = closest_strike["ask"].iloc[0]
                         if bid > 0 and ask > 0:
                             return (bid + ask) / 2
-            except:
+            except Exception:
                 pass
 
             # Fallback: rough estimate
@@ -547,7 +547,7 @@ class LEAPSTracker:
                 intrinsic = current_price - strike
                 return intrinsic + time_value * 0.4
 
-        except:
+        except Exception:
             return 10.0  # Default estimate
 
     def scan_secular_winners(self) -> list[LEAPSCandidate]:
@@ -572,7 +572,7 @@ class LEAPSTracker:
 
                     try:
                         company_name = stock.info.get("shortName", ticker)
-                    except:
+                    except Exception:
                         company_name = ticker
 
                     # Calculate scores
@@ -697,7 +697,7 @@ class LEAPSTracker:
                         # Estimate if no exact match
                         current_premium = max(0, current_price - pos.strike) + 5.0  # Rough estimate
 
-                except:
+                except Exception:
                     # Fallback estimate
                     intrinsic = max(0, current_price - pos.strike)
                     time_value = max(1.0, pos.current_premium * 0.8)  # Decay estimate

@@ -241,7 +241,7 @@ class ProductionWSBDipBot:
             # For now, use a simple estimation
             market_data = await self.data_provider.get_market_data(ticker)
             return float(market_data.volume) * 0.8  # Rough estimation
-        except:
+        except Exception:
             return 1000000.0  # Default fallback
 
     async def _calculate_rsi(self, ticker: str, period: int = 14) -> float:
@@ -265,7 +265,7 @@ class ProductionWSBDipBot:
             else:
                 return 55.0  # Up day
 
-        except:
+        except Exception:
             return 50.0  # Neutral RSI
 
     async def _calculate_bollinger_position(self, ticker: str, current_price: float) -> float:
@@ -289,7 +289,7 @@ class ProductionWSBDipBot:
 
             return max(-1.0, min(1.0, bollinger_position))
 
-        except:
+        except Exception:
             return 0.0  # Neutral position
 
     def _calculate_risk_score(
@@ -340,7 +340,7 @@ class ProductionWSBDipBot:
 
             return min(score, 100.0)
 
-        except:
+        except Exception:
             return 0.0
 
     async def _calculate_kelly_fraction(self, ticker: str) -> float:
@@ -370,7 +370,7 @@ class ProductionWSBDipBot:
             # Cap at maximum position risk
             return min(safe_kelly, self.max_position_risk)
 
-        except:
+        except Exception:
             return 0.01  # Conservative fallback
 
     async def _get_strategy_stats(self, ticker: str) -> dict[str, float]:
@@ -392,7 +392,7 @@ class ProductionWSBDipBot:
                 "sharpe_ratio": 1.2,
             }
 
-        except:
+        except Exception:
             return {
                 "win_rate": 0.5,
                 "avg_win": 0.06,
@@ -420,7 +420,7 @@ class ProductionWSBDipBot:
 
             return max(position_size, 0)
 
-        except:
+        except Exception:
             return 0
 
     def _calculate_expected_return(self, dip_pct: float, risk_score: float) -> float:
@@ -436,7 +436,7 @@ class ProductionWSBDipBot:
 
             return min(expected_return, 0.15)  # Cap at 15%
 
-        except:
+        except Exception:
             return 0.0
 
     async def execute_dip_trade(self, opportunity: DipOpportunity) -> bool:
@@ -523,7 +523,7 @@ class ProductionWSBDipBot:
         try:
             positions = await self.trading_interface.get_positions()
             return len(positions)
-        except:
+        except Exception:
             return 0
 
     async def _calculate_current_account_risk(self) -> float:
@@ -539,7 +539,7 @@ class ProductionWSBDipBot:
                 total_risk += position_risk
 
             return total_risk
-        except:
+        except Exception:
             return 0.0
 
     async def _record_trade(

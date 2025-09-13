@@ -284,7 +284,7 @@ class SwingTradingScanner:
                         ask = closest["ask"].iloc[0]
                         if bid > 0 and ask > 0:
                             return (bid + ask) / 2
-            except:
+            except Exception:
                 pass
 
             # Fallback estimate
@@ -301,7 +301,7 @@ class SwingTradingScanner:
                 intrinsic = current_price - strike
                 return intrinsic + time_premium * 0.5
 
-        except:
+        except Exception:
             return 2.0  # Conservative fallback
 
     def scan_swing_opportunities(self) -> list[SwingSignal]:

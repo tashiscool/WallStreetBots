@@ -194,7 +194,7 @@ class MomentumWeekliesScanner:
 
                     # Use mid price
                     return (closest["bid"] + closest["ask"]) / 2.0
-            except:
+            except Exception:
                 pass
 
             # Fallback: estimate using simplified Black - Scholes

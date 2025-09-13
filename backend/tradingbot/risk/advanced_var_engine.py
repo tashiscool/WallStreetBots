@@ -225,7 +225,7 @@ class AdvancedVaREngine:
                     "excesses_count": len(excesses),
                 },
             )
-        except:
+        except Exception:
             # Fallback to historical if EVT fails
             return self._historical_var(returns, confidence_level)
 

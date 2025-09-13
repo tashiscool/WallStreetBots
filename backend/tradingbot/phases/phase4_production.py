@@ -679,7 +679,7 @@ class ProductionBacktestEngine:
                 return Decimal(str(annualized_return))
             else:
                 return Decimal("0.08")  # Default 8% market return
-        except:
+        except Exception:
             return Decimal("0.08")
 
     async def _validate_risk_metrics(self, results: StrategyBacktestResults) -> dict[str, Any]:

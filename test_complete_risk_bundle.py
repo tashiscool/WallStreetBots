@@ -77,7 +77,7 @@ class TestCompleteRiskBundle(unittest.TestCase):
         try:
             os.remove("test_risk.db")
             os.remove("test_database.db")
-        except:
+        except Exception:
             pass
 
     def test_multi_method_var_calculation(self):

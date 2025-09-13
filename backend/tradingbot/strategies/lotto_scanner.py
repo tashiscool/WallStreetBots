@@ -176,7 +176,7 @@ class LottoScanner:
 
                 return min(0.3, max(0.02, expected_move_pct))  # Cap between 2%-30%
 
-        except:
+        except Exception:
             pass
 
         # Fallback based on historical volatility
@@ -190,7 +190,7 @@ class LottoScanner:
                 days_to_exp = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
                 expected_move = daily_vol * math.sqrt(max(1, days_to_exp))
                 return min(0.3, max(0.02, expected_move))
-        except:
+        except Exception:
             pass
 
         return 0.05  # Default fallback
@@ -221,7 +221,7 @@ class LottoScanner:
                     info = stock.info
                     company_name = info.get("shortName", earning["ticker"])
                     sector = info.get("sector", "Unknown")
-                except:
+                except Exception:
                     company_name = earning["ticker"]
                     sector = "Unknown"
 
@@ -263,7 +263,7 @@ class LottoScanner:
                     available_expiries = stock.options
                     if expiry not in available_expiries:
                         continue
-                except:
+                except Exception:
                     continue
 
                 chain = stock.option_chain(expiry)
@@ -394,7 +394,7 @@ class LottoScanner:
                         if diff < min_diff and exp_date >= target_date:
                             min_diff = diff
                             best_expiry = exp_str
-                except:
+                except Exception:
                     continue
 
                 if not best_expiry:

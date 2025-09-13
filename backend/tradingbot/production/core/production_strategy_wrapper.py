@@ -95,7 +95,8 @@ class ProductionStrategyWrapper:
                 return False
 
             # Start monitoring loop
-            task = task = task = asyncio.create_task(self._monitoring_loop(); self.tasks.append(task))
+            task = asyncio.create_task(self._monitoring_loop())
+            self.tasks.append(task)
 
             return True
 

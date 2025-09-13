@@ -190,7 +190,7 @@ class WheelStrategy:
             rank = (current_vol - min_vol) / (max_vol - min_vol) * 100
             return max(0, min(100, rank))
 
-        except:
+        except Exception:
             return 50.0
 
     def get_quality_score(self, ticker: str) -> float:
@@ -239,7 +239,7 @@ class WheelStrategy:
 
             return np.mean(factors) if factors else 50.0
 
-        except:
+        except Exception:
             return 50.0
 
     def get_dividend_yield(self, ticker: str) -> float:
@@ -248,7 +248,7 @@ class WheelStrategy:
             stock = yf.Ticker(ticker)
             info = stock.info
             return info.get("dividendYield", 0.0) * 100  # Convert to percentage
-        except:
+        except Exception:
             return 0.0
 
     def calculate_liquidity_score(self, ticker: str) -> float:
@@ -284,12 +284,12 @@ class WheelStrategy:
                     options_score = 70
                 else:
                     options_score = 40
-            except:
+            except Exception:
                 options_score = 20
 
             return volume_score * 0.6 + options_score * 0.4
 
-        except:
+        except Exception:
             return 30.0
 
     def find_optimal_strikes(
@@ -389,7 +389,7 @@ class WheelStrategy:
 
                 try:
                     company_name = stock.info.get("shortName", ticker)
-                except:
+                except Exception:
                     company_name = ticker
 
                 # Calculate scores

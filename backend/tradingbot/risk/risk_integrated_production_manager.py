@@ -137,7 +137,8 @@ class RiskIntegratedProductionManager:
             self.risk_monitoring_active = True
 
             # Start risk monitoring task
-            task = task = task = asyncio.create_task(self._risk_monitoring_loop(); self.tasks.append(task))
+            task = asyncio.create_task(self._risk_monitoring_loop())
+            self.tasks.append(task)
 
             self.logger.info("Risk monitoring started")
 

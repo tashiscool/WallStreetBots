@@ -163,7 +163,7 @@ class ProductionSPXCreditSpreads:
                     if 0 <= dte <= self.max_dte:
                         valid_expiries.append((exp_str, dte))
 
-                except:
+                except Exception:
                     continue
 
             return sorted(valid_expiries, key=lambda x: x[1])  # Sort by DTE

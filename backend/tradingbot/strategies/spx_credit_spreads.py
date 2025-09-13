@@ -124,7 +124,7 @@ class SPXCreditSpreadsScanner:
             # For 1 day: IV=expected_move / (S * sqrt(1 / 365))
             iv_estimate = expected_move_pct / math.sqrt(1 / 365)
             return max(0.10, min(1.0, iv_estimate))  # Reasonable bounds
-        except:
+        except Exception:
             return 0.20  # Default IV
 
     def get_expected_move(self, ticker: str) -> float:
@@ -148,7 +148,7 @@ class SPXCreditSpreadsScanner:
             # Expected move is roughly 1 standard deviation
             return min(0.05, max(0.01, daily_vol))  # Cap between 1%-5%
 
-        except:
+        except Exception:
             return 0.015  # Default fallback
 
     def find_target_delta_strike(

@@ -72,7 +72,7 @@ class DockerManager:
             cmd = ["docker", "build", "-t", f"{image_name}: {tag}", "-f", dockerfile_path, "."]
 
             self.logger.info(f"Building Docker image: {image_name}: {tag}")
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)
 
             self.logger.info(f"Docker image built successfully: {image_name}: {tag}")
             return True
@@ -94,7 +94,7 @@ class DockerManager:
             cmd = ["docker", "push", full_image_name]
 
             self.logger.info(f"Pushing Docker image: {full_image_name}")
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)
 
             self.logger.info(f"Docker image pushed successfully: {full_image_name}")
             return True
@@ -136,7 +136,7 @@ class DockerManager:
             cmd.append(image_name)
 
             self.logger.info(f"Running Docker container: {container_name}")
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)
 
             self.logger.info(f"Docker container started: {container_name}")
             return True
@@ -154,7 +154,7 @@ class DockerManager:
             cmd = ["docker", "stop", container_name]
 
             self.logger.info(f"Stopping Docker container: {container_name}")
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)
 
             self.logger.info(f"Docker container stopped: {container_name}")
             return True
@@ -172,7 +172,7 @@ class DockerManager:
             cmd = ["docker", "rm", container_name]
 
             self.logger.info(f"Removing Docker container: {container_name}")
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)
 
             self.logger.info(f"Docker container removed: {container_name}")
             return True
@@ -189,7 +189,7 @@ class DockerManager:
         try:
             cmd = ["docker", "logs", "--tail", str(lines), container_name]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)
             logs = result.stdout.split("\n")
 
             return logs
@@ -224,7 +224,7 @@ class KubernetesManager:
             cmd = ["kubectl", "apply", "-f", temp_file]
 
             self.logger.info(f"Creating Kubernetes deployment: {deployment_config.version}")
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)
 
             # Clean up temp file
             os.remove(temp_file)
@@ -251,7 +251,7 @@ class KubernetesManager:
             ]
 
             self.logger.info(f"Updating Kubernetes deployment: {deployment_name}")
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)
 
             self.logger.info(f"Kubernetes deployment updated: {deployment_name}")
             return True
@@ -268,7 +268,7 @@ class KubernetesManager:
         try:
             cmd = ["kubectl", "get", "deployment", deployment_name, "-o", "json"]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)
             status = json.loads(result.stdout)
 
             return status
@@ -341,7 +341,7 @@ class CICDManager:
 
             # Run pytest
             cmd = ["python", "-m", "pytest", "-v", "--tb = short"]
-            result = subprocess.run(cmd, check=False, capture_output=True, text=True)
+            result = subprocess.run(cmd, check=False, capture_output=True, text=True, shell=False)
 
             if result.returncode == 0:
                 self.logger.info("All tests passed")
@@ -361,7 +361,7 @@ class CICDManager:
 
             # Run flake8
             cmd = ["flake8", "backend / tradingbot/", "--max - line-length = 100"]
-            result = subprocess.run(cmd, check=False, capture_output=True, text=True)
+            result = subprocess.run(cmd, check=False, capture_output=True, text=True, shell=False)
 
             if result.returncode == 0:
                 self.logger.info("Linting passed")
@@ -381,7 +381,7 @@ class CICDManager:
 
             # Run bandit security linter
             cmd = ["bandit", "-r", "backend / tradingbot/", "-f", "json"]
-            result = subprocess.run(cmd, check=False, capture_output=True, text=True)
+            result = subprocess.run(cmd, check=False, capture_output=True, text=True, shell=False)
 
             if result.returncode == 0:
                 self.logger.info("Security scan passed")
@@ -404,10 +404,10 @@ class CICDManager:
             build_dir.mkdir(exist_ok=True)
 
             # Copy source code
-            subprocess.run(["cp", "-r", "backend/", str(build_dir)], check=True)
-            subprocess.run(["cp", "requirements.txt", str(build_dir)], check=True)
-            subprocess.run(["cp", "pyproject.toml", str(build_dir)], check=True)
-            subprocess.run(["cp", "Dockerfile", str(build_dir)], check=True)
+            subprocess.run(["cp", "-r", "backend/", str(build_dir, shell=False)], check=True)
+            subprocess.run(["cp", "requirements.txt", str(build_dir, shell=False)], check=True)
+            subprocess.run(["cp", "pyproject.toml", str(build_dir, shell=False)], check=True)
+            subprocess.run(["cp", "Dockerfile", str(build_dir, shell=False)], check=True)
 
             self.logger.info("Deployment artifacts built successfully")
             return True

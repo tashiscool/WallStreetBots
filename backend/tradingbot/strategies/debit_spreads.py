@@ -115,7 +115,7 @@ class DebitSpreadScanner:
             rank = (current_iv - iv_min) / (iv_max - iv_min) * 100
             return max(0, min(100, rank))
 
-        except:
+        except Exception:
             return 50.0
 
     def assess_trend_strength(self, ticker: str) -> float:
@@ -173,7 +173,7 @@ class DebitSpreadScanner:
 
             return np.mean(scores)
 
-        except:
+        except Exception:
             return 0.5
 
     def get_options_data(self, ticker: str, expiry: str) -> pd.DataFrame | None:
@@ -278,7 +278,7 @@ class DebitSpreadScanner:
                         estimated_iv = self.estimate_iv_from_price(
                             spot, long_strike, days_to_exp / 365, long_premium
                         )
-                    except:
+                    except Exception:
                         estimated_iv = 0.25
 
                     iv_rank = self.calculate_iv_rank(ticker, estimated_iv)
@@ -344,7 +344,7 @@ class DebitSpreadScanner:
 
             return iv
 
-        except:
+        except Exception:
             return 0.25
 
     def scan_all_spreads(self, min_days: int = 20, max_days: int = 60) -> list[SpreadOpportunity]:
@@ -369,7 +369,7 @@ class DebitSpreadScanner:
                     expiries = stock.options
                     if not expiries:
                         continue
-                except:
+                except Exception:
                     continue
 
                 # Filter expiries by DTE range
@@ -382,7 +382,7 @@ class DebitSpreadScanner:
                         days = (exp_date - today).days
                         if min_days <= days <= max_days:
                             valid_expiries.append(exp_str)
-                    except:
+                    except Exception:
                         continue
 
                 if not valid_expiries:

@@ -134,7 +134,7 @@ class EarningsProtectionScanner:
                     try:
                         info = stock.info
                         company_name = info.get("shortName", ticker)
-                    except:
+                    except Exception:
                         company_name = ticker
 
                     # Estimate expected move and IV
@@ -251,7 +251,7 @@ class EarningsProtectionScanner:
 
             return max(0.10, min(1.0, historical_vol))
 
-        except:
+        except Exception:
             return 0.25
 
     def create_deep_itm_strategy(self, event: EarningsEvent) -> EarningsProtectionStrategy | None:

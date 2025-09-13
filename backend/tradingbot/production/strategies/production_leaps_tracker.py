@@ -432,7 +432,7 @@ class ProductionLEAPSTracker:
                         volumes[-30:].mean() / volumes[-60:-30].mean() if len(volumes) > 60 else 1.0
                     )
                     financial_score = min(100, max(0, 50 + vol_trend * 25))
-            except:
+            except Exception:
                 pass
 
             # 4. Valuation Score (simplified - higher prices get lower scores)
@@ -447,7 +447,7 @@ class ProductionLEAPSTracker:
                     valuation_score = 40
                 else:
                     valuation_score = 20
-            except:
+            except Exception:
                 valuation_score = 50
 
             return momentum_score, trend_score, financial_score, valuation_score
@@ -475,12 +475,12 @@ class ProductionLEAPSTracker:
                     if self.min_dte <= days_out <= self.max_dte:
                         leaps_expiries.append(exp_str)
 
-                except:
+                except Exception:
                     continue
 
             return sorted(leaps_expiries)[:3]  # Top 3 LEAPS dates
 
-        except:
+        except Exception:
             return []
 
     async def estimate_leaps_premium(self, ticker: str, strike: float, expiry: str) -> float:

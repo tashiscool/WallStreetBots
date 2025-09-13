@@ -337,7 +337,7 @@ class ProductionDebitSpreads:
                         estimated_iv = self.estimate_iv_from_price(
                             spot, long_strike, days_to_exp / 365, long_premium
                         )
-                    except:
+                    except Exception:
                         estimated_iv = 0.25
 
                     iv_rank = await self.calculate_iv_rank(ticker, estimated_iv)
@@ -405,7 +405,7 @@ class ProductionDebitSpreads:
 
             return iv
 
-        except:
+        except Exception:
             return 0.25
 
     async def scan_spread_opportunities(self) -> list[SpreadOpportunity]:
@@ -445,7 +445,7 @@ class ProductionDebitSpreads:
                         days = (exp_date - today).days
                         if self.min_dte <= days <= self.max_dte:
                             valid_expiries.append(exp_str)
-                    except:
+                    except Exception:
                         continue
 
                 if not valid_expiries:

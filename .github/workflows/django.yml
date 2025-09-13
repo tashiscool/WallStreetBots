@@ -16,6 +16,7 @@ jobs:
       SECRET_KEY: "secret_key"
       GITHUB_WORKFLOW: "true"
       DATABASE_URL: "postgres://postgres:password@127.0.0.1:5432/test"
+      PYTHONPATH: "${{ github.workspace }}"
       
     services:
       postgres:
@@ -43,13 +44,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Lint with ruff
-        run: |
           pip install ruff
-          # Check for syntax errors and undefined names
-          ruff check . --select=E9,F63,F7,F82 --statistics
-          # Run full linting check
-          ruff check . --statistics
+          pip install -e .  # Install package in development mode
       - name: Wait for PostgreSQL
         run: |
           until pg_isready -h 127.0.0.1 -p 5432; do
@@ -62,3 +58,5 @@ jobs:
         run: python manage.py migrate
       - name: Run tests
         run: python manage.py test backend
+      - name: Lint with ruff
+        run: ruff check . --statistics

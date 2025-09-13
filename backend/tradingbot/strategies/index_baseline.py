@@ -118,31 +118,31 @@ class IndexBaselineScanner:
     def get_baseline_performance(self, period_months: int = 6)->BaselineTracker:
         """Get current baseline index performance"""
         end_date = datetime.now()
-        start_date = end_date - timedelta(days  =  period_months * 30)
+        start_date = end_date - timedelta(days=period_months * 30)
         
         baselines = {}
         ytd_start = datetime(end_date.year, 1, 1)
-        one_year_ago = end_date - timedelta(days  =  365)
+        one_year_ago = end_date - timedelta(days=365)
         
         for ticker in ["SPY", "VTI", "QQQ"]: 
             try: 
                 stock = yf.Ticker(ticker)
                 
                 # Get current price
-                current_data = stock.history(period  =  "1d")
+                current_data = stock.history(period="1d")
                 if current_data.empty: 
                     continue
                 current_price = current_data['Close'].iloc[-1]
                 
                 # Get historical prices
-                hist_data = stock.history(period  =  "1y")
+                hist_data = stock.history(period="1y")
                 if len(hist_data)  <  50: 
                     continue
                 
                 # Calculate returns
-                period_start_price = hist_data.loc[hist_data.index  >=  start_date.replace(tzinfo = hist_data.index.tz)]['Close'].iloc[0]
-                ytd_start_price = hist_data.loc[hist_data.index  >=  ytd_start.replace(tzinfo = hist_data.index.tz)]['Close'].iloc[0] 
-                one_year_price = hist_data.loc[hist_data.index  >=  one_year_ago.replace(tzinfo = hist_data.index.tz)]['Close'].iloc[0]
+                period_start_price = hist_data.loc[hist_data.index  >=  start_date.replace(tzinfo=hist_data.index.tz)]['Close'].iloc[0]
+                ytd_start_price = hist_data.loc[hist_data.index  >=  ytd_start.replace(tzinfo=hist_data.index.tz)]['Close'].iloc[0] 
+                one_year_price = hist_data.loc[hist_data.index  >=  one_year_ago.replace(tzinfo=hist_data.index.tz)]['Close'].iloc[0]
                 
                 period_return = (current_price / period_start_price - 1.0)
                 ytd_return = (current_price / ytd_start_price - 1.0) 
@@ -202,7 +202,7 @@ class IndexBaselineScanner:
         strategy = self.wsb_strategies[strategy_name]
         
         # Calculate performance metrics
-        start_date_obj = date.today() - timedelta(days = period_months * 30)
+        start_date_obj = date.today() - timedelta(days=period_months * 30)
         end_date_obj = date.today()
         
         strategy_return = strategy["return_6m"] * (period_months / 6.0)  # Scale by period
@@ -289,7 +289,7 @@ class IndexBaselineScanner:
                 print(f"❌ Error analyzing {strategy_name}: {e}")
         
         # Sort by net alpha (after costs)
-        comparisons.sort(key = lambda x: x.net_alpha_after_costs, reverse = True)
+        comparisons.sort(key=lambda x: x.net_alpha_after_costs, reverse = True)
         
         return comparisons
     
@@ -374,7 +374,7 @@ class IndexBaselineScanner:
 
 
 def main(): 
-    parser = argparse.ArgumentParser(description  =  "Index Fund Baseline Comparison Scanner")
+    parser = argparse.ArgumentParser(description="Index Fund Baseline Comparison Scanner")
     parser.add_argument('--period - months', type = int, default = 6,
                        help = 'Period in months for comparison (default: 6)')
     parser.add_argument('--strategy', type = str,

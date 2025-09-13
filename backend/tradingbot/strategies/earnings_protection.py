@@ -102,11 +102,11 @@ class EarningsProtectionScanner:
         for earning in mock_earnings: 
             if earning["days_out"]  <=  days_ahead: 
                 ticker = earning["ticker"]
-                earnings_date = today + timedelta(days  =  earning["days_out"])
+                earnings_date = today + timedelta(days=earning["days_out"])
                 
                 try: 
                     stock = yf.Ticker(ticker)
-                    hist = stock.history(period  =  "1d")
+                    hist = stock.history(period="1d")
                     if hist.empty: 
                         continue
                         
@@ -162,7 +162,7 @@ class EarningsProtectionScanner:
             
             # Find nearest expiry after earnings
             expiries = stock.options
-            target_date = date.today() + timedelta(days = days_to_earnings)
+            target_date = date.today() + timedelta(days=days_to_earnings)
             
             best_expiry = None
             for exp_str in expiries: 
@@ -175,7 +175,7 @@ class EarningsProtectionScanner:
                 return 0.06, 0.30  # Default 6% move, 30% IV
             
             # Get ATM straddle to estimate expected move
-            spot = stock.history(period  =  "1d")['Close'].iloc[-1]
+            spot = stock.history(period="1d")['Close'].iloc[-1]
             chain = stock.option_chain(best_expiry)
             
             # Find ATM call and put
@@ -221,7 +221,7 @@ class EarningsProtectionScanner:
         """Estimate historical IV from price volatility"""
         try: 
             stock = yf.Ticker(ticker)
-            hist = stock.history(period  =  "60d")
+            hist = stock.history(period="60d")
             
             if len(hist)  <  30: 
                 return 0.25
@@ -519,7 +519,7 @@ class EarningsProtectionScanner:
             strategies.extend(event_strategies)
         
         # Sort by lowest IV sensitivity (best protection)
-        strategies.sort(key = lambda x: x.iv_sensitivity)
+        strategies.sort(key=lambda x: x.iv_sensitivity)
         
         return strategies
     
@@ -570,7 +570,7 @@ class EarningsProtectionScanner:
 
 
 def main(): 
-    parser = argparse.ArgumentParser(description  =  "Earnings IV Crush Protection Scanner")
+    parser = argparse.ArgumentParser(description="Earnings IV Crush Protection Scanner")
     parser.add_argument('--days - ahead', type = int, default = 14,
                        help = 'Days ahead to scan for earnings')
     parser.add_argument('--output', choices = ['json', 'text'], default = 'text',

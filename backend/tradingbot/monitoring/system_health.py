@@ -32,8 +32,8 @@ class ComponentHealth:
     last_check: datetime
     response_time_ms: float
     error_count: int = 0
-    details: Dict[str, Any] = field(default_factory = dict)
-    recommendations: List[str] = field(default_factory = list)
+    details: Dict[str, Any] = field(default_factory=dict)
+    recommendations: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -46,8 +46,8 @@ class SystemHealthReport:
     database_status: ComponentHealth
     resource_status: ComponentHealth
     trading_status: ComponentHealth
-    components: Dict[str, ComponentHealth] = field(default_factory = dict)
-    recommendations: List[str] = field(default_factory = list)
+    components: Dict[str, ComponentHealth] = field(default_factory=dict)
+    recommendations: List[str] = field(default_factory=list)
     uptime_seconds: float = 0.0
     total_errors: int = 0
 
@@ -306,7 +306,7 @@ class SystemHealthMonitor:
         """Check system resource usage"""
         try: 
             # Get system resource usage
-            cpu_percent = psutil.cpu_percent(interval  =  1)
+            cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
             disk = psutil.disk_usage('/')
             
@@ -486,7 +486,7 @@ class SystemHealthMonitor:
     
     def get_health_history(self, hours: int = 24)->List[SystemHealthReport]:
         """Get health history for specified hours"""
-        cutoff_time = datetime.now() - timedelta(hours = hours)
+        cutoff_time = datetime.now() - timedelta(hours=hours)
         return [report for report in self.health_history if report.timestamp  >=  cutoff_time]
     
     def get_uptime_stats(self)->Dict[str, Any]: 

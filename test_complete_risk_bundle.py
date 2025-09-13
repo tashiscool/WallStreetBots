@@ -51,7 +51,7 @@ class TestCompleteRiskBundle(unittest.TestCase):
         
         # Generate synthetic returns for testing
         np.random.seed(42)  # Reproducible tests
-        dates = pd.date_range(start  =  '2023 - 01-01', end = '2024 - 12-31', freq = 'D')
+        dates = pd.date_range(start='2023 - 01-01', end = '2024 - 12-31', freq = 'D')
         
         # Create realistic return data with proper characteristics
         for symbol in self.test_symbols: 
@@ -184,7 +184,7 @@ def run_comprehensive_test_suite():
         suite.addTest(TestCompleteRiskBundle(method))
     
     # Run tests
-    runner = unittest.TextTestRunner(verbosity  =  2)
+    runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
     
     # Print summary

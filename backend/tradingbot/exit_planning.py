@@ -55,8 +55,8 @@ class ExitSignal:
     position_fraction: float            # How much of position to close
     estimated_exit_price: float         # Estimated exit premium per contract
     expected_pnl: float                # Expected P & L from this exit
-    reasoning: List[str] = field(default_factory = list)
-    timestamp: datetime = field(default_factory  =  datetime.now)
+    reasoning: List[str] = field(default_factory=list)
+    timestamp: datetime = field(default_factory=datetime.now)
 
     def __str__(self)->str: 
         return f"{self.reason.value.upper()} - {self.strength.value} ({self.position_fraction: .1%} of position)"
@@ -85,7 +85,7 @@ class ScenarioResult:
 
     # Exit recommendations
     recommended_action: str
-    exit_signals: List[ExitSignal] = field(default_factory = list)
+    exit_signals: List[ExitSignal] = field(default_factory=list)
 
 
 class ExitStrategy: 
@@ -226,7 +226,7 @@ class ExitStrategy:
             ))
 
         # Sort by priority (lower number = higher priority)
-        signals.sort(key = lambda x: (
+        signals.sort(key=lambda x: (
             0 if x.strength  ==  ExitSignalStrength.URGENT else
             1 if x.strength  ==  ExitSignalStrength.STRONG else
             2 if x.strength  ==  ExitSignalStrength.MODERATE else 3
@@ -599,8 +599,8 @@ if __name__ ==  "__main__": # Test the exit planning system
     sample_position = Position(
         ticker = "GOOGL",
         position_type = "call",
-        entry_date = datetime.now() - timedelta(days = 3),
-        expiry_date = datetime.now() + timedelta(days = 27),
+        entry_date = datetime.now() - timedelta(days=3),
+        expiry_date = datetime.now() + timedelta(days=27),
         strike = 220.0,
         contracts = 100,  # Smaller size for testing
         entry_premium = 4.70,

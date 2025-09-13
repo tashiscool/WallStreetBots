@@ -43,8 +43,8 @@ class WheelPosition:
     expiry_date: datetime
     premium_received: float
     premium_paid: float = 0.0
-    entry_date: datetime = field(default_factory  =  datetime.now)
-    last_update: datetime = field(default_factory  =  datetime.now)
+    entry_date: datetime = field(default_factory=datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     days_to_expiry: int = 0
     delta: float = 0.0
     theta: float = 0.0
@@ -127,9 +127,9 @@ class SpreadPosition:
     current_value: float = 0.0
     unrealized_pnl: float = 0.0
     profit_pct: float = 0.0
-    entry_date: datetime = field(default_factory  =  datetime.now)
-    expiry_date: datetime = field(default_factory  =  lambda: datetime.now() + timedelta(days = 30))
-    last_update: datetime = field(default_factory  =  datetime.now)
+    entry_date: datetime = field(default_factory=datetime.now)
+    expiry_date: datetime = field(default_factory=lambda: datetime.now() + timedelta(days=30))
+    last_update: datetime = field(default_factory=datetime.now)
     net_delta: float = 0.0
     net_gamma: float = 0.0
     net_theta: float = 0.0
@@ -201,7 +201,7 @@ class BenchmarkData:
     volatility: float
     sharpe_ratio: float
     max_drawdown: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -223,7 +223,7 @@ class StrategyPerformance:
     avg_win: float
     avg_loss: float
     profit_factor: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 def test_wheel_strategy(): 
@@ -241,7 +241,7 @@ def test_wheel_strategy():
         unrealized_pnl = 500.0,
         option_type = "put",
         strike_price = 145.0,
-        expiry_date = datetime.now() + timedelta(days = 30),
+        expiry_date = datetime.now() + timedelta(days=30),
         premium_received = 200.0
     )
     
@@ -373,7 +373,7 @@ def test_phase2_integration():
     print("🔗 Testing Phase 2 Integration...")
     
     # Test configuration loading
-    with tempfile.NamedTemporaryFile(mode = 'w', suffix = '.json', delete = False) as f: 
+    with tempfile.NamedTemporaryFile(mode='w', suffix = '.json', delete = False) as f: 
         test_config = {
             "risk": {
                 "max_position_risk": 0.10,

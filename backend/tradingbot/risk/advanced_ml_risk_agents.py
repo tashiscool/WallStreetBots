@@ -1094,7 +1094,7 @@ class MultiAgentRiskCoordinator:
     def save_all_models(self, directory: str):
         """Save all agent models"""
         try: 
-            Path(directory).mkdir(parents = True, exist_ok = True)
+            Path(directory).mkdir(parents=True, exist_ok = True)
             
             for agent_name, agent in self.agents.items(): 
                 filepath = f"{directory}/{agent_name}_model.pkl"

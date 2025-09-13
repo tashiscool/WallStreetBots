@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name = 'portfolio',
             name = 'optimization_strategy',
-            field = models.CharField(choices  =  [('none', 'None'), ('ma_sharp_ratio', 'Sharpe ratio based on moving average')], default = 'none', help_text = 'Optimization Strategy', max_length = 50),
+            field = models.CharField(choices=[('none', 'None'), ('ma_sharp_ratio', 'Sharpe ratio based on moving average')], default = 'none', help_text = 'Optimization Strategy', max_length = 50),
         ),
     ]

@@ -271,14 +271,14 @@ class ExactCloneCalculator:
 
     def _find_target_friday(self, target_dte: int)->date:
         """Find the Friday closest to target DTE"""
-        base_date = date.today() + timedelta(days = target_dte)
+        base_date = date.today() + timedelta(days=target_dte)
 
         # Find next Friday (weekday 4)
         days_to_friday = (4 - base_date.weekday()) % 7
         if days_to_friday ==  0:  # Already Friday
             days_to_friday = 7
 
-        friday = base_date + timedelta(days  =  days_to_friday)
+        friday = base_date + timedelta(days=days_to_friday)
         return friday
 
 
@@ -465,7 +465,7 @@ class ExactCloneSystem:
         self.active_position: Optional[ExactTradeSetup] = None
         self.position_entry_date: Optional[datetime] = None
 
-        logging.basicConfig(level = logging.INFO)
+        logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
     def scan_for_dip_opportunities(self, market_data: Dict[str, Dict])->List[DipSignal]: 
@@ -496,7 +496,7 @@ class ExactCloneSystem:
                 self.logger.error(f"Error scanning {ticker}: {e}")
 
         # Sort by confidence
-        opportunities.sort(key = lambda x: x.confidence, reverse = True)
+        opportunities.sort(key=lambda x: x.confidence, reverse = True)
         return opportunities
 
     def execute_dip_trade(
@@ -663,7 +663,7 @@ if __name__ ==  "__main__": # Test the exact clone helper
     # Test the full system
     print("\n=== EXACT CLONE SYSTEM TEST ===")
 
-    system = ExactCloneSystem(initial_capital  =  500000)
+    system = ExactCloneSystem(initial_capital=500000)
 
     # Sample market data for dip detection
     market_data = {
@@ -696,7 +696,7 @@ if __name__ ==  "__main__": # Test the exact clone helper
         print(f"  Ruin Risk: {setup.ruin_risk_pct:.1f}%")
 
         # Test exit condition check
-        exit_check = system.check_exit_conditions(current_premium  =  14.10)  # 3x gain
+        exit_check = system.check_exit_conditions(current_premium=14.10)  # 3x gain
         if exit_check: 
             reason, premium = exit_check
             print(f"\nExit signal: {reason} at ${premium}")

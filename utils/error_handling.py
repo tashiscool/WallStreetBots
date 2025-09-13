@@ -1,7 +1,7 @@
 import time
 from typing import Tuple, Type
 
-def retry(tries: int = 3, delay: float = 0.5, exceptions: Tuple[Type[BaseException], ...]  =  (Exception,)): 
+def retry(tries: int = 3, delay: float = 0.5, exceptions: Tuple[Type[BaseException], ...] = (Exception,)): 
     def deco(fn): 
         def wrap(*args, **kwargs): 
             t = tries

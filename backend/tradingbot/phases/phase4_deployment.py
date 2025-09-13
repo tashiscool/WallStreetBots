@@ -42,10 +42,10 @@ class DeploymentConfig:
     cpu_limit: str
     memory_limit: str
     health_check_path: str
-    environment_variables: Dict[str, str] = field(default_factory = dict)
-    secrets: Dict[str, str] = field(default_factory = dict)
-    volumes: List[str] = field(default_factory = list)
-    ports: List[str] = field(default_factory = list)
+    environment_variables: Dict[str, str] = field(default_factory=dict)
+    secrets: Dict[str, str] = field(default_factory=dict)
+    volumes: List[str] = field(default_factory=list)
+    ports: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -55,7 +55,7 @@ class DeploymentResult:
     status: DeploymentStatus
     start_time: datetime
     end_time: Optional[datetime] = None
-    logs: List[str] = field(default_factory = list)
+    logs: List[str] = field(default_factory=list)
     error_message: Optional[str] = None
     rollback_version: Optional[str] = None
 
@@ -396,7 +396,7 @@ class CICDManager:
             
             # Create build directory
             build_dir = Path("build")
-            build_dir.mkdir(exist_ok = True)
+            build_dir.mkdir(exist_ok=True)
             
             # Copy source code
             subprocess.run(["cp", "-r", "backend/", str(build_dir)], check = True)

@@ -102,7 +102,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
 
     def test_expiry_calculation(self): 
         """Test optimal expiry date calculation"""
-        expiry = self.calculator.find_optimal_expiry(target_dte  =  30)
+        expiry = self.calculator.find_optimal_expiry(target_dte=30)
 
         # Should be a Friday
         self.assertEqual(expiry.weekday(), 4)  # Friday is weekday 4
@@ -270,7 +270,7 @@ class TestRiskManagement(unittest.TestCase):
             ticker = "GOOGL",
             position_type = "call",
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             strike = 220.0,
             contracts = 100,
             entry_premium = 4.70,
@@ -299,8 +299,8 @@ class TestExitPlanning(unittest.TestCase):
         self.sample_position = Position(
             ticker = "GOOGL",
             position_type = "call",
-            entry_date = datetime.now() - timedelta(days = 5),
-            expiry_date = datetime.now() + timedelta(days = 25),
+            entry_date = datetime.now() - timedelta(days=5),
+            expiry_date = datetime.now() + timedelta(days=25),
             strike = 220.0,
             contracts = 100,
             entry_premium = 4.70,
@@ -394,7 +394,7 @@ class TestAlertSystem(unittest.TestCase):
             ticker = "GOOGL",
             spot_price = 207.0,
             strike = 220.0,
-            expiry_date = date.today() + timedelta(days = 30),
+            expiry_date = date.today() + timedelta(days=30),
             days_to_expiry = 30,
             estimated_premium = 4.70,
             recommended_contracts = 100,
@@ -556,7 +556,7 @@ def run_comprehensive_test():
         test_suite.addTests(tests)
 
     # Run tests
-    runner = unittest.TextTestRunner(verbosity  =  2)
+    runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(test_suite)
 
     # Print summary

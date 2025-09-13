@@ -28,7 +28,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         self.scanner = IndexBaselineScanner()
         
         # Mock historical price data for baselines
-        dates = pd.date_range(start  =  '2024 - 01-01', periods = 252, freq = 'D')
+        dates = pd.date_range(start='2024 - 01-01', periods = 252, freq = 'D')
         np.random.seed(42)  # Reproducible tests
         
         # SPY trending upward ~12% annually
@@ -158,7 +158,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
     def test_risk_adjusted_performance_metrics(self): 
         """Test Sharpe ratio and risk - adjusted comparisons"""
         comparison = PerformanceComparison(
-            start_date = date.today() - timedelta(days = 180),
+            start_date = date.today() - timedelta(days=180),
             end_date = date.today(),
             period_days = 180,
             strategy_name = "spx_credit_spreads",
@@ -231,7 +231,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         
         # Strategy that underperforms SPY
         underperforming_comparison = PerformanceComparison(
-            start_date = date.today() - timedelta(days = 180),
+            start_date = date.today() - timedelta(days=180),
             end_date = date.today(),
             period_days = 180,
             strategy_name = "bad_strategy",
@@ -356,7 +356,7 @@ class TestIndexBaselineScanner(unittest.TestCase):
         """Test comparison report formatting"""
         sample_comparisons = [
             PerformanceComparison(
-                start_date = date.today() - timedelta(days = 180),
+                start_date = date.today() - timedelta(days=180),
                 end_date = date.today(), 
                 period_days = 180,
                 strategy_name = "wheel_strategy",
@@ -462,7 +462,7 @@ def run_index_baseline_tests():
         test_suite.addTests(tests)
     
     # Run tests
-    runner = unittest.TextTestRunner(verbosity  =  2)
+    runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(test_suite)
     
     # Print summary

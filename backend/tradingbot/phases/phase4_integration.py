@@ -54,7 +54,7 @@ class SystemStatus(Enum):
 @dataclass
 class SystemHealthCheck: 
     """System health check result"""
-    timestamp: datetime = field(default_factory  =  datetime.now)
+    timestamp: datetime = field(default_factory=datetime.now)
     overall_status: SystemStatus = SystemStatus.INITIALIZING
     database_status: bool = False
     trading_interface_status: bool = False
@@ -65,8 +65,8 @@ class SystemHealthCheck:
     active_strategies: int = 0
     total_account_risk: Decimal = Decimal('0.00')
     daily_pnl: Decimal = Decimal('0.00')
-    alerts: List[str] = field(default_factory = list)
-    performance_metrics: Dict[str, Any] = field(default_factory = dict)
+    alerts: List[str] = field(default_factory=list)
+    performance_metrics: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -330,8 +330,8 @@ class Phase4IntegrationManager:
             
             # Configure validation period (last 2 years)
             validation_config = BacktestConfig(
-                start_date = datetime.now() - timedelta(days = 730),
-                end_date = datetime.now() - timedelta(days = 1),
+                start_date = datetime.now() - timedelta(days=730),
+                end_date = datetime.now() - timedelta(days=1),
                 initial_capital = Decimal('100000.00'),
                 commission_per_trade = Decimal('1.00'),
                 monte_carlo_runs = 500  # Reduced for faster validation
@@ -447,7 +447,7 @@ class Phase4IntegrationManager:
         CRITICAL: Only starts if all validations pass
         """
         try: 
-            self.logger.info(f"🚀 Starting production trading (paper_trading = {paper_trading})...")
+            self.logger.info(f"🚀 Starting production trading (paper_trading={paper_trading})...")
             
             # Safety check: Ensure system is ready
             if self.system_status  !=  SystemStatus.READY: 
@@ -642,7 +642,7 @@ class Phase4IntegrationManager:
             
         except Exception as e: 
             self.error_handler.handle_error(e, {"operation": "perform_system_health_check"})
-            return SystemHealthCheck(overall_status = SystemStatus.ERROR, 
+            return SystemHealthCheck(overall_status=SystemStatus.ERROR, 
                                    alerts = ["Health check system error"])
     
     async def stop_all_strategies(self)->None: 
@@ -773,7 +773,7 @@ async def main():
         
         # Start paper trading
         print("📊 Starting paper trading...")
-        if not await manager.start_production_trading(paper_trading = True): 
+        if not await manager.start_production_trading(paper_trading=True): 
             print("❌ Failed to start trading")
             return
         

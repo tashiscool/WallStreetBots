@@ -35,7 +35,7 @@ class DipSignal:
     expected_premium: Decimal
     risk_amount: Decimal
     confidence: float
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class ProductionWSBDipBot: 
@@ -110,7 +110,7 @@ class ProductionWSBDipBot:
         """Perform pre - trading safety checks"""
         try: 
             # Check position reconciliation
-            reconciliation_report = await self.position_reconciler.reconcile_all_positions(auto_halt  =  True)
+            reconciliation_report = await self.position_reconciler.reconcile_all_positions(auto_halt=True)
             
             if reconciliation_report.requires_intervention: 
                 self.is_trading_enabled = False
@@ -192,7 +192,7 @@ class ProductionWSBDipBot:
                     run_percentage = run_percentage,
                     dip_percentage = dip_percentage,
                     target_strike = target_strike,
-                    target_expiry = datetime.now() + timedelta(days = self.target_dte_days),
+                    target_expiry = datetime.now() + timedelta(days=self.target_dte_days),
                     expected_premium = expected_premium,
                     risk_amount = risk_amount,
                     confidence = min(0.95, signal_strength / 6.0),  # Scale to 0 - 95%

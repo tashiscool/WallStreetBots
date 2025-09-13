@@ -39,7 +39,7 @@ class RegimeAdaptationConfig:
     sideways_max_risk: float = 0.03  # 3% max risk per trade in sideways
 
     # Strategy selection by regime
-    enabled_strategies_by_regime: Dict[str, List[str]] = field(default_factory = lambda: {
+    enabled_strategies_by_regime: Dict[str, List[str]] = field(default_factory=lambda: {
         'bull': ['wsb_dip_bot', 'momentum_weeklies', 'debit_spreads', 'leaps_tracker'],
         'bear': ['spx_credit_spreads', 'wheel_strategy'],
         'sideways': ['wheel_strategy', 'spx_credit_spreads', 'index_baseline'],
@@ -240,7 +240,7 @@ class MarketRegimeAdapter:
                 exit_urgency = exit_urgency,
                 timestamp = datetime.now(),
                 reason = self._generate_adaptation_reason(regime, market_data),
-                next_review = datetime.now() + timedelta(hours = 1)
+                next_review = datetime.now() + timedelta(hours=1)
             )
 
             # Store in history
@@ -365,7 +365,7 @@ class MarketRegimeAdapter:
         # Check cooldown period
         if self.last_regime_change: 
             time_since_change = datetime.now() - self.last_regime_change
-            if time_since_change  <  timedelta(hours = self.config.regime_change_cooldown_hours): 
+            if time_since_change  <  timedelta(hours=self.config.regime_change_cooldown_hours): 
                 return False
 
         return True
@@ -492,7 +492,7 @@ class MarketRegimeAdapter:
             exit_urgency = 1.0,
             timestamp = datetime.now(),
             reason = "Default conservative adaptation",
-            next_review = datetime.now() + timedelta(hours = 1)
+            next_review = datetime.now() + timedelta(hours=1)
         )
 
     def get_adaptation_summary(self)->Dict[str, Any]: 

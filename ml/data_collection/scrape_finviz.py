@@ -2,7 +2,7 @@ from urllib.request import urlopen, Request
 from bs4 import BeautifulSoup
 import pandas as pd
 
-base_url = 'https: //finviz.com / quote.ashx?t  =  '
+base_url = 'https: //finviz.com / quote.ashx?t = '
 
 
 def get_raw_ticker(ticker): 
@@ -12,10 +12,10 @@ def get_raw_ticker(ticker):
     : return: news_table: bs4.element.Tag (table of raw html tags)
     """
     url = base_url + ticker
-    req = Request(url  =  url, headers = {'user - agent': 'my - app / 0.0.1'})
+    req = Request(url=url, headers = {'user - agent': 'my - app / 0.0.1'})
     response = urlopen(req)
     html = BeautifulSoup(response)
-    news_table = html.find(id  =  'news - table')
+    news_table = html.find(id='news - table')
     return news_table
 
 

@@ -471,7 +471,7 @@ class RiskDatabaseAsync:
     async def get_risk_history(self, days: int = 30)->pd.DataFrame:
         """Get risk calculation history"""
         try: 
-            return self.db.get_risk_history(account_id = "default", days = days)
+            return self.db.get_risk_history(account_id="default", days = days)
         except Exception as e: 
             print(f"Error getting risk history: {e}")
             return pd.DataFrame()
@@ -479,7 +479,7 @@ class RiskDatabaseAsync:
     async def get_latest_risk_metrics(self)->Dict: 
         """Get latest risk metrics"""
         try: 
-            return self.db.get_latest_risk_result(account_id = "default")
+            return self.db.get_latest_risk_result(account_id="default")
         except Exception as e: 
             print(f"Error getting latest risk metrics: {e}")
             return {}
@@ -511,7 +511,7 @@ class RiskDatabaseAsync:
     async def get_positions(self, account_id: str = "default")->Dict[str, Dict]: 
         """Get current positions"""
         try: 
-            positions_list = self.db.get_positions(account_id  =  account_id)
+            positions_list = self.db.get_positions(account_id=account_id)
             positions_dict = {}
             for pos in positions_list: 
                 positions_dict[pos['symbol']] = {

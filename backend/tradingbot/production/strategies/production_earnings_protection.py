@@ -34,7 +34,7 @@ class EarningsSignal:
     strategy_type: str  # 'deep_itm', 'calendar_spread', 'protective_hedge'
     risk_amount: Decimal
     confidence: float
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class ProductionEarningsProtection: 

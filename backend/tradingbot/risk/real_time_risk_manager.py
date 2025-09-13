@@ -232,7 +232,7 @@ class RealTimeRiskManager:
         try: 
             # Use cached data if recent ( <  30 seconds)
             if (self.cached_account and self.last_account_update and 
-                datetime.now() - self.last_account_update  <  timedelta(seconds = 30)): 
+                datetime.now() - self.last_account_update  <  timedelta(seconds=30)): 
                 return self.cached_account
             
             # Get fresh account data from Alpaca
@@ -625,13 +625,13 @@ class RealTimeRiskManager:
                 'day_trades_used': account.day_trade_count,
                 'positions_count': len(positions),
                 'recent_validations': len([e for e in self.risk_events if 
-                                         datetime.fromisoformat(e['timestamp'])  >  datetime.now() - timedelta(hours = 1)])
+                                         datetime.fromisoformat(e['timestamp'])  >  datetime.now() - timedelta(hours=1)])
             }
         except Exception as e: 
             logger.error(f"Risk summary generation failed: {e}")
             return {'error': str(e)}
 
 
-def create_risk_manager(alpaca_manager = None)->RealTimeRiskManager: 
+def create_risk_manager(alpaca_manager=None)->RealTimeRiskManager: 
     """Factory function to create risk manager"""
     return RealTimeRiskManager(alpaca_manager)

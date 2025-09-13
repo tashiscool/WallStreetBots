@@ -267,7 +267,7 @@ class ProductionSwingTrading:
         if days_to_friday  <=  0: 
             days_to_friday = 7
         
-        expiry_date = today + timedelta(days  =  days_to_friday)
+        expiry_date = today + timedelta(days=days_to_friday)
         return expiry_date.strftime("%Y-%m-%d")
     
     def calculate_option_targets(self, premium: float)->Tuple[float, float, float, float]: 
@@ -411,7 +411,7 @@ class ProductionSwingTrading:
                     signals.append(signal)
                     self.logger.info(
                         f"Swing signal: {ticker} {signal_type} "
-                        f"strength = {strength: .0f} strike  =  ${target_strike} premium = ${premium: .2f}"
+                        f"strength = {strength: .0f} strike = ${target_strike} premium = ${premium: .2f}"
                     )
                 
             except Exception as e: 
@@ -419,7 +419,7 @@ class ProductionSwingTrading:
                 continue
         
         # Sort by strength score
-        signals.sort(key = lambda x: x.strength_score, reverse = True)
+        signals.sort(key=lambda x: x.strength_score, reverse = True)
         return signals
     
     async def execute_swing_trade(self, signal: SwingSignal)->bool:

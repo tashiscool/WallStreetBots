@@ -35,7 +35,7 @@ def create_directories():
     ]
     
     for directory in directories: 
-        Path(directory).mkdir(exist_ok = True)
+        Path(directory).mkdir(exist_ok=True)
         print(f"📁 Created directory: {directory}")
 
 

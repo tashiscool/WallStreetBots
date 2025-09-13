@@ -23,7 +23,7 @@ def login(request):
 def get_user_information(request): 
     user = request.user
     user_details = sync_alpaca(user)  # sync the user with Alpaca and extract details
-    auth0user = user.social_auth.get(provider  =  'auth0')
+    auth0user = user.social_auth.get(provider='auth0')
     alpaca_id = user.credential.alpaca_id if hasattr(user, 'credential') else "no alpaca id"
     alpaca_key = user.credential.alpaca_key if hasattr(user, 'credential') else "no alpaca key"
 
@@ -75,7 +75,7 @@ def dashboard(request):
                     user.credential.save()
                 else: 
                     from .models import Credential
-                    cred = Credential(user  =  request.user, alpaca_id = credential_form.get_id(),
+                    cred = Credential(user=request.user, alpaca_id = credential_form.get_id(),
                                       alpaca_key = credential_form.get_key())
                     cred.save()
                 return HttpResponseRedirect('/')
@@ -87,7 +87,7 @@ def dashboard(request):
                 #  update order for display
                 from backend.tradingbot.models import Order
                 userdata["orders"] = [order.display_order() for order in
-                                      Order.objects.filter(user = user).order_by('-timestamp').iterator()]
+                                      Order.objects.filter(user=user).order_by('-timestamp').iterator()]
                 return render(request, 'home / index.html', {
                     'credential_form': credential_form,
                     'order_form': order_form,
@@ -126,7 +126,7 @@ def get_portfolio_chart(request):
     API_KEY = user.credential.alpaca_id
     API_SECRET = user.credential.alpaca_key
     BASE_URL = "https: //paper - api.alpaca.markets"
-    alpaca = api.REST(key_id  =  API_KEY, secret_key = API_SECRET, base_url = BASE_URL, api_version = 'v2')
+    alpaca = api.REST(key_id=API_KEY, secret_key = API_SECRET, base_url = BASE_URL, api_version = 'v2')
     portfolio_hist = alpaca.get_portfolio_history().df
     portfolio_hist = portfolio_hist.reset_index()
     line_plot = px.line(portfolio_hist, "timestamp", "equity")
@@ -153,7 +153,7 @@ def get_stock_chart(request, symbol):
     # Retrieve daily bars for SPY in a dataframe and printing the first 5 rows
     spy_bars = alpaca.get_bars(symbol, timeframe, start, end).df
     candlestick_fig = go.Figure(
-        data = [go.Candlestick(x  =  spy_bars.index, open = spy_bars['open'],
+        data = [go.Candlestick(x=spy_bars.index, open = spy_bars['open'],
                              high = spy_bars['high'], low = spy_bars['low'], close = spy_bars['close'])])
     candlestick_fig.update_layout(
         xaxis_title = "Date",
@@ -179,7 +179,7 @@ def orders(request):
                     user.credential.save()
                 else: 
                     from .models import Credential
-                    cred = Credential(user  =  request.user, alpaca_id = credential_form.get_id(),
+                    cred = Credential(user=request.user, alpaca_id = credential_form.get_id(),
                                       alpaca_key = credential_form.get_key())
                     cred.save()
                 return HttpResponseRedirect('/')
@@ -191,7 +191,7 @@ def orders(request):
                 #  update order for display
                 from backend.tradingbot.models import Order
                 userdata["orders"] = [order.display_order() for order in
-                                      Order.objects.filter(user = user).order_by('-timestamp').iterator()]
+                                      Order.objects.filter(user=user).order_by('-timestamp').iterator()]
                 return render(request, 'home / index.html', {
                     'credential_form': credential_form,
                     'order_form': order_form,
@@ -270,6 +270,6 @@ def machine_learning(request):
 def logout(request): 
     log_out(request)
     return_to = urlencode({'returnTo': request.build_absolute_uri('/')})
-    logout_url = 'https: //%s / v2/logout?client_id  =  %s&%s' % \
+    logout_url = 'https: //%s / v2/logout?client_id = %s&%s' % \
                  (settings.SOCIAL_AUTH_AUTH0_DOMAIN, settings.SOCIAL_AUTH_AUTH0_KEY, return_to)
     return HttpResponseRedirect(logout_url)

@@ -231,7 +231,7 @@ async def test_multi_asset_risk():
         print("\n3. Calculating Cross - Asset Correlations...")
         
         # Simulate market data
-        dates = pd.date_range(end  =  datetime.now(), periods = 252, freq = 'D')
+        dates = pd.date_range(end=datetime.now(), periods = 252, freq = 'D')
         
         market_data = {
             "AAPL": pd.DataFrame({
@@ -396,7 +396,7 @@ async def test_regulatory_compliance():
         
         report_id = await compliance_manager.generate_regulatory_report(
             "daily_risk_report",
-            datetime.now() - timedelta(days = 1),
+            datetime.now() - timedelta(days=1),
             datetime.now(),
             {
                 "risk_metrics": risk_metrics,

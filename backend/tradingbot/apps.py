@@ -7,7 +7,7 @@ def create_portfolio_dictionary(user):
     sync_alpaca(user)
     portfolio = user.portfolio
     result = {'cash': float(portfolio.cash)}
-    stock_instances = StockInstance.objects.filter(portfolio  =  portfolio)
+    stock_instances = StockInstance.objects.filter(portfolio=portfolio)
     # structure to return
     # {
     #   cash: float,

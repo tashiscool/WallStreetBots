@@ -50,7 +50,7 @@ class TradeSignal:
     time_in_force: str = "gtc"
     reason: str = ""
     confidence: float = 0.0
-    timestamp: datetime = field(default_factory  =  datetime.now)
+    timestamp: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -62,7 +62,7 @@ class TradeResult:
     filled_quantity: int = 0
     filled_price: Optional[float] = None
     commission: float = 0.0
-    timestamp: datetime = field(default_factory  =  datetime.now)
+    timestamp: datetime = field(default_factory=datetime.now)
     error_message: Optional[str] = None
 
 
@@ -75,7 +75,7 @@ class PositionUpdate:
     current_price: float
     unrealized_pnl: float
     market_value: float
-    timestamp: datetime = field(default_factory  =  datetime.now)
+    timestamp: datetime = field(default_factory=datetime.now)
 
 
 class TradingInterface: 

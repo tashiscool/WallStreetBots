@@ -79,7 +79,7 @@ async def test_risk_integration_standalone():
         )
         
         # Initialize risk manager
-        risk_manager = RiskIntegrationManager(risk_limits  =  risk_limits)
+        risk_manager = RiskIntegrationManager(risk_limits=risk_limits)
         print("✅ Risk Integration Manager initialized")
         
         # 2. Test Risk Calculations
@@ -93,7 +93,7 @@ async def test_risk_integration_standalone():
         }
         
         # Simulate market data
-        dates = pd.date_range(end  =  datetime.now(), periods = 252, freq = 'D')
+        dates = pd.date_range(end=datetime.now(), periods = 252, freq = 'D')
         returns = np.random.normal(0, 0.02, 252)
         prices = 100 * np.cumprod(1 + returns)
         

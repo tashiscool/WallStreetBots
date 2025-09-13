@@ -54,7 +54,7 @@ class StrategyConfig:
     enabled: bool = True
     max_position_size: float = 0.20
     risk_tolerance: str = "medium"  # "low", "medium", "high"
-    parameters: Dict[str, Any] = field(default_factory = dict)
+    parameters: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -66,7 +66,7 @@ class ProductionStrategyManagerConfig:
     user_id: int = 1
     
     # Strategy configurations
-    strategies: Dict[str, StrategyConfig] = field(default_factory = dict)
+    strategies: Dict[str, StrategyConfig] = field(default_factory=dict)
     
     # Risk management
     max_total_risk: float = 0.50  # 50% max total risk
@@ -621,7 +621,7 @@ class ProductionStrategyManager:
         self.analytics_history: List[PerformanceMetrics] = []
 
         if self.config.enable_advanced_analytics: 
-            self.advanced_analytics = AdvancedAnalytics(risk_free_rate  =  0.02)
+            self.advanced_analytics = AdvancedAnalytics(risk_free_rate=0.02)
             self.logger.info("Advanced analytics enabled")
 
         if self.config.enable_market_regime_adaptation: 
@@ -1080,7 +1080,7 @@ class ProductionStrategyManager:
         try: 
             # Get portfolio value history from integration manager
             # This would need to be implemented in integration manager
-            portfolio_history = await self.integration_manager.get_portfolio_history(days  =  180)
+            portfolio_history = await self.integration_manager.get_portfolio_history(days=180)
 
             if len(portfolio_history)  <  2: 
                 return []

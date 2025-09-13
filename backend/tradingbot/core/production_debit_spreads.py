@@ -59,9 +59,9 @@ class SpreadPosition:
     profit_pct: float = 0.0
     
     # Timing
-    entry_date: datetime = field(default_factory  =  datetime.now)
-    expiry_date: datetime = field(default_factory  =  lambda: datetime.now() + timedelta(days = 30))
-    last_update: datetime = field(default_factory  =  datetime.now)
+    entry_date: datetime = field(default_factory=datetime.now)
+    expiry_date: datetime = field(default_factory=lambda: datetime.now() + timedelta(days=30))
+    last_update: datetime = field(default_factory=datetime.now)
     
     # Greeks
     net_delta: float = 0.0
@@ -253,7 +253,7 @@ class ProductionDebitSpreads:
         
         # Strategy state
         self.last_scan_time: Optional[datetime] = None
-        self.scan_interval = timedelta(minutes  =  15)
+        self.scan_interval = timedelta(minutes=15)
         
         self.logger.info("Debit Spreads Strategy initialized",
                         max_positions = self.max_positions,
@@ -279,7 +279,7 @@ class ProductionDebitSpreads:
                     continue
             
             # Sort by spread score
-            candidates.sort(key = lambda x: x.spread_score, reverse = True)
+            candidates.sort(key=lambda x: x.spread_score, reverse = True)
             
             self.candidates = candidates[: 10]  # Top 10 candidates
             
@@ -392,7 +392,7 @@ class ProductionDebitSpreads:
                 })
         
         # Sort by profit / loss ratio
-        spreads.sort(key = lambda x: x['profit_loss_ratio'], reverse = True)
+        spreads.sort(key=lambda x: x['profit_loss_ratio'], reverse = True)
         
         return spreads[: 5]  # Top 5 spreads
     

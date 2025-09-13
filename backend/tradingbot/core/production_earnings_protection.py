@@ -50,7 +50,7 @@ class EarningsEvent:
     revenue_actual: Optional[float] = None
     surprise_pct: Optional[float] = None
     guidance_updated: bool = False
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -65,7 +65,7 @@ class IVAnalysis:
     pre_earnings_iv: float
     post_earnings_iv: float
     iv_spike_threshold: float
-    analysis_date: datetime = field(default_factory  =  datetime.now)
+    analysis_date: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -87,8 +87,8 @@ class EarningsPosition:
     vega_exposure: float
     max_loss: float
     max_profit: float
-    entry_date: datetime = field(default_factory  =  datetime.now)
-    last_update: datetime = field(default_factory  =  datetime.now)
+    entry_date: datetime = field(default_factory=datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     status: str = "active"
 
 
@@ -107,7 +107,7 @@ class EarningsCandidate:
     earnings_score: float
     risk_score: float
     strategy_recommended: EarningsStrategy
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 class EarningsDataProvider: 
@@ -126,7 +126,7 @@ class EarningsDataProvider:
                 EarningsEvent(
                     ticker = "AAPL",
                     event_type = EarningsEventType.EARNINGS,
-                    event_date = datetime.now() + timedelta(days = 5),
+                    event_date = datetime.now() + timedelta(days=5),
                     announcement_time = "AMC",
                     fiscal_quarter = "Q1",
                     fiscal_year = 2024,
@@ -136,7 +136,7 @@ class EarningsDataProvider:
                 EarningsEvent(
                     ticker = "MSFT",
                     event_type = EarningsEventType.EARNINGS,
-                    event_date = datetime.now() + timedelta(days = 8),
+                    event_date = datetime.now() + timedelta(days=8),
                     announcement_time = "AMC",
                     fiscal_quarter = "Q1",
                     fiscal_year = 2024,
@@ -146,7 +146,7 @@ class EarningsDataProvider:
                 EarningsEvent(
                     ticker = "GOOGL",
                     event_type = EarningsEventType.EARNINGS,
-                    event_date = datetime.now() + timedelta(days = 12),
+                    event_date = datetime.now() + timedelta(days=12),
                     announcement_time = "AMC",
                     fiscal_quarter = "Q1",
                     fiscal_year = 2024,
@@ -321,7 +321,7 @@ class EarningsProtectionStrategy:
                 candidates.append(candidate)
             
             # Sort by earnings score
-            candidates.sort(key = lambda x: x.earnings_score, reverse = True)
+            candidates.sort(key=lambda x: x.earnings_score, reverse = True)
             
             self.logger.info(f"Found {len(candidates)} earnings protection opportunities")
             return candidates

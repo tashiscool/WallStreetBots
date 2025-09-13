@@ -28,7 +28,7 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         self.tracker = LEAPSTracker()
         
         # Create mock price data with golden cross pattern
-        dates = pd.date_range(start  =  '2024 - 01-01', periods = 250, freq = 'D')
+        dates = pd.date_range(start='2024 - 01-01', periods = 250, freq = 'D')
         np.random.seed(42)
         
         # Create price series with golden cross
@@ -133,7 +133,7 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         # Recent golden cross should give high entry score
         recent_golden_cross = MovingAverageCross(
             cross_type = "golden_cross",
-            cross_date = date.today() - timedelta(days = 15),  # 15 days ago
+            cross_date = date.today() - timedelta(days=15),  # 15 days ago
             days_since_cross = 15,
             sma_50 = 110.0,
             sma_200 = 105.0,
@@ -153,7 +153,7 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         # Recent death cross should give low entry score
         recent_death_cross = MovingAverageCross(
             cross_type = "death_cross",
-            cross_date = date.today() - timedelta(days = 10),
+            cross_date = date.today() - timedelta(days=10),
             days_since_cross = 10,
             sma_50 = 95.0,
             sma_200 = 100.0,
@@ -196,7 +196,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         self.tracker = LEAPSTracker()
         
         # Mock historical data for trend analysis
-        dates = pd.date_range(start  =  '2024 - 01-01', periods = 500, freq = 'D')
+        dates = pd.date_range(start='2024 - 01-01', periods = 500, freq = 'D')
         np.random.seed(42)
         
         # Create secular growth stock pattern
@@ -240,7 +240,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         with patch.object(self.tracker, 'analyze_moving_average_cross') as mock_cross: 
             mock_cross.return_value = MovingAverageCross(
                 cross_type = "golden_cross",
-                cross_date = date.today() - timedelta(days = 25),
+                cross_date = date.today() - timedelta(days=25),
                 days_since_cross = 25,
                 sma_50 = 145.0,
                 sma_200 = 140.0,
@@ -299,7 +299,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         # Death cross should add risk factors
         death_cross_signal = MovingAverageCross(
             cross_type = "death_cross",
-            cross_date = date.today() - timedelta(days = 20),
+            cross_date = date.today() - timedelta(days=20),
             days_since_cross = 20,
             sma_50 = 95.0,
             sma_200 = 100.0,
@@ -330,15 +330,15 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         
         # Valid LEAPS expiries
         valid_leaps = [
-            (today + timedelta(days = 365)).strftime("%Y-%m-%d"),   # 1 year
-            (today + timedelta(days = 500)).strftime("%Y-%m-%d"),   # ~16 months
-            (today + timedelta(days = 730)).strftime("%Y-%m-%d")    # 2 years
+            (today + timedelta(days=365)).strftime("%Y-%m-%d"),   # 1 year
+            (today + timedelta(days=500)).strftime("%Y-%m-%d"),   # ~16 months
+            (today + timedelta(days=730)).strftime("%Y-%m-%d")    # 2 years
         ]
         
         # Invalid expiries (too short)
         invalid_expiries = [
-            (today + timedelta(days = 180)).strftime("%Y-%m-%d"),   # 6 months
-            (today + timedelta(days = 300)).strftime("%Y-%m-%d")    # ~10 months
+            (today + timedelta(days=180)).strftime("%Y-%m-%d"),   # 6 months
+            (today + timedelta(days=300)).strftime("%Y-%m-%d")    # ~10 months
         ]
         
         for expiry in valid_leaps: 
@@ -391,7 +391,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
                 target_return_3y = 80.0,
                 risk_factors = [],
                 ma_cross_signal = MovingAverageCross(
-                    cross_type = "golden_cross", cross_date = date.today()-timedelta(days = 20),
+                    cross_type = "golden_cross", cross_date = date.today()-timedelta(days=20),
                     days_since_cross = 20, sma_50 = 148.0, sma_200 = 145.0,
                     price_above_50sma = True, price_above_200sma = True,
                     cross_strength = 55.0, trend_direction = "bullish"
@@ -448,7 +448,7 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
         position = LEAPSPosition(
             ticker = "TSLA",
             theme = "Electric Mobility",
-            entry_date = date.today() - timedelta(days = 60),
+            entry_date = date.today() - timedelta(days=60),
             expiry_date = "2025 - 06-20",
             strike = 250,
             entry_premium = 25.0,
@@ -471,7 +471,7 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
         # Even with profits, death cross might signal exit
         death_cross_signal = MovingAverageCross(
             cross_type = "death_cross",
-            cross_date = date.today() - timedelta(days = 5),
+            cross_date = date.today() - timedelta(days=5),
             days_since_cross = 5,
             sma_50 = 215.0,
             sma_200 = 225.0,
@@ -497,7 +497,7 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
         position = LEAPSPosition(
             ticker = "NVDA",
             theme = "AI Revolution", 
-            entry_date = date.today() - timedelta(days = 90),
+            entry_date = date.today() - timedelta(days=90),
             expiry_date = "2025 - 01-17",
             strike = 400,
             entry_premium = 30.0,
@@ -520,7 +520,7 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
         # Golden cross continuation - might hold longer
         golden_cross_signal = MovingAverageCross(
             cross_type = "golden_cross",
-            cross_date = date.today() - timedelta(days = 45),
+            cross_date = date.today() - timedelta(days=45),
             days_since_cross = 45,
             sma_50 = 510.0,
             sma_200 = 490.0,
@@ -566,7 +566,7 @@ class TestLEAPSPortfolioManagement(unittest.TestCase):
             risk_factors = ["Recent death cross", "Poor entry timing"],
             ma_cross_signal = MovingAverageCross(
                 cross_type = "death_cross",
-                cross_date = date.today() - timedelta(days = 10),
+                cross_date = date.today() - timedelta(days=10),
                 days_since_cross = 10,
                 sma_50 = 295.0,
                 sma_200 = 305.0,
@@ -613,7 +613,7 @@ class TestLEAPSDisplayEnhancements(unittest.TestCase):
         # Golden cross
         golden_cross = MovingAverageCross(
             cross_type = "golden_cross",
-            cross_date = date.today() - timedelta(days = 20),
+            cross_date = date.today() - timedelta(days=20),
             days_since_cross = 20,
             sma_50 = 110.0, sma_200 = 105.0,
             price_above_50sma = True, price_above_200sma = True,
@@ -633,7 +633,7 @@ class TestLEAPSDisplayEnhancements(unittest.TestCase):
         # Death cross
         death_cross = MovingAverageCross(
             cross_type = "death_cross",
-            cross_date = date.today() - timedelta(days = 15),
+            cross_date = date.today() - timedelta(days=15),
             days_since_cross = 15,
             sma_50 = 95.0, sma_200 = 100.0,
             price_above_50sma = False, price_above_200sma = False,
@@ -692,7 +692,7 @@ def run_leaps_tracker_tests():
         test_suite.addTests(tests)
     
     # Run tests
-    runner = unittest.TextTestRunner(verbosity  =  2)
+    runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(test_suite)
     
     # Print summary

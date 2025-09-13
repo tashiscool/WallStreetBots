@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name = 'stockinstance',
             name = 'user',
-            field = models.ForeignKey(help_text  =  'Associated user', on_delete = django.db.models.deletion.CASCADE, to = settings.AUTH_USER_MODEL),
+            field = models.ForeignKey(help_text='Associated user', on_delete = django.db.models.deletion.CASCADE, to = settings.AUTH_USER_MODEL),
         ),
     ]

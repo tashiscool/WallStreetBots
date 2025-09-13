@@ -28,30 +28,30 @@ class TestEndToEndTrading:
         """Create mock trading system for testing"""
         # Mock data provider
         mock_data_provider = Mock()
-        mock_data_provider.is_market_open = AsyncMock(return_value  =  True)
-        mock_data_provider.get_current_price = AsyncMock(return_value  =  Mock(price = Decimal('150.00')))
-        mock_data_provider.get_price_history = AsyncMock(return_value  =  [
+        mock_data_provider.is_market_open = AsyncMock(return_value=True)
+        mock_data_provider.get_current_price = AsyncMock(return_value=Mock(price=Decimal('150.00')))
+        mock_data_provider.get_price_history = AsyncMock(return_value=[
             Decimal('100.00'), Decimal('102.00'), Decimal('105.00'), Decimal('108.00'),
             Decimal('110.00'), Decimal('112.00'), Decimal('115.00'), Decimal('118.00'),
             Decimal('120.00'), Decimal('115.00')  # Dip after run pattern
         ])
-        mock_data_provider.get_volume_history = AsyncMock(return_value  =  [
+        mock_data_provider.get_volume_history = AsyncMock(return_value=[
             1000000, 1100000, 1200000, 1300000, 1400000,
             1500000, 1600000, 1700000, 1800000, 2000000
         ])
-        mock_data_provider.get_options_chain = AsyncMock(return_value  =  [])
+        mock_data_provider.get_options_chain = AsyncMock(return_value=[])
         
         # Mock integration manager
         mock_integration = Mock()
-        mock_integration.get_portfolio_value = AsyncMock(return_value  =  Decimal('100000.00'))
-        mock_integration.execute_trade = AsyncMock(return_value  =  {
+        mock_integration.get_portfolio_value = AsyncMock(return_value=Decimal('100000.00'))
+        mock_integration.execute_trade = AsyncMock(return_value={
             'order_id': 'test_order_123',
             'status': 'FILLED',
             'filled_price': Decimal('5.00'),
             'quantity': 100
         })
-        mock_integration.get_positions = AsyncMock(return_value  =  [])
-        mock_integration.get_portfolio_summary = Mock(return_value  =  {
+        mock_integration.get_positions = AsyncMock(return_value=[])
+        mock_integration.get_portfolio_summary = Mock(return_value={
             'total_value': Decimal('100000.00'),
             'cash': Decimal('50000.00'),
             'positions': []
@@ -63,8 +63,8 @@ class TestEndToEndTrading:
         mock_account.status = 'ACTIVE'
         mock_account.buying_power = Decimal('50000.00')
         mock_account.portfolio_value = Decimal('100000.00')
-        mock_broker.get_account = AsyncMock(return_value  =  mock_account)
-        mock_broker.validate_api = Mock(return_value  =  (True, "API validation successful"))
+        mock_broker.get_account = AsyncMock(return_value=mock_account)
+        mock_broker.validate_api = Mock(return_value=(True, "API validation successful"))
         
         # Set the broker manager on the integration manager
         mock_integration.alpaca_manager = mock_broker
@@ -181,7 +181,7 @@ class TestEndToEndTrading:
         integration = mock_trading_system['integration']
         
         # Mock position reconciliation
-        integration.reconcile_positions = AsyncMock(return_value  =  {
+        integration.reconcile_positions = AsyncMock(return_value={
             'discrepancies': [],
             'requires_intervention': False,
             'timestamp': datetime.now()
@@ -200,7 +200,7 @@ class TestEndToEndTrading:
         integration = mock_trading_system['integration']
         
         # Mock risk validation
-        integration.validate_trade_risk = AsyncMock(return_value  =  {
+        integration.validate_trade_risk = AsyncMock(return_value={
             'approved': True,
             'risk_percentage': 0.15,
             'position_size': Decimal('15000.00')
@@ -245,7 +245,7 @@ class TestEndToEndTrading:
         data_provider.switch_to_backup = AsyncMock()
         
         # Simulate primary source failure
-        data_provider.get_current_price = AsyncMock(side_effect  =  Exception("Primary source failed"))
+        data_provider.get_current_price = AsyncMock(side_effect=Exception("Primary source failed"))
         
         # Switch to backup
         await data_provider.switch_to_backup()
@@ -259,7 +259,7 @@ class TestEndToEndTrading:
         strategy_manager = mock_trading_system['strategy_manager']
         
         # Mock performance metrics
-        strategy_manager.get_performance_metrics = AsyncMock(return_value  =  {
+        strategy_manager.get_performance_metrics = AsyncMock(return_value={
             'total_trades': 10,
             'successful_trades': 8,
             'total_pnl': Decimal('1500.00'),

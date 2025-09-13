@@ -322,7 +322,7 @@ def run_smoke_tests():
         test_suite.addTests(tests)
     
     # Run tests
-    runner = unittest.TextTestRunner(verbosity  =  2)
+    runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(test_suite)
     
     # Print summary

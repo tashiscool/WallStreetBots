@@ -39,7 +39,7 @@ class MovingAverageSharpeRatio(Metric):
         all_prices = pd.DataFrame()
         import datetime
         from datetime import timedelta
-        start = (datetime.datetime.now(datetime.timezone.utc) - timedelta(days = self.past_days)).isoformat()
+        start = (datetime.datetime.now(datetime.timezone.utc) - timedelta(days=self.past_days)).isoformat()
         end = datetime.datetime.now(datetime.timezone.utc).isoformat()
         for stock in self.stocks: 
             prices, _ = self.fetcher.get_past_price(stock, self.timestep, start, end)

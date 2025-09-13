@@ -62,7 +62,7 @@ class VolatilityAnalysis:
     gamma_exposure: float
     options_volume: int
     put_call_ratio: float
-    analysis_date: datetime = field(default_factory  =  datetime.now)
+    analysis_date: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -85,7 +85,7 @@ class LottoOption:
     vega: float
     intrinsic_value: float
     time_value: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -104,7 +104,7 @@ class LottoCandidate:
     recommended_option: Optional[LottoOption] = None
     lotto_score: float = 0.0
     risk_score: float = 0.0
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -125,7 +125,7 @@ class LottoPosition:
     days_to_expiry: int
     max_profit: float
     max_loss: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     status: str = "active"
 
 
@@ -265,7 +265,7 @@ class LottoOptionsProvider:
                     ticker = ticker,
                     option_type = OptionStrategy.CALL,
                     strike_price = strike,
-                    expiry_date = datetime.now() + timedelta(hours = 6),  # 0DTE
+                    expiry_date = datetime.now() + timedelta(hours=6),  # 0DTE
                     days_to_expiry = 0,
                     bid_price = max(0.01, strike * 0.01),
                     ask_price = max(0.02, strike * 0.015),
@@ -287,7 +287,7 @@ class LottoOptionsProvider:
                     ticker = ticker,
                     option_type = OptionStrategy.PUT,
                     strike_price = strike,
-                    expiry_date = datetime.now() + timedelta(hours = 6),  # 0DTE
+                    expiry_date = datetime.now() + timedelta(hours=6),  # 0DTE
                     days_to_expiry = 0,
                     bid_price = max(0.01, strike * 0.01),
                     ask_price = max(0.02, strike * 0.015),
@@ -487,7 +487,7 @@ class LottoScannerStrategy:
                     continue
             
             # Sort by lotto score
-            candidates.sort(key = lambda x: x.lotto_score, reverse = True)
+            candidates.sort(key=lambda x: x.lotto_score, reverse = True)
             
             self.logger.info(f"Found {len(candidates)} lotto opportunities")
             return candidates
@@ -516,7 +516,7 @@ class LottoScannerStrategy:
                 lotto_options = await self.options_provider.get_zero_dte_options(candidate.ticker)
             elif candidate.lotto_type ==  LottoType.EARNINGS_LOTTO: 
                 # Mock earnings date
-                earnings_date = datetime.now() + timedelta(days = 3)
+                earnings_date = datetime.now() + timedelta(days=3)
                 lotto_options = await self.options_provider.get_earnings_options(candidate.ticker, earnings_date)
             else: 
                 lotto_options = await self.options_provider.get_zero_dte_options(candidate.ticker)

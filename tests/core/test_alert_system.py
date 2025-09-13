@@ -300,7 +300,7 @@ class TestExecutionChecklistManager(unittest.TestCase):
         from backend.tradingbot.options_calculator import TradeCalculation
         
         # Mock trade calculation
-        trade_calc = Mock(spec  =  TradeCalculation)
+        trade_calc = Mock(spec=TradeCalculation)
         trade_calc.ticker = "AAPL"
         trade_calc.recommended_contracts = 10
         trade_calc.total_cost = 5000
@@ -512,7 +512,7 @@ def run_alert_system_tests():
         test_suite.addTests(tests)
     
     # Run tests
-    runner = unittest.TextTestRunner(verbosity  =  2)
+    runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(test_suite)
     
     # Print summary

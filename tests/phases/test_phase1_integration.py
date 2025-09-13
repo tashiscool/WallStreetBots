@@ -168,7 +168,7 @@ class TestDataProviders(unittest.TestCase):
         # Mock response
         mock_response = Mock()
         mock_response.status = 200
-        mock_response.json = AsyncMock(return_value  =  {
+        mock_response.json = AsyncMock(return_value={
             'latestPrice': 150.0,
             'change': 2.5,
             'changePercent': 0.0167,
@@ -194,7 +194,7 @@ class TestDataProviders(unittest.TestCase):
         # Mock response
         mock_response = Mock()
         mock_response.status = 200
-        mock_response.json = AsyncMock(return_value  =  [
+        mock_response.json = AsyncMock(return_value=[
             {
                 'symbol': 'AAPL',
                 'date': '2024 - 01-15',
@@ -349,7 +349,7 @@ class TestProductionLogging(unittest.TestCase):
     
     def test_circuit_breaker(self): 
         """Test circuit breaker functionality"""
-        circuit_breaker = CircuitBreaker(failure_threshold  =  2, timeout = 1.0)
+        circuit_breaker = CircuitBreaker(failure_threshold=2, timeout = 1.0)
         
         # Test successful calls
         def success_func(): 
@@ -381,7 +381,7 @@ class TestProductionLogging(unittest.TestCase):
         """Test retry decorator"""
         call_count = 0
         
-        @retry_with_backoff(max_attempts = 3, exceptions = (ValueError,), base_delay = 0.01)
+        @retry_with_backoff(max_attempts=3, exceptions = (ValueError,), base_delay = 0.01)
         def flaky_function(): 
             nonlocal call_count
             call_count += 1

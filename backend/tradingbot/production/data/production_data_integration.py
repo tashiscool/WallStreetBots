@@ -105,7 +105,7 @@ class DataSourceHealth:
     consecutive_failures: int = 0
     success_count: int = 0
     failure_count: int = 0
-    recent_failures: List[datetime] = field(default_factory = list)
+    recent_failures: List[datetime] = field(default_factory=list)
     
 
 class DataProviderError(Exception): 
@@ -180,7 +180,7 @@ class ReliableDataProvider:
         # Check cache first
         if ticker in self.price_cache: 
             cached_data = self.price_cache[ticker]
-            if datetime.now() - cached_data.timestamp  <  timedelta(seconds = self.price_cache_ttl): 
+            if datetime.now() - cached_data.timestamp  <  timedelta(seconds=self.price_cache_ttl): 
                 return cached_data
         
         # Try each data source in order of preference
@@ -219,7 +219,7 @@ class ReliableDataProvider:
         """Get historical market data"""
         try: 
             end_date = datetime.now()
-            start_date = end_date - timedelta(days  =  days)
+            start_date = end_date - timedelta(days=days)
             
             bars = self.alpaca_manager.get_bars(
                 symbol = ticker,
@@ -258,7 +258,7 @@ class ReliableDataProvider:
             cache_key = f"{ticker}_{expiry_date.date() if expiry_date else 'all'}"
             if cache_key in self.options_cache: 
                 cached_data = self.options_cache[cache_key]
-                if cached_data and datetime.now() - cached_data[0].timestamp  <  timedelta(seconds = self.options_cache_ttl): 
+                if cached_data and datetime.now() - cached_data[0].timestamp  <  timedelta(seconds=self.options_cache_ttl): 
                     return cached_data
             
             options_data = []
@@ -434,7 +434,7 @@ class ReliableDataProvider:
                 major_tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX', 
                                'SPY', 'QQQ', 'AMD', 'CRM', 'ORCL', 'IBM', 'INTC']
                 
-                end_date = datetime.now() + timedelta(days = days_ahead)
+                end_date = datetime.now() + timedelta(days=days_ahead)
                 
                 for ticker in major_tickers: 
                     try: 
@@ -500,11 +500,11 @@ class ReliableDataProvider:
             for i, ticker in enumerate(tickers): 
                 # Spread earnings events over the period
                 days_offset = int((days_ahead / len(tickers)) * i) + 1
-                earnings_date = datetime.now() + timedelta(days = days_offset)
+                earnings_date = datetime.now() + timedelta(days=days_offset)
                 
                 # Skip weekends
                 while earnings_date.weekday()  >=  5: 
-                    earnings_date += timedelta(days = 1)
+                    earnings_date += timedelta(days=1)
                 
                 synthetic_event = EarningsEvent(
                     ticker = ticker,
@@ -560,8 +560,8 @@ class ReliableDataProvider:
                 return False
             
             # Check market hours (9: 30 AM - 4: 00 PM ET)
-            market_open = now.replace(hour  =  9, minute = 30, second = 0, microsecond = 0)
-            market_close = now.replace(hour  =  16, minute = 0, second = 0, microsecond = 0)
+            market_open = now.replace(hour=9, minute = 30, second = 0, microsecond = 0)
+            market_close = now.replace(hour=16, minute = 0, second = 0, microsecond = 0)
             
             return market_open  <=  now  <=  market_close
             
@@ -743,7 +743,7 @@ class ReliableDataProvider:
                 try: 
                     import yfinance as yf
                     stock = yf.Ticker(ticker)
-                    hist = stock.history(period  =  "1d", interval = "1m")
+                    hist = stock.history(period="1d", interval = "1m")
                     if not hist.empty: 
                         latest = hist.iloc[-1]
                         return MarketData(
@@ -787,7 +787,7 @@ class ReliableDataProvider:
         # Check timestamp is recent (within last 24 hours)
         now = datetime.now()
         if market_data.timestamp.tzinfo is not None: 
-            now = now.replace(tzinfo  =  market_data.timestamp.tzinfo)
+            now = now.replace(tzinfo=market_data.timestamp.tzinfo)
         if (now - market_data.timestamp).total_seconds()  >  86400: 
             return False
         
@@ -816,7 +816,7 @@ class ReliableDataProvider:
             health.recent_failures.append(datetime.now())
             
             # Keep only recent failures (last hour)
-            cutoff_time = datetime.now() - timedelta(hours = 1)
+            cutoff_time = datetime.now() - timedelta(hours=1)
             health.recent_failures = [f for f in health.recent_failures if f  >  cutoff_time]
             
             # Disable source if failure rate is too high

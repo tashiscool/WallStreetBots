@@ -196,8 +196,8 @@ class ProductionTradingRunner:
             
             # Start production trading
             paper_trading = self.args.paper
-            self.logger.info(f"Starting production trading (paper = {paper_trading})...")
-            if not await phase4_manager.start_production_trading(paper_trading = paper_trading): 
+            self.logger.info(f"Starting production trading (paper={paper_trading})...")
+            if not await phase4_manager.start_production_trading(paper_trading=paper_trading): 
                 raise ValueError("Failed to start production trading")
             
             # Run until interrupted
@@ -308,14 +308,14 @@ Examples:
     )
     
     # Trading mode
-    mode_group = parser.add_mutually_exclusive_group(required  =  True)
+    mode_group = parser.add_mutually_exclusive_group(required=True)
     mode_group.add_argument('--paper', action = 'store_true',
                            help = 'Run in paper trading mode (safe)')
     mode_group.add_argument('--live', action = 'store_true',
                            help = 'Run with real money (DANGEROUS)')
     
     # Strategy selection
-    strategy_group = parser.add_mutually_exclusive_group(required  =  True)
+    strategy_group = parser.add_mutually_exclusive_group(required=True)
     strategy_group.add_argument('--strategies', type = str,
                                help = 'Comma - separated list of strategies: wheel,debit_spreads,spx_spreads (wsb_dip_bot not yet in production)')
     strategy_group.add_argument('--phase', type = int, choices = [2, 3, 4],

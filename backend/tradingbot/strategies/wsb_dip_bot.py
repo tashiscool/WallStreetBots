@@ -152,24 +152,24 @@ def implied_vol_call(market_px: float, spot: float, strike: float, t: float, r: 
 
 def fetch_daily_history(ticker: str, period: str = "120d")->pd.DataFrame:
     tkr = yf.Ticker(ticker)
-    df = tkr.history(period  =  period, interval = "1d", auto_adjust = False)
+    df = tkr.history(period=period, interval = "1d", auto_adjust = False)
     if df is None or df.empty: 
         raise RuntimeError(f"No daily history for {ticker}")
     return df.dropna()
 
 def fetch_intraday_last_and_prior_close(ticker: str)->Optional[Dict[str, float]]: 
     tkr = yf.Ticker(ticker)
-    dailies = tkr.history(period  =  "7d", interval = "1d")
+    dailies = tkr.history(period="7d", interval = "1d")
     if dailies is None or len(dailies)  <  2: 
         return None
     prior_close = float(dailies["Close"].iloc[-2])
-    intraday = tkr.history(period  =  "2d", interval = "5m")
+    intraday = tkr.history(period="2d", interval = "5m")
     if intraday is None or intraday.empty: 
         return None
     last = float(intraday["Close"].iloc[-1])
     return {"last": last, "prior_close": prior_close}
 
-@retry(tries = 3, delay = 1.0, exceptions = (Exception,))
+@retry(tries=3, delay = 1.0, exceptions = (Exception,))
 def get_option_mid_for_nearest_5pct_otm(ticker: str, expiry: str, desired_strike: float)->Optional[Dict[str, float]]: 
     tkr = yf.Ticker(ticker)
     chain = tkr.option_chain(expiry)
@@ -277,7 +277,7 @@ def build_exact_plan(ticker: str, spot: float, account_size: float, risk_pct: fl
     if expiries: 
         expiry = nearest_expiry(expiries, target_dte_days)
     else: 
-        expiry = (date.today() + timedelta(days = target_dte_days)).isoformat()
+        expiry = (date.today() + timedelta(days=target_dte_days)).isoformat()
     # Desired strike ≈ 5% OTM
     desired_strike = round_to_increment(spot * (1.0 + otm_pct), 1.0)
     # Price via chain or fallback via BS
@@ -336,7 +336,7 @@ def monitor_plan(ticker: str, expiry: str, strike: float, entry_prem: float,
     - approx delta  >=  delta_target (via BS using IV implied from current mid if possible)
     - price  <=  loss_stop_mult * entry_prem (stop)
     """
-    end_time = now_ny() + timedelta(minutes = max_minutes) if max_minutes  >  0 else None
+    end_time = now_ny() + timedelta(minutes=max_minutes) if max_minutes  >  0 else None
     tkr = yf.Ticker(ticker)
     target_px = target_mult * entry_prem
     stop_px = loss_stop_mult * entry_prem
@@ -371,11 +371,11 @@ def monitor_plan(ticker: str, expiry: str, strike: float, entry_prem: float,
             t = dte_days / 365.0
 
             # Try to estimate IV from mid; then delta
-            iv = implied_vol_call(market_px  =  mid_per_share, spot = spot, strike = strike, t = t, r = 0.04, q = 0.0) or 0.30
+            iv = implied_vol_call(market_px=mid_per_share, spot = spot, strike = strike, t = t, r = 0.04, q = 0.0) or 0.30
             delta = bs_delta_call(spot, strike, t, r = 0.04, q = 0.0, iv = iv)
 
             timestamp = now_ny().strftime('%H: %M:%S')
-            print(f"[{timestamp}] spot = {spot: .2f} mid  =  {mid: .2f} (bid = {bid * 100: .2f}/ask  =  {ask * 100: .2f}) IV≈{iv: .2%} Δ≈{delta: .2f}")
+            print(f"[{timestamp}] spot = {spot: .2f} mid = {mid: .2f} (bid={bid * 100: .2f}/ask = {ask * 100: .2f}) IV≈{iv: .2%} Δ≈{delta: .2f}")
 
             if mid  >=  target_px: 
                 print(f"[TAKE - PROFIT] Target hit: ${mid:.2f} ≥ ${target_px: .2f}")
@@ -401,12 +401,12 @@ def write_outputs(signals: List[DipSignal], plans: List[OptionPlan], out_prefix:
         df_s = pd.DataFrame([asdict(s) for s in signals])
         df_s.to_csv(f"{out_prefix}_signals.csv", index = False)
         with open(f"{out_prefix}_signals.json", "w") as f: 
-            json.dump(df_s.to_dict(orient = "records"), f, indent = 2)
+            json.dump(df_s.to_dict(orient="records"), f, indent = 2)
     if plans: 
         df_p = pd.DataFrame([asdict(p) for p in plans])
         df_p.to_csv(f"{out_prefix}_plans.csv", index = False)
         with open(f"{out_prefix}_plans.json", "w") as f: 
-            json.dump(df_p.to_dict(orient = "records"), f, indent = 2)
+            json.dump(df_p.to_dict(orient="records"), f, indent = 2)
 
 
 # -------------------------- Subcommand Runners --------------------------
@@ -433,7 +433,7 @@ def run_scan_eod(universe: List[str], account_size: float, risk_pct: float, use_
 def run_scan_intraday(universe: List[str], account_size: float, risk_pct: float, use_chain: bool,
                       run_lookback: int, run_pct: float, dip_pct: float,
                       poll_seconds: int, max_minutes: int, out_prefix: str)->None:
-    end_time = now_ny() + timedelta(minutes = max_minutes) if max_minutes  >  0 else None
+    end_time = now_ny() + timedelta(minutes=max_minutes) if max_minutes  >  0 else None
     seen: set[str] = set()
     hits_all, plans_all = [], []
     while True: 
@@ -470,8 +470,8 @@ def run_monitor_one(**kwargs)->None:
 # -------------------------- CLI --------------------------
 
 def parse_args()->argparse.Namespace: 
-    p = argparse.ArgumentParser(description  =  "WSB Dip - after-Run Scanner / Planner/Monitor")
-    sub = p.add_subparsers(dest  =  "cmd", required = True)
+    p = argparse.ArgumentParser(description="WSB Dip - after-Run Scanner / Planner/Monitor")
+    sub = p.add_subparsers(dest="cmd", required = True)
 
     # scan - eod
     se = sub.add_parser("scan - eod", help = "End - of-day scan across universe")

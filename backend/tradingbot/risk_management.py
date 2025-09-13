@@ -42,7 +42,7 @@ class RiskParameters:
     kelly_multiplier: float = 0.25              # Use quarter Kelly for safety
 
     # Position sizing tiers
-    risk_tiers: Dict[str, float] = field(default_factory = lambda: {
+    risk_tiers: Dict[str, float] = field(default_factory=lambda: {
         'conservative': 0.05,    # 5% risk for uncertain setups
         'moderate': 0.10,        # 10% risk for solid setups
         'aggressive': 0.15       # 15% risk for high - conviction setups
@@ -50,7 +50,7 @@ class RiskParameters:
 
     # Stop loss and take profit levels
     max_loss_per_position: float = 0.50         # Stop at 50% loss
-    profit_take_levels: List[float] = field(default_factory = lambda: [1.0, 2.0, 2.5])  # 100%, 200%, 250%
+    profit_take_levels: List[float] = field(default_factory=lambda: [1.0, 2.0, 2.5])  # 100%, 200%, 250%
     trailing_stop_trigger: float = 1.0          # Start trailing after 100% gain
     trailing_stop_distance: float = 0.25        # Trail 25% behind peak
 
@@ -131,8 +131,8 @@ class PortfolioRisk:
     risk_utilization: float = 0.0       # % of account at risk
 
     # Concentration metrics
-    ticker_concentrations: Dict[str, float] = field(default_factory = dict)
-    sector_concentrations: Dict[str, float] = field(default_factory = dict)
+    ticker_concentrations: Dict[str, float] = field(default_factory=dict)
+    sector_concentrations: Dict[str, float] = field(default_factory=dict)
 
     def __post_init__(self): 
         self.cash_utilization = self.total_positions_value / self.account_value if self.account_value  >  0 else 0
@@ -545,7 +545,7 @@ if __name__ ==  "__main__": # Test the risk management system
         ticker = "GOOGL",
         position_type = "call",
         entry_date = datetime.now(),
-        expiry_date = datetime.now() + timedelta(days = 30),
+        expiry_date = datetime.now() + timedelta(days=30),
         strike = 220.0,
         contracts = 950,
         entry_premium = 4.70,

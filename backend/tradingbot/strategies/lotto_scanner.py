@@ -94,7 +94,7 @@ class LottoScanner:
         # Find next available 0DTE date
         days_ahead = 1
         while days_ahead  <=  7: 
-            next_date = today + timedelta(days  =  days_ahead)
+            next_date = today + timedelta(days=days_ahead)
             if next_date.weekday() in [0, 2, 4]: 
                 return next_date.strftime("%Y-%m-%d")
             days_ahead += 1
@@ -108,14 +108,14 @@ class LottoScanner:
         if days_until_friday ==  0:  # If today is Friday
             days_until_friday = 7
         
-        friday = today + timedelta(days  =  days_until_friday)
+        friday = today + timedelta(days=days_until_friday)
         return friday.strftime("%Y-%m-%d")
     
     def estimate_expected_move(self, ticker: str, expiry: str)->float:
         """Estimate expected move from implied volatility"""
         try: 
             stock = yf.Ticker(ticker)
-            spot = stock.history(period  =  "1d")['Close'].iloc[-1]
+            spot = stock.history(period="1d")['Close'].iloc[-1]
             
             # Get options chain to estimate IV
             chain = stock.option_chain(expiry)
@@ -154,7 +154,7 @@ class LottoScanner:
         # Fallback based on historical volatility
         try: 
             stock = yf.Ticker(ticker)
-            hist = stock.history(period  =  "30d")
+            hist = stock.history(period="30d")
             if len(hist)  >=  20: 
                 returns = hist['Close'].pct_change().dropna()
                 daily_vol = returns.std()
@@ -186,7 +186,7 @@ class LottoScanner:
         
         for earning in mock_earnings: 
             if earning["days_out"]  <=  weeks_ahead * 7: 
-                earnings_date = today + timedelta(days  =  earning["days_out"])
+                earnings_date = today + timedelta(days=earning["days_out"])
                 
                 try: 
                     stock = yf.Ticker(earning["ticker"])
@@ -228,7 +228,7 @@ class LottoScanner:
         for ticker in liquid_tickers: 
             try: 
                 stock = yf.Ticker(ticker)
-                spot = stock.history(period  =  "1d")['Close'].iloc[-1]
+                spot = stock.history(period="1d")['Close'].iloc[-1]
                 
                 # Check if ticker has options on this expiry
                 try: 
@@ -352,7 +352,7 @@ class LottoScanner:
         for event in earnings_events: 
             try: 
                 stock = yf.Ticker(event.ticker)
-                spot = stock.history(period  =  "1d")['Close'].iloc[-1]
+                spot = stock.history(period="1d")['Close'].iloc[-1]
                 
                 # Find expiry closest to earnings (weekly or monthly)
                 target_date = event.earnings_date
@@ -511,7 +511,7 @@ class LottoScanner:
 
 
 def main(): 
-    parser = argparse.ArgumentParser(description  =  "0DTE / Earnings Lotto Scanner")
+    parser = argparse.ArgumentParser(description="0DTE / Earnings Lotto Scanner")
     parser.add_argument('command', choices = ['0dte', 'earnings', 'both'],
                        help = 'Type of lotto scan')
     parser.add_argument('--account - size', type = float, required = True,

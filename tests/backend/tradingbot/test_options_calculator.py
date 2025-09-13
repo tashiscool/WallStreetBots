@@ -650,7 +650,7 @@ class TestOptionsSetup(unittest.TestCase):
         setup = OptionsSetup(
             ticker = "AAPL",
             entry_date = date.today(),
-            expiry_date = date.today() + timedelta(days = 30),
+            expiry_date = date.today() + timedelta(days=30),
             strike = 160.0,
             spot_at_entry = 150.0,
             premium_paid = 8.50,
@@ -673,7 +673,7 @@ class TestOptionsSetup(unittest.TestCase):
         itm_setup = OptionsSetup(
             ticker = "GOOGL",
             entry_date = date.today(),
-            expiry_date = date.today() + timedelta(days = 30),
+            expiry_date = date.today() + timedelta(days=30),
             strike = 140.0,
             spot_at_entry = 150.0,  # $10 ITM
             premium_paid = 15.00,
@@ -688,7 +688,7 @@ class TestOptionsSetup(unittest.TestCase):
         otm_setup = OptionsSetup(
             ticker = "TSLA",
             entry_date = date.today(),
-            expiry_date = date.today() + timedelta(days = 30),
+            expiry_date = date.today() + timedelta(days=30),
             strike = 210.0,
             spot_at_entry = 200.0,  # $10 OTM
             premium_paid = 5.00,
@@ -704,7 +704,7 @@ class TestOptionsSetup(unittest.TestCase):
         setup = OptionsSetup(
             ticker = "SPY",
             entry_date = date.today(),
-            expiry_date = date.today() + timedelta(days = 30),
+            expiry_date = date.today() + timedelta(days=30),
             strike = 420.0,
             spot_at_entry = 410.0,
             premium_paid = 6.00,
@@ -713,12 +713,12 @@ class TestOptionsSetup(unittest.TestCase):
         
         # Test at different spot prices
         # ITM scenario
-        pnl_itm = setup.calculate_pnl(current_spot  =  430.0, current_premium = 12.00)
+        pnl_itm = setup.calculate_pnl(current_spot=430.0, current_premium = 12.00)
         expected_pnl_itm = 15 * (12.00 - 6.00) * 100  # 15 contracts * $6 gain * 100
         self.assertEqual(pnl_itm, expected_pnl_itm)
         
         # Loss scenario
-        pnl_loss = setup.calculate_pnl(current_spot  =  415.0, current_premium = 3.00)
+        pnl_loss = setup.calculate_pnl(current_spot=415.0, current_premium = 3.00)
         expected_pnl_loss = 15 * (3.00 - 6.00) * 100  # 15 contracts * $3 loss * 100
         self.assertEqual(pnl_loss, expected_pnl_loss)
 
@@ -843,7 +843,7 @@ def run_options_calculator_tests():
         test_suite.addTests(tests)
     
     # Run tests
-    runner = unittest.TextTestRunner(verbosity  =  2)
+    runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(test_suite)
     
     # Print summary

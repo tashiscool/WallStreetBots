@@ -248,7 +248,7 @@ class Phase1Demo:
         
         try: 
             # Test circuit breaker
-            circuit_breaker = CircuitBreaker(failure_threshold  =  3, timeout = 5.0)
+            circuit_breaker = CircuitBreaker(failure_threshold=3, timeout = 5.0)
             
             def flaky_function(): 
                 import random

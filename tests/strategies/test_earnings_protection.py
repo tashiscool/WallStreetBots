@@ -31,7 +31,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         self.mock_earnings_event = EarningsEvent(
             ticker = "AAPL",
             company_name = "Apple Inc.",
-            earnings_date = date.today() + timedelta(days = 3),
+            earnings_date = date.today() + timedelta(days=3),
             earnings_time = "AMC",
             days_until_earnings = 3,
             current_price = 150.0,
@@ -100,7 +100,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         high_iv_event = EarningsEvent(
             ticker = "TSLA",
             company_name = "Tesla",
-            earnings_date = date.today() + timedelta(days = 2),
+            earnings_date = date.today() + timedelta(days=2),
             earnings_time = "AMC",
             days_until_earnings = 2,
             current_price = 200.0,
@@ -158,8 +158,8 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             back_calls['ask'] = back_calls['ask'] + 1.0
             
             mock_ticker.option_chain.side_effect = [
-                Mock(calls = front_calls, puts = pd.DataFrame()),  # Front month
-                Mock(calls = back_calls, puts = pd.DataFrame())    # Back month
+                Mock(calls=front_calls, puts = pd.DataFrame()),  # Front month
+                Mock(calls=back_calls, puts = pd.DataFrame())    # Back month
             ]
             mock_ticker.options = ['2024 - 12-06', '2024 - 12-20']  # Before and after earnings
             
@@ -207,7 +207,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             ticker = "AAPL",
             strategy_name = "Deep ITM Call $130",
             strategy_type = "deep_itm",
-            earnings_date = date.today() + timedelta(days = 3),
+            earnings_date = date.today() + timedelta(days=3),
             strikes = [130],
             expiry_dates = ['2024 - 12-15'],
             option_types = ['call'],
@@ -229,7 +229,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             ticker = "AAPL", 
             strategy_name = "Calendar Spread $150",
             strategy_type = "calendar_spread",
-            earnings_date = date.today() + timedelta(days = 3),
+            earnings_date = date.today() + timedelta(days=3),
             strikes = [150, 150],
             expiry_dates = ['2024 - 12-06', '2024 - 12-20'],
             option_types = ['call', 'call'],
@@ -251,7 +251,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             ticker = "AAPL",
             strategy_name = "Protective Hedge 157.5C / 142.5P", 
             strategy_type = "protective_hedge",
-            earnings_date = date.today() + timedelta(days = 3),
+            earnings_date = date.today() + timedelta(days=3),
             strikes = [157.5, 142.5],
             expiry_dates = ['2024 - 12-15', '2024 - 12-15'],
             option_types = ['call', 'put'],
@@ -272,7 +272,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         strategies = [deep_itm, calendar_spread, protective_hedge]
         
         # Sort by IV sensitivity (lower is better for earnings)
-        strategies.sort(key = lambda x: x.iv_sensitivity)
+        strategies.sort(key=lambda x: x.iv_sensitivity)
         
         # Calendar spread should be most protected (lowest IV sensitivity)
         self.assertEqual(strategies[0].strategy_type, "calendar_spread")
@@ -324,7 +324,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
         high_iv_event = EarningsEvent(
             ticker = "NVDA",
             company_name = "NVIDIA",
-            earnings_date = date.today() + timedelta(days = 1),
+            earnings_date = date.today() + timedelta(days=1),
             earnings_time = "AMC",
             days_until_earnings = 1,
             current_price = 500.0,
@@ -368,7 +368,7 @@ class TestEarningsProtectionScanner(unittest.TestCase):
             ticker = "AAPL",
             strategy_name = "Calendar Spread $150",
             strategy_type = "calendar_spread",
-            earnings_date = date.today() + timedelta(days = 3),
+            earnings_date = date.today() + timedelta(days=3),
             strikes = [150, 150],
             expiry_dates = ['2024 - 12-06', '2024 - 12-20'],
             option_types = ['call', 'call'],
@@ -477,7 +477,7 @@ def run_earnings_protection_tests():
         test_suite.addTests(tests)
     
     # Run tests
-    runner = unittest.TextTestRunner(verbosity  =  2)
+    runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(test_suite)
     
     # Print summary

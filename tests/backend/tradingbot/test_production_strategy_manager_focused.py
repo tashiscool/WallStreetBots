@@ -115,7 +115,7 @@ def test_create_strategy_method_exists():
         manager = ProductionStrategyManager(config)
         
         # Test unknown strategy
-        strategy_config = StrategyConfig(name  =  "unknown_strategy", enabled = True)
+        strategy_config = StrategyConfig(name="unknown_strategy", enabled = True)
         result = manager._create_strategy("unknown_strategy", strategy_config)
         
         # Should return None for unknown strategies
@@ -161,8 +161,8 @@ async def test_async_methods_exist():
         from unittest.mock import AsyncMock
         
         # Mock the async methods properly
-        manager.integration_manager.get_portfolio_value = AsyncMock(return_value  =  50000.0)
-        manager.data_provider.is_market_open = AsyncMock(return_value  =  True)
+        manager.integration_manager.get_portfolio_value = AsyncMock(return_value=50000.0)
+        manager.data_provider.is_market_open = AsyncMock(return_value=True)
         
         # This should not raise an exception
         result = await manager._validate_system_state()
@@ -204,7 +204,7 @@ def test_strategy_factory_methods_mapping():
         
         # Test each expected strategy
         for strategy_name in expected_strategies: 
-            strategy_config = StrategyConfig(name  =  strategy_name, enabled = True)
+            strategy_config = StrategyConfig(name=strategy_name, enabled = True)
             
             # Reset mock call count
             mock_create.reset_mock()

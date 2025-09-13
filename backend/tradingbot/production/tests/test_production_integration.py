@@ -98,8 +98,8 @@ class TestProductionIntegration:
         
         # Mock Django model creation
         with patch('backend.tradingbot.production.core.production_integration.Order') as mock_order: 
-            mock_order.objects.get_or_create.return_value = (Mock(id  =  1), True)
-            mock_order.objects.create.return_value = Mock(id  =  1)
+            mock_order.objects.get_or_create.return_value = (Mock(id=1), True)
+            mock_order.objects.create.return_value = Mock(id=1)
             
             # Execute trade
             result = await production_integration.execute_trade(signal)
@@ -238,8 +238,8 @@ class TestProductionIntegration:
         production_integration.active_positions["MSFT_test_strategy"] = position2
         
         # Add test trades
-        trade1 = ProductionTrade(id  =  "trade1", strategy_name = "test_strategy")
-        trade2 = ProductionTrade(id  =  "trade2", strategy_name = "test_strategy")
+        trade1 = ProductionTrade(id="trade1", strategy_name = "test_strategy")
+        trade2 = ProductionTrade(id="trade2", strategy_name = "test_strategy")
         production_integration.active_trades["trade1"] = trade1
         production_integration.active_trades["trade2"] = trade2
         
@@ -261,8 +261,8 @@ class TestProductionStrategyWrapper:
     def mock_integration(self): 
         """Mock ProductionIntegrationManager"""
         mock_integration = Mock()
-        mock_integration.get_portfolio_value = AsyncMock(return_value  =  Decimal('100000.00'))
-        mock_integration.get_current_price = AsyncMock(return_value  =  Decimal('150.00'))
+        mock_integration.get_portfolio_value = AsyncMock(return_value=Decimal('100000.00'))
+        mock_integration.get_current_price = AsyncMock(return_value=Decimal('150.00'))
         mock_integration.execute_trade = AsyncMock()
         mock_integration.active_positions = {}
         mock_integration.alert_system = Mock()
@@ -479,7 +479,7 @@ class TestProductionManager:
         """Mock ProductionIntegrationManager"""
         mock_manager = Mock()
         mock_manager.alpaca_manager.validate_api.return_value = (True, "OK")
-        mock_manager.get_portfolio_value = AsyncMock(return_value  =  Decimal('100000.00'))
+        mock_manager.get_portfolio_value = AsyncMock(return_value=Decimal('100000.00'))
         mock_manager.monitor_positions = AsyncMock()
         mock_manager.get_portfolio_summary.return_value = {
             'total_positions': 0,
@@ -496,7 +496,7 @@ class TestProductionManager:
     def mock_data_provider(self): 
         """Mock ProductionDataProvider"""
         mock_provider = Mock()
-        mock_provider.is_market_open = AsyncMock(return_value  =  True)
+        mock_provider.is_market_open = AsyncMock(return_value=True)
         mock_provider.clear_cache = Mock()
         mock_provider.get_cache_stats.return_value = {
             'price_cache_size': 0,
@@ -568,8 +568,8 @@ class TestProductionIntegrationFlow:
                         mock_alpaca.return_value.market_buy.return_value = {'id': 'test_order', 'filled_avg_price': 150.0}
                         mock_risk.return_value.validate_position.return_value = {'allowed': True, 'reason': 'OK'}
                         mock_alerts.return_value.send_alert = AsyncMock()
-                        mock_order.objects.get_or_create.return_value = (Mock(id  =  1), True)
-                        mock_order.objects.create.return_value = Mock(id  =  1)
+                        mock_order.objects.get_or_create.return_value = (Mock(id=1), True)
+                        mock_order.objects.create.return_value = Mock(id=1)
                         
                         # Create integration manager
                         integration = ProductionIntegrationManager(

@@ -39,8 +39,8 @@ class WheelPosition:
     option_type: Optional[str] = None  # "put" or "call"
     
     # Tracking
-    entry_date: datetime = field(default_factory  =  datetime.now)
-    total_premium_collected: Decimal = field(default_factory  =  lambda: Decimal('0'))
+    entry_date: datetime = field(default_factory=datetime.now)
+    total_premium_collected: Decimal = field(default_factory=lambda: Decimal('0'))
     cycle_number: int = 1
     annualized_return: Optional[Decimal] = None
 
@@ -269,7 +269,7 @@ class ProductionWheelStrategy:
                     candidates.append(candidate)
             
             # Sort by best opportunities (highest annualized return with good risk metrics)
-            candidates.sort(key = lambda x: x.annualized_return, reverse = True)
+            candidates.sort(key=lambda x: x.annualized_return, reverse = True)
             
             # Generate signals for top candidates
             max_new_positions = self.max_positions - len(self.positions)

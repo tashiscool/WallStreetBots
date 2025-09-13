@@ -176,7 +176,7 @@ class LEAPSTracker:
         """Analyze golden cross / death cross signals"""
         try: 
             stock = yf.Ticker(ticker)
-            hist = stock.history(period  =  "1y")
+            hist = stock.history(period="1y")
             
             if len(hist)  <  250: 
                 return MovingAverageCross(
@@ -241,7 +241,7 @@ class LEAPSTracker:
                 if prev_50  <=  prev_200 and curr_50  >  curr_200: 
                     cross_type = "golden_cross"
                     days_ago = len(recent_50) - i - 1
-                    cross_date = date.today() - timedelta(days = days_ago)
+                    cross_date = date.today() - timedelta(days=days_ago)
                     days_since_cross = days_ago
                     
                     # Calculate strength based on separation and volume
@@ -252,7 +252,7 @@ class LEAPSTracker:
                 elif prev_50  >=  prev_200 and curr_50  <  curr_200: 
                     cross_type = "death_cross"
                     days_ago = len(recent_50) - i - 1
-                    cross_date = date.today() - timedelta(days = days_ago)
+                    cross_date = date.today() - timedelta(days=days_ago)
                     days_since_cross = days_ago
                     
                     # Calculate strength
@@ -359,7 +359,7 @@ class LEAPSTracker:
             stock = yf.Ticker(ticker)
             
             # Get historical data
-            hist = stock.history(period  =  "2y")
+            hist = stock.history(period="2y")
             if len(hist)  <  250: 
                 return 50.0, 50.0, 50.0, 50.0
             
@@ -507,7 +507,7 @@ class LEAPSTracker:
                 pass
             
             # Fallback: rough estimate
-            current_price = stock.history(period  =  "1d")['Close'].iloc[-1]
+            current_price = stock.history(period="1d")['Close'].iloc[-1]
             days_to_exp = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
             
             # Rough LEAPS pricing model
@@ -538,7 +538,7 @@ class LEAPSTracker:
                     stock = yf.Ticker(ticker)
                     
                     # Get current price and company info
-                    hist = stock.history(period  =  "1d")
+                    hist = stock.history(period="1d")
                     if hist.empty: 
                         continue
                         
@@ -631,7 +631,7 @@ class LEAPSTracker:
                     continue
         
         # Sort by composite score
-        candidates.sort(key = lambda x: x.composite_score, reverse = True)
+        candidates.sort(key=lambda x: x.composite_score, reverse = True)
         return candidates
     
     def update_positions(self): 
@@ -641,7 +641,7 @@ class LEAPSTracker:
         for pos in self.positions: 
             try: 
                 stock = yf.Ticker(pos.ticker)
-                current_price = stock.history(period  =  "1d")['Close'].iloc[-1]
+                current_price = stock.history(period="1d")['Close'].iloc[-1]
                 
                 # Try to get current option price
                 try: 
@@ -795,7 +795,7 @@ class LEAPSTracker:
 
 
 def main(): 
-    parser = argparse.ArgumentParser(description  =  "LEAPS Secular Winners Tracker")
+    parser = argparse.ArgumentParser(description="LEAPS Secular Winners Tracker")
     parser.add_argument('command', choices = ['scan', 'portfolio', 'update'],
                        help = 'Command to execute')
     parser.add_argument('--output', choices = ['json', 'text'], default = 'text',
@@ -821,7 +821,7 @@ def main():
         
         # Sort by timing score if requested
         if args.sort_by_timing: 
-            candidates.sort(key = lambda x: x.entry_timing_score, reverse = True)
+            candidates.sort(key=lambda x: x.entry_timing_score, reverse = True)
         
         if args.save_csv: 
             with open(args.save_csv, 'w', newline = '') as csvfile: 

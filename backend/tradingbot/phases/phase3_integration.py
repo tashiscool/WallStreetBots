@@ -30,7 +30,7 @@ class Phase3StrategyStatus:
     active_positions: int
     total_pnl: float
     total_exposure: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -42,7 +42,7 @@ class Phase3PortfolioSummary:
     total_pnl: float
     total_exposure: float
     risk_alerts: List[str]
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 class Phase3StrategyManager: 

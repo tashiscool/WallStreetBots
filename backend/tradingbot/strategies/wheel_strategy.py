@@ -137,7 +137,7 @@ class WheelStrategy:
         """Calculate IV rank based on historical volatility"""
         try: 
             stock = yf.Ticker(ticker)
-            hist = stock.history(period  =  "1y")
+            hist = stock.history(period="1y")
             
             if len(hist)  <  252: 
                 return 50.0
@@ -226,7 +226,7 @@ class WheelStrategy:
             stock = yf.Ticker(ticker)
             
             # Check recent volume
-            hist = stock.history(period  =  "5d")
+            hist = stock.history(period="5d")
             if hist.empty: 
                 return 20.0
             
@@ -317,8 +317,8 @@ class WheelStrategy:
         
         # Find first day of month and its weekday
         first_day = date(year, month, 1)
-        first_friday = first_day + timedelta(days  =  (4 - first_day.weekday()) % 7)
-        third_friday = first_friday + timedelta(days  =  14)  # Add 2 weeks
+        first_friday = first_day + timedelta(days=(4 - first_day.weekday()) % 7)
+        third_friday = first_friday + timedelta(days=14)  # Add 2 weeks
         
         if third_friday  <=  today: 
             # Move to next month
@@ -329,8 +329,8 @@ class WheelStrategy:
                 month += 1
             
             first_day = date(year, month, 1)
-            first_friday = first_day + timedelta(days  =  (4 - first_day.weekday()) % 7)
-            third_friday = first_friday + timedelta(days  =  14)
+            first_friday = first_day + timedelta(days=(4 - first_day.weekday()) % 7)
+            third_friday = first_friday + timedelta(days=14)
         
         return third_friday.strftime("%Y-%m-%d")
     
@@ -344,7 +344,7 @@ class WheelStrategy:
         for ticker in self.wheel_candidates: 
             try: 
                 stock = yf.Ticker(ticker)
-                hist = stock.history(period  =  "1d")
+                hist = stock.history(period="1d")
                 
                 if hist.empty: 
                     continue
@@ -458,7 +458,7 @@ class WheelStrategy:
         for pos in self.positions: 
             try: 
                 stock = yf.Ticker(pos.ticker)
-                current_price = stock.history(period  =  "1d")['Close'].iloc[-1]
+                current_price = stock.history(period="1d")['Close'].iloc[-1]
                 pos.current_price = current_price
                 
                 if pos.position_type  ==  "assigned_shares": # Calculate unrealized P & L on shares
@@ -579,7 +579,7 @@ class WheelStrategy:
 
 
 def main(): 
-    parser = argparse.ArgumentParser(description  =  "Wheel Strategy Scanner")
+    parser = argparse.ArgumentParser(description="Wheel Strategy Scanner")
     parser.add_argument('command', choices = ['scan', 'portfolio', 'update'],
                        help = 'Command to execute')
     parser.add_argument('--output', choices = ['json', 'text'], default = 'text',

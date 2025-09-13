@@ -18,17 +18,17 @@ def sync_database_company_stock(ticker):
         returns the stock and company
     """
     from backend.tradingbot.models import Company, Stock
-    if not Company.objects.filter(ticker = ticker).exists(): 
+    if not Company.objects.filter(ticker=ticker).exists(): 
         # add Company
-        company = Company(name  =  ticker, ticker = ticker)
+        company = Company(name=ticker, ticker = ticker)
         company.save()
         # add Stock
-        stock = Stock(company  =  company)
+        stock = Stock(company=company)
         stock.save()
         print(f"added {ticker} to Company and Stock")
     else: 
-        company = Company.objects.get(ticker  =  ticker)
-        stock = Stock.objects.get(company  =  company)
+        company = Company.objects.get(ticker=ticker)
+        stock = Stock.objects.get(company=company)
     return stock, company
 
 
@@ -38,13 +38,13 @@ def sync_stock_instance(user, portfolio, stock):
         add it to the database
     """
     from backend.tradingbot.models import StockInstance
-    if not StockInstance.objects.filter(user = user, portfolio = portfolio, stock = stock).exists(): 
+    if not StockInstance.objects.filter(user=user, portfolio = portfolio, stock = stock).exists(): 
         # add Stock Instance
-        stock_instance = StockInstance(user  =  user, portfolio = portfolio, stock = stock, quantity = 0)
+        stock_instance = StockInstance(user=user, portfolio = portfolio, stock = stock, quantity = 0)
         stock_instance.save()
         print(f"added {stock} to Watchlist")
     else: 
-        stock_instance = StockInstance.objects.get(user  =  user, portfolio = portfolio, stock = stock)
+        stock_instance = StockInstance.objects.get(user=user, portfolio = portfolio, stock = stock)
     return stock_instance
 
 
@@ -97,25 +97,25 @@ def sync_alpaca(user):  # noqa: C901
     from backend.tradingbot.models import StockInstance, Stock, Company, Portfolio
     from django.db.models import Q
     if not hasattr(user, 'portfolio'): 
-        new_portfolio = Portfolio(name  =  'default - 1', user = user, cash = 0)
+        new_portfolio = Portfolio(name='default - 1', user = user, cash = 0)
         new_portfolio.save()
     # delete all instances except those with 0 quantity
-    if StockInstance.objects.filter(~Q(quantity = 0.00), user = user, portfolio = user.portfolio).exists(): 
-        StockInstance.objects.filter(~Q(quantity = 0.00), user = user, portfolio = user.portfolio).delete()
+    if StockInstance.objects.filter(~Q(quantity=0.00), user = user, portfolio = user.portfolio).exists(): 
+        StockInstance.objects.filter(~Q(quantity=0.00), user = user, portfolio = user.portfolio).delete()
     for position in portfolio: 
-        company = Company.objects.get(ticker  =  position.symbol)
-        stock = Stock.objects.get(company  =  company)
+        company = Company.objects.get(ticker=position.symbol)
+        stock = Stock.objects.get(company=company)
         # delete 0 quantity stock if that stock appears
-        if StockInstance.objects.filter(stock = stock, user = user, portfolio = user.portfolio).exists(): 
-            StockInstance.objects.filter(stock = stock, user = user, portfolio = user.portfolio).delete()
-        instance = StockInstance(stock  =  stock, portfolio = user.portfolio, quantity = position.qty, user = user)
+        if StockInstance.objects.filter(stock=stock, user = user, portfolio = user.portfolio).exists(): 
+            StockInstance.objects.filter(stock=stock, user = user, portfolio = user.portfolio).delete()
+        instance = StockInstance(stock=stock, portfolio = user.portfolio, quantity = position.qty, user = user)
         instance.save()
 
     # 2) synchronizes order status (To be completed)
-    alpaca_open_orders = api.api.list_orders(status  =  'open', nested = True)
+    alpaca_open_orders = api.api.list_orders(status='open', nested = True)
     from backend.tradingbot.models import Order
     from backend.tradingbot.apiutility import create_local_order
-    local_open_orders = Order.objects.filter(user  =  user, status = 'A')
+    local_open_orders = Order.objects.filter(user=user, status = 'A')
     for order in local_open_orders.iterator(): 
         client_order_id = str(order.order_number)
         try: 
@@ -148,9 +148,9 @@ def sync_alpaca(user):  # noqa: C901
             usable_cash -= float(price) * float(order.qty)
         # sync open orders to database if not already exist
         if not order.client_order_id.isnumeric() or \
-                not Order.objects.filter(user = user, order_number = order.client_order_id).exists(): 
-            if not Order.objects.filter(user = user, client_order_id = order.client_order_id).exists(): 
-                create_local_order(user = user, ticker = order.symbol, quantity = float(order.qty),
+                not Order.objects.filter(user=user, order_number = order.client_order_id).exists(): 
+            if not Order.objects.filter(user=user, client_order_id = order.client_order_id).exists(): 
+                create_local_order(user=user, ticker = order.symbol, quantity = float(order.qty),
                                    order_type = order.order_type, transaction_type = order.side, status = "A",
                                    client_order_id = order.client_order_id)
 
@@ -158,16 +158,16 @@ def sync_alpaca(user):  # noqa: C901
     display_portfolio = []
     for position in portfolio: 
         display_portfolio.append(position)
-    if StockInstance.objects.filter(quantity = 0.00, user = user, portfolio = user.portfolio).exists(): 
+    if StockInstance.objects.filter(quantity=0.00, user = user, portfolio = user.portfolio).exists(): 
         backend_api = validate_backend()
         from alpaca_trade_api import TimeFrame
         import datetime
-        start = (datetime.datetime.now(datetime.timezone.utc) - timedelta(days = 5)).strftime('%Y-%m-%d')
-        end = (datetime.datetime.now(datetime.timezone.utc) - timedelta(days = 1)).strftime('%Y-%m-%d')
-        for stock_instance in StockInstance.objects.filter(quantity = 0.00, user = user, portfolio = user.portfolio): 
+        start = (datetime.datetime.now(datetime.timezone.utc) - timedelta(days=5)).strftime('%Y-%m-%d')
+        end = (datetime.datetime.now(datetime.timezone.utc) - timedelta(days=1)).strftime('%Y-%m-%d')
+        for stock_instance in StockInstance.objects.filter(quantity=0.00, user = user, portfolio = user.portfolio): 
             ticker = str(stock_instance.stock)
             _, price = backend_api.get_price(ticker)
-            bar_prices, _ = backend_api.get_bar(symbol  =  ticker, timestep = TimeFrame.Day, start = start,
+            bar_prices, _ = backend_api.get_bar(symbol=ticker, timestep = TimeFrame.Day, start = start,
                                                 end = end, price_type = "close", adjustment = 'all')
             cur_price = price
             last_day_price = bar_prices[0]
@@ -197,12 +197,12 @@ def sync_alpaca(user):  # noqa: C901
     user_details['portfolio'] = portfolio
     user_details['display_portfolio'] = display_portfolio
     user_details['orders'] = [order.display_order() for order in
-                              Order.objects.filter(user = user).order_by('-timestamp').iterator()]
+                              Order.objects.filter(user=user).order_by('-timestamp').iterator()]
 
     # 3) check if user has a portfolio and update portfolio cash
     if not hasattr(user, 'portfolio'): 
         from .models import Portfolio
-        port = Portfolio(user  =  user, cash = float(user_details['usable_cash']), name = 'default - 1')
+        port = Portfolio(user=user, cash = float(user_details['usable_cash']), name = 'default - 1')
         port.save()
         print("created portfolio default - 1 for user")
     else: 

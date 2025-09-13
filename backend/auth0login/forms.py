@@ -4,8 +4,8 @@ from django import forms
 
 class CredentialForm(forms.Form): 
     """credential for user"""
-    alpaca_id = forms.CharField(help_text  =  'Your Alpaca ID')
-    alpaca_key = forms.CharField(help_text  =  'Your Alpaca Key')
+    alpaca_id = forms.CharField(help_text='Your Alpaca ID')
+    alpaca_key = forms.CharField(help_text='Your Alpaca Key')
 
     def get_id(self): 
         return self.cleaned_data['alpaca_id']
@@ -31,11 +31,11 @@ class OrderForm(forms.Form):
         ('day', 'Day'),
         ('gtc', 'Good Until Canceled'),
     ]
-    ticker = forms.CharField(help_text  =  'Stock ticker')
-    order_type = forms.ChoiceField(choices  =  ORDERTYPES, help_text = 'Order Type')
-    transaction_type = forms.ChoiceField(choices  =  TRANSACTIONTYPES, help_text = 'Transaction Type')
-    quantity = forms.DecimalField(decimal_places  =  2, help_text = 'Quantity')
-    time_in_force = forms.ChoiceField(choices  =  TIMEINFORCE, help_text = 'Time in force')
+    ticker = forms.CharField(help_text='Stock ticker')
+    order_type = forms.ChoiceField(choices=ORDERTYPES, help_text = 'Order Type')
+    transaction_type = forms.ChoiceField(choices=TRANSACTIONTYPES, help_text = 'Transaction Type')
+    quantity = forms.DecimalField(decimal_places=2, help_text = 'Quantity')
+    time_in_force = forms.ChoiceField(choices=TIMEINFORCE, help_text = 'Time in force')
 
     def place_order(self, user, user_details): 
         ticker = self.cleaned_data['ticker'].upper()
@@ -45,7 +45,7 @@ class OrderForm(forms.Form):
         time_in_force = self.cleaned_data['time_in_force']
         from backend.tradingbot.apiutility import place_general_order
         try: 
-            place_general_order(user = user, user_details = user_details, ticker = ticker, quantity = quantity,
+            place_general_order(user=user, user_details = user_details, ticker = ticker, quantity = quantity,
                                 order_type = order_type,
                                 transaction_type = transaction_type, time_in_force = time_in_force)
             return "Order placed successfully"
@@ -61,7 +61,7 @@ class StrategyForm(forms.Form):
          'Moving average + Sharpe ratio Monte Carlo simulation'),  # MonteCarloMASharpeRatioStrategy()
         ('hmm_sharp_ratio_monte_carlo', 'HMM model prediction + Sharpe ratio Monte Carlo simulation'),  # TODO
     ]
-    strategy = forms.ChoiceField(choices  =  STRATEGY, help_text = 'Portfolio Rebalancing Strategy')
+    strategy = forms.ChoiceField(choices=STRATEGY, help_text = 'Portfolio Rebalancing Strategy')
 
     def clean(self): 
         # print('inside: ', type(self.cleaned_data), self.cleaned_data)
@@ -72,13 +72,13 @@ class StrategyForm(forms.Form):
 class WatchListForm(forms.Form): 
     """manual orders from user"""
 
-    ticker = forms.CharField(help_text  =  'Stock ticker')
+    ticker = forms.CharField(help_text='Stock ticker')
 
     def add_to_watchlist(self, user): 
         from backend.tradingbot.apiutility import add_stock_to_database
         ticker = self.cleaned_data['ticker'].upper()
         try: 
-            add_stock_to_database(user = user, ticker = ticker)
+            add_stock_to_database(user=user, ticker = ticker)
             return "Added to Watchlist successfully"
         except Exception as e: 
             return str(e)

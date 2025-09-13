@@ -118,7 +118,7 @@ class ProductionWSBDipBot:
                     continue
             
             # Sort by risk - adjusted expected return
-            opportunities.sort(key = lambda x: x.expected_return / max(x.risk_score, 1), reverse = True)
+            opportunities.sort(key=lambda x: x.expected_return / max(x.risk_score, 1), reverse = True)
             
             # Limit to top opportunities
             top_opportunities = opportunities[: 5]

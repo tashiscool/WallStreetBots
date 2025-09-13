@@ -42,9 +42,9 @@ class Trade:
     expected_return: Decimal = Decimal('0.00')
     actual_return: Optional[Decimal] = None
     win: Optional[bool] = None
-    metadata: Dict[str, Any] = field(default_factory = dict)
-    created_at: datetime = field(default_factory  =  datetime.now)
-    updated_at: datetime = field(default_factory  =  datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -64,10 +64,10 @@ class Position:
     risk_amount: Decimal = Decimal('0.00')
     stop_loss_price: Optional[Decimal] = None
     take_profit_price: Optional[Decimal] = None
-    entry_timestamp: datetime = field(default_factory  =  datetime.now)
-    last_update: datetime = field(default_factory  =  datetime.now)
+    entry_timestamp: datetime = field(default_factory=datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     is_active: bool = True
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -94,27 +94,27 @@ class StrategyPerformance:
     expected_shortfall: Decimal = Decimal('0.00')
     calmar_ratio: Decimal = Decimal('0.00')
     sortino_ratio: Decimal = Decimal('0.00')
-    last_calculated: datetime = field(default_factory  =  datetime.now)
+    last_calculated: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
 class RiskMetrics: 
     """Risk metrics record"""
     id: Optional[int] = None
-    timestamp: datetime = field(default_factory  =  datetime.now)
+    timestamp: datetime = field(default_factory=datetime.now)
     total_account_value: Decimal = Decimal('0.00')
     total_risk_exposure: Decimal = Decimal('0.00')
     risk_percentage: Decimal = Decimal('0.00')
     position_count: int = 0
     max_single_position_risk: Decimal = Decimal('0.00')
     correlation_risk: Decimal = Decimal('0.00')
-    sector_concentration: Dict[str, Decimal] = field(default_factory = dict)
+    sector_concentration: Dict[str, Decimal] = field(default_factory=dict)
     var_95_portfolio: Decimal = Decimal('0.00')
     beta_portfolio: Decimal = Decimal('1.00')
     daily_pnl: Decimal = Decimal('0.00')
     mtd_pnl: Decimal = Decimal('0.00')
     ytd_pnl: Decimal = Decimal('0.00')
-    alerts: List[str] = field(default_factory = list)
+    alerts: List[str] = field(default_factory=list)
 
 
 class ProductionDatabaseManager: 
@@ -411,10 +411,10 @@ class ProductionDatabaseManager:
         try: 
             async with self.pool.acquire() as conn: 
                 if strategy_name: 
-                    query = "SELECT * FROM positions WHERE is_active  =  TRUE AND strategy_name = $1"
+                    query = "SELECT * FROM positions WHERE is_active = TRUE AND strategy_name = $1"
                     rows = await conn.fetch(query, strategy_name)
                 else: 
-                    query = "SELECT * FROM positions WHERE is_active  =  TRUE"
+                    query = "SELECT * FROM positions WHERE is_active = TRUE"
                     rows = await conn.fetch(query)
                 
                 positions = []
@@ -453,7 +453,7 @@ class ProductionDatabaseManager:
         try: 
             async with self.pool.acquire() as conn: 
                 # Get trades for the period
-                since_date = datetime.now() - timedelta(days = period_days)
+                since_date = datetime.now() - timedelta(days=period_days)
                 
                 trades_query = """
                     SELECT * FROM trades 
@@ -465,7 +465,7 @@ class ProductionDatabaseManager:
                 trades = await conn.fetch(trades_query, strategy_name, since_date)
                 
                 if not trades: 
-                    return StrategyPerformance(strategy_name = strategy_name)
+                    return StrategyPerformance(strategy_name=strategy_name)
                 
                 # Calculate metrics
                 total_trades = len(trades)
@@ -523,7 +523,7 @@ class ProductionDatabaseManager:
                 
         except Exception as e: 
             self.logger.error(f"Error calculating strategy performance: {e}")
-            return StrategyPerformance(strategy_name = strategy_name)
+            return StrategyPerformance(strategy_name=strategy_name)
     
     async def _save_strategy_performance(self, performance: StrategyPerformance):
         """Save strategy performance to database"""
@@ -585,7 +585,7 @@ def create_database_manager(config: Dict[str, Any])->ProductionDatabaseManager:
 # Standalone testing
 async def main(): 
     """Test database functionality"""
-    logging.basicConfig(level = logging.INFO)
+    logging.basicConfig(level=logging.INFO)
     
     # Test configuration
     config = {

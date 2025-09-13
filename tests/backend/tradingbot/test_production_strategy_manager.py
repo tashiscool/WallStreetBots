@@ -47,18 +47,18 @@ class TestProductionStrategyManager:
         mock_manager = Mock()
         mock_manager.alpaca_manager = Mock()
         mock_manager.alpaca_manager.validate_api.return_value = (True, "Success")
-        mock_manager.get_portfolio_value = AsyncMock(return_value  =  100000.0)
-        mock_manager.execute_trade_signal = AsyncMock(return_value  =  True)
-        mock_manager.send_alert = AsyncMock(return_value  =  True)
+        mock_manager.get_portfolio_value = AsyncMock(return_value=100000.0)
+        mock_manager.execute_trade_signal = AsyncMock(return_value=True)
+        mock_manager.send_alert = AsyncMock(return_value=True)
         return mock_manager
     
     @pytest.fixture
     def mock_data_provider(self): 
         """Create mock data provider"""
         mock_provider = Mock()
-        mock_provider.is_market_open = AsyncMock(return_value  =  True)
-        mock_provider.get_current_price = AsyncMock(return_value  =  100.0)
-        mock_provider.get_recent_prices = AsyncMock(return_value  =  [95, 98, 100])
+        mock_provider.is_market_open = AsyncMock(return_value=True)
+        mock_provider.get_current_price = AsyncMock(return_value=100.0)
+        mock_provider.get_recent_prices = AsyncMock(return_value=[95, 98, 100])
         return mock_provider
     
     @pytest.fixture
@@ -324,7 +324,7 @@ class TestProductionStrategyManager:
         }
         
         # Mock validation
-        strategy_manager._validate_system_state = AsyncMock(return_value  =  True)
+        strategy_manager._validate_system_state = AsyncMock(return_value=True)
         
         with patch('asyncio.create_task') as mock_create_task: 
             result = await strategy_manager.start_all_strategies()
@@ -339,7 +339,7 @@ class TestProductionStrategyManager:
     @pytest.mark.asyncio
     async def test_start_all_strategies_validation_failure(self, strategy_manager): 
         """Test strategy startup fails validation"""
-        strategy_manager._validate_system_state = AsyncMock(return_value  =  False)
+        strategy_manager._validate_system_state = AsyncMock(return_value=False)
         
         result = await strategy_manager.start_all_strategies()
         assert result ==  False
@@ -349,7 +349,7 @@ class TestProductionStrategyManager:
     async def test_start_all_strategies_no_strategies(self, strategy_manager): 
         """Test startup with no strategies"""
         strategy_manager.strategies = {}
-        strategy_manager._validate_system_state = AsyncMock(return_value  =  True)
+        strategy_manager._validate_system_state = AsyncMock(return_value=True)
         
         result = await strategy_manager.start_all_strategies()
         assert result ==  False
@@ -470,11 +470,11 @@ class TestIntegrationScenarios:
             # Mock successful initialization
             mock_integration = Mock()
             mock_integration.alpaca_manager.validate_api.return_value = (True, "Success")
-            mock_integration.get_portfolio_value = AsyncMock(return_value  =  100000.0)
+            mock_integration.get_portfolio_value = AsyncMock(return_value=100000.0)
             MockIntegration.return_value = mock_integration
             
             mock_data = Mock()
-            mock_data.is_market_open = AsyncMock(return_value  =  True)
+            mock_data.is_market_open = AsyncMock(return_value=True)
             MockData.return_value = mock_data
             
             # Mock all strategy factories to return mock strategies
@@ -541,7 +541,7 @@ class TestIntegrationScenarios:
             
             # Test insufficient account size
             mock_integration.alpaca_manager.validate_api.return_value = (True, "Success")
-            mock_integration.get_portfolio_value = AsyncMock(return_value  =  500.0)  # Below minimum
+            mock_integration.get_portfolio_value = AsyncMock(return_value=500.0)  # Below minimum
             
             validation_result = await manager._validate_system_state()
             assert validation_result ==  False

@@ -39,7 +39,7 @@ class LiveDipScanner:
         self.trades_executed_today = 0
 
         # Setup logging
-        logging.basicConfig(level = logging.INFO)
+        logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
     def is_market_open(self)->bool: 
@@ -384,7 +384,7 @@ if __name__ ==  "__main__": # Test the scanner system
         print("=== DIP SCANNER TEST===")
 
         # Create bot with $500K capital
-        bot = DipTradingBot(initial_capital  =  500000)
+        bot = DipTradingBot(initial_capital=500000)
 
         print("Bot Status: ")
         status = bot.get_full_status()

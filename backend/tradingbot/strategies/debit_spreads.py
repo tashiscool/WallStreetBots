@@ -74,7 +74,7 @@ class DebitSpreadScanner:
         """Calculate IV rank (current IV vs 52 - week range)"""
         try: 
             stock = yf.Ticker(ticker)
-            hist = stock.history(period  =  "1y")
+            hist = stock.history(period="1y")
             if hist.empty: 
                 return 50.0  # Neutral
             
@@ -101,7 +101,7 @@ class DebitSpreadScanner:
         """Assess bullish trend strength (0 - 1 score)"""
         try: 
             stock = yf.Ticker(ticker)
-            hist = stock.history(period  =  "60d")
+            hist = stock.history(period="60d")
             if len(hist)  <  50: 
                 return 0.5
             
@@ -334,7 +334,7 @@ class DebitSpreadScanner:
                 stock = yf.Ticker(ticker)
                 
                 # Get current price
-                hist = stock.history(period  =  "1d")
+                hist = stock.history(period="1d")
                 if hist.empty: 
                     continue
                     
@@ -443,7 +443,7 @@ class DebitSpreadScanner:
 
 
 def main(): 
-    parser = argparse.ArgumentParser(description  =  "WSB Debit Spread Scanner")
+    parser = argparse.ArgumentParser(description="WSB Debit Spread Scanner")
     parser.add_argument('--min - days', type = int, default = 20,
                        help = 'Minimum days to expiry')
     parser.add_argument('--max - days', type = int, default = 60,

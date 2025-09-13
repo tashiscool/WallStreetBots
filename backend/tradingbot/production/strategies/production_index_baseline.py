@@ -47,7 +47,7 @@ class BaselineSignal:
     target_allocation: float
     risk_amount: Decimal
     confidence: float
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class ProductionIndexBaseline: 

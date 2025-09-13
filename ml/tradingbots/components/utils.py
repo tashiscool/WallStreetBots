@@ -37,7 +37,7 @@ class AlpacaFetcher(DataFetcher):
         note that I wrapped around get_bar instead of get_price because I
         want to make sure the price is adjusted
         """
-        start = (datetime.datetime.now(datetime.timezone.utc) - timedelta(days = 1)).isoformat()
+        start = (datetime.datetime.now(datetime.timezone.utc) - timedelta(days=1)).isoformat()
         end = datetime.datetime.now(datetime.timezone.utc).isoformat()
         prices, _ = self.api.get_bar(ticker, TimeFrame.Minute, start, end)
         return prices[0]

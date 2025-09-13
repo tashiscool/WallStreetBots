@@ -80,9 +80,9 @@ class BacktestResults:
     benchmark_return: float
     alpha: float
     beta: float
-    trades: List[BacktestTrade] = field(default_factory = list)
-    daily_returns: List[float] = field(default_factory = list)
-    daily_portfolio_values: List[float] = field(default_factory = list)
+    trades: List[BacktestTrade] = field(default_factory=list)
+    daily_returns: List[float] = field(default_factory=list)
+    daily_portfolio_values: List[float] = field(default_factory=list)
 
 
 class BacktestEngine: 
@@ -136,7 +136,7 @@ class BacktestEngine:
     
     async def _run_simulation(self, strategy, config: BacktestConfig):
         """Run the backtest simulation"""
-        date_range = [config.start_date + timedelta(days  =  i) for i in range((config.end_date - config.start_date).days + 1)]
+        date_range = [config.start_date + timedelta(days=i) for i in range((config.end_date - config.start_date).days + 1)]
         
         for current_date in date_range: 
             self.current_date = current_date

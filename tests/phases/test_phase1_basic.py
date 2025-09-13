@@ -33,7 +33,7 @@ def test_configuration():
     print(f"✅ Config validation found {len(errors)} errors (expected for empty config)")
     
     # Test config loading from file
-    with tempfile.NamedTemporaryFile(mode = 'w', suffix = '.json', delete = False) as f: 
+    with tempfile.NamedTemporaryFile(mode='w', suffix = '.json', delete = False) as f: 
         test_config = {
             "risk": {
                 "max_position_risk": 0.15,
@@ -74,7 +74,7 @@ def test_logging():
     print(f"✅ Error handling working: {result['error_type']} - {result['error_message']}")
     
     # Test circuit breaker
-    circuit_breaker = CircuitBreaker(failure_threshold  =  2, timeout = 1.0)
+    circuit_breaker = CircuitBreaker(failure_threshold=2, timeout = 1.0)
     
     def success_func(): 
         return "success"

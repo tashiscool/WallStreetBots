@@ -158,7 +158,7 @@ class AdvancedAnalytics:
 
             # Period info
             trading_days = len(returns)
-            period_start = start_date or datetime.now() - timedelta(days = trading_days)
+            period_start = start_date or datetime.now() - timedelta(days=trading_days)
             period_end = end_date or datetime.now()
 
             # Additional stats
@@ -228,7 +228,7 @@ class AdvancedAnalytics:
 
             # Generate dates if not provided
             if dates is None: 
-                dates = [datetime.now() - timedelta(days = len(values) - i - 1) for i in range(len(values))]
+                dates = [datetime.now() - timedelta(days=len(values) - i - 1) for i in range(len(values))]
 
             drawdown_periods = []
             peak = values[0]

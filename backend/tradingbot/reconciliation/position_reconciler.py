@@ -46,7 +46,7 @@ class PositionSnapshot:
     status: str  # 'open', 'closed', 'pending'
     last_updated: datetime
     position_type: str  # 'stock', 'option'
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -61,7 +61,7 @@ class BrokerPosition:
     side: str  # 'long', 'short'
     asset_class: str  # 'us_equity', 'option', etc.
     last_updated: datetime
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -76,7 +76,7 @@ class PositionDiscrepancy:
     suggested_action: str
     financial_impact: Decimal
     timestamp: datetime
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass 
@@ -92,7 +92,7 @@ class ReconciliationReport:
     total_financial_impact: Decimal
     reconciliation_status: str  # 'CLEAN', 'WARNINGS', 'CRITICAL'
     next_reconciliation: datetime
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
     
     @property
     def is_clean(self)->bool: 
@@ -197,7 +197,7 @@ class PositionReconciler:
                 high_priority_discrepancies = high_count,
                 total_financial_impact = total_financial_impact,
                 reconciliation_status = status,
-                next_reconciliation = start_time + timedelta(minutes  =  15),  # Schedule next reconciliation
+                next_reconciliation = start_time + timedelta(minutes=15),  # Schedule next reconciliation
                 metadata = {
                     'reconciliation_duration': (datetime.now() - start_time).total_seconds(),
                     'auto_halt_enabled': auto_halt
@@ -238,7 +238,7 @@ class PositionReconciler:
                 high_priority_discrepancies = 0,
                 total_financial_impact = Decimal('0'),
                 reconciliation_status = "ERROR",
-                next_reconciliation = datetime.now() + timedelta(minutes = 30),
+                next_reconciliation = datetime.now() + timedelta(minutes=30),
                 metadata = {'error': str(e), 'consecutive_failures': self.consecutive_failures}
             )
             
@@ -361,7 +361,7 @@ class PositionReconciler:
                     ticker = ticker,
                     db_position = db_pos,
                     broker_position = broker_pos,
-                    description = f"Quantity mismatch for {ticker}: DB  =  {db_pos.quantity}, Broker = {broker_pos.quantity}",
+                    description = f"Quantity mismatch for {ticker}: DB = {db_pos.quantity}, Broker = {broker_pos.quantity}",
                     suggested_action = "Investigate recent trades, update database or investigate execution issues",
                     financial_impact = abs((db_pos.quantity - broker_pos.quantity) * db_pos.current_price),
                     timestamp = datetime.now(),
@@ -381,7 +381,7 @@ class PositionReconciler:
                     ticker = ticker,
                     db_position = db_pos,
                     broker_position = broker_pos,
-                    description = f"Market value mismatch for {ticker}: DB  =  ${db_pos.market_value}, Broker = ${broker_pos.market_value}",
+                    description = f"Market value mismatch for {ticker}: DB = ${db_pos.market_value}, Broker = ${broker_pos.market_value}",
                     suggested_action = "Update current prices in database or investigate pricing feed",
                     financial_impact = abs(db_pos.market_value - broker_pos.market_value),
                     timestamp = datetime.now(),
@@ -394,7 +394,7 @@ class PositionReconciler:
                 discrepancies.append(discrepancy)
             
             # Check for stale positions
-            if datetime.now() - db_pos.last_updated  >  timedelta(hours = self.stale_position_hours): 
+            if datetime.now() - db_pos.last_updated  >  timedelta(hours=self.stale_position_hours): 
                 discrepancy = PositionDiscrepancy(
                     discrepancy_type = DiscrepancyType.STALE_POSITION,
                     severity = DiscrepancySeverity.LOW,
@@ -514,7 +514,7 @@ class PositionReconciler:
     async def force_reconciliation(self)->ReconciliationReport: 
         """Force immediate reconciliation (bypassing schedule)"""
         self.logger.info("Forcing immediate position reconciliation")
-        return await self.reconcile_all_positions(auto_halt = True)
+        return await self.reconcile_all_positions(auto_halt=True)
     
     async def clear_emergency_halt(self, reason: str = "Manual override"):
         """Clear emergency halt status"""
@@ -559,6 +559,6 @@ class PositionReconciler:
             return {'ticker': ticker, 'error': str(e)}
 
 
-def create_position_reconciler(alpaca_manager = None, database_manager = None)->PositionReconciler: 
+def create_position_reconciler(alpaca_manager=None, database_manager = None)->PositionReconciler: 
     """Factory function to create position reconciler"""
     return PositionReconciler(alpaca_manager, database_manager)

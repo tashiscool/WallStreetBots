@@ -21,6 +21,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name = 'portfolio',
             name = 'strategy',
-            field = models.CharField(choices  =  [('manual', 'Manual portfolio management'), ('hmm_naive_even_split', 'HMM model prediction + Even split portfolio'), ('ma_sharp_ratio_monte_carlo', 'Moving average + Sharpe ratio Monte Carlo simulation'), ('hmm_sharp_ratio_monte_carlo', 'HMM model prediction + Sharpe ratio Monte Carlo simulation')], default = 'manual', help_text = 'Portfolio Rebalancing Strategy', max_length = 50),
+            field = models.CharField(choices=[('manual', 'Manual portfolio management'), ('hmm_naive_even_split', 'HMM model prediction + Even split portfolio'), ('ma_sharp_ratio_monte_carlo', 'Moving average + Sharpe ratio Monte Carlo simulation'), ('hmm_sharp_ratio_monte_carlo', 'HMM model prediction + Sharpe ratio Monte Carlo simulation')], default = 'manual', help_text = 'Portfolio Rebalancing Strategy', max_length = 50),
         ),
     ]

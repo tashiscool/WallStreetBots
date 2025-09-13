@@ -178,7 +178,7 @@ def fetch_daily_history(ticker: str, period: str = "90d")->pd.DataFrame:
     """Fetch daily price history with error handling"""
     try: 
         ticker_obj = yf.Ticker(ticker)
-        df = ticker_obj.history(period  =  period, interval = "1d", auto_adjust = False)
+        df = ticker_obj.history(period=period, interval = "1d", auto_adjust = False)
 
         if df.empty: 
             raise ValueError(f"No data returned for {ticker}")
@@ -200,13 +200,13 @@ def fetch_current_price(ticker: str)->Optional[Dict[str, float]]:
         ticker_obj = yf.Ticker(ticker)
 
         # Get prior close from daily data
-        daily_hist = ticker_obj.history(period  =  "5d", interval = "1d")
+        daily_hist = ticker_obj.history(period="5d", interval = "1d")
         if len(daily_hist)  <  2: 
             return None
         prior_close = float(daily_hist["Close"].iloc[-2])
 
         # Get recent price from 5 - minute data
-        intraday_hist = ticker_obj.history(period  =  "2d", interval = "5m")
+        intraday_hist = ticker_obj.history(period="2d", interval = "5m")
         if intraday_hist.empty: 
             return None
         current_price = float(intraday_hist["Close"].iloc[-1])
@@ -375,7 +375,7 @@ def create_exact_clone_plan(signal: DipSignal,
             actual_dte = (datetime.strptime(expiry_date, "%Y-%m-%d").date() - date.today()).days
     except Exception: 
         # Fallback to synthetic expiry
-        expiry_date = (date.today() + timedelta(days = target_dte)).isoformat()
+        expiry_date = (date.today() + timedelta(days=target_dte)).isoformat()
         actual_dte = target_dte
 
     # Get option pricing
@@ -526,7 +526,7 @@ def run_intraday_scan(universe: List[str],
                      max_minutes: int)->ScanResults:
     """Run intraday scanning loop"""
 
-    end_time = now_ny() + timedelta(minutes = max_minutes) if max_minutes  >  0 else None
+    end_time = now_ny() + timedelta(minutes=max_minutes) if max_minutes  >  0 else None
     alerted_tickers = set()
     all_signals = []
     all_plans = []

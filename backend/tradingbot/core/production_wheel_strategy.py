@@ -56,8 +56,8 @@ class WheelPosition:
     premium_paid: float = 0.0
     
     # Timing
-    entry_date: datetime = field(default_factory  =  datetime.now)
-    last_update: datetime = field(default_factory  =  datetime.now)
+    entry_date: datetime = field(default_factory=datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     
     # Metadata
     days_to_expiry: int = 0
@@ -194,7 +194,7 @@ class ProductionWheelStrategy:
         
         # Strategy state
         self.last_scan_time: Optional[datetime] = None
-        self.scan_interval = timedelta(minutes  =  30)
+        self.scan_interval = timedelta(minutes=30)
         
         self.logger.info("Wheel Strategy initialized", 
                         max_positions = self.max_positions,
@@ -224,7 +224,7 @@ class ProductionWheelStrategy:
                     continue
             
             # Sort by wheel score
-            candidates.sort(key = lambda x: x.wheel_score, reverse = True)
+            candidates.sort(key=lambda x: x.wheel_score, reverse = True)
             
             self.candidates = candidates[: 10]  # Top 10 candidates
             
@@ -369,7 +369,7 @@ class ProductionWheelStrategy:
                     current_price = market_data.price,
                     option_type = "put",
                     strike_price = best_put.strike,
-                    expiry_date = datetime.now() + timedelta(days = 30),  # Simplified
+                    expiry_date = datetime.now() + timedelta(days=30),  # Simplified
                     premium_received = trade_result.filled_price * position_size * 100
                 )
                 

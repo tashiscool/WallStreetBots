@@ -81,7 +81,7 @@ class MockTicker:
         today = date.today()
         expiries = []
         for days in [7, 14, 21, 28, 35, 42, 56, 70]: 
-            exp_date = (today + timedelta(days  =  days)).strftime("%Y-%m-%d")
+            exp_date = (today + timedelta(days=days)).strftime("%Y-%m-%d")
             expiries.append(exp_date)
         return expiries
 

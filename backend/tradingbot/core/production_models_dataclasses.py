@@ -16,8 +16,8 @@ class Strategy:
     description: str = ""
     risk_level: str = "medium"
     status: str = "active"
-    created_at: datetime = field(default_factory  =  datetime.now)
-    updated_at: datetime = field(default_factory  =  datetime.now)
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
     
     def __str__(self): 
         return self.name
@@ -34,7 +34,7 @@ class Position:
     current_price: Decimal = Decimal('0')
     unrealized_pnl: Decimal = Decimal('0')
     realized_pnl: Decimal = Decimal('0')
-    opened_at: datetime = field(default_factory  =  datetime.now)
+    opened_at: datetime = field(default_factory=datetime.now)
     closed_at: Optional[datetime] = None
     is_open: bool = True
     
@@ -53,7 +53,7 @@ class Trade:
     price: Decimal = Decimal('0')
     status: str = "pending"
     broker_order_id: Optional[str] = None
-    transaction_time: datetime = field(default_factory  =  datetime.now)
+    transaction_time: datetime = field(default_factory=datetime.now)
     filled_time: Optional[datetime] = None
     commission: Decimal = Decimal('0')
     
@@ -70,7 +70,7 @@ class RiskLimit:
     max_position_size_pct: Decimal = Decimal('0.05')  # 5%
     max_drawdown_pct: Decimal = Decimal('0.10')  # 10%
     max_open_positions: int = 5
-    updated_at: datetime = field(default_factory  =  datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
     
     def __str__(self): 
         return f"Risk Limits for {self.strategy.name if self.strategy else 'Unknown'}"
@@ -81,7 +81,7 @@ class MarketData:
     """Market data record"""
     id: Optional[int] = None
     ticker: str = ""
-    timestamp: datetime = field(default_factory  =  datetime.now)
+    timestamp: datetime = field(default_factory=datetime.now)
     open_price: Decimal = Decimal('0')
     high_price: Decimal = Decimal('0')
     low_price: Decimal = Decimal('0')
@@ -97,7 +97,7 @@ class EarningsData:
     """Earnings data record"""
     id: Optional[int] = None
     ticker: str = ""
-    report_date: datetime = field(default_factory  =  datetime.now)
+    report_date: datetime = field(default_factory=datetime.now)
     eps_estimate: Optional[Decimal] = None
     eps_actual: Optional[Decimal] = None
     revenue_estimate: Optional[Decimal] = None
@@ -115,7 +115,7 @@ class SentimentData:
     id: Optional[int] = None
     ticker: str = ""
     source: str = ""
-    timestamp: datetime = field(default_factory  =  datetime.now)
+    timestamp: datetime = field(default_factory=datetime.now)
     sentiment_score: Decimal = Decimal('0')
     sentiment_magnitude: Optional[Decimal] = None
     headline: Optional[str] = None
@@ -130,7 +130,7 @@ class StrategyPerformance:
     """Strategy performance metrics"""
     id: Optional[int] = None
     strategy: Optional[Strategy] = None
-    date: datetime = field(default_factory  =  datetime.now)
+    date: datetime = field(default_factory=datetime.now)
     total_return: Decimal = Decimal('0')
     daily_return: Decimal = Decimal('0')
     sharpe_ratio: Decimal = Decimal('0')

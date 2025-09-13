@@ -37,8 +37,8 @@ class TestPhase4Backtesting(unittest.TestCase):
     """Test Phase 4 backtesting functionality"""
     
     def setUp(self): 
-        self.logger = Mock(spec  =  ProductionLogger)
-        self.config = Mock(spec  =  ConfigManager)
+        self.logger = Mock(spec=ProductionLogger)
+        self.config = Mock(spec=ConfigManager)
         self.config.trading = Mock()
         self.config.trading.universe = ["AAPL", "MSFT", "GOOGL"]
         
@@ -173,9 +173,9 @@ class TestPhase4Optimization(unittest.TestCase):
     """Test Phase 4 optimization functionality"""
     
     def setUp(self): 
-        self.logger = Mock(spec  =  ProductionLogger)
-        self.config = Mock(spec  =  ConfigManager)
-        self.backtest_engine = Mock(spec  =  BacktestEngine)
+        self.logger = Mock(spec=ProductionLogger)
+        self.config = Mock(spec=ConfigManager)
+        self.backtest_engine = Mock(spec=BacktestEngine)
         
         self.optimizer = StrategyOptimizer(self.backtest_engine, self.config, self.logger)
     
@@ -201,7 +201,7 @@ class TestPhase4Optimization(unittest.TestCase):
             ParameterRange("param2", 0.1, 1.0, 0.1, "float")
         ]
         
-        backtest_config = Mock(spec  =  BacktestConfig)
+        backtest_config = Mock(spec=BacktestConfig)
         
         config = OptimizationConfig(
             method = OptimizationMethod.GRID_SEARCH,
@@ -248,7 +248,7 @@ class TestPhase4Optimization(unittest.TestCase):
     
     def test_score_calculation(self): 
         """Test optimization score calculation"""
-        mock_results = Mock(spec  =  BacktestResults)
+        mock_results = Mock(spec=BacktestResults)
         mock_results.sharpe_ratio = 1.5
         mock_results.total_return = 0.15
         mock_results.max_drawdown = 0.05
@@ -270,8 +270,8 @@ class TestPhase4Monitoring(unittest.TestCase):
     """Test Phase 4 monitoring functionality"""
     
     def setUp(self): 
-        self.logger = Mock(spec  =  ProductionLogger)
-        self.config = Mock(spec  =  ConfigManager)
+        self.logger = Mock(spec=ProductionLogger)
+        self.config = Mock(spec=ConfigManager)
         
         self.monitoring = Phase4Monitoring(self.config, self.logger)
     
@@ -363,8 +363,8 @@ class TestPhase4Deployment(unittest.TestCase):
     """Test Phase 4 deployment functionality"""
     
     def setUp(self): 
-        self.logger = Mock(spec  =  ProductionLogger)
-        self.config = Mock(spec  =  ConfigManager)
+        self.logger = Mock(spec=ProductionLogger)
+        self.config = Mock(spec=ConfigManager)
         
         self.deployment = Phase4Deployment(self.config, self.logger)
     
@@ -458,8 +458,8 @@ class TestPhase4Integration(unittest.TestCase):
     """Test Phase 4 integration functionality"""
     
     def setUp(self): 
-        self.logger = Mock(spec  =  ProductionLogger)
-        self.config = Mock(spec  =  ConfigManager)
+        self.logger = Mock(spec=ProductionLogger)
+        self.config = Mock(spec=ConfigManager)
         self.config.trading = Mock()
         self.config.trading.universe = ["AAPL", "MSFT", "GOOGL"]
     
@@ -508,7 +508,7 @@ def run_phase4_tests():
         test_suite.addTests(tests)
     
     # Run tests
-    runner = unittest.TextTestRunner(verbosity  =  2)
+    runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(test_suite)
     
     # Print summary

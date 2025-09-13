@@ -63,7 +63,7 @@ def test_var_engine():
     market_data, returns = generate_sample_data()
     
     # Initialize VaR engine
-    var_engine = AdvancedVaREngine(portfolio_value  =  100000.0)
+    var_engine = AdvancedVaREngine(portfolio_value=100000.0)
     
     # Test VaR suite calculation
     print("Calculating VaR Suite...")
@@ -197,7 +197,7 @@ def test_risk_dashboard():
     }
     
     # Initialize dashboard
-    dashboard = RiskDashboard2025(portfolio_value  =  100000.0)
+    dashboard = RiskDashboard2025(portfolio_value=100000.0)
     
     # Generate dashboard data
     print("Generating risk dashboard...")

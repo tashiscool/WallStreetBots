@@ -329,7 +329,7 @@ class TestRealOptionsPricingEngine:
         """Test theoretical price calculation"""
         ticker = 'AAPL'
         strike = Decimal('200')
-        expiry_date = date.today() + timedelta(days = 30)
+        expiry_date = date.today() + timedelta(days=30)
         option_type = 'call'
         current_price = Decimal('195')
         
@@ -348,7 +348,7 @@ class TestRealOptionsPricingEngine:
         """Test theoretical price for deep ITM option"""
         ticker = 'AAPL'
         strike = Decimal('150')      # Deep ITM
-        expiry_date = date.today() + timedelta(days = 30)
+        expiry_date = date.today() + timedelta(days=30)
         option_type = 'call'
         current_price = Decimal('195')
         
@@ -366,7 +366,7 @@ class TestRealOptionsPricingEngine:
         """Test theoretical price for expired option"""
         ticker = 'AAPL'
         strike = Decimal('190')
-        expiry_date = date.today() - timedelta(days = 1)  # Expired yesterday
+        expiry_date = date.today() - timedelta(days=1)  # Expired yesterday
         option_type = 'call'
         current_price = Decimal('195')
         
@@ -383,7 +383,7 @@ class TestRealOptionsPricingEngine:
         """Test theoretical price calculation for puts"""
         ticker = 'AAPL'
         strike = Decimal('200')      # ITM put
-        expiry_date = date.today() + timedelta(days = 30)
+        expiry_date = date.today() + timedelta(days=30)
         option_type = 'put'
         current_price = Decimal('195')
         
@@ -552,11 +552,11 @@ class TestRealOptionsPricingEngine:
         current_price = Decimal('195')
         
         # Mock some options data
-        self.pricing_engine.get_options_chain_yahoo = AsyncMock(return_value  =  [
+        self.pricing_engine.get_options_chain_yahoo = AsyncMock(return_value=[
             OptionsContract(
                 ticker = ticker,
                 strike = Decimal('200'),
-                expiry_date = date.today() + timedelta(days = 30),
+                expiry_date = date.today() + timedelta(days=30),
                 option_type = 'call',
                 bid = Decimal('2.50'),
                 ask = Decimal('2.70'),
@@ -566,7 +566,7 @@ class TestRealOptionsPricingEngine:
             OptionsContract(
                 ticker = ticker,
                 strike = Decimal('205'),
-                expiry_date = date.today() + timedelta(days = 30),
+                expiry_date = date.today() + timedelta(days=30),
                 option_type = 'call',
                 bid = Decimal('1.25'),
                 ask = Decimal('1.45'),
@@ -594,11 +594,11 @@ class TestRealOptionsPricingEngine:
         current_price = Decimal('195')
         
         # Mock illiquid options that shouldn't be selected
-        self.pricing_engine.get_options_chain_yahoo = AsyncMock(return_value  =  [
+        self.pricing_engine.get_options_chain_yahoo = AsyncMock(return_value=[
             OptionsContract(
                 ticker = ticker,
                 strike = Decimal('200'),
-                expiry_date = date.today() + timedelta(days = 30),
+                expiry_date = date.today() + timedelta(days=30),
                 option_type = 'call',
                 bid = Decimal('0.01'),  # Too low bid
                 ask = Decimal('0.05'),
@@ -681,7 +681,7 @@ class TestOptionsContract:
     
     def test_days_to_expiry_calculation(self): 
         """Test days to expiry calculation"""
-        future_date = date.today() + timedelta(days = 30)
+        future_date = date.today() + timedelta(days=30)
         
         contract = OptionsContract(
             ticker = 'AAPL',
@@ -713,7 +713,7 @@ class TestIntegration:
         # Test realistic scenario
         ticker = 'AAPL'
         strike = Decimal('200')
-        expiry_date = date.today() + timedelta(days = 30)
+        expiry_date = date.today() + timedelta(days=30)
         option_type = 'call'
         current_price = Decimal('195')
         
@@ -737,15 +737,15 @@ class TestIntegration:
         # These are typical textbook examples
         spot = Decimal('100')
         strike = Decimal('100')    # ATM
-        expiry_date = date.today() + timedelta(days = 90)  # ~0.25 years
+        expiry_date = date.today() + timedelta(days=90)  # ~0.25 years
         risk_free_rate = Decimal('0.05')
         dividend_yield = Decimal('0.0')
         volatility = Decimal('0.20')
         
         # Override engine parameters for controlled test
-        engine.bs_engine.get_risk_free_rate = AsyncMock(return_value  =  risk_free_rate)
-        engine.bs_engine.get_dividend_yield = AsyncMock(return_value  =  dividend_yield)
-        engine.get_implied_volatility = AsyncMock(return_value  =  volatility)
+        engine.bs_engine.get_risk_free_rate = AsyncMock(return_value=risk_free_rate)
+        engine.bs_engine.get_dividend_yield = AsyncMock(return_value=dividend_yield)
+        engine.get_implied_volatility = AsyncMock(return_value=volatility)
         
         call_price = await engine.calculate_theoretical_price(
             'TEST', strike, expiry_date, 'call', spot
@@ -781,7 +781,7 @@ class TestIntegration:
             pytest.fail("Should handle negative strike gracefully")
         
         # Test with very far expiry
-        far_expiry = date.today() + timedelta(days = 1000)
+        far_expiry = date.today() + timedelta(days=1000)
         price = await engine.calculate_theoretical_price(
             'TEST', Decimal('100'), far_expiry, 'call', Decimal('100')
         )

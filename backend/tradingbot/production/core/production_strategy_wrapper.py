@@ -44,7 +44,7 @@ class StrategyConfig:
     take_profit_multiplier: float = 3.0  # 3x profit target
     min_account_size: float = 10000.0  # Minimum account size
     trading_hours_only: bool = True  # Only trade during market hours
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class ProductionStrategyWrapper: 
@@ -203,8 +203,8 @@ class ProductionStrategyWrapper:
         try: 
             # Simple market hours check (9: 30 AM - 4: 00 PM ET)
             now = datetime.now()
-            market_open = now.replace(hour  =  9, minute = 30, second = 0, microsecond = 0)
-            market_close = now.replace(hour  =  16, minute = 0, second = 0, microsecond = 0)
+            market_open = now.replace(hour=9, minute = 30, second = 0, microsecond = 0)
+            market_close = now.replace(hour=16, minute = 0, second = 0, microsecond = 0)
             
             # Check if it's a weekday
             if now.weekday()  >=  5:  # Saturday = 5, Sunday = 6
@@ -292,7 +292,7 @@ class ProductionWSBDipBot(ProductionStrategyWrapper):
         try: 
             # Get 10 - day historical data
             end_date = datetime.now()
-            start_date = end_date - timedelta(days  =  15)
+            start_date = end_date - timedelta(days=15)
             
             bars = self.integration.alpaca_manager.get_bars(
                 symbol = ticker,

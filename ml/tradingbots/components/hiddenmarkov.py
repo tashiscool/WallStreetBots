@@ -104,8 +104,8 @@ class DataManager():
 
     def get_data(self, adjustment, open): 
         if open: 
-            start_date_open = datetime.strptime(self.start_date, '%Y-%m-%d').date() + timedelta(days = 1)
-            end_date_open = datetime.strptime(self.end_date, '%Y-%m-%d').date() + timedelta(days = 1)
+            start_date_open = datetime.strptime(self.start_date, '%Y-%m-%d').date() + timedelta(days=1)
+            end_date_open = datetime.strptime(self.end_date, '%Y-%m-%d').date() + timedelta(days=1)
             str_start_date_open = start_date_open.strftime("%Y-%m-%d")
             str_end_date_open = end_date_open.strftime("%Y-%m-%d")
             df = self.api.api.get_bars(self.ticker, TimeFrame.Day,

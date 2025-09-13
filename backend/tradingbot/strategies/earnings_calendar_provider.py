@@ -33,7 +33,7 @@ class ImpliedMoveData:
     implied_move_dollar: Decimal
     confidence: float  # 0 - 1 confidence in calculation
     calculation_method: str  # 'straddle', 'strangle', 'estimated'
-    timestamp: datetime = field(default_factory  =  datetime.now)
+    timestamp: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -47,7 +47,7 @@ class IVPercentileData:
     historical_mean: float
     historical_std: float
     z_score: float  # Standard deviations from mean
-    timestamp: datetime = field(default_factory  =  datetime.now)
+    timestamp: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -75,17 +75,17 @@ class EnhancedEarningsEvent:
     # Historical performance
     avg_historical_move: Optional[float] = None  # Average earnings move %
     historical_beat_rate: Optional[float] = None  # % of beats
-    last_4_reactions: List[float] = field(default_factory = list)  # Last 4 earnings moves
+    last_4_reactions: List[float] = field(default_factory=list)  # Last 4 earnings moves
     
     # Strategy recommendations
     reaction_type: EarningsReactionType = EarningsReactionType.UNKNOWN
-    recommended_strategies: List[str] = field(default_factory = list)
+    recommended_strategies: List[str] = field(default_factory=list)
     risk_level: str = "medium"  # 'low', 'medium', 'high'
     
     # Metadata
-    data_sources: List[str] = field(default_factory = list)
-    last_updated: datetime = field(default_factory  =  datetime.now)
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    data_sources: List[str] = field(default_factory=list)
+    last_updated: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class EarningsCalendarProvider: 
@@ -114,7 +114,7 @@ class EarningsCalendarProvider:
         if polygon_api_key: 
             try: 
                 from polygon import RESTClient
-                self.polygon_client = RESTClient(api_key  =  polygon_api_key)
+                self.polygon_client = RESTClient(api_key=polygon_api_key)
                 self.logger.info("Polygon.io client initialized")
             except ImportError: 
                 self.logger.warning("Polygon.io client not available - install polygon - api-client")
@@ -126,7 +126,7 @@ class EarningsCalendarProvider:
         if alpha_vantage_key: 
             try: 
                 import alphavantage
-                self.alpha_vantage_client = alphavantage.AlphaVantage(key  =  alpha_vantage_key)
+                self.alpha_vantage_client = alphavantage.AlphaVantage(key=alpha_vantage_key)
                 self.logger.info("Alpha Vantage client initialized")
             except ImportError: 
                 self.logger.warning("Alpha Vantage client not available - install alpha - vantage")
@@ -142,7 +142,7 @@ class EarningsCalendarProvider:
         # Cached data
         self.earnings_cache: Dict[str, EnhancedEarningsEvent] = {}
         self.iv_cache: Dict[str, IVPercentileData] = {}
-        self.cache_ttl = timedelta(hours  =  4)  # 4 hour cache
+        self.cache_ttl = timedelta(hours=4)  # 4 hour cache
         
         self.logger.info("EarningsCalendarProvider initialized with external data sources")
     
@@ -177,7 +177,7 @@ class EarningsCalendarProvider:
                     continue
             
             # Sort by earnings date
-            enhanced_events.sort(key = lambda x: x.earnings_date)
+            enhanced_events.sort(key=lambda x: x.earnings_date)
             
             self.logger.info(f"Enhanced {len(enhanced_events)} earnings events")
             return enhanced_events
@@ -219,7 +219,7 @@ class EarningsCalendarProvider:
             
             # Get earnings calendar from Polygon.io
             start_date = date.today()
-            end_date = start_date + timedelta(days  =  days_ahead)
+            end_date = start_date + timedelta(days=days_ahead)
             
             # Polygon.io earnings calendar API call
             earnings_data = self.polygon_client.reference_earnings_calendar(
@@ -429,7 +429,7 @@ class EarningsCalendarProvider:
             # Check cache
             if ticker in self.iv_cache: 
                 cached_iv = self.iv_cache[ticker]
-                if datetime.now() - cached_iv.timestamp  <  timedelta(hours = 1): 
+                if datetime.now() - cached_iv.timestamp  <  timedelta(hours=1): 
                     return cached_iv
             
             # Get current options chain for IV
@@ -680,7 +680,7 @@ class EarningsCalendarProvider:
             return None
 
 
-def create_earnings_calendar_provider(data_provider = None, options_pricing = None, 
+def create_earnings_calendar_provider(data_provider=None, options_pricing = None, 
                                     polygon_api_key: str = None)->EarningsCalendarProvider:
     """Factory function to create earnings calendar provider"""
     return EarningsCalendarProvider(data_provider, options_pricing, polygon_api_key)

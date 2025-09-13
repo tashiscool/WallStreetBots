@@ -7,7 +7,7 @@ from interface import NewsSourceInterface
 
 
 class FinVizArticles(NewsSourceInterface): 
-    base_url = 'https: //finviz.com / quote.ashx?t  =  '
+    base_url = 'https: //finviz.com / quote.ashx?t = '
 
     def __init__(self, ticker: str):
         self.ticker = ticker
@@ -18,10 +18,10 @@ class FinVizArticles(NewsSourceInterface):
         : return: news_table: bs4.element.Tag (table of raw html tags)
         """
         url = self.base_url + self.ticker
-        req = Request(url  =  url, headers = {'user - agent': 'my - app / 0.0.1'})
+        req = Request(url=url, headers = {'user - agent': 'my - app / 0.0.1'})
         response = urlopen(req)
         html = BeautifulSoup(response, features = 'html.parser')
-        news_table = html.find(id  =  'news - table')
+        news_table = html.find(id='news - table')
         return news_table
 
     @staticmethod
@@ -59,7 +59,7 @@ class FinVizArticles(NewsSourceInterface):
         table = self.tag_to_table(html_tag)
         df = pd.DataFrame(table[1: ], columns = table[0])
         df.drop(["time", "link"], axis = 1, inplace = True)
-        df.rename(columns = {'header': 'title'}, inplace = True)
+        df.rename(columns={'header': 'title'}, inplace = True)
         return df
 
 

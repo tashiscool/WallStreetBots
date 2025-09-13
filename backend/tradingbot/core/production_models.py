@@ -38,8 +38,8 @@ class Strategy:
     status: str = "active"
     max_position_risk: Decimal = Decimal('0.02')
     max_account_risk: Decimal = Decimal('0.10')
-    created_at: datetime = field(default_factory  =  datetime.now)
-    updated_at: datetime = field(default_factory  =  datetime.now)
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
 
 
 @dataclass  
@@ -56,9 +56,9 @@ class Position:
     realized_pnl: Decimal = Decimal('0.00')
     total_pnl: Decimal = Decimal('0.00')
     risk_amount: Decimal = Decimal('0.00')
-    entry_date: datetime = field(default_factory  =  datetime.now)
-    last_update: datetime = field(default_factory  =  datetime.now)
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    entry_date: datetime = field(default_factory=datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -76,9 +76,9 @@ class Trade:
     commission: Decimal = Decimal('0.00')
     slippage: Decimal = Decimal('0.00')
     status: TradeStatus = TradeStatus.PENDING
-    entry_time: datetime = field(default_factory  =  datetime.now)
+    entry_time: datetime = field(default_factory=datetime.now)
     exit_time: Optional[datetime] = None
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -92,18 +92,18 @@ class RiskLimit:
     max_drawdown: Decimal = Decimal('0.20')
     stop_loss_pct: Decimal = Decimal('0.10')
     take_profit_pct: Decimal = Decimal('0.20')
-    created_at: datetime = field(default_factory  =  datetime.now)
+    created_at: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
 class Alert: 
     """System alerts and notifications"""
     id: Optional[int] = None
-    timestamp: datetime = field(default_factory  =  datetime.now)
+    timestamp: datetime = field(default_factory=datetime.now)
     level: str = "info"  # info, warning, error, critical
     message: str = ""
     source: str = ""
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
     acknowledged: bool = False
 
 
@@ -179,8 +179,8 @@ class PerformanceMetrics:
     id: Optional[int] = None
     strategy_id: Optional[int] = None
     strategy_name: str = ""
-    period_start: datetime = field(default_factory  =  datetime.now)
-    period_end: datetime = field(default_factory  =  datetime.now)
+    period_start: datetime = field(default_factory=datetime.now)
+    period_end: datetime = field(default_factory=datetime.now)
     total_trades: int = 0
     winning_trades: int = 0
     losing_trades: int = 0
@@ -200,5 +200,5 @@ class PerformanceMetrics:
     kelly_fraction: Decimal = Decimal('0.00')
     var_95: Decimal = Decimal('0.00')
     expected_shortfall: Decimal = Decimal('0.00')
-    created_at: datetime = field(default_factory  =  datetime.now)
-    updated_at: datetime = field(default_factory  =  datetime.now)
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)

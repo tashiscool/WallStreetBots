@@ -203,8 +203,8 @@ class ProductionCLI:
 
 def main(): 
     """Main CLI entry point"""
-    parser = argparse.ArgumentParser(description  =  'Production Trading System CLI')
-    subparsers = parser.add_subparsers(dest  =  'command', help = 'Available commands')
+    parser = argparse.ArgumentParser(description='Production Trading System CLI')
+    subparsers = parser.add_subparsers(dest='command', help = 'Available commands')
     
     # Start command
     start_parser = subparsers.add_parser('start', help = 'Start production system')

@@ -357,7 +357,7 @@ class ProductionDebitSpreads:
                     opportunities.append(opportunity)
         
         # Sort by confidence score
-        opportunities.sort(key = lambda x: x.confidence, reverse = True)
+        opportunities.sort(key=lambda x: x.confidence, reverse = True)
         return opportunities[: 3]  # Top 3 per ticker
     
     def estimate_iv_from_price(self, S: float, K: float, T: float, market_price: float)->float:
@@ -452,7 +452,7 @@ class ProductionDebitSpreads:
                 continue
         
         # Global ranking by confidence
-        all_opportunities.sort(key = lambda x: x.confidence, reverse = True)
+        all_opportunities.sort(key=lambda x: x.confidence, reverse = True)
         return all_opportunities
     
     async def execute_spread_trade(self, opportunity: SpreadOpportunity)->bool:

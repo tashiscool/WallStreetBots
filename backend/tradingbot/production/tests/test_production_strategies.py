@@ -35,8 +35,8 @@ class TestProductionWSBDipBot:
     def mock_integration(self): 
         """Mock ProductionIntegrationManager"""
         mock_integration = Mock()
-        mock_integration.get_portfolio_value = AsyncMock(return_value  =  Decimal('100000.00'))
-        mock_integration.get_current_price = AsyncMock(return_value  =  Decimal('150.00'))
+        mock_integration.get_portfolio_value = AsyncMock(return_value=Decimal('100000.00'))
+        mock_integration.get_current_price = AsyncMock(return_value=Decimal('150.00'))
         mock_integration.execute_trade = AsyncMock()
         mock_integration.execute_trade.return_value.status.value = 'FILLED'
         mock_integration.active_positions = {}
@@ -48,7 +48,7 @@ class TestProductionWSBDipBot:
     def mock_data_provider(self): 
         """Mock ProductionDataProvider"""
         mock_provider = Mock()
-        mock_provider.is_market_open = AsyncMock(return_value  =  True)
+        mock_provider.is_market_open = AsyncMock(return_value=True)
         
         # Mock price history for advanced dip detection (need 30+ points)
         price_history = []
@@ -77,23 +77,23 @@ class TestProductionWSBDipBot:
         price_history.append(Decimal('108.00'))  # Clear dip from 116
         volume_history.append(3000000)  # High volume
         
-        mock_provider.get_price_history = AsyncMock(return_value  =  price_history)
-        mock_provider.get_volume_history = AsyncMock(return_value  =  volume_history)
-        mock_provider.get_historical_data = AsyncMock(return_value  =  [
-            Mock(price = Decimal('100.00')),  # Day 1
-            Mock(price = Decimal('102.00')),  # Day 2
-            Mock(price = Decimal('105.00')),  # Day 3
-            Mock(price = Decimal('108.00')),  # Day 4
-            Mock(price = Decimal('110.00')),  # Day 5
-            Mock(price = Decimal('112.00')),  # Day 6
-            Mock(price = Decimal('115.00')),  # Day 7
-            Mock(price = Decimal('118.00')),  # Day 8
-            Mock(price = Decimal('120.00')),  # Day 9
-            Mock(price = Decimal('115.00')),  # Day 10 (dip after run)
+        mock_provider.get_price_history = AsyncMock(return_value=price_history)
+        mock_provider.get_volume_history = AsyncMock(return_value=volume_history)
+        mock_provider.get_historical_data = AsyncMock(return_value=[
+            Mock(price=Decimal('100.00')),  # Day 1
+            Mock(price=Decimal('102.00')),  # Day 2
+            Mock(price=Decimal('105.00')),  # Day 3
+            Mock(price=Decimal('108.00')),  # Day 4
+            Mock(price=Decimal('110.00')),  # Day 5
+            Mock(price=Decimal('112.00')),  # Day 6
+            Mock(price=Decimal('115.00')),  # Day 7
+            Mock(price=Decimal('118.00')),  # Day 8
+            Mock(price=Decimal('120.00')),  # Day 9
+            Mock(price=Decimal('115.00')),  # Day 10 (dip after run)
         ])
-        mock_provider.get_volatility = AsyncMock(return_value  =  Decimal('0.30'))
-        mock_provider.get_current_price = AsyncMock(return_value  =  Mock(price = Decimal('115.00')))
-        mock_provider.get_options_chain = AsyncMock(return_value  =  [])
+        mock_provider.get_volatility = AsyncMock(return_value=Decimal('0.30'))
+        mock_provider.get_current_price = AsyncMock(return_value=Mock(price=Decimal('115.00')))
+        mock_provider.get_options_chain = AsyncMock(return_value=[])
         return mock_provider
     
     @pytest.fixture
@@ -138,7 +138,7 @@ class TestProductionWSBDipBot:
             run_percentage = 0.12,
             dip_percentage = -0.04,
             target_strike = Decimal('157.50'),
-            target_expiry = datetime.now() + timedelta(days = 30),
+            target_expiry = datetime.now() + timedelta(days=30),
             expected_premium = Decimal('5.00'),
             risk_amount = Decimal('20000.00'),
             confidence = 0.8
@@ -167,7 +167,7 @@ class TestProductionEarningsProtection:
     def mock_integration(self): 
         """Mock ProductionIntegrationManager"""
         mock_integration = Mock()
-        mock_integration.get_portfolio_value = AsyncMock(return_value  =  Decimal('100000.00'))
+        mock_integration.get_portfolio_value = AsyncMock(return_value=Decimal('100000.00'))
         mock_integration.execute_trade = AsyncMock()
         mock_integration.execute_trade.return_value.status.value = 'FILLED'
         mock_integration.active_positions = {}
@@ -179,20 +179,20 @@ class TestProductionEarningsProtection:
     def mock_data_provider(self): 
         """Mock ProductionDataProvider"""
         mock_provider = Mock()
-        mock_provider.get_earnings_calendar = AsyncMock(return_value  =  [
+        mock_provider.get_earnings_calendar = AsyncMock(return_value=[
             EarningsEvent(
                 ticker = "AAPL",
                 company_name = "Apple Inc.",
-                earnings_date = datetime.now() + timedelta(days = 3),
+                earnings_date = datetime.now() + timedelta(days=3),
                 earnings_time = "AMC",
                 implied_move = Decimal('0.06'),
                 source = "test"
             )
         ])
-        mock_provider.get_current_price = AsyncMock(return_value  =  Mock(price = Decimal('150.00')))
-        mock_provider.get_volatility = AsyncMock(return_value  =  Decimal('0.30'))
+        mock_provider.get_current_price = AsyncMock(return_value=Mock(price=Decimal('150.00')))
+        mock_provider.get_volatility = AsyncMock(return_value=Decimal('0.30'))
         # Mock the IV percentile calculation to return high value
-        mock_provider._calculate_iv_percentile = AsyncMock(return_value  =  75.0)
+        mock_provider._calculate_iv_percentile = AsyncMock(return_value=75.0)
         return mock_provider
     
     @pytest.fixture
@@ -229,7 +229,7 @@ class TestProductionEarningsProtection:
         """Test trade execution"""
         signal = EarningsSignal(
             ticker = "AAPL",
-            earnings_date = datetime.now() + timedelta(days = 3),
+            earnings_date = datetime.now() + timedelta(days=3),
             earnings_time = "AMC",
             current_price = Decimal('150.00'),
             implied_move = Decimal('0.06'),
@@ -261,8 +261,8 @@ class TestProductionIndexBaseline:
     def mock_integration(self): 
         """Mock ProductionIntegrationManager"""
         mock_integration = Mock()
-        mock_integration.get_portfolio_value = AsyncMock(return_value  =  Decimal('100000.00'))
-        mock_integration.get_position_value = AsyncMock(return_value  =  Decimal('50000.00'))
+        mock_integration.get_portfolio_value = AsyncMock(return_value=Decimal('100000.00'))
+        mock_integration.get_position_value = AsyncMock(return_value=Decimal('50000.00'))
         mock_integration.execute_trade = AsyncMock()
         mock_integration.execute_trade.return_value.status.value = 'FILLED'
         mock_integration.active_positions = {}
@@ -277,10 +277,10 @@ class TestProductionIndexBaseline:
         # Create enough historical data for the test
         historical_data = []
         for i in range(50):  # 50 days of data
-            historical_data.append(Mock(price = Decimal('400.00') + Decimal(str(i))))
+            historical_data.append(Mock(price=Decimal('400.00') + Decimal(str(i))))
         
-        mock_provider.get_historical_data = AsyncMock(return_value  =  historical_data)
-        mock_provider.get_current_price = AsyncMock(return_value  =  Mock(price = Decimal('415.00')))
+        mock_provider.get_historical_data = AsyncMock(return_value=historical_data)
+        mock_provider.get_current_price = AsyncMock(return_value=Mock(price=Decimal('415.00')))
         return mock_provider
     
     @pytest.fixture
@@ -332,8 +332,8 @@ class TestProductionStrategyManager:
         """Mock ProductionIntegrationManager"""
         mock_manager = Mock()
         mock_manager.alpaca_manager.validate_api.return_value = (True, "OK")
-        mock_manager.get_portfolio_value = AsyncMock(return_value  =  Decimal('100000.00'))
-        mock_manager.get_total_risk = AsyncMock(return_value  =  Decimal('20000.00'))
+        mock_manager.get_portfolio_value = AsyncMock(return_value=Decimal('100000.00'))
+        mock_manager.get_total_risk = AsyncMock(return_value=Decimal('20000.00'))
         mock_manager.get_portfolio_summary.return_value = {
             'total_positions': 0,
             'total_trades': 0,
@@ -348,7 +348,7 @@ class TestProductionStrategyManager:
     def mock_data_provider(self): 
         """Mock ProductionDataProvider"""
         mock_provider = Mock()
-        mock_provider.is_market_open = AsyncMock(return_value  =  True)
+        mock_provider.is_market_open = AsyncMock(return_value=True)
         mock_provider.clear_cache = Mock()
         mock_provider.get_cache_stats.return_value = {
             'price_cache_size': 0,
@@ -407,7 +407,7 @@ class TestProductionStrategyManager:
                 manager = ProductionStrategyManager(strategy_manager_config)
                 
                 # Mock the validation and strategy start methods
-                manager._validate_system_state = AsyncMock(return_value  =  True)
+                manager._validate_system_state = AsyncMock(return_value=True)
                 
                 # Start strategies
                 success = await manager.start_all_strategies()
@@ -457,8 +457,8 @@ class TestProductionStrategyIntegration:
                             
                             # Setup mocks
                             mock_integration.return_value.alpaca_manager.validate_api.return_value = (True, "OK")
-                            mock_integration.return_value.get_portfolio_value = AsyncMock(return_value  =  Decimal('100000.00'))
-                            mock_data.return_value.is_market_open = AsyncMock(return_value  =  True)
+                            mock_integration.return_value.get_portfolio_value = AsyncMock(return_value=Decimal('100000.00'))
+                            mock_data.return_value.is_market_open = AsyncMock(return_value=True)
                             
                             # Mock strategy instances
                             mock_wsb_instance = Mock()
@@ -486,7 +486,7 @@ class TestProductionStrategyIntegration:
                             manager = ProductionStrategyManager(config)
                             
                             # Start strategies
-                            manager._validate_system_state = AsyncMock(return_value  =  True)
+                            manager._validate_system_state = AsyncMock(return_value=True)
                             success = await manager.start_all_strategies()
                             
                             # Verify strategies started

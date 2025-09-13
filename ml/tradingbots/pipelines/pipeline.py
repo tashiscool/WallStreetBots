@@ -64,4 +64,4 @@ class Pipeline:
         If the trading strategy uses other way to generate Actions instead of based on
         the change in portfolio, override the calc_actions function.
         """
-        return self.calc_actions(order_type = order_type)
+        return self.calc_actions(order_type=order_type)

@@ -59,7 +59,7 @@ class RiskMetrics:
     stress_test_score: float = 0.0
     ml_risk_score: float = 0.0
     within_limits: bool = True
-    alerts: List[str] = field(default_factory = list)
+    alerts: List[str] = field(default_factory=list)
 
 
 class RiskIntegrationManager: 
@@ -259,7 +259,7 @@ class RiskIntegrationManager:
                 mc_var_95, mc_cvar_95 = var_cvar_mc(mu, cov, weights, 0.95, n_paths = 10000, student_t = True)
                 mc_var_99, mc_cvar_99 = var_cvar_mc(mu, cov, weights, 0.99, n_paths = 10000, student_t = True)
             else: 
-                mc_var_95 = mc_var_99  =  mc_cvar_95 = mc_cvar_99  =  0.0
+                mc_var_95 = mc_var_99 = mc_cvar_95 = mc_cvar_99 = 0.0
             
             # Use conservative estimate (max of methods)
             var_95 = max(hist_var_95, param_var_95, mc_var_95)

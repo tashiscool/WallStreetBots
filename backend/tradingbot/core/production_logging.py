@@ -72,7 +72,7 @@ class ProductionLogger:
                     structlog.stdlib.add_logger_name,
                     structlog.stdlib.add_log_level,
                     structlog.stdlib.PositionalArgumentsFormatter(),
-                    structlog.processors.TimeStamper(fmt = "iso"),
+                    structlog.processors.TimeStamper(fmt="iso"),
                     structlog.processors.StackInfoRenderer(),
                     structlog.processors.format_exc_info,
                     structlog.processors.UnicodeDecoder(),
@@ -234,7 +234,7 @@ def retry_with_backoff(
     def decorator(func: Callable)->Callable:
         @retry(
             stop = stop_after_attempt(max_attempts),
-            wait = wait_exponential(multiplier  =  base_delay, min = base_delay, max = max_delay),
+            wait = wait_exponential(multiplier=base_delay, min = base_delay, max = max_delay),
             retry = retry_if_exception_type(exceptions),
             before_sleep = before_sleep_log(logging.getLogger(func.__module__), logging.WARNING)
         )
@@ -244,7 +244,7 @@ def retry_with_backoff(
         
         @retry(
             stop = stop_after_attempt(max_attempts),
-            wait = wait_exponential(multiplier  =  base_delay, min = base_delay, max = max_delay),
+            wait = wait_exponential(multiplier=base_delay, min = base_delay, max = max_delay),
             retry = retry_if_exception_type(exceptions),
             before_sleep = before_sleep_log(logging.getLogger(func.__module__), logging.WARNING)
         )

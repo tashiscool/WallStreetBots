@@ -58,9 +58,9 @@ class SPXSpreadPosition:
     profit_pct: float = 0.0
     
     # Timing
-    entry_date: datetime = field(default_factory  =  datetime.now)
-    expiry_date: datetime = field(default_factory  =  lambda: datetime.now() + timedelta(days = 1))  # 0DTE
-    last_update: datetime = field(default_factory  =  datetime.now)
+    entry_date: datetime = field(default_factory=datetime.now)
+    expiry_date: datetime = field(default_factory=lambda: datetime.now() + timedelta(days=1))  # 0DTE
+    last_update: datetime = field(default_factory=datetime.now)
     
     # Greeks
     net_delta: float = 0.0
@@ -289,7 +289,7 @@ class ProductionSPXSpreads:
         
         # Strategy state
         self.last_scan_time: Optional[datetime] = None
-        self.scan_interval = timedelta(minutes  =  5)  # More frequent for 0DTE
+        self.scan_interval = timedelta(minutes=5)  # More frequent for 0DTE
         
         self.logger.info("SPX Credit Spreads Strategy initialized",
                         max_positions = self.max_positions,
@@ -342,7 +342,7 @@ class ProductionSPXSpreads:
                     candidates.append(candidate)
             
             # Sort by spread score
-            candidates.sort(key = lambda x: x.spread_score, reverse = True)
+            candidates.sort(key=lambda x: x.spread_score, reverse = True)
             
             self.candidates = candidates[: 5]  # Top 5 candidates
             
@@ -409,7 +409,7 @@ class ProductionSPXSpreads:
                 })
         
         # Sort by profit / loss ratio
-        spreads.sort(key = lambda x: x['profit_loss_ratio'], reverse = True)
+        spreads.sort(key=lambda x: x['profit_loss_ratio'], reverse = True)
         
         return spreads[: 3]  # Top 3 spreads
     

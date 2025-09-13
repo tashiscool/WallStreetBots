@@ -68,7 +68,7 @@ class MomentumData:
     volume_score: float
     technical_score: float
     overall_score: float
-    analysis_date: datetime = field(default_factory  =  datetime.now)
+    analysis_date: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -89,7 +89,7 @@ class WeeklyOption:
     gamma: float
     theta: float
     vega: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -106,7 +106,7 @@ class MomentumCandidate:
     risk_reward_ratio: float
     position_size: int
     recommended_option: Optional[WeeklyOption] = None
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -125,7 +125,7 @@ class MomentumPosition:
     entry_date: datetime
     expiry_date: Optional[datetime] = None
     days_to_expiry: int = 0
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     status: str = "active"
 
 
@@ -349,7 +349,7 @@ class WeeklyOptionsProvider:
                     ticker = ticker,
                     option_type = WeeklyOptionType.CALL,
                     strike_price = strike,
-                    expiry_date = datetime.now() + timedelta(days = days_to_expiry),
+                    expiry_date = datetime.now() + timedelta(days=days_to_expiry),
                     days_to_expiry = days_to_expiry,
                     bid_price = max(0.01, strike * 0.02),
                     ask_price = max(0.02, strike * 0.025),
@@ -369,7 +369,7 @@ class WeeklyOptionsProvider:
                     ticker = ticker,
                     option_type = WeeklyOptionType.PUT,
                     strike_price = strike,
-                    expiry_date = datetime.now() + timedelta(days = days_to_expiry),
+                    expiry_date = datetime.now() + timedelta(days=days_to_expiry),
                     days_to_expiry = days_to_expiry,
                     bid_price = max(0.01, strike * 0.02),
                     ask_price = max(0.02, strike * 0.025),
@@ -495,7 +495,7 @@ class MomentumWeekliesStrategy:
                     continue
             
             # Sort by overall score
-            candidates.sort(key = lambda x: x.momentum_data.overall_score, reverse = True)
+            candidates.sort(key=lambda x: x.momentum_data.overall_score, reverse = True)
             
             self.logger.info(f"Found {len(candidates)} momentum opportunities")
             return candidates

@@ -51,7 +51,7 @@ class Metric:
     name: str
     value: float
     timestamp: datetime
-    labels: Dict[str, str] = field(default_factory = dict)
+    labels: Dict[str, str] = field(default_factory=dict)
     metric_type: MetricType = MetricType.GAUGE
 
 
@@ -74,7 +74,7 @@ class MetricsCollector:
     
     def __init__(self, logger: ProductionLogger):
         self.logger = logger
-        self.metrics = defaultdict(lambda: deque(maxlen  =  10000))  # Store last 10k metrics per name
+        self.metrics = defaultdict(lambda: deque(maxlen=10000))  # Store last 10k metrics per name
         self.counters = defaultdict(float)
         self.gauges = defaultdict(float)
         self.histograms = defaultdict(list)
@@ -125,7 +125,7 @@ class MetricsCollector:
     def get_metric_history(self, name: str, minutes: int = 60)->List[Metric]:
         """Get metric history for specified time period"""
         try: 
-            cutoff_time = datetime.now() - timedelta(minutes = minutes)
+            cutoff_time = datetime.now() - timedelta(minutes=minutes)
             metrics = self.metrics.get(name, deque())
             
             return [m for m in metrics if m.timestamp  >=  cutoff_time]
@@ -324,7 +324,7 @@ class SystemMonitor:
                 return
             
             self.monitoring_active = True
-            self.monitoring_thread = threading.Thread(target  =  self._monitoring_loop, daemon = True)
+            self.monitoring_thread = threading.Thread(target=self._monitoring_loop, daemon = True)
             self.monitoring_thread.start()
             
             self.logger.info("System monitoring started")
@@ -338,7 +338,7 @@ class SystemMonitor:
             self.monitoring_active = False
             
             if self.monitoring_thread: 
-                self.monitoring_thread.join(timeout = 5)
+                self.monitoring_thread.join(timeout=5)
             
             self.logger.info("System monitoring stopped")
             
@@ -370,7 +370,7 @@ class SystemMonitor:
             import psutil
             
             # CPU usage
-            cpu_percent = psutil.cpu_percent(interval  =  1)
+            cpu_percent = psutil.cpu_percent(interval=1)
             self.metrics_collector.record_metric(Metric(
                 name = "system.cpu.usage",
                 value = cpu_percent,
@@ -592,7 +592,7 @@ class MonitoringDashboard:
                     "rule_name": "high_cpu_usage",
                     "level": "warning",
                     "message": "CPU usage above 80%",
-                    "timestamp": (datetime.now() - timedelta(minutes = 5)).isoformat(),
+                    "timestamp": (datetime.now() - timedelta(minutes=5)).isoformat(),
                     "resolved": True
                 },
                 {
@@ -600,7 +600,7 @@ class MonitoringDashboard:
                     "rule_name": "low_memory",
                     "level": "error",
                     "message": "Memory usage above 90%",
-                    "timestamp": (datetime.now() - timedelta(minutes = 15)).isoformat(),
+                    "timestamp": (datetime.now() - timedelta(minutes=15)).isoformat(),
                     "resolved": False
                 }
             ]

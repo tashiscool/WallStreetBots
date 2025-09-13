@@ -236,13 +236,13 @@ class TestLiveDipScanner(unittest.TestCase):
         self.assertEqual(self.scanner.trades_executed_today, 0)
         
         # Update stats
-        self.scanner.update_daily_stats(opportunities_found = 3, trades_executed = 1)
+        self.scanner.update_daily_stats(opportunities_found=3, trades_executed = 1)
         
         self.assertEqual(self.scanner.opportunities_found_today, 3)
         self.assertEqual(self.scanner.trades_executed_today, 1)
         
         # Update again
-        self.scanner.update_daily_stats(opportunities_found = 2, trades_executed = 1)
+        self.scanner.update_daily_stats(opportunities_found=2, trades_executed = 1)
         
         self.assertEqual(self.scanner.opportunities_found_today, 5)
         self.assertEqual(self.scanner.trades_executed_today, 2)
@@ -367,7 +367,7 @@ class TestLiveDipScannerIntegration(unittest.TestCase):
             self.scanner.reset_daily_stats()
             
             # Update stats
-            self.scanner.update_daily_stats(opportunities_found = 3, trades_executed = 1)
+            self.scanner.update_daily_stats(opportunities_found=3, trades_executed = 1)
             
             # Check metrics
             self.assertEqual(self.scanner.opportunities_found_today, 3)
@@ -395,7 +395,7 @@ def run_dip_scanner_tests():
         test_suite.addTests(tests)
     
     # Run tests
-    runner = unittest.TextTestRunner(verbosity  =  2)
+    runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(test_suite)
     
     # Print summary

@@ -38,7 +38,7 @@ class MonteCarloPortfolioUpdate(PortfolioManager):
         call this method to rebalance the portfolio
         """
         stocks = self.portfolio_stocks.keys()
-        portfolios = pd.DataFrame(columns  =  [*stocks, "Sharpe Ratio"])
+        portfolios = pd.DataFrame(columns=[*stocks, "Sharpe Ratio"])
 
         for i in range(self.simulation_itr): 
             weights = np.random.random(len(stocks))

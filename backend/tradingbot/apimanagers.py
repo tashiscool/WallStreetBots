@@ -182,7 +182,7 @@ class AlpacaManager:
         """
         try: 
             # Get latest trade data
-            request = StockLatestTradeRequest(symbol_or_symbols  =  [symbol])
+            request = StockLatestTradeRequest(symbol_or_symbols=[symbol])
             trades = self.data_client.get_stock_latest_trade(request)
             
             if symbol in trades and trades[symbol]: 
@@ -298,7 +298,7 @@ class AlpacaManager:
                     time_in_force = TimeInForce.GTC
                 )
             
-            order = self.trading_client.submit_order(order_data  =  order_data)
+            order = self.trading_client.submit_order(order_data=order_data)
             
             return {
                 'id': order.id,
@@ -345,7 +345,7 @@ class AlpacaManager:
                     time_in_force = TimeInForce.GTC
                 )
             
-            order = self.trading_client.submit_order(order_data  =  order_data)
+            order = self.trading_client.submit_order(order_data=order_data)
             
             return {
                 'id': order.id,
@@ -398,7 +398,7 @@ class AlpacaManager:
                     time_in_force = TimeInForce.GTC
                 )
             
-            order = self.trading_client.submit_order(order_data  =  order_data)
+            order = self.trading_client.submit_order(order_data=order_data)
             
             return {
                 'id': order.id,
@@ -449,7 +449,7 @@ class AlpacaManager:
                     time_in_force = TimeInForce.GTC
                 )
             
-            order = self.trading_client.submit_order(order_data  =  order_data)
+            order = self.trading_client.submit_order(order_data=order_data)
             
             return {
                 'id': order.id,
@@ -485,7 +485,7 @@ class AlpacaManager:
                 stop_price = stop_price
             )
             
-            order = self.trading_client.submit_order(order_data  =  order_data)
+            order = self.trading_client.submit_order(order_data=order_data)
             
             return {
                 'id': order.id,
@@ -544,8 +544,8 @@ class AlpacaManager:
             if status.lower()  ==  "open": orders = self.trading_client.get_orders()
             else: 
                 # Get all orders with filters
-                request = GetOrdersRequest(status  =  status if status  !=  "all" else None)
-                orders = self.trading_client.get_orders(filter  =  request)
+                request = GetOrdersRequest(status=status if status  !=  "all" else None)
+                orders = self.trading_client.get_orders(filter=request)
             
             result = []
             for order in orders: 
@@ -585,7 +585,7 @@ class AlpacaManager:
                 self.trading_client.close_position(symbol)
             else: 
                 # Close partial position
-                request = ClosePositionRequest(percentage  =  str(int(percentage * 100)))
+                request = ClosePositionRequest(percentage=str(int(percentage * 100)))
                 self.trading_client.close_position(symbol, close_options = request)
             
             return True
@@ -685,7 +685,7 @@ class AlpacaManager:
         """
         try: 
             if not start: 
-                start = datetime.now() - timedelta(days = limit if timeframe  ==  "1Day" else 30)
+                start = datetime.now() - timedelta(days=limit if timeframe  ==  "1Day" else 30)
             if not end: 
                 end = datetime.now()
             

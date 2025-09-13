@@ -204,7 +204,7 @@ class OptionsStrategySetup:
     """Configuration for options trade setup based on successful playbook"""
 
     # Universe filter
-    mega_cap_tickers: List[str] = field(default_factory = lambda: [
+    mega_cap_tickers: List[str] = field(default_factory=lambda: [
         'AAPL', 'MSFT', 'GOOGL', 'GOOG', 'META', 'NVDA', 'AVGO', 'AMD', 'TSLA'
     ])
 
@@ -225,7 +225,7 @@ class OptionsStrategySetup:
     max_iv_percentile: float = 40.0  # Avoid high IV entries
 
     # Exit discipline
-    profit_take_levels: List[float] = field(default_factory = lambda: [1.0, 2.0, 2.5])  # 100%, 200%, 250%
+    profit_take_levels: List[float] = field(default_factory=lambda: [1.0, 2.0, 2.5])  # 100%, 200%, 250%
     stop_loss_pct: float = 0.45      # Stop at 45% loss
     max_hold_days: int = 5           # Time stop if no progress
     delta_exit_threshold: float = 0.60  # Exit when delta  >=  0.60
@@ -321,21 +321,21 @@ class OptionsTradeCalculator:
         target_dte = target_dte or self.setup.target_dte_optimal
 
         # Start from target date
-        base_date = date.today() + timedelta(days = target_dte)
+        base_date = date.today() + timedelta(days=target_dte)
 
         # Find nearest Friday
         days_to_friday = (4 - base_date.weekday()) % 7  # Friday is weekday 4
-        candidate_date = base_date + timedelta(days  =  days_to_friday)
+        candidate_date = base_date + timedelta(days=days_to_friday)
 
         # Ensure within acceptable DTE range
         actual_dte = (candidate_date - date.today()).days
 
         if actual_dte  <  self.setup.target_dte_min: 
             # Move to next Friday
-            candidate_date += timedelta(days = 7)
+            candidate_date += timedelta(days=7)
         elif actual_dte  >  self.setup.target_dte_max: 
             # Move to previous Friday
-            candidate_date -= timedelta(days = 7)
+            candidate_date -= timedelta(days=7)
 
         return candidate_date
 

@@ -30,7 +30,7 @@ class RiskIntegratedConfig(ProductionStrategyManagerConfig):
     """Configuration for risk - integrated production manager"""
     
     # Risk management settings
-    risk_limits: RiskLimits = field(default_factory  =  RiskLimits)
+    risk_limits: RiskLimits = field(default_factory=RiskLimits)
     enable_ml_risk: bool = True
     enable_stress_testing: bool = True
     enable_risk_dashboard: bool = True
@@ -261,7 +261,7 @@ class RiskIntegratedProductionManager:
             import pandas as pd
             import numpy as np
             
-            dates = pd.date_range(end  =  datetime.now(), periods = 252, freq = 'D')
+            dates = pd.date_range(end=datetime.now(), periods = 252, freq = 'D')
             returns = np.random.normal(0, 0.02, 252)
             prices = 100 * np.cumprod(1 + returns)
             

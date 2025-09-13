@@ -77,8 +77,8 @@ class ComplianceRuleDefinition:
     measurement_period: int  # days
     severity: str  # "low", "medium", "high", "critical"
     is_active: bool = True
-    created_date: datetime = field(default_factory  =  datetime.now)
-    last_updated: datetime = field(default_factory  =  datetime.now)
+    created_date: datetime = field(default_factory=datetime.now)
+    last_updated: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -682,7 +682,7 @@ class RegulatoryComplianceManager:
         try: 
             # Get recent checks
             recent_checks = [c for c in self.compliance_checks 
-                           if c.timestamp  >=  datetime.now() - timedelta(days = 7)]
+                           if c.timestamp  >=  datetime.now() - timedelta(days=7)]
             
             # Count by status
             status_counts = {}
@@ -863,7 +863,7 @@ if __name__ ==  "__main__":
         # Generate regulatory report
         report_id = await compliance_manager.generate_regulatory_report(
             "daily_risk_report",
-            datetime.now() - timedelta(days = 1),
+            datetime.now() - timedelta(days=1),
             datetime.now(),
             {"risk_metrics": risk_metrics, "portfolio_data": portfolio_data}
         )

@@ -46,8 +46,8 @@ class WheelPosition:
     expiry_date: datetime
     premium_received: float
     premium_paid: float = 0.0
-    entry_date: datetime = field(default_factory  =  datetime.now)
-    last_update: datetime = field(default_factory  =  datetime.now)
+    entry_date: datetime = field(default_factory=datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     days_to_expiry: int = 0
     delta: float = 0.0
     theta: float = 0.0
@@ -142,9 +142,9 @@ class SpreadPosition:
     current_value: float = 0.0
     unrealized_pnl: float = 0.0
     profit_pct: float = 0.0
-    entry_date: datetime = field(default_factory  =  datetime.now)
-    expiry_date: datetime = field(default_factory  =  lambda: datetime.now() + timedelta(days = 30))
-    last_update: datetime = field(default_factory  =  datetime.now)
+    entry_date: datetime = field(default_factory=datetime.now)
+    expiry_date: datetime = field(default_factory=lambda: datetime.now() + timedelta(days=30))
+    last_update: datetime = field(default_factory=datetime.now)
     net_delta: float = 0.0
     net_gamma: float = 0.0
     net_theta: float = 0.0
@@ -277,7 +277,7 @@ class BenchmarkData:
     volatility: float
     sharpe_ratio: float
     max_drawdown: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -299,7 +299,7 @@ class StrategyPerformance:
     avg_win: float
     avg_loss: float
     profit_factor: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -315,7 +315,7 @@ class PerformanceComparison:
     information_ratio: float
     strategy_sharpe: float
     benchmark_sharpe: float
-    comparison_date: datetime = field(default_factory  =  datetime.now)
+    comparison_date: datetime = field(default_factory=datetime.now)
 
 
 class PerformanceCalculator: 
@@ -436,7 +436,7 @@ class TestWheelStrategy(unittest.TestCase):
             unrealized_pnl = 500.0,
             option_type = "put",
             strike_price = 145.0,
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             premium_received = 200.0
         )
         
@@ -477,7 +477,7 @@ class TestWheelStrategy(unittest.TestCase):
             unrealized_pnl = 0.0,
             option_type = "put",
             strike_price = 145.0,
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             premium_received = 200.0
         )
         
@@ -503,7 +503,7 @@ class TestWheelStrategy(unittest.TestCase):
             unrealized_pnl = 0.0,
             option_type = "put",
             strike_price = 145.0,
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             premium_received = 200.0
         )
         
@@ -757,7 +757,7 @@ class TestPhase2EndToEnd(unittest.TestCase):
             unrealized_pnl = 0.0,
             option_type = "put",
             strike_price = 145.0,
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             premium_received = 200.0
         )
         

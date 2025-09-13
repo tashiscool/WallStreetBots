@@ -293,9 +293,9 @@ class WallStreetBotsLauncher:
                 choice = input("\nSelect option (1 - 9): ").strip()
                 
                 if choice  ==  "1": 
-                    self.run_simple_bot(real_money = False)
+                    self.run_simple_bot(real_money=False)
                 elif choice  ==  "2": 
-                    self.run_simple_bot(real_money = True)
+                    self.run_simple_bot(real_money=True)
                 elif choice  ==  "3": 
                     self.run_tests("risk")
                 elif choice  ==  "4": 

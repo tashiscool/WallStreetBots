@@ -438,7 +438,7 @@ class RealOptionsPricingEngine:
             # Find suitable expiry dates
             suitable_expiries = []
             for days_out in range(min_dte, max_dte + 1): 
-                expiry = date.today() + timedelta(days = days_out)
+                expiry = date.today() + timedelta(days=days_out)
                 # Skip weekends (options expire on Fridays)
                 if expiry.weekday()  ==  4:  # Friday
                     suitable_expiries.append(expiry)

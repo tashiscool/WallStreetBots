@@ -210,7 +210,7 @@ class StrategyOptimizer:
                     results.append((params, score, backtest_results))
                 
                 # Sort by score
-                generation_results.sort(key = lambda x: x[1], reverse = True)
+                generation_results.sort(key=lambda x: x[1], reverse = True)
                 
                 # Select elite
                 elite = [individual for individual, score, _ in generation_results[: config.elite_size]]

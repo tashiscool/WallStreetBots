@@ -79,7 +79,7 @@ class SwingTradingScanner:
             stock = yf.Ticker(ticker)
             
             # Get intraday data for breakout detection
-            data = stock.history(period  =  "5d", interval = "15m")
+            data = stock.history(period="5d", interval = "15m")
             if len(data)  <  50: 
                 return False, 0.0, 0.0
             
@@ -132,7 +132,7 @@ class SwingTradingScanner:
         """Detect strong momentum continuation patterns"""
         try: 
             stock = yf.Ticker(ticker)
-            data = stock.history(period  =  "2d", interval = "5m")
+            data = stock.history(period="2d", interval = "5m")
             
             if len(data)  <  30: 
                 return False, 0.0
@@ -167,7 +167,7 @@ class SwingTradingScanner:
         """Detect oversold bounce setups"""
         try: 
             stock = yf.Ticker(ticker)
-            data = stock.history(period  =  "3d", interval = "15m")
+            data = stock.history(period="3d", interval = "15m")
             
             if len(data)  <  40: 
                 return False, "insufficient_data", 0.0
@@ -221,7 +221,7 @@ class SwingTradingScanner:
         if days_to_friday  <=  0: 
             days_to_friday = 7
         
-        expiry_date = today + timedelta(days  =  days_to_friday)
+        expiry_date = today + timedelta(days=days_to_friday)
         return expiry_date.strftime("%Y-%m-%d")
     
     def calculate_option_targets(self, current_price: float, strike: int, premium: float)->Tuple[float, float, float, float]: 
@@ -255,7 +255,7 @@ class SwingTradingScanner:
                 pass
             
             # Fallback estimate
-            current_price = stock.history(period  =  "1d")['Close'].iloc[-1]
+            current_price = stock.history(period="1d")['Close'].iloc[-1]
             days_to_exp = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
             
             # Swing trade premium estimate (higher IV assumption)
@@ -281,7 +281,7 @@ class SwingTradingScanner:
         for ticker in self.swing_tickers: 
             try: 
                 stock = yf.Ticker(ticker)
-                hist = stock.history(period  =  "1d", interval = "1m")
+                hist = stock.history(period="1d", interval = "1m")
                 
                 if hist.empty: 
                     continue
@@ -365,7 +365,7 @@ class SwingTradingScanner:
                 continue
         
         # Sort by strength score
-        signals.sort(key = lambda x: x.strength_score, reverse = True)
+        signals.sort(key=lambda x: x.strength_score, reverse = True)
         return signals
     
     def monitor_active_trades(self)->List[str]: 
@@ -385,7 +385,7 @@ class SwingTradingScanner:
                 
                 # Get current option price (simplified)
                 stock = yf.Ticker(trade.signal.ticker)
-                current_stock_price = stock.history(period  =  "1d", interval = "1m")['Close'].iloc[-1]
+                current_stock_price = stock.history(period="1d", interval = "1m")['Close'].iloc[-1]
                 
                 # Estimate current premium (simplified)
                 if current_stock_price  >=  trade.signal.target_strike: 
@@ -479,7 +479,7 @@ class SwingTradingScanner:
 
 
 def main(): 
-    parser = argparse.ArgumentParser(description  =  "WSB Enhanced Swing Trading Scanner")
+    parser = argparse.ArgumentParser(description="WSB Enhanced Swing Trading Scanner")
     parser.add_argument('command', 
                        choices = ['scan', 'monitor', 'continuous'],
                        help = 'Command to execute')

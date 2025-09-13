@@ -63,7 +63,7 @@ class TestWheelStrategy(unittest.TestCase):
             unrealized_pnl = 500.0,
             option_type = "put",
             strike_price = 145.0,
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             premium_received = 200.0
         )
         
@@ -104,7 +104,7 @@ class TestWheelStrategy(unittest.TestCase):
             unrealized_pnl = 0.0,
             option_type = "put",
             strike_price = 145.0,
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             premium_received = 200.0
         )
         
@@ -130,7 +130,7 @@ class TestWheelStrategy(unittest.TestCase):
             unrealized_pnl = 0.0,
             option_type = "put",
             strike_price = 145.0,
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             premium_received = 200.0
         )
         
@@ -148,16 +148,16 @@ class TestWheelStrategy(unittest.TestCase):
         # Mock market data
         mock_market_data = Mock()
         mock_market_data.price = 150.0
-        mock_data_instance.get_market_data = AsyncMock(return_value  =  mock_market_data)
+        mock_data_instance.get_market_data = AsyncMock(return_value=mock_market_data)
         
         # Mock options data
         mock_options_data = [
-            Mock(strike = 145.0, option_type = 'put', bid = 2.0, ask = 2.2, delta = -0.3, theta = -0.05, vega = 0.1)
+            Mock(strike=145.0, option_type = 'put', bid = 2.0, ask = 2.2, delta = -0.3, theta = -0.05, vega = 0.1)
         ]
-        mock_data_instance.get_options_data = AsyncMock(return_value  =  mock_options_data)
+        mock_data_instance.get_options_data = AsyncMock(return_value=mock_options_data)
         
         # Mock earnings data
-        mock_data_instance.get_earnings_data = AsyncMock(return_value  =  [])
+        mock_data_instance.get_earnings_data = AsyncMock(return_value=[])
         
         # Create strategy with mocked data
         strategy = ProductionWheelStrategy(
@@ -654,7 +654,7 @@ class TestPhase2EndToEnd(unittest.TestCase):
             unrealized_pnl = 0.0,
             option_type = "put",
             strike_price = 145.0,
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             premium_received = 200.0
         )
         

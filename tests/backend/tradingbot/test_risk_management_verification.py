@@ -37,9 +37,9 @@ class TestKellyCriterionAccuracy(unittest.TestCase):
         )
         
         # Expected Kelly = (bp - q) / b where b = avg_win / avg_loss, p = win_prob, q = 1 - p
-        b = avg_win / avg_loss  # b  =  2.0
-        p = win_prob           # p  =  0.6
-        q = 1 - p             # q  =  0.4
+        b = avg_win / avg_loss  # b = 2.0
+        p = win_prob           # p = 0.6
+        q = 1 - p             # q = 0.4
         expected_kelly = (b * p - q) / b  # (2 * 0.6 - 0.4) / 2 = 0.4
         
         self.assertAlmostEqual(kelly_fraction, expected_kelly, places = 10)
@@ -303,7 +303,7 @@ class TestPositionMathematicalAccuracy(unittest.TestCase):
             ticker = "GOOGL",
             position_type = "call",
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             strike = 200.0,
             contracts = 50,
             entry_premium = 10.0,
@@ -325,7 +325,7 @@ class TestPositionMathematicalAccuracy(unittest.TestCase):
             ticker = "MSFT",
             position_type = "call",
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             strike = 300.0,
             contracts = 20,
             entry_premium = 15.0,
@@ -395,7 +395,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
                 ticker = "AAPL",
                 position_type = "call",
                 entry_date = datetime.now(),
-                expiry_date = datetime.now() + timedelta(days = 30),
+                expiry_date = datetime.now() + timedelta(days=30),
                 strike = 150.0,
                 contracts = 100,
                 entry_premium = 5.0,
@@ -406,7 +406,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
                 ticker = "GOOGL",
                 position_type = "call",
                 entry_date = datetime.now(),
-                expiry_date = datetime.now() + timedelta(days = 45),
+                expiry_date = datetime.now() + timedelta(days=45),
                 strike = 200.0,
                 contracts = 50,
                 entry_premium = 10.0,
@@ -434,10 +434,10 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
         # Add positions with known concentrations
         positions = [
             # 60% in AAPL
-            Position("AAPL", "call", datetime.now(), datetime.now() + timedelta(days = 30),
+            Position("AAPL", "call", datetime.now(), datetime.now() + timedelta(days=30),
                     150.0, 60, 10.0, 10.0, 0, 0, 0, []),
             # 40% in GOOGL
-            Position("GOOGL", "call", datetime.now(), datetime.now() + timedelta(days = 30),
+            Position("GOOGL", "call", datetime.now(), datetime.now() + timedelta(days=30),
                     200.0, 40, 10.0, 10.0, 0, 0, 0, [])
         ]
         
@@ -470,7 +470,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
             ticker = "SPY",
             position_type = "call",
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             strike = 400.0,
             contracts = 100,
             entry_premium = 5.0,
@@ -519,7 +519,7 @@ class TestRiskManagerValidation(unittest.TestCase):
             ticker = "TSLA",
             position_type = "call",
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             strike = 200.0,
             contracts = 1000,
             entry_premium = 100.0,  # Very expensive = $100k total
@@ -536,7 +536,7 @@ class TestRiskManagerValidation(unittest.TestCase):
             ticker = "AAPL",
             position_type = "call",
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             strike = 150.0,
             contracts = 100,
             entry_premium = 50.0,  # $5k total
@@ -555,7 +555,7 @@ class TestRiskManagerValidation(unittest.TestCase):
             ticker = "NVDA",
             position_type = "call",
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             strike = 400.0,
             contracts = 10,
             entry_premium = 20.0,
@@ -576,7 +576,7 @@ class TestRiskManagerValidation(unittest.TestCase):
             ticker = "META",
             position_type = "call",
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(days = 30),
+            expiry_date = datetime.now() + timedelta(days=30),
             strike = 300.0,
             contracts = 10,
             entry_premium = 10.0,
@@ -617,7 +617,7 @@ def run_risk_management_verification_tests():
         test_suite.addTests(tests)
     
     # Run tests
-    runner = unittest.TextTestRunner(verbosity  =  2)
+    runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(test_suite)
     
     # Print summary

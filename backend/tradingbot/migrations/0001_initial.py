@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name = 'Company',
             fields = [
                 ('name', models.TextField()),
-                ('ticker', models.CharField(max_length = 255, primary_key = True, serialize = False)),
+                ('ticker', models.CharField(max_length=255, primary_key = True, serialize = False)),
             ],
             options = {
                 'ordering': ['ticker'],
@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name = 'News',
             fields = [
-                ('id', models.BigAutoField(auto_created = True, primary_key = True, serialize = False, verbose_name = 'ID')),
+                ('id', models.BigAutoField(auto_created=True, primary_key = True, serialize = False, verbose_name = 'ID')),
                 ('headline', models.TextField()),
                 ('link', models.URLField()),
                 ('date', models.DateField()),
@@ -39,10 +39,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name = 'Portfolio',
             fields = [
-                ('id', models.BigAutoField(auto_created = True, primary_key = True, serialize = False, verbose_name = 'ID')),
-                ('name', models.CharField(help_text = 'Portfolio name', max_length = 100)),
-                ('cash', models.DecimalField(decimal_places = 2, help_text = 'Cash', max_digits = 10)),
-                ('user', models.OneToOneField(help_text = 'Associated user', on_delete = django.db.models.deletion.CASCADE, to = settings.AUTH_USER_MODEL)),
+                ('id', models.BigAutoField(auto_created=True, primary_key = True, serialize = False, verbose_name = 'ID')),
+                ('name', models.CharField(help_text='Portfolio name', max_length = 100)),
+                ('cash', models.DecimalField(decimal_places=2, help_text = 'Cash', max_digits = 10)),
+                ('user', models.OneToOneField(help_text='Associated user', on_delete = django.db.models.deletion.CASCADE, to = settings.AUTH_USER_MODEL)),
             ],
             options = {
                 'ordering': ['user'],
@@ -51,8 +51,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name = 'Stock',
             fields = [
-                ('id', models.BigAutoField(auto_created = True, primary_key = True, serialize = False, verbose_name = 'ID')),
-                ('company', models.OneToOneField(help_text = 'Company', on_delete = django.db.models.deletion.CASCADE, to = 'tradingbot.company')),
+                ('id', models.BigAutoField(auto_created=True, primary_key = True, serialize = False, verbose_name = 'ID')),
+                ('company', models.OneToOneField(help_text='Company', on_delete = django.db.models.deletion.CASCADE, to = 'tradingbot.company')),
             ],
             options = {
                 'ordering': ['company'],
@@ -61,7 +61,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name = 'Tweets',
             fields = [
-                ('id', models.BigAutoField(auto_created = True, primary_key = True, serialize = False, verbose_name = 'ID')),
+                ('id', models.BigAutoField(auto_created=True, primary_key = True, serialize = False, verbose_name = 'ID')),
                 ('content', models.TextField()),
                 ('date', models.DateField()),
             ],
@@ -72,22 +72,22 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name = 'StockTrade',
             fields = [
-                ('id', models.BigAutoField(auto_created = True, primary_key = True, serialize = False, verbose_name = 'ID')),
+                ('id', models.BigAutoField(auto_created=True, primary_key = True, serialize = False, verbose_name = 'ID')),
                 ('price', models.FloatField()),
                 ('amount', models.IntegerField()),
-                ('bought_timestamp', models.DateTimeField(auto_now_add = True)),
-                ('sold_timestamp', models.DateTimeField(null = True)),
-                ('company', models.ForeignKey(on_delete = django.db.models.deletion.CASCADE, to = 'tradingbot.company')),
+                ('bought_timestamp', models.DateTimeField(auto_now_add=True)),
+                ('sold_timestamp', models.DateTimeField(null=True)),
+                ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to = 'tradingbot.company')),
             ],
         ),
         migrations.CreateModel(
             name = 'StockInstance',
             fields = [
-                ('id', models.BigAutoField(auto_created = True, primary_key = True, serialize = False, verbose_name = 'ID')),
-                ('quantity', models.DecimalField(decimal_places = 2, help_text = 'quantity', max_digits = 8)),
-                ('portfolio', models.ForeignKey(help_text = 'Associated portfolio', on_delete = django.db.models.deletion.CASCADE, to = 'tradingbot.portfolio')),
-                ('stock', models.ForeignKey(help_text = 'Associated stock', on_delete = django.db.models.deletion.CASCADE, to = 'tradingbot.stock')),
-                ('user', models.OneToOneField(help_text = 'Associated user', on_delete = django.db.models.deletion.CASCADE, to = settings.AUTH_USER_MODEL)),
+                ('id', models.BigAutoField(auto_created=True, primary_key = True, serialize = False, verbose_name = 'ID')),
+                ('quantity', models.DecimalField(decimal_places=2, help_text = 'quantity', max_digits = 8)),
+                ('portfolio', models.ForeignKey(help_text='Associated portfolio', on_delete = django.db.models.deletion.CASCADE, to = 'tradingbot.portfolio')),
+                ('stock', models.ForeignKey(help_text='Associated stock', on_delete = django.db.models.deletion.CASCADE, to = 'tradingbot.stock')),
+                ('user', models.OneToOneField(help_text='Associated user', on_delete = django.db.models.deletion.CASCADE, to = settings.AUTH_USER_MODEL)),
             ],
             options = {
                 'ordering': ['user', 'portfolio'],
@@ -96,10 +96,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name = 'Price',
             fields = [
-                ('id', models.BigAutoField(auto_created = True, primary_key = True, serialize = False, verbose_name = 'ID')),
+                ('id', models.BigAutoField(auto_created=True, primary_key = True, serialize = False, verbose_name = 'ID')),
                 ('date', models.DateField()),
-                ('value', models.DecimalField(decimal_places = 2, help_text = 'quantity', max_digits = 8)),
-                ('stock', models.ForeignKey(help_text = 'Associated stock', on_delete = django.db.models.deletion.CASCADE, to = 'tradingbot.stock')),
+                ('value', models.DecimalField(decimal_places=2, help_text = 'quantity', max_digits = 8)),
+                ('stock', models.ForeignKey(help_text='Associated stock', on_delete = django.db.models.deletion.CASCADE, to = 'tradingbot.stock')),
             ],
             options = {
                 'ordering': ['date'],
@@ -108,14 +108,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name = 'Order',
             fields = [
-                ('order_number', models.BigAutoField(primary_key = True, serialize = False)),
-                ('timestamp', models.DateTimeField(auto_now_add = True, help_text = 'order timestamp')),
-                ('order_type', models.CharField(choices = [('M', 'Market'), ('L', 'Limit'), ('S', 'Stop'), ('ST', 'Stop Limit'), ('T', 'Trailing Stop')], help_text = 'order type', max_length = 2)),
-                ('price', models.DecimalField(decimal_places = 2, help_text = 'order price', max_digits = 8, null = True)),
-                ('quantity', models.DecimalField(decimal_places = 2, help_text = 'quantity', max_digits = 8)),
-                ('transaction_type', models.CharField(choices = [('B', 'Buy'), ('S', 'Sell')], help_text = 'buy or sell transaction type', max_length = 2)),
-                ('stock', models.ForeignKey(help_text = 'associated stock', on_delete = django.db.models.deletion.CASCADE, to = 'tradingbot.stock')),
-                ('user', models.ForeignKey(help_text = 'associated user', on_delete = django.db.models.deletion.CASCADE, to = settings.AUTH_USER_MODEL)),
+                ('order_number', models.BigAutoField(primary_key=True, serialize = False)),
+                ('timestamp', models.DateTimeField(auto_now_add=True, help_text = 'order timestamp')),
+                ('order_type', models.CharField(choices=[('M', 'Market'), ('L', 'Limit'), ('S', 'Stop'), ('ST', 'Stop Limit'), ('T', 'Trailing Stop')], help_text = 'order type', max_length = 2)),
+                ('price', models.DecimalField(decimal_places=2, help_text = 'order price', max_digits = 8, null = True)),
+                ('quantity', models.DecimalField(decimal_places=2, help_text = 'quantity', max_digits = 8)),
+                ('transaction_type', models.CharField(choices=[('B', 'Buy'), ('S', 'Sell')], help_text = 'buy or sell transaction type', max_length = 2)),
+                ('stock', models.ForeignKey(help_text='associated stock', on_delete = django.db.models.deletion.CASCADE, to = 'tradingbot.stock')),
+                ('user', models.ForeignKey(help_text='associated user', on_delete = django.db.models.deletion.CASCADE, to = settings.AUTH_USER_MODEL)),
             ],
             options = {
                 'ordering': ['user', 'timestamp', 'order_type'],
@@ -124,11 +124,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name = 'company',
             name = 'news',
-            field = models.ManyToManyField(blank  =  True, to = 'tradingbot.News'),
+            field = models.ManyToManyField(blank=True, to = 'tradingbot.News'),
         ),
         migrations.AddField(
             model_name = 'company',
             name = 'tweets',
-            field = models.ManyToManyField(blank  =  True, to = 'tradingbot.Tweets'),
+            field = models.ManyToManyField(blank=True, to = 'tradingbot.Tweets'),
         ),
     ]

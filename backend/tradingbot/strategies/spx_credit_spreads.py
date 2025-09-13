@@ -134,7 +134,7 @@ class SPXCreditSpreadsScanner:
                 proxy_ticker = ticker
                 
             stock = yf.Ticker(proxy_ticker)
-            hist = stock.history(period  =  "20d")
+            hist = stock.history(period="20d")
             
             if len(hist)  <  10: 
                 return 0.015  # Default 1.5% daily move
@@ -155,7 +155,7 @@ class SPXCreditSpreadsScanner:
         try: 
             if ticker ==  "SPX": # Use SPY options as proxy for SPX (similar behavior)
                 options_ticker = "SPY"
-                multiplier = spot_price / yf.Ticker("SPY").history(period = "1d")['Close'].iloc[-1]
+                multiplier = spot_price / yf.Ticker("SPY").history(period="1d")['Close'].iloc[-1]
             else: 
                 options_ticker = ticker
                 multiplier = 1.0
@@ -247,18 +247,18 @@ class SPXCreditSpreadsScanner:
                 print("❌ No 0DTE expiry available today")
                 return opportunities
         else: 
-            expiry = (date.today() + timedelta(days = dte_target)).strftime("%Y-%m-%d")
+            expiry = (date.today() + timedelta(days=dte_target)).strftime("%Y-%m-%d")
         
         print(f"🎯 Scanning credit spreads for {expiry} ({dte_target}DTE)...")
         
         for ticker in self.credit_tickers: 
             try: 
                 if ticker ==  "SPX": # SPX pricing (use SPY * ~10 as approximation)
-                    spy_price = yf.Ticker("SPY").history(period = "1d")['Close'].iloc[-1]
+                    spy_price = yf.Ticker("SPY").history(period="1d")['Close'].iloc[-1]
                     spot_price = spy_price * 10  # Rough SPX approximation
                 else: 
                     stock = yf.Ticker(ticker)
-                    spot_price = stock.history(period  =  "1d")['Close'].iloc[-1]
+                    spot_price = stock.history(period="1d")['Close'].iloc[-1]
                 
                 expected_move_pct = self.get_expected_move(ticker)
                 expected_move_points = spot_price * expected_move_pct
@@ -452,7 +452,7 @@ class SPXCreditSpreadsScanner:
 
 
 def main(): 
-    parser = argparse.ArgumentParser(description  =  "SPX / SPY 0DTE Credit Spreads Scanner")
+    parser = argparse.ArgumentParser(description="SPX / SPY 0DTE Credit Spreads Scanner")
     parser.add_argument('--dte', type = int, default = 0,
                        help = 'Days to expiration (0 for same day)')
     parser.add_argument('--output', choices = ['json', 'text'], default = 'text',

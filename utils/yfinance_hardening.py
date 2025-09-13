@@ -14,11 +14,11 @@ def safe_mid(bid: float, ask: float, last: float)->float:
 
 def fetch_last_and_prior_close(ticker: str):
     tkr = yf.Ticker(ticker)
-    dailies = tkr.history(period  =  "7d", interval = "1d")
+    dailies = tkr.history(period="7d", interval = "1d")
     if dailies is None or len(dailies)  <  2: 
         return None
     prior_close = float(dailies["Close"].iloc[-2])
-    intraday = tkr.history(period  =  "2d", interval = "5m")
+    intraday = tkr.history(period="2d", interval = "5m")
     if intraday is None or intraday.empty: 
         return None
     last = float(intraday["Close"].iloc[-1])

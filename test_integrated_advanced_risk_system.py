@@ -98,7 +98,7 @@ async def test_comprehensive_risk_assessment():
     
     try: 
         # Setup
-        risk_system = await create_integrated_risk_system(portfolio_value  =  100000)
+        risk_system = await create_integrated_risk_system(portfolio_value=100000)
         market_data, positions = generate_test_data()
         
         # Run comprehensive assessment
@@ -162,7 +162,7 @@ async def test_continuous_monitoring():
     
     try: 
         # Setup
-        risk_system = await create_integrated_risk_system(portfolio_value  =  100000)
+        risk_system = await create_integrated_risk_system(portfolio_value=100000)
         market_data, positions = generate_test_data()
         
         # Start monitoring for a short period
@@ -211,7 +211,7 @@ async def test_system_compatibility():
         print("✅ All imports work correctly")
         
         # Test component instantiation
-        var_engine = AdvancedVaREngine(portfolio_value  =  100000)
+        var_engine = AdvancedVaREngine(portfolio_value=100000)
         integration_manager = RiskIntegrationManager()
         
         if MultiAgentRiskCoordinator: 
@@ -222,7 +222,7 @@ async def test_system_compatibility():
                 'max_drawdown': 0.15,
                 'max_leverage': 2.0
             }
-            ml_coordinator = MultiAgentRiskCoordinator(risk_limits  =  ml_risk_limits)
+            ml_coordinator = MultiAgentRiskCoordinator(risk_limits=ml_risk_limits)
             print("✅ Advanced ML components available")
         
         if MultiAssetRiskManager: 
@@ -261,7 +261,7 @@ async def test_performance_benchmarks():
     print("\n⚡ Testing Performance Benchmarks...")
     
     try: 
-        risk_system = await create_integrated_risk_system(portfolio_value  =  500000)
+        risk_system = await create_integrated_risk_system(portfolio_value=500000)
         market_data, positions = generate_test_data()
         
         # Time comprehensive assessment

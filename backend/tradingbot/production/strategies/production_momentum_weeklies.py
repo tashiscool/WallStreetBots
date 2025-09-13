@@ -107,7 +107,7 @@ class ProductionMomentumWeeklies:
         if days_until_friday ==  0 or days_until_friday  <=  1: 
             days_until_friday = 7 if days_until_friday  ==  0 else 7 + days_until_friday
             
-        next_friday = today + timedelta(days  =  days_until_friday)
+        next_friday = today + timedelta(days=days_until_friday)
         return next_friday.strftime("%Y-%m-%d")
     
     async def detect_volume_spike(self, ticker: str)->tuple[bool, float]: 
@@ -339,8 +339,8 @@ class ProductionMomentumWeeklies:
                 
                 self.logger.info(
                     f"Momentum signal: {ticker} {signal_type} "
-                    f"vol = {vol_multiple: .1f}x momentum  =  {momentum: .2%} "
-                    f"strike = ${target_strike} premium  =  ${premium: .2f}"
+                    f"vol = {vol_multiple: .1f}x momentum = {momentum: .2%} "
+                    f"strike = ${target_strike} premium = ${premium: .2f}"
                 )
                 
             except Exception as e: 
@@ -348,7 +348,7 @@ class ProductionMomentumWeeklies:
                 continue
         
         # Sort by confidence and momentum strength
-        signals.sort(key = lambda s: (s.confidence, s.price_momentum), reverse = True)
+        signals.sort(key=lambda s: (s.confidence, s.price_momentum), reverse = True)
         
         return signals
     
@@ -405,7 +405,7 @@ class ProductionMomentumWeeklies:
                     'exit_target': signal.exit_target,
                     'stop_loss': signal.stop_loss,
                     'risk_level': signal.risk_level,
-                    'time_limit': signal.signal_time + timedelta(hours = self.time_exit_hours)
+                    'time_limit': signal.signal_time + timedelta(hours=self.time_exit_hours)
                 }
                 
                 self.active_positions.append(position)
@@ -473,7 +473,7 @@ class ProductionMomentumWeeklies:
                     exit_reason = "TIME_LIMIT"
                 
                 # Day before expiry exit
-                elif position['trade_signal'].expiration_date  <=  date.today() + timedelta(days = 1): 
+                elif position['trade_signal'].expiration_date  <=  date.today() + timedelta(days=1): 
                     should_exit = True
                     exit_reason = "EXPIRY_RISK"
                 

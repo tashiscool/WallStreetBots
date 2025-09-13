@@ -47,12 +47,12 @@ async def test_advanced_analytics():
     benchmark_returns = generate_sample_returns(252, 0.08, 0.15)  # SPY - like returns
 
     # Test the analytics engine
-    analytics = AdvancedAnalytics(risk_free_rate  =  0.02)
+    analytics = AdvancedAnalytics(risk_free_rate=0.02)
 
     metrics = analytics.calculate_comprehensive_metrics(
         returns = portfolio_returns,
         benchmark_returns = benchmark_returns,
-        start_date = datetime.now() - timedelta(days = 252),
+        start_date = datetime.now() - timedelta(days=252),
         end_date = datetime.now()
     )
 

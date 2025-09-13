@@ -76,7 +76,7 @@ class SecularAnalysis:
     fundamental_score: float
     technical_score: float
     overall_score: float
-    analysis_date: datetime = field(default_factory  =  datetime.now)
+    analysis_date: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -99,7 +99,7 @@ class LEAPSOption:
     vega: float
     intrinsic_value: float
     time_value: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -118,7 +118,7 @@ class LEAPSCandidate:
     recommended_option: Optional[LEAPSOption] = None
     leaps_score: float = 0.0
     risk_score: float = 0.0
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -139,7 +139,7 @@ class LEAPSPosition:
     days_to_expiry: int
     max_profit: float
     max_loss: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     status: str = "active"
 
 
@@ -314,7 +314,7 @@ class LEAPSOptionsProvider:
                     ticker = ticker,
                     option_type = LEAPSStrategy.LONG_CALL,
                     strike_price = strike,
-                    expiry_date = datetime.now() + timedelta(days = months_to_expiry * 30),
+                    expiry_date = datetime.now() + timedelta(days=months_to_expiry * 30),
                     days_to_expiry = months_to_expiry * 30,
                     bid_price = max(0.01, strike * 0.05),
                     ask_price = max(0.02, strike * 0.06),
@@ -336,7 +336,7 @@ class LEAPSOptionsProvider:
                     ticker = ticker,
                     option_type = LEAPSStrategy.LONG_PUT,
                     strike_price = strike,
-                    expiry_date = datetime.now() + timedelta(days = months_to_expiry * 30),
+                    expiry_date = datetime.now() + timedelta(days=months_to_expiry * 30),
                     days_to_expiry = months_to_expiry * 30,
                     bid_price = max(0.01, strike * 0.05),
                     ask_price = max(0.02, strike * 0.06),
@@ -467,7 +467,7 @@ class LEAPSTrackerStrategy:
                     continue
             
             # Sort by overall score
-            candidates.sort(key = lambda x: x.secular_analysis.overall_score, reverse = True)
+            candidates.sort(key=lambda x: x.secular_analysis.overall_score, reverse = True)
             
             self.logger.info(f"Found {len(candidates)} LEAPS opportunities")
             return candidates

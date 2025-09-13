@@ -67,9 +67,9 @@ class MLRiskPredictor:
     def _initialize_ml_models(self): 
         """Initialize scikit - learn models"""
         self.models = {
-            'volatility_rf': RandomForestRegressor(n_estimators = 100, random_state = 42),
-            'regime_rf': RandomForestClassifier(n_estimators = 100, random_state = 42),
-            'risk_rf': RandomForestRegressor(n_estimators = 100, random_state = 42)
+            'volatility_rf': RandomForestRegressor(n_estimators=100, random_state = 42),
+            'regime_rf': RandomForestClassifier(n_estimators=100, random_state = 42),
+            'risk_rf': RandomForestRegressor(n_estimators=100, random_state = 42)
         }
         
         self.scalers = {

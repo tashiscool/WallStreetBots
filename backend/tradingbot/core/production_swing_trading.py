@@ -74,7 +74,7 @@ class TechnicalAnalysis:
     adx: float
     volume_sma: float
     volume_ratio: float
-    analysis_date: datetime = field(default_factory  =  datetime.now)
+    analysis_date: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -94,7 +94,7 @@ class SwingPosition:
     max_favorable_move: float
     max_adverse_move: float
     entry_date: datetime
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     days_held: int = 0
     status: str = "active"
     risk_reward_ratio: float = 0.0
@@ -116,7 +116,7 @@ class SwingCandidate:
     risk_reward_ratio: float
     position_size: int
     confidence: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 class TechnicalAnalyzer: 
@@ -366,7 +366,7 @@ class SwingTradingStrategy:
                     continue
             
             # Sort by technical score
-            candidates.sort(key = lambda x: x.technical_score, reverse = True)
+            candidates.sort(key=lambda x: x.technical_score, reverse = True)
             
             self.logger.info(f"Found {len(candidates)} swing trading opportunities")
             return candidates

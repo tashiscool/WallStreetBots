@@ -134,14 +134,14 @@ class TestWSBDipDetector:
                          base_date: datetime = None)->List[PriceBar]:
         """Helper to create price bar data"""
         if base_date is None: 
-            base_date = datetime.now() - timedelta(days = len(prices))
+            base_date = datetime.now() - timedelta(days=len(prices))
         
         if volumes is None: 
             volumes = [1000000] * len(prices)  # Default 1M volume
         
         bars = []
         for i, (price, volume) in enumerate(zip(prices, volumes)): 
-            timestamp = base_date + timedelta(days  =  i)
+            timestamp = base_date + timedelta(days=i)
             price_decimal = Decimal(str(price))
             
             bar = PriceBar(
@@ -388,10 +388,10 @@ class TestPatternDetectionIntegration:
         
         # Create price bars
         bars = []
-        base_date = datetime.now() - timedelta(days = len(prices))
+        base_date = datetime.now() - timedelta(days=len(prices))
         
         for i, (price, volume) in enumerate(zip(prices, volumes)): 
-            timestamp = base_date + timedelta(days  =  i)
+            timestamp = base_date + timedelta(days=i)
             price_decimal = Decimal(str(price))
             
             # Realistic OHLC with some intraday movement

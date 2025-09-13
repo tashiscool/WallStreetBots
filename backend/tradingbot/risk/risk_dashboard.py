@@ -465,7 +465,7 @@ if __name__ ==  "__main__": # Create sample portfolio
     }
     
     # Initialize risk dashboard
-    dashboard = RiskDashboard2025(portfolio_value  =  100000.0)
+    dashboard = RiskDashboard2025(portfolio_value=100000.0)
     
     # Generate risk summary
     print("Generating Risk Dashboard...")

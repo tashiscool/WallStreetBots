@@ -44,7 +44,7 @@ class BenchmarkData:
     max_drawdown: float
     
     # Metadata
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -73,7 +73,7 @@ class StrategyPerformance:
     profit_factor: float
     
     # Metadata
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -98,7 +98,7 @@ class PerformanceComparison:
     benchmark_sharpe: float
     
     # Metadata
-    comparison_date: datetime = field(default_factory  =  datetime.now)
+    comparison_date: datetime = field(default_factory=datetime.now)
 
 
 class PerformanceCalculator: 
@@ -231,7 +231,7 @@ class ProductionIndexBaseline:
         
         # Strategy state
         self.last_update_time: Optional[datetime] = None
-        self.update_interval = timedelta(hours  =  1)
+        self.update_interval = timedelta(hours=1)
         
         self.logger.info("Index Baseline Strategy initialized")
     

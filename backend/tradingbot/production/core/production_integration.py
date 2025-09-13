@@ -34,7 +34,7 @@ class ProductionTradeSignal(TradeSignal):
     trade_type: str = "stock"
     risk_amount: Decimal = Decimal('0.00')
     expected_return: Decimal = Decimal('0.00')
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -59,9 +59,9 @@ class ProductionTrade:
     expected_return: Decimal = Decimal('0.00')
     actual_return: Optional[Decimal] = None
     win: Optional[bool] = None
-    metadata: Dict[str, Any] = field(default_factory = dict)
-    created_at: datetime = field(default_factory  =  datetime.now)
-    updated_at: datetime = field(default_factory  =  datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -81,9 +81,9 @@ class ProductionPosition:
     take_profit: Optional[Decimal] = None
     alpaca_position_id: str = ""
     django_stock_instance_id: Optional[int] = None
-    metadata: Dict[str, Any] = field(default_factory = dict)
-    created_at: datetime = field(default_factory  =  datetime.now)
-    updated_at: datetime = field(default_factory  =  datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
 
 
 class ProductionIntegrationManager: 

@@ -56,8 +56,8 @@ class AssetPosition:
     quantity: float
     value: float
     currency: str
-    risk_factors: Dict[RiskFactor, float] = field(default_factory = dict)
-    correlation_factors: Dict[str, float] = field(default_factory = dict)
+    risk_factors: Dict[RiskFactor, float] = field(default_factory=dict)
+    correlation_factors: Dict[str, float] = field(default_factory=dict)
     liquidity_score: float = 1.0
     volatility: float = 0.0
     beta: float = 1.0
@@ -690,7 +690,7 @@ if __name__ ==  "__main__":
         )
         
         # Simulate market data
-        dates = pd.date_range(end  =  datetime.now(), periods = 252, freq = 'D')
+        dates = pd.date_range(end=datetime.now(), periods = 252, freq = 'D')
         
         market_data = {
             "AAPL": pd.DataFrame({

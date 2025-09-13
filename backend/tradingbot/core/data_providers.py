@@ -230,7 +230,7 @@ class EarningsDataProvider:
                 params = {
                     'apikey': self.api_key,
                     'from': datetime.now().strftime('%Y-%m-%d'),
-                    'to': (datetime.now() + timedelta(days = days_ahead)).strftime('%Y-%m-%d')
+                    'to': (datetime.now() + timedelta(days=days_ahead)).strftime('%Y-%m-%d')
                 }
                 
                 async with session.get(url, params = params) as response: 
@@ -302,7 +302,7 @@ class NewsDataProvider:
                 url = f"{self.base_url}/everything"
                 params = {
                     'q': ticker,
-                    'from': (datetime.now() - timedelta(days = days_back)).strftime('%Y-%m-%d'),
+                    'from': (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d'),
                     'sortBy': 'publishedAt',
                     'apiKey': self.api_key,
                     'pageSize': 20

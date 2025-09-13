@@ -91,7 +91,7 @@ class IntegratedAdvancedRiskManager:
         
         # Initialize core risk management components
         self.risk_integration_manager = RiskIntegrationManager()
-        self.var_engine = AdvancedVaREngine(portfolio_value  =  self.config.portfolio_value)
+        self.var_engine = AdvancedVaREngine(portfolio_value=self.config.portfolio_value)
         self.stress_engine = StressTesting2025()
         self.ml_predictor = MLRiskPredictor()
         self.dashboard = RiskDashboard2025()
@@ -110,14 +110,14 @@ class IntegratedAdvancedRiskManager:
                     'max_drawdown': 0.15,
                     'max_leverage': 2.0
                 }
-                self.ml_coordinator = MultiAgentRiskCoordinator(risk_limits  =  ml_risk_limits)
+                self.ml_coordinator = MultiAgentRiskCoordinator(risk_limits=ml_risk_limits)
                 
             if self.config.enable_multi_asset: 
                 self.multi_asset_manager = MultiAssetRiskManager()
                 
             if self.config.enable_compliance: 
                 authority = RegulatoryAuthority.FCA if self.config.regulatory_authority  ==  "FCA" else RegulatoryAuthority.CFTC
-                self.compliance_manager = RegulatoryComplianceManager(primary_authority  =  authority)
+                self.compliance_manager = RegulatoryComplianceManager(primary_authority=authority)
         
         # System state
         self.current_positions = {}
@@ -277,7 +277,7 @@ class IntegratedAdvancedRiskManager:
             
             if returns_list: 
                 if all(hasattr(r, 'values') for r in returns_list):  # All pandas Series
-                    portfolio_returns = pd.concat(returns_list, axis = 1).sum(axis = 1).dropna()
+                    portfolio_returns = pd.concat(returns_list, axis = 1).sum(axis=1).dropna()
                     return portfolio_returns.values
                 else:  # Mix of arrays and series, convert all to arrays
                     arrays = [r.values if hasattr(r, 'values') else r for r in returns_list]
@@ -383,7 +383,7 @@ class IntegratedAdvancedRiskManager:
                 # Check for rebalancing needs
                 if (self.config.enable_auto_rebalancing and 
                     (self.last_rebalancing is None or 
-                     datetime.now() - self.last_rebalancing  >  timedelta(seconds = self.config.rebalancing_frequency))): 
+                     datetime.now() - self.last_rebalancing  >  timedelta(seconds=self.config.rebalancing_frequency))): 
                     
                     await self._check_rebalancing_needs(positions, risk_results)
                 

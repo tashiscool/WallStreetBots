@@ -47,7 +47,7 @@ class ProductionConfig:
     take_profit_multiplier: float = 3.0  # 3x profit target
     
     # Strategy settings
-    enabled_strategies: List[str] = field(default_factory = lambda: [
+    enabled_strategies: List[str] = field(default_factory=lambda: [
         'wsb_dip_bot', 'momentum_weeklies', 'debit_spreads', 'leaps_tracker',
         'lotto_scanner', 'wheel_strategy', 'spx_credit_spreads', 
         'earnings_protection', 'swing_trading', 'index_baseline'
@@ -59,9 +59,9 @@ class ProductionConfig:
     
     # Alert settings
     enable_alerts: bool = True
-    alert_channels: List[str] = field(default_factory = lambda: ['email', 'slack', 'desktop'])
+    alert_channels: List[str] = field(default_factory=lambda: ['email', 'slack', 'desktop'])
     
-    metadata: Dict[str, Any] = field(default_factory = dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class ProductionManager: 

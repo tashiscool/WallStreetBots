@@ -44,7 +44,7 @@ def send_email(subject: str, body: str)->bool:
         return False
     try: 
         msg = MIMEText(body)
-        msg["Subject"] = subject; msg["From"]  =  sender; msg["To"]  =  recipient
+        msg["Subject"] = subject; msg["From"] = sender; msg["To"] = recipient
         with smtplib.SMTP(host, port, timeout = 10) as s: 
             s.starttls(); s.login(user, pwd); s.sendmail(sender, [recipient], msg.as_string())
         return True
@@ -90,9 +90,9 @@ class Alert:
     ticker: str
     title: str
     message: str
-    data: Dict = field(default_factory  =  dict)
-    timestamp: datetime = field(default_factory  =  datetime.now)
-    channels: List[AlertChannel] = field(default_factory = list)
+    data: Dict = field(default_factory=dict)
+    timestamp: datetime = field(default_factory=datetime.now)
+    channels: List[AlertChannel] = field(default_factory=list)
     acknowledged: bool = False
 
     def to_json(self)->str: 
@@ -130,8 +130,8 @@ class ExecutionChecklist:
     trade_id: str
     ticker: str
     checklist_type: str  # "entry", "monitoring", "exit"
-    items: List[ChecklistItem] = field(default_factory = list)
-    created_at: datetime = field(default_factory  =  datetime.now)
+    items: List[ChecklistItem] = field(default_factory=list)
+    created_at: datetime = field(default_factory=datetime.now)
     completed_at: Optional[datetime] = None
 
     @property
@@ -702,7 +702,7 @@ if __name__ ==  "__main__": # Test the alert system
         ticker = "GOOGL",
         spot_price = 207.0,
         strike = 220.0,
-        expiry_date = date.today() + timedelta(days = 30),
+        expiry_date = date.today() + timedelta(days=30),
         days_to_expiry = 30,
         estimated_premium = 4.70,
         recommended_contracts = 100,

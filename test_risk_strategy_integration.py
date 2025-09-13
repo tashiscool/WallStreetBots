@@ -79,7 +79,7 @@ async def test_risk_strategy_integration():
         print("\n2. Testing Risk Management Components...")
         
         # Test risk manager directly
-        risk_manager = RiskIntegrationManager(risk_limits  =  risk_limits)
+        risk_manager = RiskIntegrationManager(risk_limits=risk_limits)
         print("✅ Risk Integration Manager initialized")
         
         # Test risk calculation with simulated data
@@ -96,7 +96,7 @@ async def test_risk_strategy_integration():
         import pandas as pd
         import numpy as np
         
-        dates = pd.date_range(end  =  datetime.now(), periods = 252, freq = 'D')
+        dates = pd.date_range(end=datetime.now(), periods = 252, freq = 'D')
         returns = np.random.normal(0, 0.02, 252)
         prices = 100 * np.cumprod(1 + returns)
         

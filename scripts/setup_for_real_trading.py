@@ -30,7 +30,7 @@ This setup will configure WallStreetBots for REAL MONEY TRADING.
 
 ⚠️  IMPORTANT DISCLAIMERS: 
    - This system can lose ALL your money if configured incorrectly
-   - Start with paper trading (ALPACA_BASE_URL = paper - api.alpaca.markets)
+   - Start with paper trading (ALPACA_BASE_URL=paper - api.alpaca.markets)
    - Use small position sizes (max 1 - 2% per trade)
    - Test thoroughly before going live
    - Past performance does not guarantee future results

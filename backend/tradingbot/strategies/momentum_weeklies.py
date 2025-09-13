@@ -56,7 +56,7 @@ class MomentumWeekliesScanner:
         else:  # Wed / Thu, use next Friday
             days_until_friday += 7
             
-        next_friday = today + timedelta(days  =  days_until_friday)
+        next_friday = today + timedelta(days=days_until_friday)
         return next_friday.strftime("%Y-%m-%d")
     
     def detect_volume_spike(self, ticker: str)->Tuple[bool, float]: 
@@ -64,7 +64,7 @@ class MomentumWeekliesScanner:
         try: 
             stock = yf.Ticker(ticker)
             # Get intraday data
-            data = stock.history(period  =  "5d", interval = "5m")
+            data = stock.history(period="5d", interval = "5m")
             if data.empty: 
                 return False, 0.0
                 
@@ -87,7 +87,7 @@ class MomentumWeekliesScanner:
         """Detect bullish reversal patterns"""
         try: 
             stock = yf.Ticker(ticker)
-            data = stock.history(period  =  "2d", interval = "5m")
+            data = stock.history(period="2d", interval = "5m")
             if len(data)  <  20: 
                 return False, "insufficient_data", 0.0
                 
@@ -127,7 +127,7 @@ class MomentumWeekliesScanner:
         """Detect breakout above resistance"""
         try: 
             stock = yf.Ticker(ticker)
-            data = stock.history(period  =  "5d", interval = "15m")
+            data = stock.history(period="5d", interval = "15m")
             if len(data)  <  50: 
                 return False, 0.0
                 
@@ -172,7 +172,7 @@ class MomentumWeekliesScanner:
                 pass
                 
             # Fallback: estimate using simplified Black - Scholes
-            current_price = stock.history(period  =  "1d")['Close'].iloc[-1]
+            current_price = stock.history(period="1d")['Close'].iloc[-1]
             
             # Rough weekly premium estimate for OTM calls
             days_to_exp = (datetime.strptime(expiry, "%Y-%m-%d").date() - date.today()).days
@@ -211,7 +211,7 @@ class MomentumWeekliesScanner:
                     
                     # Get current price
                     stock = yf.Ticker(ticker)
-                    current_data = stock.history(period  =  "1d", interval = "1m")
+                    current_data = stock.history(period="1d", interval = "1m")
                     if current_data.empty: 
                         continue
                         
@@ -301,7 +301,7 @@ class MomentumWeekliesScanner:
 
 
 def main(): 
-    parser = argparse.ArgumentParser(description  =  "WSB Momentum Weeklies Scanner")
+    parser = argparse.ArgumentParser(description="WSB Momentum Weeklies Scanner")
     parser.add_argument('--output', choices = ['json', 'text'], default = 'text',
                        help = 'Output format')
     parser.add_argument('--min - volume-spike', type = float, default = 3.0,

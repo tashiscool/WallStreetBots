@@ -235,7 +235,7 @@ class AdvancedVaREngine:
         recent_returns = returns[-lookback_days: ] if len(returns)  >  lookback_days else returns
         
         # Calculate rolling volatility
-        rolling_vol = pd.Series(returns).rolling(window = 20).std().dropna()
+        rolling_vol = pd.Series(returns).rolling(window=20).std().dropna()
         
         if len(rolling_vol)  ==  0: 
             return {'regime': 'normal', 'adjustment_factor': 1.0}
@@ -268,7 +268,7 @@ if __name__ ==  "__main__": # Generate sample returns data
     sample_returns = np.random.normal(0.001, 0.02, 252)  # Daily returns
     
     # Initialize VaR engine
-    var_engine = AdvancedVaREngine(portfolio_value  =  100000.0)
+    var_engine = AdvancedVaREngine(portfolio_value=100000.0)
     
     # Calculate VaR suite
     print("Calculating VaR Suite...")

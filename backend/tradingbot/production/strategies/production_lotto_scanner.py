@@ -437,7 +437,7 @@ class ProductionLottoScanner:
             base_prob = 0.35 if play_type  ==  "0dte" else 0.25
             win_probability = max(0.10, base_prob - distance_to_breakeven * 8)
             
-            # Risk scoring (higher = riskier)
+            # Risk scoring (higher=riskier)
             risk_score = (
                 (distance_to_breakeven * 10) +  # Distance to breakeven
                 (max(0, 5 - days_to_expiry)) +   # Time decay risk
@@ -593,7 +593,7 @@ class ProductionLottoScanner:
         if days_until_friday ==  0: 
             days_until_friday = 7
         
-        friday = today + timedelta(days  =  days_until_friday)
+        friday = today + timedelta(days=days_until_friday)
         return friday.strftime("%Y-%m-%d")
     
     async def _calculate_momentum_score(self, ticker: str)->float:
@@ -655,9 +655,9 @@ class ProductionLottoScanner:
         today = date.today()
         
         mock_earnings = [
-            {"ticker": "AAPL", "date": today + timedelta(days = 3), "expected_move": 0.04, "time": "AMC"},
-            {"ticker": "GOOGL", "date": today + timedelta(days = 5), "expected_move": 0.05, "time": "AMC"},
-            {"ticker": "TSLA", "date": today + timedelta(days = 2), "expected_move": 0.08, "time": "AMC"},
+            {"ticker": "AAPL", "date": today + timedelta(days=3), "expected_move": 0.04, "time": "AMC"},
+            {"ticker": "GOOGL", "date": today + timedelta(days=5), "expected_move": 0.05, "time": "AMC"},
+            {"ticker": "TSLA", "date": today + timedelta(days=2), "expected_move": 0.08, "time": "AMC"},
         ]
         
         return [e for e in mock_earnings if e["date"]  >=  today]
@@ -665,7 +665,7 @@ class ProductionLottoScanner:
     async def _find_best_earnings_expiry(self, ticker: str, earnings_date: date)->Optional[str]:
         """Find best expiry for earnings play"""
         # Look for expiry within 3 days after earnings
-        target_date = earnings_date + timedelta(days  =  1)
+        target_date = earnings_date + timedelta(days=1)
         
         # In production, would query actual available expiries
         # For now, return weekly expiry

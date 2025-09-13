@@ -64,7 +64,7 @@ class OptionsAnalysis:
     break_even_price: Decimal
     max_profit_potential: Optional[Decimal]
     
-    timestamp: datetime = field(default_factory  =  datetime.now)
+    timestamp: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -164,7 +164,7 @@ class SmartOptionsSelector:
                 return None
             
             # Sort by overall score and return best option
-            analyzed_options.sort(key = lambda x: x.overall_score, reverse = True)
+            analyzed_options.sort(key=lambda x: x.overall_score, reverse = True)
             best_option = analyzed_options[0]
             
             self.logger.info(
@@ -574,8 +574,8 @@ class SmartOptionsSelector:
                         meeting_criteria.append(analysis)
             
             # Sort by score
-            analyzed_options.sort(key = lambda x: x.overall_score, reverse = True)
-            meeting_criteria.sort(key = lambda x: x.overall_score, reverse = True)
+            analyzed_options.sort(key=lambda x: x.overall_score, reverse = True)
+            meeting_criteria.sort(key=lambda x: x.overall_score, reverse = True)
             
             return {
                 'ticker': ticker,
@@ -612,6 +612,6 @@ class SmartOptionsSelector:
             return {'error': str(e)}
 
 
-def create_smart_options_selector(data_provider = None, pricing_engine = None)->SmartOptionsSelector: 
+def create_smart_options_selector(data_provider=None, pricing_engine = None)->SmartOptionsSelector: 
     """Factory function to create smart options selector"""
     return SmartOptionsSelector(data_provider, pricing_engine)

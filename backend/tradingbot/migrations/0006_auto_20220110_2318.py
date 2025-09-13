@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name = 'portfolio',
             name = 'optimization_strategy',
-            field = models.CharField(choices  =  [('none', 'None'), ('ma_sharp_ratio', 'Sharp ratio based on moving average')], default = 'none', max_length = 50),
+            field = models.CharField(choices=[('none', 'None'), ('ma_sharp_ratio', 'Sharp ratio based on moving average')], default = 'none', max_length = 50),
         ),
         migrations.AddField(
             model_name = 'portfolio',
             name = 'rebalancing_strategy',
-            field = models.CharField(choices  =  [('manual', 'Manual portfolio management'), ('monte_carlo', 'Monte carlo portfolio rebalancing')], default = 'manual', help_text = 'Portfolio Rebalancing Strategy', max_length = 50),
+            field = models.CharField(choices=[('manual', 'Manual portfolio management'), ('monte_carlo', 'Monte carlo portfolio rebalancing')], default = 'manual', help_text = 'Portfolio Rebalancing Strategy', max_length = 50),
         ),
     ]

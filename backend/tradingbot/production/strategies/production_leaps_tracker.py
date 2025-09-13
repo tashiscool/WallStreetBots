@@ -226,7 +226,7 @@ class ProductionLEAPSTracker:
                 if prev_50  <=  prev_200 and curr_50  >  curr_200: 
                     cross_type = "golden_cross"
                     days_ago = len(recent_50) - i - 1
-                    cross_date = date.today() - timedelta(days = days_ago)
+                    cross_date = date.today() - timedelta(days=days_ago)
                     days_since_cross = days_ago
                     separation = abs(curr_50 - curr_200) / curr_200
                     cross_strength = min(100, separation * 1000)
@@ -235,7 +235,7 @@ class ProductionLEAPSTracker:
                 elif prev_50  >=  prev_200 and curr_50  <  curr_200: 
                     cross_type = "death_cross"
                     days_ago = len(recent_50) - i - 1
-                    cross_date = date.today() - timedelta(days = days_ago)
+                    cross_date = date.today() - timedelta(days=days_ago)
                     days_since_cross = days_ago
                     separation = abs(curr_50 - curr_200) / curr_200
                     cross_strength = min(100, separation * 1000)
@@ -610,7 +610,7 @@ class ProductionLEAPSTracker:
                     continue
         
         # Sort by composite score
-        candidates.sort(key = lambda x: x.composite_score, reverse = True)
+        candidates.sort(key=lambda x: x.composite_score, reverse = True)
         return candidates
     
     async def execute_leaps_trade(self, candidate: LEAPSCandidate)->bool:

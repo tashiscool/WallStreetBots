@@ -97,7 +97,7 @@ class RiskConfig:
 @dataclass
 class TradingConfig: 
     """Trading system configuration"""
-    universe: List[str] = field(default_factory = lambda: [
+    universe: List[str] = field(default_factory=lambda: [
         'AAPL', 'MSFT', 'GOOGL', 'GOOG', 'META', 'NVDA', 'AVGO', 'AMD', 'TSLA'
     ])
     scan_interval: int = 300  # 5 minutes
@@ -131,7 +131,7 @@ class AlertConfig:
     email_smtp_port: int = 587
     email_username: str = ""
     email_password: str = ""
-    email_recipients: List[str] = field(default_factory = list)
+    email_recipients: List[str] = field(default_factory=list)
     
     def validate(self)->List[str]: 
         """Validate alert configuration"""
@@ -180,12 +180,12 @@ class DatabaseConfig:
 @dataclass
 class ProductionConfig: 
     """Complete production configuration"""
-    data_providers: DataProviderConfig = field(default_factory  =  DataProviderConfig)
-    broker: BrokerConfig = field(default_factory  =  BrokerConfig)
-    risk: RiskConfig = field(default_factory  =  RiskConfig)
-    trading: TradingConfig = field(default_factory  =  TradingConfig)
-    alerts: AlertConfig = field(default_factory  =  AlertConfig)
-    database: DatabaseConfig = field(default_factory  =  DatabaseConfig)
+    data_providers: DataProviderConfig = field(default_factory=DataProviderConfig)
+    broker: BrokerConfig = field(default_factory=BrokerConfig)
+    risk: RiskConfig = field(default_factory=RiskConfig)
+    trading: TradingConfig = field(default_factory=TradingConfig)
+    alerts: AlertConfig = field(default_factory=AlertConfig)
+    database: DatabaseConfig = field(default_factory=DatabaseConfig)
     
     def validate(self)->List[str]: 
         """Validate entire configuration"""
@@ -411,7 +411,7 @@ class ConfigManager:
         try: 
             # Ensure config directory exists
             config_dir = Path(self.config_file).parent
-            config_dir.mkdir(parents = True, exist_ok = True)
+            config_dir.mkdir(parents=True, exist_ok = True)
             
             with open(self.config_file, 'w') as f: 
                 json.dump(config.to_dict(), f, indent = 2)

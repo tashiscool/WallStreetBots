@@ -81,7 +81,7 @@ class BacktestTrade:
     holding_period_hours: Optional[int] = None
     exit_reason: str = ""
     confidence_score: Decimal = Decimal('0.00')
-    risk_metrics: Dict[str, Any] = field(default_factory = dict)
+    risk_metrics: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -129,10 +129,10 @@ class StrategyBacktestResults:
     information_ratio: Decimal = Decimal('0.00')
     
     # Detailed Records
-    trades: List[BacktestTrade] = field(default_factory = list)
-    daily_returns: List[Decimal] = field(default_factory = list)
-    daily_portfolio_values: List[Decimal] = field(default_factory = list)
-    drawdown_series: List[Decimal] = field(default_factory = list)
+    trades: List[BacktestTrade] = field(default_factory=list)
+    daily_returns: List[Decimal] = field(default_factory=list)
+    daily_portfolio_values: List[Decimal] = field(default_factory=list)
+    drawdown_series: List[Decimal] = field(default_factory=list)
 
 
 @dataclass
@@ -726,8 +726,8 @@ class ProductionBacktestEngine:
         
         # Default backtest config (last 2 years)
         config = BacktestConfig(
-            start_date = datetime.now() - timedelta(days = 730),
-            end_date = datetime.now() - timedelta(days = 1),
+            start_date = datetime.now() - timedelta(days=730),
+            end_date = datetime.now() - timedelta(days=1),
             initial_capital = Decimal('100000.00')
         )
         
@@ -767,7 +767,7 @@ class HighRiskStrategyOrchestrator:
         self.max_single_position_risk = Decimal('0.01')  # Maximum 1% per position
         self.daily_loss_limit = Decimal('0.02')  # Stop at 2% daily loss
         self.max_positions = 3  # Maximum 3 concurrent high - risk positions
-        self.cooling_off_period = timedelta(hours  =  4)  # 4 - hour cooling off after loss
+        self.cooling_off_period = timedelta(hours=4)  # 4 - hour cooling off after loss
         
         # Strategy risk levels
         self.strategy_risk_levels = {

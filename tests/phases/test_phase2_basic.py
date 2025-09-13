@@ -38,7 +38,7 @@ def test_wheel_strategy():
         unrealized_pnl = 500.0,
         option_type = "put",
         strike_price = 145.0,
-        expiry_date = datetime.now() + timedelta(days = 30),
+        expiry_date = datetime.now() + timedelta(days=30),
         premium_received = 200.0
     )
     
@@ -272,7 +272,7 @@ def test_phase2_integration():
     print("🔗 Testing Phase 2 Integration...")
     
     # Test configuration loading
-    with tempfile.NamedTemporaryFile(mode = 'w', suffix = '.json', delete = False) as f: 
+    with tempfile.NamedTemporaryFile(mode='w', suffix = '.json', delete = False) as f: 
         test_config = {
             "risk": {
                 "max_position_risk": 0.10,

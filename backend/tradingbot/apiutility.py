@@ -15,7 +15,7 @@ def create_local_order(user, ticker, quantity, order_type, transaction_type, sta
 
     stock, _ = sync_database_company_stock(ticker)
     from backend.tradingbot.models import Order
-    order = Order(user  =  user, stock = stock, order_type = order_type,
+    order = Order(user=user, stock = stock, order_type = order_type,
                   quantity = quantity, transaction_type = transaction_type,
                   status = status, client_order_id = client_order_id)
     order.save()
@@ -48,11 +48,11 @@ def place_general_order(user, user_details, ticker, quantity, transaction_type, 
         raise ValidationError(f'Failed to get price for {ticker}, are you sure that the ticker name is correct?')
     if transaction_type ==  'B': 
         a_transaction_type = 'buy'
-        a_order_type = buy_order_check(order_type  =  order_type, price = price, quantity = quantity,
+        a_order_type = buy_order_check(order_type=order_type, price = price, quantity = quantity,
                                        usable_cash = user_details['usable_cash'])
     elif transaction_type ==  'S': 
         a_transaction_type = 'sell'
-        a_order_type = sell_order_check(order_type  =  order_type, price = price, quantity = quantity,
+        a_order_type = sell_order_check(order_type=order_type, price = price, quantity = quantity,
                                         usable_cash = user_details['usable_cash'])
     else: 
         raise ValidationError("invalid transaction type")
@@ -61,7 +61,7 @@ def place_general_order(user, user_details, ticker, quantity, transaction_type, 
     # 2.1 check if stock and company exists
     stock, _ = sync_database_company_stock(ticker)
     from backend.tradingbot.models import Order
-    order = Order(user  =  user, stock = stock, order_type = order_type,
+    order = Order(user=user, stock = stock, order_type = order_type,
                   quantity = quantity, transaction_type = transaction_type,
                   status = 'A')
     order.save()

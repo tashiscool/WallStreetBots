@@ -159,10 +159,10 @@ class TradingErrorRecoveryManager:
                 await self._switch_to_backup_data_source()
                 
             elif action ==  RecoveryAction.PAUSE_AND_RETRY: 
-                await self._pause_trading_temporarily(duration_minutes = 5)
+                await self._pause_trading_temporarily(duration_minutes=5)
                 
             elif action ==  RecoveryAction.CONTINUE_WITH_REDUCED_SIZE: 
-                await self._reduce_position_sizes(reduction_factor = 0.5)
+                await self._reduce_position_sizes(reduction_factor=0.5)
                 
             elif action ==  RecoveryAction.EMERGENCY_HALT: 
                 await self._emergency_halt("Position reconciliation failed")
@@ -171,7 +171,7 @@ class TradingErrorRecoveryManager:
                 await self._switch_to_paper_trading()
                 
             elif action ==  RecoveryAction.REDUCE_POSITION_SIZES: 
-                await self._reduce_position_sizes(reduction_factor = 0.25)
+                await self._reduce_position_sizes(reduction_factor=0.25)
                 
             elif action ==  RecoveryAction.LOG_AND_CONTINUE: 
                 await self._log_unknown_error(context.error, context.system_state)
@@ -263,7 +263,7 @@ class TradingErrorRecoveryManager:
         
         # Count critical errors in last hour
         for error_type, last_time in self.last_error_times.items(): 
-            if now - last_time  <  timedelta(hours = 1): 
+            if now - last_time  <  timedelta(hours=1): 
                 if error_type in ['PositionReconciliationError', 'BrokerConnectionError']: 
                     recent_critical_errors += 1
         

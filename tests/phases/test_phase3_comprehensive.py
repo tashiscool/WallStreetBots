@@ -47,7 +47,7 @@ class EarningsEvent:
     revenue_actual: Optional[float] = None
     surprise_pct: Optional[float] = None
     guidance_updated: bool = False
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -61,7 +61,7 @@ class IVAnalysis:
     pre_earnings_iv: float
     post_earnings_iv: float
     iv_spike_threshold: float
-    analysis_date: datetime = field(default_factory  =  datetime.now)
+    analysis_date: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -82,8 +82,8 @@ class EarningsPosition:
     vega_exposure: float
     max_loss: float
     max_profit: float
-    entry_date: datetime = field(default_factory  =  datetime.now)
-    last_update: datetime = field(default_factory  =  datetime.now)
+    entry_date: datetime = field(default_factory=datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     status: str = "active"
 
 
@@ -101,7 +101,7 @@ class EarningsCandidate:
     earnings_score: float
     risk_score: float
     strategy_recommended: EarningsStrategy
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 class SwingSignal(Enum): 
@@ -145,7 +145,7 @@ class TechnicalAnalysis:
     adx: float
     volume_sma: float
     volume_ratio: float
-    analysis_date: datetime = field(default_factory  =  datetime.now)
+    analysis_date: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -164,7 +164,7 @@ class SwingPosition:
     max_favorable_move: float
     max_adverse_move: float
     entry_date: datetime
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     days_held: int = 0
     status: str = "active"
     risk_reward_ratio: float = 0.0
@@ -185,7 +185,7 @@ class SwingCandidate:
     risk_reward_ratio: float
     position_size: int
     confidence: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
 
 
 class MomentumSignal(Enum): 
@@ -227,7 +227,7 @@ class MomentumData:
     volume_score: float
     technical_score: float
     overall_score: float
-    analysis_date: datetime = field(default_factory  =  datetime.now)
+    analysis_date: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -245,7 +245,7 @@ class MomentumPosition:
     entry_date: datetime
     expiry_date: Optional[datetime] = None
     days_to_expiry: int = 0
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     status: str = "active"
 
 
@@ -281,7 +281,7 @@ class VolatilityAnalysis:
     gamma_exposure: float
     options_volume: int
     put_call_ratio: float
-    analysis_date: datetime = field(default_factory  =  datetime.now)
+    analysis_date: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -301,7 +301,7 @@ class LottoPosition:
     days_to_expiry: int
     max_profit: float
     max_loss: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     status: str = "active"
 
 
@@ -360,7 +360,7 @@ class SecularAnalysis:
     fundamental_score: float
     technical_score: float
     overall_score: float
-    analysis_date: datetime = field(default_factory  =  datetime.now)
+    analysis_date: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -380,7 +380,7 @@ class LEAPSPosition:
     days_to_expiry: int
     max_profit: float
     max_loss: float
-    last_update: datetime = field(default_factory  =  datetime.now)
+    last_update: datetime = field(default_factory=datetime.now)
     status: str = "active"
 
 
@@ -392,7 +392,7 @@ class TestEarningsProtection(unittest.TestCase):
         event = EarningsEvent(
             ticker = "AAPL",
             event_type = EarningsEventType.EARNINGS,
-            event_date = datetime.now() + timedelta(days = 5),
+            event_date = datetime.now() + timedelta(days=5),
             announcement_time = "AMC",
             fiscal_quarter = "Q1",
             fiscal_year = 2024,
@@ -435,7 +435,7 @@ class TestEarningsProtection(unittest.TestCase):
             current_price = 155.0,
             unrealized_pnl = 500.0,
             protection_level = 0.05,
-            earnings_date = datetime.now() + timedelta(days = 5),
+            earnings_date = datetime.now() + timedelta(days=5),
             days_to_earnings = 5,
             iv_exposure = 0.0,
             delta_exposure = 0.8,
@@ -455,7 +455,7 @@ class TestEarningsProtection(unittest.TestCase):
         """Test earnings candidate creation"""
         candidate = EarningsCandidate(
             ticker = "AAPL",
-            earnings_date = datetime.now() + timedelta(days = 5),
+            earnings_date = datetime.now() + timedelta(days=5),
             days_to_earnings = 5,
             current_price = 150.0,
             iv_rank = 0.8,
@@ -614,7 +614,7 @@ class TestMomentumWeeklies(unittest.TestCase):
             target_price = 170.0,
             stop_loss = 140.0,
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(days = 7),
+            expiry_date = datetime.now() + timedelta(days=7),
             days_to_expiry = 7
         )
         
@@ -668,7 +668,7 @@ class TestLottoScanner(unittest.TestCase):
             target_price = 170.0,
             stop_loss = 140.0,
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(hours = 6),
+            expiry_date = datetime.now() + timedelta(hours=6),
             days_to_expiry = 0,
             max_profit = 1000.0,
             max_loss = 500.0
@@ -734,7 +734,7 @@ class TestLEAPSTracker(unittest.TestCase):
             target_price = 200.0,
             stop_loss = 120.0,
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(days = 365),
+            expiry_date = datetime.now() + timedelta(days=365),
             days_to_expiry = 365,
             max_profit = 2000.0,
             max_loss = 1000.0
@@ -757,7 +757,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
         event = EarningsEvent(
             ticker = "AAPL",
             event_type = EarningsEventType.EARNINGS,
-            event_date = datetime.now() + timedelta(days = 5),
+            event_date = datetime.now() + timedelta(days=5),
             announcement_time = "AMC",
             fiscal_quarter = "Q1",
             fiscal_year = 2024,
@@ -787,7 +787,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
         # Test earnings candidate creation
         candidate = EarningsCandidate(
             ticker = "AAPL",
-            earnings_date = datetime.now() + timedelta(days = 5),
+            earnings_date = datetime.now() + timedelta(days=5),
             days_to_earnings = 5,
             current_price = 150.0,
             iv_rank = 0.8,
@@ -897,7 +897,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
             target_price = 170.0,
             stop_loss = 140.0,
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(days = 7),
+            expiry_date = datetime.now() + timedelta(days=7),
             days_to_expiry = 7
         )
         
@@ -940,7 +940,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
             target_price = 170.0,
             stop_loss = 140.0,
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(hours = 6),
+            expiry_date = datetime.now() + timedelta(hours=6),
             days_to_expiry = 0,
             max_profit = 1000.0,
             max_loss = 500.0
@@ -994,7 +994,7 @@ class TestPhase3EndToEnd(unittest.TestCase):
             target_price = 200.0,
             stop_loss = 120.0,
             entry_date = datetime.now(),
-            expiry_date = datetime.now() + timedelta(days = 365),
+            expiry_date = datetime.now() + timedelta(days=365),
             days_to_expiry = 365,
             max_profit = 2000.0,
             max_loss = 1000.0

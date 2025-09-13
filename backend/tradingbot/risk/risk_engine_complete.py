@@ -83,7 +83,7 @@ def cvar_historical(returns: pd.Series, alpha: float = 0.99)->float:
 
 def var_parametric(returns: pd.Series, alpha: float = 0.99, use_student_t: bool = False, cornish_fisher: bool = True)->float:
     r = _validate_series(returns)
-    mu, sigma = float(r.mean()), float(r.std(ddof = 1))
+    mu, sigma = float(r.mean()), float(r.std(ddof=1))
     if sigma ==  0.0: 
         return 0.0
     zq = _z(alpha)
@@ -101,7 +101,7 @@ def var_parametric(returns: pd.Series, alpha: float = 0.99, use_student_t: bool 
 
 def cvar_parametric(returns: pd.Series, alpha: float = 0.99, use_student_t: bool = False)->float:
     r = _validate_series(returns)
-    mu, sigma = float(r.mean()), float(r.std(ddof = 1))
+    mu, sigma = float(r.mean()), float(r.std(ddof=1))
     if sigma ==  0.0: 
         return 0.0
     zq = _z(alpha)
@@ -133,7 +133,7 @@ def var_cvar_mc(
     # Cholesky (with PSD guard)
     L = np.linalg.cholesky(cov + 1e-12 * np.eye(cov.shape[0]))
     k = mu.shape[0]
-    Z = np.random.standard_normal(size  =  (k, n_paths))
+    Z = np.random.standard_normal(size=(k, n_paths))
     if student_t: 
         # t - copula: scale normals by sqrt(df / ChiSq(df))
         chi = np.random.chisquare(df, size = n_paths)
@@ -326,7 +326,7 @@ def calculate_strategy_risk_budget(
 if __name__ ==  "__main__": 
     np.random.seed(42)
     # Synthetic daily returns series
-    s = pd.Series(np.random.standard_t(df  =  5, size = 1500) * 0.01)
+    s = pd.Series(np.random.standard_t(df=5, size = 1500) * 0.01)
     print("Hist VaR(99%): ", var_historical(s, 0.99))
     print("Hist CVaR(99%): ", cvar_historical(s, 0.99))
     print("Param VaR(99%, CF): ", var_parametric(s, 0.99, use_student_t = True, cornish_fisher = True))

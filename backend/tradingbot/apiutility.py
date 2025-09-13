@@ -41,6 +41,7 @@ def place_general_order(
     user, user_details, ticker, quantity, transaction_type, order_type, time_in_force
 ):
     """General place order function that takes account of database, margin, and alpaca synchronization.
+
     supports market buy / sell
     user: request.user
     user_details: return from sync_alpaca function

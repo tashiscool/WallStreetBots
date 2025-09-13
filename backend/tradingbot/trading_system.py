@@ -73,6 +73,7 @@ class SystemState:
 
 class IntegratedTradingSystem:
     """Main trading system that orchestrates all components.
+
     Implements the complete 240% options trading playbook.
     """
 

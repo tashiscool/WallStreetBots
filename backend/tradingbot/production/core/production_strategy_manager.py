@@ -17,23 +17,23 @@ All strategies use:
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 
 from .production_integration import ProductionIntegrationManager
 from ..data.production_data_integration import ReliableDataProvider as ProductionDataProvider
-from ..strategies.production_wsb_dip_bot import ProductionWSBDipBot, create_production_wsb_dip_bot
-from ..strategies.production_earnings_protection import ProductionEarningsProtection, create_production_earnings_protection
-from ..strategies.production_index_baseline import ProductionIndexBaseline, create_production_index_baseline
-from ..strategies.production_wheel_strategy import ProductionWheelStrategy, create_production_wheel_strategy
-from ..strategies.production_momentum_weeklies import ProductionMomentumWeeklies, create_production_momentum_weeklies
-from ..strategies.production_debit_spreads import ProductionDebitSpreads, create_production_debit_spreads
-from ..strategies.production_leaps_tracker import ProductionLEAPSTracker, create_production_leaps_tracker
-from ..strategies.production_swing_trading import ProductionSwingTrading, create_production_swing_trading
-from ..strategies.production_spx_credit_spreads import ProductionSPXCreditSpreads, create_production_spx_credit_spreads
-from ..strategies.production_lotto_scanner import ProductionLottoScanner, create_production_lotto_scanner
+from ..strategies.production_wsb_dip_bot import create_production_wsb_dip_bot
+from ..strategies.production_earnings_protection import create_production_earnings_protection
+from ..strategies.production_index_baseline import create_production_index_baseline
+from ..strategies.production_wheel_strategy import create_production_wheel_strategy
+from ..strategies.production_momentum_weeklies import create_production_momentum_weeklies
+from ..strategies.production_debit_spreads import create_production_debit_spreads
+from ..strategies.production_leaps_tracker import create_production_leaps_tracker
+from ..strategies.production_swing_trading import create_production_swing_trading
+from ..strategies.production_spx_credit_spreads import create_production_spx_credit_spreads
+from ..strategies.production_lotto_scanner import create_production_lotto_scanner
 
 # Import advanced analytics and market regime adaptation
 from ...analytics.advanced_analytics import AdvancedAnalytics, PerformanceMetrics
@@ -1028,7 +1028,7 @@ class ProductionStrategyManager:
                 self.analytics_history=self.analytics_history[-100: ]
 
             # Generate and log analytics report
-            report = self.advanced_analytics.generate_analytics_report(metrics)
+            self.advanced_analytics.generate_analytics_report(metrics)
             self.logger.info("Advanced analytics updated")
 
             # Send alert for significant changes

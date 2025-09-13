@@ -4,10 +4,8 @@ Machine learning models for risk prediction and regime detection
 """
 
 import numpy as np
-import pandas as pd
-from typing import Dict, List, Optional, Tuple, Any, Union
+from typing import Dict, List, Tuple, Any, Union
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -138,7 +136,7 @@ class MLRiskPredictor:
                 # Get regime probabilities
                 regime_probs = self._predict_regime_probabilities(features)
                 
-            except Exception as e: 
+            except Exception: 
                 # Fallback to basic prediction if ML fails
                 predicted_vol = self._basic_volatility_prediction(market_data)
                 confidence_interval = (predicted_vol * 0.8, predicted_vol * 1.2)
@@ -310,7 +308,7 @@ class MLRiskPredictor:
         # Simple rule-based regime detection
         volatility = features.price_features.get('price_volatility', 0.2)
         vix = features.macro_features.get('vix_level', 20)
-        sentiment = features.sentiment_features.get('reddit_sentiment', 0)
+        features.sentiment_features.get('reddit_sentiment', 0)
         
         # Regime classification based on volatility and sentiment
         if volatility  >  0.4 or vix  >  35: 
@@ -521,6 +519,6 @@ if __name__ ==  "__main__": # Create sample market data
     print(f"Confidence: {risk_prediction.confidence:.1%}")
     
     if risk_prediction.recommended_actions: 
-        print(f"\nRecommendations: ")
+        print("\nRecommendations: ")
         for i, action in enumerate(risk_prediction.recommended_actions, 1): 
             print(f"{i}. {action}")

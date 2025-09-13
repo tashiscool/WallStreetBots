@@ -16,15 +16,12 @@ Connects to:
 - Live market hours and holiday calendars
 """
 
-import asyncio
 import logging
-import statistics
-from datetime import datetime, timedelta, time
-from typing import Dict, List, Optional, Any, Tuple
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
-import json
 import time as time_module
 
 from ...apimanagers import AlpacaManager

@@ -7,7 +7,6 @@ import sys
 import os
 import math
 from datetime import date, datetime, timedelta
-from typing import List, Dict, Optional
 
 # Add the parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

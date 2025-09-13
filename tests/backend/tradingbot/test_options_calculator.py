@@ -5,7 +5,6 @@ Tests Black - Scholes implementation and options calculations
 """
 
 import unittest
-from unittest.mock import Mock, patch
 import math
 from datetime import date, timedelta
 import sys
@@ -15,8 +14,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
 from backend.tradingbot.options_calculator import (  # noqa: E402
-    BlackScholesCalculator, OptionsTradeCalculator, TradeCalculation, 
-    OptionsSetup, OptionsStrategySetup, validate_successful_trade
+    BlackScholesCalculator, OptionsTradeCalculator, OptionsSetup, OptionsStrategySetup, validate_successful_trade
 )
 
 
@@ -531,7 +529,7 @@ class TestOptionsTradeCalculator(unittest.TestCase):
         otm_strike = calculator.calculate_otm_strike(spot_price)
         
         # Strike should be approximately 5% OTM
-        expected_strike = spot_price * 1.05
+        spot_price * 1.05
         percentage_otm = (otm_strike / spot_price-1) * 100
         
         # Should be close to 5% OTM (within 1% due to rounding)
@@ -769,7 +767,7 @@ class TestOptionsCalculatorIntegration(unittest.TestCase):
         time_to_expiry = 30 / 365
         vol = 0.25
         
-        theoretical_price = self.bs_calc.call_price(
+        self.bs_calc.call_price(
             spot=spot,
             strike=strike,
             time_to_expiry_years=time_to_expiry,

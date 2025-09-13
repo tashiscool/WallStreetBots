@@ -3,13 +3,10 @@ Production LEAPS Secular Winners Tracking System
 Long - term options strategy for secular growth stocks
 """
 
-import asyncio
-import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
-import math
 
 from .production_logging import ProductionLogger
 from .production_config import ConfigManager

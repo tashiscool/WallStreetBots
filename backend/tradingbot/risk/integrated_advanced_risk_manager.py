@@ -16,11 +16,11 @@ import logging
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Union
-from dataclasses import dataclass, field
+from typing import Dict, Any
+from dataclasses import dataclass
 
 # Import core risk management components
-from .risk_integration_manager import RiskIntegrationManager, RiskMetrics, RiskLimits
+from .risk_integration_manager import RiskIntegrationManager
 from .advanced_var_engine import AdvancedVaREngine
 from .stress_testing_engine import StressTesting2025
 from .ml_risk_predictor import MLRiskPredictor
@@ -173,7 +173,7 @@ class IntegratedAdvancedRiskManager:
             
             # 4. Advanced ML agents (if available)
             if self.ml_coordinator: 
-                risk_state = self._create_risk_state(positions, market_data)
+                self._create_risk_state(positions, market_data)
                 # Convert positions to required format for ML coordinator
                 portfolio_data = {
                     'positions': positions,

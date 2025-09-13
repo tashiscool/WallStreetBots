@@ -50,7 +50,7 @@ def start_pipelines():
                     order_type = action.order_type,
                     time_in_force = "day"
                 )
-    except ImportError as e: 
+    except ImportError: 
         # Silently fail if dependencies are not available
         pass
 

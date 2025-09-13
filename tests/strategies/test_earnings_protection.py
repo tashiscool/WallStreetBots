@@ -5,10 +5,9 @@ Tests all components of the earnings IV crush protection system
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from datetime import date, datetime, timedelta
 import pandas as pd
-import numpy as np
 import sys
 import os
 
@@ -422,12 +421,10 @@ class TestEarningsProtectionCalculations(unittest.TestCase):
     def test_calendar_spread_iv_benefits(self): 
         """Test calendar spread IV crush benefits"""
         # Front month (short): high IV, crushes after earnings
-        front_iv = 0.60
         front_premium_before = 5.0
         front_premium_after = 2.0  # IV crush
         
         # Back month (long): less IV crush due to more time
-        back_iv = 0.45  
         back_premium_before = 7.0
         back_premium_after = 5.5  # Less crush
         

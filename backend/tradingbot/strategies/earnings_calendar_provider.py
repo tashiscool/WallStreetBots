@@ -3,7 +3,6 @@ Enhanced Earnings Calendar Provider with Real IV Calculation
 Implements real earnings calendar integration with implied volatility analysis
 """
 
-import asyncio
 import logging
 import statistics
 from datetime import datetime, timedelta, date
@@ -11,7 +10,6 @@ from decimal import Decimal
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
-import json
 
 logger = logging.getLogger(__name__)
 

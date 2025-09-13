@@ -6,7 +6,6 @@ Demonstrate the unified trading interface and production components
 import asyncio
 import logging
 from datetime import datetime
-from typing import Dict, Any
 
 # Import with try / except for standalone execution
 try: 
@@ -27,15 +26,14 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
     from trading_interface import (
-        TradingInterface, TradeSignal, OrderType, OrderSide, create_trading_interface
+        TradeSignal, OrderType, OrderSide, create_trading_interface
     )
     from data_providers import create_data_provider
-    from production_config import ConfigManager, create_config_manager
+    from production_config import create_config_manager
     from production_logging import (
         ProductionLogger, ErrorHandler, CircuitBreaker, 
         HealthChecker, MetricsCollector
     )
-    from production_models import Strategy, Position, Trade, Configuration
 
 
 class Phase1Demo: 
@@ -159,7 +157,7 @@ class Phase1Demo:
             try: 
                 sentiment = await self.data_provider.get_sentiment_data("AAPL")
                 self.logger.info(
-                    f"Sentiment analysis for AAPL",
+                    "Sentiment analysis for AAPL",
                     score = sentiment.get('score', 0),
                     confidence = sentiment.get('confidence', 0)
                 )

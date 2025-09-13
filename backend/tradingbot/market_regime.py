@@ -6,8 +6,8 @@ Implements the bull regime filters and pullback reversal signals from the succes
 from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from datetime import datetime
+from typing import List, Optional
 from enum import Enum
 
 

@@ -4,7 +4,7 @@ Custom Error Types for Trading System
 Defines specific error types for different failure scenarios in the trading system.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 
 class TradingError(Exception): 

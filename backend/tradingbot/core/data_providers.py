@@ -3,14 +3,11 @@ Real Data Providers
 Replaces hardcoded values with live market data
 """
 
-import asyncio
 import aiohttp
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
-import os
-import json
 
 
 @dataclass

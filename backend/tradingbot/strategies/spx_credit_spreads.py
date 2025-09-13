@@ -8,10 +8,9 @@ Sell ~30 - delta defined - risk strangles / credit spreads at open, auto - close
 import argparse
 import math
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Optional, Tuple
-import time
+from typing import List, Optional, Tuple
 
 try: 
     import yfinance as yf
@@ -223,7 +222,7 @@ class SPXCreditSpreadsScanner:
             
             return strike, actual_delta, premium
             
-        except Exception as e: 
+        except Exception: 
             return None, 0.0, 0.0
     
     def calculate_spread_metrics(self, short_strike: float, long_strike: float, 
@@ -261,7 +260,7 @@ class SPXCreditSpreadsScanner:
                     spot_price = stock.history(period="1d")['Close'].iloc[-1]
                 
                 expected_move_pct = self.get_expected_move(ticker)
-                expected_move_points = spot_price * expected_move_pct
+                spot_price * expected_move_pct
                 
                 print(f"  📊 {ticker}: ${spot_price:.2f}, Expected move: ±{expected_move_pct:.1%}")
                 

@@ -6,16 +6,15 @@ Automated premium selling with real broker integration and comprehensive risk ma
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, date
-from typing import Dict, List, Optional, Tuple, Any, Union
+from datetime import datetime, date
+from typing import Dict, List, Optional, Any
 from decimal import Decimal
-import math
 
 # Import production infrastructure
 from ..core.production_integration import ProductionIntegrationManager, TradeSignal, OrderType, OrderSide
 from ..data.production_data_integration import ReliableDataProvider
-from ...options.smart_selection import SmartOptionsSelector, OptionsAnalysis, SelectionCriteria, LiquidityRating
-from ...options.pricing_engine import OptionsContract, create_options_pricing_engine
+from ...options.smart_selection import SmartOptionsSelector, OptionsAnalysis, SelectionCriteria
+from ...options.pricing_engine import create_options_pricing_engine
 from ...risk.real_time_risk_manager import RealTimeRiskManager
 
 

@@ -5,11 +5,10 @@ Replaces oversimplified logic with sophisticated technical analysis
 
 import logging
 import statistics
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
-import math
 
 logger = logging.getLogger(__name__)
 

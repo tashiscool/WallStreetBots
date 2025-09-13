@@ -4,7 +4,6 @@ Simple Phase 2 Functionality Test
 Test core Phase 2 components without complex imports
 """
 
-import sys
 import os
 import tempfile
 import json
@@ -392,7 +391,7 @@ def test_phase2_integration():
         with open(config_file, 'r') as f: 
             config = json.load(f)
         
-        print(f"✅ Configuration loaded successfully")
+        print("✅ Configuration loaded successfully")
         print(f"   Account Size: ${config['risk']['account_size']:,.0f}")
         print(f"   Max Position Risk: {config['risk']['max_position_risk']:.1%}")
         print(f"   Universe: {', '.join(config['trading']['universe'])}")
@@ -401,7 +400,7 @@ def test_phase2_integration():
         os.unlink(config_file)
     
     # Test strategy scoring systems
-    print(f"✅ Strategy Scoring Systems: ")
+    print("✅ Strategy Scoring Systems: ")
     
     # Wheel scoring
     wheel_candidate = WheelCandidate(

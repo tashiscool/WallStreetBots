@@ -5,9 +5,8 @@ Production Lotto Scanner Strategy
 
 import asyncio
 import logging
-import math
 from datetime import datetime, date, timedelta
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 
 from ..core.production_integration import ProductionIntegrationManager, ProductionTradeSignal
@@ -663,7 +662,7 @@ class ProductionLottoScanner:
     async def _find_best_earnings_expiry(self, ticker: str, earnings_date: date)->Optional[str]:
         """Find best expiry for earnings play"""
         # Look for expiry within 3 days after earnings
-        target_date = earnings_date+timedelta(days=1)
+        earnings_date+timedelta(days=1)
         
         # In production, would query actual available expiries
         # For now, return weekly expiry

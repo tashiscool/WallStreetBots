@@ -5,10 +5,7 @@ Tests all components of the 0DTE credit spreads scanner and strategy logic
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
-from datetime import date, datetime, timedelta
-import pandas as pd
-import numpy as np
+from unittest.mock import Mock, patch
 import sys
 import os
 

@@ -43,7 +43,7 @@ class WallStreetBotsLauncher:
         
         if missing_files: 
             print(f"❌ Missing required files: {', '.join(missing_files)}")
-            print(f"   Make sure you're running this from the WallStreetBots root directory")
+            print("   Make sure you're running this from the WallStreetBots root directory")
             return False
         
         # Check Python
@@ -54,7 +54,7 @@ class WallStreetBotsLauncher:
             if result.returncode ==  0: 
                 print(f"✅ Python: {result.stdout.strip()}")
             else: 
-                print(f"❌ Python check failed")
+                print("❌ Python check failed")
                 return False
         except (subprocess.TimeoutExpired, FileNotFoundError) as e: 
             print(f"❌ Python executable not found: {python_exe}")

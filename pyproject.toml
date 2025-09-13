@@ -1,115 +1,119 @@
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "wallstreetbots"
-version = "0.1.0"
-description = "WSB-style strategy bots (dip-after-run, momentum weeklies, spreads, leaps, wheel)"
-readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-  "pandas>=2.2.0,<3.0.0",
-  "numpy>=1.26.0,<2.3.0",
-  "yfinance>=0.2.65,<0.3.0",
-  "pytz>=2025.2,<2026.0",
-  "requests>=2.32.0,<3.0.0"
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "backend/__pycache__",
+    "backend/tradingbot/__pycache__",
+    ".pytest_cache",
 ]
 
-[project.optional-dependencies]
-django = [
-    "Django>=4.2.0,<5.0.0",
-    "django-cors-headers>=4.6.0",
-    "djangorestframework>=3.15.0",
-    "psycopg2-binary>=2.9.10",
-    "asgiref>=3.8.0",
-    "sqlparse>=0.5.0",
-    "social-auth-app-django>=5.5.0",
-    "django-admin-interface>=0.30.0",
-    "python-jose>=3.3.0",
-    "dj-config-url>=0.1.1",
+# Same as Black.
+line-length = 100
+indent-width = 4
+
+# Assume Python 3.12
+target-version = "py312"
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = [
+    "E4",   # pycodestyle errors
+    "E7",   # pycodestyle errors
+    "E9",   # pycodestyle errors
+    "F",    # pyflakes
+    "W",    # pycodestyle warnings
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade
+    "ARG",  # flake8-unused-arguments
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+    "Q",    # flake8-quotes
+    "I",    # isort
+    "N",    # pep8-naming
+    "D",    # pydocstyle
+    "S",    # bandit
+    "T20",  # flake8-print
+    "PL",   # pylint
+    "RUF",  # ruff-specific rules
 ]
-broker = [
-    "alpaca-py>=0.42.0",
+
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "B006",  # do not use mutable data structures for argument defaults
+    "PLR0913", # too many arguments to function call
+    "PLR0912", # too many branches
+    "PLR0915", # too many statements
+    "D100",  # Missing docstring in public module
+    "D101",  # Missing docstring in public class
+    "D102",  # Missing docstring in public method
+    "D103",  # Missing docstring in public function
+    "D104",  # Missing docstring in public package
+    "D105",  # Missing docstring in magic method
+    "D107",  # Missing docstring in __init__
+    "S101",  # use of assert detected
+    "T20",   # print statement
 ]
-ml = [
-    "hmmlearn>=0.3.0",
-    "plotly>=6.3.0",
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests can use magic values, assertions, and relative imports
+"tests/**/*.py" = [
+    "S101",  # assert
+    "PLR2004", # magic value
+    "TID252", # relative imports
 ]
-dev = [
-    "pytest>=8.4.0",
-    "pytest-cov>=6.0.0",
-    "pytest-asyncio>=0.24.0",
-    "black>=24.0.0",
-    "flake8>=7.0.0",
-    "mypy>=1.13.0",
-]
 
-[project.scripts]
-wsb-dip-bot = "wsb_dip_bot:main"
-momentum-weeklies = "momentum_weeklies:main"
-debit-spreads = "debit_spreads:main"
-leaps-tracker = "leaps_tracker:main"
-lotto-scanner = "lotto_scanner:main"
-wheel-strategy = "wheel_strategy:main"
+# Allow print statements in scripts
+"scripts/**/*.py" = ["T20"]
 
-[project.urls]
-Homepage = "https://github.com/tashiscool/WallStreetBots"
-Repository = "https://github.com/tashiscool/WallStreetBots"
-Issues = "https://github.com/tashiscool/WallStreetBots/issues"
+[tool.ruff.lint.isort]
+known-first-party = ["backend"]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["backend*", "ml*", "scripts*"]
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
-[tool.setuptools.package-data]
-"*" = ["*.md", "*.txt", "*.yaml", "*.yml"]
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
 
-[tool.black]
-line-length = 88
-target-version = ['py312']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
 
-[tool.mypy]
-python_version = "3.12"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-strict_equality = true
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py", "*_test.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = "-v --tb=short --strict-markers"
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
-    "unit: marks tests as unit tests",
-]
-DJANGO_SETTINGS_MODULE = "backend.settings"
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"

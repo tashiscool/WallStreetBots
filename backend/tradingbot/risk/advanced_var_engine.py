@@ -5,10 +5,9 @@ Multi - method VaR calculation with machine learning enhancements
 
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List
 from dataclasses import dataclass
 from scipy import stats
-from scipy.optimize import minimize
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -232,7 +231,7 @@ class AdvancedVaREngine:
     
     def detect_regime_and_adjust(self, returns: np.ndarray, lookback_days: int=60)->Dict:
         """Simple regime detection based on volatility"""
-        recent_returns = returns[-lookback_days: ] if len(returns)  >  lookback_days else returns
+        returns[-lookback_days: ] if len(returns)  >  lookback_days else returns
         
         # Calculate rolling volatility
         rolling_vol = pd.Series(returns).rolling(window=20).std().dropna()
@@ -291,7 +290,7 @@ if __name__ ==  "__main__": # Generate sample returns data
     
     # Regime detection
     regime_info = var_engine.detect_regime_and_adjust(sample_returns)
-    print(f"\nRegime Detection: ")
+    print("\nRegime Detection: ")
     print(f"Current Regime: {regime_info['regime']}")
     print(f"Adjustment Factor: {regime_info['adjustment_factor']:.2f}")
     print(f"Volatility Ratio: {regime_info['volatility_ratio']:.2f}")

@@ -12,7 +12,7 @@ Replaces all hardcoded mock performance data with live calculations.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from decimal import Decimal
@@ -286,7 +286,7 @@ class ProductionIndexBaseline:
         
         try: 
             # Check current portfolio allocation
-            portfolio_value = await self.integration.get_portfolio_value()
+            await self.integration.get_portfolio_value()
             
             # Calculate current allocation to baseline assets
             current_allocation = await self._calculate_current_allocation()
@@ -477,7 +477,7 @@ class ProductionIndexBaseline:
         try: 
             while True: 
                 # Calculate baseline performance
-                performance = await self.calculate_baseline_performance()
+                await self.calculate_baseline_performance()
                 
                 # Generate signals
                 signals = await self.generate_baseline_signals()

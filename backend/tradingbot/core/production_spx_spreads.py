@@ -4,18 +4,15 @@ Index options with real - time CME data integration
 """
 
 import asyncio
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 from enum import Enum
-import math
 
 from .trading_interface import TradingInterface, TradeSignal, OrderType, OrderSide
-from .data_providers import UnifiedDataProvider, MarketData, OptionsData
+from .data_providers import UnifiedDataProvider, OptionsData
 from .production_config import ProductionConfig
 from .production_logging import ProductionLogger, ErrorHandler, MetricsCollector
-from .production_models import Strategy, Position, Trade, RiskLimit
 
 
 class SPXSpreadType(Enum): 
@@ -415,7 +412,7 @@ class ProductionSPXSpreads:
     async def execute_spx_spread(self, candidate: SPXSpreadCandidate)->bool:
         """Execute SPX spread trade"""
         try: 
-            self.logger.info(f"Executing SPX spread")
+            self.logger.info("Executing SPX spread")
             
             # Check position limits
             if len(self.positions)  >=  self.max_positions: 
@@ -495,7 +492,7 @@ class ProductionSPXSpreads:
             
             self.positions[position_key] = position
             
-            self.logger.info(f"SPX spread executed",
+            self.logger.info("SPX spread executed",
                            long_strike = candidate.long_strike,
                            short_strike = candidate.short_strike,
                            net_credit = candidate.net_credit,
@@ -633,7 +630,7 @@ class ProductionSPXSpreads:
                 # Update position
                 position.status=SPXSpreadStatus.CLOSED
                 
-                self.logger.info(f"SPX spread closed",
+                self.logger.info("SPX spread closed",
                                reason=reason,
                                pnl = position.unrealized_pnl,
                                profit_pct = position.profit_pct)

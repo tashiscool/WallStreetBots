@@ -6,15 +6,13 @@ Fast profit - taking swing trades with same-day exit discipline
 
 import asyncio
 import logging
-import math
 from datetime import datetime, timedelta, date
-from typing import List, Dict, Optional, Any, Tuple
+from typing import List, Dict, Any, Tuple
 from dataclasses import dataclass
 from decimal import Decimal
 
 from ..data.production_data_integration import ReliableDataProvider
-from ..core.production_integration import ProductionIntegrationManager, ProductionTradeSignal
-from ...models import Stock, Order, Portfolio
+from ..core.production_integration import ProductionTradeSignal
 from ...risk.real_time_risk_manager import RealTimeRiskManager
 from ...options.smart_selection import SmartOptionsSelector
 from ...options.pricing_engine import BlackScholesEngine
@@ -118,7 +116,7 @@ class ProductionSwingTrading:
             
             prices = data['close'].values
             volumes = data['volume'].values
-            highs = data['high'].values
+            data['high'].values
             
             current_price = prices[-1]
             current_volume = volumes[-5: ].mean()  # Recent 5 periods

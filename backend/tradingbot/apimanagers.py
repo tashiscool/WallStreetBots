@@ -6,11 +6,8 @@ This replaces the legacy alpaca - trade-api with the modern alpaca - py SDK
 for reliable real - money trading operations.
 """
 
-from http import HTTPStatus
 from typing import Dict, List, Optional, Any, Tuple
-import pandas as pd
 from datetime import datetime, timedelta
-from decimal import Decimal
 
 # Optional imports with fallbacks
 try: 
@@ -232,7 +229,7 @@ class AlpacaManager:
         try: 
             position = self.trading_client.get_open_position(symbol)
             return int(position.qty) if position else 0
-        except Exception as e: 
+        except Exception: 
             # No position exists
             return 0
     

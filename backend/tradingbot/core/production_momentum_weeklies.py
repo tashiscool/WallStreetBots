@@ -3,8 +3,6 @@ Production Momentum Weeklies Scanner
 Real - time momentum scanning with weekly options focus
 """
 
-import asyncio
-import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field

@@ -15,20 +15,19 @@ Making the system truly production - ready for live trading.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
+from datetime import datetime
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from decimal import Decimal
 import json
 
-from .production_integration import ProductionIntegrationManager, create_production_integration
+from .production_integration import create_production_integration
 from .production_strategy_wrapper import (
-    ProductionStrategyWrapper, ProductionWSBDipBot, ProductionMomentumWeeklies,
-    create_production_wsb_dip_bot, create_production_momentum_weeklies,
+    ProductionStrategyWrapper, create_production_wsb_dip_bot, create_production_momentum_weeklies,
     StrategyConfig
 )
-from ..data.production_data_integration import ReliableDataProvider as ProductionDataProvider, create_production_data_provider
-from ...models import Order, Portfolio, StockInstance, Company, Stock
+from ..data.production_data_integration import create_production_data_provider
+from ...models import Portfolio
 from django.contrib.auth.models import User
 
 

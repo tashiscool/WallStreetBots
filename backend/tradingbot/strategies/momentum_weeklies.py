@@ -5,11 +5,10 @@ Detects intraday reversals and news momentum for weekly options plays
 """
 
 import argparse
-import math
 import json
 from datetime import date, datetime, timedelta
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Optional, Tuple
+from typing import List, Tuple
 import time
 
 try: 
@@ -93,7 +92,7 @@ class MomentumWeekliesScanner:
                 
             # Get recent price action
             prices = data['Close'].values
-            volumes = data['Volume'].values
+            data['Volume'].values
             
             current_price = prices[-1]
             

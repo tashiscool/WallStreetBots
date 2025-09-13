@@ -3,10 +3,9 @@ Comprehensive Phase 4 Testing
 Tests for backtesting, optimization, monitoring, and deployment
 """
 
-import asyncio
 import unittest
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime, timedelta
+from unittest.mock import Mock, patch
+from datetime import datetime
 import sys
 import os
 
@@ -18,12 +17,10 @@ from backend.tradingbot.phases.phase4_backtesting import (  # noqa: E402
     BacktestPeriod, BacktestTrade
 )
 from backend.tradingbot.phases.phase4_optimization import (  # noqa: E402
-    StrategyOptimizer, OptimizationConfig, OptimizationResult, OptimizationAnalyzer,
-    OptimizationMethod, OptimizationMetric, ParameterRange
+    StrategyOptimizer, OptimizationConfig, OptimizationMethod, OptimizationMetric, ParameterRange
 )
 from backend.tradingbot.phases.phase4_monitoring import (  # noqa: E402
-    Phase4Monitoring, MetricsCollector, AlertManager, SystemMonitor,
-    AlertLevel, MetricType, AlertRule, Metric, Alert
+    Phase4Monitoring, AlertLevel, MetricType, AlertRule, Metric
 )
 from backend.tradingbot.phases.phase4_deployment import (  # noqa: E402
     Phase4Deployment, DockerManager, KubernetesManager, CICDManager,

@@ -3,12 +3,11 @@ Real Options Pricing Engine
 Replaces placeholder pricing with actual market data and Black - Scholes calculations
 """
 
-import asyncio
 import logging
 import math
 from datetime import datetime, date, timedelta
 from decimal import Decimal, getcontext
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional, Dict
 from dataclasses import dataclass
 
 # Try to import scipy and numpy, but provide fallbacks

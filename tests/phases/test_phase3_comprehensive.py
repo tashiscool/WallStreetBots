@@ -5,13 +5,7 @@ Test all Phase 3 strategies with mocked dependencies
 """
 
 import unittest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
 from datetime import datetime, timedelta
-import tempfile
-import json
-import os
-import math
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Optional

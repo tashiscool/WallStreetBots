@@ -1,4 +1,3 @@
-import pandas as pd
 import yfinance as yf
 
 def safe_mid(bid: float, ask: float, last: float)->float:

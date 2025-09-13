@@ -7,8 +7,7 @@ Practical demonstration of sophisticated risk management capabilities
 import sys
 import os
 import numpy as np
-import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -116,13 +115,13 @@ def demo_var_analysis():
     # Calculate CVaR
     cvar_95 = var_engine.calculate_cvar(returns, 0.95)
     cvar_99 = var_engine.calculate_cvar(returns, 0.99)
-    print(f"\nCVaR Analysis: ")
+    print("\nCVaR Analysis: ")
     print(f"  CVaR 95%: ${cvar_95:,.0f}")
     print(f"  CVaR 99%: ${cvar_99:,.0f}")
     
     # Regime analysis
     regime_info = var_engine.detect_regime_and_adjust(returns)
-    print(f"\nRegime Analysis: ")
+    print("\nRegime Analysis: ")
     print(f"  Current Regime: {regime_info['regime']}")
     print(f"  Adjustment Factor: {regime_info['adjustment_factor']:.2f}")
     print(f"  Volatility Ratio: {regime_info['volatility_ratio']:.2f}")
@@ -145,18 +144,18 @@ def demo_stress_testing():
     report = stress_tester.run_comprehensive_stress_test(portfolio)
     
     # Display results
-    print(f"\nStress Test Results")
+    print("\nStress Test Results")
     print("-" * 40)
     print(f"Compliance Status: {report.compliance_status}")
     print(f"Overall Risk Score: {report.overall_risk_score:.1f}/100")
     
-    print(f"\nScenario Analysis: ")
+    print("\nScenario Analysis: ")
     for scenario_name, result in report.results.items(): 
         status = "✅ PASSED" if result.passed else "❌ FAILED"
         pnl_pct = (result.portfolio_pnl / portfolio['total_value']) * 100
         print(f"  {scenario_name: 25} {status: 10} P & L: ${result.portfolio_pnl: 8,.0f} ({pnl_pct: +5.1f}%)")
     
-    print(f"\nRisk Recommendations: ")
+    print("\nRisk Recommendations: ")
     for i, rec in enumerate(report.recommendations, 1): 
         print(f"  {i}. {rec}")
     
@@ -180,13 +179,13 @@ def demo_ml_risk_prediction():
     
     print(f"  Predicted Volatility (5 - day): {vol_forecast.predicted_volatility:.2%}")
     print(f"  Confidence Interval: {vol_forecast.confidence_interval[0]:.2%} - {vol_forecast.confidence_interval[1]: .2%}")
-    print(f"  Regime Probabilities: ")
+    print("  Regime Probabilities: ")
     for regime, prob in vol_forecast.regime_probability.items(): 
         print(f"    {regime}: {prob:.1%}")
     print(f"  Model Confidence: {vol_forecast.model_confidence:.1%}")
     
     # Risk prediction
-    print(f"\nRisk Assessment: ")
+    print("\nRisk Assessment: ")
     risk_prediction = ml_predictor.predict_risk_score(market_data)
     
     print(f"  Overall Risk Score: {risk_prediction.risk_score:.1f}/100")
@@ -194,7 +193,7 @@ def demo_ml_risk_prediction():
     print(f"  Confidence Level: {risk_prediction.confidence:.1%}")
     
     if risk_prediction.recommended_actions: 
-        print(f"\n  Recommended Actions: ")
+        print("\n  Recommended Actions: ")
         for i, action in enumerate(risk_prediction.recommended_actions, 1): 
             print(f"    {i}. {action}")
     
@@ -216,37 +215,37 @@ def demo_risk_dashboard():
     dashboard_data = dashboard.get_risk_dashboard_data(portfolio)
     
     # Display dashboard
-    print(f"\nRisk Dashboard Summary")
+    print("\nRisk Dashboard Summary")
     print("-" * 40)
     print(f"Portfolio Value: ${dashboard_data['portfolio_value']:,.0f}")
     print(f"Total Positions: {dashboard_data['total_positions']}")
     print(f"Last Updated: {dashboard_data['timestamp']}")
     
     # Core risk metrics
-    print(f"\nCore Risk Metrics: ")
+    print("\nCore Risk Metrics: ")
     for metric, data in dashboard_data['risk_metrics'].items(): 
         status = "⚠️" if data['limit_utilization']  >  80 else "✅"
         print(f"  {status} {metric.upper(): 8}: ${data['value']:8,.0f} ({data['percentage']: 5.1f}%) - {data['limit_utilization']: 5.1f}% of limit")
     
     # Advanced metrics
-    print(f"\nAdvanced Risk Metrics: ")
+    print("\nAdvanced Risk Metrics: ")
     for metric, value in dashboard_data['advanced_metrics'].items(): 
         print(f"  {metric: 20}: ${value: 8,.0f}")
     
     # Alternative data signals
-    print(f"\nAlternative Data Signals: ")
+    print("\nAlternative Data Signals: ")
     for signal, value in dashboard_data['alternative_signals'].items(): 
         print(f"  {signal: 20}: ${value: 8,.0f}")
     
     # Factor breakdown
-    print(f"\nFactor Risk Breakdown: ")
+    print("\nFactor Risk Breakdown: ")
     total_factor_risk = sum(dashboard_data['factor_breakdown'].values())
     for factor, value in dashboard_data['factor_breakdown'].items(): 
         pct = (value / total_factor_risk) * 100 if total_factor_risk  >  0 else 0
         print(f"  {factor: 20}: ${value: 8,.0f} ({pct: 5.1f}%)")
     
     # Stress test summary
-    print(f"\nStress Test Summary: ")
+    print("\nStress Test Summary: ")
     print(f"  Worst Case P & L: ${dashboard_data['stress_tests']['worst_case_pnl']:,.0f}")
     print(f"  Scenarios Tested: {len(dashboard_data['stress_tests']['scenario_analysis'])}")
     
@@ -264,7 +263,7 @@ def demo_risk_dashboard():
         print("  ✅ No active alerts")
     
     # Risk limit utilization
-    print(f"\nRisk Limit Utilization: ")
+    print("\nRisk Limit Utilization: ")
     for limit, utilization in dashboard_data['risk_limits'].items(): 
         status = "⚠️" if utilization  >  80 else "✅"
         print(f"  {status} {limit: 15}: {utilization: 5.1f}%")
@@ -283,7 +282,7 @@ def demo_risk_management_workflow():
     print("-" * 30)
     print(f"Portfolio Value: ${portfolio['total_value']:,.0f}")
     print(f"Number of Positions: {len(portfolio['positions'])}")
-    print(f"Strategy Allocation: ")
+    print("Strategy Allocation: ")
     for strategy, data in portfolio['strategies'].items(): 
         print(f"  {strategy}: {data['exposure']:.1%} ({data['risk_tier']})")
     
@@ -332,8 +331,8 @@ def demo_risk_management_workflow():
     if not recommendations: 
         print("  ✅ Portfolio is well - positioned - no immediate action required")
     
-    print(f"\n🎯 Risk Management Workflow Complete!")
-    print(f"   All systems operational and monitoring portfolio risk in real - time.")
+    print("\n🎯 Risk Management Workflow Complete!")
+    print("   All systems operational and monitoring portfolio risk in real - time.")
 
 def main(): 
     """Main demo function"""

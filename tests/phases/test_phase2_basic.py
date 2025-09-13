@@ -6,11 +6,9 @@ Test core Phase 2 components without external dependencies
 
 import sys
 import os
-import asyncio
 import tempfile
 import json
 from datetime import datetime, timedelta
-from enum import Enum
 from unittest.mock import Mock
 
 # Add the backend directory to the path
@@ -232,7 +230,7 @@ def test_index_baseline():
     prices = [100.0, 101.0, 102.0, 101.5, 103.0]
     returns = calculator.calculate_returns(prices)
     
-    print(f"✅ Performance Calculator: ")
+    print("✅ Performance Calculator: ")
     print(f"   Daily Return: {returns['daily_return']:.2%}")
     print(f"   YTD Return: {returns['ytd_return']:.2%}")
     
@@ -292,7 +290,7 @@ def test_phase2_integration():
         config_manager = ConfigManager(config_file)
         config = config_manager.load_config()
         
-        print(f"✅ Configuration loaded successfully")
+        print("✅ Configuration loaded successfully")
         print(f"   Account Size: ${config.risk.account_size:,.0f}")
         print(f"   Max Position Risk: {config.risk.max_position_risk:.1%}")
         print(f"   Universe: {', '.join(config.trading.universe)}")
@@ -301,7 +299,7 @@ def test_phase2_integration():
         os.unlink(config_file)
     
     # Test strategy scoring systems
-    print(f"✅ Strategy Scoring Systems: ")
+    print("✅ Strategy Scoring Systems: ")
     
     # Wheel scoring
     wheel_candidate = WheelCandidate(

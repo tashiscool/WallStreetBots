@@ -3,14 +3,11 @@ Production Enhanced Swing Trading Strategy
 Advanced swing trading with technical analysis and risk management
 """
 
-import asyncio
-import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
 from enum import Enum
 import math
-import numpy as np
 
 from .production_logging import ProductionLogger
 from .production_config import ConfigManager

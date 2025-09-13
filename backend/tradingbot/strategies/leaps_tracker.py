@@ -5,12 +5,11 @@ Long - term positions on secular growth trends with systematic profit - taking
 """
 
 import argparse
-import math
 import json
 import csv
 from datetime import date, datetime, timedelta
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Optional, Tuple
+from typing import List, Optional, Tuple
 import os
 
 try: 
@@ -278,7 +277,7 @@ class LEAPSTracker:
                 cross_strength=cross_strength,
                 trend_direction = trend_direction)
             
-        except Exception as e: 
+        except Exception: 
             return MovingAverageCross(
                 cross_type = "neutral",
                 cross_date=None,
@@ -363,7 +362,7 @@ class LEAPSTracker:
                 return 50.0, 50.0, 50.0, 50.0
             
             prices = hist['Close'].values
-            volumes = hist['Volume'].values
+            hist['Volume'].values
             current = prices[-1]
             
             # 1. Momentum Score (0 - 100)
@@ -457,7 +456,7 @@ class LEAPSTracker:
             
             return momentum_score, trend_alignment, financial_score, valuation_score
             
-        except Exception as e: 
+        except Exception: 
             return 50.0, 50.0, 50.0, 50.0
     
     def get_leaps_expiries(self, ticker: str)->List[str]:
@@ -750,7 +749,7 @@ class LEAPSTracker:
         total_pnl = total_value-total_cost
         total_pnl_pct = (total_pnl / total_cost) * 100 if total_cost  >  0 else 0
         
-        output = f"\n📊 LEAPS PORTFOLIO SUMMARY + n"
+        output = "\n📊 LEAPS PORTFOLIO SUMMARY + n"
         output += " = " * 60 + "\n"
         output += f"Total Positions: {len(self.positions)}\n"
         output += f"Total Cost Basis: ${total_cost:,.0f}\n"

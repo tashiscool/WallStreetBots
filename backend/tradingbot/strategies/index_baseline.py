@@ -9,7 +9,7 @@ import argparse
 import json
 from datetime import date, datetime, timedelta
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Optional, Tuple
+from typing import List
 
 try: 
     import yfinance as yf
@@ -297,7 +297,7 @@ class IndexBaselineScanner:
         if not comparisons: 
             return "📊 No strategy comparisons available."
         
-        output = f"\n📈 WSB STRATEGY vs INDEX BASELINE COMPARISON + n"
+        output = "\n📈 WSB STRATEGY vs INDEX BASELINE COMPARISON + n"
         output += " = " * 80 + "\n"
         
         # Summary table header
@@ -325,12 +325,12 @@ class IndexBaselineScanner:
             output += f"   Max Drawdown: {comp.strategy_max_drawdown:.2%} | Win Rate: {comp.strategy_win_rate:.1%}\n"
             output += f"   Total Trades: {comp.strategy_total_trades} | Trading Cost Drag: {comp.trading_costs_drag:.2%}\n"
             
-            output += f"\n   📈 BASELINE COMPARISON: \n"
+            output += "\n   📈 BASELINE COMPARISON: \n"
             output += f"   SPY Return:     {comp.spy_return:.2%} | Alpha: {comp.alpha_vs_spy:+.2%}\n"
             output += f"   VTI Return:     {comp.vti_return:.2%} | Alpha: {comp.alpha_vs_vti:+.2%}\n"
             output += f"   QQQ Return:     {comp.qqq_return:.2%} | Alpha: {comp.alpha_vs_qqq:+.2%}\n"
             
-            output += f"\n   🎯 FINAL VERDICT: \n"
+            output += "\n   🎯 FINAL VERDICT: \n"
             output += f"   Beats SPY: {'✅ YES' if comp.beats_spy else '❌ NO'} | "
             output += f"Beats VTI: {'✅ YES' if comp.beats_vti else '❌ NO'} | "
             output += f"Beats QQQ: {'✅ YES' if comp.beats_qqq else '❌ NO'}\n"

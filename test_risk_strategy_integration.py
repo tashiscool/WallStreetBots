@@ -15,7 +15,6 @@ import logging
 import sys
 import os
 from datetime import datetime
-from typing import Dict, Any
 
 # Add the project root to the Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -130,7 +129,7 @@ async def test_risk_strategy_integration():
             positions, market_data, portfolio_value
         )
         
-        print(f"✅ Risk calculated: ")
+        print("✅ Risk calculated: ")
         print(f"   Portfolio VaR: {risk_metrics.portfolio_var:.2%}")
         print(f"   Portfolio CVaR: {risk_metrics.portfolio_cvar:.2%}")
         print(f"   Portfolio LVaR: {risk_metrics.portfolio_lvar:.2%}")

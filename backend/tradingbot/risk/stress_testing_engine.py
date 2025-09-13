@@ -3,11 +3,9 @@ Stress Testing Engine-2025 Implementation
 FCA - compliant stress testing framework with historical and hypothetical scenarios
 """
 
-import numpy as np
-import pandas as pd
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -446,17 +444,17 @@ if __name__ ==  "__main__": # Create sample portfolio
     report = stress_tester.run_comprehensive_stress_test(sample_portfolio)
     
     # Print results
-    print(f"\nStress Test Report")
+    print("\nStress Test Report")
     print(" = " * 50)
     print(f"Compliance Status: {report.compliance_status}")
     print(f"Overall Risk Score: {report.overall_risk_score:.1f}/100")
     print(f"Test Date: {report.test_date}")
     
-    print(f"\nRecommendations: ")
+    print("\nRecommendations: ")
     for i, rec in enumerate(report.recommendations, 1): 
         print(f"{i}. {rec}")
     
-    print(f"\nDetailed Results: ")
+    print("\nDetailed Results: ")
     for scenario_name, result in report.results.items(): 
         status = "✅ PASSED" if result.passed else "❌ FAILED"
         print(f"{scenario_name: 25} {status: 10} P & L: ${result.portfolio_pnl: 8,.0f} DD: {result.max_drawdown:.1%}")

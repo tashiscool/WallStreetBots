@@ -3,8 +3,6 @@ Phase 4: Production Deployment System
 Docker, CI / CD, and production deployment management
 """
 
-import asyncio
-import logging
 import os
 import subprocess
 import json
@@ -78,7 +76,7 @@ class DockerManager:
             ]
             
             self.logger.info(f"Building Docker image: {image_name}: {tag}")
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             self.logger.info(f"Docker image built successfully: {image_name}: {tag}")
             return True
@@ -98,7 +96,7 @@ class DockerManager:
             cmd = ["docker", "push", full_image_name]
             
             self.logger.info(f"Pushing Docker image: {full_image_name}")
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             self.logger.info(f"Docker image pushed successfully: {full_image_name}")
             return True
@@ -136,7 +134,7 @@ class DockerManager:
             cmd.append(image_name)
             
             self.logger.info(f"Running Docker container: {container_name}")
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             self.logger.info(f"Docker container started: {container_name}")
             return True
@@ -154,7 +152,7 @@ class DockerManager:
             cmd = ["docker", "stop", container_name]
             
             self.logger.info(f"Stopping Docker container: {container_name}")
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             self.logger.info(f"Docker container stopped: {container_name}")
             return True
@@ -172,7 +170,7 @@ class DockerManager:
             cmd = ["docker", "rm", container_name]
             
             self.logger.info(f"Removing Docker container: {container_name}")
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             self.logger.info(f"Docker container removed: {container_name}")
             return True
@@ -224,7 +222,7 @@ class KubernetesManager:
             cmd = ["kubectl", "apply", "-f", temp_file]
             
             self.logger.info(f"Creating Kubernetes deployment: {deployment_config.version}")
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             # Clean up temp file
             os.remove(temp_file)
@@ -246,7 +244,7 @@ class KubernetesManager:
                    f"{deployment_name} = {image}"]
             
             self.logger.info(f"Updating Kubernetes deployment: {deployment_name}")
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
             
             self.logger.info(f"Kubernetes deployment updated: {deployment_name}")
             return True

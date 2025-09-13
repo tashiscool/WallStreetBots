@@ -6,13 +6,13 @@ Main orchestrator that ties together all components of the options trading playb
 from __future__ import annotations
 import asyncio
 import logging
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass, asdict
+from datetime import datetime
+from typing import Dict, List, Optional
 
 from .options_calculator import OptionsTradeCalculator, TradeCalculation
 from .market_regime import SignalGenerator, TechnicalIndicators, MarketSignal, SignalType
-from .risk_management import RiskManager, Position, PositionSizer, RiskParameters
+from .risk_management import RiskManager, Position, RiskParameters
 from .exit_planning import ExitStrategy, ScenarioAnalyzer, ExitSignal
 from .alert_system import TradingAlertSystem, ExecutionChecklistManager, AlertType, AlertPriority
 
@@ -397,7 +397,7 @@ class IntegratedTradingSystem:
         strongest_signal = max(exit_signals, key=lambda x: x.strength.value)
 
         # Create exit checklist
-        exit_checklist = self.checklist_manager.create_exit_checklist(
+        self.checklist_manager.create_exit_checklist(
             f"{position.ticker}_{position.entry_date.strftime('%Y % m % d')}",
             position.ticker,
             strongest_signal.reason.value

@@ -24,13 +24,13 @@ Each wrapper connects the strategy to:
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from decimal import Decimal
 
 from .production_integration import ProductionIntegrationManager, ProductionTradeSignal
 from ...core.trading_interface import OrderSide, OrderType
-from ...core.trading_interface import TradeResult, TradeStatus
+from ...core.trading_interface import TradeStatus
 
 
 @dataclass
@@ -403,7 +403,7 @@ class ProductionMomentumWeeklies(ProductionStrategyWrapper):
         """Check for momentum signal"""
         try: 
             # Get recent price data
-            current_price = await self.integration.get_current_price(ticker)
+            await self.integration.get_current_price(ticker)
             
             # Simplified momentum check
             # In production, would use technical indicators

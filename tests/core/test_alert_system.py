@@ -6,9 +6,8 @@ Tests alert generation, delivery, and execution checklists
 
 import unittest
 import pytest
-import asyncio
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime, timedelta
+from unittest.mock import Mock, patch
+from datetime import datetime
 import json
 import sys
 import os
@@ -171,7 +170,6 @@ class TestAlertHandlers(unittest.TestCase):
     
     def test_alert_handler_interface(self): 
         """Test alert handler abstract interface"""
-        from backend.tradingbot.alert_system import AlertHandler
         
         # Should not be able to instantiate abstract class
         with self.assertRaises(TypeError): 
@@ -357,7 +355,7 @@ class TestExecutionChecklistManager(unittest.TestCase):
         trade_calc.estimated_premium=3.25
         
         entry_id = self.checklist_manager.create_entry_checklist("AAPL", trade_calc)
-        monitoring_id = self.checklist_manager.create_monitoring_checklist("trade_123", "AAPL")
+        self.checklist_manager.create_monitoring_checklist("trade_123", "AAPL")
         
         # Test get_checklist
         entry_checklist = self.checklist_manager.get_checklist(entry_id)

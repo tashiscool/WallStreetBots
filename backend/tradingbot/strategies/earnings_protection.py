@@ -10,7 +10,7 @@ import math
 import json
 from datetime import date, datetime, timedelta
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Optional, Tuple
+from typing import List, Optional, Tuple
 
 try: 
     import yfinance as yf
@@ -199,7 +199,7 @@ class EarningsProtectionScanner:
             
             # Estimate IV from call price (simplified)
             call_price = call_mid
-            strike = atm_call['strike'].iloc[0]
+            atm_call['strike'].iloc[0]
             
             # Rough IV estimate using simplified formula
             days_to_exp = (datetime.strptime(best_expiry, "%Y-%m-%d").date() - date.today()).days

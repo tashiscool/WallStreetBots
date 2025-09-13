@@ -3,10 +3,8 @@ Production 0DTE / Earnings Lotto Scanner
 High - risk, high - reward options scanning with volatility analysis
 """
 
-import asyncio
-import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 import math
@@ -617,7 +615,7 @@ class LottoScannerStrategy:
             
             # Extract data
             prices = [d["close"] for d in historical_data]
-            volumes = [d["volume"] for d in historical_data]
+            [d["volume"] for d in historical_data]
             current_price = prices[-1]
             
             # Calculate historical volatility

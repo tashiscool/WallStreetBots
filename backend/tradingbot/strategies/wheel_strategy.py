@@ -10,7 +10,7 @@ import json
 import csv
 from datetime import date, datetime, timedelta
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Optional, Tuple
+from typing import List, Optional, Tuple
 import os
 
 try: 
@@ -304,7 +304,7 @@ class WheelStrategy:
             
             return put_strike, call_strike, put_premium, put_delta, call_premium, call_delta
             
-        except Exception as e: 
+        except Exception: 
             return None, None, 0.0, 0.0, 0.0, 0.0
     
     def get_monthly_expiry(self)->str: 
@@ -531,7 +531,7 @@ class WheelStrategy:
         calls = [p for p in self.positions if p.position_type  ==  "covered_call"]  
         shares = [p for p in self.positions if p.position_type  ==  "assigned_shares"]
         
-        output = f"\n🎡 WHEEL PORTFOLIO SUMMARY + n"
+        output = "\n🎡 WHEEL PORTFOLIO SUMMARY + n"
         output += " = " * 60 + "\n"
         
         total_premium = sum(p.total_premium_collected for p in self.positions)

@@ -12,7 +12,7 @@ Replaces all hardcoded mock earnings data with live feeds.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from decimal import Decimal

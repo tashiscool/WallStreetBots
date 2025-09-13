@@ -4,12 +4,10 @@ Production - grade monitoring with real - time alerts and metrics
 """
 
 import asyncio
-import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from enum import Enum
-import json
 import time
 import threading
 from collections import defaultdict, deque

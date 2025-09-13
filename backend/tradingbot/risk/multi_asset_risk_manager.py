@@ -17,11 +17,10 @@ import asyncio
 import logging
 import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
-import json
 
 
 class AssetClass(str, Enum): 
@@ -262,7 +261,7 @@ class MultiAssetRiskManager:
             pearson_corr = returns1.corr(returns2)
             
             # Calculate Spearman correlation
-            spearman_corr = returns1.corr(returns2, method='spearman')
+            returns1.corr(returns2, method='spearman')
             
             # Use Pearson as primary correlation
             correlation = CrossAssetCorrelation(

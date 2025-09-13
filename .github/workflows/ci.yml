@@ -14,9 +14,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
-      - name: Run linting
+      - name: Run linting with ruff
         run: |
-          pip install flake8
-          flake8 . --max-line-length=100 --exclude=__pycache__,venv,backend/__pycache__,backend/tradingbot/__pycache__,.pytest_cache
+          pip install ruff
+          ruff check . --exclude=__pycache__,venv,backend/__pycache__,backend/tradingbot/__pycache__,.pytest_cache
       - name: Run tests
         run: python -m pytest tests/ -v --tb=short

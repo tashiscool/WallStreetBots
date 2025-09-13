@@ -42,7 +42,7 @@ def test_strategy_manager_initialization():
         # Basic assertions
         assert manager is not None
         assert manager.config ==  config
-        assert manager.is_running  ==  False
+        assert not manager.is_running
         assert manager.start_time is None
         assert isinstance(manager.strategies, dict)
         assert isinstance(manager.performance_metrics, dict)
@@ -63,7 +63,7 @@ def test_strategy_config_dataclass():
     )
     
     assert config.name ==  "test_strategy"
-    assert config.enabled  ==  True
+    assert config.enabled
     assert config.max_position_size  ==  0.15
     assert config.risk_tolerance  ==  "high"
     assert config.parameters["param1"]  ==  "value1"
@@ -85,14 +85,14 @@ def test_production_strategy_manager_config_dataclass():
     
     assert config.alpaca_api_key ==  "test_key_123"
     assert config.alpaca_secret_key  ==  "test_secret_456"
-    assert config.paper_trading  ==  True
+    assert config.paper_trading
     assert config.user_id  ==  42
     
     # Check default values
     assert config.max_total_risk  ==  0.50
     assert config.max_position_size  ==  0.20
     assert config.data_refresh_interval  ==  30
-    assert config.enable_alerts  ==  True
+    assert config.enable_alerts
     
     print("✅ ProductionStrategyManagerConfig dataclass test passed")
 

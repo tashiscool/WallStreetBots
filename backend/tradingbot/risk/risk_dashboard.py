@@ -4,15 +4,13 @@ Real - time risk monitoring and alerting system
 """
 
 import numpy as np
-import pandas as pd
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Tuple, Any
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
 
-from .advanced_var_engine import AdvancedVaREngine, VaRSuite
-from .stress_testing_engine import StressTesting2025, StressTestReport
-from .ml_risk_predictor import MLRiskPredictor, RiskPrediction
+from .advanced_var_engine import AdvancedVaREngine
+from .stress_testing_engine import StressTesting2025
+from .ml_risk_predictor import MLRiskPredictor
 
 @dataclass
 class RiskAlert: 
@@ -91,7 +89,7 @@ class RiskDashboard2025:
         
         # Extract portfolio data
         positions = portfolio.get('positions', [])
-        strategies = portfolio.get('strategies', {})
+        portfolio.get('strategies', {})
         market_data = portfolio.get('market_data', {})
         
         # Calculate core risk metrics
@@ -477,19 +475,19 @@ if __name__ ==  "__main__": # Create sample portfolio
     print(f"Total Positions: {dashboard_data['total_positions']}")
     print(f"Timestamp: {dashboard_data['timestamp']}")
     
-    print(f"\nRisk Metrics: ")
+    print("\nRisk Metrics: ")
     for metric, data in dashboard_data['risk_metrics'].items(): 
         print(f"{metric.upper()}: ${data['value']:,.0f} ({data['percentage']: .1f}%) - {data['limit_utilization']: .1f}% of limit")
     
-    print(f"\nAdvanced Metrics: ")
+    print("\nAdvanced Metrics: ")
     for metric, value in dashboard_data['advanced_metrics'].items(): 
         print(f"{metric}: ${value:,.0f}")
     
-    print(f"\nAlternative Data Signals: ")
+    print("\nAlternative Data Signals: ")
     for signal, value in dashboard_data['alternative_signals'].items(): 
         print(f"{signal}: ${value:,.0f}")
     
-    print(f"\nFactor Risk Breakdown: ")
+    print("\nFactor Risk Breakdown: ")
     for factor, value in dashboard_data['factor_breakdown'].items(): 
         print(f"{factor}: ${value:,.0f}")
     
@@ -498,7 +496,7 @@ if __name__ ==  "__main__": # Create sample portfolio
         print(f"  {alert['severity']}: {alert['message']}")
         print(f"    Action: {alert['recommended_action']}")
     
-    print(f"\nRisk Limit Utilization: ")
+    print("\nRisk Limit Utilization: ")
     for limit, utilization in dashboard_data['risk_limits'].items(): 
         status = "⚠️" if utilization  >  80 else "✅"
         print(f"{status} {limit}: {utilization:.1f}%")

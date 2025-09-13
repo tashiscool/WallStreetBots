@@ -19,7 +19,6 @@ import logging
 import sys
 import os
 from datetime import datetime, timedelta
-from typing import Dict, Any, List
 import numpy as np
 import pandas as pd
 
@@ -27,7 +26,7 @@ import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from backend.tradingbot.risk.advanced_ml_risk_agents import (
-    MultiAgentRiskCoordinator, RiskEnvironment, RiskState, RiskActionType
+    MultiAgentRiskCoordinator
 )
 from backend.tradingbot.risk.multi_asset_risk_manager import (
     MultiAssetRiskManager, AssetClass, RiskFactor
@@ -610,7 +609,7 @@ async def test_automated_rebalancing():
         
         # Calculate optimal weights (simplified)
         inv_cov = np.linalg.inv(covariance_matrix)
-        ones = np.ones(len(assets))
+        np.ones(len(assets))
         
         # Optimal portfolio weights
         optimal_weights = inv_cov @ expected_returns
@@ -662,7 +661,6 @@ async def test_automated_rebalancing():
         print("\n5. Testing Dynamic Rebalancing...")
         
         # Simulate market regime changes
-        market_regimes = ["normal", "high_vol", "crisis"]
         regime_weights = {
             "normal": optimal_weights,
             "high_vol": risk_parity_weights,  # More defensive

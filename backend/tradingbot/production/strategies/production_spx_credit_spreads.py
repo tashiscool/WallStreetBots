@@ -7,14 +7,13 @@ WSB - style 0DTE / short - term credit spreads with defined risk
 import asyncio
 import logging
 import math
-from datetime import datetime, timedelta, date
+from datetime import datetime, date
 from typing import List, Dict, Optional, Any, Tuple
 from dataclasses import dataclass
 from decimal import Decimal
 
 from ..data.production_data_integration import ReliableDataProvider
-from ..core.production_integration import ProductionIntegrationManager, ProductionTradeSignal
-from ...models import Stock, Order, Portfolio
+from ..core.production_integration import ProductionTradeSignal
 from ...risk.real_time_risk_manager import RealTimeRiskManager
 from ...options.smart_selection import SmartOptionsSelector
 from ...options.pricing_engine import BlackScholesEngine

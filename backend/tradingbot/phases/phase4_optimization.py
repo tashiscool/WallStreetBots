@@ -3,11 +3,9 @@ Phase 4: Strategy Optimization Engine
 Parameter tuning and strategy optimization
 """
 
-import asyncio
-import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Dict, List, Any, Tuple
+from dataclasses import dataclass
 from enum import Enum
 import math
 import random

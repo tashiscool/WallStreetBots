@@ -6,7 +6,7 @@ SQLite implementation matching the PostgreSQL schema from the bundle
 import sqlite3
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from datetime import datetime
 import json
 import logging

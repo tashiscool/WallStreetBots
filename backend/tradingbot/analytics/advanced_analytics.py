@@ -7,8 +7,8 @@ Comprehensive performance analytics including Sharpe ratio, max drawdown, and ri
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union, Tuple
-from dataclasses import dataclass, field
+from typing import List, Optional, Union, Tuple
+from dataclasses import dataclass
 import logging
 
 logger = logging.getLogger(__name__)

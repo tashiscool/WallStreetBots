@@ -4,10 +4,9 @@ Trading Error Recovery Manager
 Centralized error handling with smart recovery mechanisms for production trading operations.
 """
 
-import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from enum import Enum
 from dataclasses import dataclass
 

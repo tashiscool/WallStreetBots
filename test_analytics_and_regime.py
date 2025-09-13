@@ -8,7 +8,6 @@ Demonstrates the newly implemented features:
 
 import asyncio
 import numpy as np
-import pandas as pd
 from datetime import datetime, timedelta
 import sys
 import os
@@ -17,7 +16,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 
 from backend.tradingbot.analytics.advanced_analytics import AdvancedAnalytics, analyze_performance
-from backend.tradingbot.analytics.market_regime_adapter import MarketRegimeAdapter, adapt_strategies_to_market
+from backend.tradingbot.analytics.market_regime_adapter import adapt_strategies_to_market
 
 
 def generate_sample_returns(days: int=252, annual_return: float=0.08, volatility: float=0.15):

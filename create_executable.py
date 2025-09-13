@@ -5,9 +5,7 @@ This script creates platform - specific executables and shortcuts
 """
 
 import os
-import sys
 import platform
-import shutil
 from pathlib import Path
 
 def create_windows_executable(): 

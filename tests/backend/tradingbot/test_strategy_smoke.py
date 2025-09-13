@@ -5,9 +5,8 @@ Simple tests to ensure strategies don't crash and basic functionality works
 """
 import unittest
 from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 import pandas as pd
-import numpy as np
 import sys
 import os
 

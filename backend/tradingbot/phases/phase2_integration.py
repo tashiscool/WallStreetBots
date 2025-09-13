@@ -269,7 +269,7 @@ class Phase2StrategyManager:
                 # Show top candidate
                 if candidates: 
                     top_candidate = candidates[0]
-                    self.logger.info(f"Top SPX spread",
+                    self.logger.info("Top SPX spread",
                                    score = top_candidate.spread_score,
                                    profit_loss_ratio = top_candidate.profit_loss_ratio)
             

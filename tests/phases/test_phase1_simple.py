@@ -5,7 +5,6 @@ Test core functionality without external dependencies
 
 import unittest
 import asyncio
-from unittest.mock import Mock, patch, AsyncMock
 from datetime import datetime
 import os
 import tempfile
@@ -13,8 +12,7 @@ import json
 
 # Test the core components that don't require external dependencies
 from backend.tradingbot.core.production_config import (
-    ProductionConfig, ConfigManager, create_config_manager,
-    DataProviderConfig, BrokerConfig, RiskConfig, TradingConfig
+    ProductionConfig, ConfigManager, DataProviderConfig, BrokerConfig, RiskConfig, TradingConfig
 )
 from backend.tradingbot.core.production_logging import (
     ProductionLogger, ErrorHandler, CircuitBreaker, 

@@ -20,10 +20,9 @@ import logging
 import json
 import sqlite3
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
-import pandas as pd
 
 def serialize_datetime(obj): 
     """JSON serializer for datetime objects"""

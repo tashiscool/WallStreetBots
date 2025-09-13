@@ -9,7 +9,7 @@ import os
 import smtplib
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta, date
-from typing import Dict, List, Optional, Callable, Any
+from typing import Dict, List, Optional
 from enum import Enum
 import logging
 from abc import ABC, abstractmethod
@@ -18,7 +18,7 @@ import requests
 
 from .market_regime import MarketSignal, SignalType, TechnicalIndicators, SignalGenerator
 from .options_calculator import OptionsTradeCalculator, TradeCalculation
-from .exit_planning import ExitSignal, ScenarioResult
+from .exit_planning import ExitSignal
 
 # Environment configuration
 SLACK_WEBHOOK = os.getenv("ALERT_SLACK_WEBHOOK")
@@ -205,7 +205,7 @@ class DesktopAlertHandler(AlertHandler):
         try: 
             # Use osascript on macOS for desktop notifications
             message = f"{alert.title}: {alert.message}"
-            result = subprocess.run([
+            subprocess.run([
                 'osascript', '-e', 
                 f'display notification "{message}" with title "Trading Alert"'
             ], check=True, capture_output=True, timeout=5)

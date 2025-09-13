@@ -13,19 +13,15 @@ Verifies that all strategies work together for live trading.
 """
 
 import pytest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
+from unittest.mock import Mock, patch, AsyncMock
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Dict, Any
 
 from ..core.production_strategy_manager import ProductionStrategyManager, ProductionStrategyManagerConfig, StrategyConfig
 from ..strategies.production_wsb_dip_bot import ProductionWSBDipBot, DipSignal
 from ..strategies.production_earnings_protection import ProductionEarningsProtection, EarningsSignal
-from ..strategies.production_index_baseline import ProductionIndexBaseline, BaselineSignal
-from ..core.production_integration import ProductionIntegrationManager, ProductionTradeSignal
-from ..data.production_data_integration import ReliableDataProvider as ProductionDataProvider, EarningsEvent
-from ...core.trading_interface import OrderSide, OrderType
+from ..strategies.production_index_baseline import ProductionIndexBaseline
+from ..data.production_data_integration import EarningsEvent
 
 
 class TestProductionWSBDipBot: 

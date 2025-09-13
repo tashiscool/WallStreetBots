@@ -5,12 +5,11 @@ Test all Phase 2 strategies with mocked dependencies
 
 import unittest
 import asyncio
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
+from unittest.mock import Mock, patch, AsyncMock
 from datetime import datetime, timedelta
 import tempfile
 import json
 import os
-import math
 
 # Import Phase 2 components
 from backend.tradingbot.core.production_wheel_strategy import (
@@ -625,7 +624,7 @@ class TestPhase2EndToEnd(unittest.TestCase):
     def test_wheel_strategy_workflow(self): 
         """Test complete wheel strategy workflow"""
         # Create wheel strategy
-        wheel_strategy = ProductionWheelStrategy(
+        ProductionWheelStrategy(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
         )
         
@@ -669,7 +668,7 @@ class TestPhase2EndToEnd(unittest.TestCase):
     def test_debit_spreads_workflow(self): 
         """Test complete debit spreads workflow"""
         # Create debit spreads strategy
-        debit_spreads = ProductionDebitSpreads(
+        ProductionDebitSpreads(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
         )
         
@@ -719,7 +718,7 @@ class TestPhase2EndToEnd(unittest.TestCase):
     def test_spx_spreads_workflow(self): 
         """Test complete SPX spreads workflow"""
         # Create SPX spreads strategy
-        spx_spreads = ProductionSPXSpreads(
+        ProductionSPXSpreads(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
         )
         
@@ -769,7 +768,7 @@ class TestPhase2EndToEnd(unittest.TestCase):
     def test_index_baseline_workflow(self): 
         """Test complete index baseline workflow"""
         # Create index baseline strategy
-        index_baseline = ProductionIndexBaseline(
+        ProductionIndexBaseline(
             self.mock_trading, self.mock_data, self.mock_config, self.mock_logger
         )
         

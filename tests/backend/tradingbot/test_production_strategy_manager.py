@@ -4,13 +4,10 @@ Comprehensive tests for ProductionStrategyManager
 Tests all strategy initialization, configuration, and lifecycle management
 """
 
-import asyncio
 import pytest
 import sys
 import os
-from unittest.mock import Mock, MagicMock, AsyncMock, patch
-from datetime import datetime, date
-from typing import Dict, Any
+from unittest.mock import Mock, AsyncMock, patch
 
 # Add parent directory to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
@@ -79,7 +76,7 @@ class TestProductionStrategyManager:
             
             # Check initialization
             assert manager.config ==  mock_config
-            assert manager.is_running  ==  False
+            assert not manager.is_running
             assert manager.start_time is None
             assert isinstance(manager.strategies, dict)
             assert isinstance(manager.performance_metrics, dict)
@@ -98,18 +95,6 @@ class TestProductionStrategyManager:
                 manager = ProductionStrategyManager(mock_config)
                 
                 # Expected strategy names
-                expected_strategies = [
-                    'wsb_dip_bot',
-                    'earnings_protection', 
-                    'index_baseline',
-                    'wheel_strategy',
-                    'momentum_weeklies',
-                    'debit_spreads',
-                    'leaps_tracker',
-                    'swing_trading',
-                    'spx_credit_spreads',
-                    'lotto_scanner'
-                ]
                 
                 # Since strategies are initialized internally, we check if the method runs without error
                 # This validates the structure and configuration setup
@@ -289,7 +274,7 @@ class TestProductionStrategyManager:
         mock_data_provider.is_market_open.return_value = True
         
         result = await strategy_manager._validate_system_state()
-        assert result ==  True
+        assert result
     
     @pytest.mark.asyncio
     async def test_validate_system_state_alpaca_failure(self, strategy_manager, mock_integration_manager): 
@@ -297,7 +282,7 @@ class TestProductionStrategyManager:
         mock_integration_manager.alpaca_manager.validate_api.return_value=(False, "API Error")
         
         result = await strategy_manager._validate_system_state()
-        assert result ==  False
+        assert not result
     
     @pytest.mark.asyncio
     async def test_validate_system_state_insufficient_account(self, strategy_manager, mock_integration_manager): 
@@ -306,7 +291,7 @@ class TestProductionStrategyManager:
         mock_integration_manager.get_portfolio_value.return_value=500.0  # Below $1000 minimum
         
         result = await strategy_manager._validate_system_state()
-        assert result ==  False
+        assert not result
     
     @pytest.mark.asyncio
     async def test_start_all_strategies_success(self, strategy_manager): 
@@ -328,8 +313,8 @@ class TestProductionStrategyManager:
         with patch('asyncio.create_task') as mock_create_task: 
             result = await strategy_manager.start_all_strategies()
             
-            assert result ==  True
-            assert strategy_manager.is_running  ==  True
+            assert result
+            assert strategy_manager.is_running
             assert strategy_manager.start_time is not None
             
             # Check that tasks were created for strategies and monitoring
@@ -341,8 +326,8 @@ class TestProductionStrategyManager:
         strategy_manager._validate_system_state=AsyncMock(return_value=False)
         
         result = await strategy_manager.start_all_strategies()
-        assert result ==  False
-        assert strategy_manager.is_running  ==  False
+        assert not result
+        assert not strategy_manager.is_running
     
     @pytest.mark.asyncio
     async def test_start_all_strategies_no_strategies(self, strategy_manager): 
@@ -351,7 +336,7 @@ class TestProductionStrategyManager:
         strategy_manager._validate_system_state=AsyncMock(return_value=True)
         
         result = await strategy_manager.start_all_strategies()
-        assert result ==  False
+        assert not result
     
     @pytest.mark.asyncio
     async def test_stop_all_strategies(self, strategy_manager): 
@@ -360,7 +345,7 @@ class TestProductionStrategyManager:
         
         await strategy_manager.stop_all_strategies()
         
-        assert strategy_manager.is_running ==  False
+        assert not strategy_manager.is_running
     
     def test_strategy_config_dataclass(self): 
         """Test StrategyConfig dataclass"""
@@ -373,7 +358,7 @@ class TestProductionStrategyManager:
         )
         
         assert config.name ==  "test_strategy"
-        assert config.enabled  ==  True
+        assert config.enabled
         assert config.max_position_size  ==  0.10
         assert config.risk_tolerance  ==  "medium"
         assert config.parameters  ==  {"param1": "value1"}
@@ -389,7 +374,7 @@ class TestProductionStrategyManager:
         
         assert config.alpaca_api_key ==  "test_key"
         assert config.alpaca_secret_key  ==  "test_secret"
-        assert config.paper_trading  ==  True
+        assert config.paper_trading
         assert config.user_id  ==  1
         assert config.max_total_risk  ==  0.50  # Default value
         assert config.max_position_size  ==  0.20  # Default value
@@ -402,24 +387,18 @@ class TestProductionStrategyManager:
             manager = ProductionStrategyManager(mock_config)
             
             # Check WSB Dip Bot parameters
-            wsb_config = None
             for name, config in manager.config.strategies.items(): 
                 if 'wsb_dip_bot' in name or (hasattr(config, 'name') and config.name ==  'wsb_dip_bot'): 
-                    wsb_config = config
                     break
             
             # Check Wheel Strategy parameters
-            wheel_config = None
             for name, config in manager.config.strategies.items(): 
                 if 'wheel_strategy' in name or (hasattr(config, 'name') and config.name ==  'wheel_strategy'): 
-                    wheel_config = config
                     break
             
             # Check Lotto Scanner parameters  
-            lotto_config = None
             for name, config in manager.config.strategies.items(): 
                 if 'lotto_scanner' in name or (hasattr(config, 'name') and config.name ==  'lotto_scanner'): 
-                    lotto_config = config
                     break
     
     def test_risk_tolerance_levels(self, mock_config): 
@@ -504,7 +483,7 @@ class TestIntegrationScenarios:
                 
                 # Test validation
                 validation_result = await manager._validate_system_state()
-                assert validation_result ==  True
+                assert validation_result
                 
             finally: 
                 # Stop all patches
@@ -536,14 +515,14 @@ class TestIntegrationScenarios:
             
             # Should handle API validation failure gracefully
             validation_result = await manager._validate_system_state()
-            assert validation_result ==  False
+            assert not validation_result
             
             # Test insufficient account size
             mock_integration.alpaca_manager.validate_api.return_value=(True, "Success")
             mock_integration.get_portfolio_value=AsyncMock(return_value=500.0)  # Below minimum
             
             validation_result = await manager._validate_system_state()
-            assert validation_result ==  False
+            assert not validation_result
 
 
 def test_strategy_manager_import(): 

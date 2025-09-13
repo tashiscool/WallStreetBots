@@ -14,10 +14,9 @@ import asyncio
 import asyncpg
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 import json
-import os
 from decimal import Decimal
 
 

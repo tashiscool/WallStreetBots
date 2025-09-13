@@ -16,19 +16,15 @@ import logging
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Union
+from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
-import math
 from decimal import Decimal
-import json
 import yfinance as yf
 
 from .production_config import ProductionConfig
 from .production_logging import create_production_logger, ErrorHandler, MetricsCollector
-from .production_database import ProductionDatabaseManager, Trade, Position, StrategyPerformance
-from .data_providers import UnifiedDataProvider, MarketData
-from .trading_interface import TradingInterface
+from .production_database import ProductionDatabaseManager, StrategyPerformance
 
 # Import all production strategies
 from .production_wsb_dip_bot import create_wsb_dip_bot_strategy
@@ -441,7 +437,7 @@ class ProductionBacktestEngine:
         try: 
             for signal in signals: 
                 ticker = signal.get('ticker')
-                action = signal.get('action')
+                signal.get('action')
                 quantity = signal.get('quantity', 100)
                 
                 if ticker not in historical_data: 
@@ -825,7 +821,7 @@ class HighRiskStrategyOrchestrator:
             # Check total account risk
             current_risk = await self._calculate_current_account_risk()
             if current_risk + trade_amount  >  max_account_risk * self.config.risk.account_size: 
-                return False, f"Account risk limit would be exceeded"
+                return False, "Account risk limit would be exceeded"
             
             return True, "Trade approved"
             

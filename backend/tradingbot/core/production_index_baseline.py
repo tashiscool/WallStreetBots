@@ -4,18 +4,17 @@ Performance tracking and benchmarking against index funds
 """
 
 import asyncio
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple, Any
 from enum import Enum
 import math
 
-from .trading_interface import TradingInterface, TradeSignal, OrderType, OrderSide
-from .data_providers import UnifiedDataProvider, MarketData
+from .trading_interface import TradingInterface
+from .data_providers import UnifiedDataProvider
 from .production_config import ProductionConfig
 from .production_logging import ProductionLogger, ErrorHandler, MetricsCollector
-from .production_models import Strategy, Position, Trade, RiskLimit, PerformanceMetrics
+from .production_models import Trade
 
 
 class BenchmarkType(Enum): 
@@ -566,7 +565,7 @@ class ProductionIndexBaseline:
                 await self.update_benchmarks()
                 
                 # Generate performance report
-                report = await self.get_performance_report()
+                await self.get_performance_report()
                 
                 # Log summary
                 self.logger.info("Baseline tracking summary",

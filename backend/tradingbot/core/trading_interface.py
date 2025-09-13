@@ -4,15 +4,14 @@ Connects the disconnected Strategy and Broker systems for production use.
 """
 
 from __future__ import annotations
-import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 from enum import Enum
 
 from ..apimanagers import AlpacaManager
-from ..risk_management import RiskManager, Position, RiskParameters
+from ..risk_management import RiskManager, RiskParameters
 from ..alert_system import TradingAlertSystem, AlertType, AlertPriority
 
 

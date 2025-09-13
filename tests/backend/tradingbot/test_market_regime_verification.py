@@ -6,7 +6,7 @@ Tests mathematical accuracy, signal logic, and strategy behavior validation
 
 import unittest
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 import sys
 import os
 

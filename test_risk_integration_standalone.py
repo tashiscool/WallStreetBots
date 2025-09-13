@@ -20,7 +20,7 @@ import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from backend.tradingbot.risk.risk_integration_manager import RiskIntegrationManager, RiskLimits
-from backend.tradingbot.risk.risk_aware_strategy_wrapper import RiskAwareStrategy, create_risk_aware_strategy
+from backend.tradingbot.risk.risk_aware_strategy_wrapper import create_risk_aware_strategy
 
 
 # Configure logging
@@ -128,7 +128,7 @@ async def test_risk_integration_standalone():
             positions, market_data, portfolio_value
         )
         
-        print(f"✅ Risk calculated: ")
+        print("✅ Risk calculated: ")
         print(f"   Portfolio VaR: {risk_metrics.portfolio_var:.2%}")
         print(f"   Portfolio CVaR: {risk_metrics.portfolio_cvar:.2%}")
         print(f"   Portfolio LVaR: {risk_metrics.portfolio_lvar:.2%}")
@@ -249,10 +249,10 @@ async def test_risk_integration_standalone():
         earnings_status = await risk_aware_earnings.get_risk_status()
         
         print("✅ Strategy Risk Status: ")
-        print(f"   WSB Dip Bot: ")
+        print("   WSB Dip Bot: ")
         print(f"     Risk Enabled: {wsb_status['risk_enabled']}")
         print(f"     Trades Blocked: {wsb_status['total_trades_blocked']}")
-        print(f"   Earnings Protection: ")
+        print("   Earnings Protection: ")
         print(f"     Risk Enabled: {earnings_status['risk_enabled']}")
         print(f"     Trades Blocked: {earnings_status['total_trades_blocked']}")
         

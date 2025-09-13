@@ -9,11 +9,10 @@ import logging
 import psutil
 import time
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, List
 from dataclasses import dataclass, field
 from enum import Enum
 
-from ..error_handling import TradingErrorRecoveryManager
 
 
 class HealthStatus(Enum): 

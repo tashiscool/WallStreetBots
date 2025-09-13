@@ -5,7 +5,6 @@ Tests mathematical accuracy of Kelly Criterion, position sizing, and portfolio r
 """
 
 import unittest
-import numpy as np
 from datetime import datetime, timedelta
 import sys
 import os
@@ -14,8 +13,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
 from backend.tradingbot.risk_management import (  # noqa: E402
-    RiskLevel, PositionStatus, RiskParameters, Position, PortfolioRisk,
-    KellyCalculator, PositionSizer, RiskManager
+    RiskParameters, Position, KellyCalculator, PositionSizer, RiskManager
 )
 
 
@@ -444,7 +442,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
         portfolio_risk = self.risk_manager.calculate_portfolio_risk()
         
         # Expected concentrations
-        total_value = (60 * 10.0) + (40 * 10.0)  # 600 + 400 = 1000
+        (60 * 10.0) + (40 * 10.0)  # 600 + 400 = 1000
         expected_aapl_concentration = 600 / 1000  # 0.6 or 60%
         expected_googl_concentration = 400 / 1000  # 0.4 or 40%
         
@@ -491,7 +489,7 @@ class TestPortfolioRiskAccuracy(unittest.TestCase):
         
         # Test risk utilization (should be positive when positions are at risk)
         current_risk = max(0, (100 * 5.0) - current_value)  # 500 - 300 = 200
-        expected_risk_utilization = current_risk / baseline_account  # 200 / 500000=0.0004
+        current_risk / baseline_account  # 200 / 500000=0.0004
         
         # The actual implementation might calculate this differently, so just verify it's reasonable
         self.assertGreaterEqual(portfolio_risk.risk_utilization, 0)

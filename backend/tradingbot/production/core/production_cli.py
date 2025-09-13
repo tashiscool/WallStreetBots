@@ -18,10 +18,8 @@ Usage:
 
 import asyncio
 import argparse
-import json
 import sys
-from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Optional
 from decimal import Decimal
 
 from .production_manager import ProductionManager, ProductionConfig
@@ -167,7 +165,7 @@ class ProductionCLI:
             result = await self.manager.integration_manager.execute_trade(signal)
             
             if result.status.value ==  'FILLED': 
-                print(f"✅ Trade executed successfully!")
+                print("✅ Trade executed successfully!")
                 print(f"   Order ID: {result.trade_id}")
                 print(f"   Fill Price: ${result.fill_price}")
                 print(f"   Commission: ${result.commission}")
@@ -218,10 +216,10 @@ def main():
     start_parser.add_argument('--strategies', help='Comma - separated list of strategies to enable')
     
     # Status command
-    status_parser = subparsers.add_parser('status', help='Show system status')
+    subparsers.add_parser('status', help='Show system status')
     
     # Portfolio command
-    portfolio_parser = subparsers.add_parser('portfolio', help='Show portfolio summary')
+    subparsers.add_parser('portfolio', help='Show portfolio summary')
     
     # Trade command
     trade_parser = subparsers.add_parser('trade', help='Execute manual trade')
@@ -231,7 +229,7 @@ def main():
     trade_parser.add_argument('price', type=float, help='Price per share')
     
     # List strategies command
-    list_parser = subparsers.add_parser('list - strategies', help='List available strategies')
+    subparsers.add_parser('list - strategies', help='List available strategies')
     
     args = parser.parse_args()
     

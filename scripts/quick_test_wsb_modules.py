@@ -23,9 +23,9 @@ def test_module_imports():
     # Test Swing Trading
     print("\n1. Testing Swing Trading Module...")
     try: 
-        from swing_trading import SwingTradingScanner, SwingSignal
+        from swing_trading import SwingTradingScanner
         scanner = SwingTradingScanner()
-        print(f"   ✅ SwingTradingScanner instantiated")
+        print("   ✅ SwingTradingScanner instantiated")
         print(f"   ✅ Found {len(scanner.swing_tickers)} swing tickers")
         print(f"   ✅ Active trades: {len(scanner.active_trades)} currently")
         results['swing_trading'] = 'SUCCESS'
@@ -36,9 +36,9 @@ def test_module_imports():
     # Test SPX Credit Spreads
     print("\n2. Testing SPX Credit Spreads Module...")
     try: 
-        from spx_credit_spreads import SPXCreditSpreadsScanner, CreditSpreadOpportunity
+        from spx_credit_spreads import SPXCreditSpreadsScanner
         scanner = SPXCreditSpreadsScanner()
-        print(f"   ✅ SPXCreditSpreadsScanner instantiated")
+        print("   ✅ SPXCreditSpreadsScanner instantiated")
         print(f"   ✅ Target tickers: {scanner.credit_tickers}")
         print(f"   ✅ Target delta: {scanner.target_short_delta}")
         results['spx_credit_spreads'] = 'SUCCESS'
@@ -49,9 +49,9 @@ def test_module_imports():
     # Test Earnings Protection
     print("\n3. Testing Earnings Protection Module...")
     try: 
-        from earnings_protection import EarningsProtectionScanner, EarningsEvent
+        from earnings_protection import EarningsProtectionScanner
         scanner = EarningsProtectionScanner()
-        print(f"   ✅ EarningsProtectionScanner instantiated")
+        print("   ✅ EarningsProtectionScanner instantiated")
         print(f"   ✅ Found {len(scanner.earnings_candidates)} earnings candidates")
         print(f"   ✅ Sample candidates: {scanner.earnings_candidates[:5]}")
         results['earnings_protection'] = 'SUCCESS'
@@ -62,9 +62,9 @@ def test_module_imports():
     # Test Index Baseline
     print("\n4. Testing Index Baseline Module...")
     try: 
-        from index_baseline import IndexBaselineScanner, PerformanceComparison
+        from index_baseline import IndexBaselineScanner
         scanner = IndexBaselineScanner()
-        print(f"   ✅ IndexBaselineScanner instantiated")
+        print("   ✅ IndexBaselineScanner instantiated")
         print(f"   ✅ Benchmarks: {scanner.benchmarks}")
         print(f"   ✅ WSB strategies: {list(scanner.wsb_strategies.keys())}")
         results['index_baseline'] = 'SUCCESS'
@@ -77,7 +77,7 @@ def test_module_imports():
     try: 
         from leaps_tracker import LEAPSTracker, MovingAverageCross
         tracker = LEAPSTracker()
-        print(f"   ✅ LEAPSTracker instantiated")
+        print("   ✅ LEAPSTracker instantiated")
         print(f"   ✅ Secular themes: {list(tracker.secular_themes.keys())}")
         
         # Test golden / death cross analysis
@@ -92,7 +92,7 @@ def test_module_imports():
             cross_strength = 50.0,
             trend_direction = "bullish"
         )
-        print(f"   ✅ MovingAverageCross dataclass works")
+        print("   ✅ MovingAverageCross dataclass works")
         print(f"   ✅ Cross type: {ma_cross.cross_type}")
         results['leaps_tracker'] = 'SUCCESS (Enhanced with MA crosses)'
     except Exception as e: 
@@ -220,12 +220,12 @@ def generate_summary(import_results, functionality_results):
     successful_imports = len([r for r in import_results.values() if 'SUCCESS' in r])
     functional_modules = len([r for r in functionality_results.values() if 'FUNCTIONAL' in r])
     
-    print(f"📊 RESULTS: ")
+    print("📊 RESULTS: ")
     print(f"   Total WSB Strategy Modules: {total_modules}")
     print(f"   Successful Imports:         {successful_imports}/{total_modules} ({(successful_imports / total_modules) * 100: .0f}%)")
     print(f"   Functional Modules:         {functional_modules}/{total_modules} ({(functional_modules / total_modules) * 100: .0f}%)")
     
-    print(f"\n📋 MODULE STATUS: ")
+    print("\n📋 MODULE STATUS: ")
     all_modules = set(list(import_results.keys()) + list(functionality_results.keys()))
     for module in sorted(all_modules): 
         import_status = "✅" if 'SUCCESS' in import_results.get(module, '') else "❌"
@@ -254,19 +254,19 @@ def generate_summary(import_results, functionality_results):
     print(f"\n🎯 OVERALL STATUS: {status}")
     print(f"   {description}")
     
-    print(f"\n💡 WSB STRATEGIES IMPLEMENTED: ")
-    print(f"   • Enhanced Swing Trading with Fast Exits")
-    print(f"   • SPX / SPY 0DTE Credit Spreads (WSB favorite)")
-    print(f"   • Earnings IV Crush Protection")
-    print(f"   • Index Fund Baseline Comparison ('WSB Reality Check')")
-    print(f"   • LEAPS with Golden / Death Cross Timing (Enhanced)")
+    print("\n💡 WSB STRATEGIES IMPLEMENTED: ")
+    print("   • Enhanced Swing Trading with Fast Exits")
+    print("   • SPX / SPY 0DTE Credit Spreads (WSB favorite)")
+    print("   • Earnings IV Crush Protection")
+    print("   • Index Fund Baseline Comparison ('WSB Reality Check')")
+    print("   • LEAPS with Golden / Death Cross Timing (Enhanced)")
     
     if readiness ==  "READY": 
-        print(f"\n🚀 READY FOR TESTING!")
-        print(f"   All modules can be used for paper trading and development")
+        print("\n🚀 READY FOR TESTING!")
+        print("   All modules can be used for paper trading and development")
     elif readiness ==  "MOSTLY_READY": 
-        print(f"\n🔧 MOSTLY READY")
-        print(f"   Most functionality works, some edge cases may need attention")
+        print("\n🔧 MOSTLY READY")
+        print("   Most functionality works, some edge cases may need attention")
     
     return readiness
 

@@ -3,13 +3,10 @@ Phase 4: Production Backtesting Engine
 Comprehensive backtesting with historical data validation
 """
 
-import asyncio
-import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 from dataclasses import dataclass, field
 from enum import Enum
-import math
 
 from ..core.production_logging import ProductionLogger
 from ..core.production_config import ConfigManager

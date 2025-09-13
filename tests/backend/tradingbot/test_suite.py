@@ -5,18 +5,17 @@ Tests all components against the successful 240% trade parameters.
 
 import unittest
 from datetime import datetime, date, timedelta
-from typing import Dict, List
 
 from backend.tradingbot.options_calculator import (
-    BlackScholesCalculator, OptionsTradeCalculator, OptionsSetup, TradeCalculation,
+    BlackScholesCalculator, OptionsTradeCalculator, TradeCalculation,
     validate_successful_trade
 )
 from backend.tradingbot.market_regime import (
-    MarketRegimeFilter, SignalGenerator, TechnicalIndicators, MarketRegime, SignalType,
+    MarketRegimeFilter, SignalGenerator, MarketRegime, SignalType,
     create_sample_indicators
 )
 from backend.tradingbot.risk_management import (
-    PositionSizer, RiskManager, KellyCalculator, Position, PositionStatus, RiskParameters
+    PositionSizer, RiskManager, KellyCalculator, Position
 )
 from backend.tradingbot.exit_planning import ExitStrategy, ScenarioAnalyzer, ExitReason
 from backend.tradingbot.alert_system import TradingAlertSystem, ExecutionChecklistManager, Alert, AlertType, AlertPriority
@@ -481,7 +480,6 @@ class TestHistoricalValidation(unittest.TestCase):
         """Test that we can replicate the successful 240% trade"""
         # Original trade parameters
         original_spot = 207.0
-        original_strike = 220.0
         original_entry_premium = 4.70
         original_exit_premium = 16.00
         original_contracts = 950

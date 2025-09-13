@@ -15,13 +15,13 @@ import sys
 import os
 import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # Add project path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from backend.tradingbot.risk.integrated_advanced_risk_manager import (
-    IntegratedAdvancedRiskManager, IntegratedRiskConfig, create_integrated_risk_system
+    create_integrated_risk_system
 )
 
 
@@ -182,7 +182,7 @@ async def test_continuous_monitoring():
         
         # Check results
         status = risk_system.get_system_status()
-        print(f"✅ Continuous monitoring tested")
+        print("✅ Continuous monitoring tested")
         print(f"   Risk History Count: {status['risk_history_count']}")
         print(f"   Last Assessment: {status['last_assessment']}")
         
@@ -212,7 +212,7 @@ async def test_system_compatibility():
         
         # Test component instantiation
         var_engine = AdvancedVaREngine(portfolio_value=100000)
-        integration_manager = RiskIntegrationManager()
+        RiskIntegrationManager()
         
         if MultiAgentRiskCoordinator: 
             # Provide required risk_limits parameter
@@ -222,15 +222,15 @@ async def test_system_compatibility():
                 'max_drawdown': 0.15,
                 'max_leverage': 2.0
             }
-            ml_coordinator = MultiAgentRiskCoordinator(risk_limits=ml_risk_limits)
+            MultiAgentRiskCoordinator(risk_limits=ml_risk_limits)
             print("✅ Advanced ML components available")
         
         if MultiAssetRiskManager: 
-            multi_asset = MultiAssetRiskManager()
+            MultiAssetRiskManager()
             print("✅ Multi - asset components available")
         
         if RegulatoryComplianceManager: 
-            compliance = RegulatoryComplianceManager()
+            RegulatoryComplianceManager()
             print("✅ Compliance components available")
         
         # Test integrated system with existing components
@@ -245,7 +245,7 @@ async def test_system_compatibility():
         print(f"✅ VaR Engine: {len(var_results.results)} methods calculated")
         
         # Test integration with new system
-        integrated_results = await risk_system.comprehensive_risk_assessment(positions, market_data)
+        await risk_system.comprehensive_risk_assessment(positions, market_data)
         
         print("✅ Integration with existing components successful")
         
@@ -266,12 +266,12 @@ async def test_performance_benchmarks():
         
         # Time comprehensive assessment
         start_time = datetime.now()
-        results = await risk_system.comprehensive_risk_assessment(positions, market_data)
+        await risk_system.comprehensive_risk_assessment(positions, market_data)
         end_time = datetime.now()
         
         duration = (end_time-start_time).total_seconds()
         
-        print(f"✅ Performance benchmark completed")
+        print("✅ Performance benchmark completed")
         print(f"   Assessment Duration: {duration:.2f} seconds")
         print(f"   Portfolio Value: ${risk_system.config.portfolio_value:,.0f}")
         print(f"   Assets Analyzed: {len(positions)}")
@@ -302,12 +302,12 @@ async def run_comprehensive_integration_test():
     try: 
         # 1. Basic Integration
         print("\n🔧 PHASE 1: Basic System Integration")
-        risk_system = await test_basic_integration()
+        await test_basic_integration()
         test_results['basic_integration'] = True
         
         # 2. Comprehensive Assessment
         print("\n📊 PHASE 2: Comprehensive Risk Assessment")
-        assessment_results = await test_comprehensive_risk_assessment()
+        await test_comprehensive_risk_assessment()
         test_results['comprehensive_assessment'] = True
         
         # 3. Continuous Monitoring

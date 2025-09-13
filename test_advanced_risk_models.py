@@ -7,8 +7,7 @@ Comprehensive testing of sophisticated risk management capabilities
 import sys
 import os
 import numpy as np
-import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -86,7 +85,7 @@ def test_var_engine():
     
     # Test regime detection
     regime_info = var_engine.detect_regime_and_adjust(returns)
-    print(f"\nRegime Detection: ")
+    print("\nRegime Detection: ")
     print(f"  Current Regime: {regime_info['regime']}")
     print(f"  Adjustment Factor: {regime_info['adjustment_factor']:.2f}")
     print(f"  Volatility Ratio: {regime_info['volatility_ratio']:.2f}")
@@ -119,18 +118,18 @@ def test_stress_testing():
     report = stress_tester.run_comprehensive_stress_test(sample_portfolio)
     
     # Print results
-    print(f"\nStress Test Report")
+    print("\nStress Test Report")
     print("-" * 40)
     print(f"Compliance Status: {report.compliance_status}")
     print(f"Overall Risk Score: {report.overall_risk_score:.1f}/100")
     print(f"Test Date: {report.test_date}")
     
-    print(f"\nScenario Results: ")
+    print("\nScenario Results: ")
     for scenario_name, result in report.results.items(): 
         status = "✅ PASSED" if result.passed else "❌ FAILED"
         print(f"  {scenario_name: 25} {status: 10} P & L: ${result.portfolio_pnl: 8,.0f}")
     
-    print(f"\nRecommendations: ")
+    print("\nRecommendations: ")
     for i, rec in enumerate(report.recommendations, 1): 
         print(f"  {i}. {rec}")
     
@@ -157,7 +156,7 @@ def test_ml_risk_predictor():
     print(f"Model Confidence: {vol_forecast.model_confidence:.1%}")
     
     # Test risk prediction
-    print(f"\nTesting risk prediction...")
+    print("\nTesting risk prediction...")
     risk_prediction = ml_predictor.predict_risk_score(market_data)
     
     print(f"Risk Score: {risk_prediction.risk_score:.1f}/100")
@@ -165,7 +164,7 @@ def test_ml_risk_predictor():
     print(f"Confidence: {risk_prediction.confidence:.1%}")
     
     if risk_prediction.recommended_actions: 
-        print(f"\nRecommendations: ")
+        print("\nRecommendations: ")
         for i, action in enumerate(risk_prediction.recommended_actions, 1): 
             print(f"  {i}. {action}")
     
@@ -204,30 +203,30 @@ def test_risk_dashboard():
     dashboard_data = dashboard.get_risk_dashboard_data(sample_portfolio)
     
     # Print comprehensive results
-    print(f"\nRisk Dashboard Summary")
+    print("\nRisk Dashboard Summary")
     print("-" * 40)
     print(f"Portfolio Value: ${dashboard_data['portfolio_value']:,.0f}")
     print(f"Total Positions: {dashboard_data['total_positions']}")
     print(f"Timestamp: {dashboard_data['timestamp']}")
     
-    print(f"\nCore Risk Metrics: ")
+    print("\nCore Risk Metrics: ")
     for metric, data in dashboard_data['risk_metrics'].items(): 
         status = "⚠️" if data['limit_utilization']  >  80 else "✅"
         print(f"  {status} {metric.upper()}: ${data['value']:,.0f} ({data['percentage']: .1f}%) - {data['limit_utilization']: .1f}% of limit")
     
-    print(f"\nAdvanced Metrics: ")
+    print("\nAdvanced Metrics: ")
     for metric, value in dashboard_data['advanced_metrics'].items(): 
         print(f"  {metric}: ${value:,.0f}")
     
-    print(f"\nAlternative Data Signals: ")
+    print("\nAlternative Data Signals: ")
     for signal, value in dashboard_data['alternative_signals'].items(): 
         print(f"  {signal}: ${value:,.0f}")
     
-    print(f"\nFactor Risk Breakdown: ")
+    print("\nFactor Risk Breakdown: ")
     for factor, value in dashboard_data['factor_breakdown'].items(): 
         print(f"  {factor}: ${value:,.0f}")
     
-    print(f"\nStress Test Results: ")
+    print("\nStress Test Results: ")
     print(f"  Worst Case P & L: ${dashboard_data['stress_tests']['worst_case_pnl']:,.0f}")
     print(f"  Scenarios Tested: {len(dashboard_data['stress_tests']['scenario_analysis'])}")
     
@@ -237,7 +236,7 @@ def test_risk_dashboard():
         print(f"  {severity_icon} {alert['severity']}: {alert['message']}")
         print(f"    Action: {alert['recommended_action']}")
     
-    print(f"\nRisk Limit Utilization: ")
+    print("\nRisk Limit Utilization: ")
     for limit, utilization in dashboard_data['risk_limits'].items(): 
         status = "⚠️" if utilization  >  80 else "✅"
         print(f"  {status} {limit}: {utilization:.1f}%")

@@ -8,7 +8,7 @@ Python 3.9+, numpy / pandas only. No external deps.
 Drop - in utility matching the provided bundle specification.
 """
 
-from typing import Tuple, Dict, Optional, List
+from typing import Tuple, Dict, List
 import math
 import numpy as np
 import pandas as pd

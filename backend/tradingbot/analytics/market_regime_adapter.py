@@ -4,11 +4,9 @@ Market Regime Adapter
 Integrates market regime detection with strategy parameter adaptation
 """
 
-import asyncio
 import logging
-import numpy as np
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 

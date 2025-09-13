@@ -11,16 +11,14 @@ This module bridges the gap between:
 Making the system production - ready for live trading.
 """
 
-import asyncio
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
+from datetime import datetime
+from typing import Dict, Optional, Any
 from dataclasses import dataclass, field
 from decimal import Decimal
-import json
 
 from ...apimanagers import AlpacaManager
-from ...models import Order, Portfolio, StockInstance, Company, Stock
+from ...models import Order, Company, Stock
 from ...risk_management import RiskManager, RiskParameters
 from ...alert_system import TradingAlertSystem, AlertType, AlertPriority
 from ...core.trading_interface import TradeSignal, TradeResult, TradeStatus, OrderSide, OrderType
@@ -234,7 +232,7 @@ class ProductionIntegrationManager:
             portfolio_value = await self.get_portfolio_value()
             
             # Calculate position risk
-            position_risk = float(signal.risk_amount) / float(portfolio_value) if portfolio_value  >  0 else 0
+            float(signal.risk_amount) / float(portfolio_value) if portfolio_value  >  0 else 0
             
             # Check individual position limit 
             current_position_value = await self.get_position_value(signal.ticker)

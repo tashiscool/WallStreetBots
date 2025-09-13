@@ -7,7 +7,7 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 from enum import Enum
 
 

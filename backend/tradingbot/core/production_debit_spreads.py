@@ -7,15 +7,14 @@ import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 from enum import Enum
 import math
 
 from .trading_interface import TradingInterface, TradeSignal, OrderType, OrderSide
-from .data_providers import UnifiedDataProvider, MarketData, OptionsData
+from .data_providers import UnifiedDataProvider, OptionsData
 from .production_config import ProductionConfig
 from .production_logging import ProductionLogger, ErrorHandler, MetricsCollector
-from .production_models import Strategy, Position, Trade, RiskLimit
 
 
 class SpreadType(Enum): 

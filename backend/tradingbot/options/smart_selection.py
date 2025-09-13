@@ -4,12 +4,11 @@ Implements intelligent options contract selection based on WSB criteria and mark
 """
 
 import logging
-from datetime import datetime, timedelta, date
+from datetime import datetime, date
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
-import asyncio
 
 logger = logging.getLogger(__name__)
 

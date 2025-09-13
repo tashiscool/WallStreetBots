@@ -7,15 +7,11 @@ to order execution and position management.
 
 import pytest
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
-from unittest.mock import Mock, AsyncMock, patch
-from typing import Dict, Any
+from unittest.mock import Mock, AsyncMock
 
 from backend.tradingbot.production.core.production_strategy_manager import ProductionStrategyManager, ProductionStrategyManagerConfig
-from backend.tradingbot.production.core.production_integration import ProductionIntegrationManager
-from backend.tradingbot.production.data.production_data_integration import ReliableDataProvider as ProductionDataProvider
-from backend.tradingbot.production.strategies.production_wsb_dip_bot import ProductionWSBDipBot
 from backend.tradingbot.error_handling import TradingErrorRecoveryManager
 from backend.tradingbot.monitoring import SystemHealthMonitor
 

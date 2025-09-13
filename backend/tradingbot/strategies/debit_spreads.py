@@ -7,9 +7,9 @@ More repeatable than naked calls with reduced theta / IV risk
 import argparse
 import math
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Optional, Tuple
+from typing import List, Optional, Tuple
 import csv
 
 try: 
@@ -178,7 +178,7 @@ class DebitSpreadScanner:
             
             return calls
             
-        except Exception as e: 
+        except Exception: 
             return None
     
     def find_optimal_spreads(self, ticker: str, spot: float, expiry: str, 
@@ -235,8 +235,8 @@ class DebitSpreadScanner:
                 risk_reward = max_profit / net_debit
                 
                 # Estimate probability of profit using delta
-                long_delta = long_call.get('delta', 0.5)
-                short_delta = short_call.get('delta', 0.3)
+                long_call.get('delta', 0.5)
+                short_call.get('delta', 0.3)
                 
                 # Rough probability estimate
                 if breakeven  <=  spot: 

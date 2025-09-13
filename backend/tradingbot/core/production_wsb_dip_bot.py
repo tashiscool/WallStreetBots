@@ -11,12 +11,11 @@ This is the flagship WallStreetBots strategy adapted for production use with:
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
-import math
 
-from .data_providers import UnifiedDataProvider, MarketData
+from .data_providers import UnifiedDataProvider
 from .trading_interface import TradingInterface
 from .production_config import ProductionConfig
 from .production_logging import create_production_logger, ErrorHandler, MetricsCollector
@@ -599,7 +598,7 @@ class ProductionWSBDipBot:
             if order_result.get('status')  ==  'filled': self.logger.info(f"Position exited successfully: {ticker}")
                 
             # Update P & L tracking
-            fill_price = float(order_result.get('fill_price', 0))
+            float(order_result.get('fill_price', 0))
             # Would calculate P & L based on entry price
             
             self.metrics.record_metric("positions_closed", 1, {

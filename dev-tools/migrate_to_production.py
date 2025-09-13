@@ -6,18 +6,13 @@ Migrate from JSON files to PostgreSQL database
 import asyncio
 import json
 import os
-import logging
 from datetime import datetime
-from typing import Dict, List, Any
-from pathlib import Path
 
 from django.core.management.base import BaseCommand
-from django.db import transaction
 from django.conf import settings
 
 from .production_models import (
-    Strategy, Trade, Position, RiskLimit, PerformanceMetrics, 
-    AlertLog, Configuration, DatabaseMigration
+    Strategy, Trade, Position, RiskLimit, Configuration, DatabaseMigration
 )
 from .production_config import ConfigManager, ProductionConfig
 from .production_logging import ProductionLogger
@@ -371,7 +366,6 @@ async def main():
     
     # Setup Django
     import django
-    from django.conf import settings
     
     if not settings.configured: 
         settings.configure(

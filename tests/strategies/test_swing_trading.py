@@ -5,10 +5,9 @@ Tests all components of the swing trading scanner and strategy logic
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
-from datetime import date, datetime, timedelta
+from unittest.mock import Mock, patch
+from datetime import datetime
 import pandas as pd
-import numpy as np
 import sys
 import os
 

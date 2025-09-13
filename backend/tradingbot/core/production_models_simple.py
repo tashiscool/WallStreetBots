@@ -4,7 +4,7 @@ Works without Django dependencies
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any
+from typing import Optional
 from decimal import Decimal
 from datetime import datetime
 

@@ -7,11 +7,11 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional
 from enum import Enum
 
 from .options_calculator import BlackScholesCalculator
-from .risk_management import Position, PositionStatus
+from .risk_management import Position
 
 
 class ExitReason(Enum): 

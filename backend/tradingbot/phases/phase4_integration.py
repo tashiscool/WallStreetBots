@@ -14,13 +14,13 @@ This system is designed to PROTECT YOUR MONEY while maximizing returns.
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 from decimal import Decimal
 import json
 
-from .production_config import ProductionConfig, create_config_manager
+from .production_config import create_config_manager
 from .production_logging import create_production_logger, ErrorHandler, MetricsCollector
 from .production_database import ProductionDatabaseManager, create_database_manager
 from .trading_interface import create_trading_interface, TradingInterface
@@ -475,7 +475,7 @@ class Phase4IntegrationManager:
             self.system_status=SystemStatus.RUNNING
             
             # Start monitoring loop
-            monitoring_task = asyncio.create_task(self._monitoring_loop())
+            asyncio.create_task(self._monitoring_loop())
             
             mode_str = "PAPER TRADING" if paper_trading else "LIVE TRADING"
             self.logger.info(f"🎉 Production system started successfully in {mode_str} mode")

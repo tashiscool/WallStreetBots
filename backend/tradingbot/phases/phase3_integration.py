@@ -3,10 +3,8 @@ Phase 3 Integration Manager
 Integrates all Phase 3 strategies with existing infrastructure
 """
 
-import asyncio
-import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from datetime import datetime
+from typing import Dict, List, Any
 from dataclasses import dataclass, field
 
 from .production_logging import ProductionLogger

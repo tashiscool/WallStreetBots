@@ -3,14 +3,11 @@ Production Earnings IV Crush Protection Strategy
 Advanced earnings protection with real - time data and sophisticated hedging
 """
 
-import asyncio
-import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 import math
-import json
 
 from .production_logging import ProductionLogger
 from .production_config import ConfigManager

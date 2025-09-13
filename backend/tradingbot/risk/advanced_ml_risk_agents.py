@@ -15,12 +15,10 @@ Month 5 - 6: Advanced Features and Automation
 import asyncio
 import logging
 import numpy as np
-import pandas as pd
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Dict, List, Any
+from dataclasses import dataclass
 from enum import Enum
-import json
 import pickle
 from pathlib import Path
 
@@ -237,7 +235,7 @@ class RiskEnvironment:
         """Calculate risk reduction from action"""
         try: 
             current_var = portfolio_data.get('portfolio_var', 0.0)
-            current_cvar = portfolio_data.get('portfolio_cvar', 0.0)
+            portfolio_data.get('portfolio_cvar', 0.0)
             
             # Estimate risk reduction based on action type
             if action.action_type ==  RiskActionType.DECREASE_POSITION: 
@@ -1059,7 +1057,7 @@ class MultiAgentRiskCoordinator:
         """
         try: 
             # Get current state
-            state = self.environment.get_state(portfolio_data, market_data)
+            self.environment.get_state(portfolio_data, market_data)
             
             # Update each agent
             for agent_name, agent in self.agents.items(): 

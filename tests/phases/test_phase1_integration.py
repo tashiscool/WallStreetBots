@@ -6,27 +6,23 @@ Test the unified trading interface and production components
 import asyncio
 import unittest
 from unittest.mock import Mock, patch, AsyncMock
-from datetime import datetime
 import os
 import tempfile
 import json
 
 from backend.tradingbot.core.trading_interface import (
-    TradingInterface, TradeSignal, TradeResult, TradeStatus, 
-    OrderType, OrderSide, create_trading_interface
+    TradingInterface, TradeSignal, OrderType, OrderSide, create_trading_interface
 )
 from backend.tradingbot.core.data_providers import (
-    UnifiedDataProvider, MarketData, OptionsData, EarningsEvent,
-    create_data_provider
+    UnifiedDataProvider, create_data_provider
 )
 from backend.tradingbot.core.production_config import (
-    ProductionConfig, ConfigManager, create_config_manager
+    ProductionConfig, ConfigManager
 )
 from backend.tradingbot.core.production_logging import (
     ProductionLogger, ErrorHandler, CircuitBreaker, 
     HealthChecker, MetricsCollector, retry_with_backoff
 )
-from backend.tradingbot.core.production_models import Strategy, Position, Trade
 
 
 class TestTradingInterface(unittest.TestCase): 
@@ -556,7 +552,7 @@ class TestIntegration(unittest.TestCase):
         }
         
         # Create invalid config objects directly
-        from backend.tradingbot.core.production_config import DataProviderConfig, BrokerConfig, RiskConfig, TradingConfig, AlertConfig, DatabaseConfig, ProductionConfig
+        from backend.tradingbot.core.production_config import DataProviderConfig, BrokerConfig, RiskConfig, TradingConfig, AlertConfig, DatabaseConfig
         
         invalid_data_providers = DataProviderConfig(**invalid_config["data_providers"])
         invalid_broker = BrokerConfig(**invalid_config["broker"])

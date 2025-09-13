@@ -8,8 +8,7 @@ import asyncio
 import math
 from datetime import datetime, date, timedelta
 from decimal import Decimal, getcontext
-from typing import Dict, Any
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import patch, AsyncMock
 
 from backend.tradingbot.options.pricing_engine import (
     BlackScholesEngine,

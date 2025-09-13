@@ -5,7 +5,7 @@ Tests all components of the SPY / VTI baseline performance comparison system
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from datetime import date, datetime, timedelta
 import pandas as pd
 import numpy as np

@@ -6,11 +6,10 @@ Based on WSB successful swing trading patterns with ≤30 day expiries
 """
 
 import argparse
-import math
 import json
 from datetime import date, datetime, timedelta
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Optional, Tuple
+from typing import List, Tuple
 import time
 
 try: 
@@ -85,7 +84,7 @@ class SwingTradingScanner:
             
             prices = data['Close'].values
             volumes = data['Volume'].values
-            highs = data['High'].values
+            data['High'].values
             
             current_price = prices[-1]
             current_volume = volumes[-5: ].mean()  # Recent 5 periods
@@ -533,7 +532,7 @@ def main():
                     for signal in exit_signals: 
                         print(f"  • {signal}")
                 
-                print(f"\nNext scan in 5 minutes...")
+                print("\nNext scan in 5 minutes...")
                 time.sleep(300)  # 5 minutes
                 
         except KeyboardInterrupt: 

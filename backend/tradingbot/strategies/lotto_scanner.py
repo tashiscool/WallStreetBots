@@ -9,8 +9,7 @@ import math
 import json
 from datetime import date, datetime, timedelta
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Optional, Tuple
-import calendar
+from typing import List, Optional
 
 try: 
     import yfinance as yf
@@ -287,10 +286,10 @@ class LottoScanner:
                     # Calculate metrics
                     if option_type ==  "call": 
                         breakeven = strike+mid_price
-                        profit_target = breakeven * 1.5  # 50% beyond breakeven
+                        breakeven * 1.5  # 50% beyond breakeven
                     else:  # put
                         breakeven = strike-mid_price
-                        profit_target = breakeven * 0.67  # 33% below breakeven
+                        breakeven * 0.67  # 33% below breakeven
                     
                     stop_loss = mid_price * 0.5  # 50% stop loss
                     
@@ -404,7 +403,7 @@ class LottoScanner:
                     strike = best_option['strike'].iloc[0]
                     bid = best_option['bid'].iloc[0] 
                     ask = best_option['ask'].iloc[0]
-                    volume = best_option.get('volume', [0]).iloc[0]
+                    best_option.get('volume', [0]).iloc[0]
                     
                     if bid  <=  0.10 or ask  <=  0.10: 
                         continue

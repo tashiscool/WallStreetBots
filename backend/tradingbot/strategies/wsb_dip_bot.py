@@ -45,9 +45,8 @@ import sys
 import time
 from dataclasses import dataclass, asdict
 from datetime import date, datetime, timedelta
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
 
-import numpy as np
 import pandas as pd
 import pytz
 import yfinance as yf

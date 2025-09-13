@@ -5,7 +5,7 @@ Test all low - risk strategy implementations
 
 import unittest
 import asyncio
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import Mock
 from datetime import datetime, timedelta
 import tempfile
 import json

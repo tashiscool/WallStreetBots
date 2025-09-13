@@ -23,11 +23,10 @@ import json
 import math
 import sys
 import time
-from dataclasses import dataclass, field, asdict
-from datetime import date, datetime, timedelta, timezone
-from typing import List, Dict, Any, Optional
+from dataclasses import dataclass, asdict
+from datetime import date, datetime, timedelta
+from typing import List, Dict, Optional
 
-import numpy as np
 import pandas as pd
 import pytz
 import yfinance as yf
@@ -216,7 +215,7 @@ def fetch_current_price(ticker: str)->Optional[Dict[str, float]]:
             "prior_close": prior_close
         }
 
-    except Exception as e: 
+    except Exception: 
         return None
 
 def get_options_chain_data(ticker: str, expiry: str, target_strike: float)->Optional[Dict]:
@@ -242,7 +241,7 @@ def get_options_chain_data(ticker: str, expiry: str, target_strike: float)->Opti
             'open_interest': int(closest_option['openInterest']) if not pd.isna(closest_option['openInterest']) else 0
         }
 
-    except Exception as e: 
+    except Exception: 
         return None
 
 
@@ -291,7 +290,7 @@ def detect_eod_signal(ticker: str,
             signal_type = "eod"
         )
 
-    except Exception as e: 
+    except Exception: 
         return None
 
 def detect_intraday_signal(ticker: str,
@@ -342,7 +341,7 @@ def detect_intraday_signal(ticker: str,
             signal_type = "intraday"
         )
 
-    except Exception as e: 
+    except Exception: 
         return None
 
 

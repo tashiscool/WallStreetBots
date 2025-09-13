@@ -5,12 +5,8 @@ Test Phase 2 strategies without external dependencies
 """
 
 import unittest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
+from unittest.mock import Mock
 from datetime import datetime, timedelta
-import tempfile
-import json
-import os
 import math
 from enum import Enum
 from dataclasses import dataclass, field

@@ -7,8 +7,8 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 from datetime import date, timedelta
-from typing import Dict, List, Optional, Tuple
-from decimal import Decimal, getcontext
+from typing import Dict, List, Tuple
+from decimal import getcontext
 
 # Set high precision for financial calculations
 getcontext().prec = 10

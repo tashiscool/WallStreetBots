@@ -11,13 +11,12 @@ This module provides risk - aware versions of all trading strategies:
 Month 3 - 4: Integration with WallStreetBots
 """
 
-import asyncio
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Any
 from abc import ABC, abstractmethod
 
-from .risk_integration_manager import RiskIntegrationManager, RiskLimits
+from .risk_integration_manager import RiskIntegrationManager
 
 
 class RiskAwareStrategy(ABC): 

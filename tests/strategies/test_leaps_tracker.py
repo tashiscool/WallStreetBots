@@ -5,7 +5,7 @@ Tests all components including golden / death cross timing signals
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from datetime import date, datetime, timedelta
 import pandas as pd
 import numpy as np
@@ -16,7 +16,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from backend.tradingbot.strategies.leaps_tracker import (  # noqa: E402
-    MovingAverageCross, LEAPSCandidate, LEAPSPosition, SecularTrend, LEAPSTracker
+    MovingAverageCross, LEAPSCandidate, LEAPSPosition, LEAPSTracker
 )
 
 
@@ -117,7 +117,6 @@ class TestMovingAverageCrossAnalysis(unittest.TestCase):
         self.assertEqual(trend_direction, "bullish")
         
         # Bearish setup
-        current_price_bear = 95
         sma_50_bear = 98
         sma_200_bear = 102
         

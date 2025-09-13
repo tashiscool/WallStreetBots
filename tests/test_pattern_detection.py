@@ -5,10 +5,9 @@ Tests the advanced WSB dip detection and technical analysis functionality
 
 import pytest
 import asyncio
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import List
-import statistics
 
 from backend.tradingbot.analysis.pattern_detection import (
     TechnicalIndicators,
@@ -260,7 +259,7 @@ class TestWSBDipDetector:
         
         price_bars = self.create_price_bars(prices, volumes)
         
-        pattern = await self.detector.detect_wsb_dip_pattern("TEST", price_bars)
+        await self.detector.detect_wsb_dip_pattern("TEST", price_bars)
         
         # The detector is very strict with its requirements
         # For now, just check that the method doesn't crash and returns a valid result

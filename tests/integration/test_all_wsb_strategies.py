@@ -6,7 +6,6 @@ Tests all newly created WSB trading strategies and verifies functionality
 
 import sys
 import os
-import unittest
 from datetime import datetime
 import traceback
 
@@ -70,7 +69,7 @@ def test_module_imports():
         try: 
             module = __import__(module_name)
             scanner_class = getattr(module, class_name)
-            scanner = scanner_class()
+            scanner_class()
             results[module_name] = "✅ SUCCESS"
             print(f"✅ {module_name:20} - Successfully imported and instantiated {class_name}")
         except Exception as e: 
@@ -414,10 +413,10 @@ def generate_comprehensive_report(import_results, functionality_results, test_re
                 print(f"   └─ {success_rate: .1f}% test success rate")
             else: 
                 print(f"⚠️  {strategy_name}")
-                print(f"   └─ Tests not available or failed")
+                print("   └─ Tests not available or failed")
         else: 
             print(f"❌ {strategy_name}")
-            print(f"   └─ Module import failed")
+            print("   └─ Module import failed")
     
     return readiness
 

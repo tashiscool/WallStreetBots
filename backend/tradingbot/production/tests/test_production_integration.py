@@ -14,17 +14,15 @@ Verifies that all components work together for live trading.
 """
 
 import pytest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
-from datetime import datetime, timedelta
+from unittest.mock import Mock, patch, AsyncMock
+from datetime import datetime
 from decimal import Decimal
-from typing import Dict, Any
 
 from ..core.production_integration import ProductionIntegrationManager, ProductionTrade, ProductionPosition, ProductionTradeSignal
 from ..core.production_strategy_wrapper import ProductionWSBDipBot, StrategyConfig
-from ..data.production_data_integration import ReliableDataProvider as ProductionDataProvider, MarketData
+from ..data.production_data_integration import ReliableDataProvider as ProductionDataProvider
 from ..core.production_manager import ProductionManager, ProductionConfig
-from ...core.trading_interface import OrderSide, OrderType, TradeResult, TradeStatus
+from ...core.trading_interface import OrderSide, OrderType, TradeStatus
 
 
 class TestProductionIntegration: 

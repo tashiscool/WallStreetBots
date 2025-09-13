@@ -2,10 +2,6 @@
 """Test Risk - Strategy Integration
 Demonstrates Month 3 - 4: Integration with WallStreetBots.
 
-# Test constants
-TEST_API_KEY = "test_key"
-TEST_SECRET_KEY = "test_secret"
-
 This script tests the integration of sophisticated risk models with trading strategies:
 - Real - time risk assessment during trading
 - Automated risk controls and position sizing
@@ -21,6 +17,10 @@ from datetime import datetime
 
 # Add the project root to the Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Test constants - not real credentials
+TEST_API_KEY = "test_key_not_real"
+TEST_SECRET_KEY = "test_secret_not_real"
 
 from backend.tradingbot.production.core.production_strategy_manager import StrategyProfile
 from backend.tradingbot.risk.risk_integrated_production_manager import (

@@ -241,16 +241,28 @@ max-complexity = 10
 # Test integration files can use test credentials
 "**/test_*.py" = [
     "S105",    # Hardcoded password string (test credentials)
+    "S101",    # Assert statements (normal in tests)
 ]
 "**/*test*.py" = [
     "S105",    # Hardcoded password string (test credentials)
+    "S101",    # Assert statements (normal in tests)
+]
+# Root level test files
+"test_*.py" = [
+    "S105",    # Hardcoded password string (test credentials)
+    "S101",    # Assert statements (normal in tests)
 ]
 "**/phase*_integration.py" = [
     "S105",    # Hardcoded password string (test credentials in integration files)
 ]
 
 # Scripts can use print and some patterns
-"scripts/**/*" = ["T201"]
+"scripts/**/*" = [
+    "T201",  # Print statements allowed in scripts
+    "S103",  # File permissions (755 for executable scripts is normal)
+    "S602",  # Subprocess calls (sometimes needed in setup scripts)
+    "S101",  # Assert statements (normal in test scripts)
+]
 
 # Config files can have magic values
 "**/settings.py" = ["PLR2004"]
@@ -262,4 +274,22 @@ max-complexity = 10
 ]
 "**/forms.py" = [
     "RUF012",  # Django form choice fields are expected patterns
+]
+
+# ML and dev-tools patterns
+"ml/**/*" = [
+    "RUF012",  # Class constants in ML components
+    "S101",    # Assert statements in ML validation
+    "S113",    # Request timeout (sometimes not needed for internal APIs)
+]
+"dev-tools/**/*" = [
+    "ASYNC230", # File operations in dev tools
+    "S103",     # File permissions for scripts
+]
+"*.py" = [
+    "F841",     # Unused variables (sometimes needed for unpacking)
+    "S603",     # Subprocess execution (needed for dev/setup scripts)
+]
+"create_executable.py" = [
+    "S103",     # File permissions for executable creation
 ]

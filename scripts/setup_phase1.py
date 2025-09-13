@@ -14,7 +14,9 @@ def run_command(command: str, description: str):
     """Run a command and handle errors."""
     print(f"🔄 {description}...")
     try:
-        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+        # Split command into list to avoid shell=True security risk
+        cmd_list = command.split()
+        result = subprocess.run(cmd_list, check=True, capture_output=True, text=True)
         print(f"✅ {description} completed")
         return result.stdout
     except subprocess.CalledProcessError as e:

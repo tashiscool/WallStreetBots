@@ -17,5 +17,15 @@ jobs:
           pip install -e .  # Install package in development mode
       - name: Run tests
         run: python -m pytest tests/ -v --tb=short
+      - name: Test CLI tools
+        run: |
+          # Test simple CLI validator
+          python simple_cli.py
+          # Test production CLI commands (non-interactive)
+          python run.py validate
+          python run.py status
+          python run.py market
+          # Test integration examples
+          python integration_examples.py
       - name: Run linting with ruff
         run: ruff check .

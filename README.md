@@ -407,6 +407,218 @@ python3 run_wallstreetbots.py --help      # Show help
 
 ---
 
+## 🔧 **NEW PRODUCTION CLI TOOLS**
+
+### **Simple System Validator** (`simple_cli.py`)
+Basic system validation without external dependencies:
+```bash
+python simple_cli.py          # Validate all core systems
+python simple_cli.py --help   # Show available options
+```
+
+### **Advanced Production CLI** (`run.py`)
+Comprehensive production management with rich UI:
+```bash
+python run.py status           # System status with health checks
+python run.py validate         # Validate configuration and dependencies
+python run.py bars SPY         # Fetch market data for symbol
+python run.py metrics          # Show trading metrics
+python run.py market           # Check market status
+python run.py --help           # Show all available commands
+```
+
+### **New Production Modules**
+
+#### **Configuration Management** (`backend/tradingbot/config/`)
+- **settings.py**: Typed configuration with Pydantic validation
+- **simple_settings.py**: Fallback configuration without dependencies
+```python
+from backend.tradingbot.config import get_settings
+settings = get_settings()  # Auto-detects best configuration system
+```
+
+#### **Execution Engine** (`backend/tradingbot/execution/`)
+- **interfaces.py**: Abstract execution client for broker integration
+```python
+from backend.tradingbot.execution import ExecutionClient, OrderRequest
+# Implement ExecutionClient for your broker
+```
+
+#### **Risk Management** (`backend/tradingbot/risk/engine.py`)
+- Production-ready risk engine with VaR/CVaR and kill-switch
+```python
+from backend.tradingbot.risk.engine import RiskEngine, RiskLimits
+risk_engine = RiskEngine(limits=RiskLimits())
+# Pre-trade and post-trade risk checks with automatic kill-switch
+```
+
+#### **Market Data Client** (`backend/tradingbot/data/`)
+- **client.py**: Cached market data with parquet storage
+```python
+from backend.tradingbot.data import MarketDataClient, BarSpec
+client = MarketDataClient()
+bars = client.get_bars("SPY", BarSpec.DAILY)  # Cached data
+```
+
+#### **Observability** (`backend/tradingbot/infra/obs.py`)
+- Structured JSON logging and metrics collection
+```python
+from backend.tradingbot.infra.obs import jlog, metrics
+jlog("order_placed", {"symbol": "SPY", "qty": 100})
+metrics.increment("orders.placed")
+```
+
+---
+
+## 🏛️ **PRODUCTION DOMAIN MODULES**
+
+### **Compliance & Market Structure** (`backend/tradingbot/compliance/`)
+Production-ready compliance for live US equities trading:
+- **Pattern Day Trader (PDT)** rules enforcement
+- **Short Sale Restriction (SSR)** detection and blocking
+- **Trading halt** and **LULD** circuit breaker checks
+- **Session management** (pre-market, regular, after-hours)
+
+```python
+from backend.tradingbot.compliance import ComplianceGuard
+
+guard = ComplianceGuard(min_equity_for_day_trading=25_000.0)
+# Check before every order
+guard.check_pdt(account_equity, pending_day_trades, now)
+guard.check_halt(symbol)
+guard.check_ssr(symbol, side="short", now=now)
+```
+
+### **Options Assignment Risk** (`backend/tradingbot/options/assignment_risk.py`)
+Manage options expiry, early assignment, and pin risk:
+- **Auto-exercise** detection (OCC $0.01 threshold)
+- **Early assignment risk** around ex-dividend dates
+- **Pin risk** detection near strikes at expiry
+
+```python
+from backend.tradingbot.options import auto_exercise_likely, early_assignment_risk, pin_risk
+
+if early_assignment_risk(option_contract, underlying_state):
+    print("⚠️ Consider closing short calls before ex-dividend")
+```
+
+### **Corporate Actions** (`backend/tradingbot/data/corporate_actions.py`)
+Adjust historical data for splits and dividends:
+- **Split adjustments** with back-adjustment
+- **Dividend adjustments** for total return calculations
+- **Survivorship bias** prevention for backtesting
+
+```python
+from backend.tradingbot.data.corporate_actions import CorporateActionsAdjuster
+
+actions = [CorporateAction("split", date, factor=2.0, amount=0.0)]
+adjuster = CorporateActionsAdjuster(actions)
+adjusted_bars = adjuster.adjust(historical_bars)
+```
+
+### **Wash Sale Tracking** (`backend/tradingbot/accounting/`)
+Tax-compliant P&L tracking with wash sale detection:
+- **FIFO tax lot** matching
+- **30-day wash sale** window detection
+- **Realized vs. disallowed** loss tracking
+
+```python
+from backend.tradingbot.accounting import WashSaleEngine
+
+wash_engine = WashSaleEngine(window_days=30)
+realized_pnl, wash_disallowed = wash_engine.realize(sell_fill)
+```
+
+### **Borrow & Locate** (`backend/tradingbot/borrow/`)
+Short selling compliance and borrow cost tracking:
+- **Locate availability** checks
+- **Hard-to-borrow (HTB)** detection
+- **Borrow fee** tracking for P&L
+
+```python
+from backend.tradingbot.borrow import BorrowClient, guard_can_short
+
+borrow_bps = guard_can_short(borrow_client, symbol, quantity)
+```
+
+### **Point-in-Time Universe** (`backend/tradingbot/universe/`)
+Prevent survivorship bias in strategy backtests:
+- **Historical index membership** (S&P 500, etc.)
+- **Point-in-time** constituent resolution
+- **Symbol change tracking**
+
+```python
+from backend.tradingbot.universe import UniverseProvider
+
+universe = UniverseProvider({"SP500": historical_memberships})
+members = universe.members("SP500", as_of_date=backtest_date)
+```
+
+### **Portfolio Risk Rules** (`backend/tradingbot/risk/portfolio_rules.py`)
+Prevent concentration and correlation blow-ups:
+- **Sector concentration** caps (default 35%)
+- **Correlation guards** for portfolio construction
+
+```python
+from backend.tradingbot.risk.portfolio_rules import sector_cap_check, simple_corr_guard
+
+if not sector_cap_check(weights, sector_map, cap=0.35):
+    print("⚠️ Sector concentration exceeds 35%")
+```
+
+### **Runtime Safety** (`backend.tradingbot.infra.runtime_safety`)
+Operational safety for live trading:
+- **Clock drift detection** (NTP sync checks)
+- **Append-only journal** for decision replay
+- **Idempotent restart** capability
+
+```python
+from backend.tradingbot.infra.runtime_safety import assert_ntp_ok, Journal
+
+assert_ntp_ok()  # Check clock sync
+journal = Journal()
+decision_id = journal.append({"event": "order_placed", "symbol": "SPY"})
+```
+
+### **SQL Schema** (`db/taxlots.sql`)
+Production database schema for tax lot tracking:
+```sql
+-- Tax lots and realized P&L with wash sale compliance
+CREATE TABLE tax_lots (id, symbol, open_ts, qty, cost, remaining, method);
+CREATE TABLE realizations (id, symbol, qty, proceed, cost, realized_pnl, wash_disallowed);
+```
+
+### **Integration Example**
+Complete production trading pipeline:
+```python
+# Run integration_examples.py for full demonstration
+python integration_examples.py
+
+# Key integration pattern:
+def execute_trade(order_request):
+    # 1. Compliance checks
+    guard.check_session(now, allow_pre=True)
+    guard.check_halt(order.symbol)
+    guard.check_ssr(order.symbol, order.side, now)
+
+    # 2. Risk checks
+    if order.side == "short":
+        borrow_bps = guard_can_short(borrow_client, order.symbol, order.qty)
+
+    # 3. Options risk (if applicable)
+    if is_option_expiry_day():
+        check_assignment_risks(positions)
+
+    # 4. Execute order
+    fill = execution_client.place_order(order)
+
+    # 5. Post-trade accounting
+    wash_engine.ingest(fill)
+    journal.append({"event": "trade_executed", "fill": fill})
+```
+
+---
+
 ## 🚀 **FULL SETUP GUIDE**
 
 ### **Prerequisites:**

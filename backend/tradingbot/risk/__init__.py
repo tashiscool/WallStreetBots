@@ -17,6 +17,13 @@ except ImportError:
     # Fallback if complete engine not available
     pass
 
+# Import production-ready risk engine
+try:
+    from .engine import RiskEngine as ProductionRiskEngine, RiskLimits as ProductionRiskLimits
+    PRODUCTION_RISK_AVAILABLE = True
+except ImportError:
+    PRODUCTION_RISK_AVAILABLE = False
+
 # Month 5 - 6: Advanced Features and Automation
 try:
     from .advanced_ml_risk_agents import (
@@ -77,6 +84,23 @@ if ADVANCED_FEATURES_AVAILABLE:
             "RiskState",
         ]
     )
+
+# Import portfolio construction rules
+try:
+    from .portfolio_rules import (
+        sector_cap_check,
+        simple_corr_guard,
+    )
+    PORTFOLIO_RULES_AVAILABLE = True
+except ImportError:
+    PORTFOLIO_RULES_AVAILABLE = False
+
+# Add portfolio rules if available
+if PORTFOLIO_RULES_AVAILABLE:
+    __all__.extend([
+        "sector_cap_check",
+        "simple_corr_guard",
+    ])
 
 # Version information
 __version__ = "2025.1.0"

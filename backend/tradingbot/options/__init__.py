@@ -14,16 +14,28 @@ from .smart_selection import (
     SmartOptionsSelector,
     create_smart_options_selector,
 )
+from .assignment_risk import (
+    OptionContract,
+    UnderlyingState,
+    auto_exercise_likely,
+    early_assignment_risk,
+    pin_risk,
+)
 
 __all__ = [
     "BlackScholesEngine",
     "Greeks",
     "LiquidityRating",
+    "OptionContract",
     "OptionsAnalysis",
     "OptionsContract",
     "RealOptionsPricingEngine",
     "SelectionCriteria",
     "SmartOptionsSelector",
+    "UnderlyingState",
+    "auto_exercise_likely",
     "create_options_pricing_engine",
     "create_smart_options_selector",
+    "early_assignment_risk",
+    "pin_risk",
 ]

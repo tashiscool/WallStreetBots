@@ -10,6 +10,7 @@ def index(request):
 
 def get_time(request):
     cursor = connection.cursor()
-    cursor.execute("""select date_trunc('minute', now())""")
+    # Use SQLite-compatible datetime function
+    cursor.execute("""SELECT datetime('now', 'localtime')""")
     current_datetime = cursor.fetchone()[0]
-    return HttpResponse(f"{current_datetime.strftime('%Y-%m-%d %H: %M:%S')}")
+    return HttpResponse(f"Current time: {current_datetime}")

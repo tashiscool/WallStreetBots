@@ -3,51 +3,67 @@
 from django.db import migrations, models
 
 
-class Migration(migrations.Migration): 
-
+class Migration(migrations.Migration):
     dependencies = [
-        ('tradingbot', '0002_alter_stockinstance_user'),
+        ("tradingbot", "0002_alter_stockinstance_user"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name = 'order',
-            name = 'price',
+            model_name="order",
+            name="price",
         ),
         migrations.AddField(
-            model_name = 'order',
-            name = 'filled_avg_price',
-            field = models.DecimalField(blank=True, decimal_places=2, help_text='filled average price', max_digits=8, null=True),
+            model_name="order",
+            name="filled_avg_price",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=2,
+                help_text="filled average price",
+                max_digits=8,
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name = 'order',
-            name = 'filled_quantity',
-            field = models.DecimalField(decimal_places=2, default=0, help_text='filled quantity', max_digits=8),
+            model_name="order",
+            name="filled_quantity",
+            field=models.DecimalField(
+                decimal_places=2, default=0, help_text="filled quantity", max_digits=8
+            ),
         ),
         migrations.AddField(
-            model_name = 'order',
-            name = 'filled_timestamp',
-            field = models.DateTimeField(blank=True, help_text='order filled timestamp', null=True),
+            model_name="order",
+            name="filled_timestamp",
+            field=models.DateTimeField(blank=True, help_text="order filled timestamp", null=True),
         ),
         migrations.AddField(
-            model_name = 'order',
-            name = 'limit_price',
-            field = models.DecimalField(blank=True, decimal_places=2, help_text='limit price', max_digits=8, null=True),
+            model_name="order",
+            name="limit_price",
+            field=models.DecimalField(
+                blank=True, decimal_places=2, help_text="limit price", max_digits=8, null=True
+            ),
         ),
         migrations.AddField(
-            model_name = 'order',
-            name = 'status',
-            field = models.CharField(choices=[('A', 'Accepted'), ('F', 'Filled')], default='A', help_text='order status', max_length=1),
+            model_name="order",
+            name="status",
+            field=models.CharField(
+                choices=[("A", "Accepted"), ("F", "Filled")],
+                default="A",
+                help_text="order status",
+                max_length=1,
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name = 'order',
-            name = 'stop_price',
-            field = models.DecimalField(blank=True, decimal_places=2, help_text='stop price', max_digits=8, null=True),
+            model_name="order",
+            name="stop_price",
+            field=models.DecimalField(
+                blank=True, decimal_places=2, help_text="stop price", max_digits=8, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name = 'order',
-            name = 'timestamp',
-            field = models.DateTimeField(auto_now_add=True, help_text='order submission timestamp'),
+            model_name="order",
+            name="timestamp",
+            field=models.DateTimeField(auto_now_add=True, help_text="order submission timestamp"),
         ),
     ]

@@ -1,47 +1,39 @@
 #!/usr / bin / env python3
-"""
-Phase 1 Setup Script
+"""Phase 1 Setup Script
 Setup production environment for WallStreetBots Phase 1 implementation
 """
 
-import os
-import sys
-import subprocess
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 
 def run_command(command: str, description: str):
     """Run a command and handle errors"""
     print(f"🔄 {description}...")
-    try: 
+    try:
         result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
         print(f"✅ {description} completed")
         return result.stdout
-    except subprocess.CalledProcessError as e: 
+    except subprocess.CalledProcessError as e:
         print(f"❌ {description} failed: {e}")
         print(f"Error output: {e.stderr}")
         return None
 
 
-def create_directories(): 
+def create_directories():
     """Create necessary directories"""
-    directories = [
-        "config",
-        "logs",
-        "data",
-        "backups",
-        "migrations"
-    ]
-    
-    for directory in directories: 
+    directories = ["config", "logs", "data", "backups", "migrations"]
+
+    for directory in directories:
         Path(directory).mkdir(exist_ok=True)
         print(f"📁 Created directory: {directory}")
 
 
-def create_config_files(): 
+def create_config_files():
     """Create configuration files"""
-    
     # Create production configuration template
     config_template = {
         "data_providers": {
@@ -49,7 +41,7 @@ def create_config_files():
             "polygon_api_key": "",
             "fmp_api_key": "",
             "news_api_key": "",
-            "alpha_vantage_api_key": ""
+            "alpha_vantage_api_key": "",
         },
         "broker": {
             "alpaca_api_key": "",
@@ -57,7 +49,7 @@ def create_config_files():
             "alpaca_base_url": "https://paper - api.alpaca.markets",
             "ibkr_host": "",
             "ibkr_port": 7497,
-            "ibkr_client_id": 1
+            "ibkr_client_id": 1,
         },
         "risk": {
             "max_position_risk": 0.10,
@@ -66,14 +58,14 @@ def create_config_files():
             "max_correlation": 0.25,
             "account_size": 100000.0,
             "default_commission": 1.0,
-            "default_slippage": 0.002
+            "default_slippage": 0.002,
         },
         "trading": {
             "universe": ["AAPL", "MSFT", "GOOGL", "GOOG", "META", "NVDA", "AVGO", "AMD", "TSLA"],
             "scan_interval": 300,
             "max_concurrent_trades": 10,
             "enable_paper_trading": True,
-            "enable_live_trading": False
+            "enable_live_trading": False,
         },
         "alerts": {
             "enable_slack": False,
@@ -83,7 +75,7 @@ def create_config_files():
             "email_smtp_port": 587,
             "email_username": "",
             "email_password": "",
-            "email_recipients": []
+            "email_recipients": [],
         },
         "database": {
             "engine": "postgresql",
@@ -92,14 +84,14 @@ def create_config_files():
             "name": "wallstreetbots",
             "username": "postgres",
             "password": "",
-            "ssl_mode": "prefer"
-        }
+            "ssl_mode": "prefer",
+        },
     }
-    
-    with open("config / production.json", "w") as f: 
+
+    with open("config / production.json", "w") as f:
         json.dump(config_template, f, indent=2)
     print("📄 Created config / production.json")
-    
+
     # Create environment template
     env_template = """# WallStreetBots Phase 1 Configuration
 # Copy this file to .env and fill in your actual values
@@ -151,11 +143,11 @@ DB_USERNAME = postgres
 DB_PASSWORD = your_db_password_here
 DB_SSL_MODE = prefer
 """
-    
-    with open(".env.template", "w") as f: 
+
+    with open(".env.template", "w") as f:
         f.write(env_template)
     print("📄 Created .env.template")
-    
+
     # Create Django settings
     django_settings = """# Django settings for Phase 1
 import os
@@ -253,74 +245,67 @@ LOGGING = {
     },
 }
 """
-    
-    with open("backend / settings_phase1.py", "w") as f: 
+
+    with open("backend / settings_phase1.py", "w") as f:
         f.write(django_settings)
     print("📄 Created backend / settings_phase1.py")
 
 
-def install_dependencies(): 
+def install_dependencies():
     """Install Phase 1 dependencies"""
     print("📦 Installing Phase 1 dependencies...")
-    
+
     # Install requirements
-    result = run_command(
-        "pip install -r requirements_phase1.txt",
-        "Installing Python dependencies"
-    )
-    
-    if result is None: 
+    result = run_command("pip install -r requirements_phase1.txt", "Installing Python dependencies")
+
+    if result is None:
         print("❌ Failed to install dependencies")
         return False
-    
+
     return True
 
 
-def setup_database(): 
+def setup_database():
     """Setup database"""
     print("🗄️ Setting up database...")
-    
+
     # Create database migrations
     result = run_command(
-        "python manage.py makemigrations tradingbot",
-        "Creating database migrations"
+        "python manage.py makemigrations tradingbot", "Creating database migrations"
     )
-    
-    if result is None: 
+
+    if result is None:
         print("❌ Failed to create migrations")
         return False
-    
+
     # Apply migrations
-    result = run_command(
-        "python manage.py migrate",
-        "Applying database migrations"
-    )
-    
-    if result is None: 
+    result = run_command("python manage.py migrate", "Applying database migrations")
+
+    if result is None:
         print("❌ Failed to apply migrations")
         return False
-    
+
     return True
 
 
-def run_tests(): 
+def run_tests():
     """Run Phase 1 tests"""
     print("🧪 Running Phase 1 tests...")
-    
+
     result = run_command(
         "python -m pytest backend / tradingbot / test_phase1_integration.py -v",
-        "Running integration tests"
+        "Running integration tests",
     )
-    
-    if result is None: 
+
+    if result is None:
         print("❌ Tests failed")
         return False
-    
+
     print("✅ All tests passed")
     return True
 
 
-def create_startup_script(): 
+def create_startup_script():
     """Create startup script"""
     startup_script = """#!/bin / bash
 # WallStreetBots Phase 1 Startup Script
@@ -348,57 +333,57 @@ export $(cat .env | grep -v '^#' | xargs)
 echo "🌐 Starting Django development server..."
 python manage.py runserver 0.0.0.0: 8000
 """
-    
-    with open("start_phase1.sh", "w") as f: 
+
+    with open("start_phase1.sh", "w") as f:
         f.write(startup_script)
-    
+
     # Make executable
     os.chmod("start_phase1.sh", 0o755)
     print("📄 Created start_phase1.sh")
 
 
-def main(): 
+def main():
     """Main setup function"""
     print("🏗️  WallStreetBots Phase 1 Setup")
     print(" = " * 50)
-    
+
     # Check Python version
-    if sys.version_info  <  (3, 8): 
+    if sys.version_info < (3, 8):
         print("❌ Python 3.8 or higher is required")
         sys.exit(1)
-    
+
     print(f"✅ Python {sys.version_info.major}.{sys.version_info.minor} detected")
-    
+
     # Create directories
     print("\n📁 Creating directories...")
     create_directories()
-    
+
     # Create configuration files
     print("\n📄 Creating configuration files...")
     create_config_files()
-    
+
     # Install dependencies
     print("\n📦 Installing dependencies...")
-    if not install_dependencies(): 
+    if not install_dependencies():
         print("❌ Setup failed at dependency installation")
         sys.exit(1)
-    
+
     # Setup database
     print("\n🗄️  Setting up database...")
-    if not setup_database(): 
+    if not setup_database():
         print("❌ Setup failed at database setup")
         sys.exit(1)
-    
+
     # Run tests
     print("\n🧪 Running tests...")
-    if not run_tests(): 
+    if not run_tests():
         print("❌ Setup failed at testing")
         sys.exit(1)
-    
+
     # Create startup script
     print("\n🚀 Creating startup script...")
     create_startup_script()
-    
+
     print("\n" + " = " * 50)
     print("✅ Phase 1 setup completed successfully!")
     print("\nNext steps: ")
@@ -410,4 +395,5 @@ def main():
     print("   Do not use real money with this implementation.")
 
 
-if __name__ ==  "__main__": main()
+if __name__ == "__main__":
+    main()

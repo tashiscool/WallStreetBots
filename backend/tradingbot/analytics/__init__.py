@@ -1,7 +1,6 @@
-"""
-Analytics Package-Advanced Performance Analytics and Market Regime Adaptation
+"""Analytics Package-Advanced Performance Analytics and Market Regime Adaptation
 
-This package provides comprehensive analytics capabilities including: 
+This package provides comprehensive analytics capabilities including:
 - Advanced performance metrics (Sharpe ratio, max drawdown, etc.)
 - Market regime detection and strategy adaptation
 - Integration with WallStreetBots trading strategies
@@ -9,27 +8,26 @@ This package provides comprehensive analytics capabilities including:
 
 from .advanced_analytics import (
     AdvancedAnalytics,
-    PerformanceMetrics,
     DrawdownPeriod,
-    analyze_performance
+    PerformanceMetrics,
+    analyze_performance,
 )
-
 from .market_regime_adapter import (
+    AdaptationLevel,
     MarketRegimeAdapter,
     RegimeAdaptationConfig,
     StrategyAdaptation,
-    AdaptationLevel,
-    adapt_strategies_to_market
+    adapt_strategies_to_market,
 )
 
 __all__ = [
-    'AdvancedAnalytics',
-    'PerformanceMetrics',
-    'DrawdownPeriod',
-    'analyze_performance',
-    'MarketRegimeAdapter',
-    'RegimeAdaptationConfig',
-    'StrategyAdaptation',
-    'AdaptationLevel',
-    'adapt_strategies_to_market'
+    "AdaptationLevel",
+    "AdvancedAnalytics",
+    "DrawdownPeriod",
+    "MarketRegimeAdapter",
+    "PerformanceMetrics",
+    "RegimeAdaptationConfig",
+    "StrategyAdaptation",
+    "adapt_strategies_to_market",
+    "analyze_performance",
 ]

@@ -1,31 +1,31 @@
 #!/usr / bin / env python3
-"""
-WallStreetBots - Complete Setup for Real Money Trading
+"""WallStreetBots - Complete Setup for Real Money Trading
 
 This script guides you through setting up the complete trading system
 with real API keys and proper configuration for actual money trading.
 
-CRITICAL WARNING: This system can trade with real money. 
+CRITICAL WARNING: This system can trade with real money.
 Start with paper trading and small position sizes.
 """
 
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 
-def print_header(title): 
+def print_header(title):
     """Print formatted section header"""
-    print("\n" + " = "*80)
+    print("\n" + " = " * 80)
     print(f" {title}")
-    print(" = "*80)
+    print(" = " * 80)
 
 
-def print_warning(): 
+def print_warning():
     """Print critical warning"""
     print_header("🚨 CRITICAL WARNING 🚨")
-    print("""
+    print(
+        """
 This setup will configure WallStreetBots for REAL MONEY TRADING.
 
 ⚠️  IMPORTANT DISCLAIMERS: 
@@ -42,121 +42,127 @@ This setup will configure WallStreetBots for REAL MONEY TRADING.
    ✅ Runs comprehensive test suite
    ✅ Provides step - by - step setup instructions
 
-Do you want to continue? (y / N): """, end="")
-    
+Do you want to continue? (y / N): """,
+        end="",
+    )
+
     response = input().strip().lower()
-    if response  !=  'y': 
+    if response != "y":
         print("Setup cancelled. Good choice to be cautious! 🛡️")
         sys.exit(0)
 
 
-def check_python_version(): 
+def check_python_version():
     """Check Python version compatibility"""
     print_header("🐍 Checking Python Version")
-    
-    if sys.version_info  <  (3, 8): 
+
+    if sys.version_info < (3, 8):
         print("❌ Python 3.8+ required. Please upgrade Python.")
         sys.exit(1)
-    
-    print(f"✅ Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} - Compatible")
+
+    print(
+        f"✅ Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} - Compatible"
+    )
 
 
-def install_dependencies(): 
+def install_dependencies():
     """Install all required dependencies"""
     print_header("📦 Installing Dependencies")
-    
-    try: 
+
+    try:
         # Create virtual environment if it doesn't exist
-        if not os.path.exists('venv'): 
+        if not os.path.exists("venv"):
             print("Creating virtual environment...")
-            subprocess.run([sys.executable, '-m', 'venv', 'venv'], check=True)
+            subprocess.run([sys.executable, "-m", "venv", "venv"], check=True)
             print("✅ Virtual environment created")
-        
+
         # Determine pip path
-        if os.name ==  'nt': # Windows
-            pip_path = 'venv + Scripts + pip'
-            python_path = 'venv + Scripts + python'
+        if os.name == "nt":  # Windows
+            pip_path = "venv + Scripts + pip"
+            python_path = "venv + Scripts + python"
         else:  # Unix / Linux / Mac
-            pip_path = 'venv / bin / pip'
-            python_path = 'venv / bin / python'
-        
+            pip_path = "venv / bin / pip"
+            python_path = "venv / bin / python"
+
         # Upgrade pip
         print("Upgrading pip...")
-        subprocess.run([python_path, '-m', 'pip', 'install', '--upgrade', 'pip'], check=True)
-        
+        subprocess.run([python_path, "-m", "pip", "install", "--upgrade", "pip"], check=True)
+
         # Install requirements
         print("Installing requirements...")
-        subprocess.run([pip_path, 'install', '-r', 'requirements.txt'], check=True)
-        
+        subprocess.run([pip_path, "install", "-r", "requirements.txt"], check=True)
+
         print("✅ All dependencies installed successfully")
-        
-    except subprocess.CalledProcessError as e: 
+
+    except subprocess.CalledProcessError as e:
         print(f"❌ Failed to install dependencies: {e}")
         sys.exit(1)
 
 
-def create_env_file(): 
+def create_env_file():
     """Create .env file from example"""
     print_header("⚙️ Creating Environment Configuration")
-    
-    env_example = Path('backend/.env.example')
-    env_file = Path('backend/.env')
-    
-    if not env_example.exists(): 
+
+    env_example = Path("backend/.env.example")
+    env_file = Path("backend/.env")
+
+    if not env_example.exists():
         print("❌ backend/.env.example not found!")
         sys.exit(1)
-    
-    if env_file.exists(): 
+
+    if env_file.exists():
         print("📄 .env file already exists")
         overwrite = input("Overwrite existing .env file? (y / N): ").strip().lower()
-        if overwrite  !=  'y': 
+        if overwrite != "y":
             print("Keeping existing .env file")
             return
-    
+
     # Copy example to .env
-    with open(env_example) as f: 
+    with open(env_example) as f:
         content = f.read()
-    
-    with open(env_file, 'w') as f: 
+
+    with open(env_file, "w") as f:
         f.write(content)
-    
+
     print("✅ Created backend/.env from template")
     print(f"📝 Please edit {env_file} with your real API keys")
 
 
-def run_tests(): 
+def run_tests():
     """Run comprehensive test suite"""
     print_header("🧪 Running Test Suite")
-    
-    try: 
+
+    try:
         # Determine python path
-        if os.name ==  'nt': # Windows
-            python_path = 'venv + Scripts + python'
+        if os.name == "nt":  # Windows
+            python_path = "venv + Scripts + python"
         else:  # Unix / Linux / Mac
-            python_path = 'venv / bin / python'
-        
+            python_path = "venv / bin / python"
+
         print("Running all tests...")
-        result = subprocess.run([
-            python_path, '-m', 'pytest', 
-            'backend / tradingbot/', '-v', '--tb = short'
-        ], capture_output=True, text=True)
-        
-        if result.returncode ==  0: 
+        result = subprocess.run(
+            [python_path, "-m", "pytest", "backend / tradingbot/", "-v", "--tb = short"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        if result.returncode == 0:
             print("✅ All tests passed!")
             print(f"📊 Test output: \n{result.stdout}")
-        else: 
+        else:
             print("⚠️ Some tests failed - this is OK for initial setup")
             print(f"📊 Test output: \n{result.stderr}")
             print("🔧 You can fix test issues after configuring API keys")
-        
-    except subprocess.CalledProcessError as e: 
+
+    except subprocess.CalledProcessError as e:
         print(f"❌ Failed to run tests: {e}")
 
 
-def print_api_key_instructions(): 
+def print_api_key_instructions():
     """Print detailed API key setup instructions"""
     print_header("🔑 API Key Setup Instructions")
-    
+
     instructions = """
 📋 STEP - BY - STEP API KEY SETUP: 
 
@@ -221,14 +227,14 @@ def print_api_key_instructions():
    - Set paper trading limits: max 1% per position
    - Test for 2 - 3 months before going live
 """
-    
+
     print(instructions)
 
 
-def print_usage_instructions(): 
+def print_usage_instructions():
     """Print detailed usage instructions"""
     print_header("🚀 Usage Instructions")
-    
+
     usage = """
 🎯 HOW TO START TRADING: 
 
@@ -294,11 +300,11 @@ def print_usage_instructions():
    • Monitor Phase 4 backtesting results
    • Join r / WallStreetBets for strategy discussions (carefully!)
 """
-    
+
     print(usage)
 
 
-def main(): 
+def main():
     """Main setup function"""
     print_warning()
     check_python_version()
@@ -307,7 +313,7 @@ def main():
     run_tests()
     print_api_key_instructions()
     print_usage_instructions()
-    
+
     print_header("🎉 Setup Complete!")
     print("""
 ✅ WallStreetBots is now ready for configuration!
@@ -324,4 +330,5 @@ Good luck, and may your trades be profitable! 📈
     """)
 
 
-if __name__ ==  "__main__": main()
+if __name__ == "__main__":
+    main()

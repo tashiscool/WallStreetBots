@@ -3,21 +3,24 @@
 from django.db import migrations, models
 
 
-class Migration(migrations.Migration): 
-
+class Migration(migrations.Migration):
     dependencies = [
-        ('tradingbot', '0004_alter_order_status'),
+        ("tradingbot", "0004_alter_order_status"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name = 'order',
-            name = 'client_order_id',
-            field = models.CharField(default='', help_text='for alpaca sync', max_length=100),
+            model_name="order",
+            name="client_order_id",
+            field=models.CharField(default="", help_text="for alpaca sync", max_length=100),
         ),
         migrations.AlterField(
-            model_name = 'order',
-            name = 'status',
-            field = models.CharField(choices=[('A', 'Accepted'), ('F', 'Filled'), ('C', 'Closed')], help_text='order status', max_length=1),
+            model_name="order",
+            name="status",
+            field=models.CharField(
+                choices=[("A", "Accepted"), ("F", "Filled"), ("C", "Closed")],
+                help_text="order status",
+                max_length=1,
+            ),
         ),
     ]

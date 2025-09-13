@@ -1,12 +1,13 @@
 import unittest
+
 import metrics
+
 from utils import DummyFetcher
 
 
-class MovingAverageSharpeRatioTestCase(unittest.TestCase): 
-    def test_sharpe_ratio(self): 
-        """
-        test on: 
+class MovingAverageSharpeRatioTestCase(unittest.TestCase):
+    def test_sharpe_ratio(self):
+        """Test on:
         AAPL        MSFT
         99          99
         100         100
@@ -19,8 +20,9 @@ class MovingAverageSharpeRatioTestCase(unittest.TestCase):
         """
         stocks = ["AAPL", "MSFT"]
         fetcher = DummyFetcher()
-        test_metric = metrics.MovingAverageSharpeRatio(stocks, past_days=10, max_n=5, timestep="DAY",
-                                                       rf = 0.02, fetcher=fetcher)
+        test_metric = metrics.MovingAverageSharpeRatio(
+            stocks, past_days=10, max_n=5, timestep="DAY", rf=0.02, fetcher=fetcher
+        )
         # print(test_metric.generate_stock_returns())
         # print(test_metric.generate_stock_returns().pct_change())
         test_metric.configure()
@@ -31,4 +33,5 @@ class MovingAverageSharpeRatioTestCase(unittest.TestCase):
         self.assertEqual(round(sharpe, 3), 0.228)  # add assertion here
 
 
-if __name__ ==  '__main__': unittest.main()
+if __name__ == "__main__":
+    unittest.main()

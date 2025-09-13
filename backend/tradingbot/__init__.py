@@ -1,10 +1,9 @@
-"""
-Options Trading System - Implementing the Successful 240% Playbook
+"""Options Trading System - Implementing the Successful 240% Playbook
 
 This module implements a comprehensive options trading system based on the successful
 240% GOOGL call trade, with proper risk management to prevent existential bets.
 
-Key Components: 
+Key Components:
 - Black - Scholes options pricing and Greeks calculation
 - Market regime detection (bull pullback reversal signals)
 - Sophisticated position sizing and risk management
@@ -15,7 +14,7 @@ Key Components:
 The system transforms the successful but risky trade into a repeatable,
 risk - managed strategy suitable for consistent profitable trading.
 
-Usage: 
+Usage:
     from backend.tradingbot import IntegratedTradingSystem, TradingConfig
 
     config = TradingConfig(account_size=500000, max_position_risk_pct=0.10)
@@ -28,59 +27,50 @@ Usage:
     status = system.get_portfolio_status()
 """
 
-from .options_calculator import (
-    BlackScholesCalculator,
-    OptionsTradeCalculator,
-    OptionsSetup,
-    TradeCalculation,
-    validate_successful_trade
+from .alert_system import (
+    Alert,
+    AlertPriority,
+    AlertType,
+    ChecklistItem,
+    ExecutionChecklist,
+    ExecutionChecklistManager,
+    TradingAlertSystem,
 )
-
-from .market_regime import (
-    MarketRegimeFilter,
-    SignalGenerator,
-    TechnicalIndicators,
-    MarketSignal,
-    MarketRegime,
-    SignalType,
-    TechnicalAnalysis
-)
-
-from .risk_management import (
-    RiskManager,
-    PositionSizer,
-    KellyCalculator,
-    Position,
-    PositionStatus,
-    RiskParameters,
-    PortfolioRisk,
-    RiskLevel
-)
-
 from .exit_planning import (
+    ExitLevel,
+    ExitReason,
+    ExitSignal,
     ExitStrategy,
     ScenarioAnalyzer,
-    ExitSignal,
-    ExitReason,
-    ExitLevel,
-    ScenarioResult
+    ScenarioResult,
 )
-
-from .alert_system import (
-    TradingAlertSystem,
-    ExecutionChecklistManager,
-    Alert,
-    AlertType,
-    AlertPriority,
-    ChecklistItem,
-    ExecutionChecklist
+from .market_regime import (
+    MarketRegime,
+    MarketRegimeFilter,
+    MarketSignal,
+    SignalGenerator,
+    SignalType,
+    TechnicalAnalysis,
+    TechnicalIndicators,
 )
-
-from .trading_system import (
-    IntegratedTradingSystem,
-    TradingConfig,
-    SystemState
+from .options_calculator import (
+    BlackScholesCalculator,
+    OptionsSetup,
+    OptionsTradeCalculator,
+    TradeCalculation,
+    validate_successful_trade,
 )
+from .risk_management import (
+    KellyCalculator,
+    PortfolioRisk,
+    Position,
+    PositionSizer,
+    PositionStatus,
+    RiskLevel,
+    RiskManager,
+    RiskParameters,
+)
+from .trading_system import IntegratedTradingSystem, SystemState, TradingConfig
 
 __version__ = "1.0.0"
 __author__ = "WallStreetBots Team"
@@ -90,14 +80,12 @@ __all__ = [
     "IntegratedTradingSystem",
     "TradingConfig",
     "SystemState",
-
     # Options pricing
     "BlackScholesCalculator",
     "OptionsTradeCalculator",
     "OptionsSetup",
     "TradeCalculation",
     "validate_successful_trade",
-
     # Market analysis
     "MarketRegimeFilter",
     "SignalGenerator",
@@ -106,7 +94,6 @@ __all__ = [
     "MarketRegime",
     "SignalType",
     "TechnicalAnalysis",
-
     # Risk management
     "RiskManager",
     "PositionSizer",
@@ -116,7 +103,6 @@ __all__ = [
     "RiskParameters",
     "PortfolioRisk",
     "RiskLevel",
-
     # Exit planning
     "ExitStrategy",
     "ScenarioAnalyzer",
@@ -124,7 +110,6 @@ __all__ = [
     "ExitReason",
     "ExitLevel",
     "ScenarioResult",
-
     # Alerts and execution
     "TradingAlertSystem",
     "ExecutionChecklistManager",
@@ -132,5 +117,5 @@ __all__ = [
     "AlertType",
     "AlertPriority",
     "ChecklistItem",
-    "ExecutionChecklist"
+    "ExecutionChecklist",
 ]

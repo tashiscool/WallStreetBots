@@ -1,0 +1,187 @@
+# Prometheus alert rules for WallStreetBots trading system
+groups:
+- name: trading_critical
+  rules:
+  - alert: CircuitBreakerOpen
+    expr: wsb_circuit_open == 1
+    for: 0m
+    labels:
+      severity: critical
+      component: circuit_breaker
+    annotations:
+      summary: "Circuit breaker is OPEN - trading disabled"
+      description: "Circuit breaker tripped due to {{ $labels.reason }}. Trading is disabled until manual reset."
+      runbook_url: "https://docs.wallstreetbots.com/runbooks/circuit-breaker"
+
+  - alert: HighRejectRate
+    expr: rate(wsb_orders_rejected_total[5m]) > 3
+    for: 2m
+    labels:
+      severity: critical
+      component: execution
+    annotations:
+      summary: "Broker reject rate is high"
+      description: "Order reject rate is {{ $value }} orders/minute over the last 5 minutes"
+      runbook_url: "https://docs.wallstreetbots.com/runbooks/high-reject-rate"
+
+  - alert: StaleDataFeed
+    expr: wsb_data_staleness_seconds > 20
+    for: 1m
+    labels:
+      severity: critical
+      component: data
+    annotations:
+      summary: "Data feed is stale"
+      description: "Data staleness is {{ $value }} seconds, exceeding threshold of 20 seconds"
+      runbook_url: "https://docs.wallstreetbots.com/runbooks/stale-data"
+
+  - alert: DataQualityFailure
+    expr: increase(wsb_data_quality_failures_total[5m]) > 0
+    for: 0m
+    labels:
+      severity: critical
+      component: data
+    annotations:
+      summary: "Data quality checks are failing"
+      description: "{{ $value }} data quality failures in the last 5 minutes"
+      runbook_url: "https://docs.wallstreetbots.com/runbooks/data-quality"
+
+- name: trading_warning
+  rules:
+  - alert: HighErrorRate
+    expr: rate(wsb_errors_total[5m]) > 1
+    for: 5m
+    labels:
+      severity: warning
+      component: system
+    annotations:
+      summary: "High error rate detected"
+      description: "Error rate is {{ $value }} errors/minute over the last 5 minutes"
+
+  - alert: LowOrderVolume
+    expr: rate(wsb_orders_placed_total[10m]) < 0.1
+    for: 10m
+    labels:
+      severity: warning
+      component: execution
+    annotations:
+      summary: "Low order volume"
+      description: "Order rate is {{ $value }} orders/minute, below expected threshold"
+
+  - alert: HighLatency
+    expr: histogram_quantile(0.95, rate(wsb_order_latency_seconds_bucket[5m])) > 5
+    for: 3m
+    labels:
+      severity: warning
+      component: execution
+    annotations:
+      summary: "High order latency"
+      description: "95th percentile order latency is {{ $value }} seconds"
+
+  - alert: RiskLimitApproaching
+    expr: wsb_portfolio_delta_exposure / wsb_portfolio_delta_limit > 0.8
+    for: 2m
+    labels:
+      severity: warning
+      component: risk
+    annotations:
+      summary: "Risk limit approaching"
+      description: "Portfolio delta exposure is {{ $value }}% of limit"
+
+- name: system_health
+  rules:
+  - alert: SystemMemoryHigh
+    expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.9
+    for: 5m
+    labels:
+      severity: warning
+      component: system
+    annotations:
+      summary: "High memory usage"
+      description: "Memory usage is {{ $value }}%"
+
+  - alert: SystemCPUHigh
+    expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+    for: 5m
+    labels:
+      severity: warning
+      component: system
+    annotations:
+      summary: "High CPU usage"
+      description: "CPU usage is {{ $value }}%"
+
+  - alert: DiskSpaceLow
+    expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) > 0.9
+    for: 5m
+    labels:
+      severity: warning
+      component: system
+    annotations:
+      summary: "Low disk space"
+      description: "Disk usage is {{ $value }}%"
+
+- name: compliance
+  rules:
+  - alert: ReconciliationBreaks
+    expr: wsb_eod_reconciliation_breaks_total > 0
+    for: 0m
+    labels:
+      severity: critical
+      component: compliance
+    annotations:
+      summary: "EOD reconciliation breaks detected"
+      description: "{{ $value }} reconciliation breaks require manual intervention"
+      runbook_url: "https://docs.wallstreetbots.com/runbooks/reconciliation-breaks"
+
+  - alert: MissingJournalEntries
+    expr: increase(wsb_journal_entries_missing_total[1h]) > 0
+    for: 0m
+    labels:
+      severity: critical
+      component: compliance
+    annotations:
+      summary: "Missing journal entries"
+      description: "{{ $value }} journal entries are missing in the last hour"
+
+  - alert: AuditTrailGap
+    expr: wsb_audit_trail_gap_seconds > 300
+    for: 5m
+    labels:
+      severity: warning
+      component: compliance
+    annotations:
+      summary: "Audit trail gap detected"
+      description: "Audit trail gap is {{ $value }} seconds"
+
+- name: market_data
+  rules:
+  - alert: MarketDataFeedDown
+    expr: up{job="market_data"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      component: market_data
+    annotations:
+      summary: "Market data feed is down"
+      description: "Market data feed has been down for {{ $value }} seconds"
+
+  - alert: MarketDataLatencyHigh
+    expr: wsb_market_data_latency_seconds > 1
+    for: 2m
+    labels:
+      severity: warning
+      component: market_data
+    annotations:
+      summary: "High market data latency"
+      description: "Market data latency is {{ $value }} seconds"
+
+  - alert: MarketDataOutliers
+    expr: increase(wsb_market_data_outliers_total[5m]) > 5
+    for: 2m
+    labels:
+      severity: warning
+      component: market_data
+    annotations:
+      summary: "High number of market data outliers"
+      description: "{{ $value }} market data outliers detected in the last 5 minutes"
+

@@ -1,0 +1,78 @@
+# Alertmanager configuration for WallStreetBots
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@wallstreetbots.com'
+  smtp_auth_username: 'alerts@wallstreetbots.com'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+
+# Define routing tree for alerts
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'web.hook'
+  routes:
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 0s
+      repeat_interval: 5m
+    - match:
+        component: circuit_breaker
+      receiver: 'circuit-breaker-alerts'
+      group_wait: 0s
+      repeat_interval: 1m
+
+# Define receivers for different alert types
+receivers:
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://127.0.0.1:5001/'
+        title: 'WallStreetBots Alert'
+        text: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'admin@wallstreetbots.com'
+        subject: 'CRITICAL: WallStreetBots Alert'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Runbook: {{ .Annotations.runbook_url }}
+          {{ end }}
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#trading-alerts'
+        title: 'CRITICAL: WallStreetBots Alert'
+        text: '{{ range .Alerts }}{{ .Annotations.summary }}: {{ .Annotations.description }}{{ end }}'
+        color: 'danger'
+
+  - name: 'circuit-breaker-alerts'
+    email_configs:
+      - to: 'trading-team@wallstreetbots.com'
+        subject: 'CIRCUIT BREAKER OPEN - Trading Disabled'
+        body: |
+          URGENT: Circuit breaker has tripped and trading is disabled.
+
+          {{ range .Alerts }}
+          Reason: {{ .Annotations.description }}
+          Runbook: {{ .Annotations.runbook_url }}
+          {{ end }}
+
+          Manual intervention required to reset.
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#trading-critical'
+        title: '🚨 CIRCUIT BREAKER OPEN - Trading Disabled'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        color: 'danger'
+
+# Inhibit rules
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']

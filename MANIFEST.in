@@ -1,0 +1,40 @@
+# Include important files in the package
+include README.md
+include LICENSE
+include requirements*.txt
+include pyproject.toml
+include Dockerfile
+include docker-compose*.yml
+include .dockerignore
+include .gitignore
+include .gitleaks.toml
+
+# Include configuration files
+recursive-include ops *.yml *.yaml *.toml
+recursive-include .github/workflows *.yml
+
+# Include documentation
+recursive-include docs *.md *.rst *.txt
+
+# Include test data and fixtures
+recursive-include tests *.py *.json *.yaml *.txt
+recursive-include tests/fixtures *.json *.csv
+
+# Exclude development and cache files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude .DS_Store
+global-exclude *.so
+global-exclude .git*
+prune .git
+prune .tox
+prune .pytest_cache
+prune __pycache__
+prune .mypy_cache
+prune .ruff_cache
+prune htmlcov
+prune build
+prune dist
+prune .eggs
+prune *.egg-info

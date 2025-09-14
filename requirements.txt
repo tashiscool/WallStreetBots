@@ -38,6 +38,9 @@ plotly>=6.3.0
 pytest>=8.4.0
 pytest-django>=4.11.0
 pytest-asyncio>=0.24.0
+hypothesis>=6.0.0  # Property-based testing
+pytest-mock>=3.14.0  # Mock testing utilities
+pytest-cov>=6.2.0  # Coverage testing
 
 # Production dependencies
 structlog>=25.4.0  # Structured logging
@@ -48,7 +51,45 @@ backoff>=2.2.0  # Backoff and retry decorators
 pydantic-settings>=2.7.0  # Settings management
 psutil>=6.1.0  # System resource monitoring
 
-# Development tools  
+# Additional production libraries
+redis>=5.2.1  # Redis client for caching and message queuing
+celery>=5.4.0  # Distributed task queue
+gunicorn>=23.0.0  # WSGI HTTP Server for production
+uvicorn[standard]>=0.34.0  # ASGI server for async applications
+whitenoise>=6.8.2  # Static file serving for Django
+django-extensions>=3.2.3  # Useful Django extensions
+django-debug-toolbar>=4.4.6  # Development debugging (dev only)
+django-environ>=0.11.2  # Environment variable management
+
+# Security and observability
+gitleaks>=8.18.0  # Secret detection (optional CLI tool)
+bandit>=1.7.0  # Security linting
+safety>=3.2.0  # Dependency security scanning
+sentry-sdk[django]>=2.19.2  # Error tracking and performance monitoring
+python-json-logger>=2.0.7  # JSON logging formatter
+colorlog>=6.8.2  # Colored console logging
+
+# Development tools
 ruff>=0.8.0
 black>=24.0.0
 mypy>=1.13.0
+pre-commit>=4.1.0  # Pre-commit hooks
+isort>=5.13.2  # Import sorting
+coverage>=7.6.10  # Code coverage
+pip-audit>=2.7.3  # Security audit for pip packages
+
+# Data science and analysis (optional but useful for backtesting)
+jupyter>=1.1.1  # Jupyter notebook
+matplotlib>=3.10.0  # Plotting library
+seaborn>=0.13.2  # Statistical plotting
+scikit-learn>=1.6.1  # Machine learning library (for feature engineering)
+
+# Performance and optimization
+cython>=3.0.0  # C extensions for performance critical code
+numba>=0.60.0  # JIT compiler for numerical functions
+bottleneck>=1.4.2  # Fast NumPy array functions
+
+# Network and HTTP utilities
+httpx>=0.28.1  # Modern HTTP client
+urllib3>=2.2.3  # HTTP client library
+certifi>=2024.12.14  # SSL certificates

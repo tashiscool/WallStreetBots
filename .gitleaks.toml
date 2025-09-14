@@ -1,0 +1,145 @@
+# Gitleaks configuration for WallStreetBots
+title = "WallStreetBots Secret Detection"
+
+[extend]
+useDefault = true
+
+[[rules]]
+description = "Generic API Key"
+regex = '''(?i)(api[_-]?key|apikey|api_key)[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{20,})["']?'''
+tags = ["key", "api"]
+
+[[rules]]
+description = "Generic Secret"
+regex = '''(?i)(secret|password|passwd|pwd)[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{8,})["']?'''
+tags = ["key", "secret"]
+
+[[rules]]
+description = "AWS Access Key"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["key", "aws"]
+
+[[rules]]
+description = "AWS Secret Key"
+regex = '''(?i)aws[_-]?secret[_-]?access[_-]?key[\s]*[:=][\s]*["']?([a-zA-Z0-9/+=]{40})["']?'''
+tags = ["key", "aws"]
+
+[[rules]]
+description = "GitHub Token"
+regex = '''ghp_[0-9a-zA-Z]{36}'''
+tags = ["key", "github"]
+
+[[rules]]
+description = "GitHub App Token"
+regex = '''ghu_[0-9a-zA-Z]{36}'''
+tags = ["key", "github"]
+
+[[rules]]
+description = "GitHub Refresh Token"
+regex = '''ghr_[0-9a-zA-Z]{36}'''
+tags = ["key", "github"]
+
+[[rules]]
+description = "GitHub Fine-grained Token"
+regex = '''github_pat_[0-9a-zA-Z_]{82}'''
+tags = ["key", "github"]
+
+[[rules]]
+description = "Private Key"
+regex = '''-----BEGIN[ A-Z]*PRIVATE KEY-----'''
+tags = ["key", "private"]
+
+[[rules]]
+description = "JWT Token"
+regex = '''eyJ[a-zA-Z0-9_\-]+\.eyJ[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-]+'''
+tags = ["key", "jwt"]
+
+[[rules]]
+description = "Database Connection String"
+regex = '''(?i)(mongodb|mysql|postgresql|redis)://[^:\s]+:[^:\s]+@[^:\s]+:[0-9]+/[^:\s]+'''
+tags = ["key", "database"]
+
+[[rules]]
+description = "Alpaca API Key"
+regex = '''(?i)alpaca[_-]?api[_-]?key[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{20,})["']?'''
+tags = ["key", "alpaca"]
+
+[[rules]]
+description = "Alpaca Secret Key"
+regex = '''(?i)alpaca[_-]?secret[_-]?key[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{20,})["']?'''
+tags = ["key", "alpaca"]
+
+[[rules]]
+description = "Interactive Brokers API Key"
+regex = '''(?i)ib[_-]?api[_-]?key[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{20,})["']?'''
+tags = ["key", "interactive_brokers"]
+
+[[rules]]
+description = "TD Ameritrade API Key"
+regex = '''(?i)td[_-]?api[_-]?key[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{20,})["']?'''
+tags = ["key", "td_ameritrade"]
+
+[[rules]]
+description = "Alpha Vantage API Key"
+regex = '''(?i)alpha[_-]?vantage[_-]?api[_-]?key[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{20,})["']?'''
+tags = ["key", "alpha_vantage"]
+
+[[rules]]
+description = "Yahoo Finance API Key"
+regex = '''(?i)yahoo[_-]?finance[_-]?api[_-]?key[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{20,})["']?'''
+tags = ["key", "yahoo"]
+
+[[rules]]
+description = "Polygon API Key"
+regex = '''(?i)polygon[_-]?api[_-]?key[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{20,})["']?'''
+tags = ["key", "polygon"]
+
+[[rules]]
+description = "IEX Cloud API Key"
+regex = '''(?i)iex[_-]?cloud[_-]?api[_-]?key[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{20,})["']?'''
+tags = ["key", "iex"]
+
+[[rules]]
+description = "Quandl API Key"
+regex = '''(?i)quandl[_-]?api[_-]?key[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{20,})["']?'''
+tags = ["key", "quandl"]
+
+[[rules]]
+description = "Twilio API Key"
+regex = '''(?i)twilio[_-]?api[_-]?key[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{20,})["']?'''
+tags = ["key", "twilio"]
+
+[[rules]]
+description = "SendGrid API Key"
+regex = '''(?i)sendgrid[_-]?api[_-]?key[\s]*[:=][\s]*["']?([a-zA-Z0-9_\-]{20,})["']?'''
+tags = ["key", "sendgrid"]
+
+[[rules]]
+description = "Slack Bot Token"
+regex = '''xoxb-[0-9]{11}-[0-9]{11}-[a-zA-Z0-9]{24}'''
+tags = ["key", "slack"]
+
+[[rules]]
+description = "Discord Bot Token"
+regex = '''[MN][A-Za-z\d]{23}\.[\w-]{6}\.[\w-]{27}'''
+tags = ["key", "discord"]
+
+# Allowlist patterns (these will be ignored)
+[[rules]]
+description = "Test API Key (allowlisted)"
+regex = '''test[_-]?api[_-]?key[\s]*[:=][\s]*["']?test[_-]?key["']?'''
+tags = ["test"]
+allowlist = true
+
+[[rules]]
+description = "Example API Key (allowlisted)"
+regex = '''example[_-]?api[_-]?key[\s]*[:=][\s]*["']?example[_-]?key["']?'''
+tags = ["example"]
+allowlist = true
+
+[[rules]]
+description = "Mock API Key (allowlisted)"
+regex = '''mock[_-]?api[_-]?key[\s]*[:=][\s]*["']?mock[_-]?key["']?'''
+tags = ["mock"]
+allowlist = true
+

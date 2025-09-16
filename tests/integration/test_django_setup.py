@@ -58,7 +58,7 @@ def test_django_imports():
         assert False, f"django-colorfield import failed: {e}"
 
     # All imports successful
-    assert True
+    return True
 
 
 def test_other_dependencies():
@@ -98,7 +98,9 @@ def test_other_dependencies():
         except ImportError as e:
             print(f"⚠️  {display_name} not available (optional): {e}")
 
-    assert all_good, "Some required dependencies failed to import"
+    if not all_good:
+        assert False, "Some required dependencies failed to import"
+    return True
 
 
 def test_django_setup():
@@ -122,7 +124,7 @@ def test_django_setup():
         db_config = settings.DATABASES["default"]
         print(f"✅ Database configuration loaded: {db_config['ENGINE']}")
 
-        assert True  # Django setup successful
+        return True  # Django setup successful
 
     except Exception as e:
         print(f"❌ Django setup failed: {e}")

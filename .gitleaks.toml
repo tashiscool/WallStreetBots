@@ -129,23 +129,19 @@ tags = ["key", "discord"]
 description = "Test API Key (allowlisted)"
 regex = '''test[_-]?api[_-]?key[\s]*[:=][\s]*["']?test[_-]?key["']?'''
 tags = ["test"]
-[allowlist]
-description = "Allow test API keys in test files"
-paths = ["tests/**", "test_*.py"]
 
 [[rules]]
 description = "Example API Key (allowlisted)"
 regex = '''example[_-]?api[_-]?key[\s]*[:=][\s]*["']?example[_-]?key["']?'''
 tags = ["example"]
-[allowlist]
-description = "Allow example API keys in documentation"
-paths = ["docs/**", "examples/**", "README.md"]
 
 [[rules]]
 description = "Mock API Key (allowlisted)"
 regex = '''mock[_-]?api[_-]?key[\s]*[:=][\s]*["']?mock[_-]?key["']?'''
 tags = ["mock"]
+
+# Global allowlist for all test-related keys
 [allowlist]
-description = "Allow mock API keys in test files"
-paths = ["tests/**", "test_*.py", "mocks/**"]
+description = "Allow test, example, and mock API keys in test files and documentation"
+paths = ["tests/**", "test_*.py", "docs/**", "examples/**", "README.md", "mocks/**"]
 

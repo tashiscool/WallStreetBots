@@ -1,0 +1,16 @@
+[
+  {
+    "ticker": "AAPL",
+    "ts_ny": "2025-01-17T16:00:00-05:00",
+    "spot": 150.0,
+    "expiry": "2025-02-21",
+    "strike": 157.5,
+    "otm_pct": 0.05,
+    "dte_days": 35,
+    "premium_est_per_contract": 3.5,
+    "contracts": 100,
+    "total_cost": 350.0,
+    "breakeven_at_expiry": 161.0,
+    "notes": "Test plan"
+  }
+]

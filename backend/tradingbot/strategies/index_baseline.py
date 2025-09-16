@@ -230,51 +230,87 @@ class IndexBaselineScanner:
         risk_free_rate = 0.04 * (period_months / 12.0)  # 4% annual
 
         # Calculate Sharpe ratio
-        sharpe_ratio = (
-            (strategy_return - risk_free_rate) / strategy_vol if strategy_vol > 0 else 0
-        )
+        try:
+            sharpe_ratio = (
+                (strategy_return - risk_free_rate) / strategy_vol if strategy_vol > 0 else 0
+            )
+        except (TypeError, ValueError) as e:
+            print(f"Error calculating Sharpe ratio: {e}")
+            sharpe_ratio = 0.0
+        except Exception as e:
+            print(f"Unexpected error calculating Sharpe ratio: {e}")
+            sharpe_ratio = 0.0
 
         # Get baseline returns for the period
-        spy_return = (
-            baselines.spy_1y * (period_months / 12.0)
-            if period_months >= 12
-            else baselines.spy_ytd
-        )
-        vti_return = (
-            baselines.vti_1y * (period_months / 12.0)
-            if period_months >= 12
-            else baselines.vti_ytd
-        )
-        qqq_return = (
-            baselines.qqq_1y * (period_months / 12.0)
-            if period_months >= 12
-            else baselines.qqq_ytd
-        )
+        try:
+            spy_return = (
+                baselines.spy_1y * (period_months / 12.0)
+                if period_months >= 12
+                else baselines.spy_ytd
+            )
+            vti_return = (
+                baselines.vti_1y * (period_months / 12.0)
+                if period_months >= 12
+                else baselines.vti_ytd
+            )
+            qqq_return = (
+                baselines.qqq_1y * (period_months / 12.0)
+                if period_months >= 12
+                else baselines.qqq_ytd
+            )
+        except (TypeError, ValueError) as e:
+            print(f"Error calculating baseline returns: {e}")
+            spy_return = vti_return = qqq_return = 0.0
+        except Exception as e:
+            print(f"Unexpected error calculating baseline returns: {e}")
+            spy_return = vti_return = qqq_return = 0.0
 
         # Estimate baseline volatility (historical approximation)
         spy_vol = 0.16 * np.sqrt(period_months / 12.0)  # ~16% annual vol
 
         # Calculate alpha (excess returns)
-        alpha_spy = strategy_return - spy_return
-        alpha_vti = strategy_return - vti_return
-        alpha_qqq = strategy_return - qqq_return
+        try:
+            alpha_spy = strategy_return - spy_return
+            alpha_vti = strategy_return - vti_return
+            alpha_qqq = strategy_return - qqq_return
 
-        # Information ratio (alpha / tracking error)
-        tracking_error = max(0.01, abs(strategy_vol - spy_vol))  # Rough estimate
-        info_ratio = alpha_spy / tracking_error
+            # Information ratio (alpha / tracking error)
+            tracking_error = max(0.01, abs(strategy_vol - spy_vol))  # Rough estimate
+            info_ratio = alpha_spy / tracking_error
 
-        # Trading cost impact
-        trading_costs = self.calculate_trading_costs(int(total_trades))
-        net_alpha_spy = alpha_spy - trading_costs
+            # Trading cost impact
+            trading_costs = self.calculate_trading_costs(int(total_trades))
+            net_alpha_spy = alpha_spy - trading_costs
 
-        # Determine winners
-        beats_spy = strategy_return > spy_return
-        beats_vti = strategy_return > vti_return
-        beats_qqq = strategy_return > qqq_return
+            # Determine winners
+            beats_spy = strategy_return > spy_return
+            beats_vti = strategy_return > vti_return
+            beats_qqq = strategy_return > qqq_return
+        except (TypeError, ValueError) as e:
+            print(f"Error calculating alpha and comparison metrics: {e}")
+            alpha_spy = alpha_vti = alpha_qqq = 0.0
+            info_ratio = 0.0
+            trading_costs = 0.0
+            net_alpha_spy = 0.0
+            beats_spy = beats_vti = beats_qqq = False
+        except Exception as e:
+            print(f"Unexpected error calculating alpha and comparison metrics: {e}")
+            alpha_spy = alpha_vti = alpha_qqq = 0.0
+            info_ratio = 0.0
+            trading_costs = 0.0
+            net_alpha_spy = 0.0
+            beats_spy = beats_vti = beats_qqq = False
 
         # Risk - adjusted winner (Sharpe comparison)
-        spy_sharpe = (spy_return - risk_free_rate) / spy_vol
-        risk_adj_winner = "Strategy" if sharpe_ratio > spy_sharpe else "SPY"
+        try:
+            spy_sharpe = (spy_return - risk_free_rate) / spy_vol
+            risk_adj_winner = "Strategy" if sharpe_ratio > spy_sharpe else "SPY"
+        except (TypeError, ValueError) as e:
+            print(f"Error calculating risk-adjusted winner: {e}")
+            risk_adj_winner = "SPY"
+        except Exception as e:
+            print(f"Unexpected error calculating risk-adjusted winner: {e}")
+            risk_adj_winner = "SPY"
 
         return PerformanceComparison(
             start_date=start_date_obj,

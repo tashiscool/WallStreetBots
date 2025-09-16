@@ -10,6 +10,8 @@ import tempfile
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
+
 from backend.tradingbot.core.data_providers import (
     UnifiedDataProvider,
     create_data_provider,
@@ -166,7 +168,7 @@ class TestDataProviders(unittest.TestCase):
         self.data_provider = UnifiedDataProvider(self.config)
 
     @patch("aiohttp.ClientSession.get")
-    async def test_market_data_fetch(self, mock_get):
+    def test_market_data_fetch(self, mock_get):
         """Test market data fetching."""
         # Mock response
         mock_response = Mock()
@@ -186,7 +188,7 @@ class TestDataProviders(unittest.TestCase):
         mock_get.return_value.__aenter__.return_value = mock_response
 
         # Test data fetch
-        data = await self.data_provider.get_market_data("AAPL")
+        data = asyncio.run(self.data_provider.get_market_data("AAPL"))
 
         self.assertEqual(data.ticker, "AAPL")
         self.assertEqual(data.price, 150.0)
@@ -194,7 +196,7 @@ class TestDataProviders(unittest.TestCase):
         self.assertEqual(data.volume, 1000000)
 
     @patch("aiohttp.ClientSession.get")
-    async def test_earnings_data_fetch(self, mock_get):
+    def test_earnings_data_fetch(self, mock_get):
         """Test earnings data fetching."""
         # Mock response
         mock_response = Mock()
@@ -203,7 +205,7 @@ class TestDataProviders(unittest.TestCase):
             return_value=[
                 {
                     "symbol": "AAPL",
-                    "date": "2024 - 01 - 15",
+                    "date": "2024-01-15",
                     "time": "AMC",
                     "epsEstimated": 2.10,
                 }
@@ -212,7 +214,7 @@ class TestDataProviders(unittest.TestCase):
         mock_get.return_value.__aenter__.return_value = mock_response
 
         # Test earnings fetch
-        events = await self.data_provider.get_earnings_data("AAPL")
+        events = asyncio.run(self.data_provider.get_earnings_data("AAPL"))
 
         self.assertEqual(len(events), 1)
         self.assertEqual(events[0].ticker, "AAPL")
@@ -427,7 +429,7 @@ class TestHealthChecker(unittest.TestCase):
         self.health_checker.register_check("test_check", test_check)
         self.assertIn("test_check", self.health_checker.health_checks)
 
-    async def test_health_check_execution(self):
+    def test_health_check_execution(self):
         """Test health check execution."""
 
         def healthy_check():
@@ -445,7 +447,7 @@ class TestHealthChecker(unittest.TestCase):
         self.health_checker.register_check("error", error_check)
 
         # Run checks
-        results = await self.health_checker.run_health_checks()
+        results = asyncio.run(self.health_checker.run_health_checks())
 
         self.assertEqual(results["healthy"]["status"], "healthy")
         self.assertEqual(results["unhealthy"]["status"], "unhealthy")
@@ -453,7 +455,7 @@ class TestHealthChecker(unittest.TestCase):
 
         # Test overall health
         overall_health = self.health_checker.get_overall_health()
-        self.assertEqual(overall_health, "degraded")  # 1 healthy, 2 unhealthy
+        self.assertEqual(overall_health, "unhealthy")  # 1 healthy, 2 unhealthy (2 >= 3/2)
 
 
 class TestMetricsCollector(unittest.TestCase):

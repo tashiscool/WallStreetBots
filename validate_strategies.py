@@ -107,7 +107,7 @@ class StrategyValidator:
                 )
 
         except Exception as e:
-            self.print_result("Alpaca API Connection", False, f"Exception: {str(e)}")
+            self.print_result("Alpaca API Connection", False, f"Exception: {e!s}")
             return False
 
         return True
@@ -140,7 +140,7 @@ class StrategyValidator:
 
             # List loaded strategies
             if strategy_count > 0:
-                print(f"   Loaded strategies:")
+                print("   Loaded strategies:")
                 for name, strategy in manager.strategies.items():
                     status = "✅" if strategy else "❌"
                     print(f"     {status} {name}")
@@ -156,7 +156,7 @@ class StrategyValidator:
             return manager
 
         except Exception as e:
-            self.print_result("Strategy Loading", False, f"Exception: {str(e)}")
+            self.print_result("Strategy Loading", False, f"Exception: {e!s}")
             return None
 
     async def test_data_integration(self, manager):
@@ -194,7 +194,7 @@ class StrategyValidator:
                     )
 
                 except Exception as e:
-                    self.print_result("Market Data Retrieval", False, f"Exception: {str(e)}")
+                    self.print_result("Market Data Retrieval", False, f"Exception: {e!s}")
 
             # Test database connectivity
             try:
@@ -211,10 +211,10 @@ class StrategyValidator:
                 )
 
             except Exception as e:
-                self.print_result("Database Connectivity", False, f"Exception: {str(e)}")
+                self.print_result("Database Connectivity", False, f"Exception: {e!s}")
 
         except Exception as e:
-            self.print_result("Data Integration", False, f"Exception: {str(e)}")
+            self.print_result("Data Integration", False, f"Exception: {e!s}")
 
     async def test_risk_management(self, manager):
         """Test risk management systems."""
@@ -257,10 +257,10 @@ class StrategyValidator:
                 )
 
             except Exception as e:
-                self.print_result("Risk Calculation Framework", False, f"Exception: {str(e)}")
+                self.print_result("Risk Calculation Framework", False, f"Exception: {e!s}")
 
         except Exception as e:
-            self.print_result("Risk Management", False, f"Exception: {str(e)}")
+            self.print_result("Risk Management", False, f"Exception: {e!s}")
 
     async def test_strategy_logic(self, manager):
         """Test basic strategy logic."""
@@ -297,7 +297,7 @@ class StrategyValidator:
             )
 
         except Exception as e:
-            self.print_result("Strategy Logic", False, f"Exception: {str(e)}")
+            self.print_result("Strategy Logic", False, f"Exception: {e!s}")
 
     async def test_simulation_mode(self, manager):
         """Test simulation/paper trading functionality."""
@@ -333,10 +333,10 @@ class StrategyValidator:
                     )
 
             except Exception as e:
-                self.print_result("Paper Account Access", False, f"Exception: {str(e)}")
+                self.print_result("Paper Account Access", False, f"Exception: {e!s}")
 
         except Exception as e:
-            self.print_result("Simulation Mode", False, f"Exception: {str(e)}")
+            self.print_result("Simulation Mode", False, f"Exception: {e!s}")
 
     def print_summary(self):
         """Print validation summary."""

@@ -321,15 +321,35 @@ class AdvancedAnalytics:
 
     def _calculate_volatility(self, returns: np.ndarray) -> float:
         """Calculate annualized volatility."""
-        return float(np.std(returns) * np.sqrt(252))
+        try:
+            if len(returns) == 0:
+                return 0.0
+            return float(np.std(returns) * np.sqrt(252))
+        except (ValueError, TypeError) as e:
+            print(f"Error calculating volatility: {e}")
+            return 0.0
+        except Exception as e:
+            print(f"Unexpected error calculating volatility: {e}")
+            return 0.0
 
     def _calculate_sharpe_ratio(self, returns: np.ndarray) -> float:
         """Calculate Sharpe ratio."""
-        if len(returns) == 0 or np.std(returns) == 0:
-            return 0.0
+        try:
+            if len(returns) == 0:
+                return 0.0
+            
+            std_returns = np.std(returns)
+            if std_returns == 0:
+                return 0.0
 
-        excess_returns = returns - (self.risk_free_rate / 252)
-        return float(np.mean(excess_returns) * 252 / (np.std(returns) * np.sqrt(252)))
+            excess_returns = returns - (self.risk_free_rate / 252)
+            return float(np.mean(excess_returns) * 252 / (std_returns * np.sqrt(252)))
+        except (ValueError, TypeError) as e:
+            print(f"Error calculating Sharpe ratio: {e}")
+            return 0.0
+        except Exception as e:
+            print(f"Unexpected error calculating Sharpe ratio: {e}")
+            return 0.0
 
     def _calculate_sortino_ratio(self, returns: np.ndarray) -> float:
         """Calculate Sortino ratio (downside deviation)."""
@@ -411,13 +431,23 @@ class AdvancedAnalytics:
 
     def _calculate_profit_factor(self, returns: np.ndarray) -> float:
         """Calculate profit factor."""
-        wins = returns[returns > 0]
-        losses = returns[returns < 0]
+        try:
+            if len(returns) == 0:
+                return 0.0
+                
+            wins = returns[returns > 0]
+            losses = returns[returns < 0]
 
-        gross_profit = np.sum(wins) if len(wins) > 0 else 0.0
-        gross_loss = abs(np.sum(losses)) if len(losses) > 0 else 0.0
+            gross_profit = np.sum(wins) if len(wins) > 0 else 0.0
+            gross_loss = abs(np.sum(losses)) if len(losses) > 0 else 0.0
 
-        return float(gross_profit / gross_loss) if gross_loss > 0 else 0.0
+            return float(gross_profit / gross_loss) if gross_loss > 0 else 0.0
+        except (ValueError, TypeError) as e:
+            print(f"Error calculating profit factor: {e}")
+            return 0.0
+        except Exception as e:
+            print(f"Unexpected error calculating profit factor: {e}")
+            return 0.0
 
     def _calculate_relative_metrics(
         self, returns: np.ndarray, benchmark_returns: np.ndarray | None
@@ -432,11 +462,19 @@ class AdvancedAnalytics:
         benchmark_returns = benchmark_returns[:min_len]
 
         # Calculate beta
-        if np.var(benchmark_returns) > 0:
-            beta = float(
-                np.cov(returns, benchmark_returns)[0, 1] / np.var(benchmark_returns)
-            )
-        else:
+        try:
+            benchmark_var = np.var(benchmark_returns)
+            if benchmark_var > 0:
+                beta = float(
+                    np.cov(returns, benchmark_returns)[0, 1] / benchmark_var
+                )
+            else:
+                beta = 1.0
+        except (ValueError, TypeError) as e:
+            print(f"Error calculating beta: {e}")
+            beta = 1.0
+        except Exception as e:
+            print(f"Unexpected error calculating beta: {e}")
             beta = 1.0
 
         # Calculate alpha

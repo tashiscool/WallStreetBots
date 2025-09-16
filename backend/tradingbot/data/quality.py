@@ -319,18 +319,25 @@ class OutlierDetector:
         Returns:
             bool: True if price is an outlier
         """
-        if symbol not in self.price_history or len(self.price_history[symbol]) < 5:
+        try:
+            if symbol not in self.price_history or len(self.price_history[symbol]) < 5:
+                return False
+            
+            prices = self.price_history[symbol]
+            mean_price = np.mean(prices)
+            std_price = np.std(prices)
+            
+            if std_price == 0:
+                return False
+            
+            z_score = abs((price - mean_price) / std_price)
+            return z_score > self.z_threshold
+        except (ValueError, TypeError, IndexError) as e:
+            print(f"Data access error in is_outlier for {symbol}: {e}")
             return False
-        
-        prices = self.price_history[symbol]
-        mean_price = np.mean(prices)
-        std_price = np.std(prices)
-        
-        if std_price == 0:
+        except Exception as e:
+            print(f"Unexpected error in is_outlier for {symbol}: {e}")
             return False
-        
-        z_score = abs((price - mean_price) / std_price)
-        return z_score > self.z_threshold
     
     def get_statistics(self, symbol: str) -> dict:
         """Get statistics for a symbol's price history.

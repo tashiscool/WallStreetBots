@@ -62,7 +62,7 @@ django-debug-toolbar>=4.4.6  # Development debugging (dev only)
 django-environ>=0.11.2  # Environment variable management
 
 # Security and observability
-gitleaks>=8.18.0  # Secret detection (optional CLI tool)
+# gitleaks>=8.18.0  # Secret detection (CLI tool - install separately as binary)
 bandit>=1.7.0  # Security linting
 safety>=3.2.0  # Dependency security scanning
 sentry-sdk[django]>=2.19.2  # Error tracking and performance monitoring

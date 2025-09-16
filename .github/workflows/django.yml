@@ -15,8 +15,14 @@ jobs:
     env:
       SECRET_KEY: "secret_key"
       GITHUB_WORKFLOW: "true"
+      CI: "true"
       DATABASE_URL: "postgres://postgres:password@127.0.0.1:5432/test"
       PYTHONPATH: "${{ github.workspace }}"
+      # Test environment variables for trading bot
+      ALPACA_API_KEY: "test_api_key"
+      ALPACA_SECRET_KEY: "test_secret_key"
+      DJANGO_SECRET_KEY: "test_django_secret_key_for_ci"
+      DRY_RUN: "true"
       
     services:
       postgres:

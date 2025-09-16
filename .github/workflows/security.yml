@@ -163,7 +163,7 @@ jobs:
       - name: Check licenses
         run: |
           pip-licenses --format=json --output-file=licenses.json
-          pip-licenses --format=table
+          pip-licenses --format=markdown
 
       - name: Upload license report
         uses: actions/upload-artifact@v4

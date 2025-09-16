@@ -5,6 +5,14 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      # Test environment variables (safe for CI)
+      ALPACA_API_KEY: "test_api_key"
+      ALPACA_SECRET_KEY: "test_secret_key"
+      DJANGO_SECRET_KEY: "test_django_secret_key_for_ci"
+      DRY_RUN: "true"
+      GITHUB_WORKFLOW: "true"
+      CI: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

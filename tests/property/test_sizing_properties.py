@@ -99,7 +99,6 @@ def test_lot_size_compliance(equity: float, pct: float, px: float, lot: int):
 @settings(max_examples=500)
 @given(
     equity=st.floats(min_value=1_000, max_value=10_000_000),
-    pct=st.floats(min_value=0.0, max_value=0.5),
     px=st.floats(min_value=0.5, max_value=5_000)
 )
 def test_zero_allocation_zero_quantity(equity: float, px: float):

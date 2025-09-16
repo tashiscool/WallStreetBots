@@ -58,6 +58,13 @@ jobs:
             echo "Waiting for PostgreSQL..."
             sleep 1
           done
+      - name: Create database users
+        run: |
+          # Create additional users that Django might need
+          PGPASSWORD=password psql -h 127.0.0.1 -U postgres -d test -c "CREATE ROLE root WITH LOGIN PASSWORD 'password';" || true
+          PGPASSWORD=password psql -h 127.0.0.1 -U postgres -d test -c "CREATE ROLE runner WITH LOGIN PASSWORD 'password';" || true
+          PGPASSWORD=password psql -h 127.0.0.1 -U postgres -d test -c "GRANT ALL PRIVILEGES ON DATABASE test TO root;" || true
+          PGPASSWORD=password psql -h 127.0.0.1 -U postgres -d test -c "GRANT ALL PRIVILEGES ON DATABASE test TO runner;" || true
       - name: Test Django setup
         run: python tests/integration/test_django_setup.py
       - name: Apply Migrations

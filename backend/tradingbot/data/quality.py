@@ -26,13 +26,21 @@ class DataQualityMonitor:
     - Corrupted data
     """
 
-    def __init__(self, max_staleness_sec: int = 60, max_return_z: float = 3.0):
+    def __init__(self, max_staleness_sec: float = 60, max_return_z: float = 3.0):
         """Initialize data quality monitor.
-        
+
         Args:
             max_staleness_sec: Maximum allowed data staleness in seconds
             max_return_z: Maximum Z-score for price returns (outlier threshold)
+
+        Raises:
+            ValueError: If max_staleness_sec is not positive or too large
         """
+        if max_staleness_sec <= 0:
+            raise ValueError("max_staleness_sec must be positive")
+        if max_staleness_sec >= 1e6:
+            raise ValueError("max_staleness_sec too large")
+            
         self.max_staleness_sec = max_staleness_sec
         self.max_return_z = max_return_z
         self.last_tick_ts = time.time()

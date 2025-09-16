@@ -4,6 +4,7 @@ import pytest
 import pandas as pd
 import tempfile
 import os
+from unittest.mock import patch
 from backend.tradingbot.data.client import MarketDataClient, BarSpec
 
 
@@ -28,8 +29,19 @@ class TestMarketDataClient:
             assert str(temp_dir) in str(cache_file)
 
     @pytest.mark.integration
-    def test_get_bars_basic(self):
+    @patch('yfinance.download')
+    def test_get_bars_basic(self, mock_download):
         """Integration test - fetch real market data"""
+        # Mock yfinance to return sample data
+        mock_data = pd.DataFrame({
+            'Open': [100, 101, 102, 103, 104],
+            'High': [101, 102, 103, 104, 105],
+            'Low': [99, 100, 101, 102, 103],
+            'Close': [100.5, 101.5, 102.5, 103.5, 104.5],
+            'Volume': [1000000, 1100000, 1200000, 1300000, 1400000]
+        })
+        mock_download.return_value = mock_data
+        
         with tempfile.TemporaryDirectory() as temp_dir:
             client = MarketDataClient(use_cache=True, cache_path=temp_dir)
             spec = BarSpec("SPY", "1d", "5d")
@@ -47,8 +59,19 @@ class TestMarketDataClient:
                 pass
 
     @pytest.mark.integration
-    def test_cache_functionality(self):
+    @patch('yfinance.download')
+    def test_cache_functionality(self, mock_download):
         """Test that caching works correctly"""
+        # Mock yfinance to return sample data
+        mock_data = pd.DataFrame({
+            'Open': [100, 101, 102, 103, 104],
+            'High': [101, 102, 103, 104, 105],
+            'Low': [99, 100, 101, 102, 103],
+            'Close': [100.5, 101.5, 102.5, 103.5, 104.5],
+            'Volume': [1000000, 1100000, 1200000, 1300000, 1400000]
+        })
+        mock_download.return_value = mock_data
+        
         with tempfile.TemporaryDirectory() as temp_dir:
             client = MarketDataClient(use_cache=True, cache_path=temp_dir)
             spec = BarSpec("SPY", "1d", "5d")

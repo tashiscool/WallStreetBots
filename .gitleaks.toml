@@ -127,17 +127,17 @@ tags = ["key", "discord"]
 # Allowlist patterns (these will be ignored)
 [[rules]]
 description = "Test API Key (allowlisted)"
-regex = '''test[_-]?api[_-]?key[\s]*[:=][\s]*["']?test[_-]?key["']?'''
+regex = "test[_-]?api[_-]?key[\\s]*[:=][\\s]*[\"']?test[_-]?key[\"']?"
 tags = ["test"]
 
 [[rules]]
 description = "Example API Key (allowlisted)"
-regex = '''example[_-]?api[_-]?key[\s]*[:=][\s]*["']?example[_-]?key["']?'''
+regex = "example[_-]?api[_-]?key[\\s]*[:=][\\s]*[\"']?example[_-]?key[\"']?"
 tags = ["example"]
 
 [[rules]]
 description = "Mock API Key (allowlisted)"
-regex = '''mock[_-]?api[_-]?key[\s]*[:=][\s]*["']?mock[_-]?key["']?'''
+regex = "mock[_-]?api[_-]?key[\\s]*[:=][\\s]*[\"']?mock[_-]?key[\"']?"
 tags = ["mock"]
 
 # Global allowlist for all test-related keys

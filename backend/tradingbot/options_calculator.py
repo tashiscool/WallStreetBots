@@ -333,11 +333,12 @@ class TradeCalculation:
     account_risk_pct: float
 
     def __str__(self) -> str:
-        return """
+        otm_pct = ((self.strike / self.spot_price - 1) * 100)
+        return f"""
 === OPTIONS TRADE CALCULATION===
 Ticker: {self.ticker}
 Current Price: ${self.spot_price:.2f}
-Strike: ${self.strike:.2f} ({((self.strike / self.spot_price-1) * 100):+.1f}% OTM)
+Strike: ${self.strike:.2f} ({otm_pct:+.1f}% OTM)
 Expiry: {self.expiry_date} ({self.days_to_expiry} DTE)
 
 POSITION SIZING:

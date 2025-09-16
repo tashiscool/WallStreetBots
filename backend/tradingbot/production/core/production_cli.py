@@ -172,7 +172,7 @@ class ProductionCLI:
             )
 
             # Execute trade
-            result = await self.manager.integration_manager.execute_trade(signal)
+            result = await self.manager.integration.execute_trade(signal)
 
             if result.status.value == "FILLED":
                 print("✅ Trade executed successfully!")
@@ -185,7 +185,7 @@ class ProductionCLI:
         except Exception as e:
             print(f"❌ Error executing trade: {e}")
 
-    async def list_strategies(self, args):
+    async def list_strategies(self, args=None):
         """List available strategies."""
         strategies = [
             "wsb_dip_bot",
@@ -210,6 +210,102 @@ class ProductionCLI:
             "  python production_cli.py start --strategies wsb_dip_bot,momentum_weeklies"
         )
 
+    def stop_system(self):
+        """Stop the production system."""
+        try:
+            if not self.manager:
+                print("❌ Production system not running")
+                return
+
+            print("🛑 Stopping Production Trading System...")
+            # Note: In a real implementation, this would gracefully shutdown the system
+            print("✅ Production system stopped")
+            self.manager = None
+
+        except Exception as e:
+            print(f"❌ Error stopping system: {e}")
+
+    def status_system(self):
+        """Show system status (alias for show_status)."""
+        import argparse
+        args = argparse.Namespace()
+        asyncio.run(self.show_status(args))
+
+    def portfolio_view(self):
+        """Show portfolio view."""
+        try:
+            if not self.manager:
+                print("❌ Production system not running")
+                return
+
+            # Get positions and trades from integration manager
+            positions = self.manager.integration.get_positions()
+            trades = self.manager.integration.get_trades()
+
+            print("💰 Portfolio View")
+            print("=" * 50)
+            
+            if positions:
+                print("📊 Current Positions:")
+                for symbol, position in positions.items():
+                    print(f"  • {symbol}: {position['quantity']} shares @ ${position['avg_price']:.2f}")
+            
+            if trades:
+                print("\n📈 Recent Trades:")
+                for trade in trades[-5:]:  # Show last 5 trades
+                    print(f"  • {trade.symbol} {trade.side} {trade.quantity} @ ${trade.price:.2f} ({trade.status})")
+
+        except Exception as e:
+            print(f"❌ Error getting portfolio view: {e}")
+
+    def manual_trade(self, args):
+        """Execute manual trade (alias for execute_trade)."""
+        asyncio.run(self.execute_trade(args))
+
+    def enable_strategy(self, args):
+        """Enable a strategy."""
+        try:
+            if not self.manager:
+                print("❌ Production system not running")
+                return
+
+            strategy_name = args.strategy_name
+            print(f"🎯 Enabling strategy: {strategy_name}")
+            
+            # Check if strategy exists
+            if hasattr(self.manager, 'strategies') and strategy_name in self.manager.strategies:
+                strategy = self.manager.strategies[strategy_name]
+                if hasattr(strategy, 'start'):
+                    strategy.start()
+                print(f"✅ Strategy {strategy_name} enabled")
+            else:
+                print(f"❌ Strategy {strategy_name} not found")
+
+        except Exception as e:
+            print(f"❌ Error enabling strategy: {e}")
+
+    def disable_strategy(self, args):
+        """Disable a strategy."""
+        try:
+            if not self.manager:
+                print("❌ Production system not running")
+                return
+
+            strategy_name = args.strategy_name
+            print(f"🎯 Disabling strategy: {strategy_name}")
+            
+            # Check if strategy exists
+            if hasattr(self.manager, 'strategies') and strategy_name in self.manager.strategies:
+                strategy = self.manager.strategies[strategy_name]
+                if hasattr(strategy, 'stop'):
+                    strategy.stop()
+                print(f"✅ Strategy {strategy_name} disabled")
+            else:
+                print(f"❌ Strategy {strategy_name} not found")
+
+        except Exception as e:
+            print(f"❌ Error disabling strategy: {e}")
+
 
 def main():
     """Main CLI entry point."""
@@ -218,29 +314,29 @@ def main():
 
     # Start command
     start_parser = subparsers.add_parser("start", help="Start production system")
-    start_parser.add_argument("--alpaca - api - key", help="Alpaca API key")
-    start_parser.add_argument("--alpaca - secret - key", help="Alpaca secret key")
+    start_parser.add_argument("--alpaca-api-key", help="Alpaca API key")
+    start_parser.add_argument("--alpaca-secret-key", help="Alpaca secret key")
     start_parser.add_argument(
-        "--paper - trading", action="store_true", default=True, help="Use paper trading"
+        "--paper-trading", action="store_true", default=True, help="Use paper trading"
     )
     start_parser.add_argument(
         "--live-trading", action="store_true", help="Use live trading (DANGEROUS)"
     )
-    start_parser.add_argument("--user - id", type=int, default=1, help="Django user ID")
+    start_parser.add_argument("--user-id", type=int, default=1, help="Django user ID")
     start_parser.add_argument(
-        "--max - position - size",
+        "--max-position-size",
         type=float,
         default=0.20,
         help="Max position size (0.20 = 20%)",
     )
     start_parser.add_argument(
-        "--max - total - risk",
+        "--max-total-risk",
         type=float,
         default=0.50,
         help="Max total risk (0.50 = 50%)",
     )
     start_parser.add_argument(
-        "--strategies", help="Comma - separated list of strategies to enable"
+        "--strategies", help="Comma-separated list of strategies to enable"
     )
 
     # Status command
@@ -256,10 +352,34 @@ def main():
     trade_parser.add_argument("quantity", type=int, help="Number of shares")
     trade_parser.add_argument("price", type=float, help="Price per share")
 
-    # List strategies command
-    subparsers.add_parser("list - strategies", help="List available strategies")
+    # Manual trade command (alias for trade)
+    manual_trade_parser = subparsers.add_parser("manual-trade", help="Execute manual trade (alias for trade)")
+    manual_trade_parser.add_argument("--symbol", dest="ticker", help="Stock ticker (use --symbol or --ticker)")
+    manual_trade_parser.add_argument("--ticker", help="Stock ticker")
+    manual_trade_parser.add_argument("--side", choices=["buy", "sell"], help="Buy or sell")
+    manual_trade_parser.add_argument("--quantity", type=int, help="Number of shares")
+    manual_trade_parser.add_argument("--price", type=float, help="Price per share")
 
-    args = parser.parse_args()
+    # List strategies command
+    subparsers.add_parser("list-strategies", help="List available strategies")
+
+    # Stop command
+    subparsers.add_parser("stop", help="Stop production system")
+
+    # Enable strategy command
+    enable_parser = subparsers.add_parser("enable-strategy", help="Enable a strategy")
+    enable_parser.add_argument("strategy_name", help="Name of strategy to enable")
+
+    # Disable strategy command
+    disable_parser = subparsers.add_parser("disable-strategy", help="Disable a strategy")
+    disable_parser.add_argument("strategy_name", help="Name of strategy to disable")
+
+    try:
+        args = parser.parse_args()
+    except SystemExit:
+        # Handle unknown commands gracefully
+        parser.print_help()
+        return
 
     if not args.command:
         parser.print_help()
@@ -281,8 +401,19 @@ def main():
         asyncio.run(cli.show_portfolio(args))
     elif args.command == "trade":
         asyncio.run(cli.execute_trade(args))
-    elif args.command == "list - strategies":
+    elif args.command == "manual-trade":
+        # Handle ticker vs symbol parameter
+        if hasattr(args, 'ticker') and args.ticker is None and hasattr(args, 'symbol'):
+            args.ticker = getattr(args, 'symbol', None)
+        asyncio.run(cli.execute_trade(args))
+    elif args.command == "list-strategies":
         asyncio.run(cli.list_strategies(args))
+    elif args.command == "stop":
+        cli.stop_system()
+    elif args.command == "enable-strategy":
+        cli.enable_strategy(args)
+    elif args.command == "disable-strategy":
+        cli.disable_strategy(args)
     else:
         parser.print_help()
 

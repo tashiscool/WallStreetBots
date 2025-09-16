@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import pathlib
 import logging
+import threading
 from typing import Dict, Optional
 
 log = logging.getLogger("wsb.replay_guard")
@@ -28,6 +29,11 @@ class ReplayGuard:
         self.p = pathlib.Path(path)
         self.p.parent.mkdir(parents=True, exist_ok=True)
         self.state: Dict[str, str] = {}
+        self._lock = threading.Lock()  # Thread safety
+        
+        # Create the file if it doesn't exist
+        if not self.p.exists():
+            self.p.touch()
         self._load_state()
 
     def _load_state(self) -> None:
@@ -39,6 +45,9 @@ class ReplayGuard:
             except Exception as e:
                 log.error(f"Failed to load replay guard state: {e}")
                 self.state = {}
+        else:
+            # File doesn't exist, clear in-memory state
+            self.state = {}
 
     def _save_state(self) -> None:
         """Save state to persistent storage."""
@@ -99,6 +108,36 @@ class ReplayGuard:
         # and clean up based on actual age
         log.info(f"Cleanup requested for orders older than {max_age_days} days")
         return 0
+
+    def should_process_order(self, order) -> bool:
+        """Check if an order should be processed (not seen before).
+        
+        Args:
+            order: Order object with client_order_id attribute
+            
+        Returns:
+            True if order should be processed (not seen before)
+        """
+        with self._lock:  # Thread-safe access
+            # Reload state to get latest changes from other processes
+            self._load_state()
+            
+            client_order_id = None
+            if hasattr(order, 'client_order_id'):
+                client_order_id = order.client_order_id
+            elif hasattr(order, 'id'):
+                client_order_id = order.id
+            
+            if client_order_id is None:
+                # If no client_order_id, assume it should be processed
+                return True
+                
+            if self.seen(client_order_id):
+                return False
+            
+            # Record the order as processed
+            self.record(client_order_id, "processed")
+            return True
 
     def status(self) -> dict:
         """Get replay guard status.

@@ -342,7 +342,13 @@ class EarningsProtectionScanner:
 
             return strategy
 
-        except Exception:
+        except (ValueError, IndexError, KeyError) as e:
+            # Handle specific data access errors that can occur with mocked data
+            print(f"Data access error in create_deep_itm_strategy: {e}")
+            return None
+        except Exception as e:
+            # Log unexpected errors but still return None for robustness
+            print(f"Unexpected error in create_deep_itm_strategy for {event.ticker}: {e}")
             return None
 
     def create_calendar_spread_strategy(
@@ -435,7 +441,13 @@ class EarningsProtectionScanner:
 
             return strategy
 
-        except Exception:
+        except (ValueError, IndexError, KeyError) as e:
+            # Handle specific data access errors that can occur with mocked data
+            print(f"Data access error in create_calendar_spread_strategy: {e}")
+            return None
+        except Exception as e:
+            # Log unexpected errors but still return None for robustness
+            print(f"Unexpected error in create_calendar_spread_strategy for {event.ticker}: {e}")
             return None
 
     def create_protective_hedge_strategy(
@@ -520,7 +532,13 @@ class EarningsProtectionScanner:
 
             return strategy
 
-        except Exception:
+        except (ValueError, IndexError, KeyError) as e:
+            # Handle specific data access errors that can occur with mocked data
+            print(f"Data access error in create_protective_hedge_strategy: {e}")
+            return None
+        except Exception as e:
+            # Log unexpected errors but still return None for robustness
+            print(f"Unexpected error in create_protective_hedge_strategy for {event.ticker}: {e}")
             return None
 
     def scan_earnings_protection(self) -> list[EarningsProtectionStrategy]:

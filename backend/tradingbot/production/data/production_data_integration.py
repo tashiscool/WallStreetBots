@@ -271,7 +271,7 @@ class ReliableDataProvider:
                     open=Decimal(str(bar.get("open", 0))),
                     close=Decimal(str(bar.get("close", 0))),
                     timestamp=datetime.fromisoformat(
-                        bar.get("timestamp", "").replace("Z", "+00: 00")
+                        bar.get("timestamp", "").replace("Z", "+00:00")
                     )
                     if isinstance(bar.get("timestamp"), str)
                     else bar.get("timestamp", datetime.now()),
@@ -318,7 +318,7 @@ class ReliableDataProvider:
                             option_data = OptionsData(
                                 ticker=ticker,
                                 strike=Decimal(str(row["strike"])),
-                                expiry_date=expiry_date,
+                                expiry=expiry_date,
                                 option_type="call",
                                 bid=Decimal(str(row["bid"]))
                                 if row["bid"] > 0
@@ -326,7 +326,7 @@ class ReliableDataProvider:
                                 ask=Decimal(str(row["ask"]))
                                 if row["ask"] > 0
                                 else None,
-                                last=Decimal(str(row["lastPrice"]))
+                                last_price=Decimal(str(row["lastPrice"]))
                                 if row["lastPrice"] > 0
                                 else None,
                                 volume=int(row["volume"])
@@ -340,6 +340,10 @@ class ReliableDataProvider:
                                 )
                                 if not pd.isna(row["impliedVolatility"])
                                 else None,
+                                delta=Decimal("0.5"),  # Default delta for calls
+                                gamma=Decimal("0.01"),  # Default gamma
+                                theta=Decimal("-0.01"),  # Default theta
+                                vega=Decimal("0.1"),  # Default vega
                                 timestamp=datetime.now(),
                             )
                             options_data.append(option_data)
@@ -349,7 +353,7 @@ class ReliableDataProvider:
                             option_data = OptionsData(
                                 ticker=ticker,
                                 strike=Decimal(str(row["strike"])),
-                                expiry_date=expiry_date,
+                                expiry=expiry_date,
                                 option_type="put",
                                 bid=Decimal(str(row["bid"]))
                                 if row["bid"] > 0
@@ -357,7 +361,7 @@ class ReliableDataProvider:
                                 ask=Decimal(str(row["ask"]))
                                 if row["ask"] > 0
                                 else None,
-                                last=Decimal(str(row["lastPrice"]))
+                                last_price=Decimal(str(row["lastPrice"]))
                                 if row["lastPrice"] > 0
                                 else None,
                                 volume=int(row["volume"])
@@ -371,6 +375,10 @@ class ReliableDataProvider:
                                 )
                                 if not pd.isna(row["impliedVolatility"])
                                 else None,
+                                delta=Decimal("0.5"),  # Default delta for calls
+                                gamma=Decimal("0.01"),  # Default gamma
+                                theta=Decimal("-0.01"),  # Default theta
+                                vega=Decimal("0.1"),  # Default vega
                                 timestamp=datetime.now(),
                             )
                             options_data.append(option_data)
@@ -846,7 +854,7 @@ class ReliableDataProvider:
                             open=Decimal(str(bar["open"])),
                             close=Decimal(str(bar["close"])),
                             timestamp=datetime.fromisoformat(
-                                bar["timestamp"].replace("Z", "+00: 00")
+                                bar["timestamp"].replace("Z", "+00:00")
                             )
                             if isinstance(bar["timestamp"], str)
                             else bar["timestamp"],

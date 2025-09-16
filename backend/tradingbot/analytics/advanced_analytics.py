@@ -570,8 +570,8 @@ class AdvancedAnalytics:
   Trading Days:         {metrics.trading_days: > 8d}
   Best Day:             {metrics.best_day: > 8.2%}
   Worst Day:            {metrics.worst_day: > 8.2%}
-  Positive Days:        {metrics.positive_days: > 8d} ({metrics.positive_days / max(metrics.trading_days, 1):  > 5.1%})
-  Negative Days:        {metrics.negative_days: > 8d} ({metrics.negative_days / max(metrics.trading_days, 1):  > 5.1%})
+  Positive Days:        {metrics.positive_days: > 8d} ({metrics.positive_days / max(metrics.trading_days, 1): > 5.1%})
+  Negative Days:        {metrics.negative_days: > 8d} ({metrics.negative_days / max(metrics.trading_days, 1): > 5.1%})
 
 🔄 RECOVERY METRICS:
   Recovery Factor:      {metrics.recovery_factor: > 8.2f}

@@ -47,19 +47,19 @@ class TestAlertDataClasses(unittest.TestCase):
 
     def test_alert_creation(self):
         """Test alert object creation and properties."""
-        self.assertEqual(self.sample_alert.alert_type, AlertType.ENTRY_SIGNAL)
-        self.assertEqual(self.sample_alert.priority, AlertPriority.HIGH)
-        self.assertEqual(self.sample_alert.ticker, "AAPL")
-        self.assertEqual(self.sample_alert.title, "Entry Signal Detected")
-        self.assertIn("AAPL", self.sample_alert.message)
-        self.assertEqual(self.sample_alert.data["price"], 150.0)
-        self.assertFalse(self.sample_alert.acknowledged)
-        self.assertIsInstance(self.sample_alert.timestamp, datetime)
+        assert self.sample_alert.alert_type == AlertType.ENTRY_SIGNAL
+        assert self.sample_alert.priority == AlertPriority.HIGH
+        assert self.sample_alert.ticker == "AAPL"
+        assert self.sample_alert.title == "Entry Signal Detected"
+        assert "AAPL" in self.sample_alert.message
+        assert self.sample_alert.data["price"] == 150.0
+        assert not self.sample_alert.acknowledged
+        assert isinstance(self.sample_alert.timestamp, datetime)
 
     def test_alert_json_serialization(self):
         """Test alert JSON serialization."""
         json_str = self.sample_alert.to_json()
-        self.assertIsInstance(json_str, str)
+        assert isinstance(json_str, str)
 
         # Should be valid JSON
         data = json.loads(json_str)
@@ -180,10 +180,10 @@ class TestAlertHandlers(unittest.TestCase):
             AlertHandler()
 
 
-class TestTradingAlertSystem(unittest.TestCase):
+class TestTradingAlertSystem:
     """Test main trading alert system."""
 
-    def setUp(self):
+    def setup_method(self):
         self.alert_system = TradingAlertSystem()
 
     def test_handler_registration(self):
@@ -191,8 +191,8 @@ class TestTradingAlertSystem(unittest.TestCase):
         handler = DesktopAlertHandler()
 
         self.alert_system.register_handler(AlertChannel.DESKTOP, handler)
-        self.assertIn(AlertChannel.DESKTOP, self.alert_system.handlers)
-        self.assertEqual(self.alert_system.handlers[AlertChannel.DESKTOP], handler)
+        assert AlertChannel.DESKTOP in self.alert_system.handlers
+        assert self.alert_system.handlers[AlertChannel.DESKTOP] == handler
 
     @pytest.mark.asyncio
     async def test_alert_sending(self):
@@ -213,10 +213,10 @@ class TestTradingAlertSystem(unittest.TestCase):
 
         results = await self.alert_system.send_alert(alert)
 
-        self.assertIn(AlertChannel.EMAIL, results)
-        self.assertTrue(results[AlertChannel.EMAIL])
+        assert AlertChannel.EMAIL in results
+        assert results[AlertChannel.EMAIL]
         mock_handler.send_alert.assert_called_once_with(alert)
-        self.assertIn(alert, self.alert_system.alert_history)
+        assert alert in self.alert_system.alert_history
 
     @pytest.mark.asyncio
     async def test_alert_filtering_by_priority(self):
@@ -239,7 +239,7 @@ class TestTradingAlertSystem(unittest.TestCase):
         )
 
         results = await self.alert_system.send_alert(low_alert)
-        self.assertEqual(results, {})  # No results due to filtering
+        assert results == {}  # No results due to filtering
         mock_handler.send_alert.assert_not_called()
 
         # High priority alert should pass
@@ -252,15 +252,15 @@ class TestTradingAlertSystem(unittest.TestCase):
             channels=[AlertChannel.DESKTOP],
         )
 
-        results = self.alert_system.send_alert(high_alert)
-        self.assertTrue(results[AlertChannel.DESKTOP])
+        results = await self.alert_system.send_alert(high_alert)
+        assert results[AlertChannel.DESKTOP]
         mock_handler.send_alert.assert_called_once_with(high_alert)
 
     @pytest.mark.asyncio
     async def test_alert_history_management(self):
         """Test alert history tracking."""
         # Initial state
-        self.assertEqual(len(self.alert_system.alert_history), 0)
+        assert len(self.alert_system.alert_history) == 0
 
         alert = Alert(
             alert_type=AlertType.TIME_WARNING,
@@ -271,8 +271,8 @@ class TestTradingAlertSystem(unittest.TestCase):
         )
 
         await self.alert_system.send_alert(alert)
-        self.assertEqual(len(self.alert_system.alert_history), 1)
-        self.assertEqual(self.alert_system.alert_history[0], alert)
+        assert len(self.alert_system.alert_history) == 1
+        assert self.alert_system.alert_history[0] == alert
 
         # Test history limit
         self.alert_system.max_history = 2
@@ -285,10 +285,10 @@ class TestTradingAlertSystem(unittest.TestCase):
                 title=f"Test Alert {i}",
                 message=f"Test message {i}",
             )
-            self.alert_system.send_alert(new_alert)
+            await self.alert_system.send_alert(new_alert)
 
         # Should only keep last 2 alerts
-        self.assertEqual(len(self.alert_system.alert_history), 2)
+        assert len(self.alert_system.alert_history) == 2
 
 
 class TestExecutionChecklistManager(unittest.TestCase):
@@ -442,10 +442,10 @@ class TestAlertUtilities(unittest.TestCase):
             self.assertFalse(result)
 
 
-class TestAlertIntegration(unittest.TestCase):
+class TestAlertIntegration:
     """Test alert system integration scenarios."""
 
-    def setUp(self):
+    def setup_method(self):
         self.alert_system = TradingAlertSystem()
         self.checklist_manager = ExecutionChecklistManager()
 
@@ -468,7 +468,7 @@ class TestAlertIntegration(unittest.TestCase):
 
         # Send setup alert
         results = await self.alert_system.send_alert(setup_alert)
-        self.assertTrue(results.get(AlertChannel.DESKTOP, False))
+        assert results.get(AlertChannel.DESKTOP, False)
 
         # 2. Create entry checklist
         trade_calc = Mock()
@@ -493,13 +493,13 @@ class TestAlertIntegration(unittest.TestCase):
             message="All conditions met for AAPL entry",
         )
 
-        results = self.alert_system.send_alert(entry_alert)
-        self.assertTrue(results.get(AlertChannel.DESKTOP, False))
+        results = await self.alert_system.send_alert(entry_alert)
+        assert results.get(AlertChannel.DESKTOP, False)
 
         # Verify workflow state
-        self.assertEqual(len(self.alert_system.alert_history), 2)
+        assert len(self.alert_system.alert_history) == 2
         checklist = self.checklist_manager.get_checklist(checklist_id)
-        self.assertGreater(checklist.completion_percentage, 0)
+        assert checklist.completion_percentage > 0
 
 
 def run_alert_system_tests():

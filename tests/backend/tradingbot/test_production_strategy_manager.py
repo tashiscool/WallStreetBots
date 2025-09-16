@@ -56,10 +56,23 @@ class TestProductionStrategyManager:
     @pytest.fixture
     def mock_data_provider(self):
         """Create mock data provider."""
+        import pandas as pd
+        
         mock_provider = Mock()
         mock_provider.is_market_open = AsyncMock(return_value=True)
         mock_provider.get_current_price = AsyncMock(return_value=100.0)
         mock_provider.get_recent_prices = AsyncMock(return_value=[95, 98, 100])
+        
+        # Mock historical data with a realistic DataFrame
+        mock_historical_data = pd.DataFrame({
+            'close': [100, 101, 102, 103, 104, 105],
+            'volume': [1000000, 1100000, 1200000, 1300000, 1400000, 1500000],
+            'high': [101, 102, 103, 104, 105, 106],
+            'low': [99, 100, 101, 102, 103, 104],
+            'open': [100, 101, 102, 103, 104, 105]
+        })
+        mock_provider.get_historical_data = AsyncMock(return_value=mock_historical_data)
+        
         return mock_provider
 
     @pytest.fixture

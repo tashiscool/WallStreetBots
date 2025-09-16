@@ -52,7 +52,8 @@ class CorporateActionsAdjuster:
                 df.loc[mask, "volume"] = df.loc[mask, "volume"] * a.factor
         df["split_adj_factor"] = adj_factor
         # Dividends (total return close)
-        df["tr_close"] = df["close"].astype(float)
+        close_col = price_cols[-1] if price_cols else "close"
+        df["tr_close"] = df[close_col].astype(float)
         for a in self.divs:
             try:
                 mask = df.index < a.date

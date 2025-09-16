@@ -90,7 +90,7 @@ RISK_PCT_DEFAULT = (
 
 
 def now_ny() -> datetime:
-    return datetime.now(pytz.timezone("America / New_York"))
+    return datetime.now(pytz.timezone("America/New_York"))
 
 
 def round_to_increment(x: float, inc: float = 1.0) -> float:

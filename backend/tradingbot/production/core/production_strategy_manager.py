@@ -79,10 +79,22 @@ class ProductionStrategyManagerConfig:
 
     # Strategy configurations
     strategies: dict[str, StrategyConfig] = field(default_factory=dict)
+    strategy_configs: dict[str, StrategyConfig] = field(default_factory=dict)
 
     # Risk management
     max_total_risk: float = 0.50  # 50% max total risk
     max_position_size: float = 0.20  # 20% max per position
+
+    def __post_init__(self):
+        """Validate configuration values."""
+        if self.max_total_risk > 1.0:
+            raise ValueError(f"max_total_risk must be <= 1.0, got {self.max_total_risk}")
+        if self.max_position_size > 1.0:
+            raise ValueError(f"max_position_size must be <= 1.0, got {self.max_position_size}")
+        if self.max_total_risk < 0:
+            raise ValueError(f"max_total_risk must be >= 0, got {self.max_total_risk}")
+        if self.max_position_size < 0:
+            raise ValueError(f"max_position_size must be >= 0, got {self.max_position_size}")
 
     # Data settings
     data_refresh_interval: int = 30  # seconds
@@ -1082,7 +1094,11 @@ def _preset_defaults(profile: StrategyProfile) -> dict[str, StrategyConfig]:
 
 def _apply_profile_risk_overrides(cfg: ProductionStrategyManagerConfig):
     """Tighten / loosen top - level risk based on profile."""
-    if cfg.profile == StrategyProfile.wsb_2025:
+    if cfg.profile == StrategyProfile.research_2024:
+        cfg.max_total_risk = 0.10  # Very conservative for research
+        cfg.max_position_size = 0.05  # Small position sizes
+        cfg.data_refresh_interval = 60  # Less frequent updates
+    elif cfg.profile == StrategyProfile.wsb_2025:
         cfg.max_total_risk = 0.65
         cfg.max_position_size = 0.30
         cfg.data_refresh_interval = 10
@@ -1538,9 +1554,132 @@ class ProductionStrategyManager:
                 "strategies": strategy_performance,
                 "data_cache_stats": self.data_provider.get_cache_stats(),
             }
+            
+            # Calculate comprehensive analytics if enabled
+            if self.advanced_analytics and hasattr(self.integration_manager, 'get_portfolio_history'):
+                try:
+                    portfolio_history = await self.integration_manager.get_portfolio_history()
+                    if portfolio_history and len(portfolio_history) > 1:
+                        # Convert portfolio history to returns
+                        portfolio_values = [entry.get('value', 0) for entry in portfolio_history]
+                        returns = []
+                        for i in range(1, len(portfolio_values)):
+                            if portfolio_values[i-1] != 0:
+                                returns.append((portfolio_values[i] - portfolio_values[i-1]) / portfolio_values[i-1])
+                        
+                        if returns:
+                            analytics_result = self.advanced_analytics.calculate_comprehensive_metrics(
+                                returns=returns,
+                                portfolio_values=portfolio_values
+                            )
+                            self.performance_metrics["analytics"] = analytics_result
+                except Exception as e:
+                    self.logger.error(f"Error calculating analytics: {e}")
 
         except Exception as e:
             self.logger.error(f"Error updating performance metrics: {e}")
+
+    async def _check_regime_adaptation(self):
+        """Check market regime and adapt strategies if needed."""
+        if not self.market_regime_adapter:
+            return
+            
+        try:
+            # Get market data for regime detection
+            market_data = self.data_provider.get_market_data()
+            current_regime = self.market_regime_adapter.detect_current_regime(market_data)
+            adaptation = self.market_regime_adapter.generate_strategy_adaptation(current_regime)
+            
+            if adaptation:
+                self.current_regime_adaptation = adaptation
+                self.logger.info(f"Market regime adaptation: {adaptation}")
+                
+        except Exception as e:
+            self.logger.error(f"Error checking regime adaptation: {e}")
+
+    async def _send_performance_alert(self, message: str, level: str = "info"):
+        """Send performance alert."""
+        try:
+            await self.integration_manager.send_alert(message, level)
+        except Exception as e:
+            self.logger.error(f"Error sending alert: {e}")
+
+    async def update_strategy_config(self, strategy_name: str, config: StrategyConfig):
+        """Update strategy configuration."""
+        try:
+            if strategy_name in self.strategies:
+                strategy = self.strategies[strategy_name]
+                if hasattr(strategy, 'update_config'):
+                    await strategy.update_config(config)
+                # Update the config in the manager's config
+                self.config.strategy_configs[strategy_name] = config
+                self.logger.info(f"Updated config for strategy: {strategy_name}")
+            else:
+                self.logger.warning(f"Strategy not found: {strategy_name}")
+        except Exception as e:
+            self.logger.error(f"Error updating strategy config: {e}")
+
+    async def emergency_shutdown(self, reason: str):
+        """Emergency shutdown of the system."""
+        try:
+            self.logger.critical(f"EMERGENCY SHUTDOWN: {reason}")
+            await self._send_performance_alert(f"Emergency shutdown: {reason}", "critical")
+            await self.stop()
+        except Exception as e:
+            self.logger.error(f"Error during emergency shutdown: {e}")
+
+    async def _send_heartbeat(self):
+        """Send heartbeat signal."""
+        try:
+            self.last_heartbeat = datetime.now()
+            await self._send_performance_alert("System heartbeat", "debug")
+        except Exception as e:
+            self.logger.error(f"Error sending heartbeat: {e}")
+
+    async def _check_data_provider_health(self):
+        """Check data provider health status."""
+        try:
+            # Test basic functionality
+            is_open = await self.data_provider.is_market_open()
+            return {
+                "status": "healthy",
+                "market_open": is_open,
+                "timestamp": datetime.now().isoformat()
+            }
+        except Exception as e:
+            self.logger.error(f"Data provider health check failed: {e}")
+            return {
+                "status": "unhealthy",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+
+    async def _monitor_strategies(self):
+        """Monitor strategy execution and performance."""
+        try:
+            for strategy_name, strategy in self.strategies.items():
+                try:
+                    # Generate signals if method exists
+                    if hasattr(strategy, 'generate_signals'):
+                        signals = await strategy.generate_signals()
+                        self.logger.debug(f"Strategy {strategy_name} generated {len(signals)} signals")
+                    
+                    # Get performance if method exists
+                    if hasattr(strategy, 'get_performance'):
+                        performance = await strategy.get_performance()
+                        self.logger.debug(f"Strategy {strategy_name} performance: {performance}")
+                except Exception as e:
+                    self.logger.error(f"Error monitoring strategy {strategy_name}: {e}")
+        except Exception as e:
+            self.logger.error(f"Error in strategy monitoring: {e}")
+
+    async def _save_performance_metrics(self, metrics: PerformanceMetrics):
+        """Save performance metrics to persistent storage."""
+        try:
+            self.analytics_history.append(metrics)
+            self.logger.debug(f"Saved performance metrics: {metrics.total_return:.2%}")
+        except Exception as e:
+            self.logger.error(f"Error saving performance metrics: {e}")
 
     async def _analytics_loop(self):
         """Advanced analytics calculation loop."""
@@ -1860,6 +1999,33 @@ class ProductionStrategyManager:
         except Exception as e:
             self.logger.error(f"Error getting performance for {strategy_name}: {e}")
             return None
+
+    # Alias methods for compatibility with tests
+    async def start(self) -> bool:
+        """Start the strategy manager (alias for start_all_strategies)."""
+        return await self.start_all_strategies()
+
+    async def stop(self):
+        """Stop the strategy manager (alias for stop_all_strategies)."""
+        await self.stop_all_strategies()
+
+    async def get_status(self) -> dict[str, Any]:
+        """Get basic status (alias for get_system_status)."""
+        return self.get_system_status()
+
+    async def get_detailed_status(self) -> dict[str, Any]:
+        """Get detailed status including analytics and regime adaptation."""
+        status = self.get_system_status()
+        
+        # Add advanced analytics summary
+        if self.advanced_analytics:
+            status["advanced_analytics"] = self.get_advanced_analytics_summary()
+        
+        # Add regime adaptation summary
+        if self.market_regime_adapter:
+            status["regime_adaptation"] = self.get_regime_adaptation_summary()
+        
+        return status
 
 
 # Factory function

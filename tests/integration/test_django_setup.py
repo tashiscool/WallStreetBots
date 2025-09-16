@@ -15,7 +15,7 @@ def test_django_imports():
         print(f"✅ Django {django.get_version()} imported successfully")
     except ImportError as e:
         print(f"❌ Django import failed: {e}")
-        return False
+        assert False, f"Django import failed: {e}"
 
     try:
         import rest_framework
@@ -23,7 +23,7 @@ def test_django_imports():
         print("✅ Django REST Framework imported successfully")
     except ImportError as e:
         print(f"❌ Django REST Framework import failed: {e}")
-        return False
+        assert False, f"Django REST Framework import failed: {e}"
 
     try:
         import corsheaders
@@ -31,7 +31,7 @@ def test_django_imports():
         print("✅ django - cors - headers imported successfully")
     except ImportError as e:
         print(f"❌ django - cors - headers import failed: {e}")
-        return False
+        assert False, f"django-cors-headers import failed: {e}"
 
     try:
         import social_django
@@ -39,7 +39,7 @@ def test_django_imports():
         print("✅ social - auth - app - django imported successfully")
     except ImportError as e:
         print(f"❌ social - auth - app - django import failed: {e}")
-        return False
+        assert False, f"social-auth-app-django import failed: {e}"
 
     try:
         import admin_interface
@@ -47,7 +47,7 @@ def test_django_imports():
         print("✅ django - admin - interface imported successfully")
     except ImportError as e:
         print(f"❌ django - admin - interface import failed: {e}")
-        return False
+        assert False, f"django-admin-interface import failed: {e}"
 
     try:
         import colorfield
@@ -55,19 +55,18 @@ def test_django_imports():
         print("✅ django - colorfield imported successfully")
     except ImportError as e:
         print(f"❌ django - colorfield import failed: {e}")
-        return False
+        assert False, f"django-colorfield import failed: {e}"
 
-    return True
+    # All imports successful
+    assert True
 
 
 def test_other_dependencies():
     """Test other required dependencies."""
     print("\nTesting other dependencies...")
 
-    dependencies = [
-        ("apscheduler", "APScheduler"),
-        ("alpaca", "Alpaca - py (Modern API)"),
-        ("plotly", "Plotly"),
+    # Core required dependencies
+    required_dependencies = [
         ("pandas", "Pandas"),
         ("numpy", "NumPy"),
         ("yfinance", "yfinance"),
@@ -75,8 +74,15 @@ def test_other_dependencies():
         ("requests", "requests"),
     ]
 
+    # Optional dependencies for production features
+    optional_dependencies = [
+        ("apscheduler", "APScheduler"),
+        ("alpaca", "Alpaca - py (Modern API)"),
+        ("plotly", "Plotly"),
+    ]
+
     all_good = True
-    for module_name, display_name in dependencies:
+    for module_name, display_name in required_dependencies:
         try:
             __import__(module_name)
             print(f"✅ {display_name} imported successfully")
@@ -84,7 +90,15 @@ def test_other_dependencies():
             print(f"❌ {display_name} import failed: {e}")
             all_good = False
 
-    return all_good
+    # Test optional dependencies but don't fail if missing
+    for module_name, display_name in optional_dependencies:
+        try:
+            __import__(module_name)
+            print(f"✅ {display_name} imported successfully")
+        except ImportError as e:
+            print(f"⚠️  {display_name} not available (optional): {e}")
+
+    assert all_good, "Some required dependencies failed to import"
 
 
 def test_django_setup():
@@ -108,14 +122,14 @@ def test_django_setup():
         db_config = settings.DATABASES["default"]
         print(f"✅ Database configuration loaded: {db_config['ENGINE']}")
 
-        return True
+        assert True  # Django setup successful
 
     except Exception as e:
         print(f"❌ Django setup failed: {e}")
         import traceback
 
         traceback.print_exc()
-        return False
+        assert False, f"Django setup failed: {e}"
 
 
 def main():

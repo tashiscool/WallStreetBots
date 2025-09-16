@@ -26,7 +26,7 @@ class DataQualityMonitor:
     - Corrupted data
     """
 
-    def __init__(self, max_staleness_sec: int = 20, max_return_z: float = 6.0):
+    def __init__(self, max_staleness_sec: int = 60, max_return_z: float = 3.0):
         """Initialize data quality monitor.
         
         Args:
@@ -37,6 +37,7 @@ class DataQualityMonitor:
         self.max_return_z = max_return_z
         self.last_tick_ts = time.time()
         self.last_prices: dict[str, float] = {}
+        self.price_history: dict[str, list[float]] = {}
 
     def mark_tick(self) -> None:
         """Mark data tick as fresh (call on every data update)."""
@@ -184,3 +185,221 @@ class DataQualityMonitor:
             "max_return_z": self.max_return_z,
             "is_fresh": self.get_staleness_seconds() <= self.max_staleness_sec,
         }
+
+    def validate_price(self, symbol: str, price: float) -> dict:
+        """Validate price data for quality issues.
+        
+        Args:
+            symbol: Stock symbol
+            price: Current price to validate
+            
+        Returns:
+            dict: Validation results with quality metrics
+            
+        Raises:
+            RuntimeError: If price is an outlier or data is stale
+        """
+        if price is None:
+            raise ValueError("Price cannot be None")
+        
+        self.mark_tick()
+        
+        # Check for staleness
+        staleness_sec = self.get_staleness_seconds()
+        is_fresh = staleness_sec <= self.max_staleness_sec
+        
+        if not is_fresh:
+            raise RuntimeError("STALE_DATA")
+        
+        # Initialize price history for symbol if needed
+        if symbol not in self.price_history:
+            self.price_history[symbol] = []
+        
+        # Check for outliers if we have previous price
+        is_outlier = False
+        if symbol in self.last_prices:
+            prev_price = self.last_prices[symbol]
+            if prev_price > 0:
+                return_pct = (price - prev_price) / prev_price
+                # Check if this is an outlier based on max_return_z
+                if abs(return_pct) > self.max_return_z / 10:  # Convert to percentage
+                    is_outlier = True
+                    raise RuntimeError("PRICE_OUTLIER")
+        
+        # Update last price and history
+        self.last_prices[symbol] = price
+        self.price_history[symbol].append(price)
+        
+        # Limit history size for memory management (keep last 150 prices)
+        if len(self.price_history[symbol]) > 150:
+            self.price_history[symbol] = self.price_history[symbol][-150:]
+        
+        return {
+            "symbol": symbol,
+            "price": price,
+            "staleness_sec": staleness_sec,
+            "is_fresh": is_fresh,
+            "is_outlier": is_outlier,
+            "validation_passed": is_fresh and not is_outlier
+        }
+
+    def get_quality_report(self) -> dict:
+        """Get comprehensive quality report.
+        
+        Returns:
+            dict: Complete quality report with all metrics
+        """
+        staleness_sec = self.get_staleness_seconds()
+        is_fresh = staleness_sec <= self.max_staleness_sec
+        
+        # Calculate additional metrics
+        symbols_tracked = len(self.last_prices)
+        total_price_points = sum(len(history) for history in self.price_history.values())
+        
+        # Calculate average prices and ranges
+        average_prices = {}
+        price_ranges = {}
+        for symbol, history in self.price_history.items():
+            if history:
+                average_prices[symbol] = sum(history) / len(history)
+                price_ranges[symbol] = {"min": min(history), "max": max(history)}
+        
+        return {
+            "overall_status": "healthy" if is_fresh else "stale",
+            "staleness_seconds": staleness_sec,
+            "max_staleness_seconds": self.max_staleness_sec,
+            "is_fresh": is_fresh,
+            "max_return_z_threshold": self.max_return_z,
+            "tracked_symbols": list(self.last_prices.keys()),
+            "symbol_count": symbols_tracked,
+            "symbols_tracked": symbols_tracked,
+            "total_price_points": total_price_points,
+            "freshness_status": "fresh" if is_fresh else "stale",
+            "outliers_detected": 0,  # Would need to track this separately
+            "average_prices": average_prices,
+            "price_ranges": price_ranges,
+            "update_frequencies": {},  # Would need to track this separately
+            "last_tick_timestamp": self.last_tick_ts,
+            "current_time": time.time()
+        }
+
+
+class OutlierDetector:
+    """Detect outliers in price data using statistical methods."""
+    
+    def __init__(self, window_size: int = 20, z_threshold: float = 3.0):
+        """Initialize outlier detector.
+        
+        Args:
+            window_size: Number of recent prices to consider
+            z_threshold: Z-score threshold for outlier detection
+        """
+        self.window_size = window_size
+        self.z_threshold = z_threshold
+        self.price_history: dict[str, list[float]] = {}
+    
+    def add_price(self, symbol: str, price: float) -> None:
+        """Add price to history for outlier detection."""
+        if symbol not in self.price_history:
+            self.price_history[symbol] = []
+        
+        self.price_history[symbol].append(price)
+        
+        # Keep only recent prices
+        if len(self.price_history[symbol]) > self.window_size:
+            self.price_history[symbol] = self.price_history[symbol][-self.window_size:]
+    
+    def is_outlier(self, symbol: str, price: float) -> bool:
+        """Check if price is an outlier.
+        
+        Args:
+            symbol: Stock symbol
+            price: Price to check
+            
+        Returns:
+            bool: True if price is an outlier
+        """
+        if symbol not in self.price_history or len(self.price_history[symbol]) < 5:
+            return False
+        
+        prices = self.price_history[symbol]
+        mean_price = np.mean(prices)
+        std_price = np.std(prices)
+        
+        if std_price == 0:
+            return False
+        
+        z_score = abs((price - mean_price) / std_price)
+        return z_score > self.z_threshold
+    
+    def get_statistics(self, symbol: str) -> dict:
+        """Get statistics for a symbol's price history.
+        
+        Args:
+            symbol: Stock symbol
+            
+        Returns:
+            dict: Statistics including mean, std, sample size
+        """
+        if symbol not in self.price_history or len(self.price_history[symbol]) < 2:
+            return {"mean_return": 0, "std_return": 0, "sample_size": 0}
+        
+        prices = self.price_history[symbol]
+        returns = []
+        for i in range(1, len(prices)):
+            returns.append((prices[i] - prices[i-1]) / prices[i-1])
+        
+        if not returns:
+            return {"mean_return": 0, "std_return": 0, "sample_size": 0}
+        
+        return {
+            "mean_return": np.mean(returns),
+            "std_return": np.std(returns),
+            "sample_size": len(returns)
+        }
+
+
+class QualityCheckResult:
+    """Result of a data quality check."""
+    
+    def __init__(self, symbol: str, price: float, timestamp: float, 
+                 is_valid: bool, issues: list = None):
+        """Initialize quality check result.
+        
+        Args:
+            symbol: Stock symbol
+            price: Price that was checked
+            timestamp: When the check was performed
+            is_valid: Whether the check passed
+            issues: List of issues found
+        """
+        self.symbol = symbol
+        self.price = price
+        self.timestamp = timestamp
+        self.is_valid = is_valid
+        self.issues = issues or []
+        self.passed = is_valid  # For backward compatibility
+    
+    def to_dict(self) -> dict:
+        """Convert result to dictionary."""
+        return {
+            "symbol": self.symbol,
+            "price": self.price,
+            "timestamp": self.timestamp,
+            "is_valid": self.is_valid,
+            "issues": self.issues,
+            "passed": self.passed
+        }
+    
+    def __str__(self) -> str:
+        """String representation of quality check result."""
+        status = "VALID" if self.is_valid else "INVALID"
+        return f"QualityCheckResult({self.symbol}, {self.price}, {status}, {len(self.issues)} issues)"
+    
+    def __eq__(self, other) -> bool:
+        """Compare two quality check results."""
+        if not isinstance(other, QualityCheckResult):
+            return False
+        return (self.symbol == other.symbol and 
+                self.price == other.price and
+                self.is_valid == other.is_valid)

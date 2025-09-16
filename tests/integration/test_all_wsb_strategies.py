@@ -83,7 +83,8 @@ def test_module_imports():
             results[module_name] = f"❌ FAILED: {e!s}"
             print(f"❌ {module_name:20} - Failed: {e!s}")
 
-    return results
+    assert results is not None
+    assert len(results) > 0
 
 
 def test_basic_functionality():
@@ -215,7 +216,8 @@ def test_basic_functionality():
         functionality_results["leaps_tracker"] = f"❌ FAILED: {e!s}"
         print(f"❌ leaps_tracker        - Failed: {e!s}")
 
-    return functionality_results
+    assert functionality_results is not None
+    assert len(functionality_results) > 0
 
 
 def run_all_comprehensive_tests():

@@ -384,7 +384,25 @@ class EarningsCalendarProvider:
 
         except Exception as e:
             self.logger.error(f"Error enhancing earnings event: {e}")
-            return None
+            # Return basic enhanced event with None values for failed calculations
+            return EnhancedEarningsEvent(
+                ticker=base_event.ticker,
+                company_name=getattr(base_event, "company_name", base_event.ticker),
+                earnings_date=base_event.earnings_date,
+                earnings_time=getattr(base_event, "earnings_time", "Unknown"),
+                current_price=getattr(base_event, "current_price", Decimal("0.0")),
+                estimated_eps=getattr(base_event, "estimated_eps", None),
+                implied_move=None,
+                iv_analysis=None,
+                avg_historical_move=None,
+                historical_beat_rate=None,
+                last_4_reactions=[],
+                reaction_type=EarningsReactionType.UNKNOWN,
+                recommended_strategies=[],
+                risk_level="unknown",
+                data_sources=["base_provider"],
+                last_updated=datetime.now()
+            )
 
     async def _calculate_real_implied_move(
         self, ticker: str, earnings_date: datetime, current_price: Decimal

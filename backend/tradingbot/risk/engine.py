@@ -10,16 +10,17 @@ log = logging.getLogger("wsb.risk")
 
 @dataclass
 class RiskLimits:
-    max_total_risk: float  # e.g. 0.30
-    max_position_size: float  # e.g. 0.10
+    max_total_risk: float = 0.30  # e.g. 0.30
+    max_position_size: float = 0.10  # e.g. 0.10
     max_drawdown: float = 0.30
     kill_switch_dd: float = 0.35
 
 
 class RiskEngine:
-    def __init__(self, limits: RiskLimits):
+    def __init__(self, limits: RiskLimits, initial_equity: float = 100000.0):
         self.limits = limits
-        self._peak_equity = None
+        self.initial_equity = initial_equity
+        self._peak_equity = initial_equity
         self._kill_switch_active = False
 
     def update_peak(self, equity: float) -> None:
@@ -29,6 +30,57 @@ class RiskEngine:
         if not self._peak_equity:
             self._peak_equity = equity
         return 1.0 - (equity / self._peak_equity if self._peak_equity > 0 else 1.0)
+    
+    @property
+    def kill_switch_active(self) -> bool:
+        """Check if kill switch is active."""
+        return self._kill_switch_active
+    
+    def check_drawdown(self, equity: float) -> bool:
+        """Check drawdown and trigger kill switch if necessary.
+        
+        Returns:
+            bool: True if drawdown is acceptable, False if limits exceeded
+        """
+        dd = self.drawdown(equity)
+        
+        # Check kill switch threshold first
+        if dd >= self.limits.kill_switch_dd - 1e-10:  # Add small tolerance for floating-point precision
+            self._kill_switch_active = True
+            log.error(f"Kill switch activated: drawdown {dd:.2%} >= {self.limits.kill_switch_dd:.2%}")
+            return False  # Kill switch triggered - check failed
+        
+        # Check max drawdown threshold (only if kill switch not triggered)
+        if dd >= self.limits.max_drawdown - 1e-10:  # Add small tolerance for floating-point precision
+            log.warning(f"Max drawdown exceeded: {dd:.2%} >= {self.limits.max_drawdown:.2%}")
+            return False  # Max drawdown exceeded - check failed
+            
+        return True  # Drawdown is acceptable - check passed
+    
+    def reset_kill_switch(self) -> None:
+        """Reset the kill switch."""
+        self._kill_switch_active = False
+        log.warning("Kill switch manually reset")
+    
+    def validate_position_size(self, position_size: float) -> bool:
+        """Validate if position size is within limits.
+        
+        Args:
+            position_size: Size of the position to validate
+            
+        Returns:
+            bool: True if position size is valid, False otherwise
+            
+        Raises:
+            TypeError: If position_size is not a number
+        """
+        if position_size is None:
+            raise TypeError("Position size cannot be None")
+        
+        if isinstance(position_size, str):
+            raise TypeError("Position size must be a number, not string")
+        
+        return abs(position_size) <= self.limits.max_position_size
 
     def var_cvar(
         self, pnl_samples: Sequence[float], alpha: float = 0.95

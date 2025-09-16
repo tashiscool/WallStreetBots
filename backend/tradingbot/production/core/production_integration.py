@@ -41,6 +41,50 @@ class ProductionTradeSignal(TradeSignal):
     expected_return: Decimal = Decimal("0.00")
     metadata: dict[str, Any] = field(default_factory=dict)
 
+    def __init__(self, symbol=None, action=None, **kwargs):
+        """Initialize with backward compatibility for symbol/action."""
+        from ...core.trading_interface import OrderSide
+        
+        # Handle backward compatibility
+        if symbol is not None:
+            kwargs['ticker'] = symbol
+        if action is not None:
+            kwargs['side'] = OrderSide.BUY if action.lower() == 'buy' else OrderSide.SELL
+        
+        # Set defaults for required fields
+        kwargs.setdefault('strategy_name', 'manual_trade')
+        kwargs.setdefault('ticker', 'UNKNOWN')
+        kwargs.setdefault('side', OrderSide.BUY)
+        kwargs.setdefault('order_type', OrderType.MARKET)
+        kwargs.setdefault('quantity', 0)
+        
+        # Extract ProductionTradeSignal-specific parameters
+        price = kwargs.pop('price', 0.0)
+        trade_type = kwargs.pop('trade_type', 'stock')
+        risk_amount = kwargs.pop('risk_amount', Decimal('0.00'))
+        expected_return = kwargs.pop('expected_return', Decimal('0.00'))
+        metadata = kwargs.pop('metadata', {})
+        
+        # Initialize base class
+        super().__init__(**kwargs)
+        
+        # Set ProductionTradeSignal-specific attributes
+        self.price = price
+        self.trade_type = trade_type
+        self.risk_amount = risk_amount
+        self.expected_return = expected_return
+        self.metadata = metadata
+
+    @property
+    def symbol(self) -> str:
+        """Alias for ticker for backward compatibility."""
+        return self.ticker
+
+    @property
+    def action(self) -> str:
+        """Alias for side for backward compatibility."""
+        return self.side.value.lower()
+
 
 @dataclass
 class ProductionTrade:
@@ -49,8 +93,8 @@ class ProductionTrade:
     id: str | None = None
     strategy_name: str = ""
     ticker: str = ""
-    trade_type: str = ""  # 'stock', 'option', 'spread'
-    action: str = ""  # 'buy', 'sell', 'open', 'close'
+    trade_type: str = "pending"  # 'stock', 'option', 'spread'
+    action: str = "buy"  # 'buy', 'sell', 'open', 'close'
     quantity: int = 0
     entry_price: Decimal = Decimal("0.00")
     exit_price: Decimal | None = None
@@ -67,6 +111,32 @@ class ProductionTrade:
     win: bool | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
+
+
+    @property
+    def symbol(self) -> str:
+        """Alias for ticker for backward compatibility."""
+        return self.ticker
+
+    @property
+    def side(self) -> str:
+        """Alias for action for backward compatibility."""
+        return self.action
+
+    @property
+    def price(self) -> float:
+        """Alias for entry_price for backward compatibility."""
+        return float(self.entry_price)
+
+    @property
+    def status(self) -> str:
+        """Alias for trade_type for backward compatibility."""
+        return self.trade_type
+
+    @property
+    def timestamp(self) -> datetime:
+        """Alias for fill_timestamp for backward compatibility."""
+        return self.fill_timestamp or self.created_at
     updated_at: datetime = field(default_factory=datetime.now)
 
 
@@ -121,6 +191,10 @@ class ProductionIntegrationManager:
         # Active trades and positions
         self.active_trades: dict[str, ProductionTrade] = {}
         self.active_positions: dict[str, ProductionPosition] = {}
+        
+        # Legacy attributes for backward compatibility
+        self.trades: list = []
+        self.positions: dict = {}
 
         # Setup logging
         self.setup_logging()
@@ -214,6 +288,7 @@ class ProductionIntegrationManager:
 
             # 6. Store trade
             self.active_trades[trade_id] = production_trade
+            self.trades.append(production_trade)
 
             # 7. Send success alert
             await self.alert_system.send_alert(
@@ -308,11 +383,11 @@ class ProductionIntegrationManager:
         try:
             if signal.side == OrderSide.BUY:
                 result = self.alpaca_manager.market_buy(
-                    symbol=signal.ticker, qty=signal.quantity, time_in_force="day"
+                    symbol=signal.ticker, quantity=signal.quantity
                 )
             else:
                 result = self.alpaca_manager.market_sell(
-                    symbol=signal.ticker, qty=signal.quantity, time_in_force="day"
+                    symbol=signal.ticker, quantity=signal.quantity
                 )
 
             if result and "id" in result:

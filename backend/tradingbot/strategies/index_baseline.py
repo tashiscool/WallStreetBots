@@ -131,13 +131,13 @@ class IndexBaselineScanner:
                 # Get current price
                 current_data = stock.history(period="1d")
                 if current_data.empty:
-                    continue
+                    raise ValueError(f"No current data for {ticker}")
                 current_price = current_data["Close"].iloc[-1]
 
                 # Get historical prices
                 hist_data = stock.history(period="1y")
                 if len(hist_data) < 50:
-                    continue
+                    raise ValueError(f"Insufficient historical data for {ticker}")
 
                 # Calculate returns
                 period_start_price = hist_data.loc[

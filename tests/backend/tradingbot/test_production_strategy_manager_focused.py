@@ -165,8 +165,22 @@ async def test_async_methods_exist():
         mock_integration.get_portfolio_value.return_value = 50000.0
         MockIntegration.return_value = mock_integration
 
+        import pandas as pd
+        from unittest.mock import AsyncMock
+        
         mock_data = Mock()
-        mock_data.is_market_open.return_value = True
+        mock_data.is_market_open = AsyncMock(return_value=True)
+        
+        # Mock historical data with a realistic DataFrame
+        mock_historical_data = pd.DataFrame({
+            'close': [100, 101, 102, 103, 104, 105],
+            'volume': [1000000, 1100000, 1200000, 1300000, 1400000, 1500000],
+            'high': [101, 102, 103, 104, 105, 106],
+            'low': [99, 100, 101, 102, 103, 104],
+            'open': [100, 101, 102, 103, 104, 105]
+        })
+        mock_data.get_historical_data = AsyncMock(return_value=mock_historical_data)
+        
         MockData.return_value = mock_data
 
         manager = ProductionStrategyManager(config)

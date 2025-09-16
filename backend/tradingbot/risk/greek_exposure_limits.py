@@ -136,47 +136,53 @@ class GreekExposureLimiter:
         
         return violations
 
-    def check_per_name_limits(self, symbol: str) -> List[str]:
-        """Check per-name limits for a symbol.
+    def check_per_name_limits(self, symbol: str = None) -> List[str]:
+        """Check per-name limits for a symbol or all positions.
         
         Args:
-            symbol: Symbol to check
+            symbol: Symbol to check, or None to check all positions
             
         Returns:
             List of limit violations
         """
         violations = []
         
-        if symbol not in self.positions:
-            return violations
-        
-        pos = self.positions[symbol]
-        
-        if abs(pos.delta) > self.limits.max_per_name_delta:
-            violations.append(
-                f"{symbol} delta {pos.delta:.0f} exceeds limit {self.limits.max_per_name_delta:.0f}"
-            )
-        
-        if abs(pos.gamma) > self.limits.max_per_name_gamma:
-            violations.append(
-                f"{symbol} gamma {pos.gamma:.0f} exceeds limit {self.limits.max_per_name_gamma:.0f}"
-            )
-        
-        if pos.theta < self.limits.max_per_name_theta:
-            violations.append(
-                f"{symbol} theta {pos.theta:.0f} below limit {self.limits.max_per_name_theta:.0f}"
-            )
-        
-        if abs(pos.vega) > self.limits.max_per_name_vega:
-            violations.append(
-                f"{symbol} vega {pos.vega:.0f} exceeds limit {self.limits.max_per_name_vega:.0f}"
-            )
-        
-        beta_exposure = pos.notional * pos.beta
-        if abs(beta_exposure) > self.limits.max_per_name_beta_exposure:
-            violations.append(
-                f"{symbol} beta exposure {beta_exposure:.0f} exceeds limit {self.limits.max_per_name_beta_exposure:.0f}"
-            )
+        if symbol is not None:
+            # Check specific symbol
+            if symbol not in self.positions:
+                return violations
+            
+            pos = self.positions[symbol]
+            
+            if abs(pos.delta) > self.limits.max_per_name_delta:
+                violations.append(
+                    f"{symbol} delta {pos.delta:.0f} exceeds limit {self.limits.max_per_name_delta:.0f}"
+                )
+            
+            if abs(pos.gamma) > self.limits.max_per_name_gamma:
+                violations.append(
+                    f"{symbol} gamma {pos.gamma:.0f} exceeds limit {self.limits.max_per_name_gamma:.0f}"
+                )
+            
+            if pos.theta < self.limits.max_per_name_theta:
+                violations.append(
+                    f"{symbol} theta {pos.theta:.0f} below limit {self.limits.max_per_name_theta:.0f}"
+                )
+            
+            if abs(pos.vega) > self.limits.max_per_name_vega:
+                violations.append(
+                    f"{symbol} vega {pos.vega:.0f} exceeds limit {self.limits.max_per_name_vega:.0f}"
+                )
+            
+            beta_exposure = pos.notional * pos.beta
+            if abs(beta_exposure) > self.limits.max_per_name_beta_exposure:
+                violations.append(
+                    f"{symbol} beta exposure {beta_exposure:.0f} exceeds limit {self.limits.max_per_name_beta_exposure:.0f}"
+                )
+        else:
+            # Check all positions
+            for symbol in self.positions:
+                violations.extend(self.check_per_name_limits(symbol))
         
         return violations
 
@@ -290,4 +296,132 @@ class GreekExposureLimiter:
             "positions_count": len(self.positions),
             "violations": self.check_portfolio_limits(),
         }
+
+    def get_position_summary(self) -> Dict:
+        """Get summary of all positions.
+        
+        Returns:
+            Dictionary with position summaries
+        """
+        positions_summary = {}
+        for symbol, position in self.positions.items():
+            positions_summary[symbol] = {
+                "delta": position.delta,
+                "gamma": position.gamma,
+                "theta": position.theta,
+                "vega": position.vega,
+                "beta": position.beta,
+                "notional": position.notional,
+                "beta_exposure": position.notional * position.beta,
+            }
+        
+        # Get portfolio Greeks
+        portfolio_greeks = self.get_portfolio_greeks()
+        
+        # Find largest positions by absolute delta
+        largest_positions = sorted(
+            positions_summary.items(),
+            key=lambda x: abs(x[1]["delta"]),
+            reverse=True
+        )[:5]  # Top 5 largest positions
+        
+        return {
+            "total_positions": len(self.positions),
+            "portfolio_greeks": portfolio_greeks,
+            "largest_positions": dict(largest_positions),
+            "positions": positions_summary,
+        }
+
+    def validate_position(self, position: PositionGreeks) -> tuple[bool, List[str]]:
+        """Validate a position against limits.
+        
+        Args:
+            position: Position to validate
+            
+        Returns:
+            Tuple of (is_valid, violations)
+        """
+        violations = self.validate_new_position(
+            position.symbol,
+            position.delta,
+            position.gamma,
+            position.theta,
+            position.vega,
+            position.beta,
+            position.notional
+        )
+        return len(violations) == 0, violations
+
+    def get_greek_utilization(self) -> Dict[str, float]:
+        """Get Greek utilization as decimal of limits.
+        
+        Returns:
+            Dictionary with utilization as decimals (0.5 = 50%)
+        """
+        greeks = self.get_portfolio_greeks()
+        
+        return {
+            "delta_utilization": greeks["delta"] / self.limits.max_portfolio_delta,
+            "gamma_utilization": greeks["gamma"] / self.limits.max_portfolio_gamma,
+            "theta_utilization": abs(greeks["theta"] / self.limits.max_portfolio_theta),
+            "vega_utilization": greeks["vega"] / self.limits.max_portfolio_vega,
+            "beta_utilization": greeks["beta_adjusted_exposure"] / self.limits.max_beta_adjusted_exposure,
+        }
+
+    def stress_test_greeks(self, stress_scenarios: Dict[str, Dict]) -> Dict[str, Dict]:
+        """Run stress tests on portfolio Greeks.
+        
+        Args:
+            stress_scenarios: Dictionary of scenario names to stress parameters
+            
+        Returns:
+            Dictionary of stress test results
+        """
+        results = {}
+        current_greeks = self.get_portfolio_greeks()
+        
+        for scenario_name, scenario_params in stress_scenarios.items():
+            # Apply stress scenario - always include all Greeks
+            stressed_greeks = {}
+            
+            # Initialize all Greeks with current values
+            for greek_name in ["delta", "gamma", "theta", "vega"]:
+                stressed_greeks[f"stressed_{greek_name}"] = current_greeks[greek_name]
+            
+            # Apply stress factors
+            for greek, stress_factor in scenario_params.items():
+                # Map scenario parameter names to Greek names
+                greek_mapping = {
+                    "delta_shock": "delta",
+                    "gamma_shock": "gamma", 
+                    "theta_shock": "theta",
+                    "vega_shock": "vega"
+                }
+                
+                if greek in greek_mapping:
+                    actual_greek = greek_mapping[greek]
+                    if actual_greek in current_greeks:
+                        stressed_greeks[f"stressed_{actual_greek}"] = current_greeks[actual_greek] * (1 + stress_factor)
+            
+            # Check if stressed scenario violates limits
+            violations = []
+            if stressed_greeks.get("stressed_delta", 0) > self.limits.max_portfolio_delta:
+                violations.append("Delta limit exceeded")
+            if stressed_greeks.get("stressed_gamma", 0) > self.limits.max_portfolio_gamma:
+                violations.append("Gamma limit exceeded")
+            if stressed_greeks.get("stressed_theta", 0) < self.limits.max_portfolio_theta:
+                violations.append("Theta limit exceeded")
+            if stressed_greeks.get("stressed_vega", 0) > self.limits.max_portfolio_vega:
+                violations.append("Vega limit exceeded")
+            
+            # Merge stressed Greeks directly into result
+            result = {
+                "scenario": scenario_params,
+                "violations": violations,
+                "passed": len(violations) == 0
+            }
+            result.update(stressed_greeks)
+            results[scenario_name] = result
+        
+        return results
 

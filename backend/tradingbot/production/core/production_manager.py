@@ -166,6 +166,11 @@ class ProductionManager:
         except Exception as e:
             self.logger.error(f"Error initializing strategies: {e}")
 
+    def add_strategy(self, name: str, strategy: Any):
+        """Add a strategy to the manager."""
+        self.strategies[name] = strategy
+        self.logger.info(f"Added strategy: {name}")
+
     async def start_production_system(self) -> bool:
         """Start the production trading system."""
         try:

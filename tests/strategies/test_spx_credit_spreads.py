@@ -118,23 +118,22 @@ class TestSPXCreditSpreadsScanner(unittest.TestCase):
             CreditSpreadOpportunity(
                 ticker="SPY",
                 strategy_type="put_credit_spread",
-                expiry_date="2024 - 01 - 19",
-                dte=0,
+                expiry_date="2024-01-19",
                 short_strike=4000.0,
                 long_strike=3990.0,
-                spread_width=10.0,
-                net_credit=0.30,
-                max_profit=0.30,
-                max_loss=9.70,
-                short_delta=0.30,
-                prob_profit=0.65,
+                premium_received=0.30,
+                max_risk=9.70,
                 profit_target=0.075,
-                break_even_lower=3999.70,
-                break_even_upper=4000.30,
+                delta_short=-0.30,
+                delta_long=-0.20,
+                gamma_exposure=0.05,
+                theta_decay=0.15,
                 iv_rank=45.0,
-                underlying_price=4005.0,
-                expected_move=2.0,
-                volume_score=1.2,
+                probability_of_profit=0.65,
+                days_to_expiry=0,
+                current_underlying_price=4005.0,
+                breakeven_price=3999.70,
+                margin_requirement=970.0,
             )
         ]
 
@@ -153,55 +152,53 @@ class TestCreditSpreadOpportunity(unittest.TestCase):
         spread = CreditSpreadOpportunity(
             ticker="SPY",
             strategy_type="put_credit_spread",
-            expiry_date="2024 - 01 - 19",
-            dte=0,
+            expiry_date="2024-01-19",
             short_strike=4000.0,
             long_strike=3990.0,
-            spread_width=10.0,
-            net_credit=0.30,
-            max_profit=0.30,
-            max_loss=9.70,
-            short_delta=0.30,
-            prob_profit=0.65,
+            premium_received=0.30,
+            max_risk=9.70,
             profit_target=0.075,
-            break_even_lower=3999.70,
-            break_even_upper=4000.30,
+            delta_short=-0.30,
+            delta_long=-0.20,
+            gamma_exposure=0.05,
+            theta_decay=0.15,
             iv_rank=45.0,
-            underlying_price=4005.0,
-            expected_move=2.0,
-            volume_score=1.2,
+            probability_of_profit=0.65,
+            days_to_expiry=0,
+            current_underlying_price=4005.0,
+            breakeven_price=3999.70,
+            margin_requirement=970.0,
         )
 
         self.assertEqual(spread.ticker, "SPY")
         self.assertEqual(spread.strategy_type, "put_credit_spread")
         self.assertEqual(spread.short_strike, 4000.0)
         self.assertEqual(spread.long_strike, 3990.0)
-        self.assertEqual(spread.net_credit, 0.30)
-        self.assertEqual(spread.max_profit, 0.30)
-        self.assertEqual(spread.max_loss, 9.70)
+        self.assertEqual(spread.premium_received, 0.30)
+        self.assertEqual(spread.max_risk, 9.70)
+        self.assertEqual(spread.margin_requirement, 970.0)
 
     def test_spread_width_calculation(self):
         """Test spread width calculation."""
         spread = CreditSpreadOpportunity(
             ticker="SPY",
             strategy_type="put_credit_spread",
-            expiry_date="2024 - 01 - 19",
-            dte=0,
+            expiry_date="2024-01-19",
             short_strike=4000.0,
             long_strike=3990.0,
-            spread_width=10.0,
-            net_credit=0.30,
-            max_profit=0.30,
-            max_loss=9.70,
-            short_delta=0.30,
-            prob_profit=0.65,
+            premium_received=0.30,
+            max_risk=9.70,
             profit_target=0.075,
-            break_even_lower=3999.70,
-            break_even_upper=4000.30,
+            delta_short=-0.30,
+            delta_long=-0.20,
+            gamma_exposure=0.05,
+            theta_decay=0.15,
             iv_rank=45.0,
-            underlying_price=4005.0,
-            expected_move=2.0,
-            volume_score=1.2,
+            probability_of_profit=0.65,
+            days_to_expiry=0,
+            current_underlying_price=4005.0,
+            breakeven_price=3999.70,
+            margin_requirement=970.0,
         )
 
         width = spread.short_strike - spread.long_strike

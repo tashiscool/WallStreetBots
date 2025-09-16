@@ -764,16 +764,22 @@ class AlpacaManager:
 
 # Factory function for backward compatibility
 def create_alpaca_manager(
-    api_key: str, secret_key: str, paper_trading: bool = True
+    api_key: str, secret_key: str, paper_trading: bool = None, paper: bool = None
 ) -> AlpacaManager:
     """Create AlpacaManager instance.
 
     Args:
         api_key: Alpaca API key
         secret_key: Alpaca secret key
-        paper_trading: True for paper trading, False for live
+        paper_trading: True for paper trading, False for live (preferred parameter)
+        paper: True for paper trading, False for live (legacy parameter)
 
     Returns:
         AlpacaManager instance
     """
-    return AlpacaManager(api_key, secret_key, paper_trading)
+    # Support both parameter names for backward compatibility
+    if paper_trading is not None and paper is not None:
+        raise ValueError("Cannot specify both 'paper_trading' and 'paper' parameters")
+
+    use_paper = paper_trading if paper_trading is not None else (paper if paper is not None else True)
+    return AlpacaManager(api_key, secret_key, use_paper)

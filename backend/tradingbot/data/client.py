@@ -16,6 +16,149 @@ from ..infra.obs import jlog, track_data_staleness
 log = logging.getLogger("wsb.data")
 
 
+class DataClient:
+    """Unified data client interface for comprehensive testing."""
+    
+    def __init__(self, use_cache: bool = True, cache_path: str = "./.cache", 
+                 enable_cache: bool = None, cache_ttl: float = 300.0,
+                 validate_data: bool = False, rate_limit: int = 10,
+                 max_retries: int = 3):
+        """Initialize data client."""
+        self.use_cache = use_cache or enable_cache or True
+        self.cache_path = cache_path
+        self.cache_ttl = cache_ttl
+        self.validate_data = validate_data
+        self.rate_limit = rate_limit
+        self.max_retries = max_retries
+        self._market_client = MarketDataClient(use_cache=self.use_cache, cache_path=cache_path)
+        self._last_request_time = 0.0
+    
+    def get_historical_data(self, symbol: str, interval: str = "1d", periods: int = 30) -> pd.DataFrame:
+        """Get historical data for a symbol.
+        
+        Args:
+            symbol: Stock symbol
+            interval: Data interval (1d, 1h, 5m, etc.)
+            periods: Number of periods to fetch
+            
+        Returns:
+            DataFrame with historical data
+        """
+        data = self._fetch_historical_data(symbol, interval, periods)
+        
+        if self.validate_data and not data.empty:
+            self._validate_historical_data(data)
+        
+        return data
+    
+    def get_real_time_data(self, symbol: str) -> dict:
+        """Get real-time data for a symbol.
+        
+        Args:
+            symbol: Stock symbol
+            
+        Returns:
+            Dictionary with real-time data
+        """
+        self._apply_rate_limit()
+        return self._fetch_real_time_data_with_retry(symbol)
+    
+    def _fetch_historical_data(self, symbol: str, interval: str, periods: int) -> pd.DataFrame:
+        """Internal method to fetch historical data (for testing)."""
+        try:
+            spec = BarSpec(symbol=symbol, interval=interval, lookback=f"{periods}d")
+            return self._market_client.get_bars(spec)
+        except Exception as e:
+            log.error(f"Error fetching historical data for {symbol}: {e}")
+            return pd.DataFrame()
+    
+    def _fetch_real_time_data(self, symbol: str) -> dict:
+        """Internal method to fetch real-time data (for testing)."""
+        try:
+            # For real-time data, we'll use yfinance directly
+            ticker = yf.Ticker(symbol)
+            info = ticker.info
+            hist = ticker.history(period="1d")
+            
+            if not hist.empty:
+                latest = hist.iloc[-1]
+                return {
+                    'symbol': symbol,
+                    'price': float(latest['Close']),
+                    'volume': int(latest['Volume']),
+                    'timestamp': latest.name,
+                    'open': float(latest['Open']),
+                    'high': float(latest['High']),
+                    'low': float(latest['Low']),
+                    'close': float(latest['Close'])
+                }
+            else:
+                return {'symbol': symbol, 'price': 0.0, 'volume': 0, 'timestamp': datetime.now()}
+        except Exception as e:
+            log.error(f"Error fetching real-time data for {symbol}: {e}")
+            return {'symbol': symbol, 'price': 0.0, 'volume': 0, 'timestamp': datetime.now()}
+    
+    def _validate_historical_data(self, data: pd.DataFrame) -> None:
+        """Validate historical data format.
+        
+        Args:
+            data: DataFrame to validate
+            
+        Raises:
+            ValueError: If data format is invalid
+        """
+        if data.empty:
+            return
+        
+        # Check for required columns (basic validation)
+        required_columns = ['Close', 'Open', 'High', 'Low', 'Volume']
+        missing_columns = [col for col in required_columns if col not in data.columns]
+        
+        if missing_columns:
+            raise ValueError(f"Invalid data format: missing required columns {missing_columns}")
+        
+        # Check for timestamp/index
+        if data.index.empty:
+            raise ValueError("Invalid data format: missing timestamp index")
+    
+    def _apply_rate_limit(self) -> None:
+        """Apply rate limiting to requests."""
+        if self.rate_limit <= 0:
+            return
+        
+        import time
+        current_time = time.time()
+        min_interval = 1.0 / self.rate_limit  # seconds between requests
+        
+        time_since_last = current_time - self._last_request_time
+        if time_since_last < min_interval:
+            sleep_time = min_interval - time_since_last
+            time.sleep(sleep_time)
+        
+        self._last_request_time = time.time()
+    
+    def _fetch_real_time_data_with_retry(self, symbol: str) -> dict:
+        """Fetch real-time data with retry logic."""
+        last_exception = None
+        
+        for attempt in range(self.max_retries + 1):
+            try:
+                return self._fetch_real_time_data(symbol)
+            except Exception as e:
+                last_exception = e
+                if attempt < self.max_retries:
+                    # Wait before retry (exponential backoff)
+                    import time
+                    time.sleep(0.1 * (2 ** attempt))
+                else:
+                    # All retries exhausted, raise the exception
+                    log.error(f"All retries exhausted for {symbol}: {e}")
+                    raise e
+        
+        # This should never be reached, but just in case
+        raise last_exception
+
+
 @dataclass(frozen=True)
 class BarSpec:
     symbol: str

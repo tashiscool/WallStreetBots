@@ -77,6 +77,8 @@ class AlertType(Enum):
     RISK_ALERT = "risk_alert"
     EARNINGS_WARNING = "earnings_warning"
     SYSTEM_ERROR = "system_error"
+    TRADE_EXECUTED = "trade_executed"
+    RISK_LIMIT_EXCEEDED = "risk_limit_exceeded"
 
 
 class AlertPriority(Enum):

@@ -335,7 +335,9 @@ def test_signal_detection():
         total_cost = sum(s["cost"] for s in signals)
         print(f"Total capital at risk: ${total_cost:,.0f}")
 
-    return signals
+    assert signals is not None
+    # Note: signals may be empty if market conditions don't meet criteria
+    # This is expected behavior, not a test failure
 
 
 def test_options_chain_mock():

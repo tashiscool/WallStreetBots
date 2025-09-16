@@ -137,7 +137,7 @@ class TestPresetDefaults:
         assert len(defaults) > 0
 
         # Check that strategies are configured
-        for strategy_name, strategy_config in defaults.items():
+        for strategy_config in defaults.values():
             assert isinstance(strategy_config, StrategyConfig)
             assert isinstance(strategy_config.enabled, bool)
             assert 0 <= strategy_config.max_position_size <= 1

@@ -315,7 +315,7 @@ class TestGreekExposureComprehensive:
         assert "vol_up_20" in stress_results
 
         # Each result should have stressed Greeks
-        for scenario, result in stress_results.items():
+        for result in stress_results.values():
             assert "stressed_delta" in result
             assert "stressed_vega" in result
             assert "violations" in result

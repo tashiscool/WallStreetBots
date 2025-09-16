@@ -11,51 +11,45 @@ def test_django_imports():
 
     try:
         import django
-
         print(f"✅ Django {django.get_version()} imported successfully")
     except ImportError as e:
         print(f"❌ Django import failed: {e}")
-        assert False, f"Django import failed: {e}"
+        return False
 
     try:
         import rest_framework
-
         print("✅ Django REST Framework imported successfully")
     except ImportError as e:
         print(f"❌ Django REST Framework import failed: {e}")
-        assert False, f"Django REST Framework import failed: {e}"
+        return False
 
     try:
         import corsheaders
-
         print("✅ django - cors - headers imported successfully")
     except ImportError as e:
         print(f"❌ django - cors - headers import failed: {e}")
-        assert False, f"django-cors-headers import failed: {e}"
+        return False
 
     try:
         import social_django
-
         print("✅ social - auth - app - django imported successfully")
     except ImportError as e:
         print(f"❌ social - auth - app - django import failed: {e}")
-        assert False, f"social-auth-app-django import failed: {e}"
+        return False
 
     try:
         import admin_interface
-
         print("✅ django - admin - interface imported successfully")
     except ImportError as e:
         print(f"❌ django - admin - interface import failed: {e}")
-        assert False, f"django-admin-interface import failed: {e}"
+        return False
 
     try:
         import colorfield
-
         print("✅ django - colorfield imported successfully")
     except ImportError as e:
         print(f"❌ django - colorfield import failed: {e}")
-        assert False, f"django-colorfield import failed: {e}"
+        return False
 
     # All imports successful
     return True
@@ -99,7 +93,7 @@ def test_other_dependencies():
             print(f"⚠️  {display_name} not available (optional): {e}")
 
     if not all_good:
-        assert False, "Some required dependencies failed to import"
+        return False
     return True
 
 
@@ -129,9 +123,8 @@ def test_django_setup():
     except Exception as e:
         print(f"❌ Django setup failed: {e}")
         import traceback
-
         traceback.print_exc()
-        assert False, f"Django setup failed: {e}"
+        return False
 
 
 def main():

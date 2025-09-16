@@ -59,20 +59,17 @@ class TestDataQualityProperties:
         assert monitor.max_return_z == max_return_z
         assert monitor.last_tick_ts > 0  # Should be initialized to current time
 
-    @given(
-        staleness_sec=st.one_of(
-            st.floats(max_value=0.0),  # Negative or zero
-            st.floats(min_value=1e6)   # Extremely large
-        )
-    )
-    def test_data_quality_monitor_invalid_staleness(self, staleness_sec):
-        """Test that invalid staleness parameters are rejected."""
-        if staleness_sec <= 0:
-            with pytest.raises(ValueError, match="max_staleness_sec must be positive"):
-                DataQualityMonitor(max_staleness_sec=staleness_sec)
-        elif staleness_sec >= 1e6:
-            with pytest.raises(ValueError, match="max_staleness_sec too large"):
-                DataQualityMonitor(max_staleness_sec=staleness_sec)
+    @given(staleness_sec=st.floats(max_value=0.0))
+    def test_data_quality_monitor_invalid_staleness_negative(self, staleness_sec):
+        """Test that negative staleness parameters are rejected."""
+        with pytest.raises(ValueError, match="max_staleness_sec must be positive"):
+            DataQualityMonitor(max_staleness_sec=staleness_sec)
+    
+    @given(staleness_sec=st.floats(min_value=1e6))
+    def test_data_quality_monitor_invalid_staleness_large(self, staleness_sec):
+        """Test that extremely large staleness parameters are rejected."""
+        with pytest.raises(ValueError, match="max_staleness_sec too large"):
+            DataQualityMonitor(max_staleness_sec=staleness_sec)
 
     @given(
         prices=st.lists(
@@ -170,8 +167,8 @@ class TestDataQualityProperties:
         # Check staleness after time gap
         future_time = initial_time + time_gap
         with patch('time.time', return_value=future_time):
-            if time_gap > staleness_limit:
-                # Should detect staleness
+            if time_gap >= staleness_limit:
+                # Should detect staleness (including when equal)
                 with pytest.raises(RuntimeError, match="DATA_STALE"):
                     monitor.assert_fresh()
             else:

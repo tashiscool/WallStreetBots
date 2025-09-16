@@ -52,7 +52,7 @@ class TestPerformanceComparison:
         assert comparison.end_date == end_date
         assert comparison.strategy_name == "Test Strategy"
         assert comparison.alpha_vs_spy == 0.05
-        assert comparison.beats_spy == True
+        assert comparison.beats_spy
 
     def test_performance_comparison_calculation_methods(self):
         """Test calculation methods in PerformanceComparison."""

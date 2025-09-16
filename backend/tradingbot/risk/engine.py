@@ -132,11 +132,3 @@ class RiskEngine:
 
         return True
 
-    @property
-    def kill_switch_active(self) -> bool:
-        return self._kill_switch_active
-
-    def reset_kill_switch(self) -> None:
-        """Manual kill switch reset - use with extreme caution"""
-        log.warning("Kill switch manually reset")
-        self._kill_switch_active = False

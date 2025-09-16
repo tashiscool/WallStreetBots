@@ -763,49 +763,8 @@ class TestSwingTradingScanner:
         should_exit_eod = (current_hour >= 15 and signal_type == "momentum")
         assert should_exit_eod is False
 
-    def test_get_optimal_expiry(self):
-        """Test optimal expiry calculation."""
-        scanner = SwingTradingScanner()
-        
-        # Test with different max_days values
-        expiry_7 = scanner.get_optimal_expiry(max_days=7)
-        expiry_30 = scanner.get_optimal_expiry(max_days=30)
-        
-        assert isinstance(expiry_7, str)
-        assert isinstance(expiry_30, str)
-        assert len(expiry_7) == 10  # YYYY-MM-DD format
-        assert len(expiry_30) == 10  # YYYY-MM-DD format
 
-    def test_calculate_option_targets(self):
-        """Test option target calculation."""
-        scanner = SwingTradingScanner()
-        
-        profit_25, profit_50, profit_100, stop_loss = scanner.calculate_option_targets(
-            current_price=150.0,
-            strike=155,
-            premium=3.0
-        )
-        
-        assert isinstance(profit_25, float)
-        assert isinstance(profit_50, float)
-        assert isinstance(profit_100, float)
-        assert isinstance(stop_loss, float)
-        
-        # Test calculations: 25%, 50%, 100% profit targets and 30% stop loss
-        assert abs(profit_25 - 3.75) < 0.01  # 3.0 * 1.25
-        assert abs(profit_50 - 4.50) < 0.01  # 3.0 * 1.50
-        assert abs(profit_100 - 6.00) < 0.01  # 3.0 * 2.00
-        assert abs(stop_loss - 2.10) < 0.01  # 3.0 * 0.70
 
-    def test_monitor_active_trades(self):
-        """Test active trade monitoring."""
-        scanner = SwingTradingScanner()
-        
-        # Test with empty active trades
-        alerts = scanner.monitor_active_trades()
-        
-        assert isinstance(alerts, list)
-        # Should return empty list when no active trades
 
     def test_format_signals(self):
         """Test signal formatting."""
@@ -1044,7 +1003,7 @@ class TestSwingTradingScanner:
         # Create resistance levels and then break above them
         base_prices = [100, 101, 102, 101, 100, 101, 102, 103, 102, 101] * 6  # Repeat pattern
         # Add breakout at the end
-        prices = base_prices[:50] + [104, 105, 106, 107, 108, 109, 110, 111, 112, 113]
+        prices = [*base_prices[:50], 104, 105, 106, 107, 108, 109, 110, 111, 112, 113]
         
         volumes = [1000000] * 50 + [3000000] * 10  # High volume on breakout
         

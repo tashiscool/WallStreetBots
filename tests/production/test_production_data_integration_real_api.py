@@ -979,8 +979,8 @@ class TestReliableDataProvider:
                 assert mock_get_price.call_count == 1  # Still only 1 call
 
                 # Wait for cache to expire
-                import time
-                time.sleep(1.1)
+                import asyncio
+                await asyncio.sleep(1.1)
 
                 # Third call should hit API again
                 result3 = await provider.get_current_price("CACHE_TEST")

@@ -19,8 +19,8 @@ log = logging.getLogger("wsb.data")
 class DataClient:
     """Unified data client interface for comprehensive testing."""
     
-    def __init__(self, use_cache: bool = True, cache_path: str = "./.cache", 
-                 enable_cache: bool = None, cache_ttl: float = 300.0,
+    def __init__(self, use_cache: bool = True, cache_path: str = "./.cache",
+                 enable_cache: bool | None = None, cache_ttl: float = 300.0,
                  validate_data: bool = False, rate_limit: int = 10,
                  max_retries: int = 3):
         """Initialize data client."""

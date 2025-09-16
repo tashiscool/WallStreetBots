@@ -1,4 +1,5 @@
 """Simple comprehensive tests for data client module."""
+import time
 import pytest
 import pandas as pd
 from unittest.mock import Mock, patch

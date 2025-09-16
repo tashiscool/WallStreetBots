@@ -527,7 +527,6 @@ class TestProductionIntegrationManager:
             price=150.0
         )
         
-        import asyncio
         result = asyncio.run(integration.execute_trade(signal))
         
         # Should proceed with trade execution
@@ -593,7 +592,6 @@ class TestProductionIntegrationManager:
             price=150.0
         )
         
-        import asyncio
         result = asyncio.run(integration.execute_trade(signal))
         
         # Should handle risk check failure

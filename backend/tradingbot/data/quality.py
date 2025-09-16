@@ -369,8 +369,8 @@ class OutlierDetector:
 class QualityCheckResult:
     """Result of a data quality check."""
     
-    def __init__(self, symbol: str, price: float, timestamp: float, 
-                 is_valid: bool, issues: list = None):
+    def __init__(self, symbol: str, price: float, timestamp: float,
+                 is_valid: bool, issues: list | None = None):
         """Initialize quality check result.
         
         Args:

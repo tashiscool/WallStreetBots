@@ -136,7 +136,7 @@ class GreekExposureLimiter:
         
         return violations
 
-    def check_per_name_limits(self, symbol: str = None) -> List[str]:
+    def check_per_name_limits(self, symbol: str | None = None) -> List[str]:
         """Check per-name limits for a symbol or all positions.
         
         Args:
@@ -181,8 +181,8 @@ class GreekExposureLimiter:
                 )
         else:
             # Check all positions
-            for symbol in self.positions:
-                violations.extend(self.check_per_name_limits(symbol))
+            for position_symbol in self.positions:
+                violations.extend(self.check_per_name_limits(position_symbol))
         
         return violations
 

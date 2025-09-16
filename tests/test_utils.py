@@ -50,7 +50,7 @@ class MockDataFactory:
         })
     
     @staticmethod
-    def create_options_chain(strikes: List[float] = None, current_price: float = 150.0, 
+    def create_options_chain(strikes: List[float] | None = None, current_price: float = 150.0,
                            option_type: str = 'call') -> pd.DataFrame:
         """Create options chain data."""
         if strikes is None:

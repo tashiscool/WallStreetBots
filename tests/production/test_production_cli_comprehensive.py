@@ -410,41 +410,44 @@ class TestParseArgs:
             "--max-total-risk", "0.50",
             "--strategies", "strategy1,strategy2"
         ]
-        
-        # parsed_args = parse_args(args)  # function not available
-        
-        assert parsed_args.command == "start"
-        assert parsed_args.alpaca_api_key == "test_key"
-        assert parsed_args.alpaca_secret_key == "test_secret"
-        assert parsed_args.paper_trading is True
-        assert parsed_args.user_id == 1
-        assert parsed_args.max_position_size == 0.20
-        assert parsed_args.max_total_risk == 0.50
-        assert parsed_args.strategies == "strategy1,strategy2"
+
+        # Skip test - parse_args function not available
+        # When implemented, would test:
+        # parsed_args = parse_args(args)
+        # assert parsed_args.command == "start"
+        # assert parsed_args.alpaca_api_key == "test_key"
+        # etc.
+        pass
 
     def skip_test_parse_args_status_command(self):
         """Test parsing status command arguments."""
         args = ["status"]
-        
-        # parsed_args = parse_args(args)  # function not available
-        
-        assert parsed_args.command == "status"
+
+        # Skip test - parse_args function not available
+        # When implemented, would test:
+        # parsed_args = parse_args(args)
+        # assert parsed_args.command == "status"
+        pass
 
     def skip_test_parse_args_portfolio_command(self):
         """Test parsing portfolio command arguments."""
         args = ["portfolio"]
-        
-        # parsed_args = parse_args(args)  # function not available
-        
-        assert parsed_args.command == "portfolio"
+
+        # Skip test - parse_args function not available
+        # When implemented, would test:
+        # parsed_args = parse_args(args)
+        # assert parsed_args.command == "portfolio"
+        pass
 
     def skip_test_parse_args_stop_command(self):
         """Test parsing stop command arguments."""
         args = ["stop"]
-        
-        # parsed_args = parse_args(args)  # function not available
-        
-        assert parsed_args.command == "stop"
+
+        # Skip test - parse_args function not available
+        # When implemented, would test:
+        # parsed_args = parse_args(args)
+        # assert parsed_args.command == "stop"
+        pass
 
     def skip_test_parse_args_manual_trade_command(self):
         """Test parsing manual trade command arguments."""
@@ -455,55 +458,65 @@ class TestParseArgs:
             "--quantity", "100",
             "--price", "150.0"
         ]
-        
-        # parsed_args = parse_args(args)  # function not available
-        
-        assert parsed_args.command == "manual-trade"
-        assert parsed_args.symbol == "AAPL"
-        assert parsed_args.side == "buy"
-        assert parsed_args.quantity == 100
-        assert parsed_args.price == 150.0
+
+        # Skip test - parse_args function not available
+        # When implemented, would test:
+        # parsed_args = parse_args(args)
+        # assert parsed_args.command == "manual-trade"
+        # assert parsed_args.symbol == "AAPL"
+        # assert parsed_args.side == "buy"
+        # assert parsed_args.quantity == 100
+        # assert parsed_args.price == 150.0
+        pass
 
     def skip_test_parse_args_list_strategies_command(self):
         """Test parsing list strategies command arguments."""
         args = ["list-strategies"]
-        
-        # parsed_args = parse_args(args)  # function not available
-        
-        assert parsed_args.command == "list-strategies"
+
+        # Skip test - parse_args function not available
+        # When implemented, would test:
+        # parsed_args = parse_args(args)
+        # assert parsed_args.command == "list-strategies"
+        pass
 
     def skip_test_parse_args_enable_strategy_command(self):
         """Test parsing enable strategy command arguments."""
         args = ["enable-strategy", "--strategy-name", "test_strategy"]
-        
-        # parsed_args = parse_args(args)  # function not available
-        
-        assert parsed_args.command == "enable-strategy"
-        assert parsed_args.strategy_name == "test_strategy"
+
+        # Skip test - parse_args function not available
+        # When implemented, would test:
+        # parsed_args = parse_args(args)
+        # assert parsed_args.command == "enable-strategy"
+        # assert parsed_args.strategy_name == "test_strategy"
+        pass
 
     def skip_test_parse_args_disable_strategy_command(self):
         """Test parsing disable strategy command arguments."""
         args = ["disable-strategy", "--strategy-name", "test_strategy"]
-        
-        # parsed_args = parse_args(args)  # function not available
-        
-        assert parsed_args.command == "disable-strategy"
-        assert parsed_args.strategy_name == "test_strategy"
+
+        # Skip test - parse_args function not available
+        # When implemented, would test:
+        # parsed_args = parse_args(args)
+        # assert parsed_args.command == "disable-strategy"
+        # assert parsed_args.strategy_name == "test_strategy"
+        pass
 
     def skip_test_parse_args_default_values(self):
         """Test parsing with default values."""
         args = ["start"]
-        
-        # parsed_args = parse_args(args)  # function not available
-        
-        assert parsed_args.command == "start"
-        assert parsed_args.alpaca_api_key is None
-        assert parsed_args.alpaca_secret_key is None
-        assert parsed_args.paper_trading is False
-        assert parsed_args.user_id == 1
-        assert parsed_args.max_position_size == 0.20
-        assert parsed_args.max_total_risk == 0.50
-        assert parsed_args.strategies is None
+
+        # Skip test - parse_args function not available
+        # When implemented, would test:
+        # parsed_args = parse_args(args)
+        # assert parsed_args.command == "start"
+        # assert parsed_args.alpaca_api_key is None
+        # assert parsed_args.alpaca_secret_key is None
+        # assert parsed_args.paper_trading is False
+        # assert parsed_args.user_id == 1
+        # assert parsed_args.max_position_size == 0.20
+        # assert parsed_args.max_total_risk == 0.50
+        # assert parsed_args.strategies is None
+        pass
 
 
 class TestMainFunction:

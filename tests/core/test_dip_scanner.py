@@ -6,6 +6,7 @@ Tests real - time dip scanning functionality and market hours logic.
 import asyncio
 import os
 import sys
+import unittest
 import pytest
 from datetime import datetime, time
 from unittest.mock import AsyncMock, Mock, patch

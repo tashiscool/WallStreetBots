@@ -764,7 +764,7 @@ class AlpacaManager:
 
 # Factory function for backward compatibility
 def create_alpaca_manager(
-    api_key: str, secret_key: str, paper_trading: bool = None, paper: bool = None
+    api_key: str, secret_key: str, paper_trading: bool | None = None, paper: bool | None = None
 ) -> AlpacaManager:
     """Create AlpacaManager instance.
 

@@ -33,13 +33,20 @@ class TestMarketDataClient:
     def test_get_bars_basic(self, mock_download):
         """Integration test - fetch real market data"""
         # Mock yfinance to return sample data
+        import pandas as pd
+        from datetime import datetime, timedelta
+
+        # Create a properly indexed DataFrame for better mock compatibility
+        dates = pd.date_range(start='2023-01-01', periods=5, freq='D')
         mock_data = pd.DataFrame({
-            'Open': [100, 101, 102, 103, 104],
-            'High': [101, 102, 103, 104, 105],
-            'Low': [99, 100, 101, 102, 103],
+            'Open': [100.0, 101.0, 102.0, 103.0, 104.0],
+            'High': [101.0, 102.0, 103.0, 104.0, 105.0],
+            'Low': [99.0, 100.0, 101.0, 102.0, 103.0],
             'Close': [100.5, 101.5, 102.5, 103.5, 104.5],
             'Volume': [1000000, 1100000, 1200000, 1300000, 1400000]
-        })
+        }, index=dates)
+
+        # The DataFrame will naturally have empty=False since it has data
         mock_download.return_value = mock_data
         
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -63,13 +70,20 @@ class TestMarketDataClient:
     def test_cache_functionality(self, mock_download):
         """Test that caching works correctly"""
         # Mock yfinance to return sample data
+        import pandas as pd
+        from datetime import datetime, timedelta
+
+        # Create a properly indexed DataFrame for better mock compatibility
+        dates = pd.date_range(start='2023-01-01', periods=5, freq='D')
         mock_data = pd.DataFrame({
-            'Open': [100, 101, 102, 103, 104],
-            'High': [101, 102, 103, 104, 105],
-            'Low': [99, 100, 101, 102, 103],
+            'Open': [100.0, 101.0, 102.0, 103.0, 104.0],
+            'High': [101.0, 102.0, 103.0, 104.0, 105.0],
+            'Low': [99.0, 100.0, 101.0, 102.0, 103.0],
             'Close': [100.5, 101.5, 102.5, 103.5, 104.5],
             'Volume': [1000000, 1100000, 1200000, 1300000, 1400000]
-        })
+        }, index=dates)
+
+        # The DataFrame will naturally have empty=False since it has data
         mock_download.return_value = mock_data
         
         with tempfile.TemporaryDirectory() as temp_dir:

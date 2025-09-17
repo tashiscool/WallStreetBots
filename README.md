@@ -28,12 +28,33 @@ python -m pytest tests/ --tb=short -q
 
 ```
 backend/tradingbot/
-├── production/          # Production-ready strategies
-├── core/               # Core infrastructure  
-├── data/               # Data management
-├── risk/               # Risk management
-├── analytics/          # Performance analytics
-└── phases/             # Development phases
+├── production/          # Production deployment and core systems
+│   ├── core/           # Production strategy manager and integration
+│   ├── strategies/     # Production-optimized strategy implementations
+│   ├── data/           # Production data integration and management
+│   └── tests/          # Production-specific test suite
+├── strategies/          # Strategy framework and implementations
+│   ├── base/           # Base strategy classes and interfaces
+│   ├── implementations/ # Core strategy algorithms
+│   └── production/     # Production wrapper implementations
+├── risk/               # Comprehensive risk management
+│   ├── engines/        # VaR, stress testing, and risk calculation engines
+│   ├── managers/       # Risk management coordination and integration
+│   ├── compliance/     # Regulatory compliance and reporting
+│   └── monitoring/     # Real-time risk monitoring and alerts
+├── data/               # Data management and providers
+│   ├── providers/      # Market data source integrations
+│   └── quality/        # Data validation and quality assurance
+├── core/               # Core trading infrastructure
+├── config/             # Configuration management
+│   └── environments/   # Environment-specific configurations
+├── common/             # Shared utilities and imports
+├── analytics/          # Performance analysis and reporting
+├── monitoring/         # System health and operational monitoring
+├── execution/          # Trade execution and order management
+├── accounting/         # Portfolio accounting and reconciliation
+├── models/             # Database models and data structures
+└── phases/             # Development phase implementations
 ```
 
 ## 📊 Features

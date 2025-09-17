@@ -241,7 +241,7 @@ python backend/tradingbot/phase2_integration.py
 ### **Individual Strategy Usage**
 ```python
 # Initialize Phase 2 strategy
-from backend.tradingbot.production_wheel_strategy import create_wheel_strategy
+from backend.tradingbot.strategies.implementations.wheel_strategy import create_wheel_strategy
 
 # Create strategy instance
 wheel_strategy = create_wheel_strategy(trading_interface, data_provider, config, logger)

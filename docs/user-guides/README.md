@@ -544,7 +544,8 @@ from backend.tradingbot.execution import ExecutionClient, OrderRequest
 #### **Risk Management** (`backend/tradingbot/risk/engine.py`)
 - Production-ready risk engine with VaR/CVaR and kill-switch
 ```python
-from backend.tradingbot.risk.engine import RiskEngine, RiskLimits
+from backend.tradingbot.risk.engines.risk_engine_complete import RiskEngine
+from backend.tradingbot.risk.managers.risk_integration_manager import RiskLimits
 risk_engine = RiskEngine(limits=RiskLimits())
 # Pre-trade and post-trade risk checks with automatic kill-switch
 ```

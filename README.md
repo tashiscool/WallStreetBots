@@ -1,26 +1,80 @@
-# 🏗️ WallStreetBots - Production Trading System
+# 🚀 WallStreetBots - Institutional-Grade Algorithmic Trading System
 
-A comprehensive, production-ready trading system implementing WSB-style strategies with real broker integration, live data feeds, and comprehensive risk management.
+<div align="center">
 
-## 📚 Documentation
+## **Production-Ready Trading Platform with Advanced Risk Management**
+### *Sophisticated WSB-style strategies • Institutional risk controls • Real broker integration*
 
-- **[Getting Started](docs/user-guides/GETTING_STARTED_REAL.md)** - Complete setup guide
-- **[User Guide](docs/user-guides/README.md)** - Main user documentation  
-- **[Launcher Guide](docs/user-guides/LAUNCHER_GUIDE.md)** - How to run the system
-- **[Production Guide](docs/production/PRODUCTION_MODULES.md)** - Production deployment
-- **[Strategy Tuning](docs/strategies/STRATEGY_TUNING_GUIDE.md)** - Strategy optimization
-- **[Production Improvements](docs/production/PRODUCTION_IMPROVEMENTS.md)** - Latest enhancements
+**✅ 10+ Complete Trading Strategies** • **✅ Advanced VaR/CVaR Risk Models** • **✅ ML Risk Agents** • **✅ Multi-Asset Support**
 
-## 🚀 Quick Start
+</div>
+
+---
+
+A **comprehensive, institutional-grade trading system** implementing WSB-style strategies with **sophisticated risk management**, **real-time monitoring**, and **production-ready architecture**. Features include multi-method VaR calculations, ML-driven risk agents, regulatory compliance, options pricing engines, and automated rebalancing.
+
+## 🏆 **Key Capabilities**
+
+### **📈 Trading Strategies (10+ Complete)**
+- **WSB Dip Bot** - Momentum-based dip buying with volume confirmation
+- **Earnings Protection** - Options-based earnings play protection
+- **Wheel Strategy** - Cash-secured puts and covered calls automation
+- **Index Baseline** - SPY/QQQ tracking with enhanced returns
+- **Momentum Weeklies** - Weekly options momentum trading
+- **Debit Spreads** - Automated options spread construction
+- **LEAPS Tracker** - Long-term equity anticipation securities
+- **Swing Trading** - Multi-timeframe technical analysis
+- **Credit Spreads** - SPX credit spread automation
+- **Lotto Scanner** - High-probability lottery ticket identification
+
+### **🛡️ Advanced Risk Management**
+- **Multi-Method VaR** - Historical, Parametric, Monte Carlo, Extreme Value Theory
+- **Liquidity-Adjusted VaR** - Bid-ask spread and slippage modeling
+- **Stress Testing** - 6 regulatory scenarios (2008 crisis, flash crash, COVID-19, etc.)
+- **ML Risk Agents** - PPO & DDPG reinforcement learning for dynamic risk control
+- **Circuit Breakers** - Automated trading halts on drawdown/error thresholds
+- **Multi-Asset Risk** - Cross-asset correlation modeling (equity, crypto, forex, commodities)
+
+### **⚖️ Regulatory Compliance**
+- **FCA/CFTC Compliance** - Full regulatory compliance with audit trails
+- **Wash Sale Tracking** - Tax-efficient position management
+- **Position Reconciliation** - Daily broker vs. internal position verification
+- **Compliance Monitoring** - Real-time rule checking and violation alerts
+- **Audit Trail** - Complete transaction and decision logging
+
+### **🤖 Machine Learning & Analytics**
+- **Market Regime Detection** - Bull/bear/sideways market identification
+- **Portfolio Optimization** - ML-driven rebalancing with cost-benefit analysis
+- **Advanced Analytics** - Sharpe ratio, Sortino ratio, max drawdown, VaR analysis
+- **Predictive Risk Models** - ML-based volatility and risk forecasting
+- **Performance Attribution** - Alpha, beta, information ratio vs benchmarks
+
+## 📚 **Complete Documentation**
+
+- **[🎯 User Guide](docs/user-guides/README.md)** - Complete system overview & capabilities
+- **[🚀 Getting Started](docs/user-guides/GETTING_STARTED_REAL.md)** - Setup and configuration guide
+- **[🏭 Production Guide](docs/production/PRODUCTION_MODULES.md)** - Enterprise deployment
+- **[📊 Strategy Tuning](docs/strategies/STRATEGY_TUNING_GUIDE.md)** - Strategy optimization
+- **[🔧 Launcher Guide](docs/user-guides/LAUNCHER_GUIDE.md)** - How to run the system
+- **[📈 Project Structure](docs/PROJECT_STRUCTURE.md)** - Codebase architecture
+
+## ⚡ **Quick Start**
 
 ```bash
-# Install dependencies
+# 1. Install dependencies
 pip install -r requirements.txt
 
-# Run the system
+# 2. Configure API keys (.env file)
+cp .env.example .env
+# Edit .env with your Alpaca API keys
+
+# 3. Test configuration
+python test_env_keys.py
+
+# 4. Run the system
 python run_wallstreetbots.py
 
-# Run tests
+# 5. Run comprehensive tests
 python -m pytest tests/ --tb=short -q
 ```
 
@@ -57,38 +111,170 @@ backend/tradingbot/
 └── phases/             # Development phase implementations
 ```
 
-## 📊 Features
+## 🎯 **Production Features**
 
-- **10+ Production Strategies** - WSB Dip Bot, Earnings Protection, Wheel Strategy, etc.
-- **Real Broker Integration** - Alpaca API with live trading
-- **Advanced Risk Management** - VaR, CVaR, position sizing
-- **Live Data Feeds** - Real-time market data and options chains
-- **Comprehensive Testing** - 1800+ tests with 75%+ coverage
-- **Production Monitoring** - Health checks, alerts, logging
+### **🏭 Enterprise-Grade Infrastructure**
+- **Async Architecture** - Non-blocking, high-performance trading engine
+- **Production Strategy Manager** - Orchestrates multiple strategies simultaneously
+- **Circuit Breakers** - Automatic trading halts on loss/error thresholds
+- **Real-time Monitoring** - Health checks, system metrics, alert system
+- **Database Integration** - SQLite/PostgreSQL with audit trails
+- **Multi-Environment Support** - Development, testing, production configurations
 
-## 🧪 Testing
+### **📊 Advanced Market Data & Analytics**
+- **Multi-Source Data** - Alpaca, Polygon, IEX, Yahoo Finance integration
+- **Options Pricing Engine** - Complete Black-Scholes implementation with Greeks
+- **Market Regime Detection** - Bull/bear/sideways market identification
+- **Technical Indicators** - 50+ technical analysis indicators
+- **Earnings Calendar** - Corporate earnings and ex-dividend tracking
+- **Social Sentiment** - WSB/Reddit sentiment integration
+
+### **⚡ Execution & Operations**
+- **Smart Order Routing** - Optimal execution with slippage minimization
+- **Replay Protection** - Exactly-once order execution guarantees
+- **Shadow Trading** - Risk-free strategy validation in production
+- **Automated Rebalancing** - ML-driven portfolio optimization
+- **Tax Optimization** - Wash sale avoidance and tax-efficient positioning
+- **Performance Tracking** - Real-time P&L and risk-adjusted metrics
+
+### **🔒 Security & Compliance**
+- **API Key Management** - Secure credential storage and rotation
+- **Audit Logging** - Complete transaction and decision audit trails
+- **Compliance Checks** - PDT, SSR, halt monitoring, position limits
+- **Risk Limits** - Portfolio-level and position-level risk controls
+- **Data Encryption** - Secure data storage and transmission
+- **Access Controls** - Role-based permissions and authentication
+
+## 🧪 **Comprehensive Testing Suite (1800+ Tests)**
 
 ```bash
-# Run all tests
-python -m pytest tests/
+# Run all tests (1800+ tests)
+python -m pytest tests/ --tb=short -q
 
-# Run specific test categories
-python -m pytest tests/unit/          # Unit tests
-python -m pytest tests/integration/   # Integration tests  
-python -m pytest tests/production/    # Production tests
+# Run by category
+python -m pytest tests/unit/          # Unit tests (strategy logic, risk models)
+python -m pytest tests/integration/   # Integration tests (end-to-end workflows)
+python -m pytest tests/production/    # Production tests (deployment readiness)
+python -m pytest tests/risk/          # Risk management validation
+python -m pytest tests/strategies/    # Strategy implementation tests
+
+# Run specific test types
+python -m pytest tests/ -k "risk"     # All risk-related tests
+python -m pytest tests/ -k "wsb"      # WSB strategy tests
+python -m pytest tests/ -k "var"      # VaR calculation tests
+
+# Generate coverage report
+python -m pytest tests/ --cov=backend --cov-report=html
 ```
 
-## 📈 Production Deployment
+### **Test Coverage Areas**
+- **Strategy Logic** - All 10+ trading strategies with edge cases
+- **Risk Management** - VaR, CVaR, stress testing, ML agents
+- **Market Data** - Data quality, corporate actions, real-time feeds
+- **Execution** - Order routing, replay protection, shadow trading
+- **Compliance** - Regulatory checks, audit trails, position limits
+- **Performance** - Analytics, regime detection, portfolio optimization
 
-See [Production Guide](docs/production/PRODUCTION_MODULES.md) for complete deployment instructions including Docker, Kubernetes, and CI/CD setup.
+## 🚀 Platform-Specific Launchers
+
+### Quick Start Options
+```bash
+# Cross-platform Python launcher
+python run_wallstreetbots.py
+
+# Windows (.bat launcher)
+run_wallstreetbots.bat
+
+# macOS/Linux (shell script)
+./run_wallstreetbots.sh
+
+# Production CLI
+python run.py validate  # Validate configuration
+python run.py status    # Show current status
+```
+
+### Automated Deployment
+- **macOS**: Use launchd for automatic startup - see [macOS Setup Guide](examples/macos/README.md)
+- **Windows**: Use Task Scheduler with `run_wallstreetbots.bat`
+- **Linux**: Use systemd or cron jobs with `run_wallstreetbots.sh`
+
+### API Key Setup
+1. Copy `.env.example` to `.env`
+2. Add your Alpaca API keys:
+   ```bash
+   ALPACA_API_KEY=your-key-here
+   ALPACA_SECRET_KEY=your-secret-here
+   ALPACA_BASE_URL=https://paper-api.alpaca.markets  # Paper trading
+   ```
+3. Test configuration: `python test_env_keys.py`
+
+## 📈 **Production Deployment**
+
+### **Enterprise Deployment Options**
+- **Docker Containers** - Containerized deployment with health checks
+- **Kubernetes** - Scalable orchestration with auto-scaling
+- **Cloud Platforms** - AWS, GCP, Azure deployment guides
+- **CI/CD Pipelines** - Automated testing and deployment
+- **Monitoring Stack** - Prometheus, Grafana, alerting integration
+
+See [Production Guide](docs/production/PRODUCTION_MODULES.md) for complete deployment instructions.
+
+## 🔬 **Technical Highlights**
+
+### **Advanced Risk Models**
+```python
+# Multi-method VaR calculation with ML enhancements
+var_engine = AdvancedVaREngine(portfolio_value=1000000)
+var_suite = var_engine.calculate_var_suite(
+    returns=returns,
+    confidence_levels=[0.95, 0.99, 0.999],
+    methods=["parametric", "historical", "monte_carlo", "evt"]
+)
+```
+
+### **ML Risk Agents**
+```python
+# PPO agent for dynamic risk management
+from backend.tradingbot.risk.agents import PPORiskAgent
+agent = PPORiskAgent()
+risk_action = agent.get_risk_action(market_state, portfolio_state)
+```
+
+### **Strategy Framework**
+```python
+# Production strategy with async execution
+from backend.tradingbot.strategies import wsb_dip_bot
+strategy = await wsb_dip_bot.create_production_strategy()
+signals = await strategy.generate_signals(market_data)
+```
+
+### **Real-time Risk Monitoring**
+```python
+# Comprehensive risk dashboard
+dashboard = RiskDashboard2025(portfolio_value=1000000)
+risk_data = dashboard.get_risk_dashboard_data(portfolio)
+```
+
+## 📊 **System Capabilities Summary**
+
+| Component | Status | Features |
+|-----------|--------|----------|
+| **Trading Strategies** | ✅ Complete | 10+ strategies, async execution, real-time signals |
+| **Risk Management** | ✅ Institutional | Multi-method VaR, ML agents, stress testing |
+| **Market Data** | ✅ Production | Multi-source feeds, real-time processing |
+| **Execution Engine** | ✅ Enterprise | Smart routing, replay protection, audit trails |
+| **Compliance** | ✅ Regulatory | FCA/CFTC compliant, wash sale tracking |
+| **Analytics** | ✅ Advanced | ML regime detection, performance attribution |
+| **Infrastructure** | ✅ Scalable | Async architecture, auto-scaling, monitoring |
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Add comprehensive tests for new functionality
+4. Ensure all 1800+ tests pass (`python -m pytest tests/`)
+5. Update documentation
+6. Submit a pull request
 
 ## 📄 License
 
@@ -96,4 +282,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**⚠️ Risk Warning**: This software is for educational and research purposes. Trading involves substantial risk of loss. Past performance does not guarantee future results.
+<div align="center">
+
+### **⚠️ Important Disclaimers**
+
+**Risk Warning**: This software is for educational and research purposes. Trading involves substantial risk of loss. Past performance does not guarantee future results.
+
+**Production Use**: Thoroughly test in paper trading mode before live deployment. Verify all risk controls and compliance measures.
+
+**Regulatory Compliance**: Ensure compliance with local financial regulations before deployment.
+
+</div>

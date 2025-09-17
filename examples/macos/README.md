@@ -1,99 +1,89 @@
-# macOS LaunchAgent Setup
+# macOS Launchd Setup for WallStreetBots
 
-This directory contains macOS LaunchAgent configuration files for running WallStreetBots as a background service.
-
-## Files
-
-- `com.wallstreetbots.trading.plist` - LaunchAgent configuration for automated trading
+This directory contains configuration for running WallStreetBots automatically on macOS using launchd.
 
 ## Setup Instructions
 
-### 1. Customize the plist file
+### 1. Prerequisites
+- Ensure your `.env` file is configured with your Alpaca API keys
+- Virtual environment should be set up at `./venv/`
+- All dependencies installed
 
-Edit `com.wallstreetbots.trading.plist` and update the following paths:
-
-```xml
-<!-- Update these paths to match your installation -->
-<string>/Users/YOUR_USERNAME/IdeaProjects/workspace/WallStreetBots/venv/bin/python</string>
-<string>/Users/YOUR_USERNAME/IdeaProjects/workspace/WallStreetBots/simple_bot.py</string>
-<string>/Users/YOUR_USERNAME/IdeaProjects/workspace/WallStreetBots</string>
+### 2. Test Manual Execution First
+```bash
+cd /Users/admin/IdeaProjects/workspace/WallStreetBots
+python test_env_keys.py  # Verify API keys are loaded
+python simple_bot.py    # Test manual execution (Ctrl+C to stop)
 ```
 
-### 2. Install the LaunchAgent
-
+### 3. Install Launchd Service
 ```bash
 # Copy the plist file to LaunchAgents directory
-cp com.wallstreetbots.trading.plist ~/Library/LaunchAgents/
+cp examples/macos/com.wallstreetbots.trading.plist ~/Library/LaunchAgents/
 
-# Load the service
+# Load the service (will start automatically)
 launchctl load ~/Library/LaunchAgents/com.wallstreetbots.trading.plist
-```
 
-### 3. Verify the service is running
-
-```bash
-# Check if the service is loaded
+# Check service status
 launchctl list | grep wallstreetbots
-
-# Check the logs
-tail -f ~/wallstreetbots_trading.log
-tail -f ~/wallstreetbots_error.log
 ```
 
-### 4. Control the service
-
+### 4. View Logs
 ```bash
-# Start the service
-launchctl start com.wallstreetbots.trading
+# View output logs
+tail -f /Users/admin/wallstreetbots_trading.log
 
+# View error logs
+tail -f /Users/admin/wallstreetbots_error.log
+```
+
+### 5. Control the Service
+```bash
 # Stop the service
 launchctl stop com.wallstreetbots.trading
 
-# Unload the service
+# Start the service
+launchctl start com.wallstreetbots.trading
+
+# Unload the service (disable auto-start)
 launchctl unload ~/Library/LaunchAgents/com.wallstreetbots.trading.plist
 ```
 
-## Configuration Details
+## Schedule Configuration
 
-### Trading Schedule
-- **Days**: Monday-Friday (Weekdays 1-5)
-- **Time**: 9:25 AM (5 minutes before market open)
-- **Timezone**: System default
+The current configuration runs:
+- **Weekdays**: Monday-Friday at 9:25 AM EST (5 minutes before market open)
+- **Auto-restart**: Keeps the bot running if it crashes
+- **Background**: Runs as a background process
 
-### Logging
-- **Output**: `~/wallstreetbots_trading.log`
-- **Errors**: `~/wallstreetbots_error.log`
+## Important Notes
 
-### Service Behavior
-- **RunAtLoad**: Starts automatically when system boots
-- **KeepAlive**: Restarts automatically if it crashes
-- **ExitTimeOut**: 30 seconds to gracefully shutdown
+⚠️ **Security**: Make sure your `.env` file has proper permissions:
+```bash
+chmod 600 .env
+```
 
-## Security Notes
+⚠️ **Testing**: Always test in paper trading mode first:
+```bash
+# In your .env file:
+ALPACA_BASE_URL=https://paper-api.alpaca.markets
+```
 
-- The service runs with your user permissions
-- API keys are loaded from your `.env` file
-- Logs are stored in your home directory
-- No root privileges required
+⚠️ **Monitoring**: Check logs regularly to ensure proper operation.
 
 ## Troubleshooting
 
-### Service won't start
-1. Check the error log: `cat ~/wallstreetbots_error.log`
-2. Verify paths in the plist file
-3. Ensure `.env` file exists with valid API keys
-4. Test manually: `python simple_bot.py`
+### Service Not Starting
+1. Check file permissions: `ls -la ~/Library/LaunchAgents/com.wallstreetbots.trading.plist`
+2. Verify paths in plist file match your installation
+3. Check error logs: `tail -f /Users/admin/wallstreetbots_error.log`
 
-### Service stops unexpectedly
-1. Check the trading log: `tail -f ~/wallstreetbots_trading.log`
-2. Verify API keys are valid
-3. Check network connectivity
-4. Review account status in Alpaca dashboard
+### API Connection Issues
+1. Verify API keys: `python test_env_keys.py`
+2. Check `.env` file exists and has correct keys
+3. Ensure paper trading URL for testing
 
-### Market hours issues
-- The service starts at 9:25 AM but trading depends on market hours
-- Ensure your bot handles market closed conditions
-- Consider adding market hours detection to your bot
-
-
-
+### Python/Django Issues
+1. Activate virtual environment manually and test
+2. Check Django settings: `echo $DJANGO_SETTINGS_MODULE`
+3. Verify all dependencies installed in venv

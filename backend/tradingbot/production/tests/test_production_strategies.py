@@ -38,12 +38,12 @@ from ..core.production_strategy_manager import (
     StrategyConfig,
 )
 from ..data.production_data_integration import EarningsEvent
-from ..strategies.production_earnings_protection import (
+from backend.tradingbot.strategies.production.production_earnings_protection import (
     EarningsSignal,
     ProductionEarningsProtection,
 )
-from ..strategies.production_index_baseline import ProductionIndexBaseline
-from ..strategies.production_wsb_dip_bot import DipSignal, ProductionWSBDipBot
+from backend.tradingbot.strategies.production.production_index_baseline import ProductionIndexBaseline
+from backend.tradingbot.strategies.production.production_wsb_dip_bot import DipSignal, ProductionWSBDipBot
 
 
 class TestProductionWSBDipBot:

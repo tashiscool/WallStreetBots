@@ -1,7 +1,10 @@
-"""Environment-specific configurations."""
+"""Environment-specific configurations.
 
-from .development import DevelopmentConfig
-from .testing import TestingConfig
-from .production import ProductionConfig
+Django settings modules for different environments.
+Import these modules directly to use their settings.
+"""
 
-__all__ = ["DevelopmentConfig", "ProductionConfig", "TestingConfig"]
+# These are Django settings modules, not classes
+# Import them like: from backend.tradingbot.config.environments import development
+
+__all__ = ["development", "production", "testing"]

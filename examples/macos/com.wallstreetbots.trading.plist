@@ -8,9 +8,9 @@
     <key>ProgramArguments</key>
     <array>
         <string>/Users/admin/IdeaProjects/workspace/WallStreetBots/venv/bin/python</string>
-        <string>/Users/admin/IdeaProjects/workspace/WallStreetBots/simple_bot.py</string>
+        <string>simple_bot.py</string>
     </array>
-    
+
     <key>WorkingDirectory</key>
     <string>/Users/admin/IdeaProjects/workspace/WallStreetBots</string>
     

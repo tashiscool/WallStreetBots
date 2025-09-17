@@ -30,8 +30,8 @@ except ImportError:
     from backend.tradingbot.config.simple_settings import load_settings, StrategyProfile
 
     ValidationError = ValueError
-from backend.tradingbot.data.client import MarketDataClient, BarSpec
-from backend.tradingbot.risk.engine import RiskEngine, RiskLimits
+from backend.tradingbot.data.providers.client import MarketDataClient, BarSpec
+from backend.tradingbot.risk.engines.engine import RiskEngine, RiskLimits
 from backend.tradingbot.infra.obs import jlog
 from backend.tradingbot.infra.obs import metrics as obs_metrics
 

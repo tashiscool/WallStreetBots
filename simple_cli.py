@@ -10,8 +10,8 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
 
 from backend.tradingbot.config.simple_settings import load_settings
-from backend.tradingbot.data.client import MarketDataClient, BarSpec
-from backend.tradingbot.risk.engine import RiskEngine, RiskLimits
+from backend.tradingbot.data.providers.client import MarketDataClient, BarSpec
+from backend.tradingbot.risk.engines.engine import RiskEngine, RiskLimits
 
 
 def test_settings():

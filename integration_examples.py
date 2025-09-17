@@ -36,14 +36,14 @@ from backend.tradingbot.infra.runtime_safety import (
     assert_ntp_ok,
     ClockDriftError,
 )
-from backend.tradingbot.data.corporate_actions import (
+from backend.tradingbot.data.providers.corporate_actions import (
     CorporateAction,
     CorporateActionsAdjuster,
 )
 
 # Mock execution interfaces for examples
 from backend.tradingbot.execution import OrderRequest, ExecutionClient
-from backend.tradingbot.risk.engine import RiskEngine
+from backend.tradingbot.risk.engines.engine import RiskEngine
 
 
 def example_pre_trade_pipeline():

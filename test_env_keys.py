@@ -2,6 +2,7 @@
 """Test script to verify .env file loading and API keys."""
 
 import os
+import sys
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -37,4 +38,4 @@ def test_env_loading():
 
 if __name__ == "__main__":
     success = test_env_loading()
-    exit(0 if success else 1)
+    sys.exit(0 if success else 1)

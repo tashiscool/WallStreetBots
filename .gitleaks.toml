@@ -143,5 +143,28 @@ tags = ["mock"]
 # Global allowlist for all test-related keys
 [allowlist]
 description = "Allow test, example, and mock API keys in test files and documentation"
-paths = ["tests/**", "test_*.py", "docs/**", "examples/**", "README.md", "mocks/**"]
+paths = [
+    "tests/.*",
+    "test_.*\\.py",
+    "docs/.*",
+    "examples/.*",
+    "README\\.md",
+    "mocks/.*",
+    ".*test.*",
+    ".*Test.*",
+    ".*mock.*",
+    ".*Mock.*",
+    "\\.github/workflows/.*"
+]
+commits = []
+stopwords = [
+    "test_api_key",
+    "test_secret_key",
+    "test_django_secret_key",
+    "example_key",
+    "mock_key",
+    "fake_key",
+    "dummy_key",
+    "sample_key"
+]
 

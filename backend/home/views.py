@@ -1,5 +1,6 @@
 from django.db import connection
 from django.http import HttpResponse
+from django.utils import timezone
 
 
 def index(request):
@@ -9,8 +10,7 @@ def index(request):
 
 
 def get_time(request):
-    cursor = connection.cursor()
-    # Use SQLite-compatible datetime function
-    cursor.execute("""SELECT datetime('now', 'localtime')""")
-    current_datetime = cursor.fetchone()[0]
+    # Use Django's timezone-aware current time instead of raw SQL
+    # This works across all database backends (SQLite, PostgreSQL, MySQL, etc.)
+    current_datetime = timezone.now()
     return HttpResponse(f"Current time: {current_datetime}")

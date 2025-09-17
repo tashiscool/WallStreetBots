@@ -4,8 +4,12 @@ import pytest
 import pandas as pd
 import tempfile
 import os
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from backend.tradingbot.data.client import MarketDataClient, BarSpec
+
+# Disable yfinance threading globally for all tests
+os.environ['YF_THREADS'] = '1'
+os.environ['YF_TIMEOUT'] = '1'
 
 
 class TestMarketDataClient:
@@ -29,14 +33,12 @@ class TestMarketDataClient:
             assert str(temp_dir) in str(cache_file)
 
     @pytest.mark.integration
-    @patch('yfinance.download')
-    def test_get_bars_basic(self, mock_download):
+    def test_get_bars_basic(self):
         """Integration test - fetch real market data"""
-        # Mock yfinance to return sample data
+        # Create sample data directly to avoid yfinance entirely
         import pandas as pd
         from datetime import datetime, timedelta
 
-        # Create a properly indexed DataFrame for better mock compatibility
         dates = pd.date_range(start='2023-01-01', periods=5, freq='D')
         mock_data = pd.DataFrame({
             'Open': [100.0, 101.0, 102.0, 103.0, 104.0],
@@ -46,37 +48,36 @@ class TestMarketDataClient:
             'Volume': [1000000, 1100000, 1200000, 1300000, 1400000]
         }, index=dates)
 
-        # The DataFrame will naturally have empty=False since it has data
-        mock_download.return_value = mock_data
-        
-        with tempfile.TemporaryDirectory() as temp_dir:
-            client = MarketDataClient(use_cache=True, cache_path=temp_dir)
-            spec = BarSpec("SPY", "1d", "5d")
+        # Mock the entire yfinance module to completely bypass networking
+        with patch('backend.tradingbot.data.client.yf') as mock_yf:
+            mock_yf.download.return_value = mock_data
 
-            data = client.get_bars(spec)
+            with tempfile.TemporaryDirectory() as temp_dir:
+                client = MarketDataClient(use_cache=True, cache_path=temp_dir)
+                spec = BarSpec("SPY", "1d", "5d")
 
-            try:
-                assert isinstance(data, pd.DataFrame)
-                assert not data.empty
-                # Check for both lowercase and uppercase column names since CI might skip rename
-                expected_cols_lower = ["open", "high", "low", "close"]
-                expected_cols_upper = ["Open", "High", "Low", "Close"]
-                has_lower = all(col in data.columns for col in expected_cols_lower)
-                has_upper = all(col in data.columns for col in expected_cols_upper)
-                assert has_lower or has_upper, f"Missing expected columns in {list(data.columns)}"
-            except (TypeError, AttributeError, AssertionError):
-                # Handle mocked objects in tests - just check that the method completes
-                pass
+                data = client.get_bars(spec)
+
+                try:
+                    assert isinstance(data, pd.DataFrame)
+                    assert not data.empty
+                    # Check for both lowercase and uppercase column names since CI might skip rename
+                    expected_cols_lower = ["open", "high", "low", "close"]
+                    expected_cols_upper = ["Open", "High", "Low", "Close"]
+                    has_lower = all(col in data.columns for col in expected_cols_lower)
+                    has_upper = all(col in data.columns for col in expected_cols_upper)
+                    assert has_lower or has_upper, f"Missing expected columns in {list(data.columns)}"
+                except (TypeError, AttributeError, AssertionError):
+                    # Handle mocked objects in tests - just check that the method completes
+                    pass
 
     @pytest.mark.integration
-    @patch('yfinance.download')
-    def test_cache_functionality(self, mock_download):
+    def test_cache_functionality(self):
         """Test that caching works correctly"""
-        # Mock yfinance to return sample data
+        # Create sample data directly to avoid yfinance entirely
         import pandas as pd
         from datetime import datetime, timedelta
 
-        # Create a properly indexed DataFrame for better mock compatibility
         dates = pd.date_range(start='2023-01-01', periods=5, freq='D')
         mock_data = pd.DataFrame({
             'Open': [100.0, 101.0, 102.0, 103.0, 104.0],
@@ -86,28 +87,29 @@ class TestMarketDataClient:
             'Volume': [1000000, 1100000, 1200000, 1300000, 1400000]
         }, index=dates)
 
-        # The DataFrame will naturally have empty=False since it has data
-        mock_download.return_value = mock_data
-        
-        with tempfile.TemporaryDirectory() as temp_dir:
-            client = MarketDataClient(use_cache=True, cache_path=temp_dir)
-            spec = BarSpec("SPY", "1d", "5d")
+        # Mock the entire yfinance module to completely bypass networking
+        with patch('backend.tradingbot.data.client.yf') as mock_yf:
+            mock_yf.download.return_value = mock_data
 
-            # First fetch - should create cache
-            data1 = client.get_bars(spec, max_cache_age_hours=24)
-            cache_file = client._cache_file(spec)
+            with tempfile.TemporaryDirectory() as temp_dir:
+                client = MarketDataClient(use_cache=True, cache_path=temp_dir)
+                spec = BarSpec("SPY", "1d", "5d")
 
-            try:
-                assert cache_file.exists()
+                # First fetch - should create cache
+                data1 = client.get_bars(spec, max_cache_age_hours=24)
+                cache_file = client._cache_file(spec)
 
-                # Second fetch - should use cache
-                data2 = client.get_bars(spec, max_cache_age_hours=24)
+                try:
+                    assert cache_file.exists()
 
-                # Data should be identical (from cache)
-                pd.testing.assert_frame_equal(data1, data2)
-            except (AssertionError, TypeError, AttributeError):
-                # Handle empty data or mocked objects in tests
-                pass
+                    # Second fetch - should use cache
+                    data2 = client.get_bars(spec, max_cache_age_hours=24)
+
+                    # Data should be identical (from cache)
+                    pd.testing.assert_frame_equal(data1, data2)
+                except (AssertionError, TypeError, AttributeError):
+                    # Handle empty data or mocked objects in tests
+                    pass
 
     def test_cache_disabled(self):
         """Test functionality with caching disabled"""

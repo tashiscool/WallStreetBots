@@ -16,12 +16,17 @@ Connects to:
 """
 
 import logging
+import os
 import time as time_module
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from decimal import Decimal
 from enum import Enum
 from typing import Any
+
+# Harden yfinance for production use - disable threading to prevent segfaults
+os.environ.setdefault('YF_THREADS', '1')
+os.environ.setdefault('YF_TIMEOUT', '30')
 
 from ...apimanagers import AlpacaManager
 

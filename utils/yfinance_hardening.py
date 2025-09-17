@@ -1,4 +1,10 @@
+import os
 import yfinance as yf
+
+# Harden yfinance for production use
+# Disable threading to prevent segfaults in production
+os.environ.setdefault('YF_THREADS', '1')
+os.environ.setdefault('YF_TIMEOUT', '30')
 
 # Constants for data validation
 MIN_DAILY_DATA_POINTS = 2

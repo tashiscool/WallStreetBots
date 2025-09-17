@@ -8,6 +8,11 @@ from dataclasses import dataclass
 from typing import Optional
 import pandas as pd
 from pandas import DataFrame
+
+# Harden yfinance for production use - disable threading
+os.environ.setdefault('YF_THREADS', '1')
+os.environ.setdefault('YF_TIMEOUT', '30')
+
 import yfinance as yf
 from datetime import datetime, timedelta
 

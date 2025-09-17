@@ -36,7 +36,6 @@ class TestMarketDataClient:
     def test_get_bars_basic(self):
         """Integration test - fetch real market data"""
         # Create sample data directly to avoid yfinance entirely
-        import pandas as pd
         from datetime import datetime, timedelta
 
         dates = pd.date_range(start='2023-01-01', periods=5, freq='D')
@@ -75,7 +74,6 @@ class TestMarketDataClient:
     def test_cache_functionality(self):
         """Test that caching works correctly"""
         # Create sample data directly to avoid yfinance entirely
-        import pandas as pd
         from datetime import datetime, timedelta
 
         dates = pd.date_range(start='2023-01-01', periods=5, freq='D')

@@ -289,7 +289,7 @@ class MarketDataClient:
                     # Only fail if we can definitively determine it's empty AND not in test
                     if is_empty and hasattr(df, "columns") and len(getattr(df, "columns", [])) == 0:
                         if not is_test_env:
-                            raise RuntimeError(f"No data returned for {spec.symbol}")
+                            raise RuntimeError(f"No data returned for {spec.symbol}") from None
 
             except (AttributeError, TypeError):
                 # If we can't determine emptiness, assume it's valid for test environments

@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 import pandas as pd
 import numpy as np
 
-from backend.tradingbot.data.quality import DataQualityMonitor, OutlierDetector, QualityCheckResult
+from backend.tradingbot.data.quality.quality import DataQualityMonitor, OutlierDetector, QualityCheckResult
 
 
 class TestDataQualityMonitor:

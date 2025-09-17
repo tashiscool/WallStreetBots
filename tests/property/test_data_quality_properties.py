@@ -39,7 +39,7 @@ except ImportError:
 
     HYPOTHESIS_AVAILABLE = False
 
-from backend.tradingbot.data.quality import DataQualityMonitor
+from backend.tradingbot.data.quality.quality import DataQualityMonitor
 
 
 @pytest.mark.skipif(not HYPOTHESIS_AVAILABLE, reason="hypothesis not available")

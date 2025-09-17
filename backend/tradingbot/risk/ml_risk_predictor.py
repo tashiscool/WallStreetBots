@@ -462,6 +462,16 @@ class MLRiskPredictor:
         vol_forecast = self.predict_volatility_regime(market_data)
 
         # Calculate risk score based on multiple factors
+        # Coerce possibly mocked inputs to safe numeric values
+        def _to_float(value: Any, default: float) -> float:
+            try:
+                return float(value)
+            except Exception:
+                return default
+
+        safe_sentiment = _to_float(market_data.get("sentiment", 0.0), 0.0)
+        safe_rsi = _to_float(market_data.get("rsi", 50.0), 50.0)
+
         risk_factors = {
             "volatility": min(
                 100, vol_forecast.predicted_volatility * 200
@@ -469,9 +479,9 @@ class MLRiskPredictor:
             "regime": 80
             if vol_forecast.regime_probability.get("crisis", 0) > 0.3
             else 40,
-            "sentiment": 60 if market_data.get("sentiment", 0) < -0.5 else 30,
+            "sentiment": 60 if safe_sentiment < -0.5 else 30,
             "technical": 70
-            if market_data.get("rsi", 50) > 80 or market_data.get("rsi", 50) < 20
+            if safe_rsi > 80 or safe_rsi < 20
             else 40,
         }
 

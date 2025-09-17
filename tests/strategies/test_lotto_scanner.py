@@ -6,7 +6,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch, MagicMock
 from typing import Dict, List, Any
 
-from backend.tradingbot.strategies.lotto_scanner import (
+from backend.tradingbot.strategies.implementations.lotto_scanner import (
     LottoScanner,
     LottoPlay,
     EarningsEvent

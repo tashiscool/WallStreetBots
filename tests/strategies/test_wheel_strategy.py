@@ -6,7 +6,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch, MagicMock
 from typing import Dict, List, Any
 
-from backend.tradingbot.strategies.wheel_strategy import (
+from backend.tradingbot.strategies.implementations.wheel_strategy import (
     WheelStrategy,
     WheelPosition,
     WheelCandidate

@@ -6,7 +6,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch, MagicMock
 from typing import Dict, List, Any
 
-from backend.tradingbot.strategies.wsb_dip_bot import (
+from backend.tradingbot.strategies.implementations.wsb_dip_bot import (
     DipSignal,
     OptionPlan,
     detect_eod_signal,

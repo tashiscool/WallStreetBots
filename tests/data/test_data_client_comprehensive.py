@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
 import asyncio
 
-from backend.tradingbot.data.client import (
+from backend.tradingbot.data.providers.client import (
     MarketDataClient,
     DataClient,
     BarSpec

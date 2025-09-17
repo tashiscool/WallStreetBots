@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta
 from unittest.mock import Mock, patch, MagicMock
 import yfinance as yf
 
-from backend.tradingbot.strategies.swing_trading import (
+from backend.tradingbot.strategies.implementations.swing_trading import (
     SwingSignal,
     ActiveSwingTrade,
     SwingTradingScanner

@@ -1,7 +1,7 @@
 """Tests for the risk engine with kill-switch functionality"""
 
 import pytest
-from backend.tradingbot.risk.engine import RiskEngine, RiskLimits
+from backend.tradingbot.risk.engines.engine import RiskEngine, RiskLimits
 
 
 class TestRiskEngine:

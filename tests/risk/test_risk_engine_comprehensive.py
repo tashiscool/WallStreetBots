@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import Mock, patch
 import logging
 
-from backend.tradingbot.risk.engine import RiskEngine, RiskLimits
+from backend.tradingbot.risk.engines.engine import RiskEngine, RiskLimits
 
 
 class TestRiskEngineComprehensive:

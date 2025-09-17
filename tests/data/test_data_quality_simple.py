@@ -3,7 +3,7 @@ import pytest
 import time
 from unittest.mock import Mock, patch
 
-from backend.tradingbot.data.quality import DataQualityMonitor
+from backend.tradingbot.data.quality.quality import DataQualityMonitor
 
 
 class TestDataQualityMonitorSimple:

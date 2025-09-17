@@ -71,8 +71,8 @@ class TestDependenciesFallback:
         # These imports should always work
         from backend.tradingbot.execution.interfaces import OrderRequest, OrderAck
         from backend.tradingbot.execution.shadow_client import ShadowExecutionClient
-        from backend.tradingbot.data.corporate_actions import CorporateAction
-        from backend.tradingbot.risk.circuit_breaker import CircuitBreaker
+        from backend.tradingbot.data.providers.corporate_actions import CorporateAction
+        from backend.tradingbot.risk.monitoring.circuit_breaker import CircuitBreaker
 
         # Create simple instances to verify basic functionality
         order = OrderRequest("test", "AAPL", 100, "buy", "market")

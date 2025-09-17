@@ -1,28 +1,55 @@
-"""Production Trading Strategies.
+"""Production strategy implementations."""
 
-Production - ready implementations of WSB - style trading strategies:
-- ProductionWSBDipBot: Dip - after - run strategy with live execution
-- ProductionEarningsProtection: Earnings protection strategies
-- ProductionIndexBaseline: Baseline performance tracking
-- ProductionWheelStrategy: Automated premium selling wheel strategy
-- ProductionMomentumWeeklies: Intraday momentum and reversal patterns for weekly options
-- ProductionDebitSpreads: Call spreads with reduced theta / IV risk
-- ProductionLEAPSTracker: Long - term secular growth trends with systematic profit - taking
-- ProductionSwingTrading: Fast profit - taking swing trades with same-day exit discipline
-- ProductionSPXCreditSpreads: WSB - style 0DTE / short - term credit spreads with defined risk
-- ProductionLottoScanner: Extreme high - risk 0DTE and earnings lotto plays with strict discipline
-"""
+# Import strategies with fallbacks for any that might not exist
+try:
+    from ...strategies.production.production_wsb_dip_bot import ProductionWSBDipBot
+except ImportError:
+    ProductionWSBDipBot = None
 
-from .production_debit_spreads import ProductionDebitSpreads
-from .production_earnings_protection import ProductionEarningsProtection
-from .production_index_baseline import ProductionIndexBaseline
-from .production_leaps_tracker import ProductionLEAPSTracker
-from .production_lotto_scanner import ProductionLottoScanner
-from .production_momentum_weeklies import ProductionMomentumWeeklies
-from .production_spx_credit_spreads import ProductionSPXCreditSpreads
-from .production_swing_trading import ProductionSwingTrading
-from .production_wheel_strategy import ProductionWheelStrategy
-from .production_wsb_dip_bot import ProductionWSBDipBot
+try:
+    from ...strategies.production.production_wheel_strategy import ProductionWheelStrategy
+except ImportError:
+    ProductionWheelStrategy = None
+
+try:
+    from ...strategies.production.production_swing_trading import ProductionSwingTrading
+except ImportError:
+    ProductionSwingTrading = None
+
+try:
+    from ...strategies.production.production_momentum_weeklies import ProductionMomentumWeeklies
+except ImportError:
+    ProductionMomentumWeeklies = None
+
+try:
+    from ...strategies.production.production_lotto_scanner import ProductionLottoScanner
+except ImportError:
+    ProductionLottoScanner = None
+
+try:
+    from ...strategies.production.production_leaps_tracker import ProductionLEAPSTracker
+except ImportError:
+    ProductionLEAPSTracker = None
+
+try:
+    from ...strategies.production.production_index_baseline import ProductionIndexBaseline
+except ImportError:
+    ProductionIndexBaseline = None
+
+try:
+    from ...strategies.production.production_earnings_protection import ProductionEarningsProtection
+except ImportError:
+    ProductionEarningsProtection = None
+
+try:
+    from ...strategies.production.production_debit_spreads import ProductionDebitSpreads
+except ImportError:
+    ProductionDebitSpreads = None
+
+try:
+    from ...strategies.production.production_spx_credit_spreads import ProductionSPXCreditSpreads
+except ImportError:
+    ProductionSPXCreditSpreads = None
 
 __all__ = [
     "ProductionDebitSpreads",

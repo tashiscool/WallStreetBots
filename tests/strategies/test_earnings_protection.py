@@ -15,7 +15,7 @@ import pandas as pd
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from backend.tradingbot.strategies.earnings_protection import (
+from backend.tradingbot.strategies.implementations.earnings_protection import (
     EarningsEvent,
     EarningsProtectionScanner,
     EarningsProtectionStrategy,

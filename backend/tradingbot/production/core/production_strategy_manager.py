@@ -31,22 +31,7 @@ from ...analytics.market_regime_adapter import (
 from ..data.production_data_integration import (
     ReliableDataProvider as ProductionDataProvider,
 )
-from ..strategies.production_debit_spreads import create_production_debit_spreads
-from ..strategies.production_earnings_protection import (
-    create_production_earnings_protection,
-)
-from ..strategies.production_index_baseline import create_production_index_baseline
-from ..strategies.production_leaps_tracker import create_production_leaps_tracker
-from ..strategies.production_lotto_scanner import create_production_lotto_scanner
-from ..strategies.production_momentum_weeklies import (
-    create_production_momentum_weeklies,
-)
-from ..strategies.production_spx_credit_spreads import (
-    create_production_spx_credit_spreads,
-)
-from ..strategies.production_swing_trading import create_production_swing_trading
-from ..strategies.production_wheel_strategy import create_production_wheel_strategy
-from ..strategies.production_wsb_dip_bot import create_production_wsb_dip_bot
+# Strategy creation functions will be imported lazily to avoid circular imports
 from .production_integration import ProductionIntegrationManager
 
 
@@ -1240,42 +1225,52 @@ class ProductionStrategyManager:
         """Create individual strategy instance."""
         try:
             if strategy_name == "wsb_dip_bot":
+                from ...strategies.production.production_wsb_dip_bot import create_production_wsb_dip_bot
                 return create_production_wsb_dip_bot(
                     self.integration_manager, self.data_provider, config.parameters
                 )
             elif strategy_name == "earnings_protection":
+                from ...strategies.production.production_earnings_protection import create_production_earnings_protection
                 return create_production_earnings_protection(
                     self.integration_manager, self.data_provider, config.parameters
                 )
             elif strategy_name == "index_baseline":
+                from ...strategies.production.production_index_baseline import create_production_index_baseline
                 return create_production_index_baseline(
                     self.integration_manager, self.data_provider, config.parameters
                 )
             elif strategy_name == "wheel_strategy":
+                from ...strategies.production.production_wheel_strategy import create_production_wheel_strategy
                 return create_production_wheel_strategy(
                     self.integration_manager, self.data_provider, config.parameters
                 )
             elif strategy_name == "momentum_weeklies":
+                from ...strategies.production.production_momentum_weeklies import create_production_momentum_weeklies
                 return create_production_momentum_weeklies(
                     self.integration_manager, self.data_provider, config.parameters
                 )
             elif strategy_name == "debit_spreads":
+                from ...strategies.production.production_debit_spreads import create_production_debit_spreads
                 return create_production_debit_spreads(
                     self.integration_manager, self.data_provider, config.parameters
                 )
             elif strategy_name == "leaps_tracker":
+                from ...strategies.production.production_leaps_tracker import create_production_leaps_tracker
                 return create_production_leaps_tracker(
                     self.integration_manager, self.data_provider, config.parameters
                 )
             elif strategy_name == "swing_trading":
+                from ...strategies.production.production_swing_trading import create_production_swing_trading
                 return create_production_swing_trading(
                     self.integration_manager, self.data_provider, config.parameters
                 )
             elif strategy_name == "spx_credit_spreads":
+                from ...strategies.production.production_spx_credit_spreads import create_production_spx_credit_spreads
                 return create_production_spx_credit_spreads(
                     self.integration_manager, self.data_provider, config.parameters
                 )
             elif strategy_name == "lotto_scanner":
+                from ...strategies.production.production_lotto_scanner import create_production_lotto_scanner
                 return create_production_lotto_scanner(
                     self.integration_manager, self.data_provider, config.parameters
                 )
@@ -2034,3 +2029,34 @@ def create_production_strategy_manager(
 ) -> ProductionStrategyManager:
     """Create ProductionStrategyManager instance."""
     return ProductionStrategyManager(config)
+
+
+# Strategy creation functions
+def create_production_wsb_dip_bot(trading_client, data_provider, config, logger):
+    """Create production WSB dip bot strategy."""
+    from ...strategies.production.production_wsb_dip_bot import ProductionWSBDipBot
+    return ProductionWSBDipBot(trading_client, data_provider, config, logger)
+
+
+def create_production_wheel_strategy(trading_client, data_provider, config, logger):
+    """Create production wheel strategy."""
+    from ...strategies.production.production_wheel_strategy import ProductionWheelStrategy
+    return ProductionWheelStrategy(trading_client, data_provider, config, logger)
+
+
+def create_production_earnings_protection(trading_client, data_provider, config, logger):
+    """Create production earnings protection strategy."""
+    from ...strategies.production.production_earnings_protection import ProductionEarningsProtection
+    return ProductionEarningsProtection(trading_client, data_provider, config, logger)
+
+
+def create_production_index_baseline(trading_client, data_provider, config, logger):
+    """Create production index baseline strategy."""
+    from ...strategies.production.production_index_baseline import ProductionIndexBaseline
+    return ProductionIndexBaseline(trading_client, data_provider, config, logger)
+
+
+def create_production_lotto_scanner(trading_client, data_provider, config, logger):
+    """Create production lotto scanner strategy."""
+    from ...strategies.production.production_lotto_scanner import ProductionLottoScanner
+    return ProductionLottoScanner(trading_client, data_provider, config, logger)

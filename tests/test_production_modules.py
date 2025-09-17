@@ -3,12 +3,12 @@ import pytest
 import time
 from decimal import Decimal
 
-from backend.tradingbot.risk.circuit_breaker import CircuitBreaker, BreakerLimits
+from backend.tradingbot.risk.monitoring.circuit_breaker import CircuitBreaker, BreakerLimits
 from backend.tradingbot.execution.replay_guard import ReplayGuard
 from backend.tradingbot.ops.eod_recon import LocalOrder, BrokerFill, reconcile
-from backend.tradingbot.data.quality import DataQualityMonitor
+from backend.tradingbot.data.quality.quality import DataQualityMonitor
 from backend.tradingbot.infra.build_info import build_id, version_info
-from backend.tradingbot.risk.greek_exposure_limits import GreekExposureLimiter, GreekLimits, PositionGreeks
+from backend.tradingbot.risk.monitoring.greek_exposure_limits import GreekExposureLimiter, GreekLimits, PositionGreeks
 
 
 class TestCircuitBreaker:

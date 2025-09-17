@@ -15,7 +15,7 @@ import pandas as pd
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from backend.tradingbot.strategies.swing_trading import (
+from backend.tradingbot.strategies.implementations.swing_trading import (
     ActiveSwingTrade,
     SwingSignal,
     SwingTradingScanner,
@@ -274,7 +274,7 @@ class TestSwingTradingIntegration(unittest.TestCase):
 
     def test_main_function_exists(self):
         """Test that main function exists and is callable."""
-        from backend.tradingbot.strategies.swing_trading import main
+        from backend.tradingbot.strategies.implementations.swing_trading import main
 
         self.assertTrue(callable(main))
 

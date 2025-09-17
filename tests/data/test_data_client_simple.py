@@ -5,7 +5,7 @@ import pandas as pd
 from unittest.mock import Mock, patch
 from datetime import datetime, timedelta
 
-from backend.tradingbot.data.client import MarketDataClient, BarSpec
+from backend.tradingbot.data.providers.client import MarketDataClient, BarSpec
 
 
 class TestBarSpec:

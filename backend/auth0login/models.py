@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-from backend.tradingbot.models import Portfolio
+from backend.tradingbot.models.models import Portfolio
 
 
 class Credential(models.Model):

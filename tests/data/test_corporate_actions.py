@@ -1,7 +1,7 @@
 """Test corporate actions handling system."""
 import pytest
 import pandas as pd
-from backend.tradingbot.data.corporate_actions import CorporateAction, CorporateActionsAdjuster
+from backend.tradingbot.data.providers.corporate_actions import CorporateAction, CorporateActionsAdjuster
 
 
 class TestCorporateAction:

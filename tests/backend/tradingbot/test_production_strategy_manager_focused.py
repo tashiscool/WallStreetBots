@@ -267,34 +267,34 @@ def test_all_strategy_imports_available():
     print("Testing all strategy imports...")
 
     try:
-        from backend.tradingbot.production.strategies.production_debit_spreads import (
+        from backend.tradingbot.strategies.production.production_debit_spreads import (
             create_production_debit_spreads,
         )
-        from backend.tradingbot.production.strategies.production_earnings_protection import (
+        from backend.tradingbot.strategies.production.production_earnings_protection import (
             create_production_earnings_protection,
         )
-        from backend.tradingbot.production.strategies.production_index_baseline import (
+        from backend.tradingbot.strategies.production.production_index_baseline import (
             create_production_index_baseline,
         )
-        from backend.tradingbot.production.strategies.production_leaps_tracker import (
+        from backend.tradingbot.strategies.production.production_leaps_tracker import (
             create_production_leaps_tracker,
         )
-        from backend.tradingbot.production.strategies.production_lotto_scanner import (
+        from backend.tradingbot.strategies.production.production_lotto_scanner import (
             create_production_lotto_scanner,
         )
-        from backend.tradingbot.production.strategies.production_momentum_weeklies import (
+        from backend.tradingbot.strategies.production.production_momentum_weeklies import (
             create_production_momentum_weeklies,
         )
-        from backend.tradingbot.production.strategies.production_spx_credit_spreads import (
+        from backend.tradingbot.strategies.production.production_spx_credit_spreads import (
             create_production_spx_credit_spreads,
         )
-        from backend.tradingbot.production.strategies.production_swing_trading import (
+        from backend.tradingbot.strategies.production.production_swing_trading import (
             create_production_swing_trading,
         )
-        from backend.tradingbot.production.strategies.production_wheel_strategy import (
+        from backend.tradingbot.strategies.production.production_wheel_strategy import (
             create_production_wheel_strategy,
         )
-        from backend.tradingbot.production.strategies.production_wsb_dip_bot import (
+        from backend.tradingbot.strategies.production.production_wsb_dip_bot import (
             create_production_wsb_dip_bot,
         )
 

@@ -141,7 +141,7 @@ class TestProductionStrategyManager:
                 assert isinstance(manager.strategies, dict)
 
     @patch(
-        "backend.tradingbot.production.core.production_strategy_manager.create_production_wsb_dip_bot"
+        "backend.tradingbot.strategies.production.production_wsb_dip_bot.create_production_wsb_dip_bot"
     )
     def test_strategy_creation_wsb_dip_bot(self, mock_wsb, strategy_manager):
         """Test WSB Dip Bot strategy creation."""
@@ -161,7 +161,7 @@ class TestProductionStrategyManager:
         mock_wsb.assert_called_once()
 
     @patch(
-        "backend.tradingbot.production.core.production_strategy_manager.create_production_wheel_strategy"
+        "backend.tradingbot.strategies.production.production_wheel_strategy.create_production_wheel_strategy"
     )
     def test_strategy_creation_wheel_strategy(self, mock_wheel, strategy_manager):
         """Test Wheel Strategy creation."""
@@ -178,7 +178,7 @@ class TestProductionStrategyManager:
         mock_wheel.assert_called_once()
 
     @patch(
-        "backend.tradingbot.production.core.production_strategy_manager.create_production_momentum_weeklies"
+        "backend.tradingbot.strategies.production.production_momentum_weeklies.create_production_momentum_weeklies"
     )
     def test_strategy_creation_momentum_weeklies(self, mock_momentum, strategy_manager):
         """Test Momentum Weeklies strategy creation."""
@@ -195,7 +195,7 @@ class TestProductionStrategyManager:
         mock_momentum.assert_called_once()
 
     @patch(
-        "backend.tradingbot.production.core.production_strategy_manager.create_production_debit_spreads"
+        "backend.tradingbot.strategies.production.production_debit_spreads.create_production_debit_spreads"
     )
     def test_strategy_creation_debit_spreads(self, mock_debit, strategy_manager):
         """Test Debit Spreads strategy creation."""
@@ -212,7 +212,7 @@ class TestProductionStrategyManager:
         mock_debit.assert_called_once()
 
     @patch(
-        "backend.tradingbot.production.core.production_strategy_manager.create_production_leaps_tracker"
+        "backend.tradingbot.strategies.production.production_leaps_tracker.create_production_leaps_tracker"
     )
     def test_strategy_creation_leaps_tracker(self, mock_leaps, strategy_manager):
         """Test LEAPS Tracker strategy creation."""
@@ -229,7 +229,7 @@ class TestProductionStrategyManager:
         mock_leaps.assert_called_once()
 
     @patch(
-        "backend.tradingbot.production.core.production_strategy_manager.create_production_swing_trading"
+        "backend.tradingbot.strategies.production.production_swing_trading.create_production_swing_trading"
     )
     def test_strategy_creation_swing_trading(self, mock_swing, strategy_manager):
         """Test Swing Trading strategy creation."""
@@ -246,7 +246,7 @@ class TestProductionStrategyManager:
         mock_swing.assert_called_once()
 
     @patch(
-        "backend.tradingbot.production.core.production_strategy_manager.create_production_spx_credit_spreads"
+        "backend.tradingbot.strategies.production.production_spx_credit_spreads.create_production_spx_credit_spreads"
     )
     def test_strategy_creation_spx_credit_spreads(self, mock_spx, strategy_manager):
         """Test SPX Credit Spreads strategy creation."""
@@ -265,7 +265,7 @@ class TestProductionStrategyManager:
         mock_spx.assert_called_once()
 
     @patch(
-        "backend.tradingbot.production.core.production_strategy_manager.create_production_lotto_scanner"
+        "backend.tradingbot.strategies.production.production_lotto_scanner.create_production_lotto_scanner"
     )
     def test_strategy_creation_lotto_scanner(self, mock_lotto, strategy_manager):
         """Test Lotto Scanner strategy creation."""
@@ -291,7 +291,7 @@ class TestProductionStrategyManager:
     def test_strategy_creation_exception_handling(self, strategy_manager):
         """Test exception handling in strategy creation."""
         with patch(
-            "backend.tradingbot.production.core.production_strategy_manager.create_production_wsb_dip_bot",
+            "backend.tradingbot.strategies.production.production_wsb_dip_bot.create_production_wsb_dip_bot",
             side_effect=Exception("Test error"),
         ):
             config = StrategyConfig(name="wsb_dip_bot", enabled=True, parameters={})
@@ -550,7 +550,7 @@ class TestIntegrationScenarios:
                 mock_strategy = Mock()
                 mock_strategy.run_strategy = AsyncMock()
 
-                patch_path = f"backend.tradingbot.production.strategies.production_{strategy_name}.create_production_{strategy_name}"
+                patch_path = f"backend.tradingbot.strategies.production.production_{strategy_name}.create_production_{strategy_name}"
                 patch_obj = patch(patch_path, return_value=mock_strategy)
                 strategy_patches.append(patch_obj)
 

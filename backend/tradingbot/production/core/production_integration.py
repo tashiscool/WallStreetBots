@@ -27,7 +27,11 @@ from ...core.trading_interface import (
     TradeSignal,
     TradeStatus,
 )
-from ...models import Company, Order, Stock
+# Django models imported lazily when needed
+def get_django_models():
+    """Lazy import Django models."""
+    from ...models.models import Company, Order, Stock
+    return Company, Order, Stock
 from ...risk_management import RiskManager, RiskParameters
 
 
@@ -406,9 +410,12 @@ class ProductionIntegrationManager:
 
     async def create_django_order(
         self, signal: ProductionTradeSignal, alpaca_order_id: str
-    ) -> Order | None:
+    ):
         """Create Django Order record."""
         try:
+            # Get Django models lazily
+            Company, Order, Stock = get_django_models()
+
             # Get or create Company and Stock
             company, created = await sync_to_async(Company.objects.get_or_create)(
                 ticker=signal.ticker, defaults={"name": signal.ticker}

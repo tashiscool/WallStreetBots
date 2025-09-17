@@ -198,7 +198,7 @@ class StrategyValidator:
 
             # Test database connectivity
             try:
-                from backend.tradingbot.models import Portfolio, Order
+                from backend.tradingbot.models.models import Portfolio, Order
                 # Simple database test
                 portfolio_count = Portfolio.objects.count()
                 order_count = Order.objects.count()

@@ -6,7 +6,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch, MagicMock
 from typing import Dict, List, Any
 
-from backend.tradingbot.strategies.momentum_weeklies import (
+from backend.tradingbot.strategies.implementations.momentum_weeklies import (
     MomentumWeekliesScanner,
     MomentumSignal
 )

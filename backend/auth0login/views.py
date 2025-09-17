@@ -94,7 +94,7 @@ def dashboard(request):
             response = order_form.place_order(user, user_details)
             order_form = OrderForm()
             #  update order for display
-            from backend.tradingbot.models import Order
+            from backend.tradingbot.models.models import Order
 
             userdata["orders"] = [
                 order.display_order()
@@ -218,7 +218,7 @@ def orders(request):
             response = order_form.place_order(user, user_details)
             order_form = OrderForm()
             #  update order for display
-            from backend.tradingbot.models import Order
+            from backend.tradingbot.models.models import Order
 
             userdata["orders"] = [
                 order.display_order()

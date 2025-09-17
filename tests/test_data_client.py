@@ -5,7 +5,7 @@ import pandas as pd
 import tempfile
 import os
 from unittest.mock import patch, MagicMock
-from backend.tradingbot.data.client import MarketDataClient, BarSpec
+from backend.tradingbot.data.providers.client import MarketDataClient, BarSpec
 
 # Disable yfinance threading globally for all tests
 os.environ['YF_THREADS'] = '1'
@@ -48,7 +48,7 @@ class TestMarketDataClient:
         }, index=dates)
 
         # Mock the entire yfinance module to completely bypass networking
-        with patch('backend.tradingbot.data.client.yf') as mock_yf:
+        with patch('backend.tradingbot.data.providers.client.yf') as mock_yf:
             mock_yf.download.return_value = mock_data
 
             with tempfile.TemporaryDirectory() as temp_dir:
@@ -86,7 +86,7 @@ class TestMarketDataClient:
         }, index=dates)
 
         # Mock the entire yfinance module to completely bypass networking
-        with patch('backend.tradingbot.data.client.yf') as mock_yf:
+        with patch('backend.tradingbot.data.providers.client.yf') as mock_yf:
             mock_yf.download.return_value = mock_data
 
             with tempfile.TemporaryDirectory() as temp_dir:

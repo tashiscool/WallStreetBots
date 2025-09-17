@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from backend.tradingbot.strategies.spx_credit_spreads import (
+from backend.tradingbot.strategies.implementations.spx_credit_spreads import (
     CreditSpreadOpportunity,
     SPXCreditSpreadsScanner,
 )
@@ -214,7 +214,7 @@ class TestSPXCreditSpreadsIntegration(unittest.TestCase):
 
     def test_main_function_exists(self):
         """Test that main function exists and is callable."""
-        from backend.tradingbot.strategies.spx_credit_spreads import main
+        from backend.tradingbot.strategies.implementations.spx_credit_spreads import main
 
         self.assertTrue(callable(main))
 

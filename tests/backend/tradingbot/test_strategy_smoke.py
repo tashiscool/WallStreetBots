@@ -19,18 +19,18 @@ sys.modules["yfinance"] = MagicMock()
 sys.modules["pandas"] = MagicMock()
 sys.modules["numpy"] = MagicMock()
 
-from backend.tradingbot.strategies.debit_spreads import (  # noqa: E402
+from backend.tradingbot.strategies.implementations.debit_spreads import (  # noqa: E402
     DebitSpreadScanner,
     SpreadOpportunity,
 )
-from backend.tradingbot.strategies.leaps_tracker import LEAPSPosition, LEAPSTracker  # noqa: E402
-from backend.tradingbot.strategies.lotto_scanner import LottoPlay, LottoScanner  # noqa: E402
-from backend.tradingbot.strategies.momentum_weeklies import (  # noqa: E402
+from backend.tradingbot.strategies.implementations.leaps_tracker import LEAPSPosition, LEAPSTracker  # noqa: E402
+from backend.tradingbot.strategies.implementations.lotto_scanner import LottoPlay, LottoScanner  # noqa: E402
+from backend.tradingbot.strategies.implementations.momentum_weeklies import (  # noqa: E402
     MomentumSignal,
     MomentumWeekliesScanner,
 )
-from backend.tradingbot.strategies.wheel_strategy import WheelPosition, WheelStrategy  # noqa: E402
-from backend.tradingbot.strategies.wsb_dip_bot import DipSignal  # noqa: E402
+from backend.tradingbot.strategies.implementations.wheel_strategy import WheelPosition, WheelStrategy  # noqa: E402
+from backend.tradingbot.strategies.implementations.wsb_dip_bot import DipSignal  # noqa: E402
 
 
 class TestStrategySmokeTests(unittest.TestCase):
@@ -223,7 +223,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
         scanner = MomentumWeekliesScanner()
 
         with patch(
-            "backend.tradingbot.strategies.momentum_weeklies.yf.Ticker"
+            "backend.tradingbot.strategies.implementations.momentum_weeklies.yf.Ticker"
         ) as mock_ticker:
             mock_stock = Mock()
             mock_stock.history.return_value = pd.DataFrame(
@@ -240,7 +240,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
         scanner = MomentumWeekliesScanner()
 
         with patch(
-            "backend.tradingbot.strategies.momentum_weeklies.yf.Ticker"
+            "backend.tradingbot.strategies.implementations.momentum_weeklies.yf.Ticker"
         ) as mock_ticker:
             mock_stock = Mock()
             mock_stock.history.return_value = pd.DataFrame(
@@ -260,7 +260,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
         scanner = DebitSpreadScanner()
 
         with patch(
-            "backend.tradingbot.strategies.debit_spreads.yf.Ticker"
+            "backend.tradingbot.strategies.implementations.debit_spreads.yf.Ticker"
         ) as mock_ticker:
             mock_stock = Mock()
             mock_stock.history.return_value = pd.DataFrame(
@@ -278,7 +278,7 @@ class TestStrategyBasicFunctionality(unittest.TestCase):
         scanner = DebitSpreadScanner()
 
         with patch(
-            "backend.tradingbot.strategies.debit_spreads.yf.Ticker"
+            "backend.tradingbot.strategies.implementations.debit_spreads.yf.Ticker"
         ) as mock_ticker:
             mock_stock = Mock()
             mock_stock.history.return_value = pd.DataFrame(
@@ -300,7 +300,7 @@ class TestStrategyErrorHandling(unittest.TestCase):
         scanner = MomentumWeekliesScanner()
 
         with patch(
-            "backend.tradingbot.strategies.momentum_weeklies.yf.Ticker"
+            "backend.tradingbot.strategies.implementations.momentum_weeklies.yf.Ticker"
         ) as mock_ticker:
             mock_ticker.side_effect = Exception("Network error")
 
@@ -313,7 +313,7 @@ class TestStrategyErrorHandling(unittest.TestCase):
         scanner = DebitSpreadScanner()
 
         with patch(
-            "backend.tradingbot.strategies.debit_spreads.yf.Ticker"
+            "backend.tradingbot.strategies.implementations.debit_spreads.yf.Ticker"
         ) as mock_ticker:
             mock_ticker.side_effect = Exception("Network error")
 

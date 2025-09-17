@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import Mock, patch
 import numpy as np
 
-from backend.tradingbot.risk.greek_exposure_limits import (
+from backend.tradingbot.risk.monitoring.greek_exposure_limits import (
     GreekExposureLimiter,
     GreekLimits,
     PositionGreeks

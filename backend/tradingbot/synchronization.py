@@ -19,7 +19,7 @@ def sync_database_company_stock(ticker):
     """Check if company / stock for this ticker exist and sync to database if not already exists
     returns the stock and company.
     """
-    from backend.tradingbot.models import Company, Stock
+    from backend.tradingbot.models.models import Company, Stock
 
     if not Company.objects.filter(ticker=ticker).exists():
         # add Company
@@ -39,7 +39,7 @@ def sync_stock_instance(user, portfolio, stock):
     """Create a stock instance and
     add it to the database.
     """
-    from backend.tradingbot.models import StockInstance
+    from backend.tradingbot.models.models import StockInstance
 
     if not StockInstance.objects.filter(
         user=user, portfolio=portfolio, stock=stock
@@ -121,7 +121,7 @@ def sync_alpaca(user):
 
     from django.db.models import Q
 
-    from backend.tradingbot.models import Company, Portfolio, Stock, StockInstance
+    from backend.tradingbot.models.models import Company, Portfolio, Stock, StockInstance
 
     if not hasattr(user, "portfolio"):
         new_portfolio = Portfolio(name="default - 1", user=user, cash=0)
@@ -151,7 +151,7 @@ def sync_alpaca(user):
     # 2) synchronizes order status (To be completed)
     alpaca_open_orders = api.api.list_orders(status="open", nested=True)
     from backend.tradingbot.apiutility import create_local_order
-    from backend.tradingbot.models import Order
+    from backend.tradingbot.models.models import Order
 
     local_open_orders = Order.objects.filter(user=user, status="A")
     for order in local_open_orders.iterator():

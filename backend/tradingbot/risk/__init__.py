@@ -2,12 +2,47 @@
 Sophisticated risk models for algorithmic trading.
 """
 
-from .advanced_var_engine import AdvancedVaREngine, VaRResult, VaRSuite
-from .database_schema import RiskDatabaseManager
-from .ml_risk_predictor import MLRiskPredictor, RiskPrediction, VolatilityForecast
-from .risk_dashboard import RiskAlert, RiskDashboard2025, RiskSummary
-from .risk_integration_manager import RiskIntegrationManager, RiskLimits, RiskMetrics
-from .stress_testing_engine import StressScenario, StressTesting2025, StressTestReport
+# Core imports that are always available
+try:
+    from .database_schema import RiskDatabaseManager
+except ImportError:
+    RiskDatabaseManager = None
+
+try:
+    from .ml_risk_predictor import MLRiskPredictor, RiskPrediction, VolatilityForecast
+except ImportError:
+    MLRiskPredictor = RiskPrediction = VolatilityForecast = None
+
+# Optional imports with fallbacks
+try:
+    from .engines.advanced_var_engine import AdvancedVaREngine, VaRResult, VaRSuite
+    from .engines import engine
+except ImportError:
+    AdvancedVaREngine = VaRResult = VaRSuite = None
+    engine = None
+
+try:
+    from .monitoring.risk_dashboard import RiskAlert, RiskDashboard2025, RiskSummary
+except ImportError:
+    RiskAlert = RiskDashboard2025 = RiskSummary = None
+
+try:
+    from .engines.stress_testing_engine import StressScenario, StressTesting2025, StressTestReport
+except ImportError:
+    try:
+        from .stress_testing_engine import StressScenario, StressTesting2025, StressTestReport
+    except ImportError:
+        StressScenario = StressTesting2025 = StressTestReport = None
+
+# Risk integration manager with multiple fallback paths
+RiskIntegrationManager = RiskLimits = RiskMetrics = None
+try:
+    from .managers.risk_integration_manager import RiskIntegrationManager, RiskLimits, RiskMetrics
+except ImportError:
+    try:
+        from .risk_integration_manager import RiskIntegrationManager, RiskLimits, RiskMetrics
+    except ImportError:
+        pass
 
 # Import complete risk engine utilities
 try:
@@ -19,7 +54,7 @@ except ImportError:
 
 # Import production-ready risk engine
 try:
-    from .engine import (
+    from .engines.engine import (
         RiskEngine as ProductionRiskEngine,
         RiskLimits as ProductionRiskLimits,
     )

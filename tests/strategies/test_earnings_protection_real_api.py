@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta
 from unittest.mock import Mock, patch, MagicMock
 import yfinance as yf
 
-from backend.tradingbot.strategies.earnings_protection import (
+from backend.tradingbot.strategies.implementations.earnings_protection import (
     EarningsEvent,
     EarningsProtectionStrategy,
     EarningsProtectionScanner

@@ -23,7 +23,7 @@ def create_local_order(
         raise ValidationError("invalid order type")
 
     stock, _ = sync_database_company_stock(ticker)
-    from backend.tradingbot.models import Order
+    from backend.tradingbot.models.models import Order
 
     order = Order(
         user=user,
@@ -88,7 +88,7 @@ def place_general_order(
     # 2. store order to database
     # 2.1 check if stock and company exists
     stock, _ = sync_database_company_stock(ticker)
-    from backend.tradingbot.models import Order
+    from backend.tradingbot.models.models import Order
 
     order = Order(
         user=user,

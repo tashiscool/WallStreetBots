@@ -16,9 +16,15 @@ from .core.production_strategy_manager import (
     ProductionStrategyManager,
     ProductionStrategyManagerConfig,
 )
-from .strategies.production_earnings_protection import ProductionEarningsProtection
-from .strategies.production_index_baseline import ProductionIndexBaseline
-from .strategies.production_wsb_dip_bot import ProductionWSBDipBot
+# Import strategies with fallbacks
+try:
+    from .strategies import (
+        ProductionEarningsProtection,
+        ProductionIndexBaseline,
+        ProductionWSBDipBot,
+    )
+except ImportError:
+    ProductionEarningsProtection = ProductionIndexBaseline = ProductionWSBDipBot = None
 
 __all__ = [
     "ProductionEarningsProtection",

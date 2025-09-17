@@ -4,7 +4,7 @@
 import unittest
 import pandas as pd
 import numpy as np
-from backend.tradingbot.data.corporate_actions import (
+from backend.tradingbot.data.providers.corporate_actions import (
     CorporateAction,
     CorporateActionsAdjuster,
 )

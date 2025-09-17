@@ -1,6 +1,24 @@
 """Production environment configuration."""
 
-from ..base import *
+import os
+import dj_database_url
+
+from ..base import (
+    BASE_DIR,
+    TRADING_CONFIG,
+    LOGGING_CONFIG,
+    API_CONFIG,
+    INSTALLED_APPS,
+    MIDDLEWARE,
+    ROOT_URLCONF,
+    LANGUAGE_CODE,
+    TIME_ZONE,
+    USE_I18N,
+    USE_TZ,
+    STATIC_URL,
+    STATIC_ROOT,
+    DEFAULT_AUTO_FIELD,
+)
 
 # Production-specific settings
 DEBUG = False

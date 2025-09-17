@@ -51,26 +51,23 @@ except ImportError:
     pass
 
 __all__ = [
-    # Production models (always available)
-    "StrategyRiskLevel",
-    "TradeStatus",
-    "OrderSide",
-    "ProductionStrategy",
-    "ProductionPosition",
-    "ProductionTrade",
-    "ProductionRiskLimit",
-    "ProductionAlert",
-    "ProductionMarketData",
-    "ProductionEarningsData",
-    "ProductionSentimentData",
-    "ProductionPerformanceMetrics",
-
-    # Django models (available when Django is configured)
-    "Portfolio",
+    "DJANGO_MODELS_AVAILABLE",
     "Bot",
     "Company",
-    "Stock",
     "Order",
+    "OrderSide",
+    "Portfolio",
+    "ProductionAlert",
+    "ProductionEarningsData",
+    "ProductionMarketData",
+    "ProductionPerformanceMetrics",
+    "ProductionPosition",
+    "ProductionRiskLimit",
+    "ProductionSentimentData",
+    "ProductionStrategy",
+    "ProductionTrade",
+    "Stock",
+    "StrategyRiskLevel",
+    "TradeStatus",
     "get_django_models",
-    "DJANGO_MODELS_AVAILABLE",
 ]

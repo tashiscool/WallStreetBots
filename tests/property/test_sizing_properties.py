@@ -52,13 +52,31 @@ def size_order(equity: float, pct: float, px: float, lot: int = 1) -> int:
         return 0
     if np.isinf(equity) or np.isinf(pct) or np.isinf(px):
         return 0
-    
+
     try:
-        notional = Decimal(str(equity)) * Decimal(str(pct))
-        raw_shares = notional / Decimal(str(px))
-        # Round down to the nearest lot size
-        lot_count = int(raw_shares) // lot
-        return lot_count * lot
+        # Use Decimal for precise calculations
+        equity_decimal = Decimal(str(equity))
+        pct_decimal = Decimal(str(pct))
+        px_decimal = Decimal(str(px))
+
+        # Calculate the maximum notional value
+        max_notional = equity_decimal * pct_decimal
+
+        # Calculate raw shares (rounded down for safety)
+        raw_shares = max_notional / px_decimal
+        raw_shares_floor = raw_shares.quantize(Decimal('1'), rounding=ROUND_DOWN)
+
+        # Apply lot size constraint
+        lot_count = int(raw_shares_floor) // lot
+        shares = lot_count * lot
+
+        # Final safety check: ensure the order value doesn't exceed allocation
+        order_value = Decimal(str(shares)) * px_decimal
+        if order_value > max_notional:
+            # Reduce by one lot to stay within bounds
+            shares = max(0, shares - lot)
+
+        return shares
     except (ValueError, OverflowError, InvalidOperation):
         return 0
 

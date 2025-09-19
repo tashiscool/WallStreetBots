@@ -7,11 +7,16 @@
 
 **✅ 10+ Complete Trading Strategies** • **✅ Advanced VaR/CVaR Risk Models** • **✅ ML Risk Agents** • **✅ Multi-Asset Support**
 
+[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
+[![Django](https://img.shields.io/badge/Django-4.2+-green.svg)](https://djangoproject.com)
+[![Tests](https://img.shields.io/badge/Tests-1800+-brightgreen.svg)](#testing)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 </div>
 
 ---
 
-A **comprehensive, institutional-grade trading system** implementing WSB-style strategies with **sophisticated risk management**, **real-time monitoring**, and **production-ready architecture**. Features include multi-method VaR calculations, ML-driven risk agents, regulatory compliance, options pricing engines, and automated rebalancing.
+A **comprehensive, institutional-grade trading system** implementing WSB-style strategies with **sophisticated risk management**, **real-time monitoring**, and **production-ready architecture**. Features include multi-method VaR calculations, ML-driven risk agents, regulatory compliance, options pricing engines, automated rebalancing, and complete signal validation framework.
 
 ## 🏆 **Key Capabilities**
 
@@ -34,6 +39,7 @@ A **comprehensive, institutional-grade trading system** implementing WSB-style s
 - **ML Risk Agents** - PPO & DDPG reinforcement learning for dynamic risk control
 - **Circuit Breakers** - Automated trading halts on drawdown/error thresholds
 - **Multi-Asset Risk** - Cross-asset correlation modeling (equity, crypto, forex, commodities)
+- **Signal Validation** - Alpha validation gates with comprehensive testing framework
 
 ### **⚖️ Regulatory Compliance**
 - **FCA/CFTC Compliance** - Full regulatory compliance with audit trails
@@ -48,6 +54,8 @@ A **comprehensive, institutional-grade trading system** implementing WSB-style s
 - **Advanced Analytics** - Sharpe ratio, Sortino ratio, max drawdown, VaR analysis
 - **Predictive Risk Models** - ML-based volatility and risk forecasting
 - **Performance Attribution** - Alpha, beta, information ratio vs benchmarks
+- **Signal Validation** - Real-time alpha validation with parameter tracking
+- **Data Quality Control** - Automated data validation and quality metrics
 
 ## 📚 **Complete Documentation**
 
@@ -74,8 +82,11 @@ python test_env_keys.py
 # 4. Run the system
 python run_wallstreetbots.py
 
-# 5. Run comprehensive tests
+# 5. Run comprehensive tests (1800+ tests)
 python -m pytest tests/ --tb=short -q
+
+# 6. Run signal validation tests
+python -m pytest tests/validation/ -v
 ```
 
 ## 🏛️ Architecture
@@ -96,6 +107,10 @@ backend/tradingbot/
 │   ├── managers/       # Risk management coordination and integration
 │   ├── compliance/     # Regulatory compliance and reporting
 │   └── monitoring/     # Real-time risk monitoring and alerts
+├── validation/         # Signal validation and quality assurance
+│   ├── gates/          # Alpha validation gates and filters
+│   ├── metrics/        # Validation metrics and reporting
+│   └── adapters/       # Integration adapters for validation pipeline
 ├── data/               # Data management and providers
 │   ├── providers/      # Market data source integrations
 │   └── quality/        # Data validation and quality assurance
@@ -120,6 +135,8 @@ backend/tradingbot/
 - **Real-time Monitoring** - Health checks, system metrics, alert system
 - **Database Integration** - SQLite/PostgreSQL with audit trails
 - **Multi-Environment Support** - Development, testing, production configurations
+- **Signal Validation Pipeline** - Automated alpha validation with parameter tracking
+- **Quality Assurance** - Comprehensive data quality monitoring and validation
 
 ### **📊 Advanced Market Data & Analytics**
 - **Multi-Source Data** - Alpaca, Polygon, IEX, Yahoo Finance integration
@@ -128,6 +145,8 @@ backend/tradingbot/
 - **Technical Indicators** - 50+ technical analysis indicators
 - **Earnings Calendar** - Corporate earnings and ex-dividend tracking
 - **Social Sentiment** - WSB/Reddit sentiment integration
+- **Real-time Data Validation** - Automated quality checks and anomaly detection
+- **Corporate Actions** - Stock splits, dividends, mergers handling
 
 ### **⚡ Execution & Operations**
 - **Smart Order Routing** - Optimal execution with slippage minimization
@@ -157,6 +176,8 @@ python -m pytest tests/integration/   # Integration tests (end-to-end workflows)
 python -m pytest tests/production/    # Production tests (deployment readiness)
 python -m pytest tests/risk/          # Risk management validation
 python -m pytest tests/strategies/    # Strategy implementation tests
+python -m pytest tests/validation/    # Signal validation framework tests
+python -m pytest tests/core/          # Core system functionality tests
 
 # Run specific test types
 python -m pytest tests/ -k "risk"     # All risk-related tests
@@ -174,6 +195,8 @@ python -m pytest tests/ --cov=backend --cov-report=html
 - **Execution** - Order routing, replay protection, shadow trading
 - **Compliance** - Regulatory checks, audit trails, position limits
 - **Performance** - Analytics, regime detection, portfolio optimization
+- **Signal Validation** - Alpha validation gates, parameter tracking, quality metrics
+- **Data Quality** - Validation framework, quality monitoring, automated testing
 
 ## 🚀 Platform-Specific Launchers
 
@@ -255,6 +278,23 @@ dashboard = RiskDashboard2025(portfolio_value=1000000)
 risk_data = dashboard.get_risk_dashboard_data(portfolio)
 ```
 
+### **Signal Validation Framework**
+```python
+# Alpha validation with quality gates
+from backend.validation import AlphaValidationGate, ValidationCriteria
+validation_gate = AlphaValidationGate()
+criteria = ValidationCriteria(min_sharpe=1.2, max_drawdown=0.15)
+validated_signals = validation_gate.validate_signals(signals, criteria)
+```
+
+### **Data Quality Monitoring**
+```python
+# Automated data quality validation
+from backend.tradingbot.data.quality import DataQualityMonitor
+quality_monitor = DataQualityMonitor()
+quality_report = quality_monitor.validate_market_data(market_data)
+```
+
 ## 📊 **System Capabilities Summary**
 
 | Component | Status | Features |
@@ -266,6 +306,8 @@ risk_data = dashboard.get_risk_dashboard_data(portfolio)
 | **Compliance** | ✅ Regulatory | FCA/CFTC compliant, wash sale tracking |
 | **Analytics** | ✅ Advanced | ML regime detection, performance attribution |
 | **Infrastructure** | ✅ Scalable | Async architecture, auto-scaling, monitoring |
+| **Signal Validation** | ✅ Production | Alpha validation gates, quality assurance |
+| **Data Quality** | ✅ Automated | Real-time validation, quality monitoring |
 
 ## 🤝 Contributing
 

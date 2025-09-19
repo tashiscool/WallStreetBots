@@ -144,3 +144,5 @@ class ProductionStrategy(BaseStrategy):
             self.data_provider_connected and
             self.status.value in ["running", "paused"]
         )
+
+

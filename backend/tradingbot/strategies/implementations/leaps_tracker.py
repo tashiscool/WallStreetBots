@@ -95,9 +95,22 @@ class LEAPSTracker:
     def __init__(self, portfolio_file: str = "leaps_portfolio.json"):
         self.portfolio_file = portfolio_file
         self.positions: list[LEAPSPosition] = []
-        self.load_portfolio()
 
-        # Secular growth themes
+        # CRITICAL FIX: Enhanced risk management parameters
+        self.max_position_size = 0.10  # 10% max position size
+        self.position_stop_loss = 0.35  # 35% stop loss (was 50%)
+        self.portfolio_drawdown_limit = 0.25  # 25% portfolio drawdown limit
+        self.max_delta_exposure = 100  # Maximum portfolio delta exposure
+        self.min_dte_threshold = 75  # Roll when DTE < 75 days
+        self.min_iv_rank = 25  # Minimum IV rank for entry
+        self.max_concentration_per_theme = 0.25  # 25% max per theme
+
+        # Greeks tracking
+        self.portfolio_delta = 0.0
+        self.portfolio_theta = 0.0
+        self.portfolio_vega = 0.0
+
+        # Secular growth themes - CORRECTED: Now a dict as expected by the code
         self.secular_themes = {
             "ai_revolution": SecularTrend(
                 theme="AI Revolution",
@@ -109,7 +122,7 @@ class LEAPSTracker:
                     "Enterprise adoption",
                     "Consumer AI",
                 ],
-                time_horizon="5 - 10 years",
+                time_horizon="5-10 years",
             ),
             "cloud_transformation": SecularTrend(
                 theme="Cloud Transformation",
@@ -121,19 +134,19 @@ class LEAPSTracker:
                     "Data analytics",
                     "Security",
                 ],
-                time_horizon="3 - 7 years",
+                time_horizon="3-7 years",
             ),
             "electric_mobility": SecularTrend(
                 theme="Electric Mobility",
-                description="Transportation electrification",
-                tickers=["TSLA", "RIVN", "LCID", "NIO", "XPEV", "BYD", "GM", "F"],
+                description="Electric vehicles and clean transportation",
+                tickers=["TSLA", "RIVN", "LCID", "NIO", "XPEV", "BYD", "F", "GM"],
                 growth_drivers=[
-                    "Battery tech",
+                    "EV adoption",
+                    "Battery technology",
                     "Charging infrastructure",
-                    "Regulation",
-                    "Cost parity",
+                    "Regulatory support",
                 ],
-                time_horizon="5 - 15 years",
+                time_horizon="5-10 years",
             ),
             "fintech_disruption": SecularTrend(
                 theme="Fintech Disruption",
@@ -145,7 +158,7 @@ class LEAPSTracker:
                     "Banking disruption",
                     "Global expansion",
                 ],
-                time_horizon="3 - 10 years",
+                time_horizon="3-10 years",
             ),
             "cybersecurity": SecularTrend(
                 theme="Cybersecurity",
@@ -157,7 +170,7 @@ class LEAPSTracker:
                     "Compliance",
                     "Threat landscape",
                 ],
-                time_horizon="5 - 10 years",
+                time_horizon="5-10 years",
             ),
             "genomics_biotech": SecularTrend(
                 theme="Genomics & Biotech",
@@ -178,8 +191,85 @@ class LEAPSTracker:
                     "Aging population",
                     "Technology costs",
                 ],
-                time_horizon="10 - 20 years",
+                time_horizon="10-20 years",
             ),
+        }
+
+        # Risk monitoring
+        import logging
+        self.logger = logging.getLogger(__name__)
+
+        self.load_portfolio()
+
+    def estimate_option_delta(self, pos: LEAPSPosition) -> float:
+        """Estimate option delta for risk management."""
+        try:
+            moneyness = pos.current_spot / pos.strike
+            time_to_exp = max(0.01, pos.days_to_expiry / 365.0)
+
+            # Simplified Black-Scholes delta approximation
+            if moneyness > 1.2:  # Deep ITM
+                return min(0.95, 0.8 + (moneyness - 1.2) * 0.3)
+            elif moneyness > 1.0:  # Slightly ITM
+                return 0.5 + (moneyness - 1.0) * 1.5
+            elif moneyness > 0.8:  # Slightly OTM
+                return 0.3 + (moneyness - 0.8) * 1.0
+            else:  # Deep OTM
+                return max(0.05, 0.3 - (0.8 - moneyness) * 0.5)
+        except Exception:
+            return 0.5  # Default moderate delta
+
+    def check_portfolio_risk_limits(self):
+        """CRITICAL FIX: Check portfolio-level risk limits."""
+        if not self.positions:
+            return
+
+        total_value = sum(pos.current_value for pos in self.positions)
+        total_pnl = sum(pos.unrealized_pnl for pos in self.positions)
+
+        if total_value > 0:
+            portfolio_pnl_pct = total_pnl / sum(pos.cost_basis for pos in self.positions)
+
+            # Portfolio drawdown check
+            if portfolio_pnl_pct <= -self.portfolio_drawdown_limit:
+                self.logger.warning(f"Portfolio drawdown limit breached: {portfolio_pnl_pct:.1%}")
+                # Mark positions for exit
+                for pos in self.positions:
+                    if pos.unrealized_pct < -20:  # Exit losing positions first
+                        pos.stop_loss_hit = True
+
+        # Delta exposure check
+        if abs(self.portfolio_delta) > self.max_delta_exposure:
+            self.logger.warning(f"Portfolio delta exposure too high: {self.portfolio_delta:.0f}")
+
+        # Concentration check by theme
+        theme_exposure = {}
+        for pos in self.positions:
+            theme_exposure[pos.theme] = theme_exposure.get(pos.theme, 0) + pos.current_value
+
+        for theme, exposure in theme_exposure.items():
+            if exposure / total_value > self.max_concentration_per_theme:
+                self.logger.warning(f"Theme concentration risk: {theme} = {exposure/total_value:.1%}")
+
+    def get_portfolio_risk_metrics(self) -> dict:
+        """Get portfolio risk metrics for monitoring."""
+        if not self.positions:
+            return {}
+
+        total_value = sum(pos.current_value for pos in self.positions)
+        total_cost = sum(pos.cost_basis for pos in self.positions)
+        total_pnl = sum(pos.unrealized_pnl for pos in self.positions)
+
+        return {
+            'total_positions': len(self.positions),
+            'total_value': total_value,
+            'total_cost': total_cost,
+            'portfolio_pnl_pct': (total_pnl / total_cost) if total_cost > 0 else 0,
+            'portfolio_delta': self.portfolio_delta,
+            'max_position_size': max([pos.current_value / total_value for pos in self.positions]) if total_value > 0 else 0,
+            'positions_at_stop': sum(1 for pos in self.positions if pos.stop_loss_hit),
+            'positions_at_profit': sum(1 for pos in self.positions if pos.profit_target_hit),
+            'avg_dte': np.mean([pos.days_to_expiry for pos in self.positions]) if self.positions else 0
         }
 
     def load_portfolio(self):
@@ -628,8 +718,9 @@ class LEAPSTracker:
                     if not leaps_expiries:
                         continue
 
-                    # Target strike: 10 - 20% OTM for growth names
-                    target_strike = round(current_price * 1.15)
+                    # CRITICAL FIX: More conservative strike selection
+                    # Reduce OTM distance to improve probability of success
+                    target_strike = round(current_price * 1.10)  # 10% OTM instead of 15%
 
                     # Use nearest LEAPS expiry
                     expiry = leaps_expiries[0]
@@ -665,8 +756,20 @@ class LEAPSTracker:
                     if exit_timing_score > 70:
                         risk_factors.append("Exit signal active")
 
-                    # Only include strong candidates
-                    if composite_score >= 60:
+                    # CRITICAL FIX: Much more stringent candidate filtering
+                    # Apply multiple risk filters to reduce drawdowns
+                    passes_risk_filter = (
+                        composite_score >= 70 and  # Higher composite score requirement
+                        momentum_score >= 50 and   # Minimum momentum required
+                        financial_score >= 45 and  # Financial health requirement
+                        entry_timing_score >= 50 and  # Good entry timing required
+                        exit_timing_score < 70 and    # No active exit signals
+                        premium <= current_price * 0.20 and  # Premium cost limit (20% of stock price)
+                        len(risk_factors) <= 2 and           # Maximum 2 risk factors
+                        ma_cross_signal.cross_type != "death_cross"  # No death cross
+                    )
+
+                    if passes_risk_filter:
                         candidate = LEAPSCandidate(
                             ticker=ticker,
                             company_name=company_name,
@@ -690,15 +793,57 @@ class LEAPSTracker:
                         )
 
                         candidates.append(candidate)
-                        print(f"  ✅ {ticker}: Score {composite_score:.0f}")
+                        self.logger.info(f"LEAPS candidate: {ticker} - Score: {composite_score:.0f}, "
+                                       f"Entry: {entry_timing_score:.0f}, Premium: ${premium:.2f}, "
+                                       f"Risks: {len(risk_factors)}")
+                        print(f"  ✅ {ticker}: Score {composite_score:.0f} | Entry: {entry_timing_score:.0f} | Premium: ${premium:.2f}")
+                    else:
+                        # Log why candidate was rejected for analysis
+                        rejection_reasons = []
+                        if composite_score < 70:
+                            rejection_reasons.append(f"Low score: {composite_score:.0f}")
+                        if momentum_score < 50:
+                            rejection_reasons.append(f"Weak momentum: {momentum_score:.0f}")
+                        if financial_score < 45:
+                            rejection_reasons.append(f"Financial concerns: {financial_score:.0f}")
+                        if entry_timing_score < 50:
+                            rejection_reasons.append(f"Poor timing: {entry_timing_score:.0f}")
+                        if premium > current_price * 0.20:
+                            rejection_reasons.append(f"High premium: ${premium:.2f}")
+                        if len(risk_factors) > 2:
+                            rejection_reasons.append(f"Too many risks: {len(risk_factors)}")
+                        if ma_cross_signal.cross_type == "death_cross":
+                            rejection_reasons.append("Death cross")
+
+                        self.logger.info(f"LEAPS rejected: {ticker} - {'; '.join(rejection_reasons)}")
+                        print(f"  ❌ {ticker}: {'; '.join(rejection_reasons[:2])}")
 
                 except Exception as e:
                     print(f"  ❌ {ticker}: Error - {e}")
                     continue
 
-        # Sort by composite score
-        candidates.sort(key=lambda x: x.composite_score, reverse=True)
-        return candidates
+        # CRITICAL FIX: Enhanced candidate sorting and limits
+        # Sort by multiple criteria: composite score, entry timing, and low risk
+        candidates.sort(key=lambda x: (
+            x.composite_score * 0.6 +  # Primary: composite score
+            x.entry_timing_score * 0.3 +  # Secondary: entry timing
+            (100 - len(x.risk_factors) * 20) * 0.1  # Tertiary: fewer risk factors
+        ), reverse=True)
+
+        # Limit candidates and ensure diversification across themes
+        filtered_candidates = []
+        theme_counts = {}
+        max_per_theme = 3  # Maximum 3 candidates per theme
+
+        for candidate in candidates:
+            theme_count = theme_counts.get(candidate.theme, 0)
+            if theme_count < max_per_theme and len(filtered_candidates) < 15:
+                filtered_candidates.append(candidate)
+                theme_counts[candidate.theme] = theme_count + 1
+
+        self.logger.info(f"Generated {len(filtered_candidates)} LEAPS candidates "
+                       f"(from {len(candidates)} total after filtering)")
+        return filtered_candidates
 
     def update_positions(self):
         """Update all LEAPS positions with current data."""
@@ -757,16 +902,41 @@ class LEAPSTracker:
                         0.05, 0.5 - (pos.strike - current_price) / current_price
                     )
 
-                # Check profit targets
-                if pos.unrealized_pct >= 100:  # 2x return
+                # CRITICAL FIX: More aggressive profit taking and stop losses
+                # Progressive profit taking to lock in gains
+                if pos.unrealized_pct >= 200:  # 3x return - scale out 50%
                     pos.profit_target_hit = True
+                    pos.scale_out_level = 3
+                elif pos.unrealized_pct >= 100:  # 2x return - scale out 25%
+                    pos.profit_target_hit = True
+                    pos.scale_out_level = 2
+                elif pos.unrealized_pct >= 50:  # 1.5x return - scale out 15%
+                    pos.scale_out_level = 1
 
-                if pos.unrealized_pct <= -50:  # 50% loss
+                # CRITICAL FIX: Tighter stop loss (35% instead of 50%)
+                if pos.unrealized_pct <= -self.position_stop_loss * 100:  # 35% loss
                     pos.stop_loss_hit = True
+                    self.logger.warning(f"Stop loss triggered for {pos.ticker}: {pos.unrealized_pct:.1f}%")
+
+                # CRITICAL FIX: Time-based risk management
+                if pos.days_to_expiry < self.min_dte_threshold and pos.current_spot < pos.strike * 1.05:
+                    # Close OTM positions approaching expiry
+                    pos.stop_loss_hit = True
+                    self.logger.info(f"Time decay exit for {pos.ticker}: {pos.days_to_expiry} DTE")
+
+                # CRITICAL FIX: Greeks-based position management
+                estimated_delta = self.estimate_option_delta(pos)
+                self.portfolio_delta += estimated_delta * pos.contracts
+
+                # Log position details for monitoring
+                self.logger.info(f"Updated {pos.ticker}: P&L={pos.unrealized_pct:+.1f}%, "
+                               f"Delta={estimated_delta:.2f}, DTE={pos.days_to_expiry}")
 
             except Exception as e:
                 print(f"Error updating {pos.ticker}: {e}")
 
+        # CRITICAL FIX: Portfolio-level risk checks
+        self.check_portfolio_risk_limits()
         self.save_portfolio()
 
     def format_candidates(

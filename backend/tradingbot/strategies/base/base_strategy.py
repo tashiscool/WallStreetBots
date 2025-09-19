@@ -164,3 +164,5 @@ class BaseStrategy(ABC):
         risk_shares = int(risk_amount / price)
         
         return min(max_shares, risk_shares)
+
+

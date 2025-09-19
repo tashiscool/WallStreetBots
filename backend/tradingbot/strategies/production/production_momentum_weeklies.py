@@ -15,6 +15,7 @@ from ...options.smart_selection import SmartOptionsSelector
 from ...risk.managers.real_time_risk_manager import RealTimeRiskManager
 from ...production.core.production_integration import ProductionTradeSignal
 from ...production.data.production_data_integration import ReliableDataProvider
+from ...validation.strategy_signal_integration import StrategySignalMixin, signal_integrator
 
 
 @dataclass
@@ -37,7 +38,7 @@ class MomentumSignal:
     expected_move: float  # Expected stock move needed for profit
 
 
-class ProductionMomentumWeeklies:
+class ProductionMomentumWeeklies(StrategySignalMixin):
     """Production Momentum Weeklies Strategy.
 
     Strategy Logic:
@@ -59,14 +60,21 @@ class ProductionMomentumWeeklies:
     def __init__(
         self, integration_manager, data_provider: ReliableDataProvider, config: dict
     ):
+        # Initialize parent class first
+        super().__init__()
+
         self.strategy_name = "momentum_weeklies"
         self.integration_manager = integration_manager
         self.data_provider = data_provider
+        self._data_provider = data_provider  # Alias for test compatibility
         self.config = config
         self.logger = logging.getLogger(__name__)
 
         # Core components
         self.options_selector = SmartOptionsSelector(data_provider)
+
+        # Initialize signal validation
+        signal_integrator.enhance_strategy_with_validation(self, "momentum_weeklies")
         self.risk_manager = RealTimeRiskManager()
         self.bs_engine = BlackScholesEngine()
 

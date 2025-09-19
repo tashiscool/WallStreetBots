@@ -29,6 +29,7 @@ os.environ.setdefault('YF_THREADS', '1')
 os.environ.setdefault('YF_TIMEOUT', '30')
 
 from ...apimanagers import AlpacaManager
+from backend.validation import ValidationStateAdapter
 
 
 @dataclass
@@ -146,6 +147,7 @@ class ReliableDataProvider:
         alpaca_secret_key: str,
         polygon_api_key: str | None = None,
         alpha_vantage_key: str | None = None,
+        validation_state_adapter: ValidationStateAdapter | None = None,
     ):
         self.logger = logging.getLogger(__name__)
 
@@ -153,6 +155,9 @@ class ReliableDataProvider:
         self.alpaca_manager = AlpacaManager(alpaca_api_key, alpaca_secret_key)
         self.polygon_api_key = polygon_api_key
         self.alpha_vantage_key = alpha_vantage_key
+        
+        # Validation state adapter for data quality checks
+        self.validation_state_adapter = validation_state_adapter
 
         # Data source health monitoring
         self.source_health = {
@@ -925,6 +930,126 @@ class ReliableDataProvider:
         if market_data.timestamp.tzinfo is not None:
             now = now.replace(tzinfo=market_data.timestamp.tzinfo)
         return not (now - market_data.timestamp).total_seconds() > 86400
+
+    def _validate_price_data_with_validation_state(self, ticker: str, market_data: MarketData) -> bool:
+        """Validate market data with validation state awareness."""
+        # Run basic validation first
+        basic_valid = self._validate_price_data(ticker, market_data)
+        if not basic_valid:
+            return False
+            
+        # If validation state adapter is available, apply additional checks
+        if self.validation_state_adapter:
+            validation_state = self.validation_state_adapter.get_state()
+            
+            # Apply stricter validation based on validation state
+            if validation_state.value == 'HALT':
+                # In HALT state, require very recent data (within 5 minutes)
+                now = datetime.now()
+                if market_data.timestamp.tzinfo is not None:
+                    now = now.replace(tzinfo=market_data.timestamp.tzinfo)
+                data_age_seconds = (now - market_data.timestamp).total_seconds()
+                if data_age_seconds > 300:  # 5 minutes
+                    self.logger.warning(f"Data too old for HALT state: {data_age_seconds:.0f}s for {ticker}")
+                    return False
+                    
+            elif validation_state.value == 'THROTTLE':
+                # In THROTTLE state, require recent data (within 15 minutes)
+                now = datetime.now()
+                if market_data.timestamp.tzinfo is not None:
+                    now = now.replace(tzinfo=market_data.timestamp.tzinfo)
+                data_age_seconds = (now - market_data.timestamp).total_seconds()
+                if data_age_seconds > 900:  # 15 minutes
+                    self.logger.warning(f"Data too old for THROTTLE state: {data_age_seconds:.0f}s for {ticker}")
+                    return False
+                    
+        return True
+
+    def _validate_options_data_with_validation_state(self, ticker: str, options_data: list[OptionsData]) -> bool:
+        """Validate options data with validation state awareness."""
+        if not options_data:
+            return False
+            
+        # Basic validation
+        for option in options_data:
+            if not option.bid or not option.ask or option.bid <= 0 or option.ask <= 0:
+                return False
+                
+        # If validation state adapter is available, apply additional checks
+        if self.validation_state_adapter:
+            validation_state = self.validation_state_adapter.get_state()
+            
+            # Apply stricter validation based on validation state
+            if validation_state.value == 'HALT':
+                # In HALT state, require very recent options data (within 2 minutes)
+                now = datetime.now()
+                for option in options_data:
+                    if option.timestamp.tzinfo is not None:
+                        now = now.replace(tzinfo=option.timestamp.tzinfo)
+                    data_age_seconds = (now - option.timestamp).total_seconds()
+                    if data_age_seconds > 120:  # 2 minutes
+                        self.logger.warning(f"Options data too old for HALT state: {data_age_seconds:.0f}s for {ticker}")
+                        return False
+                        
+            elif validation_state.value == 'THROTTLE':
+                # In THROTTLE state, require recent options data (within 10 minutes)
+                now = datetime.now()
+                for option in options_data:
+                    if option.timestamp.tzinfo is not None:
+                        now = now.replace(tzinfo=option.timestamp.tzinfo)
+                    data_age_seconds = (now - option.timestamp).total_seconds()
+                    if data_age_seconds > 600:  # 10 minutes
+                        self.logger.warning(f"Options data too old for THROTTLE state: {data_age_seconds:.0f}s for {ticker}")
+                        return False
+                        
+        return True
+
+    def get_validation_aware_data_quality_score(self) -> dict[str, Any]:
+        """Get data quality score based on validation state."""
+        try:
+            quality_score = {
+                'timestamp': datetime.now(),
+                'overall_score': 1.0,
+                'source_scores': {},
+                'validation_state': 'HEALTHY',
+                'recommendations': []
+            }
+            
+            # Get validation state if available
+            if self.validation_state_adapter:
+                validation_state = self.validation_state_adapter.get_state()
+                quality_score['validation_state'] = validation_state.value
+                
+                # Adjust overall score based on validation state
+                if validation_state.value == 'HALT':
+                    quality_score['overall_score'] = 0.3
+                    quality_score['recommendations'].append('Data quality requirements elevated due to HALT state')
+                elif validation_state.value == 'THROTTLE':
+                    quality_score['overall_score'] = 0.7
+                    quality_score['recommendations'].append('Data quality requirements elevated due to THROTTLE state')
+            
+            # Calculate source-specific scores
+            for source, health in self.source_health.items():
+                source_score = health.success_rate
+                if health.consecutive_failures > 0:
+                    source_score *= (1.0 - min(0.5, health.consecutive_failures * 0.1))
+                quality_score['source_scores'][source.value] = source_score
+                
+            # Calculate overall score
+            if quality_score['source_scores']:
+                avg_source_score = sum(quality_score['source_scores'].values()) / len(quality_score['source_scores'])
+                quality_score['overall_score'] = min(quality_score['overall_score'], avg_source_score)
+                
+            return quality_score
+            
+        except Exception as e:
+            self.logger.error(f"Error calculating validation-aware data quality score: {e}")
+            return {
+                'timestamp': datetime.now(),
+                'overall_score': 0.0,
+                'error': str(e),
+                'validation_state': 'UNKNOWN'
+            }
 
     async def _update_source_health(
         self, source: DataSource, success: bool, response_time: float | None = None

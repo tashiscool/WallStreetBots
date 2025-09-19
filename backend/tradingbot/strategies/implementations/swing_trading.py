@@ -57,6 +57,20 @@ class ActiveSwingTrade:
 
 class SwingTradingScanner:
     def __init__(self):
+        # Phase 1 Critical Fixes - Risk Controls
+        self.max_daily_loss = 0.02  # 2% of portfolio max daily loss
+        self.position_stop_loss = 0.03  # 3% stop loss per position
+        self.min_signal_strength = 70.0  # Minimum signal strength threshold
+        self.max_position_size = 0.025  # 2.5% max position size
+        self.daily_loss_tracker = 0.0  # Track daily losses
+        self.consecutive_losses = 0  # Track consecutive losses
+        self.cooling_off_period = 0  # Days to wait after losses
+
+        # Enhanced logging for debugging
+        import logging
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+
         # Focus on liquid, high - beta names for swing trading
         self.swing_tickers = [
             # Mega caps with options liquidity
@@ -93,6 +107,36 @@ class SwingTradingScanner:
         ]
 
         self.active_trades: list[ActiveSwingTrade] = []
+
+    def reset_daily_limits(self):
+        """Reset daily tracking variables (call at start of each trading day)."""
+        self.daily_loss_tracker = 0.0
+        if self.cooling_off_period > 0:
+            self.cooling_off_period -= 1
+        self.logger.info(f"Daily limits reset. Cooling off days remaining: {self.cooling_off_period}")
+
+    def record_trade_result(self, pnl_pct: float):
+        """Record trade result for risk tracking."""
+        if pnl_pct < 0:
+            self.consecutive_losses += 1
+            if self.consecutive_losses >= 5:
+                self.cooling_off_period = 3  # 3-day cooling off
+                self.logger.warning(f"Cooling off period activated after {self.consecutive_losses} losses")
+        else:
+            self.consecutive_losses = 0
+            self.logger.info(f"Profitable trade recorded: {pnl_pct:+.1f}%")
+
+    def get_risk_metrics(self) -> dict:
+        """Get current risk metrics for monitoring."""
+        return {
+            'daily_loss_tracker': self.daily_loss_tracker,
+            'consecutive_losses': self.consecutive_losses,
+            'cooling_off_period': self.cooling_off_period,
+            'active_positions': len(self.active_trades),
+            'max_daily_loss': self.max_daily_loss,
+            'position_stop_loss': self.position_stop_loss,
+            'min_signal_strength': self.min_signal_strength
+        }
 
     def detect_breakout(self, ticker: str) -> tuple[bool, float, float]:
         """Detect breakout above resistance with volume confirmation."""
@@ -140,17 +184,25 @@ class SwingTradingScanner:
 
             recent_momentum = (prices[-1] - prices[-5]) / prices[-5]  # Last 5 bars
 
-            is_breakout = (
-                current_price > key_resistance * 1.005  # 0.5% above resistance
-                and volume_multiple >= 2.0  # 2x volume
-                and breakout_strength > 0.002  # Clear breakout
-                and recent_momentum > 0.005  # Positive momentum
-            )
-
+            # Calculate strength score first
             strength_score = min(
                 100,
                 (breakout_strength * 100 + volume_multiple * 10 + recent_momentum * 50),
             )
+
+            # CRITICAL FIX: More stringent breakout criteria
+            is_breakout = (
+                current_price > key_resistance * 1.008  # 0.8% above resistance (more conservative)
+                and volume_multiple >= 2.5  # 2.5x volume (higher threshold)
+                and breakout_strength > 0.005  # Stronger breakout required
+                and recent_momentum > 0.008  # Higher momentum threshold
+                and strength_score >= self.min_signal_strength  # Signal strength filter
+            )
+
+            # Log signal quality for analysis
+            self.logger.info(f"Breakout analysis {ticker}: price={current_price:.2f}, "
+                           f"resistance={key_resistance:.2f}, volume_mult={volume_multiple:.1f}, "
+                           f"strength={strength_score:.1f}, is_breakout={is_breakout}")
 
             return is_breakout, key_resistance, strength_score
 
@@ -183,8 +235,11 @@ class SwingTradingScanner:
                 earlier_vol = volumes[-30:-10].mean()
                 vol_increase = recent_vol / earlier_vol if earlier_vol > 0 else 1
 
-                # Strong momentum criteria
-                if momentum_strength > 1.0 and vol_increase > 1.3:
+                # CRITICAL FIX: Higher momentum criteria
+                if (momentum_strength > 1.5 and vol_increase > 1.5 and
+                    momentum_strength >= self.min_signal_strength):
+                    self.logger.info(f"Momentum signal {ticker}: strength={momentum_strength:.1f}, "
+                                   f"vol_increase={vol_increase:.1f}")
                     return True, momentum_strength
 
             return False, 0.0
@@ -224,12 +279,17 @@ class SwingTradingScanner:
             )
             down_moves = 10 - up_moves
 
+            # CRITICAL FIX: Stricter reversal criteria
+            reversal_score = bounce_strength * 100
             if (
-                bounce_strength > 0.015  # 1.5% bounce from low
-                and vol_spike > 2.0  # Volume spike
-                and down_moves >= 7
-            ):  # Was oversold
-                return True, "oversold_bounce", bounce_strength * 100
+                bounce_strength > 0.020  # 2.0% bounce from low (higher threshold)
+                and vol_spike > 2.5  # Higher volume spike
+                and down_moves >= 8  # More oversold
+                and reversal_score >= self.min_signal_strength  # Signal strength filter
+            ):
+                self.logger.info(f"Reversal signal {ticker}: bounce={bounce_strength:.3f}, "
+                               f"vol_spike={vol_spike:.1f}, score={reversal_score:.1f}")
+                return True, "oversold_bounce", reversal_score
 
             return False, "no_setup", 0.0
 
@@ -311,12 +371,32 @@ class SwingTradingScanner:
         except Exception:
             return 2.0  # Conservative fallback
 
+    def check_risk_limits(self) -> bool:
+        """CRITICAL FIX: Check if we can take new positions based on risk limits."""
+        # Check daily loss limit
+        if self.daily_loss_tracker >= self.max_daily_loss:
+            self.logger.warning(f"Daily loss limit reached: {self.daily_loss_tracker:.2%}")
+            return False
+
+        # Check cooling off period after consecutive losses
+        if self.consecutive_losses >= 3 and self.cooling_off_period > 0:
+            self.logger.warning(f"In cooling off period: {self.consecutive_losses} consecutive losses")
+            return False
+
+        return True
+
     def scan_swing_opportunities(self) -> list[SwingSignal]:
-        """Scan for swing trading opportunities."""
+        """Scan for swing trading opportunities with enhanced risk controls."""
+        # CRITICAL FIX: Check risk limits before scanning
+        if not self.check_risk_limits():
+            self.logger.warning("Risk limits exceeded - no new signals generated")
+            return []
+
         signals = []
         expiry = self.get_optimal_expiry()
 
         print(f"🎯 Scanning swing opportunities targeting {expiry}...")
+        self.logger.info(f"Signal scan started with min_strength={self.min_signal_strength}")
 
         for ticker in self.swing_tickers:
             try:
@@ -354,23 +434,36 @@ class SwingTradingScanner:
                 if is_reversal:
                     signals_found.append(("reversal", reversal_strength, current_price))
 
-                # Process signals
+                # Process signals with enhanced filtering
                 for signal_type, strength, ref_level in signals_found:
-                    # Target strike selection based on signal type
+                    # CRITICAL FIX: Apply signal strength filter
+                    if strength < self.min_signal_strength:
+                        self.logger.info(f"Signal rejected - low strength: {ticker} {signal_type} {strength:.1f}")
+                        continue
+
+                    # Target strike selection based on signal type (MORE CONSERVATIVE)
                     if signal_type == "breakout":
-                        strike_multiplier = 1.02  # 2% OTM for breakouts
-                        max_hold_hours = 6  # Breakouts can be held longer
+                        strike_multiplier = 1.015  # 1.5% OTM (more conservative)
+                        max_hold_hours = 4  # Shorter hold times
                     elif signal_type == "momentum":
-                        strike_multiplier = 1.015  # 1.5% OTM for momentum
-                        max_hold_hours = 4  # Momentum fades fast
+                        strike_multiplier = 1.01  # 1% OTM (more conservative)
+                        max_hold_hours = 3  # Shorter hold times
                     else:  # reversal
-                        strike_multiplier = 1.025  # 2.5% OTM for reversals
-                        max_hold_hours = 8  # Reversals take time
+                        strike_multiplier = 1.02  # 2% OTM (more conservative)
+                        max_hold_hours = 6  # Shorter hold times
 
                     target_strike = round(current_price * strike_multiplier)
                     premium = self.estimate_swing_premium(ticker, target_strike, expiry)
 
-                    if premium < 0.25:  # Minimum premium threshold
+                    # CRITICAL FIX: Higher minimum premium and size limits
+                    if premium < 0.50:  # Higher minimum premium threshold
+                        self.logger.info(f"Signal rejected - low premium: {ticker} premium={premium:.2f}")
+                        continue
+
+                    # Position size check
+                    position_value = premium * 100  # Assume 1 contract = $100 multiplier
+                    if position_value > self.max_position_size * 10000:  # Assume $10k portfolio
+                        self.logger.warning(f"Position too large: {ticker} value=${position_value:.0f}")
                         continue
 
                     # Calculate targets
@@ -380,13 +473,16 @@ class SwingTradingScanner:
                         )
                     )
 
-                    # Risk assessment
-                    if strength > 80:
+                    # CRITICAL FIX: More stringent risk assessment
+                    if strength > 85:
                         risk_level = "low"
-                    elif strength > 60:
+                    elif strength > 75:
                         risk_level = "medium"
                     else:
                         risk_level = "high"
+                        # Skip high risk signals in current validation phase
+                        self.logger.info(f"High risk signal skipped: {ticker} {signal_type} {strength:.1f}")
+                        continue
 
                     signal = SwingSignal(
                         ticker=ticker,
@@ -441,16 +537,16 @@ class SwingTradingScanner:
                     "Close"
                 ].iloc[-1]
 
-                # Estimate current premium (simplified)
+                # CRITICAL FIX: Enhanced premium estimation
                 if current_stock_price >= trade.signal.target_strike:
                     # ITM - estimate intrinsic + remaining time value
                     intrinsic = current_stock_price - trade.signal.target_strike
                     time_value = trade.entry_premium * max(0.1, 1 - hours_held / 24)
                     current_premium = intrinsic + time_value
                 else:
-                    # OTM - time decay
+                    # OTM - faster time decay (more realistic)
                     decay_factor = max(
-                        0.1, 1 - hours_held / (trade.signal.max_hold_hours * 2)
+                        0.05, 1 - (hours_held / trade.signal.max_hold_hours) ** 1.5
                     )
                     current_premium = trade.entry_premium * decay_factor
 
@@ -460,37 +556,47 @@ class SwingTradingScanner:
                     trade.unrealized_pnl / trade.entry_premium
                 ) * 100
 
-                # Check exit conditions
+                # Log trade monitoring
+                self.logger.info(f"Monitoring {trade.signal.ticker}: Stock=${current_stock_price:.2f}, "
+                               f"Premium=${current_premium:.2f}, P&L={trade.unrealized_pct:+.1f}%")
+
+                # CRITICAL FIX: Enhanced exit conditions with strict risk management
                 exit_reason = None
 
-                # 1. Profit targets hit
-                if current_premium >= trade.signal.profit_target_3:
+                # 1. STOP LOSS - Priority #1 (more aggressive)
+                if trade.unrealized_pct <= -self.position_stop_loss * 100:  # 3% stop loss
+                    exit_reason = f"STOP LOSS: {trade.unrealized_pct:+.1f}% - EXIT IMMEDIATELY"
+                    self.daily_loss_tracker += abs(trade.unrealized_pnl) / 10000  # Track losses
+                    self.consecutive_losses += 1
+                    self.logger.warning(f"Stop loss triggered: {trade.signal.ticker}")
+
+                # 2. Profit targets (take profits earlier)
+                elif trade.unrealized_pct >= 50:  # 50% profit - close immediately
                     trade.hit_profit_target = 3
-                    exit_reason = "100% profit target hit - CLOSE POSITION"
-                elif current_premium >= trade.signal.profit_target_2:
-                    if trade.hit_profit_target < 2:
-                        trade.hit_profit_target = 2
-                        exit_reason = "50% profit target - consider partial exit"
-                elif current_premium >= trade.signal.profit_target_1:
+                    exit_reason = "50%+ profit target - CLOSE POSITION"
+                    self.consecutive_losses = 0  # Reset on profit
+                    self.logger.info(f"Major profit target hit: {trade.signal.ticker}")
+                elif trade.unrealized_pct >= 25:  # 25% profit - close position
+                    trade.hit_profit_target = 2
+                    exit_reason = "25% profit target - CLOSE POSITION"
+                    self.consecutive_losses = 0  # Reset on profit
+                elif trade.unrealized_pct >= 15:  # 15% profit - take some profits
                     if trade.hit_profit_target < 1:
                         trade.hit_profit_target = 1
-                        exit_reason = "25% profit target - take some profits"
+                        exit_reason = "15% profit - consider partial exit"
 
-                # 2. Stop loss hit
-                elif current_premium <= trade.signal.stop_loss:
-                    exit_reason = "STOP LOSS HIT - exit immediately"
+                # 3. Time-based exits (MUCH more aggressive)
+                elif hours_held >= trade.signal.max_hold_hours * 0.8:  # 80% of max time
+                    exit_reason = f"Time limit approaching ({hours_held:.1f}h) - EXIT"
 
-                # 3. Time-based exits (WSB rule: don't hold too long)
-                elif hours_held >= trade.signal.max_hold_hours:
-                    exit_reason = (
-                        f"Max hold time ({trade.signal.max_hold_hours}h) reached"
-                    )
+                # 4. Theta decay protection - exit OTM positions losing value fast
+                elif (current_stock_price < trade.signal.target_strike * 0.98 and
+                      hours_held >= 2 and trade.unrealized_pct <= -10):
+                    exit_reason = "Theta decay protection - OTM position deteriorating"
 
-                # 4. End of day exit rule
-                elif (
-                    datetime.now().hour >= 15 and trade.signal.signal_type == "momentum"
-                ):
-                    exit_reason = "End of day - close momentum trades"
+                # 5. End of day exit rule (earlier exit)
+                elif datetime.now().hour >= 14:  # 2 PM ET
+                    exit_reason = "End of day approach - close all positions"
 
                 if exit_reason:
                     trade.should_exit = True
@@ -501,8 +607,17 @@ class SwingTradingScanner:
                     )
 
             except Exception as e:
+                self.logger.error(f"Error monitoring {trade.signal.ticker}: {e}")
                 print(f"Error monitoring {trade.signal.ticker}: {e}")
+                # If we can't monitor, close position for safety
+                trade.should_exit = True
+                trade.exit_reason = "Monitoring error - close for safety"
+                exit_recommendations.append(f"EXIT {trade.signal.ticker} - Monitoring Error")
 
+        # Remove completed trades
+        self.active_trades = [t for t in self.active_trades if not t.should_exit]
+
+        self.logger.info(f"Trade monitoring complete. {len(exit_recommendations)} exits recommended")
         return exit_recommendations
 
     def format_signals(self, signals: list[SwingSignal]) -> str:

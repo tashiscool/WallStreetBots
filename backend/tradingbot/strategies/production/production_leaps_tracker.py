@@ -15,6 +15,7 @@ from ...options.smart_selection import SmartOptionsSelector
 from ...risk.managers.real_time_risk_manager import RealTimeRiskManager
 from ...production.core.production_integration import ProductionTradeSignal
 from ...production.data.production_data_integration import ReliableDataProvider
+from ...validation.strategy_signal_integration import StrategySignalMixin, signal_integrator
 
 
 @dataclass
@@ -68,7 +69,7 @@ class LEAPSCandidate:
     exit_timing_score: float
 
 
-class ProductionLEAPSTracker:
+class ProductionLEAPSTracker(StrategySignalMixin):
     """Production LEAPS Tracker Strategy.
 
     Strategy Logic:
@@ -91,9 +92,16 @@ class ProductionLEAPSTracker:
     def __init__(
         self, integration_manager, data_provider: ReliableDataProvider, config: dict
     ):
+        # Initialize parent class first
+        super().__init__()
+
         self.strategy_name = "leaps_tracker"
         self.integration_manager = integration_manager
         self.data_provider = data_provider
+        self._data_provider = data_provider  # Alias for test compatibility
+
+        # Initialize signal validation
+        signal_integrator.enhance_strategy_with_validation(self, "leaps_tracker")
         self.config = config
         self.logger = logging.getLogger(__name__)
 

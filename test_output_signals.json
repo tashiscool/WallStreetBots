@@ -1,0 +1,11 @@
+[
+  {
+    "ticker": "AAPL",
+    "ts_ny": "2025-01-17T16:00:00-05:00",
+    "spot": 150.0,
+    "prior_close": 160.0,
+    "intraday_pct": -6.25,
+    "run_lookback": 5,
+    "run_return": 0.15
+  }
+]

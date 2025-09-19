@@ -5,7 +5,7 @@ logic is robust against edge cases, rounding errors, and invalid inputs.
 """
 from __future__ import annotations
 import pytest
-from decimal import Decimal, ROUND_DOWN
+from decimal import Decimal, ROUND_DOWN, InvalidOperation
 import numpy as np
 
 # Try to import hypothesis, skip tests if not available
@@ -47,11 +47,20 @@ def size_order(equity: float, pct: float, px: float, lot: int = 1) -> int:
     Returns:
         Number of shares to order
     """
-    notional = Decimal(str(equity)) * Decimal(str(pct))
-    raw_shares = notional / Decimal(str(px))
-    # Round down to the nearest lot size
-    lot_count = int(raw_shares) // lot
-    return lot_count * lot
+    # Handle NaN and infinite values
+    if np.isnan(equity) or np.isnan(pct) or np.isnan(px):
+        return 0
+    if np.isinf(equity) or np.isinf(pct) or np.isinf(px):
+        return 0
+    
+    try:
+        notional = Decimal(str(equity)) * Decimal(str(pct))
+        raw_shares = notional / Decimal(str(px))
+        # Round down to the nearest lot size
+        lot_count = int(raw_shares) // lot
+        return lot_count * lot
+    except (ValueError, OverflowError, InvalidOperation):
+        return 0
 
 
 @pytest.mark.skipif(not HYPOTHESIS_AVAILABLE, reason="hypothesis not available")

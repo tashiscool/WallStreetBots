@@ -361,7 +361,7 @@ class TestEnhancedLEAPSScanning(unittest.TestCase):
         self.assertEqual(ai_theme.theme, "AI Revolution")
         self.assertIn("NVDA", ai_theme.tickers)
         self.assertIn("AMD", ai_theme.tickers)
-        self.assertEqual(ai_theme.time_horizon, "5 - 10 years")
+        self.assertEqual(ai_theme.time_horizon, "5-10 years")
         self.assertIn("GPU compute", ai_theme.growth_drivers)
 
         # Each theme should have reasonable time horizons

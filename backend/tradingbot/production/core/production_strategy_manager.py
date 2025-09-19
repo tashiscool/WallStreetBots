@@ -16,8 +16,9 @@ All strategies use:
 
 import asyncio
 import logging
+import sys
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -33,6 +34,18 @@ from ..data.production_data_integration import (
 )
 # Strategy creation functions will be imported lazily to avoid circular imports
 from .production_integration import ProductionIntegrationManager
+
+# Import signal validation components
+from backend.validation import (
+    AlphaValidationGate, ValidationCriteria, ValidationStateAdapter, 
+    ValidationReporter, ParameterRegistry
+)
+
+# Import Django models for persistence
+from ...models.models import (
+    ValidationRun, SignalValidationMetrics, DataQualityMetrics, 
+    ValidationParameterRegistry
+)
 
 
 class StrategyProfile(str, Enum):
@@ -95,6 +108,13 @@ class ProductionStrategyManagerConfig:
     enable_market_regime_adaptation: bool = True
     analytics_update_interval: int = 3600  # seconds
     regime_adaptation_interval: int = 1800  # seconds
+
+    # Signal validation settings
+    enable_signal_validation: bool = True
+    validation_criteria: ValidationCriteria | None = None
+    validation_update_interval: int = 300  # seconds
+    validation_reporting_enabled: bool = True
+    validation_persistence_enabled: bool = True
 
 
 def _preset_defaults(profile: StrategyProfile) -> dict[str, StrategyConfig]:
@@ -1126,13 +1146,8 @@ class ProductionStrategyManager:
             config.user_id,
         )
 
-        self.data_provider = ProductionDataProvider(
-            config.alpaca_api_key, config.alpaca_secret_key
-        )
-
-        # Initialize strategies
+        # Initialize strategies (will be done after data provider is set up)
         self.strategies: dict[str, Any] = {}
-        self._initialize_strategies()
 
         # System state
         self.is_running = False
@@ -1159,6 +1174,30 @@ class ProductionStrategyManager:
             regime_config = RegimeAdaptationConfig()
             self.market_regime_adapter = MarketRegimeAdapter(regime_config)
             self.logger.info("Market regime adaptation enabled")
+
+        # Signal validation components
+        self.validation_gate = None
+        self.validation_state_adapter = None
+        self.validation_reporter = None
+        self.parameter_registry = None
+        self.validation_history: list[dict] = []
+        self.current_validation_state = "HEALTHY"
+
+        if self.config.enable_signal_validation:
+            self.validation_gate = AlphaValidationGate(self.config.validation_criteria)
+            self.validation_state_adapter = ValidationStateAdapter()
+            self.validation_reporter = ValidationReporter()
+            self.parameter_registry = ParameterRegistry()
+            self.logger.info("Signal validation enabled")
+
+        # Initialize data provider with validation state adapter
+        self.data_provider = ProductionDataProvider(
+            config.alpaca_api_key, config.alpaca_secret_key,
+            validation_state_adapter=getattr(self, 'validation_state_adapter', None)
+        )
+
+        # Initialize strategies now that data provider is available
+        self._initialize_strategies()
 
         # Bubble-aware and M & A overlays (optional for strategies to read)
         self.bubble_aware_adjustments = {
@@ -1368,6 +1407,9 @@ class ProductionStrategyManager:
                 if self.config.enable_market_regime_adaptation:
                     task = asyncio.create_task(self._regime_adaptation_loop())
                     self.tasks.append(task)
+                if self.config.enable_signal_validation:
+                    task = asyncio.create_task(self._validation_loop())
+                    self.tasks.append(task)
 
                 self.logger.info(f"Started {started_count} strategies successfully")
                 return True
@@ -1430,8 +1472,11 @@ class ProductionStrategyManager:
                 # Monitor positions across all strategies
                 await self._monitor_all_positions()
 
-                # Check risk limits
-                await self._check_risk_limits()
+                # Check risk limits with validation-aware sizing
+                await self._check_risk_limits_with_validation()
+
+                # Monitor signal validation performance
+                await self._monitor_signal_validation_health()
 
                 # Update data cache
                 await self._refresh_data_cache()
@@ -1512,6 +1557,82 @@ class ProductionStrategyManager:
 
         except Exception as e:
             self.logger.error(f"Error checking risk limits: {e}")
+
+    async def _check_risk_limits_with_validation(self):
+        """Check risk limits with validation-aware dynamic position sizing."""
+        try:
+            # Get total portfolio risk
+            total_risk = await self.integration_manager.get_total_risk()
+            portfolio_value = await self.integration_manager.get_portfolio_value()
+
+            if portfolio_value > 0:
+                base_risk_percentage = float(total_risk / portfolio_value)
+                
+                # Apply validation-based risk adjustment
+                validation_multiplier = await self._get_validation_risk_multiplier()
+                adjusted_risk_limit = self.config.max_total_risk * validation_multiplier
+                
+                if base_risk_percentage > adjusted_risk_limit:
+                    await self.integration_manager.alert_system.send_alert(
+                        "VALIDATION_RISK_ALERT",
+                        "HIGH",
+                        f"Risk {base_risk_percentage:.1%} exceeds validation-adjusted limit {adjusted_risk_limit:.1%} "
+                        f"(validation multiplier: {validation_multiplier:.2f})",
+                    )
+                    
+                    # Apply dynamic position sizing based on validation state
+                    await self._apply_validation_based_position_sizing()
+
+        except Exception as e:
+            self.logger.error(f"Error checking validation-aware risk limits: {e}")
+
+    async def _get_validation_risk_multiplier(self) -> float:
+        """Get risk multiplier based on validation state."""
+        try:
+            if not self.validation_state_adapter:
+                return 1.0
+                
+            state = self.validation_state_adapter.get_state()
+            
+            # Adjust risk limits based on validation state
+            if state.value == 'HEALTHY':
+                return 1.0  # Full risk allowed
+            elif state.value == 'THROTTLE':
+                return 0.7  # Reduce risk by 30%
+            else:  # HALT
+                return 0.3  # Reduce risk by 70%
+                
+        except Exception as e:
+            self.logger.error(f"Error getting validation risk multiplier: {e}")
+            return 0.5  # Conservative fallback
+
+    async def _apply_validation_based_position_sizing(self):
+        """Apply dynamic position sizing based on validation state."""
+        try:
+            if not self.validation_state_adapter:
+                return
+                
+            state = self.validation_state_adapter.get_state()
+            
+            # Adjust position sizes for all strategies based on validation state
+            for strategy_name, strategy in self.strategies.items():
+                if hasattr(strategy, 'adjust_position_sizing'):
+                    sizing_multiplier = self._get_position_sizing_multiplier(state.value)
+                    await strategy.adjust_position_sizing(sizing_multiplier)
+                    
+                    self.logger.info(f"Adjusted {strategy_name} position sizing by {sizing_multiplier:.2f}x due to validation state: {state.value}")
+                    
+        except Exception as e:
+            self.logger.error(f"Error applying validation-based position sizing: {e}")
+
+    def _get_position_sizing_multiplier(self, validation_state: str) -> float:
+        """Get position sizing multiplier based on validation state."""
+        multipliers = {
+            'HEALTHY': 1.0,
+            'THROTTLE': 0.6,  # Reduce position sizes by 40%
+            'HALT': 0.2       # Reduce position sizes by 80%
+        }
+        return multipliers.get(validation_state, 0.5)
 
     async def _refresh_data_cache(self):
         """Refresh data cache."""
@@ -1694,6 +1815,16 @@ class ProductionStrategyManager:
                 await asyncio.sleep(self.config.regime_adaptation_interval)
             except Exception as e:
                 self.logger.error(f"Error in regime adaptation loop: {e}")
+                await asyncio.sleep(300)
+
+    async def _validation_loop(self):
+        """Signal validation monitoring loop."""
+        while self.is_running:
+            try:
+                await self._run_validation_cycle()
+                await asyncio.sleep(self.config.validation_update_interval)
+            except Exception as e:
+                self.logger.error(f"Error in validation loop: {e}")
                 await asyncio.sleep(300)
 
     async def _calculate_advanced_analytics(self):
@@ -1929,6 +2060,291 @@ class ProductionStrategyManager:
         except Exception as e:
             self.logger.error(f"Error checking analytics alerts: {e}")
 
+    async def _run_validation_cycle(self):
+        """Run a complete validation cycle."""
+        try:
+            if not self.validation_gate:
+                return
+
+            # Collect validation results from all strategies
+            validation_results = await self._collect_validation_results()
+            
+            # Run validation gate evaluation
+            gate_result = self.validation_gate.evaluate_go_no_go(validation_results)
+            
+            # Update validation state based on results
+            await self._update_validation_state(gate_result)
+            
+            # Store validation history
+            self.validation_history.append({
+                'timestamp': datetime.now(),
+                'results': validation_results,
+                'gate_result': gate_result,
+                'state': self.current_validation_state
+            })
+            
+            # Generate validation report if enabled
+            if self.config.validation_reporting_enabled:
+                await self._generate_validation_report(gate_result)
+                
+            # Persist validation data if enabled
+            if self.config.validation_persistence_enabled:
+                await self._persist_validation_data(gate_result)
+
+        except Exception as e:
+            self.logger.error(f"Error in validation cycle: {e}")
+
+    async def _collect_validation_results(self) -> dict[str, dict[str, float]]:
+        """Collect validation results from all strategies."""
+        try:
+            results = {
+                'risk_adjusted_returns': {},
+                'alpha_validation': {},
+                'cross_market_validation': {},
+                'execution_quality': {},
+                'capital_efficiency': {}
+            }
+            
+            # Collect metrics from each strategy
+            for strategy in self.strategies.values():
+                if hasattr(strategy, 'get_validation_metrics'):
+                    strategy_metrics = await strategy.get_validation_metrics()
+                    self._aggregate_validation_metrics(results, strategy_metrics)
+            
+            # Add system-level metrics
+            await self._add_system_validation_metrics(results)
+            
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error collecting validation results: {e}")
+            return {}
+
+    def _aggregate_validation_metrics(self, results: dict, strategy_metrics: dict):
+        """Aggregate validation metrics from individual strategies."""
+        try:
+            # Aggregate risk-adjusted returns
+            if 'sharpe_ratio' in strategy_metrics:
+                current_sharpe = results['risk_adjusted_returns'].get('min_sharpe_ratio', 0)
+                results['risk_adjusted_returns']['min_sharpe_ratio'] = min(current_sharpe, strategy_metrics['sharpe_ratio'])
+            
+            if 'max_drawdown' in strategy_metrics:
+                current_drawdown = results['risk_adjusted_returns'].get('max_drawdown', 0)
+                results['risk_adjusted_returns']['max_drawdown'] = max(current_drawdown, strategy_metrics['max_drawdown'])
+            
+            # Aggregate other metrics similarly
+            for category in ['alpha_validation', 'cross_market_validation', 'execution_quality', 'capital_efficiency']:
+                if category in strategy_metrics:
+                    for metric, value in strategy_metrics[category].items():
+                        if metric not in results[category]:
+                            results[category][metric] = value
+                        else:
+                            # Use appropriate aggregation method (min, max, avg)
+                            if 'min_' in metric:
+                                results[category][metric] = min(results[category][metric], value)
+                            elif 'max_' in metric:
+                                results[category][metric] = max(results[category][metric], value)
+                            else:
+                                # Average for other metrics
+                                results[category][metric] = (results[category][metric] + value) / 2
+                                
+        except Exception as e:
+            self.logger.error(f"Error aggregating validation metrics: {e}")
+
+    async def _add_system_validation_metrics(self, results: dict):
+        """Add system-level validation metrics."""
+        try:
+            # Get portfolio metrics
+            portfolio_value = await self.integration_manager.get_portfolio_value()
+            total_risk = await self.integration_manager.get_total_risk()
+            
+            if portfolio_value > 0:
+                risk_percentage = total_risk / portfolio_value
+                results['capital_efficiency']['max_margin_calls'] = 0  # Placeholder
+                results['capital_efficiency']['min_return_on_capital'] = 0.15  # Placeholder
+                
+            # Add execution quality metrics
+            results['execution_quality']['max_slippage_variance'] = 0.05  # Placeholder
+            results['execution_quality']['min_fill_rate'] = 0.98  # Placeholder
+            
+        except Exception as e:
+            self.logger.error(f"Error adding system validation metrics: {e}")
+
+    async def _update_validation_state(self, gate_result: dict):
+        """Update validation state based on gate results."""
+        try:
+            if not self.validation_state_adapter:
+                return
+                
+            recommendation = gate_result.get('overall_recommendation', 'NO-GO')
+            readiness_score = gate_result.get('deployment_readiness_score', 0.0)
+            
+            if recommendation == 'GO' and readiness_score >= 0.8:
+                self.validation_state_adapter.set_state('HEALTHY', 'Validation passed')
+                self.current_validation_state = 'HEALTHY'
+            elif recommendation == 'GO' and readiness_score >= 0.6:
+                self.validation_state_adapter.set_state('THROTTLE', 'Validation marginal')
+                self.current_validation_state = 'THROTTLE'
+            else:
+                self.validation_state_adapter.set_state('HALT', 'Validation failed')
+                self.current_validation_state = 'HALT'
+                
+            # Send alert if state changed
+            if self.current_validation_state != getattr(self, '_last_validation_state', 'HEALTHY'):
+                await self._send_validation_state_alert(self.current_validation_state, gate_result)
+                self._last_validation_state = self.current_validation_state
+                
+        except Exception as e:
+            self.logger.error(f"Error updating validation state: {e}")
+
+    async def _send_validation_state_alert(self, state: str, gate_result: dict):
+        """Send alert for validation state change."""
+        try:
+            readiness_score = gate_result.get('deployment_readiness_score', 0.0)
+            failing_criteria = gate_result.get('failing_criteria', [])
+            
+            message = (f"Validation state changed to {state}\n"
+                      f"Readiness score: {readiness_score:.1%}\n"
+                      f"Failing criteria: {', '.join(failing_criteria) if failing_criteria else 'None'}")
+            
+            alert_level = "HIGH" if state == "HALT" else "MEDIUM" if state == "THROTTLE" else "LOW"
+            
+            await self.integration_manager.alert_system.send_alert(
+                "VALIDATION_STATE_CHANGE",
+                alert_level,
+                message
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Error sending validation state alert: {e}")
+
+    async def _generate_validation_report(self, gate_result: dict):
+        """Generate validation report."""
+        try:
+            if not self.validation_reporter:
+                return
+                
+            report_data = {
+                'timestamp': datetime.now().isoformat(),
+                'gate_result': gate_result,
+                'validation_state': self.current_validation_state,
+                'strategy_count': len(self.strategies),
+                'validation_history_count': len(self.validation_history)
+            }
+            
+            self.validation_reporter.write_json('validation_report', report_data)
+            
+        except Exception as e:
+            self.logger.error(f"Error generating validation report: {e}")
+
+    async def _persist_validation_data(self, gate_result: dict):
+        """Persist validation data to database using Django models."""
+        try:
+            # Create validation run record
+            run_id = f"validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            
+            validation_run = ValidationRun.objects.create(
+                run_id=run_id,
+                strategy_name="production_strategy_manager",
+                validation_state=self.current_validation_state,
+                overall_recommendation=gate_result.get('overall_recommendation', 'NO-GO'),
+                deployment_readiness_score=gate_result.get('deployment_readiness_score', 0.0),
+                validation_results=self.validation_history[-1].get('results', {}) if self.validation_history else {},
+                gate_result=gate_result,
+                failing_criteria=gate_result.get('failing_criteria', [])
+            )
+            
+            self.logger.info(f"Persisted validation run {run_id}: {gate_result.get('overall_recommendation')}")
+            
+        except Exception as e:
+            self.logger.error(f"Error persisting validation data: {e}")
+
+    async def _persist_signal_validation_metrics(self, metrics: dict, analysis: dict):
+        """Persist signal validation metrics to database."""
+        try:
+            overall_metrics = metrics.get('overall_metrics', {})
+            
+            signal_metrics = SignalValidationMetrics.objects.create(
+                strategy_name="production_strategy_manager",
+                total_signals=overall_metrics.get('total_signals', 0),
+                validated_signals=overall_metrics.get('validated_signals', 0),
+                rejected_signals=overall_metrics.get('rejected_signals', 0),
+                average_validation_score=overall_metrics.get('average_validation_score', 0.0),
+                validation_latency_ms=overall_metrics.get('validation_latency_ms', 0.0),
+                false_positive_rate=overall_metrics.get('false_positive_rate', 0.0),
+                false_negative_rate=overall_metrics.get('false_negative_rate', 0.0),
+                precision=0.0,  # Would be calculated from historical data
+                recall=0.0,     # Would be calculated from historical data
+                f1_score=0.0,    # Would be calculated from historical data
+                overall_health=analysis.get('overall_health', 'UNKNOWN'),
+                issues=analysis.get('issues', []),
+                recommendations=analysis.get('recommendations', [])
+            )
+            
+            self.logger.debug(f"Persisted signal validation metrics: {analysis.get('overall_health')}")
+            
+        except Exception as e:
+            self.logger.error(f"Error persisting signal validation metrics: {e}")
+
+    async def _persist_data_quality_metrics(self, quality_score: dict):
+        """Persist data quality metrics to database."""
+        try:
+            data_quality = DataQualityMetrics.objects.create(
+                validation_state=quality_score.get('validation_state', 'UNKNOWN'),
+                overall_score=quality_score.get('overall_score', 0.0),
+                source_scores=quality_score.get('source_scores', {}),
+                recommendations=quality_score.get('recommendations', []),
+                data_age_seconds=0.0,  # Would be calculated from actual data
+                stale_data_count=0     # Would be calculated from actual data
+            )
+            
+            self.logger.debug(f"Persisted data quality metrics: {quality_score.get('overall_score'):.2%}")
+            
+        except Exception as e:
+            self.logger.error(f"Error persisting data quality metrics: {e}")
+
+    async def _persist_frozen_parameters(self, strategy_name: str, params: dict, random_seed: int):
+        """Persist frozen parameters to database."""
+        try:
+            # Get git commit hash
+            import subprocess
+            import asyncio
+            try:
+                process = await asyncio.create_subprocess_exec(
+                    'git', 'rev-parse', 'HEAD',
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                stdout, stderr = await process.communicate()
+                git_commit = stdout.decode().strip() if stdout else 'unknown'
+            except Exception:
+                git_commit = 'unknown'
+            
+            # Get requirements hash
+            import hashlib
+            import aiofiles
+            try:
+                async with aiofiles.open('requirements.txt', 'rb') as f:
+                    content = await f.read()
+                    requirements_hash = hashlib.sha256(content).hexdigest()
+            except Exception:
+                requirements_hash = 'unknown'
+            
+            frozen_params = ValidationParameterRegistry.objects.create(
+                strategy_name=strategy_name,
+                frozen_params=params,
+                random_seed=random_seed,
+                requirements_sha256=requirements_hash,
+                python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+                git_commit=git_commit,
+                file_path=f"reports/params/{strategy_name}_frozen.json"
+            )
+            
+            self.logger.info(f"Persisted frozen parameters for {strategy_name}")
+            
+        except Exception as e:
+            self.logger.error(f"Error persisting frozen parameters: {e}")
+
     def get_advanced_analytics_summary(self) -> dict[str, Any]:
         """Get advanced analytics summary."""
         if not self.analytics_history:
@@ -1955,6 +2371,26 @@ class ProductionStrategyManager:
 
         return self.market_regime_adapter.get_adaptation_summary()
 
+    def get_signal_validation_summary(self) -> dict[str, Any]:
+        """Get signal validation summary."""
+        if not self.validation_gate:
+            return {"status": "disabled"}
+            
+        try:
+            return {
+                "status": "active",
+                "current_state": self.current_validation_state,
+                "validation_history_count": len(self.validation_history),
+                "last_validation": self.validation_history[-1] if self.validation_history else None,
+                "validation_gate_enabled": self.validation_gate is not None,
+                "state_adapter_enabled": self.validation_state_adapter is not None,
+                "reporting_enabled": self.config.validation_reporting_enabled,
+                "persistence_enabled": self.config.validation_persistence_enabled,
+            }
+        except Exception as e:
+            self.logger.error(f"Error getting signal validation summary: {e}")
+            return {"status": "error", "error": str(e)}
+
     def get_system_status(self) -> dict[str, Any]:
         """Get current system status."""
         return {
@@ -1978,9 +2414,11 @@ class ProductionStrategyManager:
                 "enabled_strategies": list(self.strategies.keys()),
                 "advanced_analytics_enabled": self.config.enable_advanced_analytics,
                 "market_regime_adaptation_enabled": self.config.enable_market_regime_adaptation,
+                "signal_validation_enabled": self.config.enable_signal_validation,
             },
             "advanced_analytics": self.get_advanced_analytics_summary(),
             "market_regime": self.get_regime_adaptation_summary(),
+            "signal_validation": self.get_signal_validation_summary(),
         }
 
     def get_strategy_performance(self, strategy_name: str) -> dict[str, Any] | None:
@@ -2023,6 +2461,652 @@ class ProductionStrategyManager:
         return status
 
 
+    # ================== SIGNAL VALIDATION INTEGRATION ==================
+
+    async def _monitor_signal_validation_health(self):
+        """Monitor signal validation performance across all strategies."""
+        try:
+            # Collect comprehensive signal validation metrics
+            signal_metrics = await self._collect_signal_validation_metrics()
+            
+            # Analyze signal validation performance
+            performance_analysis = await self._analyze_signal_validation_performance(signal_metrics)
+            
+            # Check for performance degradation
+            await self._check_signal_validation_degradation(performance_analysis)
+            
+            # Update signal validation alerts
+            await self._update_signal_validation_alerts(performance_analysis)
+            
+            # Store performance history
+            self._store_signal_validation_performance(performance_analysis)
+            
+            # Persist metrics to database
+            await self._persist_signal_validation_metrics(signal_metrics, performance_analysis)
+            
+            # Apply performance feedback for each strategy
+            for strategy_name, strategy_metrics in signal_metrics.get('strategies', {}).items():
+                accuracy_metrics = strategy_metrics.get('accuracy_metrics', {})
+                if 'performance_feedback' in accuracy_metrics:
+                    await self._apply_performance_feedback(strategy_name, accuracy_metrics['performance_feedback'])
+
+        except Exception as e:
+            self.logger.error(f"Error monitoring signal validation health: {e}")
+
+    async def _collect_signal_validation_metrics(self) -> dict[str, Any]:
+        """Collect comprehensive signal validation metrics from all strategies."""
+        try:
+            metrics = {
+                'timestamp': datetime.now(),
+                'strategies': {},
+                'overall_metrics': {
+                    'total_signals': 0,
+                    'validated_signals': 0,
+                    'rejected_signals': 0,
+                    'average_validation_score': 0.0,
+                    'validation_latency_ms': 0.0,
+                    'false_positive_rate': 0.0,
+                    'false_negative_rate': 0.0
+                }
+            }
+            
+            total_score = 0
+            strategy_count = 0
+            
+            for strategy_name, strategy in self.strategies.items():
+                if hasattr(strategy, 'get_strategy_signal_summary'):
+                    strategy_metrics = await self._get_strategy_signal_metrics(strategy_name, strategy)
+                    metrics['strategies'][strategy_name] = strategy_metrics
+                    
+                    # Aggregate overall metrics
+                    metrics['overall_metrics']['total_signals'] += strategy_metrics.get('total_signals', 0)
+                    metrics['overall_metrics']['validated_signals'] += strategy_metrics.get('validated_signals', 0)
+                    metrics['overall_metrics']['rejected_signals'] += strategy_metrics.get('rejected_signals', 0)
+                    
+                    strategy_score = strategy_metrics.get('average_validation_score', 0)
+                    if strategy_score > 0:
+                        total_score += strategy_score
+                        strategy_count += 1
+            
+            # Calculate overall average score
+            if strategy_count > 0:
+                metrics['overall_metrics']['average_validation_score'] = total_score / strategy_count
+            
+            return metrics
+            
+        except Exception as e:
+            self.logger.error(f"Error collecting signal validation metrics: {e}")
+            return {'error': str(e)}
+
+    async def _get_strategy_signal_metrics(self, strategy_name: str, strategy) -> dict[str, Any]:
+        """Get detailed signal metrics for a specific strategy."""
+        try:
+            # Get basic signal summary
+            summary = strategy.get_strategy_signal_summary()
+            
+            # Calculate additional metrics
+            total_signals = summary.get('total_signals_validated', 0)
+            validated_signals = summary.get('signals_by_action', {}).get('accept', 0)
+            rejected_signals = summary.get('signals_by_action', {}).get('reject', 0)
+            
+            # Calculate validation accuracy if historical data is available
+            accuracy_metrics = await self._calculate_signal_accuracy(strategy_name, summary)
+            
+            return {
+                'strategy_name': strategy_name,
+                'total_signals': total_signals,
+                'validated_signals': validated_signals,
+                'rejected_signals': rejected_signals,
+                'validation_rate': validated_signals / max(total_signals, 1),
+                'average_validation_score': summary.get('average_strength_score', 0),
+                'validation_latency_ms': summary.get('average_validation_latency_ms', 0),
+                'accuracy_metrics': accuracy_metrics,
+                'last_updated': datetime.now()
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error getting signal metrics for {strategy_name}: {e}")
+            return {'error': str(e)}
+
+    async def _calculate_signal_accuracy(self, strategy_name: str, summary: dict) -> dict[str, Any]:
+        """Calculate signal validation accuracy metrics with historical data."""
+        try:
+            # Get historical signal validation metrics from database
+            historical_metrics = await self._get_historical_signal_metrics(strategy_name)
+            
+            if not historical_metrics:
+                # Return placeholder metrics if no historical data
+                return {
+                    'true_positive_rate': 0.75,  # Placeholder
+                    'false_positive_rate': 0.15,  # Placeholder
+                    'false_negative_rate': 0.10,  # Placeholder
+                    'precision': 0.80,  # Placeholder
+                    'recall': 0.85,  # Placeholder
+                    'f1_score': 0.82,  # Placeholder
+                    'sample_size': summary.get('total_signals_validated', 0),
+                    'confidence_level': 'LOW'
+                }
+            
+            # Calculate accuracy metrics from historical data
+            accuracy_metrics = await self._compute_accuracy_from_history(historical_metrics, summary)
+            
+            # Add performance feedback
+            feedback = await self._generate_performance_feedback(strategy_name, accuracy_metrics)
+            accuracy_metrics['performance_feedback'] = feedback
+            
+            return accuracy_metrics
+            
+        except Exception as e:
+            self.logger.error(f"Error calculating signal accuracy for {strategy_name}: {e}")
+            return {'error': str(e)}
+
+    async def _get_historical_signal_metrics(self, strategy_name: str) -> list[dict]:
+        """Get historical signal validation metrics from database."""
+        try:
+            # Query recent signal validation metrics from database
+            from django.utils import timezone
+            from datetime import timedelta
+            
+            cutoff_date = timezone.now() - timedelta(days=30)  # Last 30 days
+            
+            historical_metrics = SignalValidationMetrics.objects.filter(
+                strategy_name=strategy_name,
+                timestamp__gte=cutoff_date
+            ).order_by('-timestamp')[:100]  # Last 100 records
+            
+            return [
+                {
+                    'timestamp': metric.timestamp,
+                    'total_signals': metric.total_signals,
+                    'validated_signals': metric.validated_signals,
+                    'rejected_signals': metric.rejected_signals,
+                    'precision': metric.precision,
+                    'recall': metric.recall,
+                    'f1_score': metric.f1_score,
+                    'overall_health': metric.overall_health
+                }
+                for metric in historical_metrics
+            ]
+            
+        except Exception as e:
+            self.logger.error(f"Error getting historical signal metrics: {e}")
+            return []
+
+    async def _compute_accuracy_from_history(self, historical_metrics: list[dict], current_summary: dict) -> dict[str, Any]:
+        """Compute accuracy metrics from historical data."""
+        try:
+            if not historical_metrics:
+                return {'error': 'No historical data available'}
+            
+            # Calculate weighted averages based on sample sizes
+            total_weighted_precision = 0
+            total_weighted_recall = 0
+            total_weighted_f1 = 0
+            total_weight = 0
+            
+            for metric in historical_metrics:
+                weight = metric.get('total_signals', 1)
+                total_weight += weight
+                total_weighted_precision += metric.get('precision', 0) * weight
+                total_weighted_recall += metric.get('recall', 0) * weight
+                total_weighted_f1 += metric.get('f1_score', 0) * weight
+            
+            if total_weight == 0:
+                return {'error': 'No valid historical data'}
+            
+            # Calculate weighted averages
+            avg_precision = total_weighted_precision / total_weight
+            avg_recall = total_weighted_recall / total_weight
+            avg_f1 = total_weighted_f1 / total_weight
+            
+            # Calculate true/false positive/negative rates
+            total_signals = sum(m.get('total_signals', 0) for m in historical_metrics)
+            total_validated = sum(m.get('validated_signals', 0) for m in historical_metrics)
+            total_rejected = sum(m.get('rejected_signals', 0) for m in historical_metrics)
+            
+            if total_signals == 0:
+                return {'error': 'No signals in historical data'}
+            
+            # Estimate rates (these would be more accurate with actual trade outcome data)
+            validation_rate = total_validated / total_signals
+            rejection_rate = total_rejected / total_signals
+            
+            # Estimate true/false positive rates based on historical performance
+            # This is a simplified calculation - in practice, you'd need actual trade outcomes
+            estimated_true_positive_rate = avg_precision * validation_rate
+            estimated_false_positive_rate = (1 - avg_precision) * validation_rate
+            estimated_false_negative_rate = (1 - avg_recall) * rejection_rate
+            
+            return {
+                'true_positive_rate': estimated_true_positive_rate,
+                'false_positive_rate': estimated_false_positive_rate,
+                'false_negative_rate': estimated_false_negative_rate,
+                'precision': avg_precision,
+                'recall': avg_recall,
+                'f1_score': avg_f1,
+                'sample_size': total_signals,
+                'confidence_level': 'HIGH' if total_signals > 100 else 'MEDIUM' if total_signals > 50 else 'LOW',
+                'historical_period_days': 30,
+                'validation_rate_trend': await self._calculate_validation_rate_trend(historical_metrics)
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error computing accuracy from history: {e}")
+            return {'error': str(e)}
+
+    async def _calculate_validation_rate_trend(self, historical_metrics: list[dict]) -> str:
+        """Calculate trend in validation rate over time."""
+        try:
+            if len(historical_metrics) < 3:
+                return 'INSUFFICIENT_DATA'
+            
+            # Get recent validation rates
+            recent_rates = []
+            for metric in historical_metrics[:5]:  # Last 5 records
+                total = metric.get('total_signals', 0)
+                validated = metric.get('validated_signals', 0)
+                if total > 0:
+                    recent_rates.append(validated / total)
+            
+            if len(recent_rates) < 3:
+                return 'INSUFFICIENT_DATA'
+            
+            # Calculate trend
+            first_half = sum(recent_rates[:len(recent_rates)//2]) / (len(recent_rates)//2)
+            second_half = sum(recent_rates[len(recent_rates)//2:]) / (len(recent_rates) - len(recent_rates)//2)
+            
+            if second_half > first_half * 1.05:  # 5% increase
+                return 'IMPROVING'
+            elif second_half < first_half * 0.95:  # 5% decrease
+                return 'DEGRADING'
+            else:
+                return 'STABLE'
+                
+        except Exception as e:
+            self.logger.error(f"Error calculating validation rate trend: {e}")
+            return 'ERROR'
+
+    async def _generate_performance_feedback(self, strategy_name: str, accuracy_metrics: dict) -> dict[str, Any]:
+        """Generate performance feedback based on accuracy metrics."""
+        try:
+            feedback = {
+                'strategy_name': strategy_name,
+                'timestamp': datetime.now(),
+                'recommendations': [],
+                'warnings': [],
+                'performance_score': 0.0,
+                'action_items': []
+            }
+            
+            precision = accuracy_metrics.get('precision', 0)
+            recall = accuracy_metrics.get('recall', 0)
+            f1_score = accuracy_metrics.get('f1_score', 0)
+            sample_size = accuracy_metrics.get('sample_size', 0)
+            confidence_level = accuracy_metrics.get('confidence_level', 'LOW')
+            
+            # Calculate overall performance score
+            performance_score = (precision * 0.4 + recall * 0.4 + f1_score * 0.2)
+            feedback['performance_score'] = performance_score
+            
+            # Generate recommendations based on metrics
+            if precision < 0.7:
+                feedback['recommendations'].append('Consider tightening validation criteria to improve precision')
+                feedback['action_items'].append('Review false positive signals and adjust validation thresholds')
+            
+            if recall < 0.7:
+                feedback['recommendations'].append('Consider relaxing validation criteria to improve recall')
+                feedback['action_items'].append('Review false negative signals and adjust validation thresholds')
+            
+            if f1_score < 0.75:
+                feedback['warnings'].append('Overall signal validation performance is below optimal')
+                feedback['action_items'].append('Conduct comprehensive validation criteria review')
+            
+            if sample_size < 50:
+                feedback['warnings'].append('Limited sample size - accuracy metrics may not be reliable')
+                feedback['recommendations'].append('Collect more validation data before making significant changes')
+            
+            if confidence_level == 'LOW':
+                feedback['warnings'].append('Low confidence in accuracy metrics due to limited data')
+                feedback['action_items'].append('Continue collecting validation data to improve confidence')
+            
+            # Check validation rate trend
+            trend = accuracy_metrics.get('validation_rate_trend', 'UNKNOWN')
+            if trend == 'DEGRADING':
+                feedback['warnings'].append('Validation rate is degrading over time')
+                feedback['action_items'].append('Investigate causes of validation rate degradation')
+            elif trend == 'IMPROVING':
+                feedback['recommendations'].append('Validation rate is improving - continue current approach')
+            
+            return feedback
+            
+        except Exception as e:
+            self.logger.error(f"Error generating performance feedback: {e}")
+            return {'error': str(e)}
+
+    async def _apply_performance_feedback(self, strategy_name: str, feedback: dict):
+        """Apply performance feedback to improve validation."""
+        try:
+            action_items = feedback.get('action_items', [])
+            warnings = feedback.get('warnings', [])
+            
+            # Log feedback
+            self.logger.info(f"Performance feedback for {strategy_name}:")
+            for recommendation in feedback.get('recommendations', []):
+                self.logger.info(f"  Recommendation: {recommendation}")
+            for warning in warnings:
+                self.logger.warning(f"  Warning: {warning}")
+            for action in action_items:
+                self.logger.info(f"  Action: {action}")
+            
+            # Apply automatic adjustments based on feedback
+            performance_score = feedback.get('performance_score', 0)
+            if performance_score < 0.6:
+                # Low performance - consider reducing strategy allocation
+                if strategy_name in self.strategies:
+                    strategy = self.strategies[strategy_name]
+                    if hasattr(strategy, 'adjust_validation_thresholds'):
+                        await strategy.adjust_validation_thresholds({'tighten': True})
+                        self.logger.info(f"Applied automatic validation threshold adjustment for {strategy_name}")
+            
+        except Exception as e:
+            self.logger.error(f"Error applying performance feedback: {e}")
+
+    async def _analyze_signal_validation_performance(self, metrics: dict) -> dict[str, Any]:
+        """Analyze signal validation performance and identify issues."""
+        try:
+            analysis = {
+                'timestamp': datetime.now(),
+                'overall_health': 'HEALTHY',
+                'issues': [],
+                'recommendations': [],
+                'performance_trend': 'STABLE'
+            }
+            
+            overall_metrics = metrics.get('overall_metrics', {})
+            
+            # Check validation rate
+            total_signals = overall_metrics.get('total_signals', 0)
+            validated_signals = overall_metrics.get('validated_signals', 0)
+            
+            if total_signals > 0:
+                validation_rate = validated_signals / total_signals
+                
+                if validation_rate < 0.3:
+                    analysis['issues'].append('Low validation rate - too many signals rejected')
+                    analysis['recommendations'].append('Review validation criteria - may be too strict')
+                    analysis['overall_health'] = 'DEGRADED'
+                elif validation_rate > 0.9:
+                    analysis['issues'].append('High validation rate - validation may be too permissive')
+                    analysis['recommendations'].append('Review validation criteria - may be too lenient')
+            
+            # Check average validation score
+            avg_score = overall_metrics.get('average_validation_score', 0)
+            if avg_score < 50:
+                analysis['issues'].append('Low average validation score')
+                analysis['recommendations'].append('Investigate signal quality degradation')
+                analysis['overall_health'] = 'DEGRADED'
+            
+            # Check validation latency
+            avg_latency = overall_metrics.get('validation_latency_ms', 0)
+            if avg_latency > 1000:  # 1 second
+                analysis['issues'].append('High validation latency')
+                analysis['recommendations'].append('Optimize validation performance')
+                analysis['overall_health'] = 'DEGRADED'
+            
+            return analysis
+            
+        except Exception as e:
+            self.logger.error(f"Error analyzing signal validation performance: {e}")
+            return {'error': str(e)}
+
+    async def _check_signal_validation_degradation(self, analysis: dict):
+        """Check for signal validation performance degradation."""
+        try:
+            if analysis.get('overall_health') == 'DEGRADED':
+                issues = analysis.get('issues', [])
+                recommendations = analysis.get('recommendations', [])
+                
+                message = (f"Signal validation performance degraded:\n"
+                          f"Issues: {', '.join(issues)}\n"
+                          f"Recommendations: {', '.join(recommendations)}")
+                
+                await self.integration_manager.alert_system.send_alert(
+                    "SIGNAL_VALIDATION_DEGRADATION",
+                    "HIGH",
+                    message
+                )
+                
+        except Exception as e:
+            self.logger.error(f"Error checking signal validation degradation: {e}")
+
+    async def _update_signal_validation_alerts(self, analysis: dict):
+        """Update signal validation alerts based on performance analysis."""
+        try:
+            # Store analysis for trend tracking
+            if not hasattr(self, '_signal_validation_history'):
+                self._signal_validation_history = []
+            
+            self._signal_validation_history.append(analysis)
+            
+            # Keep only recent history (last 24 hours)
+            cutoff_time = datetime.now() - timedelta(hours=24)
+            self._signal_validation_history = [
+                entry for entry in self._signal_validation_history
+                if entry.get('timestamp', datetime.now()) > cutoff_time
+            ]
+            
+            # Check for trend changes
+            if len(self._signal_validation_history) >= 3:
+                await self._check_validation_trend_changes()
+                
+        except Exception as e:
+            self.logger.error(f"Error updating signal validation alerts: {e}")
+
+    async def _check_validation_trend_changes(self):
+        """Check for significant trend changes in validation performance."""
+        try:
+            if len(self._signal_validation_history) < 3:
+                return
+                
+            recent_health = [entry.get('overall_health', 'UNKNOWN') for entry in self._signal_validation_history[-3:]]
+            
+            # Check for health degradation trend
+            if recent_health.count('DEGRADED') >= 2:
+                await self.integration_manager.alert_system.send_alert(
+                    "SIGNAL_VALIDATION_TREND_DEGRADATION",
+                    "MEDIUM",
+                    "Signal validation performance showing consistent degradation trend"
+                )
+            
+            # Check for health improvement trend
+            elif recent_health.count('HEALTHY') >= 2 and recent_health[0] != 'HEALTHY':
+                await self.integration_manager.alert_system.send_alert(
+                    "SIGNAL_VALIDATION_TREND_IMPROVEMENT",
+                    "LOW",
+                    "Signal validation performance showing improvement trend"
+                )
+                
+        except Exception as e:
+            self.logger.error(f"Error checking validation trend changes: {e}")
+
+    def _store_signal_validation_performance(self, analysis: dict):
+        """Store signal validation performance data."""
+        try:
+            # This would integrate with database storage
+            # For now, just log the performance data
+            self.logger.debug(f"Signal validation performance: {analysis.get('overall_health')}")
+            
+        except Exception as e:
+            self.logger.error(f"Error storing signal validation performance: {e}")
+
+    async def _check_strategy_signal_health(self, strategy_name: str, strategy):
+        """Check signal health for a specific strategy."""
+        try:
+            summary = strategy.get_strategy_signal_summary()
+
+            # Define thresholds for signal health
+            thresholds = {
+                'minimum_average_score': 50.0,
+                'minimum_signals_validated': 5,
+                'maximum_rejection_rate': 0.8
+            }
+
+            # Check average signal strength
+            avg_score = summary.get('average_strength_score', 0)
+            if avg_score < thresholds['minimum_average_score']:
+                await self._handle_poor_signal_quality(strategy_name, avg_score, "Low average signal strength")
+
+            # Check signal volume
+            total_signals = summary.get('total_signals_validated', 0)
+            if total_signals < thresholds['minimum_signals_validated']:
+                self.logger.warning(f"Strategy {strategy_name} has low signal volume: {total_signals}")
+
+            # Check rejection rate
+            rejected_signals = summary.get('signals_by_action', {}).get('reject', 0)
+            if total_signals > 0:
+                rejection_rate = rejected_signals / total_signals
+                if rejection_rate > thresholds['maximum_rejection_rate']:
+                    await self._handle_high_rejection_rate(strategy_name, rejection_rate)
+
+        except Exception as e:
+            self.logger.error(f"Error checking signal health for {strategy_name}: {e}")
+
+    async def _handle_poor_signal_quality(self, strategy_name: str, avg_score: float, reason: str):
+        """Handle poor signal quality by adjusting strategy allocation."""
+        try:
+            self.logger.warning(f"Poor signal quality for {strategy_name}: {reason} (score: {avg_score:.1f})")
+
+            # Reduce strategy allocation based on signal quality
+            if strategy_name in self.strategy_configs:
+                current_allocation = self.strategy_configs[strategy_name].allocation
+
+                # Calculate reduced allocation based on signal strength
+                quality_factor = max(0.1, avg_score / 100.0)  # Min 10% allocation
+                new_allocation = current_allocation * quality_factor
+
+                # Update allocation
+                self.strategy_configs[strategy_name].allocation = new_allocation
+
+                self.logger.info(f"Reduced {strategy_name} allocation from {current_allocation:.1%} to {new_allocation:.1%}")
+
+                # Send alert if significant reduction
+                if new_allocation < current_allocation * 0.5:
+                    await self._send_signal_quality_alert(strategy_name, avg_score, current_allocation, new_allocation)
+
+        except Exception as e:
+            self.logger.error(f"Error handling poor signal quality for {strategy_name}: {e}")
+
+    async def _handle_high_rejection_rate(self, strategy_name: str, rejection_rate: float):
+        """Handle high signal rejection rate."""
+        try:
+            self.logger.warning(f"High rejection rate for {strategy_name}: {rejection_rate:.1%}")
+
+            # Temporarily pause strategy if rejection rate is extremely high
+            if rejection_rate > 0.95:
+                await self._pause_strategy_temporarily(strategy_name, f"Extreme rejection rate: {rejection_rate:.1%}")
+
+        except Exception as e:
+            self.logger.error(f"Error handling high rejection rate for {strategy_name}: {e}")
+
+    async def _pause_strategy_temporarily(self, strategy_name: str, reason: str):
+        """Temporarily pause a strategy due to signal validation issues."""
+        try:
+            if strategy_name in self.strategy_configs:
+                # Mark strategy as temporarily disabled
+                self.strategy_configs[strategy_name].enabled = False
+                setattr(self.strategy_configs[strategy_name], 'pause_reason', reason)
+                setattr(self.strategy_configs[strategy_name], 'paused_at', datetime.now())
+
+                self.logger.error(f"Temporarily paused strategy {strategy_name}: {reason}")
+
+                # Send critical alert
+                await self._send_strategy_pause_alert(strategy_name, reason)
+
+        except Exception as e:
+            self.logger.error(f"Error pausing strategy {strategy_name}: {e}")
+
+    async def _send_signal_quality_alert(self, strategy_name: str, avg_score: float, old_allocation: float, new_allocation: float):
+        """Send alert for signal quality degradation."""
+        try:
+            message = (f"Signal quality degradation for {strategy_name}:\n"
+                      f"Average signal score: {avg_score:.1f}\n"
+                      f"Allocation reduced: {old_allocation:.1%} → {new_allocation:.1%}")
+
+            self.logger.warning(f"Signal quality alert: {message}")
+
+        except Exception as e:
+            self.logger.error(f"Error sending signal quality alert: {e}")
+
+    async def _send_strategy_pause_alert(self, strategy_name: str, reason: str):
+        """Send critical alert for strategy pause."""
+        try:
+            message = f"CRITICAL: Strategy {strategy_name} automatically paused - {reason}"
+            self.logger.error(f"Critical alert: {message}")
+
+        except Exception as e:
+            self.logger.error(f"Error sending strategy pause alert: {e}")
+
+    async def _get_signal_validation_summary(self) -> dict:
+        """Get comprehensive signal validation summary across all strategies."""
+        try:
+            summary = {
+                'strategies_with_validation': 0,
+                'total_signals_validated': 0,
+                'average_signal_strength': 0.0,
+                'strategy_summaries': {}
+            }
+
+            total_score = 0
+            strategies_count = 0
+
+            for strategy_name, strategy in self.strategies.items():
+                if hasattr(strategy, 'get_strategy_signal_summary'):
+                    strategy_summary = strategy.get_strategy_signal_summary()
+                    summary['strategy_summaries'][strategy_name] = strategy_summary
+                    summary['strategies_with_validation'] += 1
+
+                    # Aggregate metrics
+                    strategy_signals = strategy_summary.get('total_signals_validated', 0)
+                    summary['total_signals_validated'] += strategy_signals
+
+                    strategy_score = strategy_summary.get('average_strength_score', 0)
+                    if strategy_score > 0:
+                        total_score += strategy_score
+                        strategies_count += 1
+
+            # Calculate overall average
+            if strategies_count > 0:
+                summary['average_signal_strength'] = total_score / strategies_count
+
+            return summary
+
+        except Exception as e:
+            self.logger.error(f"Error getting signal validation summary: {e}")
+            return {'error': str(e)}
+
+    def get_signal_validation_performance_report(self) -> dict:
+        """Get detailed signal validation performance report."""
+        try:
+            # Use asyncio to get the summary
+            loop = asyncio.get_event_loop()
+            validation_summary = loop.run_until_complete(self._get_signal_validation_summary())
+
+            return {
+                'timestamp': datetime.now(),
+                'validation_summary': validation_summary,
+                'strategy_configs': {name: {
+                    'allocation': config.allocation,
+                    'enabled': config.enabled,
+                    'pause_reason': getattr(config, 'pause_reason', None),
+                    'paused_at': getattr(config, 'paused_at', None)
+                } for name, config in self.strategy_configs.items()}
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error generating signal validation report: {e}")
+            return {'error': str(e)}
+
+
 # Factory function
 def create_production_strategy_manager(
     config: ProductionStrategyManagerConfig,
@@ -2031,7 +3115,8 @@ def create_production_strategy_manager(
     return ProductionStrategyManager(config)
 
 
-# Strategy creation functions
+# ===================== STRATEGY CREATION FUNCTIONS =====================
+
 def create_production_wsb_dip_bot(trading_client, data_provider, config, logger):
     """Create production WSB dip bot strategy."""
     from ...strategies.production.production_wsb_dip_bot import ProductionWSBDipBot

@@ -15,6 +15,7 @@ from ...options.smart_selection import SmartOptionsSelector
 from ...risk.managers.real_time_risk_manager import RealTimeRiskManager
 from ...production.core.production_integration import ProductionTradeSignal
 from ...production.data.production_data_integration import ReliableDataProvider
+from ...validation.strategy_signal_integration import StrategySignalMixin, signal_integrator
 
 
 @dataclass
@@ -39,7 +40,7 @@ class SwingSignal:
     risk_level: str
 
 
-class ProductionSwingTrading:
+class ProductionSwingTrading(StrategySignalMixin):
     """Production Swing Trading Strategy.
 
     Strategy Logic:
@@ -61,9 +62,13 @@ class ProductionSwingTrading:
     def __init__(
         self, integration_manager, data_provider: ReliableDataProvider, config: dict
     ):
+        # Initialize parent class first
+        super().__init__()
+
         self.strategy_name = "swing_trading"
         self.integration_manager = integration_manager
         self.data_provider = data_provider
+        self._data_provider = data_provider  # Alias for test compatibility
         self.config = config
         self.logger = logging.getLogger(__name__)
 
@@ -71,6 +76,9 @@ class ProductionSwingTrading:
         self.options_selector = SmartOptionsSelector(data_provider)
         self.risk_manager = RealTimeRiskManager()
         self.bs_engine = BlackScholesEngine()
+
+        # Initialize signal validation
+        signal_integrator.enhance_strategy_with_validation(self, "swing_trading")
 
         # Strategy configuration
         self.swing_tickers = config.get(
@@ -418,10 +426,70 @@ class ProductionSwingTrading:
                 if is_reversal and reversal_type == "oversold_bounce":
                     signals_found.append(("reversal", reversal_strength, current_price))
 
-                # Process signals
+                # Process signals with validation
                 for signal_type, strength, ref_level in signals_found:
+                    # Basic strength check
                     if strength < self.min_strength_score:
                         continue
+
+                    # Enhanced signal validation
+                    try:
+                        # Get market data for validation
+                        market_data = await self.data_provider.get_intraday_data(
+                            ticker, interval="15min", period="5d"
+                        )
+
+                        if not market_data.empty:
+                            # Validate signal using comprehensive framework
+                            from ...validation.signal_strength_validator import SignalType as ValidationSignalType
+
+                            # Map signal types
+                            validation_signal_type = ValidationSignalType.BREAKOUT
+                            if signal_type == "momentum":
+                                validation_signal_type = ValidationSignalType.MOMENTUM
+                            elif signal_type == "reversal":
+                                validation_signal_type = ValidationSignalType.REVERSAL
+
+                            # Validate signal
+                            validation_result = self.validate_signal(
+                                symbol=ticker,
+                                market_data=market_data,
+                                signal_type=validation_signal_type,
+                                signal_params={
+                                    'risk_reward_ratio': 2.5,
+                                    'max_hold_hours': 6,
+                                    'strategy_strength_score': strength
+                                }
+                            )
+
+                            # Only proceed if signal passes validation
+                            if validation_result.recommended_action != "trade":
+                                self.logger.info(
+                                    f"Signal rejected by validation: {ticker} {signal_type} "
+                                    f"(score: {validation_result.normalized_score:.1f}, "
+                                    f"action: {validation_result.recommended_action})"
+                                )
+                                continue
+
+                            # Log successful validation
+                            self.logger.info(
+                                f"Signal validated: {ticker} {signal_type} "
+                                f"(validation_score: {validation_result.normalized_score:.1f}, "
+                                f"confidence: {validation_result.confidence_level:.2f})"
+                            )
+
+                            # Use validation result to adjust position sizing
+                            position_size_multiplier = validation_result.suggested_position_size
+
+                        else:
+                            # Fallback if no market data available
+                            position_size_multiplier = 0.5
+                            self.logger.warning(f"No market data for validation: {ticker}")
+
+                    except Exception as e:
+                        self.logger.error(f"Signal validation error for {ticker}: {e}")
+                        # Continue with reduced confidence
+                        position_size_multiplier = 0.3
 
                     # Target strike selection based on signal type
                     if signal_type == "breakout":
@@ -447,13 +515,31 @@ class ProductionSwingTrading:
                         self.calculate_option_targets(premium)
                     )
 
-                    # Risk assessment
-                    if strength > 80:
-                        risk_level = "low"
-                    elif strength > 60:
-                        risk_level = "medium"
-                    else:
-                        risk_level = "high"
+                    # Enhanced risk assessment with validation
+                    try:
+                        # Use validation score for risk assessment
+                        validation_score = validation_result.normalized_score if 'validation_result' in locals() else strength
+                        confidence = validation_result.confidence_level if 'validation_result' in locals() else 0.5
+
+                        if validation_score > 80 and confidence > 0.8:
+                            risk_level = "low"
+                        elif validation_score > 65 and confidence > 0.6:
+                            risk_level = "medium"
+                        else:
+                            risk_level = "high"
+
+                        # Adjust position size based on validation
+                        adjusted_premium = premium * position_size_multiplier
+
+                    except Exception:
+                        # Fallback to original logic
+                        if strength > 80:
+                            risk_level = "low"
+                        elif strength > 60:
+                            risk_level = "medium"
+                        else:
+                            risk_level = "high"
+                        adjusted_premium = premium
 
                     signal = SwingSignal(
                         ticker=ticker,
@@ -462,10 +548,10 @@ class ProductionSwingTrading:
                         entry_price=current_price,
                         breakout_level=ref_level,
                         volume_confirmation=self.min_volume_multiple,
-                        strength_score=strength,
+                        strength_score=validation_score if 'validation_score' in locals() else strength,
                         target_strike=target_strike,
                         target_expiry=expiry,
-                        option_premium=premium,
+                        option_premium=adjusted_premium,
                         max_hold_hours=max_hold_hours,
                         profit_target_1=profit_25,
                         profit_target_2=profit_50,

@@ -134,3 +134,5 @@ class RiskManagedStrategy(BaseStrategy):
             "max_drawdown_limit": self.risk_config.max_drawdown_pct,
             "risk_metrics": self.risk_metrics,
         }
+
+

@@ -10,14 +10,12 @@ from datetime import date, datetime
 from unittest.mock import MagicMock, Mock, patch
 
 import pandas as pd
+import pytest
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Mock yfinance and pandas for strategy scripts
-sys.modules["yfinance"] = MagicMock()
-sys.modules["pandas"] = MagicMock()
-sys.modules["numpy"] = MagicMock()
+# No global mocking - let individual tests handle their dependencies
 
 from backend.tradingbot.strategies.implementations.debit_spreads import (  # noqa: E402
     DebitSpreadScanner,
@@ -33,9 +31,19 @@ from backend.tradingbot.strategies.implementations.wheel_strategy import WheelPo
 from backend.tradingbot.strategies.implementations.wsb_dip_bot import DipSignal  # noqa: E402
 
 
+@pytest.fixture(scope="function")
+def mock_external_deps():
+    """Mock external dependencies for each test."""
+    with patch.dict(sys.modules, {
+        "yfinance": MagicMock(),
+    }):
+        yield
+
+
 class TestStrategySmokeTests(unittest.TestCase):
     """Basic smoke tests to ensure strategies don't crash."""
 
+    @patch.dict(sys.modules, {"yfinance": MagicMock()})
     def test_momentum_weeklies_initialization(self):
         """Test momentum weeklies scanner initializes."""
         scanner = MomentumWeekliesScanner()

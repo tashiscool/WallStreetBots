@@ -73,6 +73,11 @@ class ProductionWSBDipBot:
         self.max_position_size = config.get("max_position_size", 0.20)  # 20%
         self.target_multiplier = config.get("target_multiplier", 3.0)  # 3x profit
         self.delta_target = config.get("delta_target", 0.60)  # Delta exit
+        
+        # WSB Mode: Full account reinvestment (ignores risk caps)
+        self.wsb_mode = config.get("wsb_mode", False)
+        if self.wsb_mode:
+            self.logger.warning("WSB MODE ENABLED: Full account reinvestment, ignoring risk caps!")
 
         # Universe of stocks to scan
         self.universe = config.get(
@@ -419,12 +424,16 @@ class ProductionWSBDipBot:
                 current_data["current_value"] - position["cost_basis"]
             ) / position["cost_basis"]
 
-            # Dynamic profit targets based on volatility
-            volatility = await self._get_recent_volatility(position["ticker"])
-            if volatility > 0.30:  # High vol stocks
-                profit_target = 2.0  # 200% target
+            # WSB Mode: Use fixed 3x profit target, otherwise dynamic
+            if self.wsb_mode:
+                profit_target = 3.0  # Fixed 3x profit target like WSB trader
             else:
-                profit_target = 1.5  # 150% target
+                # Dynamic profit targets based on volatility
+                volatility = await self._get_recent_volatility(position["ticker"])
+                if volatility > 0.30:  # High vol stocks
+                    profit_target = 2.0  # 200% target
+                else:
+                    profit_target = 1.5  # 150% target
 
             if profit_pct >= profit_target:
                 return {
@@ -437,7 +446,8 @@ class ProductionWSBDipBot:
 
             # 2. Delta - based exits (for options)
             if position.get("instrument_type") == "option":
-                if current_data.get("delta", 0) >= 0.60:  # Deep ITM
+                delta_threshold = 0.60  # Delta exit threshold
+                if current_data.get("delta", 0) >= delta_threshold:  # Deep ITM
                     return {
                         "should_exit": True,
                         "reason": "DELTA_TARGET",
@@ -652,8 +662,21 @@ class ProductionWSBDipBot:
     async def execute_dip_trade(self, signal: DipSignal) -> bool:
         """Execute dip trade."""
         try:
-            # Calculate quantity based on risk amount
-            quantity = int(float(signal.risk_amount) / float(signal.expected_premium))
+            if self.wsb_mode:
+                # WSB Mode: Use full available cash for position sizing
+                account_info = await self.integration.get_account_info()
+                available_cash = account_info.get("cash", 0)
+                
+                # Calculate max contracts we can afford
+                quantity = int(available_cash / float(signal.expected_premium))
+                
+                self.logger.warning(
+                    f"WSB MODE: Using full account cash ${available_cash:.2f} "
+                    f"for {quantity} contracts of {signal.ticker}"
+                )
+            else:
+                # Normal mode: Use risk-based sizing
+                quantity = int(float(signal.risk_amount) / float(signal.expected_premium))
 
             if quantity <= 0:
                 self.logger.warning(f"Quantity too small for {signal.ticker}")
@@ -862,6 +885,7 @@ class ProductionWSBDipBot:
                 "max_position_size": self.max_position_size,
                 "target_multiplier": self.target_multiplier,
                 "delta_target": self.delta_target,
+                "wsb_mode": self.wsb_mode,
             },
         }
 

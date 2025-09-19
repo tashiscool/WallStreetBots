@@ -86,3 +86,4 @@ def test_edge_cases():
     assert 'risk_adjusted_returns.min_sharpe_ratio' in res['failing_criteria']
 
 
+

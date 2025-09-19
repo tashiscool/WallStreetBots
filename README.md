@@ -9,7 +9,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
 [![Django](https://img.shields.io/badge/Django-4.2+-green.svg)](https://djangoproject.com)
-[![Tests](https://img.shields.io/badge/Tests-1800+-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/Tests-2420+-brightgreen.svg)](#testing)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
@@ -82,7 +82,7 @@ python test_env_keys.py
 # 4. Run the system
 python run_wallstreetbots.py
 
-# 5. Run comprehensive tests (1800+ tests)
+# 5. Run comprehensive tests (2420+ tests)
 python -m pytest tests/ --tb=short -q
 
 # 6. Run signal validation tests
@@ -164,10 +164,10 @@ backend/tradingbot/
 - **Data Encryption** - Secure data storage and transmission
 - **Access Controls** - Role-based permissions and authentication
 
-## 🧪 **Comprehensive Testing Suite (1800+ Tests)**
+## 🧪 **Comprehensive Testing Suite (2420+ Tests)**
 
 ```bash
-# Run all tests (1800+ tests)
+# Run all tests (2420+ tests)
 python -m pytest tests/ --tb=short -q
 
 # Run by category
@@ -314,7 +314,7 @@ quality_report = quality_monitor.validate_market_data(market_data)
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Add comprehensive tests for new functionality
-4. Ensure all 1800+ tests pass (`python -m pytest tests/`)
+4. Ensure all 2420+ tests pass (`python -m pytest tests/`)
 5. Update documentation
 6. Submit a pull request
 
@@ -335,5 +335,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Regulatory Compliance**: Ensure compliance with local financial regulations before deployment.
 
 </div>
+
 
 

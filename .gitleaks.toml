@@ -141,7 +141,7 @@ regex = "mock[_-]?api[_-]?key[\\s]*[:=][\\s]*[\"']?mock[_-]?key[\"']?"
 tags = ["mock"]
 
 # Global allowlist for all test-related keys
-[allowlist]
+[[allowlist]]
 description = "Allow test, example, and mock API keys in test files and documentation"
 paths = [
     "tests/.*",
@@ -167,4 +167,24 @@ stopwords = [
     "dummy_key",
     "sample_key"
 ]
+
+# File-specific allowlists for explicit gitleaks:allow comments
+# Reference: job ref 65ed415c400b95329142a16aeed160b12503c3b2
+[[allowlist]]
+description = "Allow generic-api-key with explicit gitleaks:allow comment in ml/data_collection/collect_news.py (ref: 65ed415c400b95329142a16aeed160b12503c3b2)"
+regexTarget = "line"
+regexes = ['^.*#\s*gitleaks:allow\s*$']
+paths = ["ml/data_collection/collect_news.py"]
+
+[[allowlist]]
+description = "Allow generic-api-key with explicit gitleaks:allow comment in ml/data_collection/get_news.py (ref: 65ed415c400b95329142a16aeed160b12503c3b2)"
+regexTarget = "line"
+regexes = ['^.*#\s*gitleaks:allow\s*$']
+paths = ["ml/data_collection/get_news.py"]
+
+[[allowlist]]
+description = "Allow generic-api-key with explicit gitleaks:allow comment in backend/tradingbot/apimanagers.py (ref: 65ed415c400b95329142a16aeed160b12503c3b2)"
+regexTarget = "line"
+regexes = ['^.*#\s*gitleaks:allow\s*$']
+paths = ["backend/tradingbot/apimanagers.py"]
 

@@ -268,6 +268,50 @@ class ReliableDataProvider:
             )
 
             if not bars:
+                # If no bars returned and we're in paper trading, try yfinance fallback
+                if self.alpaca_manager.paper_trading:
+                    try:
+                        import yfinance as yf
+                        ticker_obj = yf.Ticker(ticker)
+                        
+                        # Map days to yfinance period
+                        if days <= 5:
+                            period = "5d"
+                        elif days <= 30:
+                            period = "1mo"
+                        elif days <= 90:
+                            period = "3mo"
+                        elif days <= 180:
+                            period = "6mo"
+                        elif days <= 365:
+                            period = "1y"
+                        else:
+                            period = "2y"
+                        
+                        hist = ticker_obj.history(period=period, interval="1d")
+                        
+                        if not hist.empty:
+                            historical_data = []
+                            for idx, row in hist.iterrows():
+                                bar_time = idx.to_pydatetime() if hasattr(idx, 'to_pydatetime') else idx
+                                if start_date <= bar_time <= end_date:
+                                    market_data = MarketData(
+                                        ticker=ticker,
+                                        price=Decimal(str(row["Close"])),
+                                        volume=int(row["Volume"]) if "Volume" in row else 0,
+                                        high=Decimal(str(row["High"])),
+                                        low=Decimal(str(row["Low"])),
+                                        open=Decimal(str(row["Open"])),
+                                        close=Decimal(str(row["Close"])),
+                                        timestamp=bar_time,
+                                    )
+                                    historical_data.append(market_data)
+                            
+                            if historical_data:
+                                return historical_data
+                    except Exception:
+                        pass  # Fall through to return empty list
+                
                 return []
 
             historical_data = []
@@ -291,7 +335,10 @@ class ReliableDataProvider:
             return historical_data
 
         except Exception as e:
-            self.logger.error(f"Error getting historical data for {ticker}: {e}")
+            error_msg = str(e)
+            # Don't log SIP subscription errors in paper trading mode (they're expected)
+            if "subscription does not permit querying recent SIP data" not in error_msg.lower():
+                self.logger.error(f"Error getting historical data for {ticker}: {e}")
             return []
 
     async def get_options_chain(

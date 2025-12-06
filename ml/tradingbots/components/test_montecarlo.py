@@ -1,10 +1,9 @@
 import unittest
 
 import numpy as np
-from metrics import DummyMetric
-from montecarlo import MonteCarloPortfolioUpdate
-
-from utils import DummyFetcher
+from .metrics import DummyMetric
+from .montecarlo import MonteCarloPortfolioUpdate
+from .utils import DummyFetcher
 
 
 class MonteCarloPortfolioUpdateTestCase(unittest.TestCase):

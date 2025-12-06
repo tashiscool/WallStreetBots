@@ -12,7 +12,7 @@ Making the system production - ready for live trading.
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -216,15 +216,18 @@ class ProductionIntegrationManager:
             ],
         )
 
-    async def execute_trade(self, signal: ProductionTradeSignal) -> TradeResult:
+    async def execute_trade(self, signal: ProductionTradeSignal, validation_result: dict[str, Any] | None = None) -> TradeResult:
         """Execute trade with full production integration.
 
         Steps:
-        1. Validate signal and risk limits
-        2. Execute via AlpacaManager
-        3. Create Django Order record
-        4. Update position tracking
-        5. Send alerts
+        1. Validate signal quality (if validation result provided)
+        2. Validate signal and risk limits
+        3. Calculate expected slippage
+        4. Execute via AlpacaManager
+        5. Calculate actual slippage and costs
+        6. Create Django Order record
+        7. Update position tracking with costs
+        8. Send alerts
         """
         trade_id = f"{signal.strategy_name}_{signal.ticker}_{datetime.now().strftime('%Y % m % d_ % H % M % S')}"
 
@@ -239,6 +242,35 @@ class ProductionIntegrationManager:
                     "quantity": signal.quantity,
                 },
             )
+
+            # 0. Signal validation check (if validation result provided)
+            if validation_result:
+                recommended_action = validation_result.get('recommended_action', 'execute')
+                strength_score = validation_result.get('strength_score', 0)
+                min_strength_threshold = validation_result.get('min_strength_threshold', 50.0)
+                
+                if recommended_action != 'execute':
+                    self.logger.warning(
+                        f"Signal validation rejected trade: {recommended_action}, "
+                        f"strength_score: {strength_score:.1f}"
+                    )
+                    return TradeResult(
+                        trade_id=trade_id,
+                        signal=signal,
+                        status=TradeStatus.REJECTED,
+                        error_message=f"Signal validation failed: {recommended_action}",
+                    )
+                
+                if strength_score < min_strength_threshold:
+                    self.logger.warning(
+                        f"Signal strength too low: {strength_score:.1f} < {min_strength_threshold:.1f}"
+                    )
+                    return TradeResult(
+                        trade_id=trade_id,
+                        signal=signal,
+                        status=TradeStatus.REJECTED,
+                        error_message=f"Signal strength below threshold: {strength_score:.1f}",
+                    )
 
             # 1. Risk validation
             risk_check = await self.validate_risk_limits(signal)
@@ -255,7 +287,11 @@ class ProductionIntegrationManager:
                     error_message=f"Risk limit exceeded: {risk_check['reason']}",
                 )
 
-            # 2. Execute via AlpacaManager
+            # 2. Calculate expected slippage before execution
+            expected_slippage = await self._calculate_expected_slippage(signal)
+            expected_price = Decimal(str(signal.price)) + expected_slippage if signal.side.value == "buy" else Decimal(str(signal.price)) - expected_slippage
+
+            # 3. Execute via AlpacaManager
             alpaca_result = await self.execute_alpaca_order(signal)
             if not alpaca_result["success"]:
                 return TradeResult(
@@ -265,12 +301,21 @@ class ProductionIntegrationManager:
                     error_message=f"Alpaca execution failed: {alpaca_result['error']}",
                 )
 
-            # 3. Create Django Order record
+            # 4. Calculate actual slippage and total costs
+            fill_price = Decimal(str(alpaca_result["fill_price"]))
+            actual_slippage = abs(fill_price - Decimal(str(signal.price))) * Decimal(str(signal.quantity))
+            commission = Decimal(str(alpaca_result.get("commission", 0.0)))
+            total_cost = (fill_price * Decimal(str(signal.quantity))) + commission + actual_slippage
+            
+            # Calculate net expected return after costs
+            net_expected_return = signal.expected_return - commission - actual_slippage
+
+            # 5. Create Django Order record
             django_order = await self.create_django_order(
                 signal, alpaca_result["order_id"]
             )
 
-            # 4. Create ProductionTrade record
+            # 6. Create ProductionTrade record with full cost tracking
             production_trade = ProductionTrade(
                 id=trade_id,
                 strategy_name=signal.strategy_name,
@@ -278,35 +323,44 @@ class ProductionIntegrationManager:
                 trade_type=signal.trade_type,
                 action=signal.side.value,
                 quantity=signal.quantity,
-                entry_price=Decimal(str(alpaca_result["fill_price"])),
+                entry_price=fill_price,
                 alpaca_order_id=alpaca_result["order_id"],
                 django_order_id=django_order.id if django_order else None,
                 fill_timestamp=datetime.now(),
                 risk_amount=Decimal(str(signal.risk_amount)),
-                expected_return=Decimal(str(signal.expected_return)),
-                metadata=signal.metadata,
+                expected_return=net_expected_return,  # Net return after costs
+                commission=commission,
+                slippage=actual_slippage,
+                metadata={
+                    **signal.metadata,
+                    "expected_slippage": float(expected_slippage),
+                    "actual_slippage": float(actual_slippage),
+                    "total_cost": float(total_cost),
+                    "validation_result": validation_result if validation_result else None,
+                },
             )
 
-            # 5. Update position tracking
+            # 7. Update position tracking
             await self.update_position_tracking(production_trade)
 
             # 6. Store trade
             self.active_trades[trade_id] = production_trade
             self.trades.append(production_trade)
 
-            # 7. Send success alert
+            # 9. Send success alert with cost information
             await self.alert_system.send_alert(
                 AlertType.ENTRY_SIGNAL,
                 AlertPriority.MEDIUM,
-                f"Trade executed: {signal.ticker} {signal.side.value} {signal.quantity} @ {alpaca_result['fill_price']}",
+                f"Trade executed: {signal.ticker} {signal.side.value} {signal.quantity} @ {fill_price} "
+                f"(Costs: ${commission:.2f} commission, ${actual_slippage:.2f} slippage)",
             )
 
             return TradeResult(
                 trade_id=trade_id,
                 signal=signal,
                 status=TradeStatus.FILLED,
-                filled_price=alpaca_result["fill_price"],
-                commission=alpaca_result.get("commission", 0.0),
+                filled_price=float(fill_price),
+                commission=float(commission),
             )
 
         except Exception as e:
@@ -513,6 +567,40 @@ class ProductionIntegrationManager:
             self.logger.error(f"Error getting position value for {ticker}: {e}")
             return Decimal("0.00")
 
+    async def get_all_positions(self) -> dict[str, Any]:
+        """Get all current positions as a dictionary."""
+        try:
+            positions_dict = {}
+            # First check active_positions
+            for key, position in self.active_positions.items():
+                ticker = position.ticker
+                current_price = await self.get_current_price(ticker)
+                positions_dict[ticker] = {
+                    "quantity": float(position.quantity),
+                    "entry_price": float(position.entry_price),
+                    "current_price": float(current_price),
+                    "unrealized_pnl": float(position.unrealized_pnl),
+                    "strategy_name": position.strategy_name,
+                    "position_type": position.position_type,
+                }
+            # Also check Alpaca positions for completeness
+            alpaca_positions = self.alpaca_manager.get_positions()
+            for position in alpaca_positions:
+                ticker = position.get("symbol")
+                if ticker and ticker not in positions_dict:
+                    positions_dict[ticker] = {
+                        "quantity": float(position.get("qty", 0)),
+                        "entry_price": float(position.get("avg_entry_price", 0)),
+                        "current_price": 0.0,  # Will be updated if needed
+                        "unrealized_pnl": float(position.get("unrealized_pl", 0)),
+                        "strategy_name": "unknown",
+                        "position_type": position.get("side", "long"),
+                    }
+            return positions_dict
+        except Exception as e:
+            self.logger.error(f"Error getting all positions: {e}")
+            return {}
+
     async def get_total_risk(self) -> Decimal:
         """Get total risk across all positions."""
         try:
@@ -584,8 +672,113 @@ class ProductionIntegrationManager:
             self.logger.error(f"Error getting current price for {ticker}: {e}")
             return Decimal("0.00")
 
+    async def get_portfolio_history(self, days: int = 180) -> list[dict[str, Any]]:
+        """Get portfolio value history for analytics.
+        
+        Returns a list of dictionaries with 'timestamp' and 'value' keys.
+        For now, returns current value as a single entry since we don't have historical tracking.
+        In production, this would query a database or Alpaca's portfolio history API.
+        """
+        try:
+            current_value = await self.get_portfolio_value()
+            return [
+                {
+                    "timestamp": datetime.now() - timedelta(days=days - i),
+                    "value": float(current_value)
+                }
+                for i in range(min(days, 30))  # Return up to 30 days of synthetic data
+            ]
+        except Exception as e:
+            self.logger.error(f"Error getting portfolio history: {e}")
+            return []
+
+    async def _calculate_expected_slippage(self, signal: ProductionTradeSignal) -> Decimal:
+        """Calculate expected slippage for a trade signal.
+        
+        Uses simple model based on order size, volatility, and liquidity.
+        In production, would use SlippagePredictor for more accurate estimates.
+        """
+        try:
+            from backend.validation.execution_reality.slippage_calibration import SlippagePredictor
+            
+            # Try to use advanced slippage model if available
+            if not hasattr(self, '_advanced_slippage_model'):
+                try:
+                    from ..execution.advanced_slippage_model import AdvancedSlippageModel
+                    self._advanced_slippage_model = AdvancedSlippageModel(model_type='ensemble')
+                except ImportError:
+                    self._advanced_slippage_model = None
+            
+            # Use advanced model if available and trained
+            if self._advanced_slippage_model and self._advanced_slippage_model.is_trained:
+                try:
+                    from ..execution.advanced_slippage_model import MarketMicrostructureFeatures
+                    
+                    # Try to get microstructure features (simplified for now)
+                    microstructure = MarketMicrostructureFeatures(
+                        bid_ask_spread=0.001,  # Would get from order book
+                        order_book_imbalance=0.0,
+                        volume_profile=0.5,
+                        volatility=market_conditions.get('volatility', 0.20),
+                        time_of_day=0.5,  # Would calculate from current time
+                        day_of_week=datetime.now().weekday(),
+                        recent_volume=market_conditions.get('volume', 1000000),
+                        price_momentum=0.0,
+                        liquidity_score=0.5
+                    )
+                    
+                    prediction = self._advanced_slippage_model.predict_slippage(
+                        symbol=signal.ticker,
+                        side=signal.side.value,
+                        quantity=signal.quantity,
+                        market_conditions=market_conditions,
+                        microstructure_features=microstructure
+                    )
+                    
+                    # Convert from basis points to dollar amount
+                    slippage_bps = prediction.expected_slippage_bps
+                    slippage_pct = slippage_bps / 10000.0
+                    expected_slippage = Decimal(str(signal.price)) * Decimal(str(slippage_pct))
+                    
+                    return expected_slippage
+                except Exception as e:
+                    self.logger.warning(f"Error using advanced slippage model: {e}")
+            
+            # Fallback to original slippage predictor
+            if not hasattr(self, '_slippage_predictor'):
+                self._slippage_predictor = SlippagePredictor()
+            
+            # Get current market conditions
+            current_price = await self.get_current_price(signal.ticker)
+            market_conditions = {
+                'price': float(current_price),
+                'volume': 1000000,  # Default volume estimate
+                'volatility': 0.20,  # Default 20% volatility
+            }
+            
+            # Predict slippage
+            slippage_pred = self._slippage_predictor.predict_slippage(
+                symbol=signal.ticker,
+                side=signal.side.value,
+                quantity=signal.quantity,
+                market_conditions=market_conditions
+            )
+            
+            # Convert from basis points to dollar amount
+            slippage_bps = slippage_pred.get('expected_slippage_bps', 5.0)  # Default 5 bps
+            slippage_pct = slippage_bps / 10000.0
+            expected_slippage = Decimal(str(signal.price)) * Decimal(str(slippage_pct))
+            
+            return expected_slippage
+            
+        except Exception as e:
+            self.logger.warning(f"Error calculating slippage, using default: {e}")
+            # Default slippage: 0.05% (5 basis points) for stocks, 0.1% for options
+            default_slippage_pct = 0.0005 if signal.trade_type == "stock" else 0.001
+            return Decimal(str(signal.price)) * Decimal(str(default_slippage_pct))
+
     async def execute_exit_trade(self, position: ProductionPosition, reason: str):
-        """Execute exit trade for position."""
+        """Execute exit trade for position with proper PnL calculation including costs."""
         try:
             # Create exit signal
             exit_signal = ProductionTradeSignal(
@@ -607,18 +800,75 @@ class ProductionIntegrationManager:
             result = await self.execute_trade(exit_signal)
 
             if result.status == TradeStatus.FILLED:
-                # Update position with realized P & L
-                position.realized_pnl += position.unrealized_pnl
-                position.unrealized_pnl = Decimal("0.00")
-
-                # Send exit alert
-            await self.alert_system.send_alert(
-                AlertType.PROFIT_TARGET,
-                AlertPriority.MEDIUM,
-                f"Position closed: {position.ticker} {reason} P & L: {position.realized_pnl}",
-            )
-
-            self.logger.info(f"Exit trade executed for {position.ticker}: {reason}")
+                # Find the entry trade(s) to calculate realized PnL with costs
+                entry_trades = [
+                    trade for trade in self.trades
+                    if (trade.ticker == position.ticker and 
+                        trade.strategy_name == position.strategy_name and
+                        trade.action == "buy" and
+                        trade.exit_price is None)
+                ]
+                
+                if entry_trades:
+                    # Calculate total entry cost (including all costs)
+                    total_entry_cost = Decimal("0.00")
+                    total_entry_quantity = 0
+                    for trade in entry_trades:
+                        entry_cost = (trade.entry_price * Decimal(str(trade.quantity)) + 
+                                     trade.commission + trade.slippage)
+                        total_entry_cost += entry_cost
+                        total_entry_quantity += trade.quantity
+                    
+                    # Calculate exit proceeds (after costs)
+                    exit_price = Decimal(str(result.filled_price))
+                    exit_slippage = abs(exit_price - Decimal(str(exit_signal.price))) * Decimal(str(position.quantity))
+                    exit_commission = Decimal(str(result.commission))
+                    exit_proceeds = (exit_price * Decimal(str(position.quantity)) - 
+                                    exit_commission - exit_slippage)
+                    
+                    # Calculate realized PnL
+                    avg_entry_cost = total_entry_cost / Decimal(str(total_entry_quantity)) if total_entry_quantity > 0 else Decimal("0.00")
+                    realized_pnl = exit_proceeds - (avg_entry_cost * Decimal(str(position.quantity)))
+                    
+                    # Update entry trades with exit information
+                    for trade in entry_trades:
+                        trade.exit_price = exit_price
+                        trade.exit_timestamp = datetime.now()
+                        if trade.pnl is None:
+                            # Allocate PnL proportionally
+                            trade_pnl = realized_pnl * (Decimal(str(trade.quantity)) / Decimal(str(position.quantity)))
+                            trade.pnl = trade_pnl
+                            trade.win = trade_pnl > 0
+                            trade.actual_return = trade_pnl
+                    
+                    # Update position
+                    position.realized_pnl += realized_pnl
+                    position.unrealized_pnl = Decimal("0.00")
+                    
+                    # Remove from active positions
+                    position_key = f"{position.ticker}_{position.strategy_name}"
+                    if position_key in self.active_positions:
+                        del self.active_positions[position_key]
+                    
+                    # Send exit alert with detailed PnL
+                    await self.alert_system.send_alert(
+                        AlertType.PROFIT_TARGET if realized_pnl > 0 else AlertType.STOP_LOSS,
+                        AlertPriority.MEDIUM,
+                        f"Position closed: {position.ticker} {reason} - "
+                        f"Realized PnL: ${realized_pnl:.2f} "
+                        f"(Entry: ${avg_entry_cost:.2f}, Exit: ${exit_price:.2f}, "
+                        f"Total Costs: ${exit_commission + exit_slippage:.2f})",
+                    )
+                    
+                    self.logger.info(
+                        f"Exit trade executed for {position.ticker}: {reason} - "
+                        f"Realized PnL: ${realized_pnl:.2f} (after all costs)"
+                    )
+                else:
+                    # Fallback: use unrealized PnL
+                    position.realized_pnl += position.unrealized_pnl
+                    position.unrealized_pnl = Decimal("0.00")
+                    self.logger.warning(f"Could not find entry trades for {position.ticker}, using unrealized PnL")
 
         except Exception as e:
             self.logger.error(f"Error executing exit trade: {e}")

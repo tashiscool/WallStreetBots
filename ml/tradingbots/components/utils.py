@@ -1,9 +1,19 @@
 import datetime
 from datetime import timedelta
 
-from alpaca_trade_api.rest import TimeFrame
+try:
+    from alpaca_trade_api.rest import TimeFrame
+except ImportError:
+    # Fallback for when alpaca_trade_api is not available
+    class TimeFrame:
+        Minute = "1Min"
+        Hour = "1Hour"
+        Day = "1Day"
 
-from backend.tradingbot.apimanagers import AlpacaManager
+try:
+    from backend.tradingbot.apimanagers import AlpacaManager
+except ImportError:
+    AlpacaManager = None
 
 
 class DataFetcher:
@@ -30,6 +40,8 @@ class AlpacaFetcher(DataFetcher):
 
     def __init__(self, AlpacaID, AlpacaKey):
         super().__init__()
+        if AlpacaManager is None:
+            raise ImportError("AlpacaManager is not available. Install required dependencies.")
         self.api = AlpacaManager(AlpacaID, AlpacaKey)
         self.api.validate_api()
 

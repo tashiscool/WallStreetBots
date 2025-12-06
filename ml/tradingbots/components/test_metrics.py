@@ -1,8 +1,7 @@
 import unittest
 
-import metrics
-
-from utils import DummyFetcher
+from . import metrics
+from .utils import DummyFetcher
 
 
 class MovingAverageSharpeRatioTestCase(unittest.TestCase):

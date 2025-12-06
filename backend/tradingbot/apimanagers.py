@@ -178,7 +178,85 @@ class AlpacaManager:
             return prices[::-1], times[::-1]
 
         except Exception as e:
-            print(f"Error getting bars for {symbol}: {e}")
+            error_msg = str(e)
+            # Check if it's a SIP subscription error
+            if "subscription does not permit querying recent SIP data" in error_msg.lower():
+                # Fall back to yfinance for paper trading
+                if self.paper_trading:
+                    try:
+                        import yfinance as yf
+                        from datetime import timedelta
+                        
+                        # Calculate period for yfinance
+                        days_diff = (end - start).days
+                        if days_diff <= 5:
+                            period = "5d"
+                        elif days_diff <= 30:
+                            period = "1mo"
+                        elif days_diff <= 90:
+                            period = "3mo"
+                        elif days_diff <= 180:
+                            period = "6mo"
+                        elif days_diff <= 365:
+                            period = "1y"
+                        else:
+                            period = "2y"
+                        
+                        # Map timeframe to yfinance interval
+                        interval_map = {
+                            "day": "1d",
+                            "1day": "1d",
+                            "hour": "1h",
+                            "1hour": "1h",
+                            "minute": "1m",
+                            "1min": "1m",
+                            "5min": "5m",
+                            "15min": "15m",
+                        }
+                        yf_interval = interval_map.get(timestep.lower(), "1d")
+                        
+                        # Fetch from yfinance
+                        ticker = yf.Ticker(symbol)
+                        hist = ticker.history(period=period, interval=yf_interval)
+                        
+                        if hist.empty:
+                            return [], []
+                        
+                        # Extract prices and times
+                        prices = []
+                        times = []
+                        price_col = price_type.capitalize() if price_type != "close" else "Close"
+                        
+                        for idx, row in hist.iterrows():
+                            if price_type == "open":
+                                price = float(row["Open"])
+                            elif price_type == "high":
+                                price = float(row["High"])
+                            elif price_type == "low":
+                                price = float(row["Low"])
+                            else:  # close
+                                price = float(row["Close"])
+                            
+                            prices.append(price)
+                            times.append(idx.to_pydatetime() if hasattr(idx, 'to_pydatetime') else idx)
+                        
+                        # Filter by date range
+                        filtered_prices = []
+                        filtered_times = []
+                        for price, time in zip(prices, times):
+                            if start <= time <= end:
+                                filtered_prices.append(price)
+                                filtered_times.append(time)
+                        
+                        if filtered_prices:
+                            return filtered_prices[::-1], filtered_times[::-1]
+                    except Exception as yf_error:
+                        # If yfinance also fails, return empty
+                        pass
+            
+            # Only print error if not a SIP subscription error (to reduce log spam)
+            if "subscription does not permit querying recent SIP data" not in error_msg.lower():
+                print(f"Error getting bars for {symbol}: {e}")
             return [], []
 
     def get_price(self, symbol: str) -> tuple[bool, float]:
@@ -765,7 +843,82 @@ class AlpacaManager:
             return bars
 
         except Exception as e:
-            print(f"Error getting bars for {symbol}: {e}")
+            error_msg = str(e)
+            # Check if it's a SIP subscription error
+            if "subscription does not permit querying recent SIP data" in error_msg.lower():
+                # Fall back to yfinance for paper trading
+                if self.paper_trading:
+                    try:
+                        import yfinance as yf
+                        from datetime import timedelta
+                        
+                        # Calculate period for yfinance
+                        if not start:
+                            days = limit if timeframe == "1Day" else 30
+                            start = datetime.now() - timedelta(days=days)
+                        if not end:
+                            end = datetime.now()
+                        
+                        days_diff = (end - start).days
+                        if days_diff <= 5:
+                            period = "5d"
+                        elif days_diff <= 30:
+                            period = "1mo"
+                        elif days_diff <= 90:
+                            period = "3mo"
+                        elif days_diff <= 180:
+                            period = "6mo"
+                        elif days_diff <= 365:
+                            period = "1y"
+                        else:
+                            period = "2y"
+                        
+                        # Map timeframe to yfinance interval
+                        interval_map = {
+                            "1day": "1d",
+                            "1Day": "1d",
+                            "1hour": "1h",
+                            "1Hour": "1h",
+                            "1min": "1m",
+                            "1Min": "1m",
+                            "5min": "5m",
+                            "5Min": "5m",
+                            "15min": "15m",
+                            "15Min": "15m",
+                        }
+                        yf_interval = interval_map.get(timeframe, "1d")
+                        
+                        # Fetch from yfinance
+                        ticker = yf.Ticker(symbol)
+                        hist = ticker.history(period=period, interval=yf_interval)
+                        
+                        if hist.empty:
+                            return []
+                        
+                        # Convert to bars format
+                        bars = []
+                        for idx, row in hist.iterrows():
+                            # Filter by date range
+                            bar_time = idx.to_pydatetime() if hasattr(idx, 'to_pydatetime') else idx
+                            if start <= bar_time <= end:
+                                bars.append({
+                                    "timestamp": bar_time,
+                                    "open": float(row["Open"]),
+                                    "high": float(row["High"]),
+                                    "low": float(row["Low"]),
+                                    "close": float(row["Close"]),
+                                    "volume": int(row["Volume"]) if "Volume" in row else 1000000,
+                                })
+                        
+                        if bars:
+                            return bars
+                    except Exception as yf_error:
+                        # If yfinance also fails, return empty
+                        pass
+            
+            # Only print error if not a SIP subscription error (to reduce log spam)
+            if "subscription does not permit querying recent SIP data" not in error_msg.lower():
+                print(f"Error getting bars for {symbol}: {e}")
             return []
 
 

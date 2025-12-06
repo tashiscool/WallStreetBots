@@ -192,6 +192,72 @@ class MarketRegimeAdapter:
             self.logger.error(f"Error detecting market regime: {e}")
             return MarketRegime.UNDEFINED
 
+    async def detect_current_regime_with_confidence(
+        self, market_data: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Detect current regime with confidence score.
+        
+        Returns:
+            Dictionary with 'regime' and 'confidence' keys
+        """
+        try:
+            regime = await self.detect_current_regime(market_data)
+            confidence = self.regime_confidence
+            
+            # Boost confidence if we have enough history
+            if len(self.indicator_history) >= 10:
+                confidence = min(1.0, confidence * 1.1)
+            
+            return {
+                'regime': regime,
+                'confidence': confidence,
+                'regime_stability': self._calculate_regime_stability()
+            }
+        except Exception as e:
+            self.logger.error(f"Error detecting regime with confidence: {e}")
+            return {
+                'regime': MarketRegime.UNDEFINED,
+                'confidence': 0.0,
+                'regime_stability': 0.0
+            }
+
+    def _calculate_regime_stability(self) -> float:
+        """Calculate how stable the current regime is."""
+        if len(self.indicator_history) < 5:
+            return 0.0
+        
+        # Count how many recent regimes match current
+        recent_regimes = []
+        for i in range(min(5, len(self.adaptation_history))):
+            if self.adaptation_history:
+                recent_regimes.append(self.adaptation_history[-(i+1)].regime)
+        
+        if not recent_regimes:
+            return 0.0
+        
+        current_regime = self.current_regime
+        matching = sum(1 for r in recent_regimes if r == current_regime)
+        return matching / len(recent_regimes)
+
+    def _create_conservative_fallback_adaptation(self) -> StrategyAdaptation:
+        """Create conservative fallback adaptation when regime detection fails."""
+        return StrategyAdaptation(
+            regime=MarketRegime.UNDEFINED,
+            confidence=0.0,
+            position_size_multiplier=0.5,  # Reduce position sizes
+            max_risk_per_trade=0.01,  # Very conservative risk
+            recommended_strategies=[],  # Disable all strategies
+            disabled_strategies=[],
+            parameter_adjustments={'conservative_mode': True},
+            stop_loss_adjustment=0.95,  # Tighter stops
+            take_profit_adjustment=1.05,  # Take profits sooner
+            entry_delay=300,  # Delay entries
+            exit_urgency=1.5,  # Exit faster
+            timestamp=datetime.now(),
+            reason="Low regime detection confidence - using conservative fallback",
+            next_review=datetime.now() + timedelta(minutes=30),
+        )
+
     async def generate_strategy_adaptation(
         self,
         market_data: dict[str, Any],
@@ -207,8 +273,25 @@ class MarketRegimeAdapter:
             StrategyAdaptation with recommendations
         """
         try:
-            # Detect current regime
-            regime = await self.detect_current_regime(market_data)
+            # Detect current regime with confidence
+            regime_result = await self.detect_current_regime_with_confidence(market_data)
+            regime = regime_result['regime']
+            confidence = regime_result['confidence']
+            
+            # Fallback to conservative mode if confidence is low
+            if confidence < self.config.min_regime_confidence:
+                self.logger.warning(
+                    f"Regime detection confidence low ({confidence:.1%}), "
+                    f"using conservative fallback mode"
+                )
+                # Return previous adaptation if available, otherwise create conservative fallback
+                if self.adaptation_history:
+                    return self.adaptation_history[-1]
+                return self._create_conservative_fallback_adaptation()
+        except Exception as e:
+            self.logger.error(f"Error generating strategy adaptation: {e}")
+            # Return default adaptation on error
+            return self._create_default_adaptation(MarketRegime.UNDEFINED)
 
             # Check if we should adapt (confidence and cooldown)
             if not self._should_adapt(regime):
@@ -362,10 +445,12 @@ class MarketRegimeAdapter:
             # Check for FOMC meetings, CPI releases, etc.
             if "economic_events" in market_data:
                 events = market_data["economic_events"]
-                if isinstance(events, list) and len(events) > 0:
-                    return True
+                if isinstance(events, list):
+                    # If explicitly provided (even if empty), respect it
+                    return len(events) > 0
 
             # Default: assume macro risk around FOMC schedule
+            # Only check FOMC schedule if economic_events was not explicitly provided
             now = datetime.now()
             # FOMC meetings typically every 6 - 8 weeks
             # Simplified: assume risk in certain weeks

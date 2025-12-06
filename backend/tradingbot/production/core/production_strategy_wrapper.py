@@ -72,6 +72,7 @@ class ProductionStrategyWrapper:
         self.last_scan_time: datetime | None = None
         self.active_signals: list[ProductionTradeSignal] = []
         self.performance_metrics: dict[str, Any] = {}
+        self.tasks: list[asyncio.Task] = []  # Initialize tasks list
 
         self.logger.info(f"ProductionStrategyWrapper initialized for {strategy_name}")
 
@@ -376,8 +377,14 @@ class ProductionWSBDipBot(ProductionStrategyWrapper):
                     },
                 )
 
-                # Execute trade
-                result = await self.integration.execute_trade(signal)
+                # Validate signal if validation is enabled
+                validation_result = None
+                if hasattr(self, 'strategy_manager') and self.strategy_manager:
+                    if hasattr(self.strategy_manager, 'validation_gate') and self.strategy_manager.validation_gate:
+                        validation_result = await self.strategy_manager._validate_signal(signal)
+
+                # Execute trade with validation result
+                result = await self.integration.execute_trade(signal, validation_result)
 
                 if result.status == TradeStatus.FILLED:
                     self.logger.info(f"WSB Dip Bot signal executed for {ticker}")

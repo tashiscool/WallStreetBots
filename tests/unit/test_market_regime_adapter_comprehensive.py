@@ -336,7 +336,7 @@ class TestMarketRegimeAdapter:
     @pytest.mark.asyncio
     async def test_generate_strategy_adaptation_error_handling(self):
         """Test error handling in adaptation generation."""
-        with patch.object(self.adapter, 'detect_current_regime', side_effect=Exception("Test error")):
+        with patch.object(self.adapter, 'detect_current_regime_with_confidence', side_effect=Exception("Test error")):
             adaptation = await self.adapter.generate_strategy_adaptation(self.sample_market_data)
 
             # Should return default adaptation on error

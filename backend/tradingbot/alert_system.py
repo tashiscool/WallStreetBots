@@ -79,6 +79,11 @@ class AlertType(Enum):
     SYSTEM_ERROR = "system_error"
     TRADE_EXECUTED = "trade_executed"
     RISK_LIMIT_EXCEEDED = "risk_limit_exceeded"
+    SIGNAL_VALIDATION_DEGRADATION = "signal_validation_degradation"
+    SIGNAL_VALIDATION_TREND_DEGRADATION = "signal_validation_trend_degradation"
+    SIGNAL_VALIDATION_TREND_IMPROVEMENT = "signal_validation_trend_improvement"
+    REGIME_CHANGE = "regime_change"
+    VALIDATION_STATE_CHANGE = "validation_state_change"
 
 
 class AlertPriority(Enum):

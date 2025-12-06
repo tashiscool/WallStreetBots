@@ -1,4 +1,10 @@
-from backend.settings import BACKEND_ALPACA_ID, BACKEND_ALPACA_KEY
+try:
+    from backend.settings import BACKEND_ALPACA_ID, BACKEND_ALPACA_KEY
+except ImportError:
+    # Fallback for when settings don't have these values (e.g., in tests)
+    import os
+    BACKEND_ALPACA_ID = os.getenv('BACKEND_ALPACA_ID', '')
+    BACKEND_ALPACA_KEY = os.getenv('BACKEND_ALPACA_KEY', '')
 
 from .portfoliomanager import PortfolioManager
 

@@ -104,6 +104,10 @@ urlpatterns = [
     path("api/allocations/<str:strategy_name>/", api_views.allocation_detail, name="api-allocation-detail"),
     path("api/allocations/<str:strategy_name>/update", api_views.allocation_update, name="api-allocation-update"),
 
+    # Strategy Configuration API
+    path("api/strategies/<str:strategy_name>/config", api_views.strategy_config_save, name="api-strategy-config-save"),
+    path("api/strategies/<str:strategy_name>/config/get", api_views.strategy_config_get, name="api-strategy-config-get"),
+
     # Circuit Breaker Recovery API
     path("api/circuit-breakers/history/", api_views.circuit_breaker_history, name="api-circuit-breaker-history"),
     path("api/circuit-breakers/current/", api_views.circuit_breaker_current, name="api-circuit-breaker-current"),

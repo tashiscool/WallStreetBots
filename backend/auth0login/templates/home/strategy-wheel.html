@@ -934,11 +934,62 @@
   }
 
   // Save configuration
-  document.getElementById('saveConfigBtn').addEventListener('click', function() {
+  document.getElementById('saveConfigBtn').addEventListener('click', async function() {
     const config = collectConfig();
-    // TODO: Send config to backend API
-    alert('Wheel Strategy configuration saved successfully!');
+    const btn = this;
+    const originalText = btn.innerHTML;
+
+    try {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+
+      const response = await fetch('/api/strategies/wheel/config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({
+          strategy_name: 'wheel',
+          config: config,
+          allocation_pct: config.portfolio_allocation * 100
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.status === 'success') {
+        showNotification('success', 'Configuration Saved', 'Wheel Strategy configuration has been saved successfully.');
+      } else {
+        showNotification('error', 'Save Failed', result.message || 'Failed to save configuration.');
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      showNotification('error', 'Network Error', 'Could not connect to server. Please try again.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
   });
+
+  function getCsrfToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+           document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1] || '';
+  }
+
+  function showNotification(type, title, message) {
+    // Use Bootstrap toast or fallback to alert
+    if (typeof bootstrap !== 'undefined' && document.getElementById('notificationToast')) {
+      const toast = document.getElementById('notificationToast');
+      toast.querySelector('.toast-title').textContent = title;
+      toast.querySelector('.toast-body').textContent = message;
+      toast.classList.remove('bg-success', 'bg-danger', 'bg-warning');
+      toast.classList.add(type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-warning');
+      new bootstrap.Toast(toast).show();
+    } else {
+      alert(`${title}: ${message}`);
+    }
+  }
 
   // Export config
   document.getElementById('exportConfigBtn').addEventListener('click', function() {

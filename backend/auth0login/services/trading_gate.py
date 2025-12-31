@@ -6,6 +6,7 @@ enforcing safety requirements before users can trade with real money.
 """
 
 import logging
+import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -13,6 +14,8 @@ from typing import Optional
 
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.db.models import Sum, Count, Avg, F, Q, Case, When, Value, FloatField
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from ..models import TradingGate
@@ -358,57 +361,241 @@ class TradingGateService:
     def _get_paper_trade_count(self, user: User) -> int:
         """Get count of paper trades for a user.
 
-        In a real implementation, this would query the trades table
-        filtered by paper_trading=True.
+        Queries orders placed by the user's bots during paper trading period.
         """
-        # TODO: Implement actual query once paper trades are tracked
-        # For now, return a simulated count based on time in paper trading
         try:
             gate = TradingGate.objects.get(user=user)
-            if gate.paper_trading_started_at:
-                # Simulate ~1 trade per day for demo purposes
-                days = gate.days_in_paper_trading
-                return min(days * 1, 50)  # Cap at 50
-            return 0
+            if not gate.paper_trading_started_at:
+                return 0
+
+            # Import here to avoid circular imports
+            from backend.tradingbot.models.models import Order, TradeSignalSnapshot
+
+            # Get orders from user's bots during paper trading period
+            order_count = Order.objects.filter(
+                bot__user=user,
+                date__gte=gate.paper_trading_started_at.date(),
+                status='filled'
+            ).count()
+
+            # Also count trade signal snapshots (more comprehensive)
+            snapshot_count = TradeSignalSnapshot.objects.filter(
+                order__bot__user=user,
+                created_at__gte=gate.paper_trading_started_at
+            ).count()
+
+            return max(order_count, snapshot_count)
+
         except TradingGate.DoesNotExist:
             return 0
+        except Exception as e:
+            logger.warning(f"Error getting paper trade count for {user}: {e}")
+            # Fallback: estimate based on days
+            try:
+                gate = TradingGate.objects.get(user=user)
+                return min(gate.days_in_paper_trading, 50)
+            except Exception:
+                return 0
 
     def _get_paper_trading_pnl_pct(self, user: User) -> float:
         """Get paper trading P&L percentage.
 
-        In a real implementation, this would calculate actual P&L
-        from the paper trades table.
+        Calculates actual P&L from trade signal snapshots or orders.
         """
-        # TODO: Implement actual P&L calculation
-        # For now, return a simulated value
         try:
             gate = TradingGate.objects.get(user=user)
+
+            # First check if we have a cached snapshot
             if gate.paper_performance_snapshot:
-                return gate.paper_performance_snapshot.get('total_pnl_pct', 0.0)
-            # Default to slightly positive for demo
-            return 5.0
+                cached_pnl = gate.paper_performance_snapshot.get('total_pnl_pct')
+                if cached_pnl is not None:
+                    return float(cached_pnl)
+
+            if not gate.paper_trading_started_at:
+                return 0.0
+
+            # Import here to avoid circular imports
+            from backend.tradingbot.models.models import TradeSignalSnapshot
+
+            # Calculate from actual trade snapshots
+            pnl_data = TradeSignalSnapshot.objects.filter(
+                order__bot__user=user,
+                created_at__gte=gate.paper_trading_started_at,
+                pnl_percent__isnull=False
+            ).aggregate(
+                total_pnl_pct=Coalesce(Avg('pnl_percent'), Value(0.0)),
+                total_pnl_amount=Coalesce(Sum('pnl_amount'), Value(0.0))
+            )
+
+            total_pnl_pct = float(pnl_data['total_pnl_pct'] or 0.0)
+
+            return total_pnl_pct
+
         except TradingGate.DoesNotExist:
+            return 0.0
+        except Exception as e:
+            logger.warning(f"Error calculating P&L for {user}: {e}")
             return 0.0
 
     def _get_paper_trading_performance(self, user: User) -> dict:
         """Get comprehensive paper trading performance metrics.
 
-        In a real implementation, this would calculate from actual trades.
+        Calculates win rate, Sharpe ratio, max drawdown, and other metrics
+        from actual trade data.
         """
-        # TODO: Implement actual performance calculation
-        trade_count = self._get_paper_trade_count(user)
-        pnl_pct = self._get_paper_trading_pnl_pct(user)
+        try:
+            gate = TradingGate.objects.get(user=user)
 
+            if not gate.paper_trading_started_at:
+                return self._empty_performance()
+
+            # Import here to avoid circular imports
+            from backend.tradingbot.models.models import TradeSignalSnapshot
+
+            # Get all closed trades during paper trading
+            trades = TradeSignalSnapshot.objects.filter(
+                order__bot__user=user,
+                created_at__gte=gate.paper_trading_started_at,
+                outcome__in=['profit', 'loss', 'break_even']
+            )
+
+            total_trades = trades.count()
+            if total_trades == 0:
+                return self._empty_performance()
+
+            # Win/Loss counts
+            winning_trades = trades.filter(outcome='profit').count()
+            losing_trades = trades.filter(outcome='loss').count()
+
+            # P&L calculations
+            pnl_stats = trades.aggregate(
+                total_pnl=Coalesce(Sum('pnl_amount'), Value(0.0)),
+                avg_pnl=Coalesce(Avg('pnl_amount'), Value(0.0)),
+                total_pnl_pct=Coalesce(Sum('pnl_percent'), Value(0.0))
+            )
+
+            total_pnl = float(pnl_stats['total_pnl'] or 0)
+            avg_pnl = float(pnl_stats['avg_pnl'] or 0)
+            total_pnl_pct = float(pnl_stats['total_pnl_pct'] or 0)
+
+            # Win rate
+            win_rate = winning_trades / total_trades if total_trades > 0 else 0.0
+
+            # Calculate Sharpe ratio (simplified)
+            sharpe_ratio = self._calculate_sharpe_ratio(user, gate.paper_trading_started_at)
+
+            # Calculate max drawdown
+            max_drawdown = self._calculate_max_drawdown(user, gate.paper_trading_started_at)
+
+            return {
+                'total_trades': total_trades,
+                'winning_trades': winning_trades,
+                'losing_trades': losing_trades,
+                'total_pnl': total_pnl,
+                'total_pnl_pct': total_pnl_pct,
+                'win_rate': round(win_rate, 4),
+                'sharpe_ratio': sharpe_ratio,
+                'max_drawdown_pct': max_drawdown,
+                'avg_trade_pnl': avg_pnl,
+                'calculated_at': timezone.now().isoformat(),
+            }
+
+        except TradingGate.DoesNotExist:
+            return self._empty_performance()
+        except Exception as e:
+            logger.error(f"Error calculating performance for {user}: {e}")
+            return self._empty_performance()
+
+    def _empty_performance(self) -> dict:
+        """Return empty performance metrics."""
         return {
-            'total_trades': trade_count,
-            'total_pnl': pnl_pct * 1000,  # Assuming $100k starting
-            'total_pnl_pct': pnl_pct,
-            'win_rate': 0.55 if trade_count > 5 else 0.0,  # Demo value
-            'sharpe_ratio': 1.2 if trade_count > 10 else None,  # Demo value
-            'max_drawdown_pct': -5.0,
-            'avg_trade_pnl': pnl_pct * 1000 / trade_count if trade_count > 0 else 0,
+            'total_trades': 0,
+            'winning_trades': 0,
+            'losing_trades': 0,
+            'total_pnl': 0.0,
+            'total_pnl_pct': 0.0,
+            'win_rate': 0.0,
+            'sharpe_ratio': None,
+            'max_drawdown_pct': 0.0,
+            'avg_trade_pnl': 0.0,
             'calculated_at': timezone.now().isoformat(),
         }
+
+    def _calculate_sharpe_ratio(self, user: User, start_date: datetime) -> Optional[float]:
+        """Calculate Sharpe ratio from daily returns.
+
+        Sharpe = (Mean Return - Risk Free Rate) / Std Dev of Returns
+        Uses 252 trading days per year and 0% risk-free rate for simplicity.
+        """
+        try:
+            from backend.tradingbot.models.models import TradeSignalSnapshot
+
+            # Get daily P&L
+            daily_returns = TradeSignalSnapshot.objects.filter(
+                order__bot__user=user,
+                created_at__gte=start_date,
+                pnl_percent__isnull=False
+            ).values('created_at__date').annotate(
+                daily_return=Sum('pnl_percent')
+            ).order_by('created_at__date')
+
+            returns = [float(r['daily_return']) for r in daily_returns if r['daily_return']]
+
+            if len(returns) < 5:  # Need minimum data points
+                return None
+
+            mean_return = sum(returns) / len(returns)
+            variance = sum((r - mean_return) ** 2 for r in returns) / len(returns)
+            std_dev = math.sqrt(variance) if variance > 0 else 0
+
+            if std_dev == 0:
+                return None
+
+            # Annualized Sharpe (assuming 252 trading days)
+            sharpe = (mean_return / std_dev) * math.sqrt(252)
+            return round(sharpe, 2)
+
+        except Exception as e:
+            logger.warning(f"Error calculating Sharpe ratio: {e}")
+            return None
+
+    def _calculate_max_drawdown(self, user: User, start_date: datetime) -> float:
+        """Calculate maximum drawdown percentage.
+
+        Max Drawdown = (Trough - Peak) / Peak
+        """
+        try:
+            from backend.tradingbot.models.models import TradeSignalSnapshot
+
+            # Get cumulative P&L over time
+            trades = TradeSignalSnapshot.objects.filter(
+                order__bot__user=user,
+                created_at__gte=start_date,
+                pnl_amount__isnull=False
+            ).order_by('created_at').values_list('pnl_amount', flat=True)
+
+            if not trades:
+                return 0.0
+
+            # Calculate cumulative equity curve
+            cumulative = 0.0
+            peak = 0.0
+            max_drawdown = 0.0
+
+            for pnl in trades:
+                cumulative += float(pnl)
+                if cumulative > peak:
+                    peak = cumulative
+
+                if peak > 0:
+                    drawdown = (peak - cumulative) / peak
+                    max_drawdown = max(max_drawdown, drawdown)
+
+            return round(-max_drawdown * 100, 2)  # Return as negative percentage
+
+        except Exception as e:
+            logger.warning(f"Error calculating max drawdown: {e}")
+            return 0.0
 
 
 # Singleton instance

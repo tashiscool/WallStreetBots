@@ -1965,6 +1965,129 @@ def allocation_update(request, strategy_name: str):
 
 @login_required
 @require_http_methods(["POST"])
+def strategy_config_save(request, strategy_name: str):
+    """
+    Save strategy configuration.
+
+    POST /api/strategies/{strategy}/config
+
+    Body:
+        config: Strategy configuration dictionary
+        allocation_pct: Optional allocation percentage
+
+    Returns:
+        JSON with saved configuration
+    """
+    from .services.allocation_manager import get_allocation_manager
+
+    try:
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+        else:
+            data = request.POST
+
+        config = data.get('config', {})
+        allocation_pct = data.get('allocation_pct')
+
+        # Validate strategy name
+        valid_strategies = [
+            'wheel', 'wsb-dip-bot', 'momentum-weeklies', 'earnings-protection',
+            'debit-spreads', 'leaps-tracker', 'lotto-scanner', 'swing-trading',
+            'spx-credit-spreads', 'index-baseline', 'crypto-dip-bot'
+        ]
+
+        if strategy_name not in valid_strategies:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Unknown strategy: {strategy_name}',
+            }, status=400)
+
+        # Get or create user profile to store config
+        from backend.tradingbot.models.models import UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+        # Store config in user preferences
+        if not profile.dashboard_layout:
+            profile.dashboard_layout = {}
+
+        strategy_configs = profile.dashboard_layout.get('strategy_configs', {})
+        strategy_configs[strategy_name] = {
+            'config': config,
+            'updated_at': timezone.now().isoformat(),
+        }
+        profile.dashboard_layout['strategy_configs'] = strategy_configs
+        profile.save(update_fields=['dashboard_layout'])
+
+        # Update allocation if provided
+        if allocation_pct is not None:
+            try:
+                manager = get_allocation_manager()
+                manager.update_allocation(
+                    user=request.user,
+                    strategy_name=strategy_name,
+                    allocated_pct=float(allocation_pct),
+                )
+            except Exception as alloc_error:
+                logger.warning(f"Could not update allocation: {alloc_error}")
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'{strategy_name} configuration saved successfully',
+            'strategy': strategy_name,
+            'config': config,
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON in request body',
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error saving strategy config: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e),
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def strategy_config_get(request, strategy_name: str):
+    """
+    Get strategy configuration.
+
+    GET /api/strategies/{strategy}/config
+
+    Returns:
+        JSON with strategy configuration
+    """
+    try:
+        from backend.tradingbot.models.models import UserProfile
+
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+            strategy_configs = profile.dashboard_layout.get('strategy_configs', {})
+            config_data = strategy_configs.get(strategy_name, {})
+        except UserProfile.DoesNotExist:
+            config_data = {}
+
+        return JsonResponse({
+            'status': 'success',
+            'strategy': strategy_name,
+            'config': config_data.get('config', {}),
+            'updated_at': config_data.get('updated_at'),
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting strategy config: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e),
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
 def allocation_initialize(request):
     """
     Initialize allocations based on risk profile.

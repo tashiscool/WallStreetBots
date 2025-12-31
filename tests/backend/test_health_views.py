@@ -114,7 +114,8 @@ class TestHealthViews(TestCase if DJANGO_AVAILABLE else object):
 
         data = json.loads(response.content)
         assert data["status"] == "unhealthy"
-        assert "error" in data
+        # Error is nested in the trading component
+        assert "error" in data.get("components", {}).get("trading", {})
 
     @patch('backend.health_views.health_checker')
     def test_readiness_check_ready(self, mock_health_checker):
@@ -212,7 +213,9 @@ class TestHealthViews(TestCase if DJANGO_AVAILABLE else object):
 
         assert isinstance(response, HttpResponse)
         assert response.status_code == 200
-        assert response['Content-Type'] == 'text/plain; version=0.0.4; charset=utf-8'
+        # prometheus_client uses version 1.0.0 in newer versions
+        assert 'text/plain' in response['Content-Type']
+        assert 'charset=utf-8' in response['Content-Type']
 
     @patch('backend.health_views.generate_latest')
     def test_metrics_endpoint_exception(self, mock_generate_latest):

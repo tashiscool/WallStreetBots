@@ -1,0 +1,1316 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Risk Management {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .risk-gauge {
+    position: relative;
+    width: 120px;
+    height: 60px;
+    margin: 0 auto;
+  }
+  .gauge-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 120px;
+    height: 60px;
+    border-radius: 60px 60px 0 0;
+    background: linear-gradient(to right, #2dce89, #ffd600, #f5365c);
+    clip-path: polygon(0 100%, 100% 100%, 100% 0, 0 0);
+  }
+  .gauge-cover {
+    position: absolute;
+    bottom: 0;
+    left: 10px;
+    width: 100px;
+    height: 50px;
+    border-radius: 50px 50px 0 0;
+    background: white;
+  }
+  .gauge-needle {
+    position: absolute;
+    bottom: 5px;
+    left: 55px;
+    width: 4px;
+    height: 45px;
+    background: #344767;
+    transform-origin: bottom center;
+    border-radius: 2px;
+    transform: rotate(-45deg);
+    transition: transform 0.5s ease;
+  }
+  .emergency-btn {
+    animation: pulse-red 2s infinite;
+  }
+  @keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(245, 54, 92, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(245, 54, 92, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(245, 54, 92, 0); }
+  }
+  .circuit-breaker {
+    border-left: 4px solid;
+  }
+  .circuit-breaker.safe { border-left-color: #2dce89; }
+  .circuit-breaker.warning { border-left-color: #ffd600; }
+  .circuit-breaker.danger { border-left-color: #f5365c; }
+  .implication-box { background: linear-gradient(to right, rgba(245,54,92,0.05), rgba(251,99,64,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .warning-implication { background: linear-gradient(to right, rgba(251,99,64,0.1), rgba(245,54,92,0.05)); }
+  .safe-implication { background: linear-gradient(to right, rgba(45,206,137,0.1), rgba(17,205,239,0.05)); }
+
+  /* Recovery Timeline Styles */
+  .recovery-timeline-container { background: linear-gradient(135deg, #344767 0%, #1a1f2c 100%); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+  .recovery-mode-badge { font-size: 1.1em; padding: 8px 16px; border-radius: 20px; font-weight: 600; }
+  .recovery-mode-paused { background: #f5365c; color: white; }
+  .recovery-mode-restricted { background: #fb6340; color: white; }
+  .recovery-mode-cautious { background: #ffd600; color: #344767; }
+  .recovery-mode-normal { background: #2dce89; color: white; }
+
+  .recovery-progress { height: 10px; border-radius: 5px; background: rgba(255,255,255,0.2); overflow: hidden; margin: 15px 0; }
+  .recovery-progress-bar { height: 100%; border-radius: 5px; transition: width 0.5s ease; background: linear-gradient(90deg, #2dce89, #11cdef); }
+
+  .recovery-stages { display: flex; justify-content: space-between; margin-top: 10px; }
+  .recovery-stage { text-align: center; flex: 1; position: relative; }
+  .recovery-stage::after { content: ''; position: absolute; top: 12px; left: 50%; width: 100%; height: 2px; background: rgba(255,255,255,0.2); z-index: 0; }
+  .recovery-stage:last-child::after { display: none; }
+  .stage-dot { width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; position: relative; z-index: 1; }
+  .stage-dot.completed { background: #2dce89; }
+  .stage-dot.current { background: #11cdef; animation: pulse-blue 2s infinite; }
+  .stage-dot.upcoming { background: rgba(255,255,255,0.2); }
+  .stage-label { font-size: 0.75em; color: rgba(255,255,255,0.7); }
+  .stage-label.current { color: #11cdef; font-weight: 600; }
+
+  @keyframes pulse-blue {
+    0% { box-shadow: 0 0 0 0 rgba(17, 205, 239, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(17, 205, 239, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(17, 205, 239, 0); }
+  }
+
+  .recovery-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
+  .recovery-stat { text-align: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; }
+  .recovery-stat-value { font-size: 1.5em; font-weight: 700; color: white; }
+  .recovery-stat-label { font-size: 0.75em; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+  .history-event { border-left: 3px solid; padding: 10px 15px; margin-bottom: 10px; background: rgba(255,255,255,0.02); border-radius: 0 8px 8px 0; }
+  .history-event.daily_loss { border-color: #f5365c; }
+  .history-event.vix_critical { border-color: #fb6340; }
+  .history-event.error_rate { border-color: #ffd600; }
+  .history-event.resolved { opacity: 0.6; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-danger">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-lg-8">
+              <h4 class="text-white mb-1"><i class="fas fa-shield-alt me-2"></i>Your Money's Safety Net</h4>
+              <p class="text-white opacity-8 mb-1">Set it and forget it protection</p>
+              <p class="text-white opacity-7 mb-0">Think of risk management like a house with locks, alarms, and insurance. You set them up once and they protect you automatically. These settings are your portfolio's immune system.</p>
+            </div>
+            <div class="col-lg-4 text-end">
+              <button class="btn btn-white emergency-btn mb-0" id="emergencyStopBtn" data-bs-toggle="tooltip" data-bs-placement="left" title="Immediately stops all trading activity and closes pending orders">
+                <i class="fas fa-exclamation-triangle me-2"></i> EMERGENCY STOP
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Emergency Stop Explanation (hidden by default, shows on hover/click) -->
+  <div class="row mb-4" id="emergencyStopInfo" style="display: none;">
+    <div class="col-12">
+      <div class="card border-danger">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <h6 class="text-danger"><i class="fas fa-stop-circle me-2"></i>What Happens</h6>
+              <p class="text-sm mb-0">All open orders are cancelled. All strategies pause. No new trades will be placed until you restart.</p>
+            </div>
+            <div class="col-md-4">
+              <h6 class="text-warning"><i class="fas fa-clock me-2"></i>When to Use</h6>
+              <p class="text-sm mb-0">Breaking news, flash crash, or you just need to step away and want peace of mind.</p>
+            </div>
+            <div class="col-md-4">
+              <h6 class="text-success"><i class="fas fa-heart me-2"></i>Don't Panic</h6>
+              <p class="text-sm mb-0">Your existing positions stay open. This only stops NEW activity. You can restart anytime.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recovery Timeline (shown when circuit breaker is active) -->
+  <div class="row mb-4" id="recoveryTimelineSection" style="display: none;">
+    <div class="col-12">
+      <div class="recovery-timeline-container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="text-white mb-1"><i class="fas fa-clock me-2"></i>Recovery in Progress</h5>
+            <p class="text-white-50 mb-0" id="recoveryBreakerType">Circuit breaker triggered</p>
+          </div>
+          <span class="recovery-mode-badge" id="recoveryModeBadge">PAUSED</span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="recovery-progress">
+          <div class="recovery-progress-bar" id="recoveryProgressBar" style="width: 0%"></div>
+        </div>
+
+        <!-- Timeline Status -->
+        <div class="d-flex justify-content-between text-white-50 mb-3">
+          <span id="recoveryTimeRemaining">Trading at 25% | Full trading in 18 hours</span>
+          <span id="recoveryProgressPct">0% complete</span>
+        </div>
+
+        <!-- Stage Timeline -->
+        <div class="recovery-stages" id="recoveryStages">
+          <!-- Populated by JavaScript -->
+        </div>
+
+        <!-- Recovery Stats -->
+        <div class="recovery-stats mt-4">
+          <div class="recovery-stat">
+            <div class="recovery-stat-value" id="recoveryTradesCount">0</div>
+            <div class="recovery-stat-label">Recovery Trades</div>
+          </div>
+          <div class="recovery-stat">
+            <div class="recovery-stat-value" id="recoveryWinRate">--</div>
+            <div class="recovery-stat-label">Win Rate</div>
+          </div>
+          <div class="recovery-stat">
+            <div class="recovery-stat-value" id="recoveryPnL">$0</div>
+            <div class="recovery-stat-label">Recovery P&L</div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-3 mt-4">
+          <button class="btn btn-outline-light btn-sm" id="advanceRecoveryBtn" style="display: none;">
+            <i class="fas fa-forward me-1"></i> Advance Recovery
+          </button>
+          <button class="btn btn-outline-warning btn-sm" id="requestEarlyRecoveryBtn">
+            <i class="fas fa-exclamation-circle me-1"></i> Request Early Recovery
+          </button>
+          <button class="btn btn-outline-danger btn-sm" id="fullResetBtn">
+            <i class="fas fa-redo me-1"></i> Full Reset
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Circuit Breaker History -->
+  <div class="row mb-4" id="breakerHistorySection" style="display: none;">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="fas fa-history me-2"></i>Circuit Breaker History</h6>
+          <button class="btn btn-link btn-sm text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#historyCollapse">
+            <i class="fas fa-chevron-down"></i>
+          </button>
+        </div>
+        <div class="collapse" id="historyCollapse">
+          <div class="card-body" id="breakerHistoryList">
+            <!-- Populated by JavaScript -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk Overview Cards -->
+  <div class="row mb-4">
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Maximum expected daily loss with 95% confidence. If VaR = $2,450, on 95 of 100 days you won't lose more than this.">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-capitalize font-weight-bold">Portfolio VaR (95%) <i class="fas fa-info-circle text-secondary opacity-6"></i></p>
+                <h5 class="font-weight-bolder mb-0 text-danger">${{ metrics.current_var_95|floatformat:0|default:"2,450" }}</h5>
+                <span class="text-secondary text-sm">Daily exposure</span>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-danger shadow text-center border-radius-md">
+                <i class="fas fa-chart-area text-lg opacity-10" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card" data-bs-toggle="tooltip" data-bs-placement="bottom" title="How far you've fallen from your peak. Like checking how far below your all-time high your portfolio is right now.">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-capitalize font-weight-bold">Current Drawdown <i class="fas fa-info-circle text-secondary opacity-6"></i></p>
+                <h5 class="font-weight-bolder mb-0 text-warning">-{{ metrics.current_drawdown|floatformat:1|default:"2.3" }}%</h5>
+                <span class="text-secondary text-sm">Max: -{{ metrics.max_daily_drawdown|floatformat:1|default:"6.0" }}%</span>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
+                <i class="fas fa-arrow-down text-lg opacity-10" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card" data-bs-toggle="tooltip" data-bs-placement="bottom" title="How much you move vs the market. Beta 1.15 = when S&P moves 1%, you move 1.15%. Higher = more volatile.">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-capitalize font-weight-bold">Portfolio Beta <i class="fas fa-info-circle text-secondary opacity-6"></i></p>
+                <h5 class="font-weight-bolder mb-0">1.15</h5>
+                <span class="text-secondary text-sm">vs S&P 500</span>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
+                <i class="fas fa-balance-scale text-lg opacity-10" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+      <div class="card" data-bs-toggle="tooltip" data-bs-placement="bottom" title="How much of your buying power is in use. 32% used means you still have room for more positions. Keep some buffer for opportunities!">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-capitalize font-weight-bold">Margin Used <i class="fas fa-info-circle text-secondary opacity-6"></i></p>
+                <h5 class="font-weight-bolder mb-0 text-success">32%</h5>
+                <span class="text-secondary text-sm">Available: 68%</span>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                <i class="fas fa-percentage text-lg opacity-10" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Risk Settings Panel -->
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-sliders-h me-2"></i>Portfolio Risk Settings</h6>
+        </div>
+        <div class="card-body">
+          <!-- Max Portfolio Risk -->
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max Portfolio Risk <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Maximum percentage of your total portfolio that can be at risk at any time"></i></span>
+              <span class="badge bg-gradient-primary" id="maxRiskValue">{{ metrics.max_portfolio_risk|floatformat:0|default:"10" }}%</span>
+            </label>
+            <input type="range" class="form-range" min="1" max="20" value="{{ metrics.max_portfolio_risk|floatformat:0|default:"10" }}" id="maxRiskSlider">
+            <div class="implication-box" id="maxRiskImplication">
+              <small class="text-secondary">
+                <i class="fas fa-shield-alt text-danger me-1"></i><strong>10% portfolio risk:</strong> At any time, your total capital at risk won't exceed 10%. This is the "blow-up prevention" setting.
+                <br><span class="text-muted mt-1 d-block"><i class="fas fa-lightbulb text-warning me-1"></i><strong>Example:</strong> If you have $50,000, max exposure = $5,000 across all positions.</span>
+                <br><span class="text-muted"><i class="fas fa-user-graduate text-info me-1"></i><strong>Recommended:</strong> Beginners: 5-8% | Intermediate: 8-12% | Advanced: 12-15%</span>
+              </small>
+            </div>
+          </div>
+
+          <!-- Max Position Size -->
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max Position Size <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Maximum size of any single position as % of portfolio"></i></span>
+              <span class="badge bg-gradient-info" id="maxPositionValue">{{ metrics.max_position_size|floatformat:0|default:"5" }}%</span>
+            </label>
+            <input type="range" class="form-range" min="1" max="15" value="{{ metrics.max_position_size|floatformat:0|default:"5" }}" id="maxPositionSlider">
+            <div class="implication-box safe-implication" id="maxPositionImplication">
+              <small class="text-secondary">
+                <i class="fas fa-balance-scale text-info me-1"></i><strong>5% max position:</strong> No single position can exceed 5% of your portfolio. This diversification rule ensures one bad trade can't wreck you.
+                <br><span class="text-muted mt-1 d-block"><i class="fas fa-lightbulb text-warning me-1"></i><strong>Example:</strong> If you have $10,000, max position = $500 per trade. Even if it goes to zero, you only lose 5%.</span>
+                <br><span class="text-muted"><i class="fas fa-user-graduate text-info me-1"></i><strong>Recommended:</strong> Beginners: 2-3% | Intermediate: 3-5% | Advanced: 5-8%</span>
+              </small>
+            </div>
+          </div>
+
+          <!-- Max Daily Drawdown -->
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max Daily Drawdown <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Maximum loss allowed in a single day before trading halts"></i></span>
+              <span class="badge bg-gradient-warning" id="maxDrawdownValue">{{ metrics.max_daily_drawdown|floatformat:0|default:"6" }}%</span>
+            </label>
+            <input type="range" class="form-range" min="1" max="15" value="{{ metrics.max_daily_drawdown|floatformat:0|default:"6" }}" id="maxDrawdownSlider">
+            <div class="implication-box warning-implication" id="maxDrawdownImplication">
+              <small class="text-secondary">
+                <i class="fas fa-hand-paper text-warning me-1"></i><strong>6% daily circuit breaker:</strong> If you lose 6% in a single day, ALL trading stops automatically. This prevents "tilt trading" after losses.
+                <br><span class="text-muted mt-1 d-block"><i class="fas fa-lightbulb text-warning me-1"></i><strong>Example:</strong> With $20,000, if losses hit $1,200 today, system pauses. Walk away, review what happened, come back tomorrow.</span>
+                <br><span class="text-muted"><i class="fas fa-user-graduate text-info me-1"></i><strong>Recommended:</strong> Beginners: 3-4% | Intermediate: 4-6% | Advanced: 6-10%</span>
+              </small>
+            </div>
+          </div>
+
+          <!-- Max Correlation -->
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max Correlation Exposure <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="How similar positions can be (0=opposite, 1=identical)"></i></span>
+              <span class="badge bg-gradient-secondary" id="maxCorrelationValue">{{ metrics.max_correlation|floatformat:1|default:"0.7" }}</span>
+            </label>
+            <input type="range" class="form-range" min="0" max="10" value="{{ metrics.max_correlation|floatformat:0|default:"7" }}" id="maxCorrelationSlider">
+            <div class="implication-box" id="maxCorrelationImplication">
+              <small class="text-secondary">
+                <i class="fas fa-project-diagram text-secondary me-1"></i><strong>0.7 max correlation:</strong> Prevents holding positions that move together. If AAPL and MSFT both tank on tech news, you're hit twice.
+                <br><span class="text-muted mt-1 d-block"><i class="fas fa-lightbulb text-warning me-1"></i><strong>Example:</strong> At 0.7, the system won't let you hold both NVDA and AMD (correlation ~0.85) at full size - they move together too much.</span>
+                <br><span class="text-muted"><i class="fas fa-user-graduate text-info me-1"></i><strong>Recommended:</strong> Conservative: 0.5 | Moderate: 0.6-0.7 | Aggressive: 0.8+</span>
+              </small>
+            </div>
+          </div>
+
+          <button class="btn bg-gradient-primary w-100 mb-0">
+            <i class="fas fa-save me-2"></i>Save Risk Settings
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Greeks Exposure -->
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-chart-pie me-2"></i>Greeks Exposure Limits</h6>
+          <p class="text-sm text-secondary mb-0">Options risk sensitivities - how your portfolio responds to market changes</p>
+        </div>
+        <div class="card-body">
+          <!-- Delta -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-sm font-weight-bold">Delta <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Directional exposure: How much you make/lose per $1 stock move. Delta 0.5 = $50 P/L per $100 stock move"></i></span>
+              <span class="text-sm">Current: 0.45 / Limit: 1.0</span>
+            </div>
+            <div class="progress" style="height: 8px;">
+              <div class="progress-bar bg-gradient-success" role="progressbar" style="width: 45%"></div>
+            </div>
+            <small class="text-muted">Your market direction bet - are you bullish or bearish overall?</small>
+          </div>
+
+          <!-- Gamma -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-sm font-weight-bold">Gamma <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="How fast Delta changes. High Gamma = more explosive gains/losses as stock moves"></i></span>
+              <span class="text-sm">Current: 0.12 / Limit: 0.5</span>
+            </div>
+            <div class="progress" style="height: 8px;">
+              <div class="progress-bar bg-gradient-info" role="progressbar" style="width: 24%"></div>
+            </div>
+            <small class="text-muted">Acceleration risk - how quickly your exposure changes</small>
+          </div>
+
+          <!-- Theta -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-sm font-weight-bold">Theta <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Time decay: How much you lose each day just by holding. Negative = paying time decay, positive = collecting it"></i></span>
+              <span class="text-sm">Current: -$85 / Limit: -$500</span>
+            </div>
+            <div class="progress" style="height: 8px;">
+              <div class="progress-bar bg-gradient-warning" role="progressbar" style="width: 17%"></div>
+            </div>
+            <small class="text-muted">Daily time cost - you're paying $85/day for your options</small>
+          </div>
+
+          <!-- Vega -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-sm font-weight-bold">Vega <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Volatility sensitivity: P/L per 1% change in implied volatility. High Vega = big swings on volatility changes"></i></span>
+              <span class="text-sm">Current: $320 / Limit: $1000</span>
+            </div>
+            <div class="progress" style="height: 8px;">
+              <div class="progress-bar bg-gradient-danger" role="progressbar" style="width: 32%"></div>
+            </div>
+            <small class="text-muted">Volatility bet - you gain $320 per 1% volatility increase</small>
+          </div>
+
+          <hr>
+
+          <!-- Greeks Limit Inputs -->
+          <div class="row">
+            <div class="col-6 mb-3">
+              <label class="form-label text-xs">Delta Limit</label>
+              <input type="number" class="form-control" value="1.0" step="0.1">
+            </div>
+            <div class="col-6 mb-3">
+              <label class="form-label text-xs">Gamma Limit</label>
+              <input type="number" class="form-control" value="0.5" step="0.1">
+            </div>
+            <div class="col-6 mb-3">
+              <label class="form-label text-xs">Theta Limit ($)</label>
+              <input type="number" class="form-control" value="-500">
+            </div>
+            <div class="col-6 mb-3">
+              <label class="form-label text-xs">Vega Limit ($)</label>
+              <input type="number" class="form-control" value="1000">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Circuit Breakers -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-bolt me-2"></i>Circuit Breakers</h6>
+          <p class="text-sm text-secondary mb-0">Automatic trading halts - like the fuses in your house that prevent electrical fires</p>
+        </div>
+        <div class="card-body">
+          <!-- Circuit Breaker Explanation -->
+          <div class="implication-box safe-implication mb-4">
+            <div class="row">
+              <div class="col-md-4">
+                <h6 class="mb-1 text-sm"><i class="fas fa-cogs text-primary me-1"></i>What They Do</h6>
+                <p class="text-xs mb-0">Automatically pause trading when certain thresholds are hit. No panic decisions needed.</p>
+              </div>
+              <div class="col-md-4">
+                <h6 class="mb-1 text-sm"><i class="fas fa-bell text-warning me-1"></i>When They Trigger</h6>
+                <p class="text-xs mb-0">Losses too high, too many errors, stale data, or system overload. You'll be notified immediately.</p>
+              </div>
+              <div class="col-md-4">
+                <h6 class="mb-1 text-sm"><i class="fas fa-thumbs-up text-success me-1"></i>Why They're Good</h6>
+                <p class="text-xs mb-0">Prevents compounding losses and gives you time to assess before resuming. Your portfolio's airbag.</p>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg-3 col-md-6 mb-3">
+              <div class="card circuit-breaker safe">
+                <div class="card-body p-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Daily Loss Limit</h6>
+                    <span class="badge bg-gradient-success">OK</span>
+                  </div>
+                  <p class="text-sm mb-0">Current: -$450 / Limit: -$2,000</p>
+                  <div class="progress mt-2" style="height: 4px;">
+                    <div class="progress-bar bg-success" style="width: 22.5%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+              <div class="card circuit-breaker safe">
+                <div class="card-body p-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Error Rate</h6>
+                    <span class="badge bg-gradient-success">OK</span>
+                  </div>
+                  <p class="text-sm mb-0">Current: 0.5% / Limit: 5%</p>
+                  <div class="progress mt-2" style="height: 4px;">
+                    <div class="progress-bar bg-success" style="width: 10%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+              <div class="card circuit-breaker warning">
+                <div class="card-body p-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Data Staleness</h6>
+                    <span class="badge bg-gradient-warning">WARNING</span>
+                  </div>
+                  <p class="text-sm mb-0">Last update: 15s ago / Limit: 20s</p>
+                  <div class="progress mt-2" style="height: 4px;">
+                    <div class="progress-bar bg-warning" style="width: 75%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+              <div class="card circuit-breaker safe">
+                <div class="card-body p-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Position Count</h6>
+                    <span class="badge bg-gradient-success">OK</span>
+                  </div>
+                  <p class="text-sm mb-0">Current: 8 / Limit: 20</p>
+                  <div class="progress mt-2" style="height: 4px;">
+                    <div class="progress-bar bg-success" style="width: 40%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIX Volatility Monitor -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-fire-alt me-2"></i>Market Volatility (VIX)</h6>
+          <p class="text-sm text-secondary mb-0">The "Fear Gauge" - higher VIX means more market uncertainty. Position sizes automatically adjust.</p>
+        </div>
+        <div class="card-body">
+          <!-- VIX Explanation -->
+          <div class="implication-box safe-implication mb-4">
+            <div class="row">
+              <div class="col-md-4">
+                <h6 class="mb-1 text-sm"><i class="fas fa-question-circle text-primary me-1"></i>What is VIX?</h6>
+                <p class="text-xs mb-0">The VIX measures expected market volatility. Think of it as the market's "fear level" - higher means more panic.</p>
+              </div>
+              <div class="col-md-4">
+                <h6 class="mb-1 text-sm"><i class="fas fa-shield-alt text-warning me-1"></i>How We Protect You</h6>
+                <p class="text-xs mb-0">When VIX rises, we automatically reduce position sizes. At extreme levels (>45), trading pauses entirely.</p>
+              </div>
+              <div class="col-md-4">
+                <h6 class="mb-1 text-sm"><i class="fas fa-chart-line text-success me-1"></i>Normal Ranges</h6>
+                <p class="text-xs mb-0">VIX 12-20 = calm markets. 20-25 = slightly elevated. 25-35 = concerning. >35 = extreme fear.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIX Display -->
+          <div class="row">
+            <div class="col-lg-4">
+              <div class="card border" id="vixCard">
+                <div class="card-body p-3 text-center">
+                  <h6 class="text-uppercase text-xs mb-2">Current VIX</h6>
+                  <div class="vix-gauge mb-2">
+                    <h2 class="mb-0" id="vixValue">--</h2>
+                    <span class="badge" id="vixLevelBadge">Loading...</span>
+                  </div>
+                  <p class="text-xs text-secondary mb-0" id="vixPercentile">Percentile: --</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="card border">
+                <div class="card-body p-3">
+                  <h6 class="text-uppercase text-xs mb-3">Position Sizing Impact</h6>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-sm">Current Multiplier</span>
+                    <span class="font-weight-bold" id="vixMultiplier">1.0x</span>
+                  </div>
+                  <div class="progress mb-2" style="height: 8px;">
+                    <div class="progress-bar bg-success" id="vixMultiplierBar" style="width: 100%"></div>
+                  </div>
+                  <p class="text-xs text-secondary mb-0" id="vixSizingNote">Normal position sizing</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="card border">
+                <div class="card-body p-3">
+                  <h6 class="text-uppercase text-xs mb-3">VIX Thresholds</h6>
+                  <div class="d-flex justify-content-between text-sm mb-2">
+                    <span><i class="fas fa-circle text-success me-1"></i> Normal</span>
+                    <span>&lt; 20</span>
+                  </div>
+                  <div class="d-flex justify-content-between text-sm mb-2">
+                    <span><i class="fas fa-circle text-info me-1"></i> Elevated</span>
+                    <span>20 - 25</span>
+                  </div>
+                  <div class="d-flex justify-content-between text-sm mb-2">
+                    <span><i class="fas fa-circle text-warning me-1"></i> High</span>
+                    <span>25 - 35</span>
+                  </div>
+                  <div class="d-flex justify-content-between text-sm mb-2">
+                    <span><i class="fas fa-circle text-danger me-1"></i> Extreme</span>
+                    <span>35 - 45</span>
+                  </div>
+                  <div class="d-flex justify-content-between text-sm">
+                    <span><i class="fas fa-circle text-dark me-1"></i> Critical</span>
+                    <span>&gt; 45</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIX Recommendations -->
+          <div class="mt-3" id="vixRecommendations" style="display: none;">
+            <div class="alert alert-warning mb-0">
+              <h6 class="alert-heading text-sm"><i class="fas fa-lightbulb me-2"></i>Recommendations</h6>
+              <ul class="mb-0 ps-3" id="vixRecommendationsList"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Advanced Risk Settings -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6><i class="fas fa-cogs me-2"></i>Advanced Risk Configuration</h6>
+            <button class="btn btn-sm btn-outline-primary mb-0" type="button" data-bs-toggle="collapse" data-bs-target="#advancedRiskSettings">
+              <i class="fas fa-chevron-down me-1"></i>Expand Advanced Settings
+            </button>
+          </div>
+        </div>
+        <div class="collapse" id="advancedRiskSettings">
+          <div class="card-body">
+            <ul class="nav nav-tabs" id="riskTabs" role="tablist">
+              <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#kelly" type="button">Kelly Criterion</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tailRisk" type="button">Tail Risk</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#dynamicSizing" type="button">Dynamic Sizing</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#correlationRisk" type="button">Correlation</button>
+              </li>
+            </ul>
+            <div class="tab-content pt-4" id="riskTabsContent">
+              <!-- Kelly Criterion Tab -->
+              <div class="tab-pane fade show active" id="kelly" role="tabpanel">
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Kelly Fraction
+                      <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Fraction of Kelly optimal to use. Full Kelly (1.0) is very aggressive. Half Kelly (0.5) is recommended"></i>
+                    </label>
+                    <input type="range" class="form-range" min="10" max="100" value="50" id="kellyFraction">
+                    <div class="d-flex justify-content-between text-xs text-secondary">
+                      <span>Conservative (0.1)</span>
+                      <span id="kellyFractionValue">0.50</span>
+                      <span>Full Kelly (1.0)</span>
+                    </div>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Win Rate Estimate (%)
+                      <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Your estimated win rate based on backtesting or historical performance"></i>
+                    </label>
+                    <input type="number" class="form-control" value="55" min="30" max="80" id="winRateEstimate">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Avg Win/Loss Ratio
+                      <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Average winning trade size divided by average losing trade size"></i>
+                    </label>
+                    <input type="number" class="form-control" value="1.5" min="0.5" max="5" step="0.1" id="winLossRatio">
+                  </div>
+                </div>
+                <div class="alert alert-info mb-0">
+                  <i class="fas fa-calculator me-2"></i>
+                  <strong>Calculated Kelly Size:</strong> <span id="calculatedKelly">15.0%</span> of portfolio per trade
+                </div>
+              </div>
+
+              <!-- Tail Risk Tab -->
+              <div class="tab-pane fade" id="tailRisk" role="tabpanel">
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Expected Shortfall (CVaR) Level
+                      <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Confidence level for Expected Shortfall calculation. Higher = more conservative"></i>
+                    </label>
+                    <select class="form-select" id="cvarLevel">
+                      <option value="95">95%</option>
+                      <option value="97.5">97.5%</option>
+                      <option value="99" selected>99%</option>
+                      <option value="99.9">99.9%</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Max Tail Risk Exposure ($)
+                      <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Maximum acceptable loss in tail event scenario"></i>
+                    </label>
+                    <input type="number" class="form-control" value="10000" step="1000" id="maxTailRisk">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Tail Hedge Allocation (%)
+                      <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="% of portfolio allocated to tail risk hedges (puts, VIX, etc.)"></i>
+                    </label>
+                    <input type="number" class="form-control" value="2" min="0" max="10" step="0.5" id="tailHedgeAlloc">
+                  </div>
+                </div>
+                <div class="form-check form-switch mb-3">
+                  <input class="form-check-input" type="checkbox" id="autoTailHedge">
+                  <label class="form-check-label" for="autoTailHedge">
+                    <strong>Auto Tail Hedging</strong> - Automatically purchase protective puts when portfolio VaR exceeds threshold
+                  </label>
+                </div>
+              </div>
+
+              <!-- Dynamic Position Sizing Tab -->
+              <div class="tab-pane fade" id="dynamicSizing" role="tabpanel">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Volatility Adjustment Method</label>
+                    <select class="form-select" id="volAdjustMethod">
+                      <option value="none">No adjustment</option>
+                      <option value="inverse" selected>Inverse volatility</option>
+                      <option value="atr">ATR-based</option>
+                      <option value="garch">GARCH forecast</option>
+                    </select>
+                    <small class="text-secondary">Reduce position size when volatility is high</small>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Volatility Lookback Period (Days)</label>
+                    <input type="number" class="form-control" value="20" min="5" max="60" id="volLookback">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Min Position Scale</label>
+                    <input type="number" class="form-control" value="0.25" min="0.1" max="1" step="0.05" id="minPosScale">
+                    <small class="text-secondary">Minimum scaling factor (high vol)</small>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Max Position Scale</label>
+                    <input type="number" class="form-control" value="1.5" min="1" max="3" step="0.1" id="maxPosScale">
+                    <small class="text-secondary">Maximum scaling factor (low vol)</small>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Base Vol Target (%)</label>
+                    <input type="number" class="form-control" value="15" min="5" max="30" id="baseVolTarget">
+                    <small class="text-secondary">Target annualized volatility</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Correlation Risk Tab -->
+              <div class="tab-pane fade" id="correlationRisk" role="tabpanel">
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Max Sector Concentration (%)</label>
+                    <input type="number" class="form-control" value="30" min="10" max="50" id="maxSectorConc">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Max Asset Correlation</label>
+                    <input type="number" class="form-control" value="0.7" min="0.3" max="0.95" step="0.05" id="maxAssetCorr">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Correlation Lookback (Days)</label>
+                    <input type="number" class="form-control" value="60" min="20" max="252" id="corrLookback">
+                  </div>
+                </div>
+                <div class="form-check form-switch mb-3">
+                  <input class="form-check-input" type="checkbox" id="dynamicCorrelation" checked>
+                  <label class="form-check-label" for="dynamicCorrelation">
+                    <strong>Dynamic Correlation Adjustment</strong> - Recalculate correlations daily and adjust limits
+                  </label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                  <input class="form-check-input" type="checkbox" id="stressCorrelation">
+                  <label class="form-check-label" for="stressCorrelation">
+                    <strong>Stress Correlation Mode</strong> - Assume correlations go to 1.0 during market stress
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VaR Analysis -->
+  <div class="row">
+    <div class="col-lg-8 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-chart-line me-2"></i>Value at Risk (VaR) Analysis</h6>
+          <p class="text-sm text-secondary mb-0">Your "worst case scenario" calculator</p>
+        </div>
+        <div class="card-body">
+          <!-- VaR Simple Explanation -->
+          <div class="implication-box mb-4">
+            <h6 class="mb-1"><i class="fas fa-question-circle text-info me-1"></i>What This Means</h6>
+            <p class="text-sm text-secondary mb-2">With 95% confidence, your maximum daily loss won't exceed the amount shown. It's like a weather forecast - "95% chance the storm won't be worse than this."</p>
+            <p class="text-xs text-muted mb-0"><strong>Example:</strong> If 95% VaR = $2,450, then on 95 out of 100 trading days, you won't lose more than $2,450. On those rare 5 days, losses could be higher.</p>
+          </div>
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Confidence Level</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Historical VaR</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Parametric VaR</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Monte Carlo VaR</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">EVT VaR</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="font-weight-bold">95%</span></td>
+                  <td class="text-center">$2,450</td>
+                  <td class="text-center">$2,380</td>
+                  <td class="text-center">$2,520</td>
+                  <td class="text-center">$2,610</td>
+                </tr>
+                <tr>
+                  <td><span class="font-weight-bold">99%</span></td>
+                  <td class="text-center">$3,890</td>
+                  <td class="text-center">$3,750</td>
+                  <td class="text-center">$4,100</td>
+                  <td class="text-center">$4,350</td>
+                </tr>
+                <tr>
+                  <td><span class="font-weight-bold">99.9%</span></td>
+                  <td class="text-center">$5,200</td>
+                  <td class="text-center">$5,100</td>
+                  <td class="text-center">$5,680</td>
+                  <td class="text-center">$6,100</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-exclamation-circle me-2"></i>Stress Test Scenarios</h6>
+        </div>
+        <div class="card-body">
+          <ul class="list-group">
+            <li class="list-group-item border-0 d-flex justify-content-between ps-0">
+              <span class="text-sm">2008 Financial Crisis</span>
+              <span class="badge bg-gradient-danger">-$12,400</span>
+            </li>
+            <li class="list-group-item border-0 d-flex justify-content-between ps-0">
+              <span class="text-sm">Flash Crash (2010)</span>
+              <span class="badge bg-gradient-warning">-$6,800</span>
+            </li>
+            <li class="list-group-item border-0 d-flex justify-content-between ps-0">
+              <span class="text-sm">COVID-19 Crash</span>
+              <span class="badge bg-gradient-danger">-$9,200</span>
+            </li>
+            <li class="list-group-item border-0 d-flex justify-content-between ps-0">
+              <span class="text-sm">Black Monday (1987)</span>
+              <span class="badge bg-gradient-danger">-$15,600</span>
+            </li>
+            <li class="list-group-item border-0 d-flex justify-content-between ps-0">
+              <span class="text-sm">Volatility Spike</span>
+              <span class="badge bg-gradient-warning">-$4,100</span>
+            </li>
+            <li class="list-group-item border-0 d-flex justify-content-between ps-0">
+              <span class="text-sm">Correlation Breakdown</span>
+              <span class="badge bg-gradient-warning">-$5,500</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  // Slider value updates
+  document.getElementById('maxRiskSlider').addEventListener('input', function() {
+    document.getElementById('maxRiskValue').textContent = this.value + '%';
+  });
+  document.getElementById('maxPositionSlider').addEventListener('input', function() {
+    document.getElementById('maxPositionValue').textContent = this.value + '%';
+  });
+  document.getElementById('maxDrawdownSlider').addEventListener('input', function() {
+    document.getElementById('maxDrawdownValue').textContent = this.value + '%';
+  });
+  document.getElementById('maxCorrelationSlider').addEventListener('input', function() {
+    document.getElementById('maxCorrelationValue').textContent = (this.value / 10).toFixed(1);
+  });
+
+  // Emergency stop info panel
+  var emergencyBtn = document.getElementById('emergencyStopBtn');
+  var emergencyInfo = document.getElementById('emergencyStopInfo');
+
+  emergencyBtn.addEventListener('mouseenter', function() {
+    emergencyInfo.style.display = 'block';
+  });
+  emergencyBtn.addEventListener('mouseleave', function() {
+    setTimeout(function() {
+      if (!emergencyInfo.matches(':hover')) {
+        emergencyInfo.style.display = 'none';
+      }
+    }, 300);
+  });
+  emergencyInfo.addEventListener('mouseleave', function() {
+    emergencyInfo.style.display = 'none';
+  });
+
+  // Emergency stop action
+  emergencyBtn.addEventListener('click', function() {
+    if (confirm('Are you sure you want to STOP ALL TRADING? This will close all open orders and halt all strategies.')) {
+      alert('Emergency stop activated. All trading has been halted.');
+    }
+  });
+
+  // Kelly criterion calculation
+  function calculateKelly() {
+    const winRate = parseFloat(document.getElementById('winRateEstimate').value) / 100;
+    const winLoss = parseFloat(document.getElementById('winLossRatio').value);
+    const fraction = parseFloat(document.getElementById('kellyFraction').value) / 100;
+
+    // Kelly formula: f = (p*b - q) / b where p=win rate, q=loss rate, b=win/loss ratio
+    const kelly = ((winRate * winLoss) - (1 - winRate)) / winLoss;
+    const adjustedKelly = kelly * fraction * 100;
+
+    document.getElementById('calculatedKelly').textContent = Math.max(0, adjustedKelly).toFixed(1) + '%';
+  }
+
+  document.getElementById('kellyFraction').addEventListener('input', function() {
+    document.getElementById('kellyFractionValue').textContent = (this.value / 100).toFixed(2);
+    calculateKelly();
+  });
+  document.getElementById('winRateEstimate').addEventListener('input', calculateKelly);
+  document.getElementById('winLossRatio').addEventListener('input', calculateKelly);
+
+  // Initialize tooltips for advanced settings
+  var advTooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  advTooltips.forEach(function(el) {
+    new bootstrap.Tooltip(el);
+  });
+
+  // VIX Monitoring
+  async function fetchVixData() {
+    try {
+      const response = await fetch('/api/vix/status');
+      const data = await response.json();
+
+      if (data.status === 'success' && data.vix.available) {
+        updateVixDisplay(data.vix);
+      } else {
+        showVixError(data.error || 'Unable to fetch VIX data');
+      }
+    } catch (error) {
+      console.error('Error fetching VIX data:', error);
+      showVixError('Connection error');
+    }
+  }
+
+  function updateVixDisplay(vixData) {
+    const vix = vixData.vix;
+    const value = vix.value;
+    const level = vix.level;
+    const percentile = vix.percentile;
+    const multiplier = vixData.position_multiplier;
+    const recommendations = vixData.recommendations || [];
+
+    // Update value and badge
+    document.getElementById('vixValue').textContent = value.toFixed(1);
+    document.getElementById('vixPercentile').textContent = `${percentile.toFixed(0)}th percentile`;
+
+    // Level badge colors
+    const levelBadge = document.getElementById('vixLevelBadge');
+    const vixCard = document.getElementById('vixCard');
+    const levelColors = {
+      'normal': { badge: 'bg-gradient-success', text: 'NORMAL', border: 'border-success' },
+      'elevated': { badge: 'bg-gradient-info', text: 'ELEVATED', border: 'border-info' },
+      'high': { badge: 'bg-gradient-warning', text: 'HIGH', border: 'border-warning' },
+      'extreme': { badge: 'bg-gradient-danger', text: 'EXTREME', border: 'border-danger' },
+      'critical': { badge: 'bg-gradient-dark', text: 'CRITICAL', border: 'border-dark' }
+    };
+
+    const levelStyle = levelColors[level] || levelColors.normal;
+    levelBadge.className = 'badge ' + levelStyle.badge;
+    levelBadge.textContent = levelStyle.text;
+    vixCard.className = 'card ' + levelStyle.border;
+
+    // Update multiplier display
+    const multiplierPercent = multiplier * 100;
+    document.getElementById('vixMultiplier').textContent = multiplier.toFixed(2) + 'x';
+    document.getElementById('vixMultiplierBar').style.width = multiplierPercent + '%';
+
+    // Update multiplier bar color
+    const bar = document.getElementById('vixMultiplierBar');
+    bar.className = 'progress-bar';
+    if (multiplier >= 0.75) bar.classList.add('bg-success');
+    else if (multiplier >= 0.5) bar.classList.add('bg-info');
+    else if (multiplier >= 0.25) bar.classList.add('bg-warning');
+    else bar.classList.add('bg-danger');
+
+    // Sizing note
+    const sizingNotes = {
+      'normal': 'Normal position sizing',
+      'elevated': 'Positions reduced by 25%',
+      'high': 'Positions reduced by 50%',
+      'extreme': 'Positions reduced by 75%',
+      'critical': 'TRADING PAUSED - No new positions'
+    };
+    document.getElementById('vixSizingNote').textContent = sizingNotes[level] || 'Normal position sizing';
+
+    // Recommendations
+    if (recommendations.length > 0) {
+      document.getElementById('vixRecommendations').style.display = 'block';
+      const list = document.getElementById('vixRecommendationsList');
+      list.innerHTML = recommendations.map(r => `<li class="text-sm">${r}</li>`).join('');
+    } else {
+      document.getElementById('vixRecommendations').style.display = 'none';
+    }
+  }
+
+  function showVixError(message) {
+    document.getElementById('vixValue').textContent = '--';
+    document.getElementById('vixLevelBadge').textContent = 'Unavailable';
+    document.getElementById('vixLevelBadge').className = 'badge bg-secondary';
+    document.getElementById('vixPercentile').textContent = message;
+  }
+
+  // Fetch VIX data on page load and every 5 minutes
+  fetchVixData();
+  setInterval(fetchVixData, 5 * 60 * 1000);
+
+  // =====================================================
+  // Circuit Breaker Recovery Management
+  // =====================================================
+
+  let currentEventId = null;
+
+  async function fetchRecoveryStatus() {
+    try {
+      const response = await fetch('/api/circuit-breakers/current/');
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        updateRecoveryDisplay(data);
+      }
+    } catch (error) {
+      console.error('Error fetching recovery status:', error);
+    }
+  }
+
+  function updateRecoveryDisplay(data) {
+    const section = document.getElementById('recoveryTimelineSection');
+    const historySection = document.getElementById('breakerHistorySection');
+    const status = data.recovery_status;
+    const timeline = data.timeline;
+
+    if (status.is_in_recovery && timeline.has_active_events) {
+      section.style.display = 'block';
+      historySection.style.display = 'block';
+      currentEventId = timeline.primary_event_id;
+
+      // Update mode badge
+      const badge = document.getElementById('recoveryModeBadge');
+      badge.textContent = status.current_mode.toUpperCase();
+      badge.className = 'recovery-mode-badge recovery-mode-' + status.current_mode;
+
+      // Update breaker type
+      document.getElementById('recoveryBreakerType').textContent = timeline.breaker_type_display;
+
+      // Update progress bar
+      document.getElementById('recoveryProgressBar').style.width = timeline.progress_pct + '%';
+      document.getElementById('recoveryProgressPct').textContent = timeline.progress_pct.toFixed(0) + '% complete';
+
+      // Update time remaining
+      const multiplierPct = Math.round(status.position_multiplier * 100);
+      let timeText = `Trading at ${multiplierPct}%`;
+      if (timeline.hours_remaining > 0) {
+        const hours = Math.floor(timeline.hours_remaining);
+        const mins = Math.round((timeline.hours_remaining % 1) * 60);
+        timeText += ` | Full trading in ${hours}h ${mins}m`;
+      }
+      document.getElementById('recoveryTimeRemaining').textContent = timeText;
+
+      // Update stage timeline
+      updateStageTimeline(timeline.timeline);
+
+      // Update recovery stats
+      if (timeline.recovery_stats) {
+        document.getElementById('recoveryTradesCount').textContent = timeline.recovery_stats.trades_count;
+        document.getElementById('recoveryWinRate').textContent =
+          timeline.recovery_stats.win_rate !== null
+            ? (timeline.recovery_stats.win_rate * 100).toFixed(0) + '%'
+            : '--';
+        const pnl = timeline.recovery_stats.pnl;
+        document.getElementById('recoveryPnL').textContent =
+          pnl >= 0 ? `+$${pnl.toFixed(0)}` : `-$${Math.abs(pnl).toFixed(0)}`;
+      }
+
+      // Show/hide advance button
+      const advanceBtn = document.getElementById('advanceRecoveryBtn');
+      if (status.can_advance) {
+        advanceBtn.style.display = 'inline-block';
+      } else {
+        advanceBtn.style.display = 'none';
+      }
+    } else {
+      section.style.display = 'none';
+      currentEventId = null;
+    }
+
+    // Load history
+    fetchBreakerHistory();
+  }
+
+  function updateStageTimeline(stages) {
+    const container = document.getElementById('recoveryStages');
+    container.innerHTML = stages.map(stage => {
+      const statusClass = stage.status;
+      const icon = stage.status === 'completed' ? '<i class="fas fa-check text-white"></i>' :
+                   stage.status === 'current' ? '<i class="fas fa-circle text-white"></i>' : '';
+      return `
+        <div class="recovery-stage">
+          <div class="stage-dot ${statusClass}">${icon}</div>
+          <div class="stage-label ${statusClass}">${stage.mode.toUpperCase()}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function fetchBreakerHistory() {
+    try {
+      const response = await fetch('/api/circuit-breakers/history/?days=30&limit=10');
+      const data = await response.json();
+
+      if (data.status === 'success' && data.events.length > 0) {
+        document.getElementById('breakerHistorySection').style.display = 'block';
+        updateHistoryDisplay(data.events);
+      }
+    } catch (error) {
+      console.error('Error fetching breaker history:', error);
+    }
+  }
+
+  function updateHistoryDisplay(events) {
+    const container = document.getElementById('breakerHistoryList');
+    container.innerHTML = events.map(event => {
+      const resolvedClass = event.resolved_at ? 'resolved' : '';
+      const date = new Date(event.triggered_at).toLocaleDateString();
+      const time = new Date(event.triggered_at).toLocaleTimeString();
+      const duration = event.duration_hours.toFixed(1);
+      const status = event.resolved_at ? 'Resolved' : 'Active';
+
+      return `
+        <div class="history-event ${event.breaker_type} ${resolvedClass}">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6 class="mb-1">${event.breaker_type_display}</h6>
+              <p class="text-sm text-secondary mb-0">${date} ${time}</p>
+            </div>
+            <div class="text-end">
+              <span class="badge ${event.resolved_at ? 'bg-success' : 'bg-warning'}">${status}</span>
+              <p class="text-xs text-secondary mt-1 mb-0">Duration: ${duration}h</p>
+            </div>
+          </div>
+          <div class="mt-2">
+            <small class="text-secondary">
+              Trigger: ${event.trigger_value.toFixed(2)} (threshold: ${event.trigger_threshold.toFixed(2)})
+              ${event.resolved_at ? ` | Resolution: ${event.resolution_method_display}` : ''}
+            </small>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Advance recovery button
+  document.getElementById('advanceRecoveryBtn').addEventListener('click', async function() {
+    if (!currentEventId) return;
+
+    if (!confirm('Are you sure you want to advance to the next recovery stage?')) return;
+
+    try {
+      const response = await fetch(`/api/circuit-breakers/${currentEventId}/advance-recovery/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ force: false, notes: 'Manual advancement' })
+      });
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        alert(`Recovery advanced! New mode: ${data.new_mode}`);
+        fetchRecoveryStatus();
+      } else {
+        alert('Cannot advance recovery: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error advancing recovery:', error);
+      alert('Error advancing recovery');
+    }
+  });
+
+  // Request early recovery button
+  document.getElementById('requestEarlyRecoveryBtn').addEventListener('click', async function() {
+    if (!currentEventId) return;
+
+    const justification = prompt('Please provide a justification for early recovery request (min 20 characters):');
+    if (!justification || justification.length < 20) {
+      alert('Justification must be at least 20 characters');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/circuit-breakers/${currentEventId}/early-recovery/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ justification })
+      });
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        alert('Early recovery request submitted for review');
+      } else {
+        alert('Error: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error requesting early recovery:', error);
+      alert('Error submitting request');
+    }
+  });
+
+  // Full reset button
+  document.getElementById('fullResetBtn').addEventListener('click', async function() {
+    if (!currentEventId) return;
+
+    if (!confirm('WARNING: This will fully reset the circuit breaker and resume normal trading immediately.\n\nThis should only be used if you are confident the issue has been resolved.\n\nAre you sure?')) return;
+
+    const confirmation = prompt('Type "CONFIRM" to proceed with full reset:');
+    if (confirmation !== 'CONFIRM') {
+      alert('Reset cancelled - confirmation not provided');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/circuit-breakers/${currentEventId}/reset/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation: 'CONFIRM', notes: 'Manual reset by user' })
+      });
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        alert('Circuit breaker reset - trading resumed at full capacity');
+        fetchRecoveryStatus();
+      } else {
+        alert('Error: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error resetting circuit breaker:', error);
+      alert('Error resetting circuit breaker');
+    }
+  });
+
+  // Fetch recovery status on page load and every 30 seconds
+  fetchRecoveryStatus();
+  setInterval(fetchRecoveryStatus, 30 * 1000);
+</script>
+{% endblock javascripts %}

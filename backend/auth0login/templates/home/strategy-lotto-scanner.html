@@ -1,0 +1,299 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Lotto Scanner Configuration {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .param-card { border-left: 4px solid #11cdef; transition: all 0.3s ease; }
+  .param-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+  .tooltip-icon { cursor: help; color: #8898aa; font-size: 14px; margin-left: 5px; }
+  .param-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #e9ecef; }
+  .param-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(310deg, #11cdef 0%, #1171ef 100%); cursor: pointer; }
+  .warning-banner { background: linear-gradient(to right, rgba(245,54,92,0.1), rgba(251,99,64,0.1)); border-left: 4px solid #f5365c; }
+  .risk-extreme { background: linear-gradient(310deg, #f5365c 0%, #fb6340 100%); }
+  .implication-box { background: linear-gradient(to right, rgba(17,205,239,0.05), rgba(17,113,239,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .warning-implication { background: linear-gradient(to right, rgba(245,54,92,0.1), rgba(251,99,64,0.05)); }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-info">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-ticket-alt text-info fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">0DTE / Earnings Lotto Scanner</h4>
+              <p class="text-white opacity-8 mb-0">High-risk, high-reward plays with STRICT position sizing. Treat these like lottery tickets.</p>
+            </div>
+            <div class="col-auto">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="strategyEnabled" checked style="width: 50px; height: 26px;">
+                <label class="form-check-label text-white ms-2" for="strategyEnabled">Enabled</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk Warning -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="alert warning-banner mb-0">
+        <div class="d-flex align-items-center">
+          <i class="fas fa-exclamation-triangle fa-2x text-danger me-3"></i>
+          <div>
+            <h6 class="text-danger mb-1">HIGH RISK STRATEGY</h6>
+            <p class="text-sm mb-0">Lotto plays are speculative. Only risk what you can afford to lose completely. Strict position sizing is CRITICAL. Max 1% of portfolio per play.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Play Types -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-dice me-2"></i>Play Types to Scan</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="play0DTE" checked>
+                <label class="form-check-label" for="play0DTE">
+                  <strong>0DTE Plays</strong>
+                  <br><small class="text-secondary">Same-day expiry momentum plays</small>
+                </label>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="playEarnings" checked>
+                <label class="form-check-label" for="playEarnings">
+                  <strong>Earnings Lottos</strong>
+                  <br><small class="text-secondary">Binary earnings event bets</small>
+                </label>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="playCatalyst">
+                <label class="form-check-label" for="playCatalyst">
+                  <strong>Catalyst Events</strong>
+                  <br><small class="text-secondary">FDA, product launches, etc.</small>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Risk Controls -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-shield-alt me-2 text-danger"></i>Risk Controls (CRITICAL)</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max Risk Per Play (% Portfolio) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="MAXIMUM amount to risk per lotto play. 1% is standard WSB discipline"></i></span>
+              <span class="badge risk-extreme text-white" id="maxRiskValue">1.0%</span>
+            </label>
+            <input type="range" class="param-slider" id="maxRisk" min="5" max="30" value="10">
+            <div class="implication-box warning-implication" id="maxRiskImplication">
+              <small class="text-secondary"><i class="fas fa-exclamation-triangle text-danger me-1"></i><strong>1% max risk:</strong> With $10,000 portfolio = $100 max per lotto. This is THE most important setting. Lottos are lottery tickets - expect most to expire worthless. The wins need to make up for the losses!</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max Daily Lotto Budget <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Maximum total to spend on lottos per day"></i></span>
+              <span class="badge bg-gradient-warning" id="dailyBudgetValue">3%</span>
+            </label>
+            <input type="range" class="param-slider" id="dailyBudget" min="10" max="50" value="30">
+            <div class="implication-box" id="dailyBudgetImplication">
+              <small class="text-secondary"><i class="fas fa-wallet text-warning me-1"></i><strong>3% daily budget:</strong> Cap total lotto spending per day. This prevents "revenge trading" after losses. Once you hit the budget, you're done for the day - no exceptions!</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max Concurrent Lottos <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Maximum number of lotto positions at once"></i></span>
+              <span class="badge bg-gradient-info" id="maxConcurrentValue">3</span>
+            </label>
+            <input type="range" class="param-slider" id="maxConcurrent" min="1" max="5" value="3">
+            <div class="implication-box" id="maxConcurrentImplication">
+              <small class="text-secondary"><i class="fas fa-layer-group text-info me-1"></i><strong>3 max concurrent:</strong> Diversify your lottery tickets. One 10-bagger can pay for many losers - but only if you're in the right ticker at the right time. Don't put all eggs in one basket.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Loss Limit Circuit Breaker</label>
+            <select class="form-select" id="lossLimit">
+              <option value="3">Stop after 3 consecutive losses</option>
+              <option value="5" selected>Stop after 5 consecutive losses</option>
+              <option value="daily">Stop at daily budget</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Play Selection -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-filter me-2"></i>Play Selection Criteria</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Min Expected Move (%) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Minimum expected % move for earnings/catalyst plays"></i></span>
+              <span class="badge bg-gradient-success" id="minMoveValue">5%</span>
+            </label>
+            <input type="range" class="param-slider" id="minMove" min="3" max="15" value="5">
+            <div class="implication-box" id="minMoveImplication">
+              <small class="text-secondary"><i class="fas fa-rocket text-success me-1"></i><strong>5% expected move:</strong> Only play earnings/catalysts where the stock historically moves 5%+ on events. Higher expected move = higher lottery payout potential. Check historical moves on earnings whisper.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Min Potential Return (x) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Minimum potential return multiple (e.g., 3x = $100 could become $300)"></i></span>
+              <span class="badge bg-gradient-primary" id="minReturnValue">3x</span>
+            </label>
+            <input type="range" class="param-slider" id="minReturn" min="2" max="10" value="3">
+            <div class="implication-box" id="minReturnImplication">
+              <small class="text-secondary"><i class="fas fa-gem text-primary me-1"></i><strong>3x minimum return:</strong> The asymmetric bet. If you win 25% of the time at 3x, you break even. Win 30% at 5x = printing money. The math needs to work in your favor over many plays.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max Premium ($ per contract) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Maximum premium to pay per contract. Cheap = more lottery-like"></i></span>
+              <span class="badge bg-gradient-warning" id="maxPremiumValue">$50</span>
+            </label>
+            <input type="range" class="param-slider" id="maxPremium" min="10" max="200" value="50">
+            <div class="implication-box" id="maxPremiumImplication">
+              <small class="text-secondary"><i class="fas fa-ticket-alt text-warning me-1"></i><strong>$50 max premium:</strong> Cheap options = true lotto plays. A $50 contract can become $500+ on a big move. More expensive options have less leverage but also less likely to go to zero. Keep it cheap!</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Profit Target (Auto-Close)</label>
+            <div class="row">
+              <div class="col-6">
+                <label class="form-label text-xs">Take 50% @ Gain</label>
+                <input type="number" class="form-control form-control-sm" value="100" id="profitTarget1">
+              </div>
+              <div class="col-6">
+                <label class="form-label text-xs">Close All @ Gain</label>
+                <input type="number" class="form-control form-control-sm" value="300" id="profitTarget2">
+              </div>
+            </div>
+            <div class="implication-box" id="profitTargetImplication">
+              <small class="text-secondary"><i class="fas fa-chart-line text-success me-1"></i><strong>Scale-out strategy:</strong> Take 50% off at 100% gain (doubled your money), let the rest ride to 300%+. This locks in profits while keeping upside exposure. Never let a big winner turn into a loser!</small>
+            </div>
+          </div>
+
+          <div class="alert alert-danger mb-0 mt-3">
+            <i class="fas fa-skull-crossbones me-2"></i><strong>Reality check:</strong> Most lottos expire worthless. You need one 10x winner to pay for ten 0% losers. Only play with money you're 100% comfortable losing!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Watchlist -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card param-card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-list me-2"></i>Lotto Watchlist</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <label class="form-label text-sm font-weight-bold">Mega Caps (Liquid)</label>
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> AAPL, MSFT, GOOGL, AMZN</div>
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> TSLA, NVDA, META, NFLX</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-sm font-weight-bold">High Beta Growth</label>
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> PLTR, COIN, SNOW, CRWD</div>
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> ROKU, ZM, SHOP, SQ</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-sm font-weight-bold">Meme Stocks (Extreme Vol)</label>
+              <div class="form-check"><input class="form-check-input" type="checkbox"> GME, AMC, BB</div>
+              <div class="form-check"><input class="form-check-input" type="checkbox"> SOFI, CLOV, WISH</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <button class="btn btn-outline-secondary mb-0"><i class="fas fa-undo me-2"></i>Reset</button>
+              <button class="btn btn-outline-info mb-0 ms-2"><i class="fas fa-download me-2"></i>Export</button>
+            </div>
+            <div>
+              <button class="btn btn-outline-danger mb-0 me-2"><i class="fas fa-search me-2"></i>Scan for Lottos</button>
+              <button class="btn bg-gradient-info mb-0"><i class="fas fa-save me-2"></i>Save Configuration</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+  document.getElementById('maxRisk').addEventListener('input', function() {
+    document.getElementById('maxRiskValue').textContent = (this.value / 10).toFixed(1) + '%';
+  });
+  document.getElementById('dailyBudget').addEventListener('input', function() {
+    document.getElementById('dailyBudgetValue').textContent = (this.value / 10).toFixed(0) + '%';
+  });
+  document.getElementById('maxConcurrent').addEventListener('input', function() {
+    document.getElementById('maxConcurrentValue').textContent = this.value;
+  });
+  document.getElementById('minMove').addEventListener('input', function() {
+    document.getElementById('minMoveValue').textContent = this.value + '%';
+  });
+  document.getElementById('minReturn').addEventListener('input', function() {
+    document.getElementById('minReturnValue').textContent = this.value + 'x';
+  });
+  document.getElementById('maxPremium').addEventListener('input', function() {
+    document.getElementById('maxPremiumValue').textContent = '$' + this.value;
+  });
+</script>
+{% endblock javascripts %}

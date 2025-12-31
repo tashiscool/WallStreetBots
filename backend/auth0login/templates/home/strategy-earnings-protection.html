@@ -1,0 +1,313 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Earnings Protection Configuration {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .param-card { border-left: 4px solid #fb6340; transition: all 0.3s ease; }
+  .param-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+  .tooltip-icon { cursor: help; color: #8898aa; font-size: 14px; margin-left: 5px; }
+  .profile-badge { cursor: pointer; transition: all 0.2s ease; }
+  .profile-badge:hover { transform: scale(1.05); }
+  .profile-badge.active { border: 2px solid #fb6340; }
+  .param-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #e9ecef; }
+  .param-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(310deg, #fb6340 0%, #fbb140 100%); cursor: pointer; }
+  .implication-box { background: linear-gradient(to right, rgba(251,99,64,0.05), rgba(251,177,64,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .warning-implication { background: linear-gradient(to right, rgba(245,54,92,0.1), rgba(251,99,64,0.05)); }
+  .safe-implication { background: linear-gradient(to right, rgba(45,206,137,0.1), rgba(17,205,239,0.05)); }
+  .iv-meter { height: 8px; border-radius: 4px; background: linear-gradient(to right, #2dce89, #ffd600, #fb6340, #f5365c); }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-warning">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-shield-alt text-warning fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">Earnings IV Crush Protection</h4>
+              <p class="text-white opacity-8 mb-0">Avoid the #1 WSB earnings mistake - getting crushed by IV collapse. Focus on IV-resistant structures.</p>
+            </div>
+            <div class="col-auto">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="strategyEnabled" checked style="width: 50px; height: 26px;">
+                <label class="form-check-label text-white ms-2" for="strategyEnabled">Enabled</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IV Crush Explanation -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-exclamation-triangle text-warning me-2"></i>Understanding IV Crush</h6>
+        </div>
+        <div class="card-body">
+          <p class="text-sm">IV (Implied Volatility) typically spikes before earnings and collapses immediately after. Even if you guess the direction right, you can still lose money if IV drops more than the stock moves.</p>
+          <div class="iv-meter mb-2"></div>
+          <div class="d-flex justify-content-between text-xs text-secondary">
+            <span>Low IV (Safe)</span>
+            <span>Normal IV</span>
+            <span>High IV</span>
+            <span>Extreme IV (Dangerous)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Strategy Type Selection -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-layer-group me-2"></i>Protection Strategy Type</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <div class="card profile-badge active" data-strategy="deep_itm">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-arrow-down fa-2x text-success mb-2"></i>
+                  <h6 class="mb-1">Deep ITM</h6>
+                  <p class="text-xs text-secondary mb-0">High delta, low IV sensitivity</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card profile-badge" data-strategy="calendar_spread">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-calendar-alt fa-2x text-info mb-2"></i>
+                  <h6 class="mb-1">Calendar Spread</h6>
+                  <p class="text-xs text-secondary mb-0">Benefit from IV crush</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card profile-badge" data-strategy="ratio_spread">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-percentage fa-2x text-warning mb-2"></i>
+                  <h6 class="mb-1">Ratio Spread</h6>
+                  <p class="text-xs text-secondary mb-0">Balanced vega exposure</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card profile-badge" data-strategy="protective_hedge">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-shield-alt fa-2x text-danger mb-2"></i>
+                  <h6 class="mb-1">Protective Hedge</h6>
+                  <p class="text-xs text-secondary mb-0">Hedge existing positions</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Earnings Scanning -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-search me-2"></i>Earnings Scanner Settings</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Days Ahead to Scan <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="How many days ahead to look for earnings events"></i></span>
+              <span class="badge bg-gradient-primary" id="daysAheadValue">14 days</span>
+            </label>
+            <input type="range" class="param-slider" id="daysAhead" min="3" max="30" value="14">
+            <div class="implication-box" id="daysAheadImplication">
+              <small class="text-secondary"><i class="fas fa-calendar text-primary me-1"></i><strong>14 days ahead:</strong> Gives you 2 weeks to prepare for earnings plays. Longer = more time to research and plan entry. Shorter = less decay but may miss setup windows.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Min IV Premium (vs Historical) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Only trade when current IV is this much higher than historical average"></i></span>
+              <span class="badge bg-gradient-warning" id="ivPremiumValue">1.5x</span>
+            </label>
+            <input type="range" class="param-slider" id="ivPremium" min="10" max="30" value="15">
+            <div class="implication-box warning-implication" id="ivPremiumImplication">
+              <small class="text-secondary"><i class="fas fa-chart-line text-warning me-1"></i><strong>1.5x IV premium:</strong> Current IV is 50% higher than normal - that's the "earnings IV" you're trying to avoid getting crushed by. Higher threshold = more selective, only trade when options are really expensive.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">IV Crush Risk Threshold</label>
+            <select class="form-select" id="ivRiskThreshold">
+              <option value="low">Trade Low Risk Only</option>
+              <option value="medium" selected>Trade Low + Medium Risk</option>
+              <option value="high">Trade All (Including High Risk)</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Earnings Time Preference</label>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="earningsBMO" checked><label class="form-check-label">Before Market Open (BMO)</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="earningsAMC" checked><label class="form-check-label">After Market Close (AMC)</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Protection Parameters -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-cog me-2"></i>Protection Parameters</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Deep ITM Delta Target <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="For deep ITM strategy - target delta (0.8+ is very deep)"></i></span>
+              <span class="badge bg-gradient-success" id="deepItmDeltaValue">0.80</span>
+            </label>
+            <input type="range" class="param-slider" id="deepItmDelta" min="70" max="95" value="80">
+            <div class="implication-box safe-implication" id="deepItmDeltaImplication">
+              <small class="text-secondary"><i class="fas fa-shield-alt text-success me-1"></i><strong>0.80 delta:</strong> Deep ITM options move almost 1:1 with the stock and have minimal IV exposure. You're paying for intrinsic value, not time value that evaporates post-earnings. The trade-off is higher capital requirement.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Calendar Front Expiry (Days) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Short leg expiry for calendar spreads - typically right after earnings"></i></span>
+              <span class="badge bg-gradient-info" id="calendarFrontValue">7 days</span>
+            </label>
+            <input type="range" class="param-slider" id="calendarFront" min="3" max="14" value="7">
+            <div class="implication-box" id="calendarFrontImplication">
+              <small class="text-secondary"><i class="fas fa-calendar-check text-info me-1"></i><strong>7 days front leg:</strong> Sell the weekly that expires right after earnings to capture max IV crush. The front leg has the highest IV and decays fastest. Your back leg (30-45 DTE) keeps value while the short leg collapses.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max IV Sensitivity <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Maximum acceptable vega exposure (0-1 scale)"></i></span>
+              <span class="badge bg-gradient-danger" id="ivSensitivityValue">0.30</span>
+            </label>
+            <input type="range" class="param-slider" id="ivSensitivity" min="10" max="50" value="30">
+            <div class="implication-box warning-implication" id="ivSensitivityImplication">
+              <small class="text-secondary"><i class="fas fa-tachometer-alt text-danger me-1"></i><strong>0.30 max vega:</strong> Low sensitivity to IV changes. Your position won't get crushed when IV drops 40%+ overnight. Think of vega as your "IV crush exposure" - lower is safer for earnings plays.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Position Size (% Portfolio)</span>
+              <span class="badge bg-gradient-primary" id="positionSizeValue">3%</span>
+            </label>
+            <input type="range" class="param-slider" id="positionSize" min="10" max="50" value="30">
+            <div class="implication-box" id="positionSizeImplication">
+              <small class="text-secondary"><i class="fas fa-pie-chart text-primary me-1"></i><strong>3% position size:</strong> Earnings are binary events - even with protection, surprises happen. Keeping size small means one bad earnings won't derail your portfolio.</small>
+            </div>
+          </div>
+
+          <div class="alert alert-warning mb-0 mt-3">
+            <i class="fas fa-graduation-cap me-2"></i><strong>Why earnings protection matters:</strong> Most WSB losses come from buying ATM calls/puts before earnings and getting crushed when IV drops 40-60% overnight - even when guessing direction correctly!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Watchlist -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card param-card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-star me-2"></i>Earnings Watchlist</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <label class="form-label text-sm font-weight-bold">Mega Caps</label>
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> AAPL, MSFT, GOOGL</div>
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> AMZN, META, NVDA</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-sm font-weight-bold">High IV Names</label>
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> TSLA, AMD, CRM</div>
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> NFLX, ADBE, ORCL</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-sm font-weight-bold">Volatile Growth</label>
+              <div class="form-check"><input class="form-check-input" type="checkbox"> PLTR, COIN, SNOW</div>
+              <div class="form-check"><input class="form-check-input" type="checkbox"> ROKU, ZM, CRWD</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <button class="btn btn-outline-secondary mb-0"><i class="fas fa-undo me-2"></i>Reset</button>
+              <button class="btn btn-outline-info mb-0 ms-2"><i class="fas fa-download me-2"></i>Export</button>
+            </div>
+            <div>
+              <button class="btn btn-outline-warning mb-0 me-2"><i class="fas fa-calendar me-2"></i>View Earnings Calendar</button>
+              <button class="btn bg-gradient-warning mb-0"><i class="fas fa-save me-2"></i>Save Configuration</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+  document.getElementById('daysAhead').addEventListener('input', function() {
+    document.getElementById('daysAheadValue').textContent = this.value + ' days';
+  });
+  document.getElementById('ivPremium').addEventListener('input', function() {
+    document.getElementById('ivPremiumValue').textContent = (this.value / 10).toFixed(1) + 'x';
+  });
+  document.getElementById('deepItmDelta').addEventListener('input', function() {
+    document.getElementById('deepItmDeltaValue').textContent = (this.value / 100).toFixed(2);
+  });
+  document.getElementById('calendarFront').addEventListener('input', function() {
+    document.getElementById('calendarFrontValue').textContent = this.value + ' days';
+  });
+  document.getElementById('ivSensitivity').addEventListener('input', function() {
+    document.getElementById('ivSensitivityValue').textContent = (this.value / 100).toFixed(2);
+  });
+  document.getElementById('positionSize').addEventListener('input', function() {
+    document.getElementById('positionSizeValue').textContent = (this.value / 10).toFixed(0) + '%';
+  });
+
+  document.querySelectorAll('.profile-badge').forEach(badge => {
+    badge.addEventListener('click', function() {
+      document.querySelectorAll('.profile-badge').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+{% endblock javascripts %}

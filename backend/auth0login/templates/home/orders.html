@@ -1,9 +1,26 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %} Billing {% endblock title %}
+{% block title %} Orders {% endblock title %}
 
 <!-- Specific CSS goes HERE -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+  .why-btn {
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .why-btn:hover {
+    transform: scale(1.05);
+  }
+  .confidence-high { background: rgba(45,206,137,0.15); color: #2dce89; }
+  .confidence-medium { background: rgba(251,99,64,0.15); color: #fb6340; }
+  .confidence-low { background: rgba(245,54,92,0.15); color: #f5365c; }
+  .confidence-unknown { background: rgba(108,117,125,0.15); color: #6c757d; }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
 
@@ -30,6 +47,14 @@
                         <h6>Quantity</h6>
                         <div class="mb-3">
                             {{ order_form.quantity }}
+                        </div>
+                        <h6>Limit Price (for limit orders)</h6>
+                        <div class="mb-3">
+                            {{ order_form.limit_price }}
+                        </div>
+                        <h6>Stop Price (for stop orders)</h6>
+                        <div class="mb-3">
+                            {{ order_form.stop_price }}
                         </div>
                         <h6>Time in Force</h6>
                         <div class="mb-3">
@@ -75,16 +100,25 @@
                             <thead>
                             <tr>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                    Companies
+                                    Symbol
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                    Type
                                 </th>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
                                     Quantity
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Price
                                 </th>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                     Date
                                 </th>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                     Status
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Why?
                                 </th>
                             </tr>
                             </thead>
@@ -95,13 +129,31 @@
                                     <h6 class="mb-0 text-sm">{{ order.stock }}</h6>
                                 </td>
                                 <td class="align-middle text-center">
+                                    <span class="text-xs font-weight-bold">{{ order.type }}</span>
+                                </td>
+                                <td class="align-middle text-center">
                                     <h6 class="mb-0 text-sm">{{ order.quantity }}</h6>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-xs font-weight-bold">{{ order.filled_avg_price|default:"-" }}</span>
                                 </td>
                                 <td class="align-middle text-center text-sm">
                                     <span class="text-xs font-weight-bold"> {{ order.timestamp }} utc </span>
                                 </td>
                                 <td class="align-middle text-center text-sm">
                                     <span class="text-xs font-weight-bold"> {{ order.status}} </span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    {% if order.id %}
+                                    <button class="why-btn confidence-{{ order.confidence_level|default:'unknown' }}"
+                                            onclick="openTradeExplanation('{{ order.id }}')"
+                                            title="See why this trade was made">
+                                        <i class="fas fa-question-circle me-1"></i>
+                                        {% if order.confidence_score %}{{ order.confidence_score }}%{% else %}Why?{% endif %}
+                                    </button>
+                                    {% else %}
+                                    <span class="text-secondary text-xs">-</span>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -116,7 +168,18 @@
 
 {% include "includes/footer.html" %}
 
+<!-- Trade Explanation Modal -->
+{% include "includes/trade_explanation_modal.html" %}
+
 {% endblock content %}
 
 <!-- Specific JS goes HERE -->
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+<script>
+  // Initialize Bootstrap tooltips
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+    new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+</script>
+{% endblock javascripts %}

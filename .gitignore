@@ -137,3 +137,25 @@ dmypy.json
 
 # Local testings
 localtest*
+
+# Temporary markdown reports and summaries
+*_SUMMARY.md
+*_RESULTS.md
+INTEGRATION_PLAN.md
+INTEGRATION_ROADMAP.md
+FRAMEWORK_INTEGRATION_SUMMARY.md
+TESTING_QUICK_START.md
+
+# Generated reports
+reports/
+
+# External/vendored dependencies
+vendor/
+external/
+
+# Coverage reports
+htmlcov/
+htmlcov_*/
+
+# Utility scripts (optional)
+verify_tests.sh

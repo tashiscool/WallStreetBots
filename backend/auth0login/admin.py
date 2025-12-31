@@ -1,40 +1,44 @@
 from django.contrib import admin
 
-from ..tradingbot.models import Order, Portfolio, StockInstance
 from .models import BotInstance, Credential
+
+# Import models with fallback for testing
+try:
+    from ..tradingbot.models import Order, Portfolio
+    TRADING_MODELS_AVAILABLE = True
+except ImportError:
+    Order = Portfolio = None
+    TRADING_MODELS_AVAILABLE = False
 
 
 class CredentialAdmin(admin.ModelAdmin):
     list_display = ("user", "alpaca_id", "alpaca_key")
 
 
-class OrderAdmin(admin.ModelAdmin):
-    list_display = (
-        "user",
-        "timestamp",
-        "stock",
-        "transaction_type",
-        "order_type",
-        "filled_avg_price",
-        "quantity",
-    )
-
-
-class PortfolioAdmin(admin.ModelAdmin):
-    list_display = ("name", "user", "cash", "strategy")
-
-
 class BotInstanceAdmin(admin.ModelAdmin):
     list_display = ("name", "portfolio", "user", "bot")
 
 
-class StockInstanceAdmin(admin.ModelAdmin):
-    list_display = ("user", "portfolio", "stock", "quantity")
-
-
-# Register your models here.
+# Register auth0login models
 admin.site.register(Credential, CredentialAdmin)
-admin.site.register(Order, OrderAdmin)
-admin.site.register(Portfolio, PortfolioAdmin)
 admin.site.register(BotInstance, BotInstanceAdmin)
-admin.site.register(StockInstance, StockInstanceAdmin)
+
+
+# Register trading models if available
+if TRADING_MODELS_AVAILABLE and Order is not None:
+    class OrderAdmin(admin.ModelAdmin):
+        list_display = (
+            "bot",
+            "stock",
+            "side",
+            "quantity",
+            "price",
+            "status",
+            "date",
+        )
+    admin.site.register(Order, OrderAdmin)
+
+if TRADING_MODELS_AVAILABLE and Portfolio is not None:
+    class PortfolioAdmin(admin.ModelAdmin):
+        list_display = ("name", "user", "strategy")
+    admin.site.register(Portfolio, PortfolioAdmin)

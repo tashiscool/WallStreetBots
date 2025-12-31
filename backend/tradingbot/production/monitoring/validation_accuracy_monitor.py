@@ -346,7 +346,7 @@ class ValidationAccuracyMonitor:
     def get_dashboard_data(self) -> Dict[str, Any]:
         """Get data for monitoring dashboard."""
         report = self.generate_report()
-        
+
         return {
             'timestamp': report.timestamp.isoformat(),
             'overall_metrics': report.overall_metrics,
@@ -364,4 +364,284 @@ class ValidationAccuracyMonitor:
             'recommendations': report.recommendations,
             'alerts': report.alerts
         }
+
+    # ================== GAP FIX: PERFORMANCE FEEDBACK LOOP AUTOMATION ==================
+
+    def generate_threshold_adjustments(
+        self,
+        strategy_name: str = None
+    ) -> Dict[str, Dict[str, Any]]:
+        """Generate automatic threshold adjustments based on validation accuracy.
+
+        GAP FIX: This method implements the Performance Feedback Loop Gap -
+        automatically adjusting validation thresholds based on actual trade outcomes.
+
+        The algorithm:
+        1. If false positive rate > 20%: Increase min strength threshold
+        2. If false negative rate > 30%: Decrease min strength threshold
+        3. If accuracy < 60%: Review and adjust all thresholds
+        4. If correlation < 0.3: Suggest recalibration of strength score
+
+        Args:
+            strategy_name: Optional strategy to generate adjustments for.
+                          If None, generates for all strategies.
+
+        Returns:
+            Dictionary of threshold adjustments per strategy
+        """
+        adjustments = {}
+
+        strategies_to_process = [strategy_name] if strategy_name else list(self.validation_records.keys())
+
+        for strat_name in strategies_to_process:
+            metrics = self.calculate_metrics(strat_name)
+            if not metrics:
+                continue
+
+            strat_adjustments = {
+                'strategy_name': strat_name,
+                'current_metrics': {
+                    'accuracy': metrics.accuracy_rate,
+                    'precision': metrics.precision,
+                    'recall': metrics.recall,
+                    'f1_score': metrics.f1_score,
+                    'false_positive_rate': metrics.false_positive_rate,
+                    'false_negative_rate': metrics.false_negative_rate,
+                    'correlation': metrics.strength_score_correlation,
+                },
+                'adjustments': [],
+                'should_recalibrate': False,
+                'urgency': 'LOW',
+            }
+
+            # High false positive rate - tighten validation
+            if metrics.false_positive_rate > 0.20:
+                strength_increase = min(10, int(metrics.false_positive_rate * 30))
+                strat_adjustments['adjustments'].append({
+                    'parameter': 'min_strength_threshold',
+                    'action': 'INCREASE',
+                    'amount': strength_increase,
+                    'reason': f'High false positive rate: {metrics.false_positive_rate:.1%}'
+                })
+                strat_adjustments['urgency'] = 'MEDIUM'
+
+            # High false negative rate - loosen validation
+            if metrics.false_negative_rate > 0.30:
+                strength_decrease = min(10, int(metrics.false_negative_rate * 20))
+                strat_adjustments['adjustments'].append({
+                    'parameter': 'min_strength_threshold',
+                    'action': 'DECREASE',
+                    'amount': strength_decrease,
+                    'reason': f'High false negative rate: {metrics.false_negative_rate:.1%}'
+                })
+                if strat_adjustments['urgency'] != 'HIGH':
+                    strat_adjustments['urgency'] = 'MEDIUM'
+
+            # Low accuracy - needs review
+            if metrics.accuracy_rate < 0.60:
+                strat_adjustments['adjustments'].append({
+                    'parameter': 'validation_criteria',
+                    'action': 'REVIEW',
+                    'reason': f'Low accuracy: {metrics.accuracy_rate:.1%}'
+                })
+                strat_adjustments['urgency'] = 'HIGH'
+
+            # Very low accuracy - pause consideration
+            if metrics.accuracy_rate < 0.50:
+                strat_adjustments['adjustments'].append({
+                    'parameter': 'strategy_enabled',
+                    'action': 'PAUSE_RECOMMENDED',
+                    'reason': f'Critical accuracy: {metrics.accuracy_rate:.1%}'
+                })
+                strat_adjustments['urgency'] = 'CRITICAL'
+
+            # Weak correlation - recalibration needed
+            if abs(metrics.strength_score_correlation) < 0.3:
+                strat_adjustments['should_recalibrate'] = True
+                strat_adjustments['adjustments'].append({
+                    'parameter': 'strength_score_weights',
+                    'action': 'RECALIBRATE',
+                    'reason': f'Weak correlation: {metrics.strength_score_correlation:.2f}'
+                })
+
+            adjustments[strat_name] = strat_adjustments
+
+        return adjustments
+
+    async def apply_threshold_adjustments(
+        self,
+        strategy_manager,
+        adjustments: Dict[str, Dict[str, Any]] = None,
+        auto_mode: bool = False
+    ) -> Dict[str, Any]:
+        """Apply threshold adjustments to strategies.
+
+        GAP FIX: This method completes the Performance Feedback Loop by
+        actually applying the recommended adjustments.
+
+        Args:
+            strategy_manager: ProductionStrategyManager instance
+            adjustments: Pre-computed adjustments or None to compute fresh
+            auto_mode: If True, apply automatically; if False, return recommendations only
+
+        Returns:
+            Summary of applied adjustments
+        """
+        if adjustments is None:
+            adjustments = self.generate_threshold_adjustments()
+
+        result = {
+            'timestamp': datetime.now().isoformat(),
+            'adjustments_applied': [],
+            'adjustments_recommended': [],
+            'strategies_paused': [],
+            'errors': [],
+        }
+
+        for strategy_name, strat_adj in adjustments.items():
+            try:
+                for adj in strat_adj.get('adjustments', []):
+                    param = adj.get('parameter')
+                    action = adj.get('action')
+
+                    if auto_mode and strat_adj.get('urgency') in ['HIGH', 'CRITICAL']:
+                        # Apply critical adjustments automatically
+                        if param == 'strategy_enabled' and action == 'PAUSE_RECOMMENDED':
+                            if hasattr(strategy_manager, '_pause_strategy'):
+                                await strategy_manager._pause_strategy(
+                                    strategy_name,
+                                    f"Auto-paused due to poor validation accuracy: {adj['reason']}"
+                                )
+                                result['strategies_paused'].append(strategy_name)
+                                result['adjustments_applied'].append({
+                                    'strategy': strategy_name,
+                                    'adjustment': adj
+                                })
+                        elif param == 'min_strength_threshold':
+                            # Apply threshold adjustment
+                            if hasattr(strategy_manager, 'strategy_configs'):
+                                config = strategy_manager.strategy_configs.get(strategy_name)
+                                if config:
+                                    current_threshold = getattr(config, 'min_strength_threshold', 50)
+                                    if action == 'INCREASE':
+                                        new_threshold = min(80, current_threshold + adj.get('amount', 5))
+                                    else:
+                                        new_threshold = max(30, current_threshold - adj.get('amount', 5))
+                                    setattr(config, 'min_strength_threshold', new_threshold)
+                                    result['adjustments_applied'].append({
+                                        'strategy': strategy_name,
+                                        'adjustment': adj,
+                                        'old_value': current_threshold,
+                                        'new_value': new_threshold
+                                    })
+                    else:
+                        # Just recommend, don't apply
+                        result['adjustments_recommended'].append({
+                            'strategy': strategy_name,
+                            'adjustment': adj,
+                            'urgency': strat_adj.get('urgency', 'LOW')
+                        })
+
+            except Exception as e:
+                result['errors'].append({
+                    'strategy': strategy_name,
+                    'error': str(e)
+                })
+                self.logger.error(f"Error applying adjustments for {strategy_name}: {e}")
+
+        return result
+
+    def sync_with_database(self) -> Dict[str, Any]:
+        """Sync validation accuracy data with database.
+
+        GAP FIX: Connects the in-memory accuracy tracking with database persistence.
+
+        Returns:
+            Sync status summary
+        """
+        try:
+            from backend.tradingbot.models.models import SignalValidationHistory
+
+            sync_result = {
+                'timestamp': datetime.now().isoformat(),
+                'strategies_synced': [],
+                'records_updated': 0,
+                'accuracy_from_db': {},
+            }
+
+            # Get accuracy from database for comparison
+            for strategy_name in self.validation_records.keys():
+                db_accuracy = SignalValidationHistory.calculate_validation_accuracy(
+                    strategy_name=strategy_name,
+                    days=self.lookback_days
+                )
+
+                if 'error' not in db_accuracy:
+                    sync_result['accuracy_from_db'][strategy_name] = db_accuracy
+                    sync_result['strategies_synced'].append(strategy_name)
+
+                    # Compare with in-memory accuracy
+                    in_memory_metrics = self.calculate_metrics(strategy_name)
+                    if in_memory_metrics:
+                        db_win_rate = db_accuracy.get('overall_win_rate', 0)
+                        in_memory_accuracy = in_memory_metrics.accuracy_rate
+                        if abs(db_win_rate - in_memory_accuracy) > 0.1:
+                            self.logger.warning(
+                                f"Accuracy discrepancy for {strategy_name}: "
+                                f"DB={db_win_rate:.1%}, In-memory={in_memory_accuracy:.1%}"
+                            )
+
+            return sync_result
+
+        except ImportError:
+            self.logger.warning("SignalValidationHistory model not available for sync")
+            return {'error': 'Database model not available'}
+        except Exception as e:
+            self.logger.error(f"Error syncing with database: {e}")
+            return {'error': str(e)}
+
+    def get_feedback_loop_status(self) -> Dict[str, Any]:
+        """Get comprehensive status of the performance feedback loop.
+
+        Returns:
+            Status dictionary suitable for dashboard display
+        """
+        report = self.generate_report()
+        adjustments = self.generate_threshold_adjustments()
+
+        status = {
+            'timestamp': datetime.now().isoformat(),
+            'loop_health': 'HEALTHY',
+            'total_validations': report.overall_metrics.get('total_validations', 0),
+            'overall_accuracy': report.overall_metrics.get('average_accuracy', 0),
+            'strategies_needing_attention': [],
+            'pending_adjustments': [],
+            'auto_adjustments_available': [],
+            'recommendations': report.recommendations,
+            'alerts': report.alerts,
+        }
+
+        # Determine loop health
+        if report.alerts:
+            status['loop_health'] = 'CRITICAL' if any('CRITICAL' in a for a in report.alerts) else 'WARNING'
+        elif report.overall_metrics.get('average_accuracy', 0) < 0.60:
+            status['loop_health'] = 'WARNING'
+
+        # Identify strategies needing attention
+        for name, adj in adjustments.items():
+            if adj.get('urgency') in ['HIGH', 'CRITICAL']:
+                status['strategies_needing_attention'].append(name)
+            for adjustment in adj.get('adjustments', []):
+                status['pending_adjustments'].append({
+                    'strategy': name,
+                    'adjustment': adjustment,
+                    'urgency': adj.get('urgency')
+                })
+                if adj.get('urgency') in ['HIGH', 'CRITICAL']:
+                    status['auto_adjustments_available'].append({
+                        'strategy': name,
+                        'adjustment': adjustment
+                    })
+
+        return status
 

@@ -1,10 +1,28 @@
 {% extends 'layouts/base.html' %}
 {% load poll_extras %}
 
-{% block title %} Tables {% endblock title %}
+{% block title %} Positions {% endblock title %}
 
 <!-- Specific CSS goes HERE -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+  .why-btn {
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+  .why-btn:hover {
+    transform: scale(1.05);
+  }
+  .confidence-high { background: rgba(45,206,137,0.15); color: #2dce89; }
+  .confidence-medium { background: rgba(251,99,64,0.15); color: #fb6340; }
+  .confidence-low { background: rgba(245,54,92,0.15); color: #f5365c; }
+  .confidence-unknown { background: rgba(108,117,125,0.15); color: #6c757d; }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
 
@@ -143,7 +161,12 @@
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                     Total P/L ($)
                                 </th>
-                                <th class="text-secondary opacity-7"></th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Why?
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Actions
+                                </th>
                             </tr>
                             </thead>
                             <tbody>
@@ -206,6 +229,55 @@
                                     {% endif %}
                                     {% endwith %}
                                 </td>
+                                <td class="align-middle text-center">
+                                    {% if position.trade_id %}
+                                    <button class="why-btn confidence-{{ position.confidence_level|default:'unknown' }}"
+                                            onclick="openTradeExplanation('{{ position.trade_id }}')"
+                                            title="See why this position was opened">
+                                        <i class="fas fa-question-circle me-1"></i>
+                                        {% if position.confidence_score %}{{ position.confidence_score }}%{% else %}Why?{% endif %}
+                                    </button>
+                                    {% else %}
+                                    <button class="why-btn confidence-unknown"
+                                            onclick="searchPositionTrade('{{ position.symbol }}')"
+                                            title="Search for trade explanation">
+                                        <i class="fas fa-search me-1"></i>Why?
+                                    </button>
+                                    {% endif %}
+                                </td>
+                                <td class="align-middle text-center">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm bg-gradient-secondary dropdown-toggle mb-0" type="button" id="dropdownPosition{{ forloop.counter }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Close
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="dropdownPosition{{ forloop.counter }}">
+                                            <li>
+                                                <form action="/trading/close_position" method="post" style="display:inline;">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="symbol" value="{{ position.symbol }}">
+                                                    <input type="hidden" name="percentage" value="1.0">
+                                                    <button type="submit" class="dropdown-item text-danger">Close 100%</button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form action="/trading/close_position" method="post" style="display:inline;">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="symbol" value="{{ position.symbol }}">
+                                                    <input type="hidden" name="percentage" value="0.5">
+                                                    <button type="submit" class="dropdown-item">Close 50%</button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form action="/trading/close_position" method="post" style="display:inline;">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="symbol" value="{{ position.symbol }}">
+                                                    <input type="hidden" name="percentage" value="0.25">
+                                                    <button type="submit" class="dropdown-item">Close 25%</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
                             </tr>
                             {% endfor %}
                             </tbody>
@@ -219,9 +291,39 @@
 
     {% include "includes/footer.html" %}
 
+    <!-- Trade Explanation Modal -->
+    {% include "includes/trade_explanation_modal.html" %}
+
 </div>
 
 {% endblock content %}
 
 <!-- Specific JS goes HERE -->
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+<script>
+  // Search for a trade by symbol when trade_id is not available
+  async function searchPositionTrade(symbol) {
+    try {
+      const response = await fetch(`/api/trades/with-explanations?symbol=${encodeURIComponent(symbol)}&limit=1`);
+      const data = await response.json();
+
+      if (data.status === 'success' && data.trades && data.trades.length > 0) {
+        // Found a trade - open the explanation modal
+        openTradeExplanation(data.trades[0].trade_id);
+      } else {
+        // No trade found - show message
+        alert(`No trade explanation found for ${symbol}. This position may have been opened manually or before signal tracking was enabled.`);
+      }
+    } catch (error) {
+      console.error('Error searching for trade:', error);
+      alert('Error searching for trade explanation. Please try again.');
+    }
+  }
+
+  // Initialize Bootstrap tooltips
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+  tooltipTriggerList.forEach(function(el) {
+    new bootstrap.Tooltip(el);
+  });
+</script>
+{% endblock javascripts %}

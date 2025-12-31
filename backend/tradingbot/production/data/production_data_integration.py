@@ -123,6 +123,19 @@ class DataProviderError(Exception):
         self.source = source
 
 
+class DataQualityError(Exception):
+    """Exception raised when data doesn't meet quality standards for signal validation.
+
+    GAP FIX: This exception is part of the Data Provider Validation Gap implementation,
+    providing clear error handling when data quality is insufficient for trading signals.
+    """
+
+    def __init__(self, message: str, quality_score: float = 0.0, warnings: list = None):
+        super().__init__(message)
+        self.quality_score = quality_score
+        self.warnings = warnings or []
+
+
 class ReliableDataProvider:
     """Multi - Source Data Provider with Intelligent Failover.
 
@@ -1097,6 +1110,180 @@ class ReliableDataProvider:
                 'error': str(e),
                 'validation_state': 'UNKNOWN'
             }
+
+    async def get_validated_market_data(
+        self,
+        symbol: str,
+        for_signal_validation: bool = False,
+    ) -> dict:
+        """Get market data with validation-specific quality checks.
+
+        GAP FIX: This method implements the Data Provider Validation Gap -
+        ensuring data quality is verified before signals are validated.
+
+        When for_signal_validation=True, applies stricter data quality checks:
+        - Data must be more recent (within 60 seconds vs 5 minutes normally)
+        - Price must have reasonable bid/ask spread (< 5%)
+        - Volume must be above minimum threshold (100 shares)
+        - Data staleness is explicitly tracked
+
+        Args:
+            symbol: Trading symbol to get data for
+            for_signal_validation: If True, apply stricter quality checks
+
+        Returns:
+            Dictionary with market data and quality metadata
+
+        Raises:
+            DataQualityError: If data doesn't meet signal validation standards
+        """
+        try:
+            # Get base market data
+            market_data = await self.get_current_price(symbol)
+
+            if not market_data:
+                raise DataQualityError(f"No market data available for {symbol}")
+
+            # Calculate data age
+            now = datetime.now()
+            if market_data.timestamp.tzinfo is not None:
+                now = now.replace(tzinfo=market_data.timestamp.tzinfo)
+            data_age_seconds = (now - market_data.timestamp).total_seconds()
+
+            # Build response with metadata
+            result = {
+                'symbol': symbol,
+                'price': float(market_data.price),
+                'volume': market_data.volume,
+                'high': float(market_data.high),
+                'low': float(market_data.low),
+                'open': float(market_data.open),
+                'close': float(market_data.close),
+                'bid': float(market_data.bid) if market_data.bid else None,
+                'ask': float(market_data.ask) if market_data.ask else None,
+                'timestamp': market_data.timestamp.isoformat(),
+                'data_age_seconds': data_age_seconds,
+                'quality_checks': {},
+                'quality_score': 1.0,
+                'suitable_for_validation': True,
+                'warnings': [],
+            }
+
+            if for_signal_validation:
+                # Apply stricter validation checks for signal validation
+                checks_passed = 0
+                total_checks = 5
+
+                # Check 1: Data freshness (must be < 60 seconds old)
+                freshness_ok = data_age_seconds < 60
+                result['quality_checks']['freshness'] = {
+                    'passed': freshness_ok,
+                    'value': data_age_seconds,
+                    'threshold': 60,
+                    'message': f"Data age: {data_age_seconds:.1f}s (max: 60s)"
+                }
+                if freshness_ok:
+                    checks_passed += 1
+                else:
+                    result['warnings'].append(f"Data is stale: {data_age_seconds:.1f}s old")
+
+                # Check 2: Price reasonableness
+                price_ok = 0.01 <= float(market_data.price) <= 50000
+                result['quality_checks']['price_range'] = {
+                    'passed': price_ok,
+                    'value': float(market_data.price),
+                    'threshold': '0.01-50000',
+                    'message': f"Price: ${float(market_data.price):.2f}"
+                }
+                if price_ok:
+                    checks_passed += 1
+                else:
+                    result['warnings'].append(f"Price outside reasonable range: ${float(market_data.price)}")
+
+                # Check 3: Volume minimum (100 shares for liquid trading)
+                volume_ok = market_data.volume >= 100
+                result['quality_checks']['volume'] = {
+                    'passed': volume_ok,
+                    'value': market_data.volume,
+                    'threshold': 100,
+                    'message': f"Volume: {market_data.volume:,} (min: 100)"
+                }
+                if volume_ok:
+                    checks_passed += 1
+                else:
+                    result['warnings'].append(f"Low volume: {market_data.volume}")
+
+                # Check 4: Bid/Ask spread (if available)
+                if market_data.bid and market_data.ask and market_data.ask > 0:
+                    spread_pct = float((market_data.ask - market_data.bid) / market_data.ask * 100)
+                    spread_ok = spread_pct < 5.0  # Max 5% spread
+                    result['quality_checks']['spread'] = {
+                        'passed': spread_ok,
+                        'value': spread_pct,
+                        'threshold': 5.0,
+                        'message': f"Bid/Ask spread: {spread_pct:.2f}% (max: 5%)"
+                    }
+                    if spread_ok:
+                        checks_passed += 1
+                    else:
+                        result['warnings'].append(f"Wide bid/ask spread: {spread_pct:.2f}%")
+                else:
+                    # No bid/ask - count as half pass
+                    result['quality_checks']['spread'] = {
+                        'passed': True,
+                        'value': None,
+                        'threshold': 5.0,
+                        'message': "Bid/Ask not available - skipped"
+                    }
+                    checks_passed += 0.5
+
+                # Check 5: Price movement reasonableness (high-low vs current)
+                if market_data.high > 0 and market_data.low > 0:
+                    daily_range_pct = float((market_data.high - market_data.low) / market_data.low * 100)
+                    range_ok = daily_range_pct < 20  # Max 20% daily range
+                    result['quality_checks']['daily_range'] = {
+                        'passed': range_ok,
+                        'value': daily_range_pct,
+                        'threshold': 20,
+                        'message': f"Daily range: {daily_range_pct:.2f}% (max: 20%)"
+                    }
+                    if range_ok:
+                        checks_passed += 1
+                    else:
+                        result['warnings'].append(f"Unusual daily range: {daily_range_pct:.2f}%")
+                else:
+                    result['quality_checks']['daily_range'] = {
+                        'passed': True,
+                        'value': None,
+                        'threshold': 20,
+                        'message': "High/Low not available - skipped"
+                    }
+                    checks_passed += 0.5
+
+                # Calculate overall quality score
+                result['quality_score'] = checks_passed / total_checks
+                result['suitable_for_validation'] = result['quality_score'] >= 0.7
+
+                # Raise error if data doesn't meet standards
+                if not result['suitable_for_validation']:
+                    raise DataQualityError(
+                        f"Data for {symbol} does not meet signal validation standards. "
+                        f"Quality score: {result['quality_score']:.0%}. "
+                        f"Warnings: {'; '.join(result['warnings'])}"
+                    )
+
+                self.logger.debug(
+                    f"Validated market data for {symbol}: "
+                    f"quality={result['quality_score']:.0%}, age={data_age_seconds:.1f}s"
+                )
+
+            return result
+
+        except DataQualityError:
+            raise  # Re-raise quality errors
+        except Exception as e:
+            self.logger.error(f"Error getting validated market data for {symbol}: {e}")
+            raise DataQualityError(f"Failed to get validated data for {symbol}: {e}")
 
     async def _update_source_health(
         self, source: DataSource, success: bool, response_time: float | None = None

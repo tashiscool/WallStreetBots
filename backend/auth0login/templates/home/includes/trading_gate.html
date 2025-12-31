@@ -1,0 +1,282 @@
+<!-- Trading Gate Component - Paper-to-Live Trading Progress -->
+<div class="card" id="tradingGateCard">
+  <div class="card-header pb-0">
+    <div class="d-flex justify-content-between align-items-center">
+      <h6><i class="fas fa-shield-alt me-2"></i>Trading Gate Status</h6>
+      <span id="gateStatusBadge" class="badge bg-warning">Loading...</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <!-- Loading State -->
+    <div id="gateLoading" class="text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2 text-secondary">Loading trading gate status...</p>
+    </div>
+
+    <!-- Gate Status Content -->
+    <div id="gateContent" style="display: none;">
+      <!-- Already Approved Banner -->
+      <div id="approvedBanner" class="alert alert-success mb-4" style="display: none;">
+        <div class="d-flex align-items-center">
+          <i class="fas fa-check-circle fa-2x me-3"></i>
+          <div>
+            <h6 class="mb-1">Live Trading Approved</h6>
+            <small>You have full access to live trading. Trade responsibly!</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paper Trading Progress -->
+      <div id="paperTradingProgress" style="display: none;">
+        <h6 class="mb-3">Paper Trading Progress</h6>
+
+        <!-- Days Progress -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between mb-2">
+            <span>Time in Paper Trading</span>
+            <span id="daysProgress" class="fw-bold">0/14 days</span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div id="daysProgressBar" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+          </div>
+          <small id="daysRemaining" class="text-secondary">14 days remaining</small>
+        </div>
+
+        <!-- Performance Summary -->
+        <div class="row mb-4">
+          <div class="col-6 col-md-3 mb-3">
+            <div class="text-center p-3 bg-light rounded">
+              <h5 id="totalTrades" class="mb-0">0</h5>
+              <small class="text-secondary">Trades</small>
+            </div>
+          </div>
+          <div class="col-6 col-md-3 mb-3">
+            <div class="text-center p-3 bg-light rounded">
+              <h5 id="totalPnl" class="mb-0 text-success">+$0</h5>
+              <small class="text-secondary">P&L</small>
+            </div>
+          </div>
+          <div class="col-6 col-md-3 mb-3">
+            <div class="text-center p-3 bg-light rounded">
+              <h5 id="winRate" class="mb-0">0%</h5>
+              <small class="text-secondary">Win Rate</small>
+            </div>
+          </div>
+          <div class="col-6 col-md-3 mb-3">
+            <div class="text-center p-3 bg-light rounded">
+              <h5 id="sharpeRatio" class="mb-0">--</h5>
+              <small class="text-secondary">Sharpe</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Requirements Checklist -->
+        <h6 class="mb-3">Requirements for Live Trading</h6>
+        <div id="requirementsList" class="mb-4">
+          <!-- Requirements will be populated by JavaScript -->
+        </div>
+
+        <!-- Request Live Trading Button -->
+        <div class="d-grid gap-2">
+          <button id="requestLiveBtn" class="btn btn-lg bg-gradient-success" disabled>
+            <i class="fas fa-rocket me-2"></i>Request Live Trading
+          </button>
+          <small id="requestHint" class="text-center text-secondary">
+            Complete all requirements to unlock live trading
+          </small>
+        </div>
+
+        <!-- Denial Message -->
+        <div id="denialMessage" class="alert alert-warning mt-3" style="display: none;">
+          <h6><i class="fas fa-exclamation-triangle me-2"></i>Previous Request Denied</h6>
+          <p id="denialReason" class="mb-0"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // Trading Gate UI Controller
+  const TradingGateUI = {
+    elements: {
+      card: document.getElementById('tradingGateCard'),
+      loading: document.getElementById('gateLoading'),
+      content: document.getElementById('gateContent'),
+      statusBadge: document.getElementById('gateStatusBadge'),
+      approvedBanner: document.getElementById('approvedBanner'),
+      paperProgress: document.getElementById('paperTradingProgress'),
+      daysProgress: document.getElementById('daysProgress'),
+      daysProgressBar: document.getElementById('daysProgressBar'),
+      daysRemaining: document.getElementById('daysRemaining'),
+      totalTrades: document.getElementById('totalTrades'),
+      totalPnl: document.getElementById('totalPnl'),
+      winRate: document.getElementById('winRate'),
+      sharpeRatio: document.getElementById('sharpeRatio'),
+      requirementsList: document.getElementById('requirementsList'),
+      requestBtn: document.getElementById('requestLiveBtn'),
+      requestHint: document.getElementById('requestHint'),
+      denialMessage: document.getElementById('denialMessage'),
+      denialReason: document.getElementById('denialReason'),
+    },
+
+    init: function() {
+      this.loadStatus();
+      this.bindEvents();
+    },
+
+    bindEvents: function() {
+      this.elements.requestBtn?.addEventListener('click', () => this.requestLiveTrading());
+    },
+
+    async loadStatus() {
+      try {
+        const response = await fetch('/api/trading-gate/status', {
+          headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+          },
+        });
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          this.renderStatus(data.gate);
+        } else {
+          this.showError(data.message);
+        }
+      } catch (error) {
+        this.showError('Failed to load trading gate status');
+      }
+    },
+
+    renderStatus(gate) {
+      // Hide loading, show content
+      this.elements.loading.style.display = 'none';
+      this.elements.content.style.display = 'block';
+
+      if (gate.live_trading_approved) {
+        // Already approved
+        this.elements.statusBadge.textContent = 'Approved';
+        this.elements.statusBadge.className = 'badge bg-success';
+        this.elements.approvedBanner.style.display = 'block';
+        this.elements.paperProgress.style.display = 'none';
+      } else {
+        // Still in paper trading
+        this.elements.statusBadge.textContent = 'Paper Trading';
+        this.elements.statusBadge.className = 'badge bg-warning';
+        this.elements.approvedBanner.style.display = 'none';
+        this.elements.paperProgress.style.display = 'block';
+
+        // Update progress
+        const progressPct = Math.min(100, (gate.days_in_paper / gate.days_required) * 100);
+        this.elements.daysProgress.textContent = `${gate.days_in_paper}/${gate.days_required} days`;
+        this.elements.daysProgressBar.style.width = `${progressPct}%`;
+        this.elements.daysRemaining.textContent = gate.days_remaining > 0
+          ? `${gate.days_remaining} days remaining`
+          : 'Duration requirement met!';
+
+        // Update performance metrics
+        this.elements.totalTrades.textContent = gate.total_trades;
+        this.elements.totalPnl.textContent = gate.total_pnl >= 0
+          ? `+$${gate.total_pnl.toFixed(0)}`
+          : `-$${Math.abs(gate.total_pnl).toFixed(0)}`;
+        this.elements.totalPnl.className = gate.total_pnl >= 0 ? 'mb-0 text-success' : 'mb-0 text-danger';
+        this.elements.winRate.textContent = `${(gate.win_rate * 100).toFixed(0)}%`;
+        this.elements.sharpeRatio.textContent = gate.sharpe_ratio ? gate.sharpe_ratio.toFixed(2) : '--';
+
+        // Render requirements
+        this.renderRequirements(gate.requirements);
+
+        // Update button state
+        if (gate.all_requirements_met) {
+          this.elements.requestBtn.disabled = false;
+          this.elements.requestBtn.classList.remove('btn-secondary');
+          this.elements.requestBtn.classList.add('bg-gradient-success');
+          this.elements.requestHint.textContent = 'All requirements met! Click to request live trading.';
+        } else {
+          this.elements.requestBtn.disabled = true;
+          this.elements.requestHint.textContent = 'Complete all requirements to unlock live trading';
+        }
+
+        // Show denial message if applicable
+        if (gate.denial_reason) {
+          this.elements.denialMessage.style.display = 'block';
+          this.elements.denialReason.textContent = gate.denial_reason;
+        } else {
+          this.elements.denialMessage.style.display = 'none';
+        }
+      }
+    },
+
+    renderRequirements(requirements) {
+      this.elements.requirementsList.innerHTML = requirements.map(req => `
+        <div class="d-flex align-items-center mb-2 p-2 rounded ${req.met ? 'bg-success-soft' : 'bg-light'}">
+          <i class="fas ${req.met ? 'fa-check-circle text-success' : 'fa-circle text-secondary'} me-3"></i>
+          <div class="flex-grow-1">
+            <div class="fw-bold">${req.description}</div>
+            <small class="text-secondary">${req.current_value} / ${req.required_value}</small>
+          </div>
+          ${req.met ? '<span class="badge bg-success">Done</span>' : '<span class="badge bg-secondary">Pending</span>'}
+        </div>
+      `).join('');
+    },
+
+    async requestLiveTrading() {
+      const btn = this.elements.requestBtn;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+
+      try {
+        const response = await fetch('/api/trading-gate/request-live', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+          },
+        });
+        const data = await response.json();
+
+        if (data.result?.approved) {
+          // Approved! Reload to show success state
+          this.loadStatus();
+          this.showSuccess('Live trading approved! Welcome to live trading.');
+        } else {
+          // Not approved
+          this.showError(data.result?.message || 'Request not approved');
+          this.loadStatus(); // Refresh to show updated state
+        }
+      } catch (error) {
+        this.showError('Failed to submit request');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-rocket me-2"></i>Request Live Trading';
+      }
+    },
+
+    showSuccess(message) {
+      // Simple alert for now - could be enhanced with toast
+      alert(message);
+    },
+
+    showError(message) {
+      console.error('Trading Gate Error:', message);
+      // Could show a toast or alert
+    },
+  };
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => TradingGateUI.init());
+  } else {
+    TradingGateUI.init();
+  }
+})();
+</script>
+
+<style>
+.bg-success-soft {
+  background-color: rgba(34, 197, 94, 0.1);
+}
+</style>

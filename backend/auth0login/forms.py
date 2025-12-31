@@ -22,15 +22,13 @@ class OrderForm(forms.Form):
     """manual orders from user."""
 
     ORDERTYPES: ClassVar[list[tuple[str, str]]] = [
-        ("M", "Market"),
-        # ('L', 'Limit'),
-        # ('S', 'Stop'),
-        # ('ST', 'Stop Limit'),
-        # ('T', 'Trailing Stop'),
+        ("market", "Market"),
+        ("limit", "Limit"),
+        ("stop", "Stop"),
     ]
     TRANSACTIONTYPES: ClassVar[list[tuple[str, str]]] = [
-        ("B", "Buy"),
-        ("S", "Sell"),
+        ("buy", "Buy"),
+        ("sell", "Sell"),
     ]
     TIMEINFORCE: ClassVar[list[tuple[str, str]]] = [
         ("day", "Day"),
@@ -42,13 +40,35 @@ class OrderForm(forms.Form):
         choices=TRANSACTIONTYPES, help_text="Transaction Type"
     )
     quantity = forms.DecimalField(decimal_places=2, help_text="Quantity")
+    limit_price = forms.DecimalField(
+        decimal_places=2, required=False, help_text="Limit Price (for limit orders)"
+    )
+    stop_price = forms.DecimalField(
+        decimal_places=2, required=False, help_text="Stop Price (for stop orders)"
+    )
     time_in_force = forms.ChoiceField(choices=TIMEINFORCE, help_text="Time in force")
+
+    def clean(self):
+        """Validate that required prices are provided for limit/stop orders."""
+        cleaned_data = super().clean()
+        order_type = cleaned_data.get("order_type")
+        limit_price = cleaned_data.get("limit_price")
+        stop_price = cleaned_data.get("stop_price")
+
+        if order_type == "limit" and not limit_price:
+            raise forms.ValidationError("Limit price is required for limit orders")
+        if order_type == "stop" and not stop_price:
+            raise forms.ValidationError("Stop price is required for stop orders")
+
+        return cleaned_data
 
     def place_order(self, user, user_details):
         ticker = self.cleaned_data["ticker"].upper()
         order_type = self.cleaned_data["order_type"]
         transaction_type = self.cleaned_data["transaction_type"]
         quantity = self.cleaned_data["quantity"]
+        limit_price = self.cleaned_data.get("limit_price")
+        stop_price = self.cleaned_data.get("stop_price")
         time_in_force = self.cleaned_data["time_in_force"]
         from backend.tradingbot.apiutility import place_general_order
 
@@ -61,6 +81,8 @@ class OrderForm(forms.Form):
                 order_type=order_type,
                 transaction_type=transaction_type,
                 time_in_force=time_in_force,
+                limit_price=limit_price,
+                stop_price=stop_price,
             )
             return "Order placed successfully"
         except Exception as e:

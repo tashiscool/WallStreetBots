@@ -1,0 +1,194 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Margin & Borrow {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .margin-card { transition: all 0.3s ease; }
+  .margin-card.healthy { border-left: 4px solid #2dce89; }
+  .margin-card.warning { border-left: 4px solid #fb6340; }
+  .margin-card.critical { border-left: 4px solid #f5365c; }
+  .htb-badge { background: linear-gradient(135deg, #f5365c, #d32f2f); color: white; }
+  .etb-badge { background: linear-gradient(135deg, #2dce89, #26b576); color: white; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-danger">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-percentage text-danger fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">Margin & Short Selling</h4>
+              <p class="text-white opacity-8 mb-0">Enhanced short selling with dynamic borrow rates, margin tracking, and HTB detection.</p>
+            </div>
+            <div class="col-auto">
+              {% if margin.is_available %}
+              <span class="badge bg-white text-success px-3 py-2"><i class="fas fa-check-circle me-1"></i>Module Available</span>
+              {% else %}
+              <span class="badge bg-white text-danger px-3 py-2"><i class="fas fa-times-circle me-1"></i>Not Available</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if margin.is_available %}
+  <div class="row">
+    <!-- Margin Status -->
+    <div class="col-lg-4 mb-4">
+      <div class="card margin-card {{ margin.margin_status }} h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-tachometer-alt me-2"></i>Margin Status</h6>
+        </div>
+        <div class="card-body text-center">
+          <h2 class="mb-2 {% if margin.margin_status == 'healthy' %}text-success{% elif margin.margin_status == 'warning' %}text-warning{% else %}text-danger{% endif %}">
+            {{ margin.margin_status|title }}
+          </h2>
+          <div class="row mt-4">
+            <div class="col-6">
+              <small class="text-secondary">Buying Power</small>
+              <h5>${{ margin.buying_power|floatformat:0 }}</h5>
+            </div>
+            <div class="col-6">
+              <small class="text-secondary">Margin Used</small>
+              <h5>${{ margin.margin_used|floatformat:0 }}</h5>
+            </div>
+          </div>
+          <div class="row mt-2">
+            <div class="col-6">
+              <small class="text-secondary">Margin Available</small>
+              <h5>${{ margin.margin_available|floatformat:0 }}</h5>
+            </div>
+            <div class="col-6">
+              <small class="text-secondary">Maintenance</small>
+              <h5>${{ margin.maintenance_margin|floatformat:0 }}</h5>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Borrow Costs -->
+    <div class="col-lg-4 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-hand-holding-usd me-2"></i>Borrow Costs</h6>
+        </div>
+        <div class="card-body">
+          <div class="text-center mb-4">
+            <small class="text-secondary">Daily Borrow Cost</small>
+            <h3 class="text-danger">${{ margin.total_borrow_cost_daily|floatformat:2 }}</h3>
+          </div>
+          <hr>
+          <p class="text-sm text-secondary mb-2"><strong>Borrow Difficulty Levels:</strong></p>
+          <ul class="list-unstyled mb-0">
+            <li class="py-1"><span class="badge etb-badge me-2">ETB</span>Easy to Borrow (< 1% APR)</li>
+            <li class="py-1"><span class="badge bg-warning me-2">Medium</span>1-5% APR</li>
+            <li class="py-1"><span class="badge htb-badge me-2">HTB</span>Hard to Borrow (> 5% APR)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk Alerts -->
+    <div class="col-lg-4 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Risk Alerts</h6>
+        </div>
+        <div class="card-body">
+          {% if margin.htb_alerts or margin.squeeze_risk_symbols %}
+          <ul class="list-unstyled mb-0">
+            {% for alert in margin.htb_alerts %}
+            <li class="py-2 border-bottom">
+              <span class="badge htb-badge me-2">HTB</span>
+              <strong>{{ alert.symbol }}</strong> - {{ alert.rate }}% APR
+            </li>
+            {% endfor %}
+            {% for symbol in margin.squeeze_risk_symbols %}
+            <li class="py-2 border-bottom">
+              <span class="badge bg-danger me-2">SQUEEZE</span>
+              <strong>{{ symbol }}</strong> - High squeeze risk
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="text-center text-secondary mb-0"><i class="fas fa-check-circle text-success fa-2x mb-2"></i><br>No active risk alerts</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Short Positions -->
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-arrow-down me-2"></i>Short Positions</h6>
+        </div>
+        <div class="card-body">
+          {% if margin.short_positions %}
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Symbol</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Qty</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Entry</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Current</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">P&L</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Borrow Rate</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Difficulty</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pos in margin.short_positions %}
+                <tr>
+                  <td><strong>{{ pos.symbol }}</strong></td>
+                  <td>{{ pos.qty }}</td>
+                  <td>${{ pos.entry_price|floatformat:2 }}</td>
+                  <td>${{ pos.current_price|floatformat:2 }}</td>
+                  <td class="{% if pos.pnl >= 0 %}text-success{% else %}text-danger{% endif %}">${{ pos.pnl|floatformat:2 }}</td>
+                  <td>{{ pos.borrow_rate|floatformat:2 }}%</td>
+                  <td><span class="badge {% if pos.difficulty == 'htb' %}htb-badge{% elif pos.difficulty == 'etb' %}etb-badge{% else %}bg-warning{% endif %}">{{ pos.difficulty|upper }}</span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-center text-secondary mb-0">No active short positions</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+          <h5>Enhanced Borrow Module Not Available</h5>
+          <p class="text-secondary">The margin and borrow tracking module requires additional configuration.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}

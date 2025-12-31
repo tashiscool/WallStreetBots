@@ -1,0 +1,350 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Feature Status {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .feature-card { transition: all 0.3s ease; }
+  .feature-card.available { border-left: 4px solid #2dce89; }
+  .feature-card.unavailable { border-left: 4px solid #f5365c; }
+  .status-icon { font-size: 1.5rem; }
+  .category-header { background: linear-gradient(to right, rgba(94,114,228,0.1), transparent); padding: 8px 12px; border-radius: 4px; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-dark">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-puzzle-piece text-dark fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">Feature Status</h4>
+              <p class="text-white opacity-8 mb-0">Complete overview of all modules and their integration status.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Trading Features -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h6 class="category-header text-uppercase text-secondary mb-3"><i class="fas fa-cube me-2"></i>Core Trading Features</h6>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.strategy_manager %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-chess status-icon {% if features.strategy_manager %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Strategy Manager</h6>
+          <span class="badge {% if features.strategy_manager %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.strategy_manager %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.risk_manager %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-shield-alt status-icon {% if features.risk_manager %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Risk Manager</h6>
+          <span class="badge {% if features.risk_manager %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.risk_manager %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.analytics %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-chart-bar status-icon {% if features.analytics %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Analytics</h6>
+          <span class="badge {% if features.analytics %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.analytics %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.alert_system %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-bell status-icon {% if features.alert_system %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Alert System</h6>
+          <span class="badge {% if features.alert_system %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.alert_system %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ML Predictor Models -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h6 class="category-header text-uppercase text-secondary mb-3"><i class="fas fa-brain me-2"></i>ML Predictor Models</h6>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.lstm_predictor %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-wave-square status-icon {% if features.lstm_predictor %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>LSTM Predictor</h6>
+          <small class="text-secondary d-block mb-2">Time series prediction</small>
+          <span class="badge {% if features.lstm_predictor %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.lstm_predictor %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.transformer_predictor %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-network-wired status-icon {% if features.transformer_predictor %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Transformer</h6>
+          <small class="text-secondary d-block mb-2">Self-attention model</small>
+          <span class="badge {% if features.transformer_predictor %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.transformer_predictor %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.cnn_predictor %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-layer-group status-icon {% if features.cnn_predictor %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>CNN Predictor</h6>
+          <small class="text-secondary d-block mb-2">Pattern recognition</small>
+          <span class="badge {% if features.cnn_predictor %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.cnn_predictor %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.ensemble_predictor %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-project-diagram status-icon {% if features.ensemble_predictor %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Ensemble</h6>
+          <small class="text-secondary d-block mb-2">Combined predictions</small>
+          <span class="badge {% if features.ensemble_predictor %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.ensemble_predictor %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RL Components -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h6 class="category-header text-uppercase text-secondary mb-3"><i class="fas fa-robot me-2"></i>Reinforcement Learning</h6>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.rl_agents %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-robot status-icon {% if features.rl_agents %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>PPO/DQN Agents</h6>
+          <small class="text-secondary d-block mb-2">Position sizing & timing</small>
+          <span class="badge {% if features.rl_agents %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.rl_agents %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.rl_environment %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-gamepad status-icon {% if features.rl_environment %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Trading Environment</h6>
+          <small class="text-secondary d-block mb-2">Gym-compatible env</small>
+          <span class="badge {% if features.rl_environment %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.rl_environment %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.training_utils %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-dumbbell status-icon {% if features.training_utils %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Training Utilities</h6>
+          <small class="text-secondary d-block mb-2">Model training & tuning</small>
+          <span class="badge {% if features.training_utils %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.training_utils %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.market_regime %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-chart-line status-icon {% if features.market_regime %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Market Regime</h6>
+          <small class="text-secondary d-block mb-2">Regime detection</small>
+          <span class="badge {% if features.market_regime %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.market_regime %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signal Processing -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h6 class="category-header text-uppercase text-secondary mb-3"><i class="fas fa-signal me-2"></i>Signal Processing & Pipelines</h6>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.lstm_signal_calculator %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-calculator status-icon {% if features.lstm_signal_calculator %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Signal Calculator</h6>
+          <small class="text-secondary d-block mb-2">LSTM signal strength</small>
+          <span class="badge {% if features.lstm_signal_calculator %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.lstm_signal_calculator %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.lstm_pipeline %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-stream status-icon {% if features.lstm_pipeline %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>LSTM Pipeline</h6>
+          <small class="text-secondary d-block mb-2">End-to-end prediction</small>
+          <span class="badge {% if features.lstm_pipeline %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.lstm_pipeline %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.data_fetcher %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-database status-icon {% if features.data_fetcher %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Data Fetcher</h6>
+          <small class="text-secondary d-block mb-2">Market data retrieval</small>
+          <span class="badge {% if features.data_fetcher %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.data_fetcher %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.regime_adapter %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-sliders-h status-icon {% if features.regime_adapter %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Regime Adapter</h6>
+          <small class="text-secondary d-block mb-2">Strategy adaptation</small>
+          <span class="badge {% if features.regime_adapter %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.regime_adapter %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Advanced Trading Features -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h6 class="category-header text-uppercase text-secondary mb-3"><i class="fas fa-rocket me-2"></i>Advanced Trading Features</h6>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.crypto %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fab fa-bitcoin status-icon {% if features.crypto %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Crypto Trading</h6>
+          <small class="text-secondary d-block mb-2">24/7 crypto via Alpaca</small>
+          <span class="badge {% if features.crypto %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.crypto %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.extended_hours %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-clock status-icon {% if features.extended_hours %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Extended Hours</h6>
+          <small class="text-secondary d-block mb-2">Pre/after market</small>
+          <span class="badge {% if features.extended_hours %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.extended_hours %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.enhanced_borrow %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-percentage status-icon {% if features.enhanced_borrow %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Enhanced Borrow</h6>
+          <small class="text-secondary d-block mb-2">Short selling & margin</small>
+          <span class="badge {% if features.enhanced_borrow %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.enhanced_borrow %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.exotic_spreads %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-layer-group status-icon {% if features.exotic_spreads %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Exotic Spreads</h6>
+          <small class="text-secondary d-block mb-2">Multi-leg options</small>
+          <span class="badge {% if features.exotic_spreads %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.exotic_spreads %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Features -->
+  <div class="row">
+    <div class="col-12">
+      <h6 class="category-header text-uppercase text-secondary mb-3"><i class="fas fa-server me-2"></i>System Features</h6>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card feature-card {% if features.health_monitor %}available{% else %}unavailable{% endif %} h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-heartbeat status-icon {% if features.health_monitor %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+          <h6>Health Monitor</h6>
+          <small class="text-secondary d-block mb-2">System health tracking</small>
+          <span class="badge {% if features.health_monitor %}bg-success{% else %}bg-danger{% endif %}">
+            {% if features.health_monitor %}Available{% else %}Unavailable{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}

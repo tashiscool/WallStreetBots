@@ -1,0 +1,1028 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Strategy Portfolios {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .portfolio-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+  .portfolio-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  }
+  .portfolio-card.active {
+    border-color: #2dce89;
+  }
+  .portfolio-card.selected {
+    border-color: #cb0c9f;
+  }
+
+  .template-card {
+    background: linear-gradient(310deg, #141727 0%, #3A416F 100%);
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .template-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  }
+  .template-card.selected {
+    border: 2px solid #cb0c9f;
+  }
+
+  .risk-badge.conservative { background: linear-gradient(310deg, #2dce89 0%, #26a769 100%); }
+  .risk-badge.moderate { background: linear-gradient(310deg, #fb6340 0%, #ec5229 100%); }
+  .risk-badge.aggressive { background: linear-gradient(310deg, #f5365c 0%, #d41b47 100%); }
+
+  .strategy-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    margin: 2px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+  }
+  .strategy-chip .allocation {
+    margin-left: 4px;
+    font-weight: 600;
+    color: #2dce89;
+  }
+
+  .allocation-slider-container {
+    margin: 10px 0;
+  }
+  .allocation-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #e9ecef;
+    outline: none;
+  }
+  .allocation-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(310deg, #7928CA 0%, #FF0080 100%);
+    cursor: pointer;
+  }
+
+  .diversification-meter {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .diversification-meter .fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+  .diversification-meter .fill.poor { background: linear-gradient(90deg, #f5365c, #d41b47); }
+  .diversification-meter .fill.fair { background: linear-gradient(90deg, #fb6340, #ec5229); }
+  .diversification-meter .fill.good { background: linear-gradient(90deg, #2dce89, #26a769); }
+  .diversification-meter .fill.excellent { background: linear-gradient(90deg, #11cdef, #0da6c2); }
+
+  .metric-box {
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(310deg, #7928CA 0%, #FF0080 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .metric-label {
+    font-size: 11px;
+    color: #8898aa;
+    text-transform: uppercase;
+  }
+
+  .correlation-cell {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 4px;
+  }
+
+  .strategy-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .strategy-toggle-row:hover {
+    background: rgba(0,0,0,0.05);
+  }
+
+  .allocation-pie {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+  }
+
+  .active-badge {
+    animation: pulse 1.5s infinite;
+    background: linear-gradient(310deg, #2dce89 0%, #26a769 100%);
+  }
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+  }
+
+  .builder-section {
+    background: linear-gradient(310deg, #141727 0%, #3A416F 100%);
+    border-radius: 1rem;
+    padding: 20px;
+  }
+
+  .recommendation-item {
+    padding: 8px 12px;
+    background: rgba(45,206,137,0.1);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    border-left: 3px solid #2dce89;
+  }
+  .warning-item {
+    padding: 8px 12px;
+    background: rgba(251,99,64,0.1);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    border-left: 3px solid #fb6340;
+  }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-dark">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-lg-6">
+              <h4 class="text-white mb-1">Strategy Portfolio Builder</h4>
+              <p class="text-white opacity-8 mb-0">Create optimized strategy combinations with correlation-aware allocation. Choose a template or build your own.</p>
+            </div>
+            <div class="col-lg-3 text-center">
+              {% if active_portfolio %}
+              <span class="badge active-badge px-3 py-2">Active: {{ active_portfolio.name }}</span>
+              <br>
+              <small class="text-white opacity-7">{{ active_portfolio.strategy_count }} strategies</small>
+              {% else %}
+              <span class="badge bg-secondary px-3 py-2">No Active Portfolio</span>
+              {% endif %}
+            </div>
+            <div class="col-lg-3 text-end">
+              <button class="btn btn-white mb-0" id="createPortfolioBtn">
+                <i class="fas fa-plus me-2"></i> New Portfolio
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portfolio Templates -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6 class="mb-0"><i class="fas fa-layer-group me-2 text-primary"></i>Portfolio Templates</h6>
+          <p class="text-sm text-muted mb-0">Pre-built strategy combinations optimized for different objectives</p>
+        </div>
+        <div class="card-body">
+          <div class="row" id="templatesContainer">
+            {% for template_id, template in templates.items %}
+            <div class="col-lg-4 col-md-6 mb-3">
+              <div class="template-card p-3" data-template-id="{{ template_id }}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="text-white mb-0">{{ template.name }}</h6>
+                  <span class="badge risk-badge {{ template.risk_profile }}">{{ template.risk_profile|title }}</span>
+                </div>
+                <p class="text-white opacity-7 mb-2" style="font-size: 12px;">{{ template.description }}</p>
+                <div class="d-flex flex-wrap mb-2">
+                  {% for sid, config in template.strategies.items %}
+                  <span class="strategy-chip">{{ sid }}<span class="allocation">{{ config.allocation_pct }}%</span></span>
+                  {% endfor %}
+                </div>
+                <div class="d-flex justify-content-between text-white opacity-7" style="font-size: 11px;">
+                  <span>Exp. Return: {{ template.expected_return|floatformat:0 }}%</span>
+                  <span>Sharpe: {{ template.expected_sharpe|floatformat:2 }}</span>
+                </div>
+                <button class="btn btn-sm btn-outline-light w-100 mt-2 use-template-btn" data-template-id="{{ template_id }}">
+                  <i class="fas fa-copy me-1"></i> Use This Template
+                </button>
+              </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-4">
+              Loading templates...
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Portfolios -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6 class="mb-0"><i class="fas fa-briefcase me-2 text-success"></i>My Portfolios</h6>
+          <p class="text-sm text-muted mb-0">Your saved portfolio configurations</p>
+        </div>
+        <div class="card-body">
+          <div class="row" id="portfoliosContainer">
+            {% for portfolio in portfolios %}
+            <div class="col-lg-4 col-md-6 mb-3">
+              <div class="card portfolio-card {% if portfolio.is_active %}active{% endif %}" data-portfolio-id="{{ portfolio.id }}">
+                <div class="card-body p-3">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <h6 class="mb-0">{{ portfolio.name }}</h6>
+                      <small class="text-muted">{{ portfolio.risk_profile_display }}</small>
+                    </div>
+                    {% if portfolio.is_active %}
+                    <span class="badge active-badge">Active</span>
+                    {% endif %}
+                  </div>
+                  <p class="text-sm text-muted mb-2">{{ portfolio.description|truncatewords:15 }}</p>
+
+                  <!-- Strategy Count -->
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <small class="text-muted">{{ portfolio.strategy_count }} strategies</small>
+                    <small class="text-muted">{{ portfolio.total_allocation|floatformat:0 }}% allocated</small>
+                  </div>
+
+                  <!-- Diversification Score -->
+                  <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                      <small class="text-muted">Diversification</small>
+                      <small class="fw-bold">{{ portfolio.diversification_score|floatformat:0 }}%</small>
+                    </div>
+                    <div class="diversification-meter">
+                      {% if portfolio.diversification_score < 30 %}
+                      <div class="fill poor" style="width: {{ portfolio.diversification_score }}%"></div>
+                      {% elif portfolio.diversification_score < 50 %}
+                      <div class="fill fair" style="width: {{ portfolio.diversification_score }}%"></div>
+                      {% elif portfolio.diversification_score < 75 %}
+                      <div class="fill good" style="width: {{ portfolio.diversification_score }}%"></div>
+                      {% else %}
+                      <div class="fill excellent" style="width: {{ portfolio.diversification_score }}%"></div>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="d-flex gap-2 mt-3">
+                    {% if not portfolio.is_active %}
+                    <button class="btn btn-sm btn-success flex-grow-1 activate-portfolio-btn" data-portfolio-id="{{ portfolio.id }}">
+                      <i class="fas fa-play me-1"></i> Activate
+                    </button>
+                    {% else %}
+                    <button class="btn btn-sm btn-warning flex-grow-1 deactivate-portfolio-btn" data-portfolio-id="{{ portfolio.id }}">
+                      <i class="fas fa-pause me-1"></i> Deactivate
+                    </button>
+                    {% endif %}
+                    <button class="btn btn-sm btn-outline-secondary edit-portfolio-btn" data-portfolio-id="{{ portfolio.id }}">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger delete-portfolio-btn" data-portfolio-id="{{ portfolio.id }}">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-4">
+              <i class="fas fa-folder-open fa-3x mb-3 opacity-50"></i>
+              <p>No portfolios yet. Create one from a template or build your own!</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portfolio Builder Section -->
+  <div class="row mb-4" id="builderSection" style="display: none;">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-0"><i class="fas fa-hammer me-2 text-warning"></i>Portfolio Builder</h6>
+            <p class="text-sm text-muted mb-0">Configure your custom strategy combination</p>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary" id="closeBuilderBtn">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <!-- Strategy Selection -->
+            <div class="col-lg-6">
+              <div class="builder-section h-100">
+                <h6 class="text-white mb-3"><i class="fas fa-check-square me-2"></i>Select Strategies</h6>
+                <div id="strategySelectionList">
+                  {% for sid, strategy in available_strategies.items %}
+                  <div class="strategy-toggle-row">
+                    <div class="d-flex align-items-center">
+                      <div class="form-check form-switch mb-0 me-3">
+                        <input class="form-check-input strategy-checkbox" type="checkbox" id="strategy-{{ sid }}" data-strategy-id="{{ sid }}">
+                      </div>
+                      <div>
+                        <span class="text-white">{{ strategy.name }}</span>
+                        <br>
+                        <small class="text-white opacity-7">{{ strategy.description }}</small>
+                      </div>
+                    </div>
+                    <div class="text-end">
+                      <span class="badge {% if strategy.risk_level == 'conservative' %}bg-success{% elif strategy.risk_level == 'aggressive' %}bg-danger{% else %}bg-warning{% endif %}" style="font-size: 9px;">
+                        {{ strategy.risk_level|title }}
+                      </span>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+
+                <!-- Allocation Controls -->
+                <div id="allocationControls" class="mt-4" style="display: none;">
+                  <h6 class="text-white mb-3"><i class="fas fa-sliders-h me-2"></i>Allocation</h6>
+                  <div id="allocationSlidersContainer"></div>
+                  <div class="d-flex justify-content-between align-items-center mt-3">
+                    <span class="text-white">Total Allocation:</span>
+                    <span id="totalAllocation" class="text-white fw-bold">0%</span>
+                  </div>
+                  <button class="btn btn-sm btn-outline-light w-100 mt-2" id="optimizeAllocationBtn">
+                    <i class="fas fa-magic me-1"></i> Auto-Optimize
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Analysis Panel -->
+            <div class="col-lg-6">
+              <div class="bg-white rounded-3 p-4 h-100">
+                <h6 class="mb-3"><i class="fas fa-chart-pie me-2 text-primary"></i>Portfolio Analysis</h6>
+
+                <!-- Portfolio Name -->
+                <div class="mb-3">
+                  <label class="form-label">Portfolio Name</label>
+                  <input type="text" class="form-control" id="portfolioName" placeholder="My Custom Portfolio">
+                </div>
+
+                <!-- Risk Profile -->
+                <div class="mb-3">
+                  <label class="form-label">Risk Profile</label>
+                  <select class="form-select" id="riskProfile">
+                    <option value="conservative">Conservative</option>
+                    <option value="moderate" selected>Moderate</option>
+                    <option value="aggressive">Aggressive</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+
+                <!-- Metrics -->
+                <div class="row mb-3" id="analysisMetrics">
+                  <div class="col-4">
+                    <div class="metric-box">
+                      <div class="metric-value" id="expectedReturn">-</div>
+                      <div class="metric-label">Exp. Return</div>
+                    </div>
+                  </div>
+                  <div class="col-4">
+                    <div class="metric-box">
+                      <div class="metric-value" id="expectedVolatility">-</div>
+                      <div class="metric-label">Volatility</div>
+                    </div>
+                  </div>
+                  <div class="col-4">
+                    <div class="metric-box">
+                      <div class="metric-value" id="expectedSharpe">-</div>
+                      <div class="metric-label">Sharpe</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Diversification -->
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between mb-1">
+                    <small>Diversification Score</small>
+                    <small class="fw-bold" id="diversificationScore">0%</small>
+                  </div>
+                  <div class="diversification-meter">
+                    <div class="fill good" id="diversificationFill" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <!-- Warnings -->
+                <div id="analysisWarnings" class="mb-3"></div>
+
+                <!-- Recommendations -->
+                <div id="analysisRecommendations" class="mb-3"></div>
+
+                <!-- Save Button -->
+                <button class="btn btn-primary w-100" id="savePortfolioBtn" disabled>
+                  <i class="fas fa-save me-2"></i> Save Portfolio
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Portfolio Details -->
+  {% if active_portfolio %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6 class="mb-0"><i class="fas fa-chart-line me-2 text-info"></i>Active Portfolio Details</h6>
+          <p class="text-sm text-muted mb-0">Current allocation breakdown for {{ active_portfolio.name }}</p>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-lg-6">
+              <h6 class="text-sm">Strategy Allocation</h6>
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Strategy</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder text-end">Allocation</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder text-end">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for strategy_id, config in active_portfolio.strategies.items %}
+                    <tr>
+                      <td>
+                        <span class="text-sm">{{ strategy_id|title }}</span>
+                      </td>
+                      <td class="text-end">
+                        <span class="badge bg-gradient-info">{{ config.allocation_pct }}%</span>
+                      </td>
+                      <td class="text-end">
+                        {% if config.enabled %}
+                        <span class="badge bg-success">Enabled</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Disabled</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <h6 class="text-sm">Portfolio Metrics</h6>
+              <div class="row">
+                <div class="col-6 mb-3">
+                  <div class="metric-box">
+                    <div class="metric-value">{{ active_portfolio.expected_sharpe|floatformat:2|default:"-" }}</div>
+                    <div class="metric-label">Expected Sharpe</div>
+                  </div>
+                </div>
+                <div class="col-6 mb-3">
+                  <div class="metric-box">
+                    <div class="metric-value">{{ active_portfolio.diversification_score|floatformat:0 }}%</div>
+                    <div class="metric-label">Diversification</div>
+                  </div>
+                </div>
+              </div>
+              <div class="p-3 bg-light rounded">
+                <small class="text-muted">
+                  <i class="fas fa-info-circle me-1"></i>
+                  This portfolio was last updated on {{ active_portfolio.updated_at|date:"M d, Y" }}.
+                  Strategy allocations are enforced during trading based on your capital limits.
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Create From Template Modal -->
+<div class="modal fade" id="templateModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create Portfolio from Template</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Portfolio Name</label>
+          <input type="text" class="form-control" id="templatePortfolioName" placeholder="My Portfolio">
+        </div>
+        <div id="templatePreview"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmTemplateBtn">Create Portfolio</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // State
+    let selectedStrategies = {};
+    let currentAnalysis = null;
+    let selectedTemplateId = null;
+    let editingPortfolioId = null;
+
+    // Elements
+    const builderSection = document.getElementById('builderSection');
+    const allocationControls = document.getElementById('allocationControls');
+    const allocationSlidersContainer = document.getElementById('allocationSlidersContainer');
+    const totalAllocationSpan = document.getElementById('totalAllocation');
+    const savePortfolioBtn = document.getElementById('savePortfolioBtn');
+
+    // Available strategies data from Django
+    const availableStrategies = {{ available_strategies|safe }};
+
+    // Show builder
+    document.getElementById('createPortfolioBtn').addEventListener('click', function() {
+        editingPortfolioId = null;
+        resetBuilder();
+        builderSection.style.display = 'block';
+        builderSection.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Close builder
+    document.getElementById('closeBuilderBtn').addEventListener('click', function() {
+        builderSection.style.display = 'none';
+    });
+
+    // Strategy checkbox change
+    document.querySelectorAll('.strategy-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const strategyId = this.dataset.strategyId;
+            if (this.checked) {
+                selectedStrategies[strategyId] = { allocation_pct: 0, enabled: true };
+            } else {
+                delete selectedStrategies[strategyId];
+            }
+            updateAllocationControls();
+            analyzePortfolio();
+        });
+    });
+
+    // Update allocation sliders
+    function updateAllocationControls() {
+        const strategyIds = Object.keys(selectedStrategies);
+
+        if (strategyIds.length === 0) {
+            allocationControls.style.display = 'none';
+            return;
+        }
+
+        allocationControls.style.display = 'block';
+        allocationSlidersContainer.innerHTML = '';
+
+        strategyIds.forEach(sid => {
+            const strategy = availableStrategies[sid];
+            const allocation = selectedStrategies[sid].allocation_pct || 0;
+
+            const html = `
+                <div class="allocation-slider-container">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-white">${strategy.name}</small>
+                        <small class="text-white fw-bold allocation-value" id="alloc-val-${sid}">${allocation}%</small>
+                    </div>
+                    <input type="range" class="allocation-slider" id="alloc-${sid}"
+                           data-strategy-id="${sid}"
+                           min="${strategy.min_allocation}" max="${strategy.max_allocation}"
+                           value="${allocation}">
+                </div>
+            `;
+            allocationSlidersContainer.insertAdjacentHTML('beforeend', html);
+
+            // Add event listener
+            document.getElementById(`alloc-${sid}`).addEventListener('input', function() {
+                const value = parseInt(this.value);
+                selectedStrategies[sid].allocation_pct = value;
+                document.getElementById(`alloc-val-${sid}`).textContent = `${value}%`;
+                updateTotalAllocation();
+                analyzePortfolio();
+            });
+        });
+
+        updateTotalAllocation();
+    }
+
+    // Update total allocation display
+    function updateTotalAllocation() {
+        const total = Object.values(selectedStrategies)
+            .reduce((sum, s) => sum + (s.allocation_pct || 0), 0);
+        totalAllocationSpan.textContent = `${total}%`;
+        totalAllocationSpan.style.color = (total >= 99 && total <= 101) ? '#2dce89' : '#f5365c';
+    }
+
+    // Analyze portfolio
+    async function analyzePortfolio() {
+        if (Object.keys(selectedStrategies).length === 0) {
+            clearAnalysis();
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/portfolios/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({ strategies: selectedStrategies })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                currentAnalysis = data.analysis;
+                displayAnalysis(data.analysis);
+            }
+        } catch (error) {
+            console.error('Error analyzing portfolio:', error);
+        }
+    }
+
+    // Display analysis results
+    function displayAnalysis(analysis) {
+        document.getElementById('expectedReturn').textContent = `${(analysis.expected_return * 100).toFixed(1)}%`;
+        document.getElementById('expectedVolatility').textContent = `${(analysis.expected_volatility * 100).toFixed(1)}%`;
+        document.getElementById('expectedSharpe').textContent = analysis.expected_sharpe.toFixed(2);
+        document.getElementById('diversificationScore').textContent = `${analysis.diversification_score.toFixed(0)}%`;
+
+        // Update diversification meter
+        const fill = document.getElementById('diversificationFill');
+        fill.style.width = `${analysis.diversification_score}%`;
+        fill.className = 'fill';
+        if (analysis.diversification_score < 30) fill.classList.add('poor');
+        else if (analysis.diversification_score < 50) fill.classList.add('fair');
+        else if (analysis.diversification_score < 75) fill.classList.add('good');
+        else fill.classList.add('excellent');
+
+        // Display warnings
+        const warningsContainer = document.getElementById('analysisWarnings');
+        warningsContainer.innerHTML = analysis.warnings.map(w =>
+            `<div class="warning-item"><i class="fas fa-exclamation-triangle me-2"></i>${w}</div>`
+        ).join('');
+
+        // Display recommendations
+        const recsContainer = document.getElementById('analysisRecommendations');
+        recsContainer.innerHTML = analysis.recommendations.map(r =>
+            `<div class="recommendation-item"><i class="fas fa-lightbulb me-2"></i>${r}</div>`
+        ).join('');
+
+        // Enable/disable save button
+        const total = Object.values(selectedStrategies)
+            .reduce((sum, s) => sum + (s.allocation_pct || 0), 0);
+        const name = document.getElementById('portfolioName').value.trim();
+        savePortfolioBtn.disabled = !(total >= 99 && total <= 101 && name);
+    }
+
+    // Clear analysis
+    function clearAnalysis() {
+        document.getElementById('expectedReturn').textContent = '-';
+        document.getElementById('expectedVolatility').textContent = '-';
+        document.getElementById('expectedSharpe').textContent = '-';
+        document.getElementById('diversificationScore').textContent = '0%';
+        document.getElementById('diversificationFill').style.width = '0%';
+        document.getElementById('analysisWarnings').innerHTML = '';
+        document.getElementById('analysisRecommendations').innerHTML = '';
+        savePortfolioBtn.disabled = true;
+    }
+
+    // Reset builder
+    function resetBuilder() {
+        selectedStrategies = {};
+        document.querySelectorAll('.strategy-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('portfolioName').value = '';
+        document.getElementById('riskProfile').value = 'moderate';
+        allocationControls.style.display = 'none';
+        clearAnalysis();
+    }
+
+    // Portfolio name input
+    document.getElementById('portfolioName').addEventListener('input', function() {
+        analyzePortfolio();
+    });
+
+    // Auto-optimize allocation
+    document.getElementById('optimizeAllocationBtn').addEventListener('click', async function() {
+        const strategyIds = Object.keys(selectedStrategies);
+        if (strategyIds.length === 0) return;
+
+        const riskProfile = document.getElementById('riskProfile').value;
+
+        try {
+            const response = await fetch('/api/portfolios/optimize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    strategies: strategyIds,
+                    risk_profile: riskProfile
+                })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                // Update selected strategies with optimized allocations
+                selectedStrategies = data.optimized_allocations;
+
+                // Update sliders
+                Object.keys(selectedStrategies).forEach(sid => {
+                    const slider = document.getElementById(`alloc-${sid}`);
+                    const valueSpan = document.getElementById(`alloc-val-${sid}`);
+                    if (slider && valueSpan) {
+                        slider.value = selectedStrategies[sid].allocation_pct;
+                        valueSpan.textContent = `${selectedStrategies[sid].allocation_pct}%`;
+                    }
+                });
+
+                updateTotalAllocation();
+                analyzePortfolio();
+            }
+        } catch (error) {
+            console.error('Error optimizing portfolio:', error);
+        }
+    });
+
+    // Save portfolio
+    savePortfolioBtn.addEventListener('click', async function() {
+        const name = document.getElementById('portfolioName').value.trim();
+        const riskProfile = document.getElementById('riskProfile').value;
+
+        if (!name) {
+            alert('Please enter a portfolio name');
+            return;
+        }
+
+        try {
+            const url = editingPortfolioId
+                ? `/api/portfolios/${editingPortfolioId}/update`
+                : '/api/portfolios/create';
+            const method = editingPortfolioId ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    name: name,
+                    strategies: selectedStrategies,
+                    risk_profile: riskProfile
+                })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error saving portfolio:', error);
+            alert('Error saving portfolio');
+        }
+    });
+
+    // Use template button
+    document.querySelectorAll('.use-template-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            selectedTemplateId = this.dataset.templateId;
+            const templates = {{ templates|safe }};
+            const template = templates[selectedTemplateId];
+
+            document.getElementById('templatePortfolioName').value = template.name;
+            document.getElementById('templatePreview').innerHTML = `
+                <div class="p-3 bg-light rounded">
+                    <p class="text-sm mb-2">${template.description}</p>
+                    <div class="mb-2">
+                        <strong>Strategies:</strong>
+                        ${Object.entries(template.strategies).map(([sid, config]) =>
+                            `<span class="badge bg-secondary me-1">${sid}: ${config.allocation_pct}%</span>`
+                        ).join('')}
+                    </div>
+                    <div class="text-sm text-muted">
+                        Risk Profile: ${template.risk_profile} | Expected Sharpe: ${template.expected_sharpe}
+                    </div>
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('templateModal'));
+            modal.show();
+        });
+    });
+
+    // Confirm template creation
+    document.getElementById('confirmTemplateBtn').addEventListener('click', async function() {
+        const name = document.getElementById('templatePortfolioName').value.trim();
+
+        try {
+            const response = await fetch('/api/portfolios/from-template', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    template_id: selectedTemplateId,
+                    name: name || null
+                })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error creating from template:', error);
+            alert('Error creating portfolio');
+        }
+    });
+
+    // Activate portfolio
+    document.querySelectorAll('.activate-portfolio-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const portfolioId = this.dataset.portfolioId;
+
+            try {
+                const response = await fetch(`/api/portfolios/${portfolioId}/activate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    }
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error activating portfolio:', error);
+                alert('Error activating portfolio');
+            }
+        });
+    });
+
+    // Deactivate portfolio
+    document.querySelectorAll('.deactivate-portfolio-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const portfolioId = this.dataset.portfolioId;
+
+            try {
+                const response = await fetch(`/api/portfolios/${portfolioId}/deactivate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    }
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error deactivating portfolio:', error);
+            }
+        });
+    });
+
+    // Delete portfolio
+    document.querySelectorAll('.delete-portfolio-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            if (!confirm('Are you sure you want to delete this portfolio?')) return;
+
+            const portfolioId = this.dataset.portfolioId;
+
+            try {
+                const response = await fetch(`/api/portfolios/${portfolioId}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    }
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error deleting portfolio:', error);
+            }
+        });
+    });
+
+    // Edit portfolio
+    document.querySelectorAll('.edit-portfolio-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const portfolioId = this.dataset.portfolioId;
+
+            try {
+                const response = await fetch(`/api/portfolios/${portfolioId}/`);
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    editingPortfolioId = portfolioId;
+                    const portfolio = data.portfolio;
+
+                    // Reset and populate builder
+                    resetBuilder();
+                    document.getElementById('portfolioName').value = portfolio.name;
+                    document.getElementById('riskProfile').value = portfolio.risk_profile;
+
+                    // Check strategies and set allocations
+                    Object.entries(portfolio.strategies).forEach(([sid, config]) => {
+                        const checkbox = document.getElementById(`strategy-${sid}`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            selectedStrategies[sid] = config;
+                        }
+                    });
+
+                    updateAllocationControls();
+                    analyzePortfolio();
+
+                    builderSection.style.display = 'block';
+                    builderSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                console.error('Error loading portfolio:', error);
+            }
+        });
+    });
+
+    // Helper function
+    function getCsrfToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [key, value] = cookie.trim().split('=');
+            if (key === name) return value;
+        }
+        return '';
+    }
+});
+</script>
+{% endblock javascripts %}

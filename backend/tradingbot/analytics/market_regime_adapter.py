@@ -277,7 +277,7 @@ class MarketRegimeAdapter:
             regime_result = await self.detect_current_regime_with_confidence(market_data)
             regime = regime_result['regime']
             confidence = regime_result['confidence']
-            
+
             # Fallback to conservative mode if confidence is low
             if confidence < self.config.min_regime_confidence:
                 self.logger.warning(
@@ -288,10 +288,6 @@ class MarketRegimeAdapter:
                 if self.adaptation_history:
                     return self.adaptation_history[-1]
                 return self._create_conservative_fallback_adaptation()
-        except Exception as e:
-            self.logger.error(f"Error generating strategy adaptation: {e}")
-            # Return default adaptation on error
-            return self._create_default_adaptation(MarketRegime.UNDEFINED)
 
             # Check if we should adapt (confidence and cooldown)
             if not self._should_adapt(regime):

@@ -1,0 +1,1007 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Wheel Strategy Configuration {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .param-card {
+    border-left: 4px solid #17a2b8;
+    transition: all 0.3s ease;
+  }
+  .param-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  .tooltip-icon {
+    cursor: help;
+    color: #8898aa;
+    font-size: 14px;
+    margin-left: 5px;
+  }
+  .tooltip-icon:hover {
+    color: #17a2b8;
+  }
+  .profile-badge {
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .profile-badge:hover {
+    transform: scale(1.05);
+  }
+  .profile-badge.active {
+    border: 2px solid #17a2b8;
+  }
+  .param-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #e9ecef;
+    outline: none;
+  }
+  .param-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(310deg, #1171ef 0%, #11cdef 100%);
+    cursor: pointer;
+  }
+  .implication-box {
+    background: linear-gradient(to right, rgba(17,113,239,0.05), rgba(17,205,239,0.05));
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 8px;
+  }
+  .warning-implication {
+    background: linear-gradient(to right, rgba(251,99,64,0.1), rgba(245,54,92,0.05));
+  }
+  .safe-implication {
+    background: linear-gradient(to right, rgba(45,206,137,0.1), rgba(17,205,239,0.05));
+  }
+  .wheel-stage {
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    position: relative;
+  }
+  .wheel-stage::after {
+    content: '\f061';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8898aa;
+  }
+  .wheel-stage:last-child::after {
+    content: '';
+  }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-info">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-sync-alt text-info fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">Wheel Strategy Configuration</h4>
+              <p class="text-white opacity-8 mb-0">Consistent income generation through cash-secured puts and covered calls on quality stocks.</p>
+            </div>
+            <div class="col-auto">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="strategyEnabled" checked style="width: 50px; height: 26px;">
+                <label class="form-check-label text-white ms-2" for="strategyEnabled">Strategy Enabled</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wheel Strategy Visualization -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-redo me-2"></i>The Wheel Cycle
+            <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="The wheel rotates through 3 stages: sell puts, get assigned shares, sell calls until called away, then repeat"></i>
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3">
+              <div class="wheel-stage bg-gradient-success text-white">
+                <i class="fas fa-hand-holding-usd fa-2x mb-2"></i>
+                <h6 class="text-white mb-1">1. Sell CSP</h6>
+                <small>Cash-Secured Put</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="wheel-stage bg-gradient-warning text-white">
+                <i class="fas fa-box fa-2x mb-2"></i>
+                <h6 class="text-white mb-1">2. Get Assigned</h6>
+                <small>Own 100 Shares</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="wheel-stage bg-gradient-primary text-white">
+                <i class="fas fa-chart-line fa-2x mb-2"></i>
+                <h6 class="text-white mb-1">3. Sell CC</h6>
+                <small>Covered Call</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="wheel-stage bg-gradient-info text-white">
+                <i class="fas fa-exchange-alt fa-2x mb-2"></i>
+                <h6 class="text-white mb-1">4. Called Away</h6>
+                <small>Repeat Cycle</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Selection -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-user-cog me-2"></i>Strategy Profile
+            <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Profiles are pre-configured parameter sets for different income goals and risk tolerances"></i>
+          </h6>
+          <p class="text-sm text-secondary mb-0">Select a profile to auto-populate recommended settings, or customize individually below</p>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <div class="card profile-badge active" data-profile="conservative_income">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-shield-alt fa-2x text-success mb-2"></i>
+                  <h6 class="mb-1">Conservative Income</h6>
+                  <p class="text-xs text-secondary mb-0">Low delta, high quality stocks</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card profile-badge" data-profile="balanced_premium">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-balance-scale fa-2x text-info mb-2"></i>
+                  <h6 class="mb-1">Balanced Premium</h6>
+                  <p class="text-xs text-secondary mb-0">Moderate risk/reward</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card profile-badge" data-profile="aggressive_yield">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-rocket fa-2x text-warning mb-2"></i>
+                  <h6 class="mb-1">Aggressive Yield</h6>
+                  <p class="text-xs text-secondary mb-0">Higher premium, more risk</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card profile-badge" data-profile="dividend_focus">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-coins fa-2x text-primary mb-2"></i>
+                  <h6 class="mb-1">Dividend Focus</h6>
+                  <p class="text-xs text-secondary mb-0">Dividend aristocrats + premium</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Put Selection Parameters -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-arrow-down me-2 text-danger"></i>Cash-Secured Put Parameters</h6>
+          <p class="text-xs text-secondary mb-0">Controls which put options are selected when initiating new wheel positions</p>
+        </div>
+        <div class="card-body">
+          <!-- Target IV Rank -->
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between align-items-center">
+              <span>
+                Minimum IV Rank
+                <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Implied Volatility Rank (0-100). Higher IV = more premium but more risk. Only sell puts when IV Rank is above this threshold"></i>
+              </span>
+              <span class="badge bg-gradient-info" id="ivRankValue">50</span>
+            </label>
+            <input type="range" class="param-slider" id="ivRank" min="20" max="80" value="50">
+            <div class="implication-box" id="ivRankImplication">
+              <small class="text-secondary">
+                <i class="fas fa-chart-bar text-info me-1"></i>
+                <strong>IV Rank 50:</strong> Only sell puts when volatility is at median historical levels. Good balance of premium vs. assignment risk.
+              </small>
+            </div>
+          </div>
+
+          <!-- Target DTE Range -->
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between align-items-center">
+              <span>
+                Target DTE (Days to Expiry)
+                <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Days until option expiration. 30-45 DTE is the sweet spot for theta decay. Shorter = more trades but less premium per trade"></i>
+              </span>
+              <span class="badge bg-gradient-primary" id="putDteValue">35 days</span>
+            </label>
+            <input type="range" class="param-slider" id="putDte" min="21" max="60" value="35">
+            <div class="implication-box" id="putDteImplication">
+              <small class="text-secondary">
+                <i class="fas fa-clock text-primary me-1"></i>
+                <strong>35 DTE:</strong> Optimal theta decay zone. Premium erodes fastest 21-45 DTE. Monthly expiration cycles work well here.
+              </small>
+            </div>
+          </div>
+
+          <!-- Put Delta Target -->
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between align-items-center">
+              <span>
+                Put Delta Target
+                <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Delta of puts to sell. 0.30 = ~30% chance of assignment. Lower delta = less premium but safer. Range: 0.15-0.35 typical"></i>
+              </span>
+              <span class="badge bg-gradient-warning" id="putDeltaValue">0.25</span>
+            </label>
+            <input type="range" class="param-slider" id="putDelta" min="10" max="40" value="25">
+            <div class="implication-box" id="putDeltaImplication">
+              <small class="text-secondary">
+                <i class="fas fa-percentage text-warning me-1"></i>
+                <strong>Delta 0.25:</strong> ~25% probability of assignment. Strike is roughly 1 standard deviation OTM. Conservative yet decent premium.
+              </small>
+            </div>
+          </div>
+
+          <!-- Min Premium per Contract -->
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between align-items-center">
+              <span>
+                Minimum Premium ($)
+                <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Minimum premium (in dollars) to collect per contract. Filters out low-premium trades that aren't worth the capital tie-up"></i>
+              </span>
+              <span class="badge bg-gradient-success" id="minPremiumValue">$50</span>
+            </label>
+            <input type="range" class="param-slider" id="minPremium" min="25" max="200" value="50" step="5">
+            <div class="implication-box safe-implication" id="minPremiumImplication">
+              <small class="text-secondary">
+                <i class="fas fa-dollar-sign text-success me-1"></i>
+                <strong>Min $50/contract:</strong> Ensures trades are worth commissions and capital. On a $50 strike, this requires ~1% premium yield per cycle.
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Covered Call Parameters -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-arrow-up me-2 text-success"></i>Covered Call Parameters</h6>
+          <p class="text-xs text-secondary mb-0">Controls which call options are sold after getting assigned shares</p>
+        </div>
+        <div class="card-body">
+          <!-- Call Delta Target -->
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between align-items-center">
+              <span>
+                Call Delta Target
+                <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Delta for covered calls. Higher delta = more premium but more likely to be called away. Consider selling above cost basis"></i>
+              </span>
+              <span class="badge bg-gradient-info" id="callDeltaValue">0.30</span>
+            </label>
+            <input type="range" class="param-slider" id="callDelta" min="15" max="50" value="30">
+            <div class="implication-box" id="callDeltaImplication">
+              <small class="text-secondary">
+                <i class="fas fa-arrow-up text-info me-1"></i>
+                <strong>Delta 0.30:</strong> ~30% chance of being called away. Good balance of premium collection while keeping upside potential.
+              </small>
+            </div>
+          </div>
+
+          <!-- Min Strike Above Cost Basis -->
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between align-items-center">
+              <span>
+                Min % Above Cost Basis
+                <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Only sell calls at strikes this % above your cost basis. Ensures profit if called away. 0% = sell at or above cost"></i>
+              </span>
+              <span class="badge bg-gradient-success" id="minAboveCostValue">2%</span>
+            </label>
+            <input type="range" class="param-slider" id="minAboveCost" min="0" max="10" value="2">
+            <div class="implication-box safe-implication" id="minAboveCostImplication">
+              <small class="text-secondary">
+                <i class="fas fa-shield-alt text-success me-1"></i>
+                <strong>2% above cost:</strong> If called away, you'll profit at least 2% on shares plus all premium collected. Protects against selling at a loss.
+              </small>
+            </div>
+          </div>
+
+          <!-- Call DTE -->
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between align-items-center">
+              <span>
+                Call DTE Target
+                <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Days to expiry for covered calls. Can differ from puts. Shorter DTE = faster premium collection but more management"></i>
+              </span>
+              <span class="badge bg-gradient-primary" id="callDteValue">30 days</span>
+            </label>
+            <input type="range" class="param-slider" id="callDte" min="14" max="60" value="30">
+            <div class="implication-box" id="callDteImplication">
+              <small class="text-secondary">
+                <i class="fas fa-calendar text-primary me-1"></i>
+                <strong>30 DTE:</strong> Monthly cycle works well. Can collect 12+ premiums per year if continuously rolling.
+              </small>
+            </div>
+          </div>
+
+          <!-- Roll Strategy -->
+          <div class="mb-4">
+            <label class="form-label">
+              Roll Strategy
+              <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="When to roll options vs let them expire or get assigned"></i>
+            </label>
+            <select class="form-select" id="rollStrategy">
+              <option value="auto_roll">Auto-roll at profit target</option>
+              <option value="roll_at_dte" selected>Roll at 7 DTE</option>
+              <option value="let_expire">Let expire / get assigned</option>
+              <option value="manual">Manual management</option>
+            </select>
+            <div class="implication-box" id="rollStrategyImplication">
+              <small class="text-secondary">
+                <i class="fas fa-redo text-info me-1"></i>
+                <strong>Roll at 7 DTE:</strong> Automatically rolls to next expiry when 7 days remain. Avoids gamma risk and assignment near expiry.
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Position & Risk Management -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card param-card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-shield-alt me-2"></i>Position & Risk Management</h6>
+          <p class="text-xs text-secondary mb-0">Controls portfolio allocation, position limits, and risk parameters for the wheel strategy</p>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <!-- Max Positions -->
+            <div class="col-md-3 mb-4">
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span>
+                  Max Concurrent Positions
+                  <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Maximum wheel positions at once. Each position ties up capital equal to 100x strike price for puts"></i>
+                </span>
+                <span class="badge bg-gradient-primary" id="maxPositionsValue">10</span>
+              </label>
+              <input type="range" class="param-slider" id="maxPositions" min="1" max="20" value="10">
+              <div class="implication-box">
+                <small class="text-secondary">
+                  <i class="fas fa-layer-group text-primary me-1"></i>
+                  <strong>10 positions:</strong> Good diversification across sectors. Requires significant capital (~$50K-$200K depending on strike prices).
+                </small>
+              </div>
+            </div>
+
+            <!-- Portfolio Allocation -->
+            <div class="col-md-3 mb-4">
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span>
+                  Portfolio Allocation
+                  <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Maximum % of portfolio to allocate to wheel strategy. Rest stays in cash or other investments"></i>
+                </span>
+                <span class="badge bg-gradient-info" id="portfolioAllocValue">60%</span>
+              </label>
+              <input type="range" class="param-slider" id="portfolioAlloc" min="20" max="100" value="60">
+              <div class="implication-box">
+                <small class="text-secondary">
+                  <i class="fas fa-pie-chart text-info me-1"></i>
+                  <strong>60% allocation:</strong> Reserves 40% for other strategies or as cash buffer for assignments.
+                </small>
+              </div>
+            </div>
+
+            <!-- Profit Target -->
+            <div class="col-md-3 mb-4">
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span>
+                  Profit Target
+                  <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Close position when this % of max profit is achieved. 50% = close when option loses half its value"></i>
+                </span>
+                <span class="badge bg-gradient-success" id="profitTargetValue">50%</span>
+              </label>
+              <input type="range" class="param-slider" id="profitTarget" min="25" max="90" value="50">
+              <div class="implication-box safe-implication">
+                <small class="text-secondary">
+                  <i class="fas fa-bullseye text-success me-1"></i>
+                  <strong>50% profit:</strong> Take profits when option decays to half of premium received. Frees up capital for new positions.
+                </small>
+              </div>
+            </div>
+
+            <!-- Max Loss -->
+            <div class="col-md-3 mb-4">
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span>
+                  Max Loss per Position
+                  <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Close position if loss exceeds this multiple of premium received. 2x = close if option doubles in value"></i>
+                </span>
+                <span class="badge bg-gradient-danger" id="maxLossValue">2x premium</span>
+              </label>
+              <input type="range" class="param-slider" id="maxLoss" min="100" max="400" value="200">
+              <div class="implication-box warning-implication">
+                <small class="text-secondary">
+                  <i class="fas fa-hand-paper text-danger me-1"></i>
+                  <strong>2x max loss:</strong> If you collect $50 premium, close if position loses $100 (option worth $150). Prevents catastrophic losses.
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Assignment Buffer Days -->
+            <div class="col-md-4 mb-4">
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span>
+                  Assignment Buffer Days
+                  <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Close or roll positions this many days before expiry to avoid early assignment risk"></i>
+                </span>
+                <span class="badge bg-gradient-warning" id="assignmentBufferValue">7 days</span>
+              </label>
+              <input type="range" class="param-slider" id="assignmentBuffer" min="3" max="14" value="7">
+            </div>
+
+            <!-- Earnings Avoidance -->
+            <div class="col-md-4 mb-4">
+              <label class="form-label">
+                Earnings Avoidance
+                <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="How to handle positions around earnings announcements (high volatility events)"></i>
+              </label>
+              <select class="form-select" id="earningsAvoidance">
+                <option value="avoid_completely">Avoid earnings entirely</option>
+                <option value="close_before" selected>Close 3 days before</option>
+                <option value="reduce_size">Reduce position size 50%</option>
+                <option value="trade_through">Trade through earnings</option>
+              </select>
+            </div>
+
+            <!-- Min Liquidity Score -->
+            <div class="col-md-4 mb-4">
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span>
+                  Min Liquidity Score
+                  <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Minimum options liquidity score (0-100). Higher = tighter spreads and easier fills. Reject illiquid options"></i>
+                </span>
+                <span class="badge bg-gradient-info" id="minLiquidityValue">60</span>
+              </label>
+              <input type="range" class="param-slider" id="minLiquidity" min="30" max="90" value="60">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Watchlist Configuration -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card param-card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-list me-2"></i>Watchlist Configuration</h6>
+          <p class="text-xs text-secondary mb-0">Specify which quality stocks the wheel strategy should consider</p>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="sectorTech" checked>
+                <label class="form-check-label" for="sectorTech">
+                  <i class="fas fa-microchip text-info me-1"></i> Tech (AAPL, MSFT, GOOGL, NVDA)
+                </label>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="sectorFinancial" checked>
+                <label class="form-check-label" for="sectorFinancial">
+                  <i class="fas fa-university text-success me-1"></i> Financial (JPM, BAC, GS, V)
+                </label>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="sectorEnergy" checked>
+                <label class="form-check-label" for="sectorEnergy">
+                  <i class="fas fa-oil-can text-warning me-1"></i> Energy (XOM, CVX, COP)
+                </label>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="sectorDividend" checked>
+                <label class="form-check-label" for="sectorDividend">
+                  <i class="fas fa-coins text-primary me-1"></i> Dividend (KO, PG, JNJ, T)
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="sectorREIT">
+                <label class="form-check-label" for="sectorREIT">
+                  <i class="fas fa-building text-secondary me-1"></i> REITs (O, SPG, PLD)
+                </label>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="sectorVolatile">
+                <label class="form-check-label" for="sectorVolatile">
+                  <i class="fas fa-bolt text-danger me-1"></i> High IV (TSLA, AMD, NFLX)
+                </label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Custom Tickers</label>
+              <input type="text" class="form-control" id="customWatchlist" placeholder="Add custom tickers: PLTR, F, CCL...">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span>
+                  Min Market Cap
+                  <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Minimum market cap for wheel candidates. Larger = more stable, smaller = potentially higher premiums"></i>
+                </span>
+              </label>
+              <select class="form-select" id="minMarketCap">
+                <option value="1b">$1B+ (Small Cap)</option>
+                <option value="10b" selected>$10B+ (Mid Cap)</option>
+                <option value="50b">$50B+ (Large Cap)</option>
+                <option value="200b">$200B+ (Mega Cap)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Fundamental Screen</label>
+              <select class="form-select" id="fundamentalScreen">
+                <option value="none">No screening</option>
+                <option value="profitable" selected>Profitable companies only</option>
+                <option value="dividend">Dividend payers only</option>
+                <option value="quality">High quality score (70+)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Scan Interval</label>
+              <select class="form-select" id="scanInterval">
+                <option value="300">Every 5 minutes</option>
+                <option value="900" selected>Every 15 minutes</option>
+                <option value="1800">Every 30 minutes</option>
+                <option value="3600">Every hour</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expected Returns Calculator -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-calculator me-2"></i>Expected Returns Calculator</h6>
+          <p class="text-xs text-secondary mb-0">Estimate annual returns based on your current settings</p>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3 text-center">
+              <h3 class="text-info mb-0" id="estAnnualReturn">18-24%</h3>
+              <small class="text-secondary">Est. Annual Return</small>
+            </div>
+            <div class="col-md-3 text-center">
+              <h3 class="text-success mb-0" id="estWinRate">70-75%</h3>
+              <small class="text-secondary">Est. Win Rate</small>
+            </div>
+            <div class="col-md-3 text-center">
+              <h3 class="text-warning mb-0" id="estAssignmentRate">25-30%</h3>
+              <small class="text-secondary">Est. Assignment Rate</small>
+            </div>
+            <div class="col-md-3 text-center">
+              <h3 class="text-primary mb-0" id="estCyclesPerYear">10-12</h3>
+              <small class="text-secondary">Est. Cycles/Year</small>
+            </div>
+          </div>
+          <div class="alert alert-info mt-3 mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Note:</strong> These are estimates based on historical averages. Actual returns depend on market conditions, stock selection, and execution.
+            Past performance does not guarantee future results.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <button class="btn btn-outline-secondary mb-0" id="resetDefaultsBtn">
+                <i class="fas fa-undo me-2"></i>Reset to Profile Defaults
+              </button>
+              <button class="btn btn-outline-info mb-0 ms-2" id="importConfigBtn">
+                <i class="fas fa-upload me-2"></i>Import Config
+              </button>
+              <button class="btn btn-outline-info mb-0 ms-2" id="exportConfigBtn">
+                <i class="fas fa-download me-2"></i>Export Config
+              </button>
+            </div>
+            <div>
+              <button class="btn btn-outline-warning mb-0 me-2" id="backtestBtn">
+                <i class="fas fa-history me-2"></i>Backtest Settings
+              </button>
+              <button class="btn bg-gradient-success mb-0" id="saveConfigBtn">
+                <i class="fas fa-save me-2"></i>Save Configuration
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  // Initialize tooltips
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  });
+
+  // Profile configurations
+  const profiles = {
+    conservative_income: {
+      ivRank: 50, putDte: 35, putDelta: 20, minPremium: 50,
+      callDelta: 25, minAboveCost: 3, callDte: 30, rollStrategy: 'roll_at_dte',
+      maxPositions: 8, portfolioAlloc: 50, profitTarget: 50, maxLoss: 200,
+      assignmentBuffer: 7, earningsAvoidance: 'close_before', minLiquidity: 70
+    },
+    balanced_premium: {
+      ivRank: 45, putDte: 35, putDelta: 25, minPremium: 50,
+      callDelta: 30, minAboveCost: 2, callDte: 30, rollStrategy: 'roll_at_dte',
+      maxPositions: 10, portfolioAlloc: 60, profitTarget: 50, maxLoss: 200,
+      assignmentBuffer: 7, earningsAvoidance: 'close_before', minLiquidity: 60
+    },
+    aggressive_yield: {
+      ivRank: 40, putDte: 30, putDelta: 30, minPremium: 75,
+      callDelta: 35, minAboveCost: 1, callDte: 21, rollStrategy: 'auto_roll',
+      maxPositions: 12, portfolioAlloc: 70, profitTarget: 40, maxLoss: 250,
+      assignmentBuffer: 5, earningsAvoidance: 'reduce_size', minLiquidity: 50
+    },
+    dividend_focus: {
+      ivRank: 55, putDte: 45, putDelta: 20, minPremium: 40,
+      callDelta: 25, minAboveCost: 5, callDte: 45, rollStrategy: 'let_expire',
+      maxPositions: 8, portfolioAlloc: 50, profitTarget: 60, maxLoss: 150,
+      assignmentBuffer: 10, earningsAvoidance: 'avoid_completely', minLiquidity: 60
+    }
+  };
+
+  // Profile selection
+  document.querySelectorAll('.profile-badge').forEach(badge => {
+    badge.addEventListener('click', function() {
+      document.querySelectorAll('.profile-badge').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      const profile = this.dataset.profile;
+      applyProfile(profiles[profile]);
+    });
+  });
+
+  function applyProfile(config) {
+    // Put parameters
+    document.getElementById('ivRank').value = config.ivRank;
+    document.getElementById('ivRankValue').textContent = config.ivRank;
+    document.getElementById('putDte').value = config.putDte;
+    document.getElementById('putDteValue').textContent = config.putDte + ' days';
+    document.getElementById('putDelta').value = config.putDelta;
+    document.getElementById('putDeltaValue').textContent = (config.putDelta / 100).toFixed(2);
+    document.getElementById('minPremium').value = config.minPremium;
+    document.getElementById('minPremiumValue').textContent = '$' + config.minPremium;
+
+    // Call parameters
+    document.getElementById('callDelta').value = config.callDelta;
+    document.getElementById('callDeltaValue').textContent = (config.callDelta / 100).toFixed(2);
+    document.getElementById('minAboveCost').value = config.minAboveCost;
+    document.getElementById('minAboveCostValue').textContent = config.minAboveCost + '%';
+    document.getElementById('callDte').value = config.callDte;
+    document.getElementById('callDteValue').textContent = config.callDte + ' days';
+    document.getElementById('rollStrategy').value = config.rollStrategy;
+
+    // Position management
+    document.getElementById('maxPositions').value = config.maxPositions;
+    document.getElementById('maxPositionsValue').textContent = config.maxPositions;
+    document.getElementById('portfolioAlloc').value = config.portfolioAlloc;
+    document.getElementById('portfolioAllocValue').textContent = config.portfolioAlloc + '%';
+    document.getElementById('profitTarget').value = config.profitTarget;
+    document.getElementById('profitTargetValue').textContent = config.profitTarget + '%';
+    document.getElementById('maxLoss').value = config.maxLoss;
+    document.getElementById('maxLossValue').textContent = (config.maxLoss / 100).toFixed(1) + 'x premium';
+    document.getElementById('assignmentBuffer').value = config.assignmentBuffer;
+    document.getElementById('assignmentBufferValue').textContent = config.assignmentBuffer + ' days';
+    document.getElementById('earningsAvoidance').value = config.earningsAvoidance;
+    document.getElementById('minLiquidity').value = config.minLiquidity;
+    document.getElementById('minLiquidityValue').textContent = config.minLiquidity;
+
+    updateAllImplications();
+    updateExpectedReturns();
+  }
+
+  // Slider event listeners
+  document.getElementById('ivRank').addEventListener('input', function() {
+    document.getElementById('ivRankValue').textContent = this.value;
+    updateIvRankImplication(this.value);
+  });
+
+  document.getElementById('putDte').addEventListener('input', function() {
+    document.getElementById('putDteValue').textContent = this.value + ' days';
+    updatePutDteImplication(this.value);
+  });
+
+  document.getElementById('putDelta').addEventListener('input', function() {
+    document.getElementById('putDeltaValue').textContent = (this.value / 100).toFixed(2);
+    updatePutDeltaImplication(this.value);
+  });
+
+  document.getElementById('minPremium').addEventListener('input', function() {
+    document.getElementById('minPremiumValue').textContent = '$' + this.value;
+  });
+
+  document.getElementById('callDelta').addEventListener('input', function() {
+    document.getElementById('callDeltaValue').textContent = (this.value / 100).toFixed(2);
+    updateCallDeltaImplication(this.value);
+  });
+
+  document.getElementById('minAboveCost').addEventListener('input', function() {
+    document.getElementById('minAboveCostValue').textContent = this.value + '%';
+    updateMinAboveCostImplication(this.value);
+  });
+
+  document.getElementById('callDte').addEventListener('input', function() {
+    document.getElementById('callDteValue').textContent = this.value + ' days';
+  });
+
+  document.getElementById('rollStrategy').addEventListener('change', function() {
+    updateRollStrategyImplication(this.value);
+  });
+
+  document.getElementById('maxPositions').addEventListener('input', function() {
+    document.getElementById('maxPositionsValue').textContent = this.value;
+  });
+
+  document.getElementById('portfolioAlloc').addEventListener('input', function() {
+    document.getElementById('portfolioAllocValue').textContent = this.value + '%';
+  });
+
+  document.getElementById('profitTarget').addEventListener('input', function() {
+    document.getElementById('profitTargetValue').textContent = this.value + '%';
+  });
+
+  document.getElementById('maxLoss').addEventListener('input', function() {
+    document.getElementById('maxLossValue').textContent = (this.value / 100).toFixed(1) + 'x premium';
+  });
+
+  document.getElementById('assignmentBuffer').addEventListener('input', function() {
+    document.getElementById('assignmentBufferValue').textContent = this.value + ' days';
+  });
+
+  document.getElementById('minLiquidity').addEventListener('input', function() {
+    document.getElementById('minLiquidityValue').textContent = this.value;
+  });
+
+  // Implication update functions
+  function updateIvRankImplication(value) {
+    const el = document.getElementById('ivRankImplication');
+    if (value < 40) {
+      el.className = 'implication-box warning-implication';
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-exclamation-triangle text-warning me-1"></i><strong>Low IV requirement:</strong> May sell puts in low volatility environments. Less premium but also less risk.</small>';
+    } else if (value < 60) {
+      el.className = 'implication-box';
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-chart-bar text-info me-1"></i><strong>Balanced IV:</strong> Only sells when volatility is elevated. Good premium without excessive risk.</small>';
+    } else {
+      el.className = 'implication-box safe-implication';
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-fire text-success me-1"></i><strong>High IV focus:</strong> Only trades in high volatility. Maximum premium but may miss opportunities.</small>';
+    }
+  }
+
+  function updatePutDteImplication(value) {
+    const el = document.getElementById('putDteImplication');
+    if (value < 28) {
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-bolt text-warning me-1"></i><strong>Short DTE:</strong> Faster premium collection but more frequent trading. Higher annualized returns but more management.</small>';
+    } else if (value < 45) {
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-clock text-primary me-1"></i><strong>Optimal range:</strong> ' + value + ' DTE is in the theta decay sweet spot. Monthly cycles work well.</small>';
+    } else {
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-calendar text-info me-1"></i><strong>Longer DTE:</strong> Less frequent trading, more time premium. Good for lower maintenance but slower compounding.</small>';
+    }
+  }
+
+  function updatePutDeltaImplication(value) {
+    const el = document.getElementById('putDeltaImplication');
+    const delta = (value / 100).toFixed(2);
+    if (value < 20) {
+      el.className = 'implication-box safe-implication';
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-shield-alt text-success me-1"></i><strong>Conservative:</strong> Delta ' + delta + ' means ~' + value + '% assignment probability. Very safe but lower premium.</small>';
+    } else if (value < 30) {
+      el.className = 'implication-box';
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-percentage text-warning me-1"></i><strong>Moderate:</strong> Delta ' + delta + ' is a good balance. ~' + value + '% assignment risk with decent premium.</small>';
+    } else {
+      el.className = 'implication-box warning-implication';
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-exclamation-triangle text-danger me-1"></i><strong>Aggressive:</strong> Delta ' + delta + ' has ~' + value + '% assignment chance. Higher premium but expect more assignments.</small>';
+    }
+  }
+
+  function updateCallDeltaImplication(value) {
+    const el = document.getElementById('callDeltaImplication');
+    const delta = (value / 100).toFixed(2);
+    if (value < 25) {
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-arrow-up text-info me-1"></i><strong>Low delta:</strong> Keep more upside potential. ~' + value + '% chance of being called away.</small>';
+    } else if (value < 40) {
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-balance-scale text-info me-1"></i><strong>Balanced:</strong> Delta ' + delta + ' balances premium and upside. Good for steady income.</small>';
+    } else {
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-hand-holding-usd text-warning me-1"></i><strong>High delta:</strong> Maximum premium but likely to be called away. Good if you want to exit the stock.</small>';
+    }
+  }
+
+  function updateMinAboveCostImplication(value) {
+    const el = document.getElementById('minAboveCostImplication');
+    if (value == 0) {
+      el.className = 'implication-box warning-implication';
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-exclamation-triangle text-warning me-1"></i><strong>At cost:</strong> May sell calls at your cost basis. Premium is your only profit if called away.</small>';
+    } else if (value < 3) {
+      el.className = 'implication-box';
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-shield-alt text-success me-1"></i><strong>' + value + '% buffer:</strong> Ensures profit if called away. Reasonable protection while maintaining premium opportunities.</small>';
+    } else {
+      el.className = 'implication-box safe-implication';
+      el.innerHTML = '<small class="text-secondary"><i class="fas fa-lock text-success me-1"></i><strong>' + value + '% buffer:</strong> Strong profit protection. May limit premium opportunities if stock is underwater.</small>';
+    }
+  }
+
+  function updateRollStrategyImplication(value) {
+    const el = document.getElementById('rollStrategyImplication');
+    const strategies = {
+      'auto_roll': '<small class="text-secondary"><i class="fas fa-magic text-primary me-1"></i><strong>Auto-roll:</strong> Automatically rolls when profit target hit. Maximizes capital efficiency.</small>',
+      'roll_at_dte': '<small class="text-secondary"><i class="fas fa-redo text-info me-1"></i><strong>Roll at DTE:</strong> Rolls to next expiry when approaching expiration. Avoids gamma risk.</small>',
+      'let_expire': '<small class="text-secondary"><i class="fas fa-hourglass-end text-warning me-1"></i><strong>Let expire:</strong> Holds until expiration. May get assigned more often but simpler management.</small>',
+      'manual': '<small class="text-secondary"><i class="fas fa-hand-paper text-secondary me-1"></i><strong>Manual:</strong> You decide when to roll, close, or let expire. Maximum control.</small>'
+    };
+    el.innerHTML = strategies[value] || '';
+  }
+
+  function updateAllImplications() {
+    updateIvRankImplication(document.getElementById('ivRank').value);
+    updatePutDteImplication(document.getElementById('putDte').value);
+    updatePutDeltaImplication(document.getElementById('putDelta').value);
+    updateCallDeltaImplication(document.getElementById('callDelta').value);
+    updateMinAboveCostImplication(document.getElementById('minAboveCost').value);
+    updateRollStrategyImplication(document.getElementById('rollStrategy').value);
+  }
+
+  function updateExpectedReturns() {
+    // Simple calculation based on settings
+    const putDelta = parseInt(document.getElementById('putDelta').value);
+    const profitTarget = parseInt(document.getElementById('profitTarget').value);
+    const putDte = parseInt(document.getElementById('putDte').value);
+
+    // Rough estimates
+    const cyclesPerYear = Math.round(365 / putDte);
+    const winRate = 100 - putDelta;
+    const assignmentRate = putDelta;
+    const premiumYield = 1.5 + (putDelta * 0.05); // Rough premium estimate
+    const annualReturn = Math.round(cyclesPerYear * premiumYield * (profitTarget / 100));
+
+    document.getElementById('estAnnualReturn').textContent = (annualReturn - 5) + '-' + (annualReturn + 5) + '%';
+    document.getElementById('estWinRate').textContent = (winRate - 5) + '-' + winRate + '%';
+    document.getElementById('estAssignmentRate').textContent = assignmentRate + '-' + (assignmentRate + 5) + '%';
+    document.getElementById('estCyclesPerYear').textContent = (cyclesPerYear - 2) + '-' + cyclesPerYear;
+  }
+
+  // Save configuration
+  document.getElementById('saveConfigBtn').addEventListener('click', function() {
+    const config = collectConfig();
+    // TODO: Send config to backend API
+    alert('Wheel Strategy configuration saved successfully!');
+  });
+
+  // Export config
+  document.getElementById('exportConfigBtn').addEventListener('click', function() {
+    const config = {
+      strategy: 'wheel_strategy',
+      version: '1.0',
+      parameters: collectConfig()
+    };
+    const blob = new Blob([JSON.stringify(config, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'wheel_strategy_config.json';
+    a.click();
+  });
+
+  function collectConfig() {
+    return {
+      target_iv_rank: parseInt(document.getElementById('ivRank').value),
+      target_dte_range: [21, parseInt(document.getElementById('putDte').value)],
+      target_delta_range: [0.15, parseFloat(document.getElementById('putDelta').value) / 100],
+      min_premium_dollars: parseInt(document.getElementById('minPremium').value),
+      covered_call_delta: parseFloat(document.getElementById('callDelta').value) / 100,
+      min_above_cost_basis: parseFloat(document.getElementById('minAboveCost').value) / 100,
+      call_dte: parseInt(document.getElementById('callDte').value),
+      roll_strategy: document.getElementById('rollStrategy').value,
+      max_positions: parseInt(document.getElementById('maxPositions').value),
+      portfolio_allocation: parseFloat(document.getElementById('portfolioAlloc').value) / 100,
+      profit_target: parseFloat(document.getElementById('profitTarget').value) / 100,
+      max_loss_pct: parseFloat(document.getElementById('maxLoss').value) / 100,
+      assignment_buffer_days: parseInt(document.getElementById('assignmentBuffer').value),
+      earnings_avoidance: document.getElementById('earningsAvoidance').value,
+      min_liquidity_score: parseInt(document.getElementById('minLiquidity').value),
+      scan_interval: parseInt(document.getElementById('scanInterval').value),
+      sectors: {
+        tech: document.getElementById('sectorTech').checked,
+        financial: document.getElementById('sectorFinancial').checked,
+        energy: document.getElementById('sectorEnergy').checked,
+        dividend: document.getElementById('sectorDividend').checked,
+        reit: document.getElementById('sectorREIT').checked,
+        volatile: document.getElementById('sectorVolatile').checked
+      },
+      custom_watchlist: document.getElementById('customWatchlist').value,
+      min_market_cap: document.getElementById('minMarketCap').value,
+      fundamental_screen: document.getElementById('fundamentalScreen').value
+    };
+  }
+
+  // Backtest button
+  document.getElementById('backtestBtn').addEventListener('click', function() {
+    window.location.href = '/backtesting?strategy=wheel';
+  });
+
+  // Reset defaults
+  document.getElementById('resetDefaultsBtn').addEventListener('click', function() {
+    const activeProfile = document.querySelector('.profile-badge.active');
+    if (activeProfile) {
+      const profile = activeProfile.dataset.profile;
+      applyProfile(profiles[profile]);
+    }
+  });
+
+  // Initial load
+  updateExpectedReturns();
+</script>
+{% endblock javascripts %}

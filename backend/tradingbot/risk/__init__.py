@@ -8,6 +8,22 @@ try:
 except ImportError:
     RiskDatabaseManager = None
 
+# Circuit breaker (ported from Polymarket-Kalshi arbitrage bot)
+try:
+    from .circuit_breaker import (
+        TripReason,
+        CircuitBreakerConfig,
+        CircuitBreakerState,
+        CircuitBreaker,
+        get_circuit_breaker,
+        configure_circuit_breaker,
+    )
+    CIRCUIT_BREAKER_AVAILABLE = True
+except ImportError:
+    TripReason = CircuitBreakerConfig = CircuitBreakerState = None
+    CircuitBreaker = get_circuit_breaker = configure_circuit_breaker = None
+    CIRCUIT_BREAKER_AVAILABLE = False
+
 try:
     from .ml_risk_predictor import MLRiskPredictor, RiskPrediction, VolatilityForecast
 except ImportError:
@@ -103,6 +119,17 @@ __all__ = [
     "VaRSuite",
     "VolatilityForecast",
 ]
+
+# Add circuit breaker if available (from Polymarket-Kalshi arbitrage bot)
+if CIRCUIT_BREAKER_AVAILABLE:
+    __all__.extend([
+        "TripReason",
+        "CircuitBreakerConfig",
+        "CircuitBreakerState",
+        "CircuitBreaker",
+        "get_circuit_breaker",
+        "configure_circuit_breaker",
+    ])
 
 # Add advanced features if available
 if ADVANCED_FEATURES_AVAILABLE:

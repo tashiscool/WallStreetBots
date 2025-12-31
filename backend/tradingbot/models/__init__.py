@@ -43,7 +43,17 @@ try:
     from django.conf import settings
     if settings.configured:
         try:
-            from .models import Portfolio, Bot, Company, Stock, Order
+            from .models import (
+                Portfolio, Bot, Company, Stock, Order,
+                ValidationRun, SignalValidationMetrics, DataQualityMetrics,
+                ValidationParameterRegistry, TradeSignalSnapshot,
+                SignalValidationHistory, StrategyAllocationLimit,
+                AllocationReservation, CircuitBreakerEvent,
+                CircuitBreakerState, CircuitBreakerHistory,
+                StrategyPortfolio, UserProfile, DigestLog,
+                TaxLot, TaxLotSale, StrategyPerformanceSnapshot,
+                CustomStrategy
+            )
             DJANGO_MODELS_AVAILABLE = True
         except ImportError:
             pass
@@ -52,8 +62,15 @@ except ImportError:
 
 __all__ = [
     "DJANGO_MODELS_AVAILABLE",
+    "AllocationReservation",
     "Bot",
+    "CircuitBreakerEvent",
+    "CircuitBreakerHistory",
+    "CircuitBreakerState",
     "Company",
+    "CustomStrategy",
+    "DataQualityMetrics",
+    "DigestLog",
     "Order",
     "OrderSide",
     "Portfolio",
@@ -66,8 +83,19 @@ __all__ = [
     "ProductionSentimentData",
     "ProductionStrategy",
     "ProductionTrade",
+    "SignalValidationHistory",
+    "SignalValidationMetrics",
     "Stock",
+    "StrategyAllocationLimit",
+    "StrategyPerformanceSnapshot",
+    "StrategyPortfolio",
     "StrategyRiskLevel",
+    "TaxLot",
+    "TaxLotSale",
+    "TradeSignalSnapshot",
     "TradeStatus",
+    "UserProfile",
+    "ValidationParameterRegistry",
+    "ValidationRun",
     "get_django_models",
 ]

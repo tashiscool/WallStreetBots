@@ -1,0 +1,1459 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Setup Wizard {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .wizard-step {
+    padding: 20px;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+  }
+  .wizard-step.active {
+    opacity: 1;
+    border-left: 4px solid #cb0c9f;
+    background: linear-gradient(to right, rgba(203,12,159,0.05), transparent);
+  }
+  .wizard-step.completed {
+    opacity: 1;
+  }
+  .wizard-step.completed .step-number {
+    background: #2dce89 !important;
+  }
+  .step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(310deg, #7928CA 0%, #FF0080 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+  .step-content {
+    display: none;
+  }
+  .step-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .strategy-option {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+  }
+  .strategy-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  .strategy-option.selected {
+    border-color: #cb0c9f;
+    background: linear-gradient(to right, rgba(203,12,159,0.05), rgba(121,40,202,0.05));
+  }
+  .risk-profile-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+  }
+  .risk-profile-card:hover {
+    transform: scale(1.02);
+  }
+  .risk-profile-card.selected {
+    border-color: #cb0c9f;
+  }
+  .connection-status {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+  .progress-wizard {
+    height: 4px;
+    border-radius: 2px;
+  }
+  .implication-box { background: linear-gradient(to right, rgba(203,12,159,0.05), rgba(94,114,228,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .welcome-hero { background: linear-gradient(135deg, rgba(121,40,202,0.1) 0%, rgba(255,0,128,0.1) 100%); border-radius: 12px; padding: 24px; }
+  .mode-card-paper { border: 2px solid transparent; }
+  .mode-card-paper.selected { border-color: #2dce89; background: rgba(45,206,137,0.05); }
+  .mode-card-live { border: 2px solid transparent; }
+  .mode-card-live.selected { border-color: #f5365c; background: rgba(245,54,92,0.05); }
+  .strategy-details { font-size: 12px; color: #8898aa; margin-top: 4px; }
+  .success-checklist { list-style: none; padding: 0; }
+  .success-checklist li { padding: 8px 0; border-bottom: 1px solid #e9ecef; display: flex; align-items: center; }
+  .success-checklist li:last-child { border-bottom: none; }
+  .success-checklist .step-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 12px; }
+  .answer-option { cursor: pointer; transition: all 0.2s ease; border: 2px solid transparent; }
+  .answer-option:hover { border-color: #5e72e4; background: rgba(94, 114, 228, 0.05); }
+  .answer-option.border-primary { border-color: #5e72e4 !important; }
+  .bg-primary-soft { background: rgba(94, 114, 228, 0.1) !important; }
+  .question-card { border-left: 4px solid #5e72e4; }
+  .profile-override-card { cursor: pointer; transition: all 0.2s ease; border: 2px solid transparent; }
+  .profile-override-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .profile-override-card.selected { border-width: 2px !important; }
+  .recommendation-card { cursor: pointer; transition: all 0.2s ease; border: 2px solid transparent; }
+  .recommendation-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Welcome Hero (Step 0 - shows first) -->
+  <div class="row mb-4" id="welcomeHero">
+    <div class="col-12">
+      <div class="card bg-gradient-primary">
+        <div class="card-body p-5 text-center">
+          <div class="icon icon-shape bg-white shadow text-center border-radius-md mx-auto mb-4" style="width: 80px; height: 80px;">
+            <i class="fas fa-robot text-primary fa-3x"></i>
+          </div>
+          <h2 class="text-white mb-2">Welcome to WallStreetBots</h2>
+          <p class="text-white opacity-8 mb-1 h5">Your institutional-grade trading assistant</p>
+          <p class="text-white opacity-7 mb-4">Like having a professional trader working for you 24/7 - but one that never gets emotional or tired.</p>
+          <div class="row justify-content-center mb-4">
+            <div class="col-md-3 text-center mb-3 mb-md-0">
+              <div class="text-white">
+                <i class="fas fa-clock fa-2x mb-2"></i>
+                <p class="mb-0 font-weight-bold">5 minutes</p>
+                <small class="opacity-7">to get started</small>
+              </div>
+            </div>
+            <div class="col-md-3 text-center mb-3 mb-md-0">
+              <div class="text-white">
+                <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                <p class="mb-0 font-weight-bold">No risk</p>
+                <small class="opacity-7">start with fake money</small>
+              </div>
+            </div>
+            <div class="col-md-3 text-center">
+              <div class="text-white">
+                <i class="fas fa-graduation-cap fa-2x mb-2"></i>
+                <p class="mb-0 font-weight-bold">Learn as you go</p>
+                <small class="opacity-7">we'll guide you</small>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-white btn-lg" id="startWizardBtn">
+            <i class="fas fa-play me-2"></i>Let's Get Started
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Bar (hidden until wizard starts) -->
+  <div class="row mb-4" id="wizardProgress" style="display: none;">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h4 class="mb-0"><i class="fas fa-magic me-2 text-primary"></i>WallStreetBots Setup Wizard</h4>
+              <p class="text-sm text-secondary mb-0">Get trading in 5 minutes - no experience required!</p>
+            </div>
+            <span class="badge bg-gradient-primary">Step <span id="currentStep">1</span> of 5</span>
+          </div>
+          <div class="alert alert-info mb-3 py-2">
+            <i class="fas fa-clock me-2"></i>
+            <strong>Estimated time:</strong> 5 minutes | <strong>What you'll need:</strong> Free Alpaca account (we'll help you get one!)
+          </div>
+          <div class="progress progress-wizard">
+            <div class="progress-bar bg-gradient-primary" role="progressbar" style="width: 20%" id="wizardProgressBar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" id="wizardContent" style="display: none;">
+    <!-- Steps Sidebar -->
+    <div class="col-lg-3 mb-4">
+      <div class="card">
+        <div class="card-body p-0">
+          <div class="wizard-step active" data-step="1">
+            <div class="d-flex align-items-center">
+              <div class="step-number me-3">1</div>
+              <div>
+                <h6 class="mb-0">Broker Connection</h6>
+                <small class="text-secondary">Connect your Alpaca account</small>
+              </div>
+            </div>
+          </div>
+          <div class="wizard-step" data-step="2">
+            <div class="d-flex align-items-center">
+              <div class="step-number me-3">2</div>
+              <div>
+                <h6 class="mb-0">Trading Mode</h6>
+                <small class="text-secondary">Paper or live trading</small>
+              </div>
+            </div>
+          </div>
+          <div class="wizard-step" data-step="3">
+            <div class="d-flex align-items-center">
+              <div class="step-number me-3">3</div>
+              <div>
+                <h6 class="mb-0">Select Strategies</h6>
+                <small class="text-secondary">Choose your trading strategies</small>
+              </div>
+            </div>
+          </div>
+          <div class="wizard-step" data-step="4">
+            <div class="d-flex align-items-center">
+              <div class="step-number me-3">4</div>
+              <div>
+                <h6 class="mb-0">Risk Profile</h6>
+                <small class="text-secondary">Set your risk tolerance</small>
+              </div>
+            </div>
+          </div>
+          <div class="wizard-step" data-step="5">
+            <div class="d-flex align-items-center">
+              <div class="step-number me-3">5</div>
+              <div>
+                <h6 class="mb-0">Review & Launch</h6>
+                <small class="text-secondary">Confirm and start trading</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div class="col-lg-9">
+      <!-- Step 1: Broker Connection -->
+      <div class="step-content active" id="step1">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-plug me-2 text-primary"></i>Connect Your Broker</h5>
+            <p class="text-sm text-secondary mb-0">We use Alpaca for trading. It's free for paper trading (fake money) - perfect for learning!</p>
+          </div>
+          <div class="card-body">
+            <!-- Alpaca explanation -->
+            <div class="implication-box mb-4">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <i class="fas fa-piggy-bank fa-2x text-success"></i>
+                </div>
+                <div class="col">
+                  <h6 class="mb-1">Paper Trading = $100,000 in Fake Money!</h6>
+                  <p class="text-sm text-secondary mb-0">No risk, no commitment - just learning! You'll practice with simulated money until you're ready for the real thing. Most users paper trade for 30+ days before going live.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card bg-gradient-light border-0 mb-4">
+              <div class="card-body py-3">
+                <h6 class="mb-3"><i class="fas fa-graduation-cap text-primary me-2"></i>New to trading? Here's what to do:</h6>
+                <div class="row">
+                  <div class="col-md-4 mb-2 mb-md-0">
+                    <div class="d-flex align-items-start">
+                      <span class="badge bg-primary rounded-circle me-2">1</span>
+                      <div>
+                        <strong class="text-sm">Get Free Account</strong>
+                        <p class="text-xs text-secondary mb-0"><a href="https://app.alpaca.markets/signup" target="_blank">Sign up at Alpaca</a> (takes 2 min, no credit card)</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4 mb-2 mb-md-0">
+                    <div class="d-flex align-items-start">
+                      <span class="badge bg-primary rounded-circle me-2">2</span>
+                      <div>
+                        <strong class="text-sm">Navigate to API Keys</strong>
+                        <p class="text-xs text-secondary mb-0">Go to "Paper Trading" then "API Keys"</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="d-flex align-items-start">
+                      <span class="badge bg-primary rounded-circle me-2">3</span>
+                      <div>
+                        <strong class="text-sm">Copy Your Keys</strong>
+                        <p class="text-xs text-secondary mb-0">Paste them below - you'll get $100K fake money!</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">
+                  API Key ID
+                  <i class="fas fa-question-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Your public API key from Alpaca. Starts with 'PK' for paper trading."></i>
+                </label>
+                <input type="text" class="form-control" id="wizardApiKey" placeholder="PK...">
+                <small class="text-secondary">Find at alpaca.markets → Paper Trading → API Keys</small>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">
+                  Secret Key
+                  <i class="fas fa-question-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Your private secret key. Keep this safe and never share it!"></i>
+                </label>
+                <div class="input-group">
+                  <input type="password" class="form-control" id="wizardSecretKey" placeholder="Your secret key">
+                  <button class="btn btn-outline-secondary" type="button" id="toggleWizardSecret">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+              <button class="btn bg-gradient-info mb-0" id="testWizardConnection">
+                <i class="fas fa-plug me-2"></i>Test Connection
+              </button>
+              <span class="connection-status" id="wizardConnectionStatus">
+                <i class="fas fa-circle text-secondary me-1"></i>Not connected
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Trading Mode -->
+      <div class="step-content" id="step2">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-exchange-alt me-2 text-primary"></i>Select Trading Mode</h5>
+            <p class="text-sm text-secondary mb-0">Choose between paper trading (simulated) or live trading (real money)</p>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <!-- Paper Trading Card -->
+              <div class="col-md-6 mb-4">
+                <div class="card mode-card-paper h-100 selected" data-mode="paper">
+                  <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                      <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md" style="width: 60px; height: 60px;">
+                        <i class="fas fa-file-alt text-white fa-lg"></i>
+                      </div>
+                      <span class="badge bg-success">Recommended for Beginners</span>
+                    </div>
+                    <h5>Paper Trading</h5>
+                    <p class="text-secondary mb-3">Trade with $100,000 fake money</p>
+                    <div class="implication-box" style="background: rgba(45,206,137,0.1);">
+                      <small class="text-secondary">
+                        <i class="fas fa-check-circle text-success me-1"></i>
+                        <strong>Perfect for learning.</strong> Make mistakes without losing real money. Practice until you're consistently profitable.
+                      </small>
+                    </div>
+                    <ul class="list-unstyled mt-3 mb-0 text-sm">
+                      <li class="mb-2"><i class="fas fa-check text-success me-2"></i>$100,000 simulated balance</li>
+                      <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Real market data</li>
+                      <li class="mb-2"><i class="fas fa-check text-success me-2"></i>No financial risk</li>
+                      <li><i class="fas fa-check text-success me-2"></i>Identical to live trading</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Trading Card -->
+              <div class="col-md-6 mb-4">
+                <div class="card mode-card-live h-100" data-mode="live">
+                  <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                      <div class="icon icon-shape bg-gradient-danger shadow text-center border-radius-md" style="width: 60px; height: 60px;">
+                        <i class="fas fa-dollar-sign text-white fa-lg"></i>
+                      </div>
+                      <span class="badge bg-danger">For Experienced Traders</span>
+                    </div>
+                    <h5>Live Trading</h5>
+                    <p class="text-secondary mb-3">Trade with real money</p>
+                    <div class="implication-box" style="background: rgba(245,54,92,0.1);">
+                      <small class="text-secondary">
+                        <i class="fas fa-exclamation-triangle text-danger me-1"></i>
+                        <strong>Warning:</strong> Only use after 30+ days of profitable paper trading. Real money = real risk.
+                      </small>
+                    </div>
+                    <ul class="list-unstyled mt-3 mb-0 text-sm">
+                      <li class="mb-2"><i class="fas fa-check text-primary me-2"></i>Real money, real gains</li>
+                      <li class="mb-2"><i class="fas fa-check text-primary me-2"></i>Tax implications apply</li>
+                      <li class="mb-2"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Real financial risk</li>
+                      <li><i class="fas fa-exclamation-triangle text-warning me-2"></i>Start with small amounts</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="alert alert-danger" id="liveWarning" style="display: none;">
+              <div class="d-flex align-items-start">
+                <i class="fas fa-exclamation-triangle fa-2x me-3 text-danger"></i>
+                <div>
+                  <h6 class="alert-heading mb-1">Important: Real Money Risk</h6>
+                  <p class="mb-0 text-sm">Live trading involves real financial risk. We strongly recommend paper trading for at least 30 days to understand how the system works. When you do go live, start with only 1-2% of what you can afford to lose.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Select Strategies -->
+      <div class="step-content" id="step3">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-robot me-2 text-primary"></i>Select Trading Strategies</h5>
+            <p class="text-sm text-secondary mb-0">Choose the strategies you want to run. Each is like a different trading style.</p>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <!-- WSB Dip Bot -->
+              <div class="col-md-6 mb-3">
+                <div class="card strategy-option selected" data-strategy="wsb-dip-bot">
+                  <div class="card-body p-3">
+                    <div class="d-flex align-items-center mb-2">
+                      <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md me-3">
+                        <i class="fas fa-chart-line text-white"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h6 class="mb-0">WSB Dip Bot</h6>
+                        <small class="text-primary font-weight-bold">"Buy the dip, ride the wave"</small>
+                      </div>
+                      <i class="fas fa-check-circle text-success fa-lg strategy-check"></i>
+                    </div>
+                    <p class="text-sm text-secondary mb-2">Buys stocks that dropped after a big run-up - like buying something on sale after it was expensive.</p>
+                    <div class="strategy-details">
+                      <span class="badge bg-warning text-dark me-1">Medium-High Risk</span>
+                      <span class="badge bg-secondary me-1">1-5 day holds</span>
+                      <span class="badge bg-info">Best for: Volatile markets</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Wheel Strategy -->
+              <div class="col-md-6 mb-3">
+                <div class="card strategy-option" data-strategy="wheel">
+                  <div class="card-body p-3">
+                    <div class="d-flex align-items-center mb-2">
+                      <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md me-3">
+                        <i class="fas fa-sync-alt text-white"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h6 class="mb-0">Wheel Strategy</h6>
+                        <small class="text-info font-weight-bold">"Collect premium, build wealth"</small>
+                      </div>
+                      <i class="fas fa-check-circle text-success fa-lg strategy-check" style="display: none;"></i>
+                    </div>
+                    <p class="text-sm text-secondary mb-2">Sells options to collect premium, then manages positions - like being a landlord collecting rent.</p>
+                    <div class="strategy-details">
+                      <span class="badge bg-success me-1">Low-Medium Risk</span>
+                      <span class="badge bg-secondary me-1">Weeks-months</span>
+                      <span class="badge bg-info">Best for: Stable stocks</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Momentum Weeklies -->
+              <div class="col-md-6 mb-3">
+                <div class="card strategy-option" data-strategy="momentum-weeklies">
+                  <div class="card-body p-3">
+                    <div class="d-flex align-items-center mb-2">
+                      <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md me-3">
+                        <i class="fas fa-bolt text-white"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h6 class="mb-0">Momentum Weeklies</h6>
+                        <small class="text-success font-weight-bold">"Catch the wave, ride it fast"</small>
+                      </div>
+                      <i class="fas fa-check-circle text-success fa-lg strategy-check" style="display: none;"></i>
+                    </div>
+                    <p class="text-sm text-secondary mb-2">Quick trades on stocks with strong momentum - like catching a wave and riding it briefly.</p>
+                    <div class="strategy-details">
+                      <span class="badge bg-danger me-1">High Risk</span>
+                      <span class="badge bg-secondary me-1">Hours to 1 day</span>
+                      <span class="badge bg-info">Best for: Breakouts</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Index Baseline -->
+              <div class="col-md-6 mb-3">
+                <div class="card strategy-option" data-strategy="index-baseline">
+                  <div class="card-body p-3">
+                    <div class="d-flex align-items-center mb-2">
+                      <div class="icon icon-shape bg-gradient-secondary shadow text-center border-radius-md me-3">
+                        <i class="fas fa-chart-bar text-white"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h6 class="mb-0">Index Baseline</h6>
+                        <small class="text-secondary font-weight-bold">"Steady growth, market-matching"</small>
+                      </div>
+                      <i class="fas fa-check-circle text-success fa-lg strategy-check" style="display: none;"></i>
+                    </div>
+                    <p class="text-sm text-secondary mb-2">Tracks major indexes (SPY, QQQ) for steady growth - investing in the whole market.</p>
+                    <div class="strategy-details">
+                      <span class="badge bg-success me-1">Low Risk</span>
+                      <span class="badge bg-secondary me-1">Ongoing</span>
+                      <span class="badge bg-info">Best for: Long-term</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lotto Scanner -->
+              <div class="col-md-6 mb-3">
+                <div class="card strategy-option" data-strategy="lotto-scanner">
+                  <div class="card-body p-3">
+                    <div class="d-flex align-items-center mb-2">
+                      <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md me-3">
+                        <i class="fas fa-ticket-alt text-white"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h6 class="mb-0">Lotto Scanner</h6>
+                        <small class="text-warning font-weight-bold">"Small bets, big potential"</small>
+                      </div>
+                      <i class="fas fa-check-circle text-success fa-lg strategy-check" style="display: none;"></i>
+                    </div>
+                    <p class="text-sm text-secondary mb-2">High-risk, high-reward plays - like buying lottery tickets with better odds.</p>
+                    <div class="strategy-details">
+                      <span class="badge bg-danger me-1">Very High Risk</span>
+                      <span class="badge bg-secondary me-1">Same day</span>
+                      <span class="badge bg-warning text-dark">Only 1-2% allocation!</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Earnings Protection -->
+              <div class="col-md-6 mb-3">
+                <div class="card strategy-option" data-strategy="earnings-protection">
+                  <div class="card-body p-3">
+                    <div class="d-flex align-items-center mb-2">
+                      <div class="icon icon-shape bg-gradient-danger shadow text-center border-radius-md me-3">
+                        <i class="fas fa-shield-alt text-white"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h6 class="mb-0">Earnings Protection</h6>
+                        <small class="text-danger font-weight-bold">"Insurance for earnings season"</small>
+                      </div>
+                      <i class="fas fa-check-circle text-success fa-lg strategy-check" style="display: none;"></i>
+                    </div>
+                    <p class="text-sm text-secondary mb-2">Protects against big moves around company earnings - like buying insurance before a risky event.</p>
+                    <div class="strategy-details">
+                      <span class="badge bg-success me-1">Low-Medium Risk</span>
+                      <span class="badge bg-secondary me-1">1-3 days</span>
+                      <span class="badge bg-info">Best for: Earnings season</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="alert alert-info mt-3">
+              <i class="fas fa-lightbulb me-2"></i>
+              <strong>Tip:</strong> Start with 1-2 strategies to learn how they work before adding more. Each strategy is like a different trading style - some look for dips, others for momentum.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Risk Profile Questionnaire -->
+      <div class="step-content" id="step4">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-clipboard-list me-2 text-primary"></i>Risk Assessment Questionnaire</h5>
+            <p class="text-sm text-secondary mb-0">Answer a few questions to help us understand your risk tolerance and recommend the best strategies for you.</p>
+          </div>
+          <div class="card-body">
+            <!-- Questionnaire Container -->
+            <div id="questionnaireContainer">
+              <!-- Questions will be loaded dynamically -->
+              <div class="text-center py-4" id="questionnaireLoading">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-secondary">Loading questionnaire...</p>
+              </div>
+
+              <!-- Question Cards (populated by JS) -->
+              <div id="questionsList" style="display: none;"></div>
+
+              <!-- Real-time Score Preview -->
+              <div id="scorePreview" class="card bg-light mt-4" style="display: none;">
+                <div class="card-body">
+                  <div class="row align-items-center">
+                    <div class="col-auto">
+                      <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md" style="width: 50px; height: 50px;">
+                        <i class="fas fa-chart-pie text-white"></i>
+                      </div>
+                    </div>
+                    <div class="col">
+                      <h6 class="mb-1">Your Risk Profile Preview</h6>
+                      <p class="mb-0 text-sm">
+                        <span id="previewProfile" class="badge bg-primary me-2">-</span>
+                        <span id="previewScore" class="text-secondary">Answer all questions to see result</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Results Container (shown after completion) -->
+            <div id="resultsContainer" style="display: none;">
+              <!-- Recommended Profile Card -->
+              <div class="card border-success mb-4" id="recommendedProfileCard">
+                <div class="card-header bg-success text-white">
+                  <h5 class="mb-0 text-white"><i class="fas fa-star me-2"></i>Your Recommended Profile</h5>
+                </div>
+                <div class="card-body text-center py-4">
+                  <div class="icon icon-shape shadow text-center border-radius-md mx-auto mb-3" id="profileIcon" style="width: 80px; height: 80px; background: linear-gradient(310deg, #2dce89 0%, #2dcecc 100%);">
+                    <i class="fas fa-shield-alt fa-2x text-white"></i>
+                  </div>
+                  <h3 id="resultProfileName" class="mb-2">Moderate</h3>
+                  <p id="resultExplanation" class="text-secondary mb-0">Balanced approach to risk and reward...</p>
+                  <div class="mt-3">
+                    <span class="badge bg-primary">Score: <span id="resultScore">18</span>/30</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Override Option -->
+              <div class="card bg-light mb-4">
+                <div class="card-body">
+                  <h6><i class="fas fa-edit me-2"></i>Want to choose a different profile?</h6>
+                  <p class="text-sm text-secondary mb-3">You can override our recommendation, but be aware this may increase your risk exposure.</p>
+                  <div class="row" id="profileOverrideOptions">
+                    <div class="col-md-4 mb-2">
+                      <div class="card profile-override-card h-100" data-profile="conservative">
+                        <div class="card-body text-center py-3">
+                          <i class="fas fa-shield-alt fa-2x text-success mb-2"></i>
+                          <h6 class="mb-0">Conservative</h6>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                      <div class="card profile-override-card h-100" data-profile="moderate">
+                        <div class="card-body text-center py-3">
+                          <i class="fas fa-balance-scale fa-2x text-info mb-2"></i>
+                          <h6 class="mb-0">Moderate</h6>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                      <div class="card profile-override-card h-100" data-profile="aggressive">
+                        <div class="card-body text-center py-3">
+                          <i class="fas fa-fire fa-2x text-danger mb-2"></i>
+                          <h6 class="mb-0">Aggressive</h6>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Override Warning -->
+                  <div class="alert alert-warning mt-3" id="overrideWarning" style="display: none;">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="acknowledgeOverride">
+                      <label class="form-check-label" for="acknowledgeOverride">
+                        <strong>I understand:</strong> <span id="overrideWarningText">Selecting a more aggressive profile increases my risk exposure.</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recommended Strategies (from recommendation engine) -->
+              <div class="card border-primary mb-4">
+                <div class="card-header bg-gradient-primary text-white">
+                  <h5 class="mb-0 text-white"><i class="fas fa-robot me-2"></i>Recommended Strategies for You</h5>
+                </div>
+                <div class="card-body">
+                  <div id="recommendedStrategiesList">
+                    <div class="text-center py-3">
+                      <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                      <span class="ms-2">Loading recommendations...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Custom Settings -->
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h6><i class="fas fa-sliders-h me-2"></i>Fine-tune Settings (Optional)</h6>
+                  <div class="row">
+                    <div class="col-md-4 mb-3">
+                      <label class="form-label text-sm">Max Position Size (%)</label>
+                      <input type="number" class="form-control form-control-sm" id="customMaxPosition" value="3" min="1" max="10">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                      <label class="form-label text-sm">Max Daily Loss (%)</label>
+                      <input type="number" class="form-control form-control-sm" id="customMaxDailyLoss" value="8" min="3" max="20">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                      <label class="form-label text-sm">Max Open Positions</label>
+                      <input type="number" class="form-control form-control-sm" id="customMaxPositions" value="10" min="1" max="30">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Review & Launch -->
+      <div class="step-content" id="step5">
+        <div class="card">
+          <div class="card-header bg-gradient-success text-white">
+            <h5 class="mb-0 text-white"><i class="fas fa-rocket me-2"></i>You're Ready to Trade!</h5>
+            <p class="text-sm text-white opacity-8 mb-0">The system will now scan markets, find opportunities, and place trades automatically.</p>
+          </div>
+          <div class="card-body">
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="card bg-light mb-3">
+                  <div class="card-body">
+                    <h6><i class="fas fa-plug me-2 text-info"></i>Connection</h6>
+                    <p class="mb-1"><strong>Status:</strong> <span class="text-success" id="reviewConnection">Connected</span></p>
+                    <p class="mb-0"><strong>Mode:</strong> <span id="reviewMode">Paper Trading</span></p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card bg-light mb-3">
+                  <div class="card-body">
+                    <h6><i class="fas fa-shield-alt me-2 text-warning"></i>Risk Profile</h6>
+                    <p class="mb-1"><strong>Profile:</strong> <span id="reviewRisk">Moderate</span></p>
+                    <p class="mb-0"><strong>Max Position:</strong> <span id="reviewMaxPos">3%</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card bg-light mb-4">
+              <div class="card-body">
+                <h6><i class="fas fa-robot me-2 text-primary"></i>Selected Strategies</h6>
+                <div id="reviewStrategies">
+                  <span class="badge bg-gradient-primary me-2 mb-2">WSB Dip Bot</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Next Steps Checklist -->
+            <div class="card border-success mb-4">
+              <div class="card-header bg-success text-white">
+                <h6 class="mb-0 text-white"><i class="fas fa-tasks me-2"></i>What Happens Next</h6>
+              </div>
+              <div class="card-body">
+                <ul class="success-checklist">
+                  <li>
+                    <div class="step-icon bg-primary text-white"><i class="fas fa-eye"></i></div>
+                    <div>
+                      <strong>Watch the system trade for a few days</strong>
+                      <p class="text-sm text-secondary mb-0">The bot will scan markets and place trades based on your strategies. Watch how it works before making changes.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="step-icon bg-info text-white"><i class="fas fa-chart-line"></i></div>
+                    <div>
+                      <strong>Check your Alpaca dashboard to see positions</strong>
+                      <p class="text-sm text-secondary mb-0">Log into Alpaca to see your positions in real-time. Compare what you see there with this dashboard.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="step-icon bg-success text-white"><i class="fas fa-file-alt"></i></div>
+                    <div>
+                      <strong>Review the daily performance reports</strong>
+                      <p class="text-sm text-secondary mb-0">Check the Analytics page for detailed breakdowns of wins, losses, and strategy performance.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="step-icon bg-warning text-dark"><i class="fas fa-cog"></i></div>
+                    <div>
+                      <strong>Fine-tune after you understand the system</strong>
+                      <p class="text-sm text-secondary mb-0">Once you understand how each strategy works, adjust parameters to match your style.</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="agreeTerms">
+              <label class="form-check-label" for="agreeTerms">
+                I understand the risks involved in automated trading and agree to the <a href="#">Terms of Service</a>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="card mt-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <button class="btn btn-outline-secondary mb-0" id="prevBtn" style="display: none;">
+              <i class="fas fa-arrow-left me-2"></i>Previous
+            </button>
+            <button class="btn bg-gradient-primary mb-0 ms-auto" id="nextBtn">
+              Next<i class="fas fa-arrow-right ms-2"></i>
+            </button>
+            <button class="btn bg-gradient-success mb-0 ms-auto" id="launchBtn" style="display: none;">
+              <i class="fas fa-rocket me-2"></i>Launch Trading Bot
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  // Initialize tooltips
+  document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+
+  let currentStep = 1;
+  const totalSteps = 5;
+  let selectedStrategies = ['wsb-dip-bot'];
+  let selectedRisk = 'moderate';
+  let selectedMode = 'paper';
+  let questionnaireResponses = {};
+  let recommendedProfile = 'moderate';
+  let questionnaireCompleted = false;
+  let assessmentId = null;
+
+  // Start wizard button
+  document.getElementById('startWizardBtn').addEventListener('click', function() {
+    document.getElementById('welcomeHero').style.display = 'none';
+    document.getElementById('wizardProgress').style.display = 'block';
+    document.getElementById('wizardContent').style.display = 'flex';
+  });
+
+  function updateProgress() {
+    const progress = (currentStep / totalSteps) * 100;
+    document.getElementById('wizardProgressBar').style.width = progress + '%';
+    document.getElementById('currentStep').textContent = currentStep;
+
+    // Update step indicators
+    document.querySelectorAll('.wizard-step').forEach((step, index) => {
+      step.classList.remove('active', 'completed');
+      if (index + 1 === currentStep) {
+        step.classList.add('active');
+      } else if (index + 1 < currentStep) {
+        step.classList.add('completed');
+      }
+    });
+
+    // Show/hide content
+    document.querySelectorAll('.step-content').forEach((content, index) => {
+      content.classList.remove('active');
+      if (index + 1 === currentStep) {
+        content.classList.add('active');
+      }
+    });
+
+    // Update buttons
+    document.getElementById('prevBtn').style.display = currentStep > 1 ? 'block' : 'none';
+    document.getElementById('nextBtn').style.display = currentStep < totalSteps ? 'block' : 'none';
+    document.getElementById('launchBtn').style.display = currentStep === totalSteps ? 'block' : 'none';
+  }
+
+  // ========== Risk Assessment Questionnaire Functions ==========
+
+  async function loadQuestionnaire() {
+    try {
+      const response = await fetch('/api/risk-assessment/questions', {
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+      });
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        renderQuestions(data.questions);
+      } else {
+        document.getElementById('questionnaireLoading').innerHTML =
+          '<p class="text-danger">Failed to load questionnaire. Please refresh.</p>';
+      }
+    } catch (error) {
+      console.error('Error loading questionnaire:', error);
+      document.getElementById('questionnaireLoading').innerHTML =
+        '<p class="text-danger">Error loading questionnaire. Please refresh.</p>';
+    }
+  }
+
+  function renderQuestions(questions) {
+    const container = document.getElementById('questionsList');
+    container.innerHTML = questions.map((q, index) => `
+      <div class="card mb-3 question-card" data-question-id="${q.id}">
+        <div class="card-body">
+          <div class="d-flex align-items-start mb-3">
+            <span class="badge bg-primary rounded-circle me-3" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">${index + 1}</span>
+            <h6 class="mb-0">${q.text}</h6>
+          </div>
+          <div class="row">
+            ${q.options.map(opt => `
+              <div class="col-md-6 mb-2">
+                <div class="card answer-option h-100" data-question="${q.id}" data-value="${opt.value}">
+                  <div class="card-body py-2 px-3">
+                    <div class="form-check mb-0">
+                      <input class="form-check-input" type="radio" name="q_${q.id}" id="q_${q.id}_${opt.value}" value="${opt.value}">
+                      <label class="form-check-label" for="q_${q.id}_${opt.value}">${opt.label}</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Hide loading, show questions
+    document.getElementById('questionnaireLoading').style.display = 'none';
+    container.style.display = 'block';
+    document.getElementById('scorePreview').style.display = 'block';
+
+    // Add event listeners for answer selection
+    container.querySelectorAll('.answer-option').forEach(option => {
+      option.addEventListener('click', function() {
+        const questionId = this.dataset.question;
+        const value = this.dataset.value;
+
+        // Update UI
+        document.querySelectorAll(`[data-question="${questionId}"]`).forEach(opt => {
+          opt.classList.remove('border-primary', 'bg-primary-soft');
+        });
+        this.classList.add('border-primary', 'bg-primary-soft');
+
+        // Check the radio button
+        this.querySelector('input[type="radio"]').checked = true;
+
+        // Store response
+        questionnaireResponses[questionId] = value;
+
+        // Update preview
+        updateScorePreview();
+      });
+    });
+  }
+
+  async function updateScorePreview() {
+    const answeredCount = Object.keys(questionnaireResponses).length;
+    const previewScore = document.getElementById('previewScore');
+    const previewProfile = document.getElementById('previewProfile');
+
+    if (answeredCount < 3) {
+      previewScore.textContent = `${answeredCount}/6 questions answered`;
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/risk-assessment/calculate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ responses: questionnaireResponses }),
+      });
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        const profileColors = {
+          conservative: 'bg-success',
+          moderate: 'bg-info',
+          aggressive: 'bg-danger',
+        };
+        previewProfile.textContent = data.recommended_profile.charAt(0).toUpperCase() + data.recommended_profile.slice(1);
+        previewProfile.className = `badge ${profileColors[data.recommended_profile]} me-2`;
+        previewScore.textContent = `Score: ${data.total_score}/${data.max_score}`;
+
+        // Check if all questions answered
+        if (answeredCount >= 6) {
+          questionnaireCompleted = true;
+        }
+      }
+    } catch (error) {
+      console.error('Error calculating score:', error);
+    }
+  }
+
+  async function submitQuestionnaire() {
+    if (Object.keys(questionnaireResponses).length < 6) {
+      alert('Please answer all questions before continuing.');
+      return false;
+    }
+
+    try {
+      const response = await fetch('/api/risk-assessment/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+          responses: questionnaireResponses,
+          selected_profile: selectedRisk !== recommendedProfile ? selectedRisk : null,
+          override_acknowledged: document.getElementById('acknowledgeOverride')?.checked || false,
+        }),
+      });
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        assessmentId = data.assessment_id;
+        recommendedProfile = data.recommended_profile;
+        selectedRisk = data.selected_profile || data.recommended_profile;
+        showQuestionnaireResults(data);
+        return true;
+      }
+    } catch (error) {
+      console.error('Error submitting questionnaire:', error);
+      alert('Error submitting questionnaire. Please try again.');
+    }
+    return false;
+  }
+
+  function showQuestionnaireResults(data) {
+    // Hide questionnaire, show results
+    document.getElementById('questionnaireContainer').style.display = 'none';
+    document.getElementById('resultsContainer').style.display = 'block';
+
+    // Update profile display
+    const profileIcons = {
+      conservative: { icon: 'fa-shield-alt', color: '#2dce89' },
+      moderate: { icon: 'fa-balance-scale', color: '#5e72e4' },
+      aggressive: { icon: 'fa-fire', color: '#f5365c' },
+    };
+    const profile = data.recommended_profile;
+    const iconConfig = profileIcons[profile];
+
+    document.getElementById('profileIcon').innerHTML = `<i class="fas ${iconConfig.icon} fa-2x text-white"></i>`;
+    document.getElementById('profileIcon').style.background = `linear-gradient(310deg, ${iconConfig.color} 0%, ${iconConfig.color}cc 100%)`;
+    document.getElementById('resultProfileName').textContent = profile.charAt(0).toUpperCase() + profile.slice(1);
+    document.getElementById('resultExplanation').textContent = data.profile_explanation;
+    document.getElementById('resultScore').textContent = data.total_score;
+
+    // Highlight recommended profile in override options
+    document.querySelectorAll('.profile-override-card').forEach(card => {
+      card.classList.remove('selected', 'border-success');
+      if (card.dataset.profile === profile) {
+        card.classList.add('selected', 'border-success');
+      }
+    });
+
+    // Update custom settings based on profile
+    const profileSettings = {
+      conservative: { position: 2, dailyLoss: 5, maxPositions: 8 },
+      moderate: { position: 3, dailyLoss: 8, maxPositions: 10 },
+      aggressive: { position: 5, dailyLoss: 12, maxPositions: 15 },
+    };
+    const settings = profileSettings[profile];
+    document.getElementById('customMaxPosition').value = settings.position;
+    document.getElementById('customMaxDailyLoss').value = settings.dailyLoss;
+    document.getElementById('customMaxPositions').value = settings.maxPositions;
+
+    // Load strategy recommendations
+    loadStrategyRecommendations(profile);
+
+    // Setup override card listeners
+    setupProfileOverrideListeners();
+  }
+
+  async function loadStrategyRecommendations(profile) {
+    try {
+      const response = await fetch(`/api/strategy-recommendations?risk_profile=${profile}&capital_amount=100000`, {
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+      });
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        renderStrategyRecommendations(data);
+      }
+    } catch (error) {
+      console.error('Error loading recommendations:', error);
+      document.getElementById('recommendedStrategiesList').innerHTML =
+        '<p class="text-danger">Failed to load recommendations.</p>';
+    }
+  }
+
+  function renderStrategyRecommendations(data) {
+    const container = document.getElementById('recommendedStrategiesList');
+
+    if (data.highly_recommended.length === 0 && data.consider.length === 0) {
+      container.innerHTML = '<p class="text-secondary">No recommendations available.</p>';
+      return;
+    }
+
+    let html = '';
+
+    // Highly recommended
+    if (data.highly_recommended.length > 0) {
+      html += '<h6 class="text-success mb-3"><i class="fas fa-star me-2"></i>Highly Recommended</h6>';
+      html += '<div class="row mb-4">';
+      data.highly_recommended.forEach(rec => {
+        const isSelected = selectedStrategies.includes(rec.strategy_id);
+        html += `
+          <div class="col-md-6 mb-3">
+            <div class="card recommendation-card ${isSelected ? 'border-success' : ''}" data-strategy="${rec.strategy_id}">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="mb-0">${rec.strategy_name}</h6>
+                  ${isSelected ? '<i class="fas fa-check-circle text-success"></i>' : '<i class="far fa-circle text-secondary add-strategy-btn" style="cursor:pointer;"></i>'}
+                </div>
+                <p class="text-sm text-secondary mb-2">${rec.short_description}</p>
+                <p class="text-sm mb-2"><strong>Why this fits you:</strong> ${rec.fit_explanation}</p>
+                <div class="d-flex flex-wrap gap-1">
+                  <span class="badge ${getRiskBadgeClass(rec.risk_level)}">${rec.risk_level} risk</span>
+                  <span class="badge bg-secondary">${rec.typical_hold_period}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+    }
+
+    // Consider strategies
+    if (data.consider.length > 0) {
+      html += '<h6 class="text-info mb-3"><i class="fas fa-lightbulb me-2"></i>Also Consider</h6>';
+      html += '<div class="row">';
+      data.consider.forEach(rec => {
+        const isSelected = selectedStrategies.includes(rec.strategy_id);
+        html += `
+          <div class="col-md-6 mb-3">
+            <div class="card recommendation-card ${isSelected ? 'border-info' : ''}" data-strategy="${rec.strategy_id}">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="mb-0">${rec.strategy_name}</h6>
+                  ${isSelected ? '<i class="fas fa-check-circle text-info"></i>' : '<i class="far fa-circle text-secondary add-strategy-btn" style="cursor:pointer;"></i>'}
+                </div>
+                <p class="text-sm text-secondary mb-2">${rec.short_description}</p>
+                ${rec.warnings.length > 0 ? `<p class="text-sm text-warning mb-2"><i class="fas fa-exclamation-triangle me-1"></i>${rec.warnings[0]}</p>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+    }
+
+    // Portfolio suggestion
+    if (data.portfolio_suggestion) {
+      html += `
+        <div class="alert alert-info mt-3">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Portfolio Tip:</strong> ${data.portfolio_suggestion.message}
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+
+    // Add click handlers for strategy cards
+    container.querySelectorAll('.recommendation-card').forEach(card => {
+      card.addEventListener('click', function() {
+        const strategyId = this.dataset.strategy;
+        toggleStrategySelection(strategyId, this);
+      });
+    });
+  }
+
+  function getRiskBadgeClass(risk) {
+    const classes = {
+      low: 'bg-success',
+      medium: 'bg-warning text-dark',
+      high: 'bg-danger',
+      very_high: 'bg-dark',
+    };
+    return classes[risk] || 'bg-secondary';
+  }
+
+  function toggleStrategySelection(strategyId, card) {
+    const index = selectedStrategies.indexOf(strategyId);
+    if (index > -1) {
+      selectedStrategies.splice(index, 1);
+      card.classList.remove('border-success', 'border-info');
+      card.querySelector('.fa-check-circle')?.classList.replace('fa-check-circle', 'fa-circle');
+      card.querySelector('.fas')?.classList.replace('fas', 'far');
+    } else {
+      selectedStrategies.push(strategyId);
+      card.classList.add('border-success');
+      card.querySelector('.fa-circle')?.classList.replace('fa-circle', 'fa-check-circle');
+      card.querySelector('.far')?.classList.replace('far', 'fas');
+    }
+  }
+
+  function setupProfileOverrideListeners() {
+    document.querySelectorAll('.profile-override-card').forEach(card => {
+      card.addEventListener('click', function() {
+        const profile = this.dataset.profile;
+
+        // Update selection UI
+        document.querySelectorAll('.profile-override-card').forEach(c => {
+          c.classList.remove('selected', 'border-success', 'border-info', 'border-danger');
+        });
+        const borderColors = { conservative: 'border-success', moderate: 'border-info', aggressive: 'border-danger' };
+        this.classList.add('selected', borderColors[profile]);
+
+        // Check if this is an override (different from recommended)
+        const profileOrder = ['conservative', 'moderate', 'aggressive'];
+        const recommendedIdx = profileOrder.indexOf(recommendedProfile);
+        const selectedIdx = profileOrder.indexOf(profile);
+
+        if (selectedIdx > recommendedIdx) {
+          // User selected more aggressive - show warning
+          document.getElementById('overrideWarning').style.display = 'block';
+          document.getElementById('overrideWarningText').textContent =
+            `You're selecting "${profile}" which is more aggressive than your recommended "${recommendedProfile}" profile. This increases your risk exposure.`;
+        } else {
+          document.getElementById('overrideWarning').style.display = 'none';
+        }
+
+        selectedRisk = profile;
+
+        // Update custom settings
+        const profileSettings = {
+          conservative: { position: 2, dailyLoss: 5, maxPositions: 8 },
+          moderate: { position: 3, dailyLoss: 8, maxPositions: 10 },
+          aggressive: { position: 5, dailyLoss: 12, maxPositions: 15 },
+        };
+        const settings = profileSettings[profile];
+        document.getElementById('customMaxPosition').value = settings.position;
+        document.getElementById('customMaxDailyLoss').value = settings.dailyLoss;
+        document.getElementById('customMaxPositions').value = settings.maxPositions;
+
+        // Reload recommendations for new profile
+        loadStrategyRecommendations(profile);
+      });
+    });
+  }
+
+  // Navigation
+  document.getElementById('nextBtn').addEventListener('click', async function() {
+    // Special handling for step 4 (questionnaire)
+    if (currentStep === 4 && !questionnaireCompleted) {
+      const success = await submitQuestionnaire();
+      if (!success) return;
+    }
+
+    if (currentStep < totalSteps) {
+      currentStep++;
+      updateProgress();
+      if (currentStep === 4) loadQuestionnaire();
+      if (currentStep === 5) updateReview();
+    }
+  });
+
+  document.getElementById('prevBtn').addEventListener('click', function() {
+    if (currentStep > 1) {
+      currentStep--;
+      updateProgress();
+    }
+  });
+
+  // Toggle secret key visibility
+  document.getElementById('toggleWizardSecret').addEventListener('click', function() {
+    const input = document.getElementById('wizardSecretKey');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+
+  // Test connection via real API
+  document.getElementById('testWizardConnection').addEventListener('click', async function() {
+    const status = document.getElementById('wizardConnectionStatus');
+    const apiKey = document.getElementById('wizardApiKey').value;
+    const secretKey = document.getElementById('wizardSecretKey').value;
+
+    if (!apiKey || !secretKey) {
+      status.innerHTML = '<i class="fas fa-exclamation-circle text-danger me-1"></i>Please enter both API key and secret key.';
+      status.className = 'connection-status text-danger';
+      return;
+    }
+
+    status.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Testing connection...';
+    status.className = 'connection-status text-info';
+
+    try {
+      const response = await fetch('/api/alpaca/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+          api_key: apiKey,
+          secret_key: secretKey,
+          paper: true,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        const equity = parseFloat(result.account.equity).toLocaleString('en-US', {style: 'currency', currency: 'USD'});
+        status.innerHTML = `<i class="fas fa-check-circle text-success me-1"></i>Connected! Balance: ${equity}`;
+        status.className = 'connection-status bg-success-soft text-success';
+      } else {
+        status.innerHTML = `<i class="fas fa-times-circle text-danger me-1"></i>${result.message}`;
+        status.className = 'connection-status text-danger';
+      }
+    } catch (error) {
+      status.innerHTML = `<i class="fas fa-times-circle text-danger me-1"></i>Connection error: ${error.message}`;
+      status.className = 'connection-status text-danger';
+    }
+  });
+
+  // Trading mode selection
+  document.querySelectorAll('[data-mode]').forEach(card => {
+    card.addEventListener('click', function() {
+      document.querySelectorAll('[data-mode]').forEach(c => {
+        c.classList.remove('selected');
+        c.classList.remove('mode-card-paper');
+        c.classList.remove('mode-card-live');
+      });
+      this.classList.add('selected');
+      selectedMode = this.dataset.mode;
+      document.getElementById('liveWarning').style.display = selectedMode === 'live' ? 'block' : 'none';
+    });
+  });
+
+  // Strategy selection
+  document.querySelectorAll('.strategy-option').forEach(option => {
+    option.addEventListener('click', function() {
+      this.classList.toggle('selected');
+      const check = this.querySelector('.strategy-check');
+      const strategy = this.dataset.strategy;
+
+      if (this.classList.contains('selected')) {
+        check.style.display = 'block';
+        if (!selectedStrategies.includes(strategy)) {
+          selectedStrategies.push(strategy);
+        }
+      } else {
+        check.style.display = 'none';
+        selectedStrategies = selectedStrategies.filter(s => s !== strategy);
+      }
+    });
+  });
+
+  // Risk profile selection
+  document.querySelectorAll('[data-risk]').forEach(card => {
+    card.addEventListener('click', function() {
+      document.querySelectorAll('[data-risk]').forEach(c => c.classList.remove('selected'));
+      this.classList.add('selected');
+      selectedRisk = this.dataset.risk;
+
+      // Update custom fields based on profile
+      const profiles = {
+        conservative: { position: 2, dailyLoss: 5, maxPositions: 8 },
+        moderate: { position: 3, dailyLoss: 8, maxPositions: 10 },
+        aggressive: { position: 5, dailyLoss: 12, maxPositions: 15 }
+      };
+      const profile = profiles[selectedRisk];
+      document.getElementById('customMaxPosition').value = profile.position;
+      document.getElementById('customMaxDailyLoss').value = profile.dailyLoss;
+      document.getElementById('customMaxPositions').value = profile.maxPositions;
+    });
+  });
+
+  // Update review page
+  function updateReview() {
+    document.getElementById('reviewMode').textContent = selectedMode === 'paper' ? 'Paper Trading ($100K fake money)' : 'Live Trading (REAL MONEY)';
+    document.getElementById('reviewRisk').textContent = selectedRisk.charAt(0).toUpperCase() + selectedRisk.slice(1);
+    document.getElementById('reviewMaxPos').textContent = document.getElementById('customMaxPosition').value + '%';
+
+    const strategyNames = {
+      'wsb-dip-bot': 'WSB Dip Bot',
+      'wheel': 'Wheel Strategy',
+      'momentum-weeklies': 'Momentum Weeklies',
+      'index-baseline': 'Index Baseline',
+      'lotto-scanner': 'Lotto Scanner',
+      'earnings-protection': 'Earnings Protection'
+    };
+
+    const badges = selectedStrategies.map(s =>
+      `<span class="badge bg-gradient-primary me-2 mb-2">${strategyNames[s] || s}</span>`
+    ).join('');
+    document.getElementById('reviewStrategies').innerHTML = badges;
+  }
+
+  // Launch button - save config via real API
+  document.getElementById('launchBtn').addEventListener('click', async function() {
+    if (!document.getElementById('agreeTerms').checked) {
+      alert('Please agree to the Terms of Service to continue.');
+      return;
+    }
+
+    const apiKey = document.getElementById('wizardApiKey').value;
+    const secretKey = document.getElementById('wizardSecretKey').value;
+
+    if (!apiKey || !secretKey) {
+      alert('Please enter your Alpaca API credentials and test the connection first.');
+      return;
+    }
+
+    if (selectedStrategies.length === 0) {
+      alert('Please select at least one trading strategy.');
+      return;
+    }
+
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving configuration...';
+    this.disabled = true;
+
+    try {
+      const response = await fetch('/api/wizard/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+          api_key: apiKey,
+          secret_key: secretKey,
+          trading_mode: selectedMode,
+          strategies: selectedStrategies,
+          risk_profile: selectedRisk,
+          max_position_pct: parseFloat(document.getElementById('customMaxPosition').value),
+          max_daily_loss_pct: parseFloat(document.getElementById('customMaxDailyLoss').value),
+          max_positions: parseInt(document.getElementById('customMaxPositions').value),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        this.innerHTML = '<i class="fas fa-check me-2"></i>Success!';
+        setTimeout(() => {
+          alert('WallStreetBots has been configured successfully! Redirecting to dashboard...');
+          window.location.href = '/dashboard';
+        }, 500);
+      } else {
+        alert('Error: ' + result.message);
+        this.innerHTML = '<i class="fas fa-rocket me-2"></i>Launch Trading Bot';
+        this.disabled = false;
+      }
+    } catch (error) {
+      alert('Error saving configuration: ' + error.message);
+      this.innerHTML = '<i class="fas fa-rocket me-2"></i>Launch Trading Bot';
+      this.disabled = false;
+    }
+  });
+
+  // Get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+{% endblock javascripts %}

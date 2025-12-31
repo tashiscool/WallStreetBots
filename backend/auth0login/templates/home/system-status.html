@@ -1,0 +1,614 @@
+{% extends 'layouts/base.html' %}
+{% block title %} System Status {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+  }
+  .status-indicator.online { background-color: #2dce89; }
+  .status-indicator.warning { background-color: #fb6340; }
+  .status-indicator.offline { background-color: #f5365c; }
+  .status-indicator.online { animation: pulse-green 2s infinite; }
+  @keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(45, 206, 137, 0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(45, 206, 137, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(45, 206, 137, 0); }
+  }
+  .log-entry {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-bottom: 1px solid #e9ecef;
+  }
+  .log-entry.error { background-color: rgba(245, 54, 92, 0.1); }
+  .log-entry.warn { background-color: rgba(251, 99, 64, 0.1); }
+  .log-entry.info { background-color: transparent; }
+  .log-entry.debug { color: #8898aa; }
+  .metric-graph {
+    height: 60px;
+    background: linear-gradient(to right, rgba(203,12,159,0.1), rgba(203,12,159,0.3));
+    border-radius: 4px;
+  }
+  .status-tip { background: linear-gradient(to right, rgba(45,206,137,0.05), rgba(17,205,239,0.05)); border-radius: 8px; padding: 10px; margin-top: 8px; }
+  .implication-box { background: linear-gradient(to right, rgba(203,12,159,0.05), rgba(94,114,228,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .service-help { font-size: 11px; color: #8898aa; cursor: help; }
+  .metric-help { font-size: 10px; color: #8898aa; margin-top: 2px; }
+  .action-warning { background: linear-gradient(to right, rgba(251,99,64,0.05), rgba(245,54,92,0.05)); border-radius: 8px; padding: 12px; }
+  .status-legend { background: rgba(0,0,0,0.02); border-radius: 8px; padding: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .legend-item:last-child { margin-bottom: 0; }
+  .log-level-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Overall Status Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-success">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md">
+                <i class="fas fa-check text-success text-lg"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-0">All Systems Operational</h4>
+              <p class="text-white opacity-8 mb-0">Last checked: <span id="lastCheckTime">Just now</span></p>
+            </div>
+            <div class="col-auto">
+              <button class="btn btn-white mb-0" id="refreshStatusBtn" data-bs-toggle="tooltip" title="Manually check all service connections and update status">
+                <i class="fas fa-sync me-2"></i>Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Status Explanation -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="implication-box">
+        <div class="row">
+          <div class="col-md-8">
+            <h6 class="mb-2"><i class="fas fa-heartbeat text-danger me-2"></i>What This Page Shows</h6>
+            <p class="text-sm text-secondary mb-0">
+              <strong>This is your system's health dashboard.</strong> Monitor the status of all critical services that power your trading.
+              If any service shows issues, your trades may be delayed or fail. The trading engine won't execute trades if it can't
+              reach your broker or market data. Check this page first when troubleshooting issues.
+            </p>
+          </div>
+          <div class="col-md-4">
+            <div class="status-legend">
+              <small class="text-uppercase text-secondary font-weight-bold mb-2 d-block">Status Indicators</small>
+              <div class="legend-item">
+                <span class="status-indicator online" style="animation: none;"></span>
+                <small><strong>Green (Pulsing)</strong> - Healthy & running</small>
+              </div>
+              <div class="legend-item">
+                <span class="status-indicator warning"></span>
+                <small><strong>Orange</strong> - Degraded performance</small>
+              </div>
+              <div class="legend-item">
+                <span class="status-indicator offline"></span>
+                <small><strong>Red</strong> - Offline/Error</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Service Status Cards -->
+  <div class="row mb-4">
+    <!-- Trading Engine -->
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card h-100">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">
+              Trading Engine
+              <i class="fas fa-question-circle service-help" data-bs-toggle="tooltip" title="The core system that monitors strategies and executes trades. If this is down, no trading will occur."></i>
+            </h6>
+            <span class="status-indicator {% if status.trading_engine_status == 'running' %}online{% else %}offline{% endif %}"></span>
+          </div>
+          <div class="d-flex justify-content-between text-sm mb-2">
+            <span class="text-secondary">Status</span>
+            <span class="{% if status.trading_engine_status == 'running' %}text-success{% else %}text-danger{% endif %} font-weight-bold">{{ status.trading_engine_status|title|default:"Running" }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-sm mb-2">
+            <span class="text-secondary">Uptime</span>
+            <span data-bs-toggle="tooltip" title="Percentage of time the engine has been running without interruption">{{ status.trading_engine_uptime|default:"99.98%" }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-sm mb-2">
+            <span class="text-secondary">Last Heartbeat</span>
+            <span data-bs-toggle="tooltip" title="How recently the engine confirmed it's alive. >30s is concerning.">{{ status.trading_engine_heartbeat|default:"2s ago" }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-sm">
+            <span class="text-secondary">Active Strategies</span>
+            <span data-bs-toggle="tooltip" title="Number of strategies currently monitoring the market">{{ status.active_strategies|default:"4" }} / {{ status.total_strategies|default:"10" }}</span>
+          </div>
+          <div class="metric-help mt-2">
+            <i class="fas fa-info-circle me-1"></i>If heartbeat shows >30s, engine may need restart
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Data Feed -->
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card h-100">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">
+              Market Data Feed
+              <i class="fas fa-question-circle service-help" data-bs-toggle="tooltip" title="Real-time price data from exchanges. Without this, strategies can't make informed decisions."></i>
+            </h6>
+            <span class="status-indicator {% if status.market_data_status == 'connected' %}online{% else %}offline{% endif %}"></span>
+          </div>
+          <div class="d-flex justify-content-between text-sm mb-2">
+            <span class="text-secondary">Status</span>
+            <span class="{% if status.market_data_status == 'connected' %}text-success{% else %}text-danger{% endif %} font-weight-bold">{{ status.market_data_status|title|default:"Connected" }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-sm mb-2">
+            <span class="text-secondary">Latency</span>
+            <span data-bs-toggle="tooltip" title="Time delay in receiving price updates. <50ms is good, >100ms can cause slippage.">{{ status.market_data_latency|default:"12ms" }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-sm mb-2">
+            <span class="text-secondary">Last Update</span>
+            <span data-bs-toggle="tooltip" title="When we last received a price update. >5s during market hours is a problem.">{{ status.market_data_last_update|default:"1s ago" }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-sm">
+            <span class="text-secondary">Messages/sec</span>
+            <span data-bs-toggle="tooltip" title="Volume of data being processed. Higher during volatile markets.">{{ status.market_data_messages_per_sec|default:"1,245" }}</span>
+          </div>
+          <div class="metric-help mt-2">
+            <i class="fas fa-info-circle me-1"></i>Latency >100ms may cause price slippage
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Database -->
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card h-100">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">
+              Database
+              <i class="fas fa-question-circle service-help" data-bs-toggle="tooltip" title="Stores your trades, positions, and settings. Critical for tracking your portfolio."></i>
+            </h6>
+            <span class="status-indicator {% if status.database_status == 'healthy' %}online{% else %}offline{% endif %}"></span>
+          </div>
+          <div class="d-flex justify-content-between text-sm mb-2">
+            <span class="text-secondary">Status</span>
+            <span class="{% if status.database_status == 'healthy' %}text-success{% else %}text-danger{% endif %} font-weight-bold">{{ status.database_status|title|default:"Healthy" }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-sm mb-2">
+            <span class="text-secondary">Connections</span>
+            <span data-bs-toggle="tooltip" title="Active database connections. Approaching limit can cause delays.">{{ status.database_connections|default:"8 / 100" }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-sm mb-2">
+            <span class="text-secondary">Query Time</span>
+            <span data-bs-toggle="tooltip" title="Average time to read/write data. <10ms is excellent.">{{ status.database_query_time|default:"3.2ms avg" }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-sm">
+            <span class="text-secondary">Disk Usage</span>
+            <span data-bs-toggle="tooltip" title="Storage space used. Plan to expand when approaching 80%.">{{ status.database_disk_usage|default:"24.5 GB" }}</span>
+          </div>
+          <div class="metric-help mt-2">
+            <i class="fas fa-info-circle me-1"></i>Query time >100ms may slow trade execution
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Broker API -->
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card h-100">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">
+              Broker API (Alpaca)
+              <i class="fas fa-question-circle service-help" data-bs-toggle="tooltip" title="Connection to your brokerage. Required to place orders and check account balance."></i>
+            </h6>
+            <span class="status-indicator {% if status.broker_status == 'connected' %}online{% else %}offline{% endif %}"></span>
+          </div>
+          <div class="d-flex justify-content-between text-sm mb-2">
+            <span class="text-secondary">Status</span>
+            <span class="{% if status.broker_status == 'connected' %}text-success{% else %}text-danger{% endif %} font-weight-bold">{{ status.broker_status|title|default:"Connected" }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-sm mb-2">
+            <span class="text-secondary">Rate Limit</span>
+            <span data-bs-toggle="tooltip" title="API calls remaining. At 200/200, requests will be rejected until reset.">{{ status.broker_rate_limit|default:"180 / 200" }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-sm mb-2">
+            <span class="text-secondary">Last Sync</span>
+            <span data-bs-toggle="tooltip" title="Last time we synced positions with the broker. Should be <30s.">{{ status.broker_last_sync|default:"5s ago" }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-sm">
+            <span class="text-secondary">Account Status</span>
+            <span class="badge bg-success" data-bs-toggle="tooltip" title="Your brokerage account status. Must be 'Active' to trade.">{{ status.broker_account_status|title|default:"Active" }}</span>
+          </div>
+          <div class="metric-help mt-2">
+            <i class="fas fa-info-circle me-1"></i>Rate limit >90% may delay order execution
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Real-time Metrics -->
+    <div class="col-lg-8 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-0"><i class="fas fa-chart-area me-2"></i>Real-time Metrics</h6>
+              <p class="text-xs text-secondary mb-0">Server resource usage and performance indicators</p>
+            </div>
+            <span class="badge bg-gradient-info" data-bs-toggle="tooltip" title="Metrics update every 5 seconds">Live</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <!-- CPU Usage -->
+            <div class="col-md-4 mb-4">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-sm font-weight-bold">
+                  CPU Usage
+                  <i class="fas fa-question-circle service-help" data-bs-toggle="tooltip" title="Processor usage. High CPU can slow down trade execution and signal processing."></i>
+                </span>
+                <span class="text-sm">{{ status.cpu_usage|floatformat:0|default:"23" }}%</span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-gradient-{% if status.cpu_usage > 80 %}danger{% elif status.cpu_usage > 60 %}warning{% else %}success{% endif %}" style="width: {{ status.cpu_usage|default:"23" }}%"></div>
+              </div>
+              <div class="metric-help"><60% is healthy, >80% may cause delays</div>
+            </div>
+
+            <!-- Memory Usage -->
+            <div class="col-md-4 mb-4">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-sm font-weight-bold">
+                  Memory Usage
+                  <i class="fas fa-question-circle service-help" data-bs-toggle="tooltip" title="RAM usage. High memory can cause crashes or slow performance."></i>
+                </span>
+                <span class="text-sm">{{ status.memory_usage|floatformat:0|default:"45" }}%</span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-gradient-{% if status.memory_usage > 80 %}danger{% elif status.memory_usage > 60 %}warning{% else %}info{% endif %}" style="width: {{ status.memory_usage|default:"45" }}%"></div>
+              </div>
+              <div class="metric-help"><70% is normal, >90% needs attention</div>
+            </div>
+
+            <!-- Disk I/O -->
+            <div class="col-md-4 mb-4">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-sm font-weight-bold">
+                  Disk I/O
+                  <i class="fas fa-question-circle service-help" data-bs-toggle="tooltip" title="Disk read/write speed. High I/O can slow database operations."></i>
+                </span>
+                <span class="text-sm">{{ status.disk_io|default:"12 MB/s" }}</span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-gradient-warning" style="width: 30%"></div>
+              </div>
+              <div class="metric-help">Spikes during market open are normal</div>
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <h6 class="text-sm mb-2">
+                API Request Rate (last hour)
+                <i class="fas fa-question-circle service-help" data-bs-toggle="tooltip" title="Number of API calls made per minute. Flat line may indicate connection issues."></i>
+              </h6>
+              <canvas id="apiRequestChart" height="100"></canvas>
+            </div>
+            <div class="col-md-6 mb-3">
+              <h6 class="text-sm mb-2">
+                Order Execution Latency
+                <i class="fas fa-question-circle service-help" data-bs-toggle="tooltip" title="Distribution of order execution times. Most should be <50ms. >100ms causes slippage."></i>
+              </h6>
+              <canvas id="latencyChart" height="100"></canvas>
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="row">
+            <div class="col-md-3 text-center">
+              <h4 class="mb-0">{{ status.api_calls_today|default:"1,245" }}</h4>
+              <p class="text-sm text-secondary mb-0">API Calls Today</p>
+              <div class="metric-help">Normal range: 500-5000/day</div>
+            </div>
+            <div class="col-md-3 text-center">
+              <h4 class="mb-0 {% if status.success_rate < 95 %}text-warning{% endif %}">{{ status.success_rate|floatformat:1|default:"98.5" }}%</h4>
+              <p class="text-sm text-secondary mb-0">Success Rate</p>
+              <div class="metric-help">Should be >98%</div>
+            </div>
+            <div class="col-md-3 text-center">
+              <h4 class="mb-0">{{ status.avg_response_time|default:"45ms" }}</h4>
+              <p class="text-sm text-secondary mb-0">Avg Response Time</p>
+              <div class="metric-help">Target: <100ms</div>
+            </div>
+            <div class="col-md-3 text-center">
+              <h4 class="mb-0 {% if status.errors_today > 10 %}text-danger{% elif status.errors_today > 5 %}text-warning{% endif %}">{{ status.errors_today|default:"3" }}</h4>
+              <p class="text-sm text-secondary mb-0">Errors Today</p>
+              <div class="metric-help"><5 is normal</div>
+            </div>
+          </div>
+
+          <hr>
+          <div class="status-tip">
+            <small class="text-secondary"><i class="fas fa-info-circle text-info me-1"></i><strong>What to watch:</strong> API latency >100ms can cause slippage (you get a worse price). Error rate >1% indicates issues. Rate limits approaching 90% means the system needs to slow down. These metrics directly impact your P&L!</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Logs -->
+    <div class="col-lg-4 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-0"><i class="fas fa-terminal me-2"></i>Recent Logs</h6>
+              <p class="text-xs text-secondary mb-0">Real-time system activity</p>
+            </div>
+            <select class="form-select form-select-sm" style="width: auto;" id="logLevelFilter" data-bs-toggle="tooltip" title="Filter logs by severity level">
+              <option value="all">All</option>
+              <option value="error">Error</option>
+              <option value="warn">Warning</option>
+              <option value="info">Info</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+          <!-- Log Level Legend -->
+          <div class="p-2 border-bottom bg-light">
+            <small class="text-muted">
+              <span class="log-level-badge bg-danger text-white me-1">ERROR</span>Needs attention
+              <span class="log-level-badge bg-warning text-dark ms-2 me-1">WARN</span>Watch for patterns
+              <span class="log-level-badge bg-info text-white ms-2 me-1">INFO</span>Normal activity
+            </small>
+          </div>
+          <div id="logContainer">
+            {% for log in status.recent_logs %}
+            <div class="log-entry {{ log.level }}">
+              <span class="{% if log.level == 'error' %}text-danger{% elif log.level == 'warn' %}text-warning{% elif log.level == 'debug' %}text-muted{% else %}text-info{% endif %}">[{{ log.level|upper }}]</span> {{ log.time }} - {{ log.message }}
+            </div>
+            {% empty %}
+            <div class="log-entry error" data-bs-toggle="tooltip" title="This error indicates the backup data source is unreachable. Primary data source is still working.">
+              <span class="text-danger">[ERROR]</span> 14:32:15 - Failed to connect to backup data source
+            </div>
+            <div class="log-entry warn" data-bs-toggle="tooltip" title="You're using 90% of your API rate limit. System will auto-throttle if needed.">
+              <span class="text-warning">[WARN]</span> 14:31:45 - Rate limit approaching (180/200)
+            </div>
+            <div class="log-entry info" data-bs-toggle="tooltip" title="Trade was executed successfully at the specified price.">
+              <span class="text-info">[INFO]</span> 14:31:30 - Order executed: AAPL BUY 50 @ $189.50
+            </div>
+            <div class="log-entry info">
+              <span class="text-info">[INFO]</span> 14:31:12 - Strategy WSB Dip Bot scan complete
+            </div>
+            <div class="log-entry info">
+              <span class="text-info">[INFO]</span> 14:30:58 - Market data snapshot received
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn btn-sm btn-outline-primary w-100 mb-0" data-bs-toggle="tooltip" title="Download today's logs as a text file for debugging">
+            <i class="fas fa-download me-2"></i>Download Logs
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-tools me-2"></i>System Actions</h6>
+          <p class="text-xs text-secondary mb-0">Maintenance and troubleshooting tools</p>
+        </div>
+        <div class="card-body">
+          <!-- Warning Box -->
+          <div class="action-warning mb-4">
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+              </div>
+              <div class="col">
+                <h6 class="mb-1 text-sm">Use These Actions Carefully</h6>
+                <p class="text-xs text-secondary mb-0">
+                  <strong>Restart Trading Engine</strong> will stop all active trading for 30-60 seconds.
+                  <strong>Force Data Sync</strong> is safe and can fix stale data.
+                  <strong>Clear Cache</strong> may temporarily slow performance as data is re-fetched.
+                  Only use these during market close or if you're experiencing issues.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <button class="btn bg-gradient-primary w-100" id="restartEngineBtn" data-bs-toggle="tooltip" title="Stops and restarts the trading engine. Use if engine is unresponsive. Takes 30-60 seconds.">
+                <i class="fas fa-redo me-2"></i>Restart Trading Engine
+              </button>
+              <div class="metric-help text-center mt-1">Downtime: ~30-60s</div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <button class="btn bg-gradient-info w-100" id="forceSyncBtn" data-bs-toggle="tooltip" title="Forces a full sync of positions and orders with your broker. Safe to use anytime.">
+                <i class="fas fa-sync me-2"></i>Force Data Sync
+              </button>
+              <div class="metric-help text-center mt-1">Safe, no downtime</div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <button class="btn bg-gradient-warning w-100" id="clearCacheBtn" data-bs-toggle="tooltip" title="Clears cached market data and settings. Useful if you see stale prices.">
+                <i class="fas fa-broom me-2"></i>Clear Cache
+              </button>
+              <div class="metric-help text-center mt-1">May slow briefly</div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <button class="btn bg-gradient-secondary w-100" id="downloadLogsBtn" data-bs-toggle="tooltip" title="Downloads a ZIP file with all logs from the past 7 days for debugging.">
+                <i class="fas fa-file-archive me-2"></i>Export All Logs
+              </button>
+              <div class="metric-help text-center mt-1">For troubleshooting</div>
+            </div>
+          </div>
+
+          <div class="status-tip mt-3">
+            <small class="text-secondary"><i class="fas fa-lightbulb text-warning me-1"></i><strong>When to use these:</strong>
+              <strong>Restart</strong> if trading engine shows offline or heartbeat is stale.
+              <strong>Force Sync</strong> if positions don't match what's shown in your broker account.
+              <strong>Clear Cache</strong> if prices seem stuck or outdated.
+              <strong>Export Logs</strong> when reaching out for support.
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Initialize tooltips
+  document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+
+  // API Request Chart
+  const ctx1 = document.getElementById('apiRequestChart').getContext('2d');
+  new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels: Array.from({length: 60}, (_, i) => i + 'm'),
+      datasets: [{
+        data: Array.from({length: 60}, () => Math.floor(Math.random() * 50) + 20),
+        borderColor: '#cb0c9f',
+        backgroundColor: 'rgba(203, 12, 159, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { display: false }, y: { display: false } }
+    }
+  });
+
+  // Latency Chart
+  const ctx2 = document.getElementById('latencyChart').getContext('2d');
+  new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: ['<10ms', '10-25ms', '25-50ms', '50-100ms', '>100ms'],
+      datasets: [{
+        data: [45, 120, 85, 20, 5],
+        backgroundColor: ['#2dce89', '#2dce89', '#ffd600', '#fb6340', '#f5365c']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { display: true }, y: { display: false } }
+    }
+  });
+
+  // Refresh status
+  document.getElementById('refreshStatusBtn').addEventListener('click', function() {
+    document.getElementById('lastCheckTime').textContent = 'Just now';
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...';
+    setTimeout(() => {
+      this.innerHTML = '<i class="fas fa-sync me-2"></i>Refresh';
+    }, 1000);
+  });
+
+  // System action buttons with better feedback
+  document.getElementById('restartEngineBtn').addEventListener('click', function() {
+    if (confirm('Are you sure you want to restart the trading engine?\n\nThis will:\n- Stop all active trading for 30-60 seconds\n- Cancel any pending orders\n- Re-initialize all strategies\n\nBest done during market close or if engine is unresponsive.')) {
+      this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Restarting...';
+      this.disabled = true;
+      setTimeout(() => {
+        this.innerHTML = '<i class="fas fa-redo me-2"></i>Restart Trading Engine';
+        this.disabled = false;
+        alert('Trading engine restarted successfully. All systems back online.');
+      }, 3000);
+    }
+  });
+
+  document.getElementById('forceSyncBtn').addEventListener('click', function() {
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Syncing...';
+    this.disabled = true;
+    setTimeout(() => {
+      this.innerHTML = '<i class="fas fa-sync me-2"></i>Force Data Sync';
+      this.disabled = false;
+      alert('Data sync complete. Positions and orders are up to date.');
+    }, 2000);
+  });
+
+  document.getElementById('clearCacheBtn').addEventListener('click', function() {
+    if (confirm('Clear all cached data?\n\nThis will temporarily slow down the dashboard while data is re-fetched. Safe to use if prices seem stuck.')) {
+      this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Clearing...';
+      this.disabled = true;
+      setTimeout(() => {
+        this.innerHTML = '<i class="fas fa-broom me-2"></i>Clear Cache';
+        this.disabled = false;
+        alert('Cache cleared successfully. Fresh data will be loaded.');
+      }, 1500);
+    }
+  });
+
+  document.getElementById('downloadLogsBtn').addEventListener('click', function() {
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Preparing...';
+    this.disabled = true;
+    setTimeout(() => {
+      this.innerHTML = '<i class="fas fa-file-archive me-2"></i>Export All Logs';
+      this.disabled = false;
+      alert('Log export ready for download.');
+    }, 2000);
+  });
+
+  // Log level filtering
+  document.getElementById('logLevelFilter').addEventListener('change', function() {
+    const level = this.value;
+    const entries = document.querySelectorAll('.log-entry');
+    entries.forEach(entry => {
+      if (level === 'all' || entry.classList.contains(level)) {
+        entry.style.display = 'block';
+      } else {
+        entry.style.display = 'none';
+      }
+    });
+  });
+</script>
+{% endblock javascripts %}

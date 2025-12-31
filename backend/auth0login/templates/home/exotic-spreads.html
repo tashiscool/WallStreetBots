@@ -1,0 +1,214 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Exotic Spreads {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .spread-card { transition: all 0.3s ease; border-left: 4px solid #5e72e4; }
+  .spread-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+  .spread-type-badge { font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; }
+  .iron-condor { background: linear-gradient(135deg, #5e72e4, #4a5fc1); color: white; }
+  .butterfly { background: linear-gradient(135deg, #fb6340, #e85a39); color: white; }
+  .straddle { background: linear-gradient(135deg, #2dce89, #26b576); color: white; }
+  .calendar { background: linear-gradient(135deg, #11cdef, #0db7d3); color: white; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-primary">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-layer-group text-primary fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">Exotic Option Spreads</h4>
+              <p class="text-white opacity-8 mb-0">Multi-leg option strategies: Iron Condors, Butterflies, Straddles, Strangles, Calendar Spreads, and more.</p>
+            </div>
+            <div class="col-auto">
+              {% if spreads.is_available %}
+              <span class="badge bg-white text-success px-3 py-2"><i class="fas fa-check-circle me-1"></i>Module Available</span>
+              {% else %}
+              <span class="badge bg-white text-danger px-3 py-2"><i class="fas fa-times-circle me-1"></i>Not Available</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if spreads.is_available %}
+  <div class="row">
+    <!-- Available Spread Types -->
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-shapes me-2"></i>Available Spread Types</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            {% for spread_type in spreads.spread_types_available %}
+            <div class="col-6 mb-3">
+              <div class="p-3 border rounded">
+                <span class="spread-type-badge {% if 'Iron Condor' in spread_type %}iron-condor{% elif 'Butterfly' in spread_type %}butterfly{% elif 'Straddle' in spread_type or 'Strangle' in spread_type %}straddle{% else %}calendar{% endif %} mb-2 d-inline-block">{{ spread_type }}</span>
+                <br>
+                <small class="text-secondary">
+                  {% if 'Iron Condor' in spread_type %}4-leg neutral income strategy{% endif %}
+                  {% if 'Butterfly' in spread_type %}4-leg limited risk neutral{% endif %}
+                  {% if 'Straddle' in spread_type %}ATM call + put{% endif %}
+                  {% if 'Strangle' in spread_type %}OTM call + put{% endif %}
+                  {% if 'Calendar' in spread_type %}Different expirations{% endif %}
+                  {% if 'Ratio' in spread_type %}Unequal leg quantities{% endif %}
+                  {% if 'Diagonal' in spread_type %}Different strikes + expirations{% endif %}
+                </small>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spread Summary -->
+    <div class="col-lg-6 mb-4">
+      <div class="card spread-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-chart-pie me-2"></i>Portfolio Summary</h6>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-4">
+              <h3 class="mb-0">{{ spreads.active_spreads|length }}</h3>
+              <small class="text-secondary">Active Spreads</small>
+            </div>
+            <div class="col-4">
+              <h3 class="mb-0">${{ spreads.total_spread_value|floatformat:0 }}</h3>
+              <small class="text-secondary">Total Value</small>
+            </div>
+            <div class="col-4">
+              <h3 class="mb-0 {% if spreads.total_spread_pnl >= 0 %}text-success{% else %}text-danger{% endif %}">${{ spreads.total_spread_pnl|floatformat:0 }}</h3>
+              <small class="text-secondary">Total P&L</small>
+            </div>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between">
+            <button class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-plus me-1"></i>New Spread
+            </button>
+            <button class="btn btn-sm btn-outline-info">
+              <i class="fas fa-magic me-1"></i>Auto-Suggest
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Spreads -->
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-list me-2"></i>Active Spreads</h6>
+        </div>
+        <div class="card-body">
+          {% if spreads.active_spreads %}
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Type</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Ticker</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Strikes</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Expiry</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Premium</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">P&L</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Delta</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for spread in spreads.active_spreads %}
+                <tr>
+                  <td><span class="spread-type-badge iron-condor">{{ spread.type }}</span></td>
+                  <td><strong>{{ spread.ticker }}</strong></td>
+                  <td>{{ spread.strikes }}</td>
+                  <td>{{ spread.expiry }}</td>
+                  <td>${{ spread.premium|floatformat:2 }}</td>
+                  <td class="{% if spread.pnl >= 0 %}text-success{% else %}text-danger{% endif %}">${{ spread.pnl|floatformat:2 }}</td>
+                  <td>{{ spread.delta|floatformat:2 }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-link text-info p-0 me-2"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-sm btn-link text-danger p-0"><i class="fas fa-times"></i></button>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-center text-secondary mb-0">No active spreads. Click "New Spread" to create one.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Suggested Spreads -->
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-lightbulb me-2 text-warning"></i>Suggested Spreads</h6>
+        </div>
+        <div class="card-body">
+          {% if spreads.suggested_spreads %}
+          <div class="row">
+            {% for suggestion in spreads.suggested_spreads %}
+            <div class="col-lg-4 mb-3">
+              <div class="card border">
+                <div class="card-body">
+                  <span class="spread-type-badge iron-condor mb-2 d-inline-block">{{ suggestion.type }}</span>
+                  <h6>{{ suggestion.ticker }}</h6>
+                  <p class="text-sm text-secondary mb-2">{{ suggestion.description }}</p>
+                  <div class="d-flex justify-content-between text-sm">
+                    <span>Max Profit: <strong class="text-success">${{ suggestion.max_profit }}</strong></span>
+                    <span>Max Loss: <strong class="text-danger">${{ suggestion.max_loss }}</strong></span>
+                  </div>
+                  <button class="btn btn-sm btn-primary w-100 mt-2">Execute</button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-center text-secondary mb-0">No spread suggestions available. Click "Auto-Suggest" to generate recommendations.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+          <h5>Exotic Spreads Module Not Available</h5>
+          <p class="text-secondary">The exotic option spreads module requires additional configuration.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}

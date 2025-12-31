@@ -1,0 +1,191 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Crypto Trading {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .crypto-card { transition: all 0.3s ease; border-left: 4px solid #f7931a; }
+  .crypto-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+  .asset-badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }
+  .btc { background: linear-gradient(135deg, #f7931a, #e88e0c); color: white; }
+  .eth { background: linear-gradient(135deg, #627eea, #4a6cd4); color: white; }
+  .sol { background: linear-gradient(135deg, #9945ff, #14f195); color: white; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-warning">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fab fa-bitcoin text-warning fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">Crypto Trading</h4>
+              <p class="text-white opacity-8 mb-0">24/7 cryptocurrency trading via Alpaca. Trade BTC, ETH, SOL, and more with the Crypto Dip Bot.</p>
+            </div>
+            <div class="col-auto">
+              {% if crypto.is_available %}
+              <span class="badge bg-white text-success px-3 py-2"><i class="fas fa-check-circle me-1"></i>Module Available</span>
+              {% else %}
+              <span class="badge bg-white text-danger px-3 py-2"><i class="fas fa-times-circle me-1"></i>Not Available</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if crypto.is_available %}
+  <div class="row">
+    <!-- Supported Assets -->
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-coins me-2"></i>Supported Assets</h6>
+        </div>
+        <div class="card-body">
+          {% for asset in crypto.supported_assets %}
+          <span class="badge {% if 'BTC' in asset %}btc{% elif 'ETH' in asset %}eth{% elif 'SOL' in asset %}sol{% else %}bg-secondary{% endif %} me-2 mb-2 asset-badge">{{ asset }}</span>
+          {% endfor %}
+          <hr>
+          <small class="text-secondary">Trading available 24/7 including weekends and holidays.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dip Bot Status -->
+    <div class="col-lg-6 mb-4">
+      <div class="card crypto-card h-100">
+        <div class="card-header pb-0 d-flex justify-content-between">
+          <h6><i class="fas fa-robot me-2"></i>Crypto Dip Bot</h6>
+          <span class="badge {% if crypto.dip_bot_status == 'running' %}bg-success{% else %}bg-secondary{% endif %}">{{ crypto.dip_bot_status|title }}</span>
+        </div>
+        <div class="card-body">
+          <p class="text-sm text-secondary">Automated dip buying strategy for cryptocurrencies. Buys on significant dips with volume confirmation.</p>
+          <div class="row">
+            <div class="col-4 text-center">
+              <h4 class="mb-0">{{ crypto.daily_trades }}</h4>
+              <small class="text-secondary">Today's Trades</small>
+            </div>
+            <div class="col-4 text-center">
+              <h4 class="mb-0">{{ crypto.active_signals|length }}</h4>
+              <small class="text-secondary">Active Signals</small>
+            </div>
+            <div class="col-4 text-center">
+              <h4 class="mb-0 {% if crypto.crypto_pnl >= 0 %}text-success{% else %}text-danger{% endif %}">${{ crypto.crypto_pnl|floatformat:2 }}</h4>
+              <small class="text-secondary">P&L</small>
+            </div>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between">
+            <button class="btn btn-sm btn-outline-success" {% if crypto.dip_bot_status == 'running' %}disabled{% endif %}>
+              <i class="fas fa-play me-1"></i>Start Bot
+            </button>
+            <button class="btn btn-sm btn-outline-danger" {% if crypto.dip_bot_status != 'running' %}disabled{% endif %}>
+              <i class="fas fa-stop me-1"></i>Stop Bot
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Positions & Orders -->
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-wallet me-2"></i>Active Positions</h6>
+        </div>
+        <div class="card-body">
+          {% if crypto.active_positions %}
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Asset</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Qty</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Value</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">P&L</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pos in crypto.active_positions %}
+                <tr>
+                  <td>{{ pos.symbol }}</td>
+                  <td>{{ pos.qty }}</td>
+                  <td>${{ pos.value|floatformat:2 }}</td>
+                  <td class="{% if pos.pnl >= 0 %}text-success{% else %}text-danger{% endif %}">${{ pos.pnl|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-center text-secondary mb-0">No active crypto positions</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-list-alt me-2"></i>Pending Orders</h6>
+        </div>
+        <div class="card-body">
+          {% if crypto.pending_orders %}
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Asset</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Side</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Qty</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for order in crypto.pending_orders %}
+                <tr>
+                  <td>{{ order.symbol }}</td>
+                  <td>{{ order.side }}</td>
+                  <td>{{ order.qty }}</td>
+                  <td><span class="badge bg-warning">{{ order.status }}</span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-center text-secondary mb-0">No pending orders</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+          <h5>Crypto Trading Module Not Available</h5>
+          <p class="text-secondary">The crypto trading module requires additional configuration. Please check the system requirements.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}

@@ -1,9 +1,20 @@
 """Pytest configuration for Django tests."""
 
+# This must run first, before any other imports
 import os
 import sys
-from unittest.mock import MagicMock
 
+# Add project root to path for ml module imports
+project_root = os.path.dirname(os.path.abspath(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# Also ensure ml is importable by adding it explicitly
+ml_path = os.path.join(project_root, "ml")
+if ml_path not in sys.path:
+    sys.path.insert(0, ml_path)
+
+from unittest.mock import MagicMock
 import django
 import numpy as np
 import pandas as pd

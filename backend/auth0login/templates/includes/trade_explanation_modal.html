@@ -1,0 +1,561 @@
+<!-- Trade Explanation Modal -->
+<!-- Include this in any page that needs trade transparency -->
+<!-- Usage: Call openTradeExplanation(tradeId) from JavaScript -->
+
+<style>
+  .trade-explanation-modal .modal-dialog {
+    max-width: 900px;
+  }
+  .signal-gauge {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    margin: 0 auto;
+  }
+  .signal-gauge canvas {
+    width: 100%;
+    height: 100%;
+  }
+  .signal-gauge-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  .signal-card {
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,249,250,0.9));
+    border: 1px solid #e9ecef;
+  }
+  .signal-card.triggered {
+    border-left: 4px solid #2dce89;
+    background: linear-gradient(135deg, rgba(45,206,137,0.05), rgba(255,255,255,0.9));
+  }
+  .signal-card.not-triggered {
+    border-left: 4px solid #6c757d;
+    opacity: 0.7;
+  }
+  .confidence-meter {
+    height: 20px;
+    border-radius: 10px;
+    background: #e9ecef;
+    overflow: hidden;
+    margin: 10px 0;
+  }
+  .confidence-meter-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease-out;
+  }
+  .confidence-high { background: linear-gradient(90deg, #2dce89, #26a571); }
+  .confidence-medium { background: linear-gradient(90deg, #fb6340, #f5365c); }
+  .confidence-low { background: linear-gradient(90deg, #f5365c, #dc3545); }
+  .similar-trade-row {
+    padding: 10px;
+    border-bottom: 1px solid #e9ecef;
+    transition: background 0.2s;
+  }
+  .similar-trade-row:hover {
+    background: rgba(94,114,228,0.05);
+  }
+  .similar-trade-row:last-child {
+    border-bottom: none;
+  }
+  .impact-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .impact-bullish { background: rgba(45,206,137,0.15); color: #2dce89; }
+  .impact-bearish { background: rgba(245,54,92,0.15); color: #f5365c; }
+  .impact-neutral { background: rgba(108,117,125,0.15); color: #6c757d; }
+  .key-factor-chip {
+    display: inline-block;
+    padding: 4px 12px;
+    margin: 4px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(94,114,228,0.1), rgba(203,12,159,0.1));
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  .macd-bar {
+    display: flex;
+    align-items: flex-end;
+    height: 60px;
+    gap: 4px;
+  }
+  .macd-bar-item {
+    width: 20px;
+    border-radius: 2px;
+  }
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+  }
+</style>
+
+<!-- Modal HTML -->
+<div class="modal fade trade-explanation-modal" id="tradeExplanationModal" tabindex="-1" aria-labelledby="tradeExplanationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title mb-0" id="tradeExplanationModalLabel">
+            <i class="fas fa-lightbulb text-warning me-2"></i>Trade Explanation
+          </h5>
+          <small class="text-secondary" id="tradeExplanationSubtitle">Why was this trade made?</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body p-4" id="tradeExplanationBody">
+        <!-- Loading State -->
+        <div class="loading-spinner" id="explanationLoading">
+          <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-secondary">Analyzing trade signals...</p>
+          </div>
+        </div>
+
+        <!-- Content (hidden until loaded) -->
+        <div id="explanationContent" style="display: none;">
+          <!-- Trade Summary -->
+          <div class="card bg-gradient-dark text-white mb-4">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <div class="col-md-8">
+                  <h4 class="text-white mb-2" id="tradeSummaryTitle">--</h4>
+                  <p class="mb-0 opacity-8" id="tradeSummaryText">--</p>
+                </div>
+                <div class="col-md-4 text-end">
+                  <div class="confidence-meter mb-1">
+                    <div class="confidence-meter-fill" id="confidenceMeterFill" style="width: 0%"></div>
+                  </div>
+                  <small class="text-white">Confidence: <strong id="confidenceValue">--%</strong></small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Key Factors -->
+          <div class="mb-4">
+            <h6 class="text-uppercase text-secondary text-xs font-weight-bolder mb-2">
+              <i class="fas fa-key me-1"></i> Key Factors
+            </h6>
+            <div id="keyFactorsContainer">
+              <!-- Chips inserted here -->
+            </div>
+          </div>
+
+          <!-- Signal Visualizations -->
+          <div class="row mb-4">
+            <!-- RSI Gauge -->
+            <div class="col-md-4 mb-3">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <h6 class="text-secondary mb-3">RSI</h6>
+                  <div class="signal-gauge" id="rsiGaugeContainer">
+                    <canvas id="rsiGauge"></canvas>
+                    <div class="signal-gauge-value" id="rsiValue">--</div>
+                  </div>
+                  <small class="text-secondary" id="rsiStatus">--</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- MACD -->
+            <div class="col-md-4 mb-3">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <h6 class="text-secondary mb-3">MACD</h6>
+                  <div class="macd-bar justify-content-center" id="macdBars">
+                    <div class="macd-bar-item" id="macdLine" style="height: 30px; background: #5e72e4;"></div>
+                    <div class="macd-bar-item" id="macdSignal" style="height: 25px; background: #fb6340;"></div>
+                    <div class="macd-bar-item" id="macdHistogram" style="height: 20px; background: #2dce89;"></div>
+                  </div>
+                  <small class="text-secondary mt-2 d-block" id="macdStatus">--</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Volume -->
+            <div class="col-md-4 mb-3">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <h6 class="text-secondary mb-3">Volume</h6>
+                  <div class="progress" style="height: 30px;">
+                    <div class="progress-bar" id="volumeBar" role="progressbar" style="width: 50%"></div>
+                  </div>
+                  <div class="d-flex justify-content-between mt-2">
+                    <small class="text-secondary">0x</small>
+                    <small class="text-secondary font-weight-bold" id="volumeRatio">--</small>
+                    <small class="text-secondary">3x+</small>
+                  </div>
+                  <small class="text-secondary" id="volumeStatus">--</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Signal Breakdown -->
+          <div class="mb-4">
+            <h6 class="text-uppercase text-secondary text-xs font-weight-bolder mb-2">
+              <i class="fas fa-signal me-1"></i> Signal Breakdown
+            </h6>
+            <div id="signalBreakdownContainer">
+              <!-- Signal cards inserted here -->
+            </div>
+          </div>
+
+          <!-- Risk Assessment -->
+          <div class="card bg-light mb-4">
+            <div class="card-body">
+              <h6 class="text-secondary mb-2">
+                <i class="fas fa-shield-alt me-1"></i> Risk Assessment
+              </h6>
+              <p class="mb-0" id="riskAssessmentText">--</p>
+            </div>
+          </div>
+
+          <!-- Similar Historical Trades -->
+          <div class="mb-4">
+            <h6 class="text-uppercase text-secondary text-xs font-weight-bolder mb-2">
+              <i class="fas fa-history me-1"></i> Similar Past Trades
+            </h6>
+            <div class="card">
+              <div class="card-body p-0">
+                <div id="similarTradesStats" class="p-3 bg-light border-bottom">
+                  <span id="similarTradesSummary">Loading...</span>
+                </div>
+                <div id="similarTradesContainer">
+                  <!-- Trade rows inserted here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="downloadTradeReport()">
+          <i class="fas fa-download me-1"></i> Download Report
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Trade Explanation Modal Functions
+let currentTradeId = null;
+
+async function openTradeExplanation(tradeId) {
+  currentTradeId = tradeId;
+
+  // Show modal
+  const modal = new bootstrap.Modal(document.getElementById('tradeExplanationModal'));
+  modal.show();
+
+  // Show loading, hide content
+  document.getElementById('explanationLoading').style.display = 'flex';
+  document.getElementById('explanationContent').style.display = 'none';
+
+  try {
+    // Fetch explanation and signals in parallel
+    const [explanationRes, signalsRes, similarRes] = await Promise.all([
+      fetch(`/api/trades/${tradeId}/explanation`),
+      fetch(`/api/trades/${tradeId}/signals`),
+      fetch(`/api/trades/${tradeId}/similar?limit=5`)
+    ]);
+
+    const explanation = await explanationRes.json();
+    const signals = await signalsRes.json();
+    const similar = await similarRes.json();
+
+    if (explanation.status === 'success') {
+      renderExplanation(explanation.explanation, signals, similar);
+    } else {
+      showExplanationError(explanation.message || 'Failed to load explanation');
+    }
+  } catch (error) {
+    console.error('Error loading trade explanation:', error);
+    showExplanationError('Failed to load trade explanation');
+  }
+}
+
+function renderExplanation(explanation, signals, similar) {
+  // Hide loading, show content
+  document.getElementById('explanationLoading').style.display = 'none';
+  document.getElementById('explanationContent').style.display = 'block';
+
+  // Update subtitle
+  document.getElementById('tradeExplanationSubtitle').textContent =
+    `${explanation.symbol} | ${explanation.direction.toUpperCase()} | ${explanation.strategy_name}`;
+
+  // Trade summary
+  document.getElementById('tradeSummaryTitle').textContent =
+    `${explanation.direction.toUpperCase()} ${explanation.symbol} @ $${explanation.entry_price.toFixed(2)}`;
+  document.getElementById('tradeSummaryText').textContent = explanation.summary;
+
+  // Confidence meter
+  const confidence = explanation.confidence_score;
+  const meterFill = document.getElementById('confidenceMeterFill');
+  meterFill.style.width = `${confidence}%`;
+  meterFill.classList.remove('confidence-high', 'confidence-medium', 'confidence-low');
+  if (confidence >= 70) {
+    meterFill.classList.add('confidence-high');
+  } else if (confidence >= 50) {
+    meterFill.classList.add('confidence-medium');
+  } else {
+    meterFill.classList.add('confidence-low');
+  }
+  document.getElementById('confidenceValue').textContent = `${confidence}%`;
+
+  // Key factors
+  const keyFactorsHtml = explanation.key_factors.map(factor =>
+    `<span class="key-factor-chip">${factor}</span>`
+  ).join('');
+  document.getElementById('keyFactorsContainer').innerHTML = keyFactorsHtml || '<span class="text-secondary">No specific factors identified</span>';
+
+  // Signal visualizations
+  if (signals.status === 'success' && signals.visualization) {
+    renderSignalVisualizations(signals.visualization);
+  }
+
+  // Signal breakdown
+  renderSignalBreakdown(explanation.signal_explanations);
+
+  // Risk assessment
+  document.getElementById('riskAssessmentText').textContent = explanation.risk_assessment;
+
+  // Similar trades
+  renderSimilarTrades(similar);
+}
+
+function renderSignalVisualizations(viz) {
+  // RSI Gauge
+  if (viz.rsi_gauge) {
+    const rsiValue = viz.rsi_gauge.value;
+    document.getElementById('rsiValue').textContent = Math.round(rsiValue);
+
+    let rsiStatus = 'Neutral';
+    let rsiColor = '#6c757d';
+    if (rsiValue < 30) {
+      rsiStatus = 'Oversold';
+      rsiColor = '#2dce89';
+    } else if (rsiValue > 70) {
+      rsiStatus = 'Overbought';
+      rsiColor = '#f5365c';
+    }
+    document.getElementById('rsiStatus').textContent = rsiStatus;
+    document.getElementById('rsiValue').style.color = rsiColor;
+
+    // Draw simple arc gauge
+    drawRSIGauge(rsiValue);
+  }
+
+  // MACD
+  if (viz.macd_chart) {
+    const macd = viz.macd_chart;
+    const scale = 30; // Scale factor for bar heights
+    const baseHeight = 30;
+
+    document.getElementById('macdLine').style.height = `${baseHeight + macd.macd_line * scale}px`;
+    document.getElementById('macdSignal').style.height = `${baseHeight + macd.signal_line * scale}px`;
+    document.getElementById('macdHistogram').style.height = `${baseHeight + Math.abs(macd.histogram) * scale}px`;
+    document.getElementById('macdHistogram').style.background = macd.histogram_color;
+
+    const macdStatus = macd.crossover ? 'Bullish Crossover!' : (macd.histogram > 0 ? 'Bullish' : 'Bearish');
+    document.getElementById('macdStatus').textContent = macdStatus;
+  }
+
+  // Volume
+  if (viz.volume_bar) {
+    const vol = viz.volume_bar;
+    const volumeBar = document.getElementById('volumeBar');
+    volumeBar.style.width = `${Math.min(vol.ratio / 3 * 100, 100)}%`;
+    volumeBar.style.background = vol.color;
+    document.getElementById('volumeRatio').textContent = `${vol.ratio.toFixed(1)}x`;
+
+    let volStatus = 'Normal volume';
+    if (vol.ratio >= 2) volStatus = 'High volume!';
+    else if (vol.ratio < 0.5) volStatus = 'Low volume';
+    document.getElementById('volumeStatus').textContent = volStatus;
+  }
+}
+
+function drawRSIGauge(value) {
+  const canvas = document.getElementById('rsiGauge');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width = 120;
+  const height = canvas.height = 120;
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const radius = 45;
+
+  ctx.clearRect(0, 0, width, height);
+
+  // Background arc
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, Math.PI * 0.75, Math.PI * 2.25, false);
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = '#e9ecef';
+  ctx.stroke();
+
+  // Value arc
+  const angle = Math.PI * 0.75 + (value / 100) * Math.PI * 1.5;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, Math.PI * 0.75, angle, false);
+  ctx.lineWidth = 10;
+
+  // Color based on value
+  if (value < 30) {
+    ctx.strokeStyle = '#2dce89';
+  } else if (value > 70) {
+    ctx.strokeStyle = '#f5365c';
+  } else {
+    ctx.strokeStyle = '#5e72e4';
+  }
+  ctx.stroke();
+}
+
+function renderSignalBreakdown(signalExplanations) {
+  const container = document.getElementById('signalBreakdownContainer');
+
+  if (!signalExplanations || signalExplanations.length === 0) {
+    container.innerHTML = '<p class="text-secondary">No signal details available</p>';
+    return;
+  }
+
+  const html = signalExplanations.map(signal => {
+    const triggeredClass = signal.triggered ? 'triggered' : 'not-triggered';
+    const impactClass = `impact-${signal.impact}`;
+
+    return `
+      <div class="signal-card ${triggeredClass}">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <strong class="text-dark">${signal.signal_name.toUpperCase()}</strong>
+            <span class="impact-badge ${impactClass} ms-2">${signal.impact}</span>
+          </div>
+          <div>
+            ${signal.triggered ?
+              '<i class="fas fa-check-circle text-success"></i>' :
+              '<i class="fas fa-minus-circle text-secondary"></i>'}
+          </div>
+        </div>
+        <p class="mb-0 mt-2 text-secondary">${signal.description}</p>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = html;
+}
+
+function renderSimilarTrades(similar) {
+  const statsEl = document.getElementById('similarTradesSummary');
+  const container = document.getElementById('similarTradesContainer');
+
+  if (similar.status !== 'success' || !similar.similar_trades || similar.similar_trades.length === 0) {
+    statsEl.textContent = 'No similar historical trades found for comparison.';
+    container.innerHTML = '';
+    return;
+  }
+
+  const stats = similar.aggregate_stats;
+  statsEl.innerHTML = `
+    <strong>${stats.total_similar}</strong> similar trades found |
+    Win Rate: <strong class="${stats.win_rate >= 50 ? 'text-success' : 'text-danger'}">${stats.win_rate}%</strong> |
+    Avg P&L: <strong class="${stats.average_pnl_percent >= 0 ? 'text-success' : 'text-danger'}">${stats.average_pnl_percent >= 0 ? '+' : ''}${stats.average_pnl_percent}%</strong>
+  `;
+
+  const html = similar.similar_trades.map(trade => {
+    const outcomeColor = trade.outcome === 'profit' ? 'success' : (trade.outcome === 'loss' ? 'danger' : 'secondary');
+    const pnlColor = trade.pnl_percent >= 0 ? 'success' : 'danger';
+
+    return `
+      <div class="similar-trade-row">
+        <div class="row align-items-center">
+          <div class="col-md-3">
+            <strong>${trade.symbol}</strong>
+            <small class="d-block text-secondary">${trade.entry_date}</small>
+          </div>
+          <div class="col-md-3">
+            <span class="badge bg-${outcomeColor}">${trade.outcome}</span>
+          </div>
+          <div class="col-md-3">
+            <span class="text-${pnlColor} font-weight-bold">
+              ${trade.pnl_percent >= 0 ? '+' : ''}${trade.pnl_percent.toFixed(1)}%
+            </span>
+          </div>
+          <div class="col-md-3 text-end">
+            <small class="text-secondary">${Math.round(trade.similarity_score * 100)}% match</small>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = html;
+}
+
+function showExplanationError(message) {
+  document.getElementById('explanationLoading').style.display = 'none';
+  document.getElementById('explanationContent').style.display = 'block';
+  document.getElementById('explanationContent').innerHTML = `
+    <div class="alert alert-warning">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      ${message}
+    </div>
+  `;
+}
+
+function downloadTradeReport() {
+  if (!currentTradeId) return;
+
+  // Create simple text report
+  const title = document.getElementById('tradeSummaryTitle').textContent;
+  const summary = document.getElementById('tradeSummaryText').textContent;
+  const confidence = document.getElementById('confidenceValue').textContent;
+  const risk = document.getElementById('riskAssessmentText').textContent;
+
+  const report = `TRADE EXPLANATION REPORT
+========================
+${title}
+
+SUMMARY
+${summary}
+
+CONFIDENCE: ${confidence}
+
+RISK ASSESSMENT
+${risk}
+
+Generated: ${new Date().toISOString()}
+`;
+
+  const blob = new Blob([report], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `trade-report-${currentTradeId}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>

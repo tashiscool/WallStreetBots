@@ -84,6 +84,21 @@ class AlertType(Enum):
     SIGNAL_VALIDATION_TREND_IMPROVEMENT = "signal_validation_trend_improvement"
     REGIME_CHANGE = "regime_change"
     VALIDATION_STATE_CHANGE = "validation_state_change"
+    # VIX-based alerts
+    VIX_LEVEL_CHANGE = "vix_level_change"
+    VIX_SPIKE = "vix_spike"
+    VIX_CRITICAL = "vix_critical"
+    VIX_TRADING_PAUSED = "vix_trading_paused"
+    VIX_TRADING_RESUMED = "vix_trading_resumed"
+    # Allocation alerts
+    ALLOCATION_WARNING = "allocation_warning"
+    ALLOCATION_EXCEEDED = "allocation_exceeded"
+    ALLOCATION_ORDER_REJECTED = "allocation_order_rejected"
+    # Circuit breaker recovery alerts
+    CIRCUIT_BREAKER_TRIGGERED = "circuit_breaker_triggered"
+    RECOVERY_STAGE_ADVANCED = "recovery_stage_advanced"
+    RECOVERY_COMPLETED = "recovery_completed"
+    RECOVERY_TRADE_RECORDED = "recovery_trade_recorded"
 
 
 class AlertPriority(Enum):
@@ -279,6 +294,21 @@ class TradingAlertSystem:
             AlertType.RISK_ALERT: [AlertChannel.EMAIL, AlertChannel.WEBHOOK],
             AlertType.TIME_WARNING: [AlertChannel.DESKTOP],
             AlertType.EARNINGS_WARNING: [AlertChannel.EMAIL],
+            # VIX alerts
+            AlertType.VIX_LEVEL_CHANGE: [AlertChannel.DESKTOP, AlertChannel.WEBHOOK],
+            AlertType.VIX_SPIKE: [AlertChannel.DESKTOP, AlertChannel.WEBHOOK, AlertChannel.EMAIL],
+            AlertType.VIX_CRITICAL: [AlertChannel.DESKTOP, AlertChannel.WEBHOOK, AlertChannel.EMAIL],
+            AlertType.VIX_TRADING_PAUSED: [AlertChannel.DESKTOP, AlertChannel.WEBHOOK, AlertChannel.EMAIL],
+            AlertType.VIX_TRADING_RESUMED: [AlertChannel.DESKTOP, AlertChannel.WEBHOOK],
+            # Allocation alerts
+            AlertType.ALLOCATION_WARNING: [AlertChannel.DESKTOP, AlertChannel.WEBHOOK],
+            AlertType.ALLOCATION_EXCEEDED: [AlertChannel.DESKTOP, AlertChannel.WEBHOOK, AlertChannel.EMAIL],
+            AlertType.ALLOCATION_ORDER_REJECTED: [AlertChannel.DESKTOP, AlertChannel.WEBHOOK, AlertChannel.EMAIL],
+            # Circuit breaker recovery alerts
+            AlertType.CIRCUIT_BREAKER_TRIGGERED: [AlertChannel.DESKTOP, AlertChannel.WEBHOOK, AlertChannel.EMAIL, AlertChannel.SMS],
+            AlertType.RECOVERY_STAGE_ADVANCED: [AlertChannel.DESKTOP, AlertChannel.WEBHOOK],
+            AlertType.RECOVERY_COMPLETED: [AlertChannel.DESKTOP, AlertChannel.WEBHOOK, AlertChannel.EMAIL],
+            AlertType.RECOVERY_TRADE_RECORDED: [AlertChannel.DESKTOP],
         }
 
     def register_handler(self, channel: AlertChannel, handler: AlertHandler):
@@ -494,6 +524,525 @@ class TradingAlertSystem:
 
         self.send_alert(alert)
 
+    # =========================================================================
+    # VIX-based Alert Methods
+    # =========================================================================
+
+    def create_vix_level_change_alert(
+        self,
+        previous_level: str,
+        current_level: str,
+        vix_value: float,
+        position_multiplier: float,
+    ):
+        """Create alert when VIX level changes (e.g., normal -> elevated)."""
+        level_emojis = {
+            'normal': '🟢',
+            'elevated': '🟡',
+            'high': '🟠',
+            'extreme': '🔴',
+            'critical': '⚫',
+        }
+
+        emoji = level_emojis.get(current_level, '⚠️')
+        priority = AlertPriority.MEDIUM
+
+        if current_level in ['extreme', 'critical']:
+            priority = AlertPriority.HIGH
+
+        sizing_note = ""
+        if position_multiplier < 1.0:
+            reduction_pct = (1 - position_multiplier) * 100
+            sizing_note = f" Position sizes reduced by {reduction_pct:.0f}%."
+
+        alert = Alert(
+            alert_type=AlertType.VIX_LEVEL_CHANGE,
+            priority=priority,
+            ticker="VIX",
+            title=f"{emoji} VIX Level Change: {current_level.upper()}",
+            message=f"VIX moved from {previous_level} to {current_level}.\n"
+                    f"Current VIX: {vix_value:.1f}.{sizing_note}",
+            data={
+                'vix_value': vix_value,
+                'previous_level': previous_level,
+                'current_level': current_level,
+                'position_multiplier': position_multiplier,
+            },
+        )
+
+        self.send_alert(alert)
+
+    def create_vix_spike_alert(self, vix_value: float, change_1d: float):
+        """Create alert when VIX spikes significantly (>20% increase)."""
+        alert = Alert(
+            alert_type=AlertType.VIX_SPIKE,
+            priority=AlertPriority.HIGH,
+            ticker="VIX",
+            title=f"🚨 VIX SPIKE DETECTED",
+            message=f"VIX spiked +{change_1d:.1f} points to {vix_value:.1f}.\n"
+                    f"This indicates sudden increase in market fear.\n"
+                    f"Exercise caution with new positions.",
+            data={
+                'vix_value': vix_value,
+                'change_1d': change_1d,
+                'spike_percent': (change_1d / (vix_value - change_1d)) * 100,
+            },
+        )
+
+        self.send_alert(alert)
+
+    def create_vix_critical_alert(self, vix_value: float):
+        """Create URGENT alert when VIX exceeds critical threshold (>45)."""
+        alert = Alert(
+            alert_type=AlertType.VIX_CRITICAL,
+            priority=AlertPriority.URGENT,
+            ticker="VIX",
+            title=f"⚫ VIX CRITICAL: {vix_value:.1f}",
+            message=f"VIX has exceeded critical threshold ({vix_value:.1f}).\n"
+                    f"This indicates extreme market fear/panic.\n"
+                    f"All new trading has been PAUSED.",
+            data={
+                'vix_value': vix_value,
+                'critical_threshold': 45.0,
+            },
+        )
+
+        self.send_alert(alert)
+
+    def create_vix_trading_paused_alert(self, vix_value: float, reason: str):
+        """Create alert when trading is paused due to VIX."""
+        alert = Alert(
+            alert_type=AlertType.VIX_TRADING_PAUSED,
+            priority=AlertPriority.URGENT,
+            ticker="SYSTEM",
+            title=f"⏸️ TRADING PAUSED - VIX {vix_value:.1f}",
+            message=f"Trading has been automatically paused.\n"
+                    f"Reason: {reason}\n"
+                    f"No new positions will be opened until VIX normalizes.",
+            data={
+                'vix_value': vix_value,
+                'reason': reason,
+                'paused_at': datetime.now().isoformat(),
+            },
+        )
+
+        self.send_alert(alert)
+
+    def create_vix_trading_resumed_alert(self, vix_value: float):
+        """Create alert when trading resumes after VIX normalization."""
+        alert = Alert(
+            alert_type=AlertType.VIX_TRADING_RESUMED,
+            priority=AlertPriority.HIGH,
+            ticker="SYSTEM",
+            title=f"▶️ TRADING RESUMED - VIX {vix_value:.1f}",
+            message=f"VIX has returned to acceptable levels ({vix_value:.1f}).\n"
+                    f"Normal trading operations have resumed.\n"
+                    f"Position sizing may still be reduced if VIX is elevated.",
+            data={
+                'vix_value': vix_value,
+                'resumed_at': datetime.now().isoformat(),
+            },
+        )
+
+        self.send_alert(alert)
+
+    def check_vix_and_alert(self):
+        """Check VIX and create appropriate alerts."""
+        try:
+            from backend.auth0login.services.market_monitor import get_market_monitor
+
+            monitor = get_market_monitor()
+            alert_info = monitor.check_alert_threshold()
+
+            if alert_info:
+                if alert_info['type'] == 'vix_level_change':
+                    self.create_vix_level_change_alert(
+                        previous_level=alert_info.get('previous_level', 'unknown'),
+                        current_level=alert_info['current_level'],
+                        vix_value=alert_info['vix_value'],
+                        position_multiplier=monitor.get_position_size_multiplier(
+                            alert_info['vix_value']
+                        ),
+                    )
+
+                    # Additional alerts for critical levels
+                    if alert_info['current_level'] == 'critical':
+                        self.create_vix_critical_alert(alert_info['vix_value'])
+                        self.create_vix_trading_paused_alert(
+                            alert_info['vix_value'],
+                            f"VIX exceeded critical threshold ({alert_info['vix_value']:.1f})"
+                        )
+                    elif alert_info.get('previous_level') == 'critical':
+                        # Resuming from critical
+                        self.create_vix_trading_resumed_alert(alert_info['vix_value'])
+
+                elif alert_info['type'] == 'vix_spike':
+                    self.create_vix_spike_alert(
+                        vix_value=alert_info['vix_value'],
+                        change_1d=alert_info.get('change_1d', 0),
+                    )
+
+        except ImportError:
+            logging.warning("Market monitor not available for VIX alerts")
+        except Exception as e:
+            logging.error(f"Error checking VIX for alerts: {e}")
+
+    # =========================================================================
+    # Allocation Alert Methods
+    # =========================================================================
+
+    def create_allocation_warning_alert(
+        self,
+        strategy_name: str,
+        utilization_pct: float,
+        available_capital: float,
+        allocated_amount: float,
+    ):
+        """Create alert when strategy is nearing its allocation limit (90%+)."""
+        alert = Alert(
+            alert_type=AlertType.ALLOCATION_WARNING,
+            priority=AlertPriority.MEDIUM,
+            ticker=strategy_name.upper(),
+            title=f"⚠️ {strategy_name} Near Allocation Limit",
+            message=f"{strategy_name} is at {utilization_pct:.0f}% of allocation.\n"
+                    f"Available: ${available_capital:,.2f} of ${allocated_amount:,.2f}.\n"
+                    f"Consider reducing positions or increasing allocation.",
+            data={
+                'strategy_name': strategy_name,
+                'utilization_pct': utilization_pct,
+                'available_capital': available_capital,
+                'allocated_amount': allocated_amount,
+            },
+        )
+
+        self.send_alert(alert)
+
+    def create_allocation_exceeded_alert(
+        self,
+        strategy_name: str,
+        current_exposure: float,
+        allocated_amount: float,
+        overage_pct: float,
+    ):
+        """Create alert when strategy has exceeded its allocation."""
+        alert = Alert(
+            alert_type=AlertType.ALLOCATION_EXCEEDED,
+            priority=AlertPriority.HIGH,
+            ticker=strategy_name.upper(),
+            title=f"🚨 {strategy_name} Allocation Exceeded",
+            message=f"{strategy_name} has exceeded its allocation by {overage_pct:.0f}%.\n"
+                    f"Current exposure: ${current_exposure:,.2f}\n"
+                    f"Allocated: ${allocated_amount:,.2f}\n"
+                    f"New orders for this strategy will be blocked.",
+            data={
+                'strategy_name': strategy_name,
+                'current_exposure': current_exposure,
+                'allocated_amount': allocated_amount,
+                'overage_pct': overage_pct,
+            },
+        )
+
+        self.send_alert(alert)
+
+    def create_allocation_order_rejected_alert(
+        self,
+        strategy_name: str,
+        symbol: str,
+        requested_amount: float,
+        available_capital: float,
+    ):
+        """Create alert when an order is rejected due to allocation limit."""
+        alert = Alert(
+            alert_type=AlertType.ALLOCATION_ORDER_REJECTED,
+            priority=AlertPriority.HIGH,
+            ticker=symbol,
+            title=f"❌ Order Rejected - {strategy_name} Limit",
+            message=f"Order for {symbol} rejected due to {strategy_name} allocation limit.\n"
+                    f"Requested: ${requested_amount:,.2f}\n"
+                    f"Available: ${available_capital:,.2f}\n"
+                    f"Increase allocation or reduce position size.",
+            data={
+                'strategy_name': strategy_name,
+                'symbol': symbol,
+                'requested_amount': requested_amount,
+                'available_capital': available_capital,
+            },
+        )
+
+        self.send_alert(alert)
+
+    def check_allocation_thresholds(self, user=None):
+        """Check all allocations and create alerts for those near limits.
+
+        Args:
+            user: Django user object (required for checking allocations)
+        """
+        if user is None:
+            logging.warning("User required for allocation threshold check")
+            return
+
+        try:
+            from backend.auth0login.services.allocation_manager import get_allocation_manager
+
+            manager = get_allocation_manager()
+            summary = manager.get_allocation_summary(user)
+
+            if not summary.get('configured'):
+                return
+
+            for allocation in summary.get('strategies', []):
+                utilization = allocation['utilization_pct']
+                strategy = allocation['strategy_name']
+
+                if utilization >= 100:
+                    # Exceeded
+                    overage = utilization - 100
+                    self.create_allocation_exceeded_alert(
+                        strategy_name=strategy,
+                        current_exposure=allocation['current_exposure'],
+                        allocated_amount=allocation['allocated_amount'],
+                        overage_pct=overage,
+                    )
+                elif utilization >= 90:
+                    # Warning threshold
+                    self.create_allocation_warning_alert(
+                        strategy_name=strategy,
+                        utilization_pct=utilization,
+                        available_capital=allocation['available_capital'],
+                        allocated_amount=allocation['allocated_amount'],
+                    )
+
+        except ImportError:
+            logging.warning("Allocation manager not available")
+        except Exception as e:
+            logging.error(f"Error checking allocation thresholds: {e}")
+
+    # =========================================================================
+    # Circuit Breaker Recovery Alerts
+    # =========================================================================
+
+    def create_circuit_breaker_triggered_alert(
+        self,
+        breaker_type: str,
+        trigger_value: float,
+        trigger_threshold: float,
+        recovery_schedule_hours: float,
+    ):
+        """Create alert when a circuit breaker triggers.
+
+        Args:
+            breaker_type: Type of breaker (daily_loss, vix_critical, etc.)
+            trigger_value: Value that caused the trigger
+            trigger_threshold: Threshold that was exceeded
+            recovery_schedule_hours: Total hours until full recovery
+        """
+        breaker_names = {
+            'daily_loss': 'Daily Loss Limit',
+            'vix_critical': 'VIX Critical Level',
+            'vix_extreme': 'VIX Extreme Level',
+            'error_rate': 'Error Rate Spike',
+            'stale_data': 'Stale Data',
+            'consecutive_loss': 'Consecutive Losses',
+            'position_limit': 'Position Count Limit',
+            'margin_call': 'Margin Call Risk',
+            'manual': 'Manual Trigger',
+        }
+        breaker_name = breaker_names.get(breaker_type, breaker_type)
+
+        alert = Alert(
+            alert_type=AlertType.CIRCUIT_BREAKER_TRIGGERED,
+            priority=AlertPriority.URGENT,
+            ticker="SYSTEM",
+            title=f"🛑 Circuit Breaker Triggered: {breaker_name}",
+            message=f"Trading has been PAUSED due to {breaker_name}.\n"
+                    f"Trigger value: {trigger_value:.2f} (threshold: {trigger_threshold:.2f})\n"
+                    f"Estimated recovery time: {recovery_schedule_hours:.1f} hours\n\n"
+                    f"Position sizes will be gradually restored as recovery progresses.",
+            data={
+                'breaker_type': breaker_type,
+                'trigger_value': trigger_value,
+                'trigger_threshold': trigger_threshold,
+                'recovery_hours': recovery_schedule_hours,
+            },
+        )
+
+        self.send_alert(alert)
+        logging.warning(f"Circuit breaker triggered: {breaker_type}")
+
+    def create_recovery_stage_advanced_alert(
+        self,
+        breaker_type: str,
+        old_mode: str,
+        new_mode: str,
+        position_multiplier: float,
+        hours_remaining: float,
+    ):
+        """Create alert when recovery advances to next stage.
+
+        Args:
+            breaker_type: Type of breaker
+            old_mode: Previous recovery mode
+            new_mode: New recovery mode
+            position_multiplier: New position size multiplier
+            hours_remaining: Hours until full recovery
+        """
+        mode_descriptions = {
+            'paused': 'Trading Paused (0%)',
+            'restricted': 'Restricted Trading (25%)',
+            'cautious': 'Cautious Trading (50%)',
+            'normal': 'Normal Trading (100%)',
+        }
+
+        new_description = mode_descriptions.get(new_mode, new_mode)
+
+        alert = Alert(
+            alert_type=AlertType.RECOVERY_STAGE_ADVANCED,
+            priority=AlertPriority.MEDIUM,
+            ticker="SYSTEM",
+            title=f"📈 Recovery Advanced: {new_description}",
+            message=f"Circuit breaker recovery has advanced.\n"
+                    f"Previous: {old_mode.title()} → Now: {new_mode.title()}\n"
+                    f"Position sizing: {int(position_multiplier * 100)}%\n"
+                    f"Time to full recovery: {hours_remaining:.1f} hours",
+            data={
+                'breaker_type': breaker_type,
+                'old_mode': old_mode,
+                'new_mode': new_mode,
+                'position_multiplier': position_multiplier,
+                'hours_remaining': hours_remaining,
+            },
+        )
+
+        self.send_alert(alert)
+        logging.info(f"Recovery advanced: {old_mode} -> {new_mode}")
+
+    def create_recovery_completed_alert(
+        self,
+        breaker_type: str,
+        total_duration_hours: float,
+        recovery_trades: int,
+        recovery_pnl: float,
+    ):
+        """Create alert when recovery completes and full trading resumes.
+
+        Args:
+            breaker_type: Type of breaker that was resolved
+            total_duration_hours: How long the recovery took
+            recovery_trades: Number of trades during recovery
+            recovery_pnl: P&L during recovery period
+        """
+        pnl_str = f"+${recovery_pnl:,.2f}" if recovery_pnl >= 0 else f"-${abs(recovery_pnl):,.2f}"
+
+        alert = Alert(
+            alert_type=AlertType.RECOVERY_COMPLETED,
+            priority=AlertPriority.HIGH,
+            ticker="SYSTEM",
+            title=f"✅ Full Trading Resumed",
+            message=f"Circuit breaker recovery complete!\n"
+                    f"Breaker type: {breaker_type.replace('_', ' ').title()}\n"
+                    f"Total duration: {total_duration_hours:.1f} hours\n"
+                    f"Recovery trades: {recovery_trades}\n"
+                    f"Recovery P&L: {pnl_str}\n\n"
+                    f"Trading has resumed at 100% position sizing.",
+            data={
+                'breaker_type': breaker_type,
+                'duration_hours': total_duration_hours,
+                'recovery_trades': recovery_trades,
+                'recovery_pnl': recovery_pnl,
+            },
+        )
+
+        self.send_alert(alert)
+        logging.info(f"Recovery completed for {breaker_type}")
+
+    def create_recovery_trade_recorded_alert(
+        self,
+        is_profitable: bool,
+        pnl: float,
+        current_win_rate: float,
+        trades_until_advance: int | None,
+    ):
+        """Create alert when a trade is recorded during recovery.
+
+        Args:
+            is_profitable: Whether the trade was profitable
+            pnl: P&L of the trade
+            current_win_rate: Current win rate during recovery
+            trades_until_advance: Trades needed to advance (if applicable)
+        """
+        result = "profitable" if is_profitable else "unprofitable"
+        pnl_str = f"+${pnl:,.2f}" if pnl >= 0 else f"-${abs(pnl):,.2f}"
+
+        message = f"Recovery trade recorded: {result} ({pnl_str})\n"
+        message += f"Current recovery win rate: {current_win_rate * 100:.0f}%"
+
+        if trades_until_advance is not None and trades_until_advance > 0:
+            message += f"\nProfitable trades needed to advance: {trades_until_advance}"
+
+        alert = Alert(
+            alert_type=AlertType.RECOVERY_TRADE_RECORDED,
+            priority=AlertPriority.LOW,
+            ticker="SYSTEM",
+            title=f"📊 Recovery Trade: {result.title()}",
+            message=message,
+            data={
+                'is_profitable': is_profitable,
+                'pnl': pnl,
+                'win_rate': current_win_rate,
+                'trades_until_advance': trades_until_advance,
+            },
+        )
+
+        self.send_alert(alert)
+
+    def check_recovery_status(self, user=None):
+        """Check recovery status and auto-advance if conditions are met.
+
+        Args:
+            user: Django user object
+
+        Returns:
+            List of advancement results
+        """
+        if user is None:
+            return []
+
+        try:
+            from backend.auth0login.services.recovery_manager import get_recovery_manager
+
+            recovery_mgr = get_recovery_manager(user)
+            advancements = recovery_mgr.check_auto_recovery()
+
+            for advancement in advancements:
+                if advancement.get('resolved'):
+                    # Recovery completed
+                    status = recovery_mgr.get_recovery_status()
+                    self.create_recovery_completed_alert(
+                        breaker_type=advancement['breaker_type'],
+                        total_duration_hours=0,  # Would need to get from event
+                        recovery_trades=0,
+                        recovery_pnl=0,
+                    )
+                else:
+                    # Stage advanced
+                    status = recovery_mgr.get_recovery_status()
+                    self.create_recovery_stage_advanced_alert(
+                        breaker_type=advancement['breaker_type'],
+                        old_mode=advancement['old_mode'],
+                        new_mode=advancement['new_mode'],
+                        position_multiplier=status.position_multiplier,
+                        hours_remaining=status.hours_until_next_stage or 0,
+                    )
+
+            return advancements
+
+        except ImportError:
+            logging.warning("Recovery manager not available")
+            return []
+        except Exception as e:
+            logging.error(f"Error checking recovery status: {e}")
+            return []
+
     def acknowledge_alert(self, alert_id: str):
         """Acknowledge an active alert."""
         for alert in self.active_alerts:
@@ -673,6 +1222,274 @@ class MarketScreener:
             high_24h=data["high"],
             low_24h=data["low"],
         )
+
+
+class SignalValidationMonitor:
+    """Monitor signal validation performance across all strategies.
+
+    GAP FIX: This class implements the Monitoring & Alerting Gap - providing
+    comprehensive signal validation performance monitoring with automatic alerts.
+
+    Features:
+    - Real-time signal validation performance tracking
+    - Automatic degradation detection and alerts
+    - Dashboard integration for validation metrics
+    - Threshold-based automatic responses
+    """
+
+    def __init__(
+        self,
+        alert_system: TradingAlertSystem,
+        thresholds: dict = None,
+    ):
+        """Initialize signal validation monitor.
+
+        Args:
+            alert_system: Alert system for sending notifications
+            thresholds: Strategy-specific thresholds for validation scores
+        """
+        self.alert_system = alert_system
+        self.logger = logging.getLogger(__name__)
+
+        # Default thresholds by strategy type
+        self.thresholds = thresholds or {
+            'default': 50.0,
+            'wsb_dip_bot': 55.0,      # Higher threshold for WSB (more volatile)
+            'earnings_protection': 60.0,  # Higher for earnings (time-critical)
+            'wheel_strategy': 45.0,    # Lower threshold (longer-term)
+            'momentum_weeklies': 65.0,  # Highest (short-term momentum)
+            'lotto_scanner': 40.0,     # Lowest (speculative by design)
+            'index_baseline': 50.0,    # Standard threshold
+            'swing_trading': 55.0,     # Medium-high for swing trades
+        }
+
+        # Tracking state
+        self.validation_history: dict[str, list] = {}
+        self.last_check_time: dict[str, datetime] = {}
+        self.degradation_count: dict[str, int] = {}
+
+        self.logger.info("SignalValidationMonitor initialized")
+
+    def monitor_validation_performance(
+        self,
+        strategies: dict,
+    ) -> dict:
+        """Monitor signal validation across all strategies.
+
+        Args:
+            strategies: Dictionary of strategy_name -> strategy instance
+
+        Returns:
+            Monitoring report with status for each strategy
+        """
+        report = {
+            'timestamp': datetime.now(),
+            'strategies_monitored': 0,
+            'strategies_healthy': 0,
+            'strategies_warning': 0,
+            'strategies_critical': 0,
+            'alerts_sent': 0,
+            'details': {},
+        }
+
+        for strategy_name, strategy in strategies.items():
+            if not hasattr(strategy, 'get_strategy_signal_summary'):
+                continue
+
+            try:
+                summary = strategy.get_strategy_signal_summary()
+                status = self._evaluate_strategy_validation(strategy_name, summary)
+                report['details'][strategy_name] = status
+                report['strategies_monitored'] += 1
+
+                if status['health'] == 'HEALTHY':
+                    report['strategies_healthy'] += 1
+                elif status['health'] == 'WARNING':
+                    report['strategies_warning'] += 1
+                elif status['health'] == 'CRITICAL':
+                    report['strategies_critical'] += 1
+
+                # Send alerts based on health status
+                if status['health'] == 'CRITICAL':
+                    self._send_critical_alert(strategy_name, status)
+                    report['alerts_sent'] += 1
+                elif status['health'] == 'WARNING' and status.get('send_warning', False):
+                    self._send_warning_alert(strategy_name, status)
+                    report['alerts_sent'] += 1
+
+            except Exception as e:
+                self.logger.error(f"Error monitoring {strategy_name}: {e}")
+                report['details'][strategy_name] = {'error': str(e)}
+
+        return report
+
+    def _evaluate_strategy_validation(
+        self,
+        strategy_name: str,
+        summary: dict,
+    ) -> dict:
+        """Evaluate a strategy's signal validation performance.
+
+        Args:
+            strategy_name: Name of the strategy
+            summary: Signal summary from strategy
+
+        Returns:
+            Evaluation status dict
+        """
+        avg_score = summary.get('average_strength_score', 0)
+        total_signals = summary.get('total_signals_validated', 0)
+        threshold = self.thresholds.get(strategy_name, self.thresholds['default'])
+
+        # Track history
+        if strategy_name not in self.validation_history:
+            self.validation_history[strategy_name] = []
+        self.validation_history[strategy_name].append({
+            'timestamp': datetime.now(),
+            'avg_score': avg_score,
+            'total_signals': total_signals,
+        })
+        # Keep last 100 entries
+        self.validation_history[strategy_name] = self.validation_history[strategy_name][-100:]
+
+        # Determine health status
+        if total_signals < 5:
+            health = 'INSUFFICIENT_DATA'
+            message = 'Not enough signals for evaluation'
+        elif avg_score < threshold * 0.7:  # 70% of threshold = critical
+            health = 'CRITICAL'
+            message = f'Signal quality critically low: {avg_score:.1f} < {threshold * 0.7:.1f}'
+            self.degradation_count[strategy_name] = self.degradation_count.get(strategy_name, 0) + 1
+        elif avg_score < threshold:
+            health = 'WARNING'
+            message = f'Signal quality below threshold: {avg_score:.1f} < {threshold:.1f}'
+            self.degradation_count[strategy_name] = self.degradation_count.get(strategy_name, 0) + 1
+        else:
+            health = 'HEALTHY'
+            message = f'Signal quality acceptable: {avg_score:.1f} >= {threshold:.1f}'
+            self.degradation_count[strategy_name] = 0  # Reset on healthy
+
+        # Calculate trend
+        trend = self._calculate_trend(strategy_name)
+
+        # Determine if we should send warning (avoid alert fatigue)
+        consecutive_warnings = self.degradation_count.get(strategy_name, 0)
+        send_warning = consecutive_warnings in [1, 3, 5]  # Alert on 1st, 3rd, 5th occurrence
+
+        return {
+            'health': health,
+            'message': message,
+            'avg_score': avg_score,
+            'threshold': threshold,
+            'total_signals': total_signals,
+            'trend': trend,
+            'consecutive_degradations': consecutive_warnings,
+            'send_warning': send_warning,
+        }
+
+    def _calculate_trend(self, strategy_name: str) -> str:
+        """Calculate score trend for a strategy."""
+        history = self.validation_history.get(strategy_name, [])
+        if len(history) < 3:
+            return 'INSUFFICIENT_DATA'
+
+        recent = history[-3:]
+        scores = [h['avg_score'] for h in recent]
+
+        if all(scores[i] < scores[i - 1] for i in range(1, len(scores))):
+            return 'DECLINING'
+        elif all(scores[i] > scores[i - 1] for i in range(1, len(scores))):
+            return 'IMPROVING'
+        else:
+            return 'STABLE'
+
+    def _send_critical_alert(self, strategy_name: str, status: dict):
+        """Send critical validation alert."""
+        alert = Alert(
+            alert_type=AlertType.SIGNAL_VALIDATION_DEGRADATION,
+            priority=AlertPriority.HIGH,
+            ticker=strategy_name.upper(),
+            title=f"🚨 CRITICAL: Signal Validation Degraded - {strategy_name}",
+            message=(
+                f"{status['message']}\n"
+                f"Trend: {status['trend']}\n"
+                f"Consecutive degradations: {status['consecutive_degradations']}\n"
+                f"Action: Strategy may be paused if condition persists."
+            ),
+            data={
+                'avg_score': status['avg_score'],
+                'threshold': status['threshold'],
+                'total_signals': status['total_signals'],
+                'trend': status['trend'],
+            },
+        )
+        self.alert_system.send_alert(alert)
+        self.logger.error(f"CRITICAL validation alert sent for {strategy_name}")
+
+    def _send_warning_alert(self, strategy_name: str, status: dict):
+        """Send warning validation alert."""
+        alert = Alert(
+            alert_type=AlertType.SIGNAL_VALIDATION_DEGRADATION,
+            priority=AlertPriority.MEDIUM,
+            ticker=strategy_name.upper(),
+            title=f"⚠️ WARNING: Signal Validation Below Threshold - {strategy_name}",
+            message=(
+                f"{status['message']}\n"
+                f"Trend: {status['trend']}\n"
+                f"Monitor closely for further degradation."
+            ),
+            data={
+                'avg_score': status['avg_score'],
+                'threshold': status['threshold'],
+                'total_signals': status['total_signals'],
+            },
+        )
+        self.alert_system.send_alert(alert)
+        self.logger.warning(f"Warning validation alert sent for {strategy_name}")
+
+    def get_dashboard_metrics(self) -> dict:
+        """Get metrics for dashboard display.
+
+        Returns:
+            Dictionary of metrics suitable for dashboard rendering
+        """
+        metrics = {
+            'strategies': {},
+            'overall_health': 'HEALTHY',
+            'total_monitored': len(self.validation_history),
+            'last_updated': datetime.now().isoformat(),
+        }
+
+        critical_count = 0
+        warning_count = 0
+
+        for strategy_name, history in self.validation_history.items():
+            if not history:
+                continue
+
+            latest = history[-1]
+            threshold = self.thresholds.get(strategy_name, self.thresholds['default'])
+
+            metrics['strategies'][strategy_name] = {
+                'avg_score': latest['avg_score'],
+                'threshold': threshold,
+                'health_pct': min(100, (latest['avg_score'] / threshold) * 100),
+                'trend': self._calculate_trend(strategy_name),
+                'signal_count': latest['total_signals'],
+            }
+
+            if latest['avg_score'] < threshold * 0.7:
+                critical_count += 1
+            elif latest['avg_score'] < threshold:
+                warning_count += 1
+
+        # Set overall health
+        if critical_count > 0:
+            metrics['overall_health'] = 'CRITICAL'
+        elif warning_count > 0:
+            metrics['overall_health'] = 'WARNING'
+
+        return metrics
 
 
 if __name__ == "__main__":  # Test the alert system

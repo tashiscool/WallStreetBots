@@ -1,0 +1,321 @@
+{% extends 'layouts/base.html' %}
+{% block title %} LEAPS Tracker Configuration {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .param-card { border-left: 4px solid #5e72e4; transition: all 0.3s ease; }
+  .param-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+  .tooltip-icon { cursor: help; color: #8898aa; font-size: 14px; margin-left: 5px; }
+  .tooltip-icon:hover { color: #5e72e4; }
+  .profile-badge { cursor: pointer; transition: all 0.2s ease; }
+  .profile-badge:hover { transform: scale(1.05); }
+  .profile-badge.active { border: 2px solid #5e72e4; }
+  .param-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #e9ecef; }
+  .param-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(310deg, #5e72e4 0%, #825ee4 100%); cursor: pointer; }
+  .theme-card { transition: all 0.2s ease; cursor: pointer; }
+  .theme-card:hover { transform: translateY(-2px); }
+  .theme-card.selected { border: 2px solid #5e72e4; }
+  .implication-box { background: linear-gradient(to right, rgba(94,114,228,0.05), rgba(130,94,228,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .warning-implication { background: linear-gradient(to right, rgba(251,99,64,0.1), rgba(245,54,92,0.05)); }
+  .safe-implication { background: linear-gradient(to right, rgba(45,206,137,0.1), rgba(17,205,239,0.05)); }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-primary">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-clock text-primary fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">LEAPS Secular Winners Tracker</h4>
+              <p class="text-white opacity-8 mb-0">Long-term positions on secular growth trends with systematic profit-taking. 1-2 year expiries.</p>
+            </div>
+            <div class="col-auto">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="strategyEnabled" checked style="width: 50px; height: 26px;">
+                <label class="form-check-label text-white ms-2" for="strategyEnabled">Enabled</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Secular Themes -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-lightbulb me-2"></i>Secular Growth Themes</h6>
+          <p class="text-sm text-secondary mb-0">Select investment themes to track for LEAPS opportunities</p>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <div class="card theme-card selected" data-theme="ai_ml">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-brain fa-2x text-primary mb-2"></i>
+                  <h6 class="mb-1">AI & Machine Learning</h6>
+                  <p class="text-xs text-secondary mb-0">NVDA, GOOGL, MSFT, AMD</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card theme-card selected" data-theme="cloud">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-cloud fa-2x text-info mb-2"></i>
+                  <h6 class="mb-1">Cloud Computing</h6>
+                  <p class="text-xs text-secondary mb-0">AMZN, MSFT, GOOGL, CRM</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card theme-card" data-theme="ev">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-car fa-2x text-success mb-2"></i>
+                  <h6 class="mb-1">Electric Vehicles</h6>
+                  <p class="text-xs text-secondary mb-0">TSLA, RIVN, LCID, NIO</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card theme-card" data-theme="fintech">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-wallet fa-2x text-warning mb-2"></i>
+                  <h6 class="mb-1">Fintech & Payments</h6>
+                  <p class="text-xs text-secondary mb-0">SQ, PYPL, V, MA</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <div class="card theme-card" data-theme="cybersecurity">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-shield-alt fa-2x text-danger mb-2"></i>
+                  <h6 class="mb-1">Cybersecurity</h6>
+                  <p class="text-xs text-secondary mb-0">CRWD, ZS, PANW, NET</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card theme-card" data-theme="healthcare">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-heartbeat fa-2x text-pink mb-2"></i>
+                  <h6 class="mb-1">Healthcare Innovation</h6>
+                  <p class="text-xs text-secondary mb-0">ISRG, DXCM, MRNA, ABBV</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card theme-card" data-theme="semiconductors">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-microchip fa-2x text-secondary mb-2"></i>
+                  <h6 class="mb-1">Semiconductors</h6>
+                  <p class="text-xs text-secondary mb-0">NVDA, AMD, AVGO, QCOM</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card theme-card" data-theme="consumer">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-shopping-cart fa-2x text-teal mb-2"></i>
+                  <h6 class="mb-1">Consumer Tech</h6>
+                  <p class="text-xs text-secondary mb-0">AAPL, AMZN, NFLX, DIS</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Entry Criteria -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-door-open me-2"></i>Entry Criteria</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Min Composite Score <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Combined score from trend, financial, momentum, and valuation factors"></i></span>
+              <span class="badge bg-gradient-primary" id="compositeScoreValue">70</span>
+            </label>
+            <input type="range" class="param-slider" id="compositeScore" min="50" max="90" value="70">
+            <div class="implication-box" id="compositeScoreImplication">
+              <small class="text-secondary"><i class="fas fa-star text-primary me-1"></i><strong>Score 70+:</strong> Combines trend strength (25%), financials (25%), momentum (25%), and valuation (25%). Higher = more selective. 70+ catches strong secular winners while filtering noise.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Min DTE (Days to Expiry) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Minimum days until LEAPS expiry - typically 300+ for true LEAPS"></i></span>
+              <span class="badge bg-gradient-info" id="minDteValue">365 days</span>
+            </label>
+            <input type="range" class="param-slider" id="minDte" min="180" max="730" value="365">
+            <div class="implication-box safe-implication" id="minDteImplication">
+              <small class="text-secondary"><i class="fas fa-hourglass-half text-info me-1"></i><strong>365+ days:</strong> True LEAPS territory. Gives your thesis 12+ months to play out. Longer DTE = less theta decay per day, more time for secular trends to compound. Consider 500+ DTE for max patience.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Target Delta <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Delta of LEAPS to buy. 0.70+ is deep ITM, 0.50 is ATM"></i></span>
+              <span class="badge bg-gradient-success" id="targetDeltaValue">0.70</span>
+            </label>
+            <input type="range" class="param-slider" id="targetDelta" min="50" max="90" value="70">
+            <div class="implication-box" id="targetDeltaImplication">
+              <small class="text-secondary"><i class="fas fa-chart-line text-success me-1"></i><strong>0.70 delta (deep ITM):</strong> Acts like leveraged stock ownership. Higher intrinsic value = less extrinsic to lose. Lower delta = cheaper but more speculative. For LEAPS, 0.70-0.80 is the sweet spot.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Moving Average Cross Signal</label>
+            <select class="form-select" id="maCrossSignal">
+              <option value="golden_only">Only on Golden Cross (50 > 200 SMA)</option>
+              <option value="above_50" selected>Price Above 50 SMA</option>
+              <option value="above_200">Price Above 200 SMA</option>
+              <option value="any">Any Time</option>
+            </select>
+            <div class="implication-box" id="maSignalImplication">
+              <small class="text-secondary"><i class="fas fa-chart-area text-warning me-1"></i><strong>Above 50 SMA:</strong> Ensures you're buying strength, not catching falling knives. Golden Cross is most conservative. "Any Time" allows contrarian plays on dips.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Position Management -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-tasks me-2"></i>Position Management</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max Position Size (%) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Maximum portfolio allocation per LEAPS position"></i></span>
+              <span class="badge bg-gradient-warning" id="maxPositionValue">10%</span>
+            </label>
+            <input type="range" class="param-slider" id="maxPosition" min="5" max="20" value="10">
+            <div class="implication-box" id="maxPositionImplication">
+              <small class="text-secondary"><i class="fas fa-pie-chart text-warning me-1"></i><strong>10% max per position:</strong> LEAPS are long-term concentrated bets. At 10%, you can hold ~10 positions for diversification. Deep ITM LEAPS behave like 2-3x leveraged stock.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Scale-Out Levels</label>
+            <div class="row">
+              <div class="col-4">
+                <label class="form-label text-xs">25% @ Gain</label>
+                <input type="number" class="form-control form-control-sm" value="50" id="scaleOut1">
+              </div>
+              <div class="col-4">
+                <label class="form-label text-xs">50% @ Gain</label>
+                <input type="number" class="form-control form-control-sm" value="100" id="scaleOut2">
+              </div>
+              <div class="col-4">
+                <label class="form-label text-xs">75% @ Gain</label>
+                <input type="number" class="form-control form-control-sm" value="150" id="scaleOut3">
+              </div>
+            </div>
+            <div class="implication-box safe-implication mt-2">
+              <small class="text-secondary"><i class="fas fa-hand-holding-usd text-success me-1"></i><strong>Systematic profit-taking:</strong> Sell 25% at +50%, 50% at +100%, 75% at +150%. This locks in gains while letting winners run. The remaining 25% is a "free roll" on house money.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Stop Loss (%) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Exit if LEAPS loses this % of value"></i></span>
+              <span class="badge bg-gradient-danger" id="stopLossValue">40%</span>
+            </label>
+            <input type="range" class="param-slider" id="stopLoss" min="20" max="60" value="40">
+            <div class="implication-box warning-implication" id="stopLossImplication">
+              <small class="text-secondary"><i class="fas fa-exclamation-triangle text-danger me-1"></i><strong>40% stop:</strong> LEAPS need wide stops - they can swing 20%+ on normal volatility. Consider if the thesis is still valid before exiting on price alone. Deep ITM LEAPS are more forgiving.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Roll Before Expiry</label>
+            <select class="form-select" id="rollBeforeExpiry">
+              <option value="90">90 days before expiry</option>
+              <option value="120" selected>120 days before expiry</option>
+              <option value="180">180 days before expiry</option>
+              <option value="manual">Manual (no auto-roll)</option>
+            </select>
+            <div class="implication-box" id="rollImplication">
+              <small class="text-secondary"><i class="fas fa-sync text-primary me-1"></i><strong>Auto-roll at 120 DTE:</strong> Rolls to next expiry cycle when approaching expiration. Keeps you in "true LEAPS" territory with minimal theta decay. Rolling costs money, so budget for it.</small>
+            </div>
+          </div>
+
+          <div class="alert alert-primary mb-0 mt-3">
+            <i class="fas fa-graduation-cap me-2"></i><strong>Why LEAPS?</strong> LEAPS let you control 100 shares with less capital, benefit from long-term secular trends, and have time working for you instead of against you. Deep ITM LEAPS behave like leveraged stock with defined risk.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <button class="btn btn-outline-secondary mb-0"><i class="fas fa-undo me-2"></i>Reset</button>
+              <button class="btn btn-outline-info mb-0 ms-2"><i class="fas fa-download me-2"></i>Export</button>
+            </div>
+            <div>
+              <button class="btn btn-outline-primary mb-0 me-2"><i class="fas fa-search me-2"></i>Scan for Opportunities</button>
+              <button class="btn bg-gradient-primary mb-0"><i class="fas fa-save me-2"></i>Save Configuration</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+  document.getElementById('compositeScore').addEventListener('input', function() {
+    document.getElementById('compositeScoreValue').textContent = this.value;
+  });
+  document.getElementById('minDte').addEventListener('input', function() {
+    document.getElementById('minDteValue').textContent = this.value + ' days';
+  });
+  document.getElementById('targetDelta').addEventListener('input', function() {
+    document.getElementById('targetDeltaValue').textContent = (this.value / 100).toFixed(2);
+  });
+  document.getElementById('maxPosition').addEventListener('input', function() {
+    document.getElementById('maxPositionValue').textContent = this.value + '%';
+  });
+  document.getElementById('stopLoss').addEventListener('input', function() {
+    document.getElementById('stopLossValue').textContent = this.value + '%';
+  });
+
+  document.querySelectorAll('.theme-card').forEach(card => {
+    card.addEventListener('click', function() {
+      this.classList.toggle('selected');
+    });
+  });
+</script>
+{% endblock javascripts %}

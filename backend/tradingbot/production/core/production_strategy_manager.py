@@ -48,8 +48,8 @@ from backend.validation import (
 
 # Import Django models for persistence
 from ...models.models import (
-    ValidationRun, SignalValidationMetrics, DataQualityMetrics, 
-    ValidationParameterRegistry
+    ValidationRun, SignalValidationMetrics, DataQualityMetrics,
+    ValidationParameterRegistry, SignalValidationHistory
 )
 
 
@@ -2348,9 +2348,158 @@ class ProductionStrategyManager:
             signal_metrics = await create_signal_metrics()
             
             self.logger.debug(f"Persisted signal validation metrics: {analysis.get('overall_health')}")
-            
+
         except Exception as e:
             self.logger.error(f"Error persisting signal validation metrics: {e}")
+
+    async def persist_signal_validation_history(
+        self,
+        strategy_name: str,
+        symbol: str,
+        signal_type: str,
+        validation_result: dict,
+    ) -> SignalValidationHistory | None:
+        """Persist individual signal validation to database.
+
+        GAP FIX: This method implements the Database Integration Gap - storing
+        individual signal validation results for historical analysis and the
+        performance feedback loop.
+
+        Args:
+            strategy_name: Name of the strategy that generated the signal
+            symbol: Trading symbol (e.g., AAPL)
+            signal_type: Type of signal (e.g., BUY_CALL)
+            validation_result: Validation result dictionary
+
+        Returns:
+            SignalValidationHistory instance or None on error
+        """
+        try:
+            @sync_to_async
+            def create_history():
+                return SignalValidationHistory.objects.create(
+                    strategy_name=strategy_name,
+                    symbol=symbol,
+                    signal_type=signal_type,
+                    strength_score=validation_result.get('strength_score', 0),
+                    quality_grade=validation_result.get('quality_grade', 'C'),
+                    recommended_action=validation_result.get('recommended_action', 'wait'),
+                    suggested_position_size=validation_result.get('suggested_position_size', 1.0),
+                    confidence_level=validation_result.get('confidence_level', 0.5),
+                    validation_details=validation_result.get('validation_details', {}),
+                )
+
+            history_record = await create_history()
+            self.logger.debug(
+                f"Persisted signal validation: {strategy_name} | {symbol} | "
+                f"Score: {validation_result.get('strength_score', 0):.1f}"
+            )
+            return history_record
+
+        except Exception as e:
+            self.logger.error(f"Error persisting signal validation history: {e}")
+            return None
+
+    async def record_signal_execution(
+        self,
+        history_id: int,
+        actual_position_size: float = None,
+    ):
+        """Record that a validated signal was executed.
+
+        Args:
+            history_id: ID of the SignalValidationHistory record
+            actual_position_size: Actual position size used
+        """
+        try:
+            @sync_to_async
+            def update_execution():
+                try:
+                    history = SignalValidationHistory.objects.get(id=history_id)
+                    history.record_execution(actual_position_size)
+                    return True
+                except SignalValidationHistory.DoesNotExist:
+                    return False
+
+            result = await update_execution()
+            if result:
+                self.logger.debug(f"Recorded signal execution for history ID: {history_id}")
+            else:
+                self.logger.warning(f"Signal history record not found: {history_id}")
+
+        except Exception as e:
+            self.logger.error(f"Error recording signal execution: {e}")
+
+    async def record_trade_outcome(
+        self,
+        history_id: int,
+        outcome: str,
+        pnl: float = None,
+        pnl_percent: float = None,
+    ):
+        """Record the trade outcome for a previously executed signal.
+
+        This closes the performance feedback loop by connecting trade results
+        back to signal validation accuracy.
+
+        Args:
+            history_id: ID of the SignalValidationHistory record
+            outcome: Trade outcome (profit, loss, break_even, pending)
+            pnl: Absolute P&L value
+            pnl_percent: P&L as a percentage
+        """
+        try:
+            @sync_to_async
+            def update_outcome():
+                try:
+                    history = SignalValidationHistory.objects.get(id=history_id)
+                    history.record_outcome(outcome, pnl, pnl_percent)
+                    return True
+                except SignalValidationHistory.DoesNotExist:
+                    return False
+
+            result = await update_outcome()
+            if result:
+                self.logger.info(
+                    f"Recorded trade outcome for history ID {history_id}: "
+                    f"{outcome} | P&L: {pnl_percent:.1%}" if pnl_percent else f"{outcome}"
+                )
+            else:
+                self.logger.warning(f"Signal history record not found: {history_id}")
+
+        except Exception as e:
+            self.logger.error(f"Error recording trade outcome: {e}")
+
+    async def get_validation_accuracy_report(
+        self,
+        strategy_name: str = None,
+        days: int = 30,
+    ) -> dict:
+        """Get validation accuracy report based on trade outcomes.
+
+        This method provides insights into how well the signal validation
+        is predicting successful trades.
+
+        Args:
+            strategy_name: Filter by strategy (optional)
+            days: Number of days to analyze
+
+        Returns:
+            Accuracy metrics dictionary
+        """
+        try:
+            @sync_to_async
+            def get_accuracy():
+                return SignalValidationHistory.calculate_validation_accuracy(
+                    strategy_name=strategy_name,
+                    days=days,
+                )
+
+            return await get_accuracy()
+
+        except Exception as e:
+            self.logger.error(f"Error getting validation accuracy report: {e}")
+            return {'error': str(e)}
 
     async def _persist_data_quality_metrics(self, quality_score: dict):
         """Persist data quality metrics to database."""
@@ -2847,7 +2996,28 @@ class ProductionStrategyManager:
                 feedback['action_items'].append('Investigate causes of validation rate degradation')
             elif trend == 'IMPROVING':
                 feedback['recommendations'].append('Validation rate is improving - continue current approach')
-            
+
+            # GAP FIX: Set should_pause flag based on performance metrics
+            # This ensures strategies are actually paused when performance is poor
+            feedback['should_pause'] = False
+
+            # Pause if performance score is very poor (< 0.5)
+            if performance_score < 0.5:
+                feedback['should_pause'] = True
+                feedback['warnings'].append(f'CRITICAL: Performance score {performance_score:.2f} below threshold - strategy will be paused')
+                feedback['action_items'].append('Review strategy configuration and validation criteria before re-enabling')
+
+            # Pause if trend is consistently degrading with poor precision
+            elif trend == 'DEGRADING' and precision < 0.6:
+                feedback['should_pause'] = True
+                feedback['warnings'].append('CRITICAL: Degrading trend with low precision - strategy will be paused')
+
+            # Pause if false positive rate is too high (> 40%)
+            false_positive_rate = accuracy_metrics.get('false_positive_rate', 0)
+            if false_positive_rate > 0.4:
+                feedback['should_pause'] = True
+                feedback['warnings'].append(f'CRITICAL: High false positive rate ({false_positive_rate:.1%}) - strategy will be paused')
+
             return feedback
             
         except Exception as e:
@@ -2931,25 +3101,114 @@ class ProductionStrategyManager:
             return {'error': str(e)}
 
     async def _check_signal_validation_degradation(self, analysis: dict):
-        """Check for signal validation performance degradation."""
+        """Check for signal validation performance degradation and ACT on it.
+
+        GAP FIX: This method now actually pauses strategies when signal quality
+        degrades below acceptable thresholds, not just sending alerts.
+        """
         try:
             if analysis.get('overall_health') == 'DEGRADED':
                 issues = analysis.get('issues', [])
                 recommendations = analysis.get('recommendations', [])
-                
+
                 message = (f"Signal validation performance degraded:\n"
                           f"Issues: {', '.join(issues)}\n"
                           f"Recommendations: {', '.join(recommendations)}")
-                
+
                 from ...alert_system import AlertType, AlertPriority
                 await self.integration_manager.alert_system.send_alert(
                     AlertType.SIGNAL_VALIDATION_DEGRADATION,
                     AlertPriority.HIGH,
                     message
                 )
-                
+
+                # GAP FIX: Check individual strategy signal quality and pause if needed
+                await self._act_on_strategy_signal_quality()
+
         except Exception as e:
             self.logger.error(f"Error checking signal validation degradation: {e}")
+
+    async def _act_on_strategy_signal_quality(self):
+        """Check each strategy's signal quality and pause those below threshold.
+
+        GAP FIX: This method implements the core integration gap - the manager
+        now actively monitors and pauses strategies based on signal validation results.
+
+        Thresholds:
+        - < 40.0 average_strength_score: Immediate pause (severe degradation)
+        - < 50.0 average_strength_score: Reduce allocation by 50%
+        - < 60.0 average_strength_score: Warning alert
+        """
+        try:
+            strategies_paused = []
+            strategies_reduced = []
+
+            for strategy_name, strategy in self.strategies.items():
+                if not hasattr(strategy, 'get_strategy_signal_summary'):
+                    continue
+
+                # Skip already disabled strategies
+                if strategy_name in self.strategy_configs:
+                    if not self.strategy_configs[strategy_name].enabled:
+                        continue
+
+                summary = strategy.get_strategy_signal_summary()
+                avg_score = summary.get('average_strength_score', 100.0)
+                total_signals = summary.get('total_signals_validated', 0)
+
+                # Only act if we have enough signal data
+                if total_signals < 5:
+                    continue
+
+                # SEVERE: Average score below 40 - pause immediately
+                if avg_score < 40.0:
+                    await self._pause_strategy(
+                        strategy_name,
+                        f"Severe signal quality degradation: avg score {avg_score:.1f} < 40.0"
+                    )
+                    strategies_paused.append(strategy_name)
+                    self.logger.error(
+                        f"PAUSED {strategy_name}: Signal quality {avg_score:.1f} below critical threshold"
+                    )
+
+                # WARNING: Average score below 50 - reduce allocation
+                elif avg_score < 50.0:
+                    if strategy_name in self.strategy_configs:
+                        current_allocation = self.strategy_configs[strategy_name].allocation
+                        new_allocation = current_allocation * 0.5  # Reduce by 50%
+                        self.strategy_configs[strategy_name].allocation = new_allocation
+                        strategies_reduced.append(strategy_name)
+                        self.logger.warning(
+                            f"Reduced allocation for {strategy_name}: "
+                            f"{current_allocation:.1%} → {new_allocation:.1%} (score: {avg_score:.1f})"
+                        )
+
+                # CAUTION: Average score below 60 - log warning
+                elif avg_score < 60.0:
+                    self.logger.warning(
+                        f"Signal quality warning for {strategy_name}: avg score {avg_score:.1f}"
+                    )
+
+            # Send summary alert if any strategies were paused or reduced
+            if strategies_paused or strategies_reduced:
+                from ...alert_system import AlertType, AlertPriority
+
+                if strategies_paused:
+                    await self.integration_manager.alert_system.send_alert(
+                        AlertType.SYSTEM_ERROR,
+                        AlertPriority.HIGH,
+                        f"Strategies PAUSED due to poor signal quality: {', '.join(strategies_paused)}"
+                    )
+
+                if strategies_reduced:
+                    await self.integration_manager.alert_system.send_alert(
+                        AlertType.RISK_MANAGEMENT,
+                        AlertPriority.MEDIUM,
+                        f"Strategies reduced allocation due to low signal quality: {', '.join(strategies_reduced)}"
+                    )
+
+        except Exception as e:
+            self.logger.error(f"Error acting on strategy signal quality: {e}")
 
     async def _update_signal_validation_alerts(self, analysis: dict):
         """Update signal validation alerts based on performance analysis."""

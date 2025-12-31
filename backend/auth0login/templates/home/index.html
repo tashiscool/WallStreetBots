@@ -2,473 +2,1571 @@
 {% load poll_extras %}
 {% block title %} Dashboard {% endblock title %}
 
-<!-- Specific CSS goes HERE -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+    transition: all 0.3s ease;
+  }
+  .position-row:hover {
+    background-color: rgba(0,0,0,0.02);
+  }
+  .pulse-dot {
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
+  .implication-box { background: linear-gradient(to right, rgba(203,12,159,0.05), rgba(94,114,228,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .help-tooltip { cursor: help; border-bottom: 1px dotted #6c757d; }
+  .market-status-box { border-radius: 8px; padding: 12px 16px; }
+  .market-open { background: linear-gradient(to right, rgba(45,206,137,0.1), rgba(17,205,239,0.05)); border-left: 4px solid #2dce89; }
+  .market-closed { background: linear-gradient(to right, rgba(108,117,125,0.1), rgba(58,65,111,0.05)); border-left: 4px solid #6c757d; }
+  .welcome-card { background: linear-gradient(310deg, #141727 0%, #3A416F 100%); }
+  .quick-action-btn { transition: all 0.2s ease; }
+  .quick-action-btn:hover { transform: translateY(-2px); }
+  /* Benchmark Comparison Styles */
+  .benchmark-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .benchmark-badge.outperforming { background: rgba(45, 206, 137, 0.15); color: #2dce89; }
+  .benchmark-badge.underperforming { background: rgba(245, 54, 92, 0.15); color: #f5365c; }
+  .benchmark-badge.neutral { background: rgba(108, 117, 125, 0.15); color: #6c757d; }
+  .benchmark-card {
+    background: linear-gradient(135deg, rgba(94, 114, 228, 0.05) 0%, rgba(203, 12, 159, 0.05) 100%);
+    border: 1px solid rgba(94, 114, 228, 0.1);
+  }
+  .benchmark-stat {
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.7);
+  }
+  .benchmark-stat .value { font-size: 1.25rem; font-weight: 700; margin-bottom: 2px; }
+  .benchmark-stat .label { font-size: 0.7rem; color: #6c757d; text-transform: uppercase; }
+  .period-btn { padding: 4px 12px; font-size: 0.75rem; border-radius: 4px; transition: all 0.2s; }
+  .period-btn.active { background: #5e72e4 !important; color: white !important; }
+  #benchmarkChart { min-height: 200px; }
+
+  /* Market Context Panel Styles */
+  .market-context-card { background: linear-gradient(135deg, #344767 0%, #1a1f2c 100%); color: white; }
+  .index-box { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 15px; text-align: center; transition: all 0.2s; }
+  .index-box:hover { background: rgba(255,255,255,0.12); transform: translateY(-2px); }
+  .index-price { font-size: 1.4rem; font-weight: 700; margin: 5px 0; }
+  .index-change { font-size: 0.85rem; font-weight: 600; }
+  .index-change.positive { color: #2dce89; }
+  .index-change.negative { color: #f5365c; }
+  .vix-box { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 15px; text-align: center; }
+  .vix-value { font-size: 1.6rem; font-weight: 700; }
+  .vix-level { font-size: 0.8rem; padding: 4px 10px; border-radius: 12px; font-weight: 600; }
+  .vix-level.low { background: #2dce89; color: white; }
+  .vix-level.normal { background: #11cdef; color: white; }
+  .vix-level.elevated { background: #ffd600; color: #344767; }
+  .vix-level.high { background: #fb6340; color: white; }
+  .vix-level.extreme { background: #f5365c; color: white; }
+
+  /* Sector Heat Map */
+  .sector-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+  .sector-box { padding: 10px 8px; border-radius: 8px; text-align: center; transition: all 0.2s; cursor: pointer; }
+  .sector-box:hover { transform: scale(1.05); }
+  .sector-name { font-size: 0.7rem; font-weight: 600; opacity: 0.9; }
+  .sector-change { font-size: 0.85rem; font-weight: 700; }
+  .sector-deep-green { background: #1a7f37; color: white; }
+  .sector-green { background: #2dce89; color: white; }
+  .sector-light-green { background: rgba(45,206,137,0.3); color: white; }
+  .sector-neutral { background: rgba(255,255,255,0.1); color: white; }
+  .sector-light-red { background: rgba(245,54,92,0.3); color: white; }
+  .sector-red { background: #f5365c; color: white; }
+  .sector-deep-red { background: #9f1239; color: white; }
+
+  /* Events Section */
+  .event-item { padding: 10px 15px; border-left: 3px solid; margin-bottom: 8px; background: rgba(255,255,255,0.05); border-radius: 0 8px 8px 0; }
+  .event-item.earnings { border-color: #5e72e4; }
+  .event-item.ex-dividend { border-color: #2dce89; }
+  .event-item.economic { border-color: #fb6340; }
+  .event-importance-high { color: #fb6340; }
+  .stale-indicator { background: rgba(251,99,64,0.2); color: #fb6340; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; }
+  .live-indicator { background: rgba(45,206,137,0.2); color: #2dce89; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; }
+
+  /* Portfolio Switcher Widget */
+  .portfolio-widget { background: linear-gradient(135deg, rgba(203,12,159,0.08) 0%, rgba(94,114,228,0.08) 100%); border: 1px solid rgba(94,114,228,0.15); border-radius: 12px; }
+  .portfolio-switcher { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0; }
+  .portfolio-option { padding: 8px 16px; border-radius: 8px; background: white; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .portfolio-option:hover { border-color: rgba(203,12,159,0.3); transform: translateY(-1px); }
+  .portfolio-option.active { border-color: #2dce89; background: rgba(45,206,137,0.1); }
+  .portfolio-option .name { font-weight: 600; font-size: 0.85rem; }
+  .portfolio-option .meta { font-size: 0.7rem; color: #6c757d; }
+  .portfolio-mini-alloc { display: flex; gap: 2px; margin-top: 4px; }
+  .portfolio-mini-bar { height: 4px; border-radius: 2px; min-width: 8px; }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
-
-
-
 <div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card">
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-8">
-                            <div class="numbers">
-                                <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Equity</p>
-                                <h5 class="font-weight-bolder mb-0">
-                                    $ {{ userdata.total_equity}}
-                                    {% if userdata.change_direction == "positive" %}
-                                    <span class="fa fa-arrow-up text-success text-sm font-weight-bolder"> {{ userdata.percent_change | find_percent }}%</span>
-                                    {% elif userdata.change_direction == "negative" %}
-                                    <span class="fa fa-arrow-down text-danger text-sm font-weight-bolder"> {{ userdata.percent_change | find_percent }}%</span>
-                                    {% endif %}
-                                </h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <!-- Market Status Banner -->
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="market-status-box market-open" id="marketStatusBox">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-circle text-success pulse-dot me-2"></i>
+            <span class="font-weight-bold">Market Open</span>
+            <span class="text-secondary ms-3">| The system is actively scanning for opportunities and monitoring your positions</span>
+          </div>
+          <div>
+            <span class="badge bg-success">9:30 AM - 4:00 PM ET</span>
+          </div>
         </div>
-        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card">
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-9">
-                            <div class="numbers">
-                                <p class="text-sm mb-0 text-capitalize font-weight-bold">Marginal Buying Power</p>
-                                <h5 class="font-weight-bolder mb-0">
-                                    $ {{ userdata.buy_power }}
-                                </h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card">
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-8">
-                            <div class="numbers">
-                                <p class="text-sm mb-0 text-capitalize font-weight-bold">Currency</p>
-                                <h5 class="font-weight-bolder mb-0">
-                                    {{ userdata.currency }}
-                                </h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<div class="row mt-4">
-    <div class="col-lg-7 mb-lg-0 mb-4">
-        <div class="card">
-            <div class="card-body p-3">
-                <div class="row">
-                    <div class="col-lg-6">
-                        <div class="d-flex flex-column h-100">
-                            <p class="mb-1 pt-2 text-bold">Welcome</p>
-                            <h4 class="font-weight-bolder">{{user.username}}</h4>
-                            <p class="mb-6"> Alpaca ID: {{ userdata.alpaca_id }} <br>
-                                Alpaca Key: {{ userdata.alpaca_key }} <br>
-                                Shorting: Enabled
-                            </p>
-                        </div>
-                    </div>
-                </div>
+  <!-- Stats Cards Row -->
+  <div class="row">
+    <!-- Total Equity Card -->
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card stat-card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-capitalize font-weight-bold">
+                  Total Equity
+                  <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Your total account value including all positions and cash. This is what your account would be worth if you closed everything now."></i>
+                </p>
+                <h5 class="font-weight-bolder mb-0">
+                  ${{ userdata.total_equity|default:"0.00" }}
+                </h5>
+                {% if userdata.change_direction == "positive" %}
+                <span class="text-success text-sm font-weight-bolder">
+                  <i class="fa fa-arrow-up"></i> {{ userdata.percent_change|find_percent }}%
+                </span>
+                {% elif userdata.change_direction == "negative" %}
+                <span class="text-danger text-sm font-weight-bolder">
+                  <i class="fa fa-arrow-down"></i> {{ userdata.percent_change|find_percent }}%
+                </span>
+                {% else %}
+                <span class="text-secondary text-sm font-weight-bolder">--</span>
+                {% endif %}
+              </div>
             </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                <i class="fas fa-dollar-sign text-lg opacity-10" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Buying Power Card -->
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card stat-card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-capitalize font-weight-bold">
+                  Buying Power
+                  <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="How much you can spend on new positions. Includes margin if enabled. 'Tradable' is cash available for immediate use."></i>
+                </p>
+                <h5 class="font-weight-bolder mb-0">
+                  ${{ userdata.buy_power|default:"0.00" }}
+                </h5>
+                <span class="text-secondary text-sm">
+                  ${{ userdata.tradable_cash|default:"0.00" }} tradable
+                </span>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                <i class="fas fa-wallet text-lg opacity-10" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Long Portfolio Value -->
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card stat-card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-capitalize font-weight-bold">
+                  Long Value
+                  <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Value of positions where you bought stock/options expecting the price to go UP. You profit when prices rise."></i>
+                </p>
+                <h5 class="font-weight-bolder mb-0">
+                  ${{ userdata.long_portfolio_value|default:"0.00" }}
+                </h5>
+                <span class="text-info text-sm font-weight-bolder">
+                  <i class="fas fa-arrow-trend-up"></i> Positions
+                </span>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
+                <i class="fas fa-arrow-up text-lg opacity-10" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Short Portfolio Value -->
+    <div class="col-xl-3 col-sm-6">
+      <div class="card stat-card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-capitalize font-weight-bold">
+                  Short Value
+                  <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Value of positions where you're betting the price will go DOWN. You profit when prices fall. Higher risk - losses can exceed investment."></i>
+                </p>
+                <h5 class="font-weight-bolder mb-0">
+                  ${{ userdata.short_portfolio_value|default:"0.00" }}
+                </h5>
+                <span class="text-warning text-sm font-weight-bolder">
+                  {{ userdata.currency|default:"USD" }}
+                </span>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
+                <i class="fas fa-arrow-down text-lg opacity-10" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Portfolio Widget -->
+  <div class="row mt-4 mb-3">
+    <div class="col-12">
+      <div class="card portfolio-widget">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="mb-0"><i class="fas fa-layer-group me-2 text-primary"></i>Active Strategy Portfolio</h6>
+              <small class="text-muted">Strategy allocation for trading</small>
+            </div>
+            <a href="/strategy-portfolios" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-cog me-1"></i> Manage Portfolios
+            </a>
+          </div>
+          <div class="portfolio-switcher" id="portfolioSwitcher">
+            <div class="text-muted text-center w-100 py-2">Loading portfolios...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Market Context Panel -->
+  <div class="row mt-4 mb-3">
+    <div class="col-12">
+      <div class="card market-context-card">
+        <div class="card-body p-3">
+          <!-- Header -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h6 class="text-white mb-0"><i class="fas fa-globe me-2"></i>Market Overview</h6>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="live-indicator" id="marketContextStatus"><i class="fas fa-circle me-1"></i>Live</span>
+              <span class="text-white-50 text-xs" id="marketContextTime">--:--</span>
+            </div>
+          </div>
+
+          <!-- Indices Row -->
+          <div class="row g-3 mb-3">
+            <div class="col-6 col-md-3 col-lg">
+              <div class="index-box" id="indexSPY">
+                <div class="text-white-50 text-xs">SPY</div>
+                <div class="index-price" id="spyPrice">--</div>
+                <div class="index-change" id="spyChange">--%</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg">
+              <div class="index-box" id="indexQQQ">
+                <div class="text-white-50 text-xs">QQQ</div>
+                <div class="index-price" id="qqqPrice">--</div>
+                <div class="index-change" id="qqqChange">--%</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg">
+              <div class="index-box" id="indexIWM">
+                <div class="text-white-50 text-xs">IWM</div>
+                <div class="index-price" id="iwmPrice">--</div>
+                <div class="index-change" id="iwmChange">--%</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg">
+              <div class="index-box" id="indexDIA">
+                <div class="text-white-50 text-xs">DIA</div>
+                <div class="index-price" id="diaPrice">--</div>
+                <div class="index-change" id="diaChange">--%</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-12 col-lg-2">
+              <div class="vix-box">
+                <div class="text-white-50 text-xs">VIX</div>
+                <div class="vix-value" id="vixValue">--</div>
+                <span class="vix-level" id="vixLevel">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sectors Heat Map -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-white-50 text-xs text-uppercase">Sector Performance</span>
+              <button class="btn btn-link btn-sm text-white-50 p-0" type="button" data-bs-toggle="collapse" data-bs-target="#sectorCollapse">
+                <i class="fas fa-chevron-down" id="sectorToggleIcon"></i>
+              </button>
+            </div>
+            <div class="collapse show" id="sectorCollapse">
+              <div class="sector-grid" id="sectorGrid">
+                <!-- Populated by JavaScript -->
+                <div class="sector-box sector-neutral"><div class="sector-name">Loading...</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Events Row -->
+          <div class="row g-3">
+            <!-- Holdings Events -->
+            <div class="col-md-6">
+              <div class="d-flex align-items-center mb-2">
+                <span class="text-white-50 text-xs text-uppercase"><i class="fas fa-calendar-alt me-1"></i>Upcoming for Your Holdings</span>
+              </div>
+              <div id="holdingsEvents">
+                <div class="text-white-50 text-xs py-2">Loading...</div>
+              </div>
+            </div>
+
+            <!-- Economic Calendar -->
+            <div class="col-md-6">
+              <div class="d-flex align-items-center mb-2">
+                <span class="text-white-50 text-xs text-uppercase"><i class="fas fa-landmark me-1"></i>Economic Calendar</span>
+              </div>
+              <div id="economicCalendar">
+                <div class="text-white-50 text-xs py-2">Loading...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions Bar -->
+  <div class="row mt-3">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body py-2">
+          <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div class="d-flex align-items-center">
+              <span class="text-sm font-weight-bold me-3">Quick Actions:</span>
+              <a href="/strategies" class="btn btn-sm bg-gradient-primary quick-action-btn mb-0 me-2">
+                <i class="fas fa-robot me-1"></i> Strategies
+              </a>
+              <a href="/risk" class="btn btn-sm bg-gradient-warning quick-action-btn mb-0 me-2">
+                <i class="fas fa-shield-alt me-1"></i> Risk
+              </a>
+              <a href="/analytics" class="btn btn-sm bg-gradient-info quick-action-btn mb-0 me-2">
+                <i class="fas fa-chart-bar me-1"></i> Analytics
+              </a>
+              <a href="/alerts" class="btn btn-sm bg-gradient-secondary quick-action-btn mb-0">
+                <i class="fas fa-bell me-1"></i> Alerts
+              </a>
+            </div>
+            <div>
+              <span class="badge bg-gradient-dark">
+                <i class="fas fa-clock me-1"></i> Last sync: <span id="lastSync">Just now</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Welcome & Credentials Row -->
+  <div class="row mt-4">
+    <div class="col-lg-7 mb-lg-0 mb-4">
+      <div class="card welcome-card text-white">
+        <div class="card-body p-4">
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="d-flex flex-column h-100">
+                <p class="mb-1 pt-2 text-white opacity-8">Welcome back,</p>
+                <h4 class="text-white font-weight-bolder">{{ user.username }}</h4>
+                <div class="mt-3">
+                  <p class="mb-2 text-white">
+                    <i class="fas fa-key me-2"></i>
+                    <strong>Alpaca ID:</strong> <span class="opacity-8">{{ userdata.alpaca_id|default:"Not configured" }}</span>
+                  </p>
+                  <p class="mb-2 text-white">
+                    <i class="fas fa-lock me-2"></i>
+                    <strong>API Key:</strong> <span class="opacity-8">{{ userdata.alpaca_key|default:"Not configured" }}</span>
+                  </p>
+                  <p class="mb-2 text-white">
+                    <i class="fas fa-chart-line me-2"></i>
+                    <strong>Shorting:</strong> <span class="badge bg-success">Enabled</span>
+                  </p>
+                </div>
+                <div class="implication-box mt-3" style="background: rgba(255,255,255,0.1);">
+                  <small class="text-white"><i class="fas fa-lightbulb me-1"></i><strong>Tip:</strong> Your bot is working 24/7. Check Analytics to see how your strategies are performing.</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="d-flex flex-column h-100 justify-content-center">
+                <div class="bg-white border-radius-lg p-3 text-center">
+                  <h6 class="text-dark mb-0">Cash Available</h6>
+                  <h3 class="text-dark mb-0">${{ userdata.cash|default:"0.00" }}</h3>
+                  <p class="text-secondary text-sm mb-2">${{ userdata.tradable_cash|default:"0.00" }} tradable</p>
+                  <small class="text-secondary"><i class="fas fa-info-circle me-1"></i>This is uninvested cash in your account</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="col-lg-5">
-        <div class="card h-100 p-3">
-            <div class="overflow-hidden position-relative border-radius-lg bg-cover h-100">
-                <div class="card-body position-relative z-index-1 d-flex flex-column h-100 p-3">
-                    <form role="form text-left" action="" method="post">
-                        {% csrf_token %}
-
-                        <h6>Alpaca ID</h6>
-                        <div class="mb-1 w-100">
-                            {{ credential_form.alpaca_id }}
-                        </div>
-                        <h6>Alpaca Key</h6>
-                        <div class="mb-1 w-100">
-                            {{ credential_form.alpaca_key }}
-                        </div>
-                        <button type="submit" name="submit_credential" class="btn bg-gradient-info w-100 mt-2 mb-0">
-                            Update Credential
-                        </button>
-                    </form>
-                </div>
-            </div>
+      <div class="card h-100 p-3">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-plug me-2"></i>Update API Credentials</h6>
+          <p class="text-sm text-secondary mb-0">Connect or update your Alpaca brokerage account</p>
         </div>
+        <div class="card-body">
+          {% if userdata.error %}
+          <div class="alert alert-warning text-white" role="alert">
+            <span class="text-sm">{{ userdata.error }}</span>
+          </div>
+          {% endif %}
+          <form role="form" action="" method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Alpaca ID <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Found in your Alpaca dashboard under Paper Trading → API Keys"></i></label>
+              {{ credential_form.alpaca_id }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Alpaca Key <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="The secret key - keep this safe! Never share it with anyone."></i></label>
+              {{ credential_form.alpaca_key }}
+            </div>
+            <button type="submit" name="submit_credential" class="btn bg-gradient-info w-100 mb-0">
+              <i class="fas fa-save me-2"></i> Update Credentials
+            </button>
+          </form>
+          <div class="implication-box mt-3">
+            <small class="text-secondary"><i class="fas fa-graduation-cap me-1"></i><strong>New to trading?</strong> <a href="https://app.alpaca.markets/signup" target="_blank">Get a free Alpaca account</a> and start with paper trading ($100K fake money)!</small>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
 
-
-<div class="row my-4">
+  <!-- Strategy & Portfolio Chart Row -->
+  <div class="row my-4">
     <div class="col-lg-8">
-        <div class="col">
-            <div class="row mb-4">
-                <div class="col-lg-6 mb-lg-0 mb-4">
-                    <div class="card">
-                        <div class="card-body p-3">
-                            <div class="row">
-                                <div class="d-flex flex-column h-100">
-                                    <h4 class="">Strategy</h4>
-                                    <p class="mb-5"> Automatic Trading: Enabled<br>
-                                        Rebalancing Strategy: {{userdata.strategy}} <br>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="card z-index-2">
-                        <div class="card-body position-relative z-index-1 d-flex flex-column h-100 p-3">
-                            <form action="" method="post">
-                                {% csrf_token %}
-                                <h6>Rebalancing Strategy</h6>
-                                <div class="">
-                                    {{ strategy_form.strategy }}
-                                </div>
-                                <button type="submit" name="submit_strategy"
-                                        class="btn bg-gradient-info w-50 mt-2 mb-0">Update Strategy
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card z-index-2">
-                <div class="card-header pb-0">
-                    <h4>Portfolio Overview</h4>
-                    <p class="text-sm">
-                        <span class="font-weight-bold">
-                            {% if userdata.change_direction == "positive" %}
-                            <span class="fa fa-arrow-up text-success text-sm font-weight-bolder"> {{ userdata.percent_change | find_percent }}%</span>
-                            {% elif userdata.change_direction == "negative" %}
-                            <span class="fa fa-arrow-down text-danger text-sm font-weight-bolder"> {{ userdata.percent_change | find_percent }}%</span>
-                            {% endif %}
-                        </span>
-                    </p>
-                </div>
-                <div class="card-body h-100">
-                    {% autoescape off %}
-                    {{ stock_graph }}
-                    {% endautoescape %}
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card z-index-2">
+      <div class="row mb-4">
+        <div class="col-lg-6 mb-lg-0 mb-4">
+          <div class="card h-100">
             <div class="card-body p-3">
-                <h4 class="ms-2 mb-0 mt-4"> Place Order </h4>
-                <div class="card-body position-relative z-index-1 d-flex flex-column h-100 p-3">
-                    <form action="" method="post">
-                        {% csrf_token %}
-                        <h6>Company Ticker</h6>
-                        <div class="mb-3">
-                            {{ order_form.ticker }}
-                        </div>
-                        <h6>Order Type</h6>
-                        <div class="mb-3">
-                            {{ order_form.order_type }}
-                        </div>
-                        <h6>Transaction Type</h6>
-                        <div class="mb-3">
-                            {{ order_form.transaction_type }}
-                        </div>
-                        <h6>Quantity</h6>
-                        <div class="mb-3">
-                            {{ order_form.quantity }}
-                        </div>
-                        <h6>Time in Force</h6>
-                        <div class="mb-3">
-                            {{ order_form.time_in_force }}
-                        </div>
-                        <button type="submit" name="submit_order" class="btn bg-gradient-secondary w-50 mt-4 mb-7">
-                            Submit Order
-                        </button>
-                    </form>
+              <div class="d-flex flex-column h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">
+                    Active Strategy
+                    <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Your current trading strategy configuration. The bot uses these settings to find and execute trades."></i>
+                  </h6>
+                  <span class="badge bg-gradient-success pulse-dot">Running</span>
                 </div>
+                <p class="mb-2">
+                  <i class="fas fa-robot text-info me-2"></i>
+                  <strong>Auto Trading:</strong> <span class="badge bg-gradient-info">Enabled</span>
+                </p>
+                <p class="mb-2">
+                  <i class="fas fa-sync text-primary me-2"></i>
+                  <strong>Rebalancing:</strong> {{ userdata.strategy.rebalance|default:"Not set" }}
+                </p>
+                <p class="mb-0">
+                  <i class="fas fa-chart-pie text-warning me-2"></i>
+                  <strong>Optimization:</strong> {{ userdata.strategy.optimization|default:"Not set" }}
+                </p>
+                <div class="implication-box mt-auto">
+                  <small class="text-secondary"><i class="fas fa-shield-alt text-success me-1"></i><strong>Protection active:</strong> Stop losses and position limits are enforced automatically.</small>
+                </div>
+              </div>
             </div>
-            <p>{{ order_submit_form_response }}</p>
+          </div>
         </div>
-    </div>
-</div>
+        <div class="col-lg-6">
+          <div class="card h-100">
+            <div class="card-body p-3">
+              <h6 class="mb-3">Update Strategy</h6>
+              <form action="" method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                  {{ strategy_form.strategy }}
+                </div>
+                <button type="submit" name="submit_strategy" class="btn bg-gradient-primary w-100 mb-0">
+                  <i class="fas fa-sync me-2"></i> Update Strategy
+                </button>
+              </form>
+              <div class="implication-box mt-3">
+                <small class="text-secondary"><i class="fas fa-cog me-1"></i><strong>Need more control?</strong> Visit <a href="/strategies">Strategy Manager</a> for advanced configuration options.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-<div class="row my-4">
+      <!-- Portfolio Chart -->
+      <div class="card z-index-2">
+        <div class="card-header pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-0">
+                Portfolio Overview
+                <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Your portfolio value over time. Green = gains, Red = losses. Use the buttons to change time periods."></i>
+              </h6>
+              <p class="text-sm mb-0">
+                {% if userdata.change_direction == "positive" %}
+                <span class="text-success font-weight-bold">
+                  <i class="fa fa-arrow-up"></i> +{{ userdata.percent_change|find_percent }}%
+                </span> from yesterday
+                {% elif userdata.change_direction == "negative" %}
+                <span class="text-danger font-weight-bold">
+                  <i class="fa fa-arrow-down"></i> {{ userdata.percent_change|find_percent }}%
+                </span> from yesterday
+                {% else %}
+                <span class="text-secondary">No change data</span>
+                {% endif %}
+                <!-- Benchmark Comparison Badge -->
+                <span id="benchmarkBadge" class="benchmark-badge neutral ms-2" style="display: none;">
+                  <i class="fas fa-chart-line"></i>
+                  <span id="benchmarkBadgeText">vs SPY: --</span>
+                </span>
+              </p>
+            </div>
+            <div>
+              <button class="btn btn-sm btn-outline-primary mb-0">1D</button>
+              <button class="btn btn-sm btn-outline-secondary mb-0">1W</button>
+              <button class="btn btn-sm btn-outline-secondary mb-0">1M</button>
+              <button class="btn btn-sm btn-outline-secondary mb-0">YTD</button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-3">
+          <div class="chart" style="min-height: 300px;">
+            {% autoescape off %}
+            {% if stock_graph %}
+            {{ stock_graph }}
+            {% else %}
+            <div class="d-flex justify-content-center align-items-center h-100">
+              <div class="text-center">
+                <i class="fas fa-chart-line fa-3x text-secondary mb-3"></i>
+                <p class="text-secondary mb-2">Connect your Alpaca account to view portfolio chart</p>
+                <small class="text-secondary">Your performance history will appear here once connected</small>
+              </div>
+            </div>
+            {% endif %}
+            {% endautoescape %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Benchmark Comparison Card -->
+      <div class="card benchmark-card mt-4">
+        <div class="card-header pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-0">
+                <i class="fas fa-balance-scale me-2"></i>Performance vs SPY
+                <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Compare your portfolio performance against the S&P 500 (SPY). Outperformance = beating the market."></i>
+              </h6>
+              <p class="text-sm text-secondary mb-0">Are you beating the market?</p>
+            </div>
+            <div class="btn-group" role="group" id="benchmarkPeriodBtns">
+              <button type="button" class="btn btn-sm btn-outline-secondary period-btn" data-period="1W">1W</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary period-btn active" data-period="1M">1M</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary period-btn" data-period="3M">3M</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary period-btn" data-period="YTD">YTD</button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-3">
+          <!-- Stats Row -->
+          <div class="row mb-3" id="benchmarkStats">
+            <div class="col-3">
+              <div class="benchmark-stat">
+                <div class="value text-primary" id="yourReturnPct">--</div>
+                <div class="label">Your Return</div>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="benchmark-stat">
+                <div class="value text-secondary" id="spyReturnPct">--</div>
+                <div class="label">SPY Return</div>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="benchmark-stat">
+                <div class="value" id="excessReturn">--</div>
+                <div class="label">Excess Return</div>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="benchmark-stat">
+                <div class="value" id="alphaGenerated">--</div>
+                <div class="label">Alpha ($)</div>
+              </div>
+            </div>
+          </div>
+          <!-- Result Message -->
+          <div class="text-center mb-3" id="benchmarkMessage">
+            <p class="mb-0 text-secondary"><i class="fas fa-spinner fa-spin me-2"></i>Loading benchmark data...</p>
+          </div>
+          <!-- Comparison Chart -->
+          <div id="benchmarkChartContainer">
+            <canvas id="benchmarkChart"></canvas>
+          </div>
+          <!-- Hypothetical Comparison -->
+          <div class="implication-box mt-3" id="hypotheticalBox" style="display: none;">
+            <small class="text-secondary">
+              <i class="fas fa-lightbulb me-1"></i>
+              <strong>If you had invested in SPY instead:</strong>
+              <span id="hypotheticalValue">$0.00</span>
+              <span class="mx-2">|</span>
+              <strong>Your portfolio:</strong>
+              <span id="yourValue">$0.00</span>
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Place Order Card -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-paper-plane me-2"></i>Place Order</h6>
+          <p class="text-sm text-secondary mb-0">Manually submit a trade order</p>
+        </div>
+        <div class="card-body p-3">
+          {% if order_submit_form_response %}
+          <div class="alert {% if 'error' in order_submit_form_response|lower or 'fail' in order_submit_form_response|lower %}alert-danger{% else %}alert-success{% endif %} text-white" role="alert">
+            <span class="text-sm">{{ order_submit_form_response }}</span>
+          </div>
+          {% endif %}
+          <form action="" method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Symbol <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Stock ticker symbol (e.g., AAPL for Apple, TSLA for Tesla)"></i></label>
+              {{ order_form.ticker }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Order Type <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Market = buy/sell immediately at current price. Limit = set your own price."></i></label>
+              {{ order_form.order_type }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Side <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Buy = you want to own the stock. Sell = you want to exit a position you own."></i></label>
+              {{ order_form.transaction_type }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Quantity <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Number of shares. Fractional shares supported for some stocks."></i></label>
+              {{ order_form.quantity }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Time in Force <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Day = expires end of day. GTC = Good Till Canceled, stays open until filled or canceled."></i></label>
+              {{ order_form.time_in_force }}
+            </div>
+            <button type="submit" name="submit_order" class="btn bg-gradient-success w-100 mb-0">
+              <i class="fas fa-check me-2"></i> Submit Order
+            </button>
+          </form>
+          <div class="implication-box mt-3">
+            <small class="text-secondary"><i class="fas fa-robot me-1"></i><strong>Prefer automated trading?</strong> Let the bot find and execute trades for you via <a href="/strategies">Strategy Manager</a>.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Holdings & Orders Row -->
+  <div class="row my-4">
+    <!-- Holdings Table -->
     <div class="col-lg-7 col-md-6 mb-md-0 mb-4">
-        <div class="card">
-            <div class="card-header pb-0">
-                <div class="row">
-                    <div class="col-lg-10 col-7">
-                        <h4>Holdings</h4>
-                        <p class="text-sm mb-0">
-                            <span class="font-weight-bold ms-1">Long Portfolio Value:</span> $
-                            {{userdata.long_portfolio_value}}
-                            <span class="font-weight-bold ms-1">Short Portfolio Value:</span> $
-                            {{userdata.short_portfolio_value}} <br>
-                            <span class="font-weight-bold ms-1">Cash:</span> $ {{userdata.cash}} ($
-                            {{userdata.tradable_cash}} tradable)
-                        </p>
-                    </div>
-                    <div class="col-lg-2 col-5 my-auto text-end">
-                        <div class="dropdown float-lg-end pe-4">
-                            <a class="cursor-pointer" id="dropdownTable" data-bs-toggle="dropdown"
-                               aria-expanded="false">
-                                <i class="fa fa-ellipsis-v text-secondary"></i>
-                            </a>
-                            <ul class="dropdown-menu px-2 py-3 ms-sm-n4 ms-n5" aria-labelledby="dropdownTable">
-                                <p><span class="font-weight-bold ms-1">Sort by:</span></p>
-                                <li><a class="dropdown-item border-radius-md" href="javascript:;">Date added</a></li>
-                                <li><a class="dropdown-item border-radius-md" href="javascript:;">Value</a></li>
-                                <li><a class="dropdown-item border-radius-md" href="javascript:;">Gain</a></li>
-                                <li><a class="dropdown-item border-radius-md" href="javascript:;">Side</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+      <div class="card">
+        <div class="card-header pb-0">
+          <div class="row">
+            <div class="col-lg-8 col-7">
+              <h6>
+                <i class="fas fa-briefcase me-2"></i>Holdings
+                <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Your current stock positions. These are actively monitored by the bot for exit signals."></i>
+              </h6>
+              <p class="text-sm mb-0">
+                <span class="font-weight-bold text-success">Long:</span> ${{ userdata.long_portfolio_value|default:"0.00" }}
+                <span class="ms-2 font-weight-bold text-danger">Short:</span> ${{ userdata.short_portfolio_value|default:"0.00" }}
+              </p>
             </div>
-            <div class="card-body px-0 pb-2">
-                <div class="table-responsive">
-                    <table class="table align-items-center mb-6">
-                        <thead>
-                        <tr>
-                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                Companies
-                            </th>
-                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                Quantity
-                            </th>
-                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                Current Price
-                            </th>
-                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                Average Entry Price
-                            </th>
-                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                Side
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for position in userdata.portfolio %}
-                        <tr class="align-middle text-center">
-                            <td>
-                                <h6 class="mb-0 text-sm">{{ position.symbol }}</h6>
-                            </td>
-                            <td class="align-middle text-center">
-                                <h6 class="mb-0 text-sm">{{ position.qty | round_2 }}</h6>
-                            </td>
-                            <td class="align-middle text-center text-sm">
-                                <span class="text-xs font-weight-bold"> $ {{ position.current_price | round_2}} </span>
-                            </td>
-                            <td class="align-middle text-center text-sm">
-                                <span class="text-xs font-weight-bold"> $ {{ position.avg_entry_price | round_2 }} </span>
-                            </td>
-                            <td class="align-middle text-center">
-                                <div class="d-flex flex-column justify-content-center">
-                                    <h6 class="mb-0 text-sm">{{ position.side}}</h6>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="col-lg-4 col-5 text-end">
+              <a href="/positions" class="btn btn-sm bg-gradient-primary mb-0">View All</a>
             </div>
+          </div>
         </div>
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Symbol</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Qty</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Price</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Avg Entry</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Side</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for position in userdata.portfolio %}
+                <tr class="position-row">
+                  <td class="ps-3">
+                    <h6 class="mb-0 text-sm">{{ position.symbol }}</h6>
+                  </td>
+                  <td class="text-center">
+                    <span class="text-sm font-weight-bold">{{ position.qty|round_2 }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="text-sm">${{ position.current_price|round_2 }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="text-sm">${{ position.avg_entry_price|round_2 }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge badge-sm {% if position.side == 'long' %}bg-gradient-success{% else %}bg-gradient-danger{% endif %}">
+                      {{ position.side }}
+                    </span>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-4">
+                    <i class="fas fa-inbox fa-2x text-secondary mb-2"></i>
+                    <p class="text-secondary mb-1">No positions yet</p>
+                    <small class="text-secondary">Enable a strategy to start automated trading, or place a manual order above</small>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Recent Orders Table -->
     <div class="col-lg-5 col-md-6">
-        <div class="card">
-            <div class="card-header pb-0">
-                <div class="row">
-                    <div class="col-lg-10 col-7">
-                        <h4>Past Orders</h4>
-                    </div>
-                    <div class="col-lg-2 col-5 my-auto text-end">
-                        <div class="dropdown float-lg-end pe-4">
-                            <a class="cursor-pointer" id="dropdownTable" data-bs-toggle="dropdown"
-                               aria-expanded="false">
-                                <i class="fa fa-ellipsis-v text-secondary"></i>
-                            </a>
-                            <ul class="dropdown-menu px-2 py-3 ms-sm-n4 ms-n5" aria-labelledby="dropdownTable">
-                                <p><span class="font-weight-bold ms-1">Sort by:</span></p>
-                                <li><a class="dropdown-item border-radius-md" href="javascript:;">Date</a></li>
-                                <li><a class="dropdown-item border-radius-md" href="javascript:;">Status</a></li>
-                                <li><a class="dropdown-item border-radius-md" href="javascript:;">Company</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+      <div class="card">
+        <div class="card-header pb-0">
+          <div class="row">
+            <div class="col-8">
+              <h6>
+                <i class="fas fa-history me-2"></i>Recent Orders
+                <i class="fas fa-info-circle text-secondary ms-1" data-bs-toggle="tooltip" title="Orders placed by you or the trading bot. Green = filled, Yellow = pending, Gray = canceled."></i>
+              </h6>
             </div>
-            <div class="card-body px-0 pb-2">
-                <div class="table-responsive">
-                    <table class="table align-items-center mb-6">
-                        <thead>
-                        <tr>
-                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                Companies
-                            </th>
-                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                Quantity
-                            </th>
-                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                Date
-                            </th>
-                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                Status
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for order in userdata.orders %}
-                        <tr class="align-middle text-center">
-                            <td>
-                                <h6 class="mb-0 text-sm">{{ order.stock }}</h6>
-                            </td>
-                            <td class="align-middle text-center">
-                                <h6 class="mb-0 text-sm">{{ order.quantity }}</h6>
-                            </td>
-                            <td class="align-middle text-center text-sm">
-                                <span class="text-xs font-weight-bold"> {{ order.timestamp }} utc </span>
-                            </td>
-                            <td class="align-middle text-center text-sm">
-                                <span class="text-xs font-weight-bold"> {{ order.status}} </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="col-4 text-end">
+              <a href="/orders" class="btn btn-sm bg-gradient-info mb-0">View All</a>
             </div>
+          </div>
         </div>
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Symbol</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Qty</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Date</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for order in userdata.orders|slice:":5" %}
+                <tr class="position-row">
+                  <td class="ps-3">
+                    <h6 class="mb-0 text-sm">{{ order.stock }}</h6>
+                  </td>
+                  <td class="text-center">
+                    <span class="text-sm">{{ order.quantity }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="text-xs">{{ order.timestamp }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge badge-sm {% if order.status == 'filled' %}bg-gradient-success{% elif order.status == 'pending' or order.status == 'new' %}bg-gradient-warning{% elif order.status == 'canceled' %}bg-gradient-secondary{% else %}bg-gradient-info{% endif %}">
+                      {{ order.status }}
+                    </span>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center py-4">
+                    <i class="fas fa-inbox fa-2x text-secondary mb-2"></i>
+                    <p class="text-secondary mb-1">No orders yet</p>
+                    <small class="text-secondary">Orders from you and the bot will appear here</small>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- Getting Started Help Box (show only if no positions) -->
+  {% if not userdata.portfolio %}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card" style="background: linear-gradient(to right, rgba(45,206,137,0.1), rgba(17,205,239,0.05)); border: 2px solid #2dce89;">
+        <div class="card-body py-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md" style="width: 60px; height: 60px;">
+                <i class="fas fa-rocket text-white fa-lg"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h5 class="mb-1">Ready to Start Trading?</h5>
+              <p class="text-secondary mb-0">You're all set up! Here's what you can do next:</p>
+            </div>
+          </div>
+          <div class="row mt-3">
+            <div class="col-md-4">
+              <div class="d-flex align-items-start">
+                <span class="badge bg-primary rounded-circle me-2 mt-1">1</span>
+                <div>
+                  <strong>Enable a Strategy</strong>
+                  <p class="text-sm text-secondary mb-0">Go to <a href="/strategies">Strategy Manager</a> and enable WSB Dip Bot or Wheel Strategy</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="d-flex align-items-start">
+                <span class="badge bg-primary rounded-circle me-2 mt-1">2</span>
+                <div>
+                  <strong>Set Risk Limits</strong>
+                  <p class="text-sm text-secondary mb-0">Visit <a href="/risk">Risk Management</a> to configure position sizes and stop losses</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="d-flex align-items-start">
+                <span class="badge bg-primary rounded-circle me-2 mt-1">3</span>
+                <div>
+                  <strong>Watch It Trade</strong>
+                  <p class="text-sm text-secondary mb-0">The bot will find opportunities and execute trades automatically!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% include "includes/footer.html" %}
 </div>
-
-{% include "includes/footer.html" %}
-
-</div>
-
 {% endblock content %}
 
-<!-- Specific JS goes HERE -->
 {% block javascripts %}
-
+<!-- Chart.js for Benchmark Chart -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+  // Initialize tooltips
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+    new bootstrap.Tooltip(tooltipTriggerEl);
+  });
 
-    var ctx2 = document.getElementById("chart-line").getContext("2d");
+  // Benchmark Comparison Functionality
+  let benchmarkChart = null;
+  let currentPeriod = '1M';
 
-    var gradientStroke1 = ctx2.createLinearGradient(0, 230, 0, 50);
+  // Fetch benchmark comparison data
+  async function fetchBenchmarkData(period = '1M') {
+    try {
+      const response = await fetch(`/api/performance/vs-benchmark?period=${period}&benchmark=SPY`);
+      if (!response.ok) throw new Error('Failed to fetch benchmark data');
+      return await response.json();
+    } catch (error) {
+      console.error('Benchmark fetch error:', error);
+      return null;
+    }
+  }
 
-    gradientStroke1.addColorStop(1, 'rgba(203,12,159,0.2)');
-    gradientStroke1.addColorStop(0.2, 'rgba(72,72,176,0.0)');
-    gradientStroke1.addColorStop(0, 'rgba(203,12,159,0)'); //purple colors
+  // Fetch chart data for comparison
+  async function fetchBenchmarkChartData(period = '1M') {
+    try {
+      const response = await fetch(`/api/performance/benchmark-chart?period=${period}&benchmark=SPY`);
+      if (!response.ok) throw new Error('Failed to fetch chart data');
+      return await response.json();
+    } catch (error) {
+      console.error('Chart data fetch error:', error);
+      return null;
+    }
+  }
 
-    var gradientStroke2 = ctx2.createLinearGradient(0, 230, 0, 50);
+  // Update benchmark badge
+  function updateBenchmarkBadge(data) {
+    const badge = document.getElementById('benchmarkBadge');
+    const badgeText = document.getElementById('benchmarkBadgeText');
 
-    gradientStroke2.addColorStop(1, 'rgba(20,23,39,0.2)');
-    gradientStroke2.addColorStop(0.2, 'rgba(72,72,176,0.0)');
-    gradientStroke2.addColorStop(0, 'rgba(20,23,39,0)'); //purple colors
+    if (!data || data.status === 'error') {
+      badge.style.display = 'none';
+      return;
+    }
 
-    new Chart(ctx2, {
-      type: "line",
+    const comparison = data.comparison;
+    const dailyExcess = comparison.daily_excess;
+
+    badge.style.display = 'inline-flex';
+    badge.classList.remove('outperforming', 'underperforming', 'neutral');
+
+    if (dailyExcess > 0.1) {
+      badge.classList.add('outperforming');
+      badgeText.textContent = `vs SPY: +${dailyExcess.toFixed(2)}%`;
+    } else if (dailyExcess < -0.1) {
+      badge.classList.add('underperforming');
+      badgeText.textContent = `vs SPY: ${dailyExcess.toFixed(2)}%`;
+    } else {
+      badge.classList.add('neutral');
+      badgeText.textContent = `vs SPY: ${dailyExcess >= 0 ? '+' : ''}${dailyExcess.toFixed(2)}%`;
+    }
+  }
+
+  // Update benchmark stats
+  function updateBenchmarkStats(data) {
+    if (!data || data.status === 'error') {
+      document.getElementById('benchmarkMessage').innerHTML =
+        '<p class="mb-0 text-warning"><i class="fas fa-exclamation-triangle me-2"></i>Unable to load benchmark data</p>';
+      return;
+    }
+
+    const comparison = data.comparison;
+
+    // Your Return
+    const yourReturn = document.getElementById('yourReturnPct');
+    yourReturn.textContent = `${comparison.portfolio_return_pct >= 0 ? '+' : ''}${comparison.portfolio_return_pct}%`;
+    yourReturn.classList.remove('text-success', 'text-danger', 'text-primary');
+    yourReturn.classList.add(comparison.portfolio_return_pct >= 0 ? 'text-success' : 'text-danger');
+
+    // SPY Return
+    const spyReturn = document.getElementById('spyReturnPct');
+    spyReturn.textContent = `${comparison.benchmark_return_pct >= 0 ? '+' : ''}${comparison.benchmark_return_pct}%`;
+
+    // Excess Return
+    const excessReturn = document.getElementById('excessReturn');
+    const excess = comparison.period_excess;
+    excessReturn.textContent = `${excess >= 0 ? '+' : ''}${excess}%`;
+    excessReturn.classList.remove('text-success', 'text-danger');
+    excessReturn.classList.add(excess >= 0 ? 'text-success' : 'text-danger');
+
+    // Alpha Generated
+    const alphaEl = document.getElementById('alphaGenerated');
+    const alpha = comparison.alpha_generated;
+    alphaEl.textContent = `${alpha >= 0 ? '+' : ''}$${Math.abs(alpha).toLocaleString()}`;
+    alphaEl.classList.remove('text-success', 'text-danger');
+    alphaEl.classList.add(alpha >= 0 ? 'text-success' : 'text-danger');
+
+    // Message
+    const messageEl = document.getElementById('benchmarkMessage');
+    if (excess > 0) {
+      messageEl.innerHTML = `<p class="mb-0 text-success"><i class="fas fa-trophy me-2"></i>You're beating the market by <strong>${excess.toFixed(2)}%</strong> this period!</p>`;
+    } else if (excess < 0) {
+      messageEl.innerHTML = `<p class="mb-0 text-warning"><i class="fas fa-chart-line me-2"></i>You're trailing the market by <strong>${Math.abs(excess).toFixed(2)}%</strong>. Consider rebalancing.</p>`;
+    } else {
+      messageEl.innerHTML = `<p class="mb-0 text-secondary"><i class="fas fa-equals me-2"></i>You're matching the market performance.</p>`;
+    }
+
+    // Hypothetical Box
+    const hypotheticalBox = document.getElementById('hypotheticalBox');
+    hypotheticalBox.style.display = 'block';
+    document.getElementById('hypotheticalValue').textContent = `$${comparison.hypothetical_benchmark_value.toLocaleString()}`;
+    document.getElementById('yourValue').textContent = `$${comparison.your_value.toLocaleString()}`;
+  }
+
+  // Render benchmark chart
+  function renderBenchmarkChart(data) {
+    const ctx = document.getElementById('benchmarkChart').getContext('2d');
+
+    // Destroy existing chart if any
+    if (benchmarkChart) {
+      benchmarkChart.destroy();
+    }
+
+    if (!data || data.status === 'error' || !data.portfolio_series || !data.benchmark_series) {
+      document.getElementById('benchmarkChartContainer').innerHTML =
+        '<div class="text-center text-secondary py-4"><i class="fas fa-chart-line fa-2x mb-2"></i><p>No chart data available</p></div>';
+      return;
+    }
+
+    const portfolioData = data.portfolio_series;
+    const benchmarkData = data.benchmark_series;
+
+    // Normalize to 100 at start for comparison
+    const startPortfolio = portfolioData.length > 0 ? portfolioData[0].value : 100;
+    const startBenchmark = benchmarkData.length > 0 ? benchmarkData[0].close : 100;
+
+    benchmarkChart = new Chart(ctx, {
+      type: 'line',
       data: {
-        labels: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-        datasets: [{
-            label: "Mobile apps",
-            tension: 0.4,
-            borderWidth: 0,
-            pointRadius: 0,
-            borderColor: "#cb0c9f",
-            borderWidth: 3,
-            backgroundColor: gradientStroke1,
+        labels: portfolioData.map(d => d.date),
+        datasets: [
+          {
+            label: 'Your Portfolio',
+            data: portfolioData.map(d => (d.value / startPortfolio) * 100),
+            borderColor: '#5e72e4',
+            backgroundColor: 'rgba(94, 114, 228, 0.1)',
             fill: true,
-            data: [50, 40, 300, 220, 500, 250, 400, 230, 500],
-            maxBarThickness: 6
-
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 2
           },
           {
-            label: "Websites",
-            tension: 0.4,
-            borderWidth: 0,
+            label: 'SPY',
+            data: benchmarkData.map(d => d.normalized || (d.close / startBenchmark) * 100),
+            borderColor: '#6c757d',
+            backgroundColor: 'transparent',
+            borderDash: [5, 5],
+            fill: false,
+            tension: 0.3,
             pointRadius: 0,
-            borderColor: "#3A416F",
-            borderWidth: 3,
-            backgroundColor: gradientStroke2,
-            fill: true,
-            data: [30, 90, 40, 140, 290, 290, 340, 230, 400],
-            maxBarThickness: 6
-          },
-        ],
+            borderWidth: 2
+          }
+        ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
         plugins: {
           legend: {
-            display: false,
+            position: 'bottom',
+            labels: { usePointStyle: true, padding: 20 }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const value = context.raw.toFixed(2);
+                const change = (value - 100).toFixed(2);
+                return `${context.dataset.label}: ${value} (${change >= 0 ? '+' : ''}${change}%)`;
+              }
+            }
           }
         },
-        interaction: {
-          intersect: false,
-          mode: 'index',
-        },
         scales: {
-          y: {
-            grid: {
-              drawBorder: false,
-              display: true,
-              drawOnChartArea: true,
-              drawTicks: false,
-              borderDash: [5, 5]
-            },
-            ticks: {
-              display: true,
-              padding: 10,
-              color: '#b2b9bf',
-              font: {
-                size: 11,
-                family: "Open Sans",
-                style: 'normal',
-                lineHeight: 2
-              },
-            }
-          },
           x: {
-            grid: {
-              drawBorder: false,
-              display: false,
-              drawOnChartArea: false,
-              drawTicks: false,
-              borderDash: [5, 5]
-            },
-            ticks: {
-              display: true,
-              color: '#b2b9bf',
-              padding: 20,
-              font: {
-                size: 11,
-                family: "Open Sans",
-                style: 'normal',
-                lineHeight: 2
-              },
-            }
+            grid: { display: false },
+            ticks: { maxTicksLimit: 6 }
           },
-        },
-      },
+          y: {
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            ticks: {
+              callback: function(value) { return value.toFixed(0); }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Load benchmark data
+  async function loadBenchmarkData(period = '1M') {
+    currentPeriod = period;
+
+    // Update active button
+    document.querySelectorAll('#benchmarkPeriodBtns .period-btn').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.period === period) {
+        btn.classList.add('active');
+      }
     });
 
-</script>
+    // Show loading state
+    document.getElementById('benchmarkMessage').innerHTML =
+      '<p class="mb-0 text-secondary"><i class="fas fa-spinner fa-spin me-2"></i>Loading benchmark data...</p>';
 
+    // Fetch data
+    const [comparisonData, chartData] = await Promise.all([
+      fetchBenchmarkData(period),
+      fetchBenchmarkChartData(period)
+    ]);
+
+    // Update UI
+    updateBenchmarkBadge(comparisonData);
+    updateBenchmarkStats(comparisonData);
+    renderBenchmarkChart(chartData);
+  }
+
+  // Initialize benchmark comparison
+  document.addEventListener('DOMContentLoaded', function() {
+    // Load initial benchmark data
+    loadBenchmarkData('1M');
+
+    // Period button click handlers
+    document.querySelectorAll('#benchmarkPeriodBtns .period-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        loadBenchmarkData(this.dataset.period);
+      });
+    });
+  });
+
+  // Update market status based on time
+  function updateMarketStatus() {
+    const now = new Date();
+    const etOffset = -5; // Eastern Time offset (adjust for DST)
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const et = new Date(utc + (3600000 * etOffset));
+
+    const hours = et.getHours();
+    const minutes = et.getMinutes();
+    const day = et.getDay();
+    const totalMinutes = hours * 60 + minutes;
+
+    const marketOpen = 9 * 60 + 30; // 9:30 AM
+    const marketClose = 16 * 60; // 4:00 PM
+
+    const statusBox = document.getElementById('marketStatusBox');
+    const isWeekday = day >= 1 && day <= 5;
+    const isMarketHours = totalMinutes >= marketOpen && totalMinutes < marketClose;
+
+    if (isWeekday && isMarketHours) {
+      statusBox.classList.remove('market-closed');
+      statusBox.classList.add('market-open');
+      statusBox.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-circle text-success pulse-dot me-2"></i>
+            <span class="font-weight-bold">Market Open</span>
+            <span class="text-secondary ms-3">| The system is actively scanning for opportunities and monitoring your positions</span>
+          </div>
+          <div>
+            <span class="badge bg-success">9:30 AM - 4:00 PM ET</span>
+          </div>
+        </div>
+      `;
+    } else {
+      statusBox.classList.remove('market-open');
+      statusBox.classList.add('market-closed');
+      statusBox.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-moon text-secondary me-2"></i>
+            <span class="font-weight-bold">Market Closed</span>
+            <span class="text-secondary ms-3">| No new trades until market opens. Existing positions are still being tracked.</span>
+          </div>
+          <div>
+            <span class="badge bg-secondary">Opens 9:30 AM ET</span>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  updateMarketStatus();
+  setInterval(updateMarketStatus, 60000); // Update every minute
+
+  // Update last sync time
+  function updateLastSync() {
+    const now = new Date();
+    document.getElementById('lastSync').textContent = now.toLocaleTimeString();
+  }
+  setInterval(updateLastSync, 30000);
+
+  // =====================================================
+  // Market Context Panel
+  // =====================================================
+
+  let lastMarketContextUpdate = null;
+  let marketContextRefreshInterval = null;
+
+  async function fetchMarketContext() {
+    try {
+      const response = await fetch('/api/market-context/');
+      if (!response.ok) throw new Error('Failed to fetch');
+      return await response.json();
+    } catch (error) {
+      console.error('Market context fetch error:', error);
+      return null;
+    }
+  }
+
+  function updateMarketContextPanel(data) {
+    if (!data || data.status !== 'success') {
+      updateMarketContextStatus(false);
+      return;
+    }
+
+    lastMarketContextUpdate = new Date();
+    updateMarketContextStatus(true);
+
+    // Update indices
+    const overview = data.overview || {};
+    const indices = overview.indices || {};
+
+    updateIndex('spy', indices.SPY);
+    updateIndex('qqq', indices.QQQ);
+    updateIndex('iwm', indices.IWM);
+    updateIndex('dia', indices.DIA);
+
+    // Update VIX
+    const vix = overview.vix || {};
+    updateVIX(vix);
+
+    // Update sectors
+    const sectors = data.sectors || [];
+    updateSectorHeatMap(sectors);
+
+    // Update holdings events
+    const holdingsEvents = data.holdings_events || [];
+    updateHoldingsEvents(holdingsEvents);
+
+    // Update economic calendar
+    const economicCalendar = data.economic_calendar || [];
+    updateEconomicCalendar(economicCalendar);
+
+    // Update timestamp
+    document.getElementById('marketContextTime').textContent =
+      lastMarketContextUpdate.toLocaleTimeString();
+  }
+
+  function updateIndex(id, data) {
+    const priceEl = document.getElementById(`${id}Price`);
+    const changeEl = document.getElementById(`${id}Change`);
+
+    if (!data) {
+      priceEl.textContent = '--';
+      changeEl.textContent = '--%';
+      changeEl.className = 'index-change';
+      return;
+    }
+
+    priceEl.textContent = `$${data.price.toFixed(2)}`;
+    const changeText = `${data.change_pct >= 0 ? '+' : ''}${data.change_pct.toFixed(2)}%`;
+    changeEl.textContent = changeText;
+    changeEl.className = `index-change ${data.change_pct >= 0 ? 'positive' : 'negative'}`;
+  }
+
+  function updateVIX(data) {
+    const valueEl = document.getElementById('vixValue');
+    const levelEl = document.getElementById('vixLevel');
+
+    if (!data || !data.value) {
+      valueEl.textContent = '--';
+      levelEl.textContent = '--';
+      levelEl.className = 'vix-level';
+      return;
+    }
+
+    valueEl.textContent = data.value.toFixed(1);
+    levelEl.textContent = data.level.charAt(0).toUpperCase() + data.level.slice(1);
+    levelEl.className = `vix-level ${data.level}`;
+  }
+
+  function getSectorColorClass(changePct) {
+    if (changePct >= 2) return 'sector-deep-green';
+    if (changePct >= 1) return 'sector-green';
+    if (changePct >= 0.3) return 'sector-light-green';
+    if (changePct >= -0.3) return 'sector-neutral';
+    if (changePct >= -1) return 'sector-light-red';
+    if (changePct >= -2) return 'sector-red';
+    return 'sector-deep-red';
+  }
+
+  function updateSectorHeatMap(sectors) {
+    const grid = document.getElementById('sectorGrid');
+
+    if (!sectors || sectors.length === 0) {
+      grid.innerHTML = '<div class="text-white-50 text-xs">No sector data</div>';
+      return;
+    }
+
+    grid.innerHTML = sectors.map(sector => {
+      const colorClass = getSectorColorClass(sector.change_pct);
+      const changeText = `${sector.change_pct >= 0 ? '+' : ''}${sector.change_pct.toFixed(1)}%`;
+      return `
+        <div class="sector-box ${colorClass}" title="${sector.name}">
+          <div class="sector-name">${sector.name}</div>
+          <div class="sector-change">${changeText}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updateHoldingsEvents(events) {
+    const container = document.getElementById('holdingsEvents');
+
+    if (!events || events.length === 0) {
+      container.innerHTML = '<div class="text-white-50 text-xs py-2">No upcoming events for your holdings</div>';
+      return;
+    }
+
+    container.innerHTML = events.slice(0, 3).map(event => {
+      const eventIcon = event.event === 'earnings' ? 'fa-chart-bar' : 'fa-money-bill-wave';
+      const eventClass = event.event === 'earnings' ? 'earnings' : 'ex-dividend';
+      const daysText = event.days_until === 0 ? 'Today' :
+                       event.days_until === 1 ? 'Tomorrow' :
+                       `in ${event.days_until} days`;
+
+      return `
+        <div class="event-item ${eventClass}">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <i class="fas ${eventIcon} me-2 text-white-50"></i>
+              <strong class="text-white">${event.symbol}</strong>
+              <span class="text-white-50 ms-2">${event.event}</span>
+            </div>
+            <span class="text-white-50 text-xs">${daysText}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updateEconomicCalendar(events) {
+    const container = document.getElementById('economicCalendar');
+
+    if (!events || events.length === 0) {
+      container.innerHTML = '<div class="text-white-50 text-xs py-2">No upcoming events</div>';
+      return;
+    }
+
+    container.innerHTML = events.slice(0, 3).map(event => {
+      const importanceIcon = event.importance === 'high' ? '!' : '';
+      const importanceClass = event.importance === 'high' ? 'event-importance-high' : '';
+      const dateObj = new Date(event.date);
+      const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+      return `
+        <div class="event-item economic">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <span class="text-white">${event.event}</span>
+              ${event.importance === 'high' ? '<i class="fas fa-exclamation-triangle ms-2 event-importance-high"></i>' : ''}
+            </div>
+            <span class="text-white-50 text-xs">${dateStr}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updateMarketContextStatus(isLive) {
+    const statusEl = document.getElementById('marketContextStatus');
+
+    if (isLive) {
+      statusEl.innerHTML = '<i class="fas fa-circle me-1"></i>Live';
+      statusEl.className = 'live-indicator';
+    } else {
+      statusEl.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Stale';
+      statusEl.className = 'stale-indicator';
+    }
+  }
+
+  async function loadMarketContext() {
+    const data = await fetchMarketContext();
+    updateMarketContextPanel(data);
+  }
+
+  // Initialize market context on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    loadMarketContext();
+
+    // Set up auto-refresh based on market status
+    // During market hours: every 30 seconds
+    // Outside market hours: every 5 minutes
+    function setRefreshInterval() {
+      if (marketContextRefreshInterval) {
+        clearInterval(marketContextRefreshInterval);
+      }
+
+      const now = new Date();
+      const etHour = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' })).getHours();
+      const day = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' })).getDay();
+      const isMarketHours = day >= 1 && day <= 5 && etHour >= 9 && etHour < 16;
+
+      const interval = isMarketHours ? 30000 : 300000; // 30s or 5min
+      marketContextRefreshInterval = setInterval(loadMarketContext, interval);
+    }
+
+    setRefreshInterval();
+    // Re-check refresh interval every 15 minutes
+    setInterval(setRefreshInterval, 15 * 60 * 1000);
+  });
+
+  // Toggle sector collapse icon
+  document.getElementById('sectorCollapse')?.addEventListener('show.bs.collapse', function() {
+    document.getElementById('sectorToggleIcon').classList.replace('fa-chevron-down', 'fa-chevron-up');
+  });
+  document.getElementById('sectorCollapse')?.addEventListener('hide.bs.collapse', function() {
+    document.getElementById('sectorToggleIcon').classList.replace('fa-chevron-up', 'fa-chevron-down');
+  });
+
+  // =====================================================
+  // Portfolio Switcher Widget
+  // =====================================================
+
+  const strategyColors = {
+    'wsb-dip-bot': '#f5365c',
+    'wheel': '#2dce89',
+    'momentum-weeklies': '#fb6340',
+    'earnings-protection': '#11cdef',
+    'debit-spreads': '#5e72e4',
+    'leaps-tracker': '#8965e0',
+    'lotto-scanner': '#ffd600',
+    'swing-trading': '#f3a4b5',
+    'spx-credit-spreads': '#2bffc6',
+    'index-baseline': '#6c757d',
+  };
+
+  async function loadPortfolios() {
+    const container = document.getElementById('portfolioSwitcher');
+
+    try {
+      const response = await fetch('/api/portfolios/');
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+
+      if (data.status !== 'success' || !data.portfolios || data.portfolios.length === 0) {
+        container.innerHTML = `
+          <div class="text-center w-100 py-2">
+            <span class="text-muted">No portfolios yet.</span>
+            <a href="/strategy-portfolios" class="btn btn-sm btn-primary ms-2">Create One</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = data.portfolios.map(portfolio => {
+        const isActive = portfolio.is_active;
+        const strategies = portfolio.strategies || {};
+        const allocBars = Object.entries(strategies)
+          .filter(([_, config]) => config.enabled)
+          .map(([sid, config]) => {
+            const color = strategyColors[sid] || '#6c757d';
+            const width = Math.max(8, config.allocation_pct / 2);
+            return `<div class="portfolio-mini-bar" style="background: ${color}; width: ${width}px;" title="${sid}: ${config.allocation_pct}%"></div>`;
+          })
+          .join('');
+
+        return `
+          <div class="portfolio-option ${isActive ? 'active' : ''}" data-portfolio-id="${portfolio.id}">
+            <div class="name">
+              ${isActive ? '<i class="fas fa-check-circle text-success me-1"></i>' : ''}
+              ${portfolio.name}
+            </div>
+            <div class="meta">
+              ${portfolio.strategy_count} strategies | ${portfolio.diversification_score.toFixed(0)}% diversified
+            </div>
+            <div class="portfolio-mini-alloc">
+              ${allocBars}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Add click handlers
+      document.querySelectorAll('.portfolio-option').forEach(option => {
+        option.addEventListener('click', async function() {
+          const portfolioId = this.dataset.portfolioId;
+          const isCurrentlyActive = this.classList.contains('active');
+
+          if (isCurrentlyActive) {
+            // Deactivate
+            try {
+              const response = await fetch(`/api/portfolios/${portfolioId}/deactivate`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': getCsrfToken()
+                }
+              });
+              const data = await response.json();
+              if (data.status === 'success') {
+                loadPortfolios();
+              }
+            } catch (error) {
+              console.error('Error deactivating portfolio:', error);
+            }
+          } else {
+            // Activate
+            try {
+              const response = await fetch(`/api/portfolios/${portfolioId}/activate`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': getCsrfToken()
+                }
+              });
+              const data = await response.json();
+              if (data.status === 'success') {
+                loadPortfolios();
+              } else {
+                alert('Error: ' + data.message);
+              }
+            } catch (error) {
+              console.error('Error activating portfolio:', error);
+            }
+          }
+        });
+      });
+
+    } catch (error) {
+      console.error('Error loading portfolios:', error);
+      container.innerHTML = '<div class="text-muted text-center w-100 py-2">Failed to load portfolios</div>';
+    }
+  }
+
+  function getCsrfToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      const [key, value] = cookie.trim().split('=');
+      if (key === name) return value;
+    }
+    return '';
+  }
+
+  // Load portfolios on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    loadPortfolios();
+  });
+</script>
 {% endblock javascripts %}

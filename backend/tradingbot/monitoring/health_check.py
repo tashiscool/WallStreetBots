@@ -4,7 +4,7 @@ from typing import Dict, Any
 import time
 import logging
 
-from ..risk.circuit_breaker import CircuitBreaker
+from ..risk.monitoring.circuit_breaker import CircuitBreaker
 from ..data.quality import DataQualityMonitor
 from ..infra.build_info import build_id, version_info
 

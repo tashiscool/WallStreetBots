@@ -1,0 +1,286 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Swing Trading Configuration {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .param-card { border-left: 4px solid #344767; transition: all 0.3s ease; }
+  .param-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+  .tooltip-icon { cursor: help; color: #8898aa; font-size: 14px; margin-left: 5px; }
+  .profile-badge { cursor: pointer; transition: all 0.2s ease; }
+  .profile-badge:hover { transform: scale(1.05); }
+  .profile-badge.active { border: 2px solid #344767; }
+  .param-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #e9ecef; }
+  .param-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(310deg, #344767 0%, #5e72e4 100%); cursor: pointer; }
+  .implication-box { background: linear-gradient(to right, rgba(52,71,103,0.05), rgba(94,114,228,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .warning-implication { background: linear-gradient(to right, rgba(251,99,64,0.1), rgba(245,54,92,0.05)); }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-dark">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-wave-square text-dark fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">Enhanced Breakout Swing Trading</h4>
+              <p class="text-white opacity-8 mb-0">Fast profit-taking swing trades with same-day exit discipline. Multi-timeframe technical analysis.</p>
+            </div>
+            <div class="col-auto">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="strategyEnabled" checked style="width: 50px; height: 26px;">
+                <label class="form-check-label text-white ms-2" for="strategyEnabled">Enabled</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signal Types -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-broadcast-tower me-2"></i>Signal Types</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <div class="card profile-badge active" data-signal="breakout">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-arrow-up fa-2x text-success mb-2"></i>
+                  <h6 class="mb-1">Breakout</h6>
+                  <p class="text-xs text-secondary mb-0">Price breaks key resistance</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="card profile-badge active" data-signal="momentum">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-rocket fa-2x text-info mb-2"></i>
+                  <h6 class="mb-1">Momentum</h6>
+                  <p class="text-xs text-secondary mb-0">Strong directional move</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="card profile-badge" data-signal="reversal">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-sync-alt fa-2x text-warning mb-2"></i>
+                  <h6 class="mb-1">Reversal</h6>
+                  <p class="text-xs text-secondary mb-0">Mean reversion plays</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Entry Criteria -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-door-open me-2"></i>Entry Criteria</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Min Signal Strength <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Minimum breakout strength score (0-100) to enter trade"></i></span>
+              <span class="badge bg-gradient-primary" id="signalStrengthValue">70</span>
+            </label>
+            <input type="range" class="param-slider" id="signalStrength" min="50" max="95" value="70">
+            <div class="implication-box" id="signalStrengthImplication">
+              <small class="text-secondary"><i class="fas fa-signal text-primary me-1"></i><strong>Signal strength 70:</strong> Multi-timeframe confirmation required. Higher score = stronger breakout with more confluent factors (volume, price action, indicators). Lower = more trades but more false signals.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Volume Confirmation (x avg) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Required volume multiple vs average to confirm breakout"></i></span>
+              <span class="badge bg-gradient-success" id="volumeConfirmValue">1.5x</span>
+            </label>
+            <input type="range" class="param-slider" id="volumeConfirm" min="10" max="30" value="15">
+            <div class="implication-box" id="volumeConfirmImplication">
+              <small class="text-secondary"><i class="fas fa-chart-bar text-success me-1"></i><strong>1.5x volume:</strong> Volume confirms conviction. Breakouts on thin volume often fail - "volume precedes price." 1.5x daily average means institutions are participating, not just retail.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Breakout % Above Resistance <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Minimum % price must be above resistance level"></i></span>
+              <span class="badge bg-gradient-info" id="breakoutPctValue">0.5%</span>
+            </label>
+            <input type="range" class="param-slider" id="breakoutPct" min="2" max="20" value="5">
+            <div class="implication-box" id="breakoutPctImplication">
+              <small class="text-secondary"><i class="fas fa-arrow-up text-info me-1"></i><strong>0.5% above resistance:</strong> Wait for price to clear resistance cleanly before entering. Too tight = fake breakouts trap you. Too wide = you miss the meat of the move. Sweet spot is 0.3-1%.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Target DTE Range</label>
+            <div class="row">
+              <div class="col-6">
+                <label class="form-label text-xs">Min Days</label>
+                <input type="number" class="form-control form-control-sm" value="7" id="minDte">
+              </div>
+              <div class="col-6">
+                <label class="form-label text-xs">Max Days</label>
+                <input type="number" class="form-control form-control-sm" value="30" id="maxDte">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exit Discipline -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-door-closed me-2"></i>Exit Discipline (WSB Rules)</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max Hold Time (Hours) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="WSB rule: same-day exits preferred. Force exit after this time"></i></span>
+              <span class="badge bg-gradient-warning" id="maxHoldValue">8 hours</span>
+            </label>
+            <input type="range" class="param-slider" id="maxHold" min="2" max="24" value="8">
+            <div class="implication-box warning-implication" id="maxHoldImplication">
+              <small class="text-secondary"><i class="fas fa-clock text-warning me-1"></i><strong>8 hours max:</strong> WSB wisdom: "Same-day exits preferred." Holding overnight = gap risk. The longer you hold, the more things can go wrong. Quick profits compound faster than swing trades that drag on.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Profit Targets (Scale Out)</label>
+            <div class="row">
+              <div class="col-4">
+                <label class="form-label text-xs">25% Exit @</label>
+                <input type="number" class="form-control form-control-sm" value="25" id="profit1">%
+              </div>
+              <div class="col-4">
+                <label class="form-label text-xs">50% Exit @</label>
+                <input type="number" class="form-control form-control-sm" value="50" id="profit2">%
+              </div>
+              <div class="col-4">
+                <label class="form-label text-xs">100% Exit @</label>
+                <input type="number" class="form-control form-control-sm" value="100" id="profit3">%
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Stop Loss (%) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Exit if option loses this % of value"></i></span>
+              <span class="badge bg-gradient-danger" id="stopLossValue">30%</span>
+            </label>
+            <input type="range" class="param-slider" id="stopLoss" min="10" max="50" value="30">
+            <div class="implication-box warning-implication" id="stopLossImplication">
+              <small class="text-secondary"><i class="fas fa-shield-alt text-danger me-1"></i><strong>30% stop loss:</strong> Options move fast - 30% loss means the setup is broken. Cut losers quickly. If you're at -30%, the breakout failed. No bagholding allowed!</small>
+            </div>
+          </div>
+
+          <div class="alert alert-dark mb-0 mt-3">
+            <i class="fas fa-graduation-cap me-2"></i><strong>Swing trading edge:</strong> Catch momentum moves early, ride them fast, exit before reversal. The goal is many small wins, not one big home run. Consistency > heroics.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk Controls -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card param-card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-shield-alt me-2"></i>Risk Controls</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Max Daily Loss (%)</label>
+              <input type="number" class="form-control" value="2" min="1" max="5" step="0.5" id="maxDailyLoss">
+              <small class="text-secondary">Stop trading for day</small>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Position Size (%)</label>
+              <input type="number" class="form-control" value="2.5" min="1" max="5" step="0.5" id="positionSize">
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Max Concurrent Swings</label>
+              <input type="number" class="form-control" value="3" min="1" max="10" id="maxConcurrent">
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Consecutive Loss Limit</label>
+              <input type="number" class="form-control" value="3" min="2" max="5" id="consecutiveLossLimit">
+              <small class="text-secondary">Pause after X losses</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <button class="btn btn-outline-secondary mb-0"><i class="fas fa-undo me-2"></i>Reset</button>
+              <button class="btn btn-outline-info mb-0 ms-2"><i class="fas fa-download me-2"></i>Export</button>
+            </div>
+            <div>
+              <button class="btn btn-outline-warning mb-0 me-2"><i class="fas fa-history me-2"></i>Backtest</button>
+              <button class="btn bg-gradient-dark mb-0"><i class="fas fa-save me-2"></i>Save Configuration</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+  document.getElementById('signalStrength').addEventListener('input', function() {
+    document.getElementById('signalStrengthValue').textContent = this.value;
+  });
+  document.getElementById('volumeConfirm').addEventListener('input', function() {
+    document.getElementById('volumeConfirmValue').textContent = (this.value / 10).toFixed(1) + 'x';
+  });
+  document.getElementById('breakoutPct').addEventListener('input', function() {
+    document.getElementById('breakoutPctValue').textContent = (this.value / 10).toFixed(1) + '%';
+  });
+  document.getElementById('maxHold').addEventListener('input', function() {
+    document.getElementById('maxHoldValue').textContent = this.value + ' hours';
+  });
+  document.getElementById('stopLoss').addEventListener('input', function() {
+    document.getElementById('stopLossValue').textContent = this.value + '%';
+  });
+
+  document.querySelectorAll('.profile-badge').forEach(badge => {
+    badge.addEventListener('click', function() {
+      this.classList.toggle('active');
+    });
+  });
+</script>
+{% endblock javascripts %}

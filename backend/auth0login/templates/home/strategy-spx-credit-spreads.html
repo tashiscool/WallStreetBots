@@ -1,0 +1,314 @@
+{% extends 'layouts/base.html' %}
+{% block title %} SPX Credit Spreads Configuration {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .param-card { border-left: 4px solid #8965e0; transition: all 0.3s ease; }
+  .param-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+  .tooltip-icon { cursor: help; color: #8898aa; font-size: 14px; margin-left: 5px; }
+  .profile-badge { cursor: pointer; transition: all 0.2s ease; }
+  .profile-badge:hover { transform: scale(1.05); }
+  .profile-badge.active { border: 2px solid #8965e0; }
+  .param-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #e9ecef; }
+  .param-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(310deg, #8965e0 0%, #bc65e0 100%); cursor: pointer; }
+  .spread-visual { background: #f8f9fa; border-radius: 10px; padding: 20px; }
+  .probability-bar { height: 30px; border-radius: 15px; background: linear-gradient(to right, #2dce89 0%, #2dce89 70%, #ffd600 70%, #ffd600 85%, #f5365c 85%, #f5365c 100%); }
+  .implication-box { background: linear-gradient(to right, rgba(137,101,224,0.05), rgba(188,101,224,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .warning-implication { background: linear-gradient(to right, rgba(251,99,64,0.1), rgba(245,54,92,0.05)); }
+  .safe-implication { background: linear-gradient(to right, rgba(45,206,137,0.1), rgba(17,205,239,0.05)); }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card" style="background: linear-gradient(310deg, #8965e0 0%, #bc65e0 100%);">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-percentage text-primary fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">SPX/SPY 0DTE Credit Spreads</h4>
+              <p class="text-white opacity-8 mb-0">The most cited "actually profitable" 0DTE strategy on WSB. Sell ~30-delta defined-risk spreads at open.</p>
+            </div>
+            <div class="col-auto">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="strategyEnabled" checked style="width: 50px; height: 26px;">
+                <label class="form-check-label text-white ms-2" for="strategyEnabled">Enabled</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Strategy Types -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-layer-group me-2"></i>Credit Spread Strategy Type</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <div class="card profile-badge active" data-strategy="put_credit">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-arrow-down fa-2x text-success mb-2"></i>
+                  <h6 class="mb-1">Put Credit Spread</h6>
+                  <p class="text-xs text-secondary mb-0">Bullish bias, sell puts</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card profile-badge" data-strategy="call_credit">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-arrow-up fa-2x text-danger mb-2"></i>
+                  <h6 class="mb-1">Call Credit Spread</h6>
+                  <p class="text-xs text-secondary mb-0">Bearish bias, sell calls</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card profile-badge" data-strategy="iron_condor">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-arrows-alt-h fa-2x text-info mb-2"></i>
+                  <h6 class="mb-1">Iron Condor</h6>
+                  <p class="text-xs text-secondary mb-0">Neutral, both sides</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card profile-badge" data-strategy="strangle">
+                <div class="card-body p-3 text-center">
+                  <i class="fas fa-compress-arrows-alt fa-2x text-warning mb-2"></i>
+                  <h6 class="mb-1">Short Strangle</h6>
+                  <p class="text-xs text-secondary mb-0">Naked, higher margin</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Probability Visualization -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-chart-pie me-2"></i>Probability of Profit</h6>
+        </div>
+        <div class="card-body">
+          <div class="probability-bar mb-2"></div>
+          <div class="d-flex justify-content-between text-sm">
+            <span class="text-success"><i class="fas fa-check-circle me-1"></i>Profit Zone (70%)</span>
+            <span class="text-warning"><i class="fas fa-exclamation-circle me-1"></i>Breakeven</span>
+            <span class="text-danger"><i class="fas fa-times-circle me-1"></i>Loss Zone</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Spread Parameters -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-sliders-h me-2"></i>Spread Parameters</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Target Short Delta <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Delta of short strike. 0.30 = ~70% probability of profit"></i></span>
+              <span class="badge bg-gradient-primary" id="shortDeltaValue">0.30</span>
+            </label>
+            <input type="range" class="param-slider" id="shortDelta" min="15" max="40" value="30">
+            <div class="implication-box safe-implication" id="shortDeltaImplication">
+              <small class="text-secondary"><i class="fas fa-percentage text-primary me-1"></i><strong>0.30 delta:</strong> ~70% probability of profit. This is the WSB sweet spot for 0DTE - far enough OTM to be safe, close enough to collect meaningful premium. Lower delta = safer but less premium. Higher = more premium but riskier.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Spread Width ($) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Distance between short and long strikes. Wider = more premium but more risk"></i></span>
+              <span class="badge bg-gradient-info" id="spreadWidthValue">$5</span>
+            </label>
+            <input type="range" class="param-slider" id="spreadWidth" min="1" max="20" value="5">
+            <div class="implication-box" id="spreadWidthImplication">
+              <small class="text-secondary"><i class="fas fa-ruler-horizontal text-info me-1"></i><strong>$5 wide spread:</strong> Max loss = $500 per contract minus premium received. On SPX, $5 wide is standard. Wider spreads = more premium but bigger potential loss. $5 keeps max loss manageable.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Profit Target (% of Premium) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Close when this % of max premium is captured. 25% is WSB standard"></i></span>
+              <span class="badge bg-gradient-success" id="profitTargetValue">25%</span>
+            </label>
+            <input type="range" class="param-slider" id="profitTarget" min="10" max="75" value="25">
+            <div class="implication-box safe-implication" id="profitTargetImplication">
+              <small class="text-secondary"><i class="fas fa-bullseye text-success me-1"></i><strong>25% profit target:</strong> The WSB standard for 0DTE. Don't get greedy - take profits early and often. If you're up 25% of max profit, close the trade. This dramatically increases win rate over holding to expiry.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Underlying Selection</label>
+            <select class="form-select" id="underlying">
+              <option value="SPX" selected>SPX (60/40 tax treatment)</option>
+              <option value="SPY">SPY (SPDR S&P 500 ETF)</option>
+              <option value="QQQ">QQQ (Nasdaq 100)</option>
+              <option value="IWM">IWM (Russell 2000)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Execution Settings -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-clock me-2"></i>0DTE Execution Settings</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label">Entry Time Window</label>
+            <div class="row">
+              <div class="col-6">
+                <label class="form-label text-xs">Start (ET)</label>
+                <input type="time" class="form-control form-control-sm" value="09:35" id="entryStart">
+              </div>
+              <div class="col-6">
+                <label class="form-label text-xs">End (ET)</label>
+                <input type="time" class="form-control form-control-sm" value="10:30" id="entryEnd">
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max IV Rank <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Avoid selling when IV is extremely elevated"></i></span>
+              <span class="badge bg-gradient-warning" id="maxIvValue">80</span>
+            </label>
+            <input type="range" class="param-slider" id="maxIv" min="50" max="100" value="80">
+            <div class="implication-box warning-implication" id="maxIvImplication">
+              <small class="text-secondary"><i class="fas fa-chart-line text-warning me-1"></i><strong>80 max IV rank:</strong> Avoid selling during extreme volatility (VIX spikes, major events). When IV is sky-high, SPX can move way more than normal. Premium looks juicy but the risk isn't worth it.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Min Premium to Collect ($) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Minimum net credit required to enter trade"></i></span>
+              <span class="badge bg-gradient-primary" id="minPremiumValue">$50</span>
+            </label>
+            <input type="range" class="param-slider" id="minPremium" min="20" max="150" value="50">
+            <div class="implication-box" id="minPremiumImplication">
+              <small class="text-secondary"><i class="fas fa-dollar-sign text-primary me-1"></i><strong>$50 min premium:</strong> If you're not collecting at least $50, the risk/reward isn't there. With $5 wide spreads, $50 credit = $450 max loss for $50 gain. That's 10:1 risk reward before closing early.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Auto-Close Settings</label>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="autoProfit" checked><label class="form-check-label">Close at profit target</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="autoTime" checked><label class="form-check-label">Close 30 min before expiry</label></div>
+          </div>
+
+          <div class="alert alert-primary mb-0 mt-3">
+            <i class="fas fa-graduation-cap me-2"></i><strong>Why 0DTE credit spreads?</strong> SPX has 60/40 tax treatment, massive liquidity, and no early assignment risk. The most "actually profitable" 0DTE strategy cited on WSB - sell time decay and probability!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk Management -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card param-card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-shield-alt me-2"></i>Risk Management</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Max Loss Per Trade ($)</label>
+              <input type="number" class="form-control" value="500" min="100" max="2000" step="50" id="maxLoss">
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Max Daily Trades</label>
+              <input type="number" class="form-control" value="3" min="1" max="10" id="maxTrades">
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Max Concurrent Positions</label>
+              <input type="number" class="form-control" value="2" min="1" max="5" id="maxPositions">
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Stop Trading After Losses</label>
+              <input type="number" class="form-control" value="2" min="1" max="5" id="stopAfterLosses">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <button class="btn btn-outline-secondary mb-0"><i class="fas fa-undo me-2"></i>Reset</button>
+              <button class="btn btn-outline-info mb-0 ms-2"><i class="fas fa-download me-2"></i>Export</button>
+            </div>
+            <div>
+              <button class="btn btn-outline-warning mb-0 me-2"><i class="fas fa-history me-2"></i>Backtest</button>
+              <button class="btn mb-0" style="background: linear-gradient(310deg, #8965e0, #bc65e0); color: white;"><i class="fas fa-save me-2"></i>Save Configuration</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+  document.getElementById('shortDelta').addEventListener('input', function() {
+    document.getElementById('shortDeltaValue').textContent = (this.value / 100).toFixed(2);
+  });
+  document.getElementById('spreadWidth').addEventListener('input', function() {
+    document.getElementById('spreadWidthValue').textContent = '$' + this.value;
+  });
+  document.getElementById('profitTarget').addEventListener('input', function() {
+    document.getElementById('profitTargetValue').textContent = this.value + '%';
+  });
+  document.getElementById('maxIv').addEventListener('input', function() {
+    document.getElementById('maxIvValue').textContent = this.value;
+  });
+  document.getElementById('minPremium').addEventListener('input', function() {
+    document.getElementById('minPremiumValue').textContent = '$' + this.value;
+  });
+
+  document.querySelectorAll('.profile-badge').forEach(badge => {
+    badge.addEventListener('click', function() {
+      document.querySelectorAll('.profile-badge').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+{% endblock javascripts %}

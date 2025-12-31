@@ -224,6 +224,44 @@ class PositionSizer:
     def __init__(self, risk_params: RiskParameters = None):
         self.risk_params = risk_params or RiskParameters()
         self.kelly_calc = KellyCalculator()
+        self._vix_monitor = None  # Lazy-loaded
+
+    def _get_vix_monitor(self):
+        """Lazy-load VIX monitor to avoid circular imports."""
+        if self._vix_monitor is None:
+            try:
+                from backend.auth0login.services.market_monitor import get_market_monitor
+                self._vix_monitor = get_market_monitor()
+            except ImportError:
+                self._vix_monitor = False  # Mark as unavailable
+        return self._vix_monitor if self._vix_monitor else None
+
+    def get_vix_position_multiplier(self) -> tuple[float, dict]:
+        """Get VIX-based position size multiplier.
+
+        Returns:
+            Tuple of (multiplier, vix_info_dict)
+        """
+        monitor = self._get_vix_monitor()
+        if monitor is None:
+            return 1.0, {'available': False, 'reason': 'VIX monitor not available'}
+
+        try:
+            vix_data = monitor.get_vix_data()
+            if vix_data is None:
+                return 1.0, {'available': False, 'reason': 'Unable to fetch VIX data'}
+
+            multiplier = monitor.get_position_size_multiplier(vix_data.value)
+            return multiplier, {
+                'available': True,
+                'vix_value': vix_data.value,
+                'vix_level': vix_data.level.value,
+                'vix_percentile': vix_data.percentile,
+                'multiplier': multiplier,
+                'is_spike': vix_data.is_spike,
+            }
+        except Exception as e:
+            return 1.0, {'available': False, 'reason': str(e)}
 
     def calculate_position_size(
         self,
@@ -285,6 +323,12 @@ class PositionSizer:
         absolute_max_contracts = int(max_absolute_risk / premium_per_contract)
         recommended_contracts = min(recommended_contracts, absolute_max_contracts)
 
+        # 5. VIX-based adjustment - reduce size during high volatility
+        vix_multiplier, vix_info = self.get_vix_position_multiplier()
+        pre_vix_contracts = recommended_contracts
+        vix_adjusted_contracts = int(recommended_contracts * vix_multiplier)
+        recommended_contracts = vix_adjusted_contracts
+
         # Calculate final metrics
         final_cost = recommended_contracts * premium_per_contract
         final_risk_pct = (final_cost / account_value) * 100
@@ -300,6 +344,8 @@ class PositionSizer:
             "kelly_contracts": kelly_contracts,
             "confidence_contracts": confidence_contracts,
             "iv_adjusted_contracts": iv_adjusted_contracts,
+            "vix_adjusted_contracts": vix_adjusted_contracts,
+            "pre_vix_contracts": pre_vix_contracts,
             # Risk metrics
             "kelly_fraction": kelly_fraction,
             "safe_kelly_fraction": safe_kelly_fraction,
@@ -309,9 +355,135 @@ class PositionSizer:
                 "avg_win": expected_avg_win,
                 "avg_loss": expected_avg_loss,
             },
+            # VIX information
+            "vix_adjustment": vix_info,
         }
 
         return results
+
+    def calculate_position_size_with_validation(
+        self,
+        account_value: float,
+        setup_confidence: float,
+        premium_per_contract: float,
+        validation_result: dict = None,
+        expected_win_rate: float = 0.60,
+        expected_avg_win: float = 1.50,
+        expected_avg_loss: float = 0.45,
+        risk_tier: str = "moderate",
+    ) -> dict:
+        """Calculate position size incorporating signal validation results.
+
+        GAP FIX: This method implements the Risk Management Integration Gap -
+        position sizing now adapts dynamically based on signal validation quality.
+
+        Args:
+            account_value: Total account value
+            setup_confidence: Base confidence in the trade setup (0-1)
+            premium_per_contract: Cost per options contract
+            validation_result: Signal validation result dict containing:
+                - suggested_position_size: 0.0-1.0 multiplier
+                - confidence_level: 0.0-1.0 confidence
+                - strength_score: 0-100 signal strength
+                - quality_grade: 'A', 'B', 'C', 'D', 'F'
+            expected_win_rate: Historical win rate
+            expected_avg_win: Average win multiplier
+            expected_avg_loss: Average loss fraction
+            risk_tier: Risk tolerance tier
+
+        Returns:
+            Position sizing dictionary with validation adjustments
+        """
+        # Get base position sizing
+        base_result = self.calculate_position_size(
+            account_value=account_value,
+            setup_confidence=setup_confidence,
+            premium_per_contract=premium_per_contract,
+            expected_win_rate=expected_win_rate,
+            expected_avg_win=expected_avg_win,
+            expected_avg_loss=expected_avg_loss,
+            risk_tier=risk_tier,
+        )
+
+        if not validation_result:
+            # No validation data - return base result with reduced confidence
+            base_result['validation_applied'] = False
+            base_result['validation_note'] = 'No validation data - using base sizing'
+            return base_result
+
+        # Extract validation metrics
+        suggested_multiplier = validation_result.get('suggested_position_size', 1.0)
+        confidence_level = validation_result.get('confidence_level', 0.5)
+        strength_score = validation_result.get('strength_score', 50)
+        quality_grade = validation_result.get('quality_grade', 'C')
+
+        # Calculate validation-adjusted position size
+        base_contracts = base_result['recommended_contracts']
+
+        # Apply validation multiplier
+        validation_adjusted = int(base_contracts * suggested_multiplier)
+
+        # Apply quality grade adjustments
+        grade_multipliers = {
+            'A': 1.0,   # Full size for A grade
+            'B': 0.85,  # 85% for B grade
+            'C': 0.70,  # 70% for C grade
+            'D': 0.50,  # 50% for D grade
+            'F': 0.0,   # No position for F grade
+        }
+        grade_multiplier = grade_multipliers.get(quality_grade, 0.5)
+        grade_adjusted = int(validation_adjusted * grade_multiplier)
+
+        # Apply confidence level as final adjustment
+        # Low confidence = smaller position
+        confidence_adjusted = int(grade_adjusted * max(confidence_level, 0.3))
+
+        # Ensure minimum viable position (at least 1 contract if we're trading)
+        if grade_adjusted > 0 and confidence_adjusted < 1:
+            confidence_adjusted = 1
+
+        # Take minimum of base and validation-adjusted
+        final_contracts = min(base_contracts, confidence_adjusted)
+
+        # Update result with validation information
+        base_result['recommended_contracts'] = max(0, final_contracts)
+        base_result['total_cost'] = final_contracts * premium_per_contract
+        base_result['risk_amount'] = final_contracts * premium_per_contract
+        base_result['risk_percentage'] = (
+            (final_contracts * premium_per_contract) / account_value * 100
+            if account_value > 0 else 0
+        )
+
+        # Add validation metrics to result
+        base_result['validation_applied'] = True
+        base_result['validation_metrics'] = {
+            'suggested_multiplier': suggested_multiplier,
+            'confidence_level': confidence_level,
+            'strength_score': strength_score,
+            'quality_grade': quality_grade,
+            'grade_multiplier': grade_multiplier,
+            'base_contracts': base_result['fixed_fractional_contracts'],
+            'validation_adjusted_contracts': validation_adjusted,
+            'grade_adjusted_contracts': grade_adjusted,
+            'confidence_adjusted_contracts': confidence_adjusted,
+            'final_contracts': final_contracts,
+        }
+
+        # Add warning if position was significantly reduced
+        reduction_pct = (1 - (final_contracts / max(base_contracts, 1))) * 100
+        if reduction_pct > 50:
+            base_result['validation_warning'] = (
+                f'Position reduced by {reduction_pct:.0f}% due to validation results '
+                f'(grade: {quality_grade}, score: {strength_score})'
+            )
+        elif reduction_pct > 0:
+            base_result['validation_note'] = (
+                f'Position adjusted by {reduction_pct:.0f}% based on validation'
+            )
+        else:
+            base_result['validation_note'] = 'Full position size approved by validation'
+
+        return base_result
 
 
 class RiskManager:

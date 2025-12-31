@@ -1,0 +1,288 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Debit Spreads Configuration {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .param-card { border-left: 4px solid #f5365c; transition: all 0.3s ease; }
+  .param-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+  .tooltip-icon { cursor: help; color: #8898aa; font-size: 14px; margin-left: 5px; }
+  .tooltip-icon:hover { color: #f5365c; }
+  .profile-badge { cursor: pointer; transition: all 0.2s ease; }
+  .profile-badge:hover { transform: scale(1.05); }
+  .profile-badge.active { border: 2px solid #f5365c; }
+  .param-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #e9ecef; }
+  .param-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(310deg, #f5365c 0%, #f56036 100%); cursor: pointer; }
+  .spread-diagram { background: #f8f9fa; border-radius: 8px; padding: 20px; }
+  .implication-box { background: linear-gradient(to right, rgba(245,54,92,0.05), rgba(245,96,54,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .warning-implication { background: linear-gradient(to right, rgba(251,99,64,0.1), rgba(245,54,92,0.05)); }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-danger">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-layer-group text-danger fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">Debit Call Spreads Configuration</h4>
+              <p class="text-white opacity-8 mb-0">More repeatable than naked calls with reduced theta/IV risk. Defined risk, defined reward.</p>
+            </div>
+            <div class="col-auto">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="strategyEnabled" checked style="width: 50px; height: 26px;">
+                <label class="form-check-label text-white ms-2" for="strategyEnabled">Enabled</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spread Structure Visualization -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-chart-line me-2"></i>Spread Structure</h6>
+        </div>
+        <div class="card-body">
+          <div class="spread-diagram">
+            <div class="row text-center">
+              <div class="col-4">
+                <div class="p-3 bg-success text-white rounded">
+                  <i class="fas fa-arrow-up fa-2x mb-2"></i>
+                  <h6 class="text-white">BUY Lower Strike</h6>
+                  <p class="mb-0 text-sm">Long Call (ITM/ATM)</p>
+                </div>
+              </div>
+              <div class="col-4 d-flex align-items-center justify-content-center">
+                <i class="fas fa-arrows-alt-h fa-3x text-secondary"></i>
+              </div>
+              <div class="col-4">
+                <div class="p-3 bg-danger text-white rounded">
+                  <i class="fas fa-arrow-down fa-2x mb-2"></i>
+                  <h6 class="text-white">SELL Higher Strike</h6>
+                  <p class="mb-0 text-sm">Short Call (OTM)</p>
+                </div>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-12 text-center">
+                <small class="text-secondary">Max Profit = Spread Width - Net Debit | Max Loss = Net Debit</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Spread Construction -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-tools me-2"></i>Spread Construction</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Spread Width ($) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Distance between strikes. Wider = more profit potential but higher cost"></i></span>
+              <span class="badge bg-gradient-danger" id="spreadWidthValue">$5</span>
+            </label>
+            <input type="range" class="param-slider" id="spreadWidth" min="1" max="20" value="5">
+            <div class="implication-box" id="spreadWidthImplication">
+              <small class="text-secondary"><i class="fas fa-ruler-horizontal text-danger me-1"></i><strong>$5 wide spread:</strong> On a $100 stock, this means buying $100 call and selling $105 call. Max profit = $500 - debit paid. $5 is standard for most stocks.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Target DTE (Days) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Days to expiration - 21-45 DTE optimal for spreads"></i></span>
+              <span class="badge bg-gradient-primary" id="targetDteValue">30 days</span>
+            </label>
+            <input type="range" class="param-slider" id="targetDte" min="14" max="60" value="30">
+            <div class="implication-box" id="targetDteImplication">
+              <small class="text-secondary"><i class="fas fa-calendar text-primary me-1"></i><strong>30 DTE sweet spot:</strong> Gives enough time for the trade to work while still benefiting from theta decay on the short leg. 21-45 DTE is the optimal range for debit spreads.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Long Strike Delta <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Delta of the long (bought) call. 0.50 = ATM, 0.70 = ITM"></i></span>
+              <span class="badge bg-gradient-success" id="longDeltaValue">0.55</span>
+            </label>
+            <input type="range" class="param-slider" id="longDelta" min="40" max="80" value="55">
+            <div class="implication-box" id="longDeltaImplication">
+              <small class="text-secondary"><i class="fas fa-chart-line text-success me-1"></i><strong>0.55 delta:</strong> Slightly in-the-money. Higher delta = more expensive but higher probability of profit. Lower delta = cheaper but needs bigger move. 0.50-0.60 is the sweet spot.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Min Trend Score <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Minimum bullish trend score (0-100) to enter spread"></i></span>
+              <span class="badge bg-gradient-info" id="trendScoreValue">60</span>
+            </label>
+            <input type="range" class="param-slider" id="trendScore" min="40" max="90" value="60">
+            <div class="implication-box" id="trendScoreImplication">
+              <small class="text-secondary"><i class="fas fa-arrow-trend-up text-info me-1"></i><strong>Score 60+:</strong> Requires moderately bullish technicals before entering. Higher = stricter filter (fewer but higher-quality setups). Lower = more trades but lower win rate.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk/Reward -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-balance-scale me-2"></i>Risk/Reward Settings</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Min Reward:Risk Ratio <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Minimum ratio of potential profit to max loss"></i></span>
+              <span class="badge bg-gradient-success" id="rewardRiskValue">1.5:1</span>
+            </label>
+            <input type="range" class="param-slider" id="rewardRisk" min="10" max="40" value="15">
+            <div class="implication-box" id="rewardRiskImplication">
+              <small class="text-secondary"><i class="fas fa-balance-scale text-success me-1"></i><strong>1.5:1 ratio:</strong> For every $1 risked, potential profit is $1.50. With 50% win rate, you're profitable. Higher ratio = better math but harder to find setups.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Max Debit (% of Width) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Maximum debit to pay as % of spread width. Lower = better R:R"></i></span>
+              <span class="badge bg-gradient-warning" id="maxDebitValue">50%</span>
+            </label>
+            <input type="range" class="param-slider" id="maxDebit" min="30" max="70" value="50">
+            <div class="implication-box" id="maxDebitImplication">
+              <small class="text-secondary"><i class="fas fa-dollar-sign text-warning me-1"></i><strong>50% max debit:</strong> On a $5 wide spread, pay max $2.50. This gives breakeven at 50% of the way to max profit. Lower % = better entry but harder to fill.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Profit Target (% of Max) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Close spread when this % of max profit is achieved"></i></span>
+              <span class="badge bg-gradient-primary" id="profitTargetValue">50%</span>
+            </label>
+            <input type="range" class="param-slider" id="profitTarget" min="25" max="90" value="50">
+            <div class="implication-box" id="profitTargetImplication">
+              <small class="text-secondary"><i class="fas fa-bullseye text-primary me-1"></i><strong>50% profit target:</strong> Close when spread reaches half its max value. Taking profits early increases win rate and frees up capital. Waiting for 100% max profit is rarely optimal.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Stop Loss (% of Debit) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Exit if spread loses this % of initial debit"></i></span>
+              <span class="badge bg-gradient-danger" id="stopLossValue">50%</span>
+            </label>
+            <input type="range" class="param-slider" id="stopLoss" min="30" max="80" value="50">
+            <div class="implication-box warning-implication" id="stopLossImplication">
+              <small class="text-secondary"><i class="fas fa-shield-alt text-danger me-1"></i><strong>50% stop:</strong> Exit if spread loses half its value. With defined risk spreads, some prefer to let them run to expiry rather than stop out early. Adjust based on your risk tolerance.</small>
+            </div>
+          </div>
+
+          <div class="alert alert-success mb-0 mt-3">
+            <i class="fas fa-lightbulb me-2"></i><strong>Why debit spreads?</strong> Defined risk, reduced theta decay vs naked calls, lower capital requirement, and protection against IV crush. The trade-off is capped profit potential.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Position Management -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card param-card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-chart-pie me-2"></i>Position Management</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Max Concurrent Spreads</label>
+              <input type="number" class="form-control" value="5" min="1" max="20" id="maxSpreads">
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Position Size (% Portfolio)</label>
+              <input type="number" class="form-control" value="3" min="1" max="10" id="positionPct">
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Max IV Rank</label>
+              <input type="number" class="form-control" value="50" min="20" max="80" id="maxIvRank">
+              <small class="text-secondary">Lower IV = cheaper spreads</small>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Min Liquidity Score</label>
+              <input type="number" class="form-control" value="60" min="30" max="90" id="minLiquidity">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <button class="btn btn-outline-secondary mb-0"><i class="fas fa-undo me-2"></i>Reset</button>
+              <button class="btn btn-outline-info mb-0 ms-2"><i class="fas fa-download me-2"></i>Export</button>
+            </div>
+            <div>
+              <button class="btn btn-outline-warning mb-0 me-2"><i class="fas fa-history me-2"></i>Backtest</button>
+              <button class="btn bg-gradient-danger mb-0"><i class="fas fa-save me-2"></i>Save Configuration</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+  document.getElementById('spreadWidth').addEventListener('input', function() {
+    document.getElementById('spreadWidthValue').textContent = '$' + this.value;
+  });
+  document.getElementById('targetDte').addEventListener('input', function() {
+    document.getElementById('targetDteValue').textContent = this.value + ' days';
+  });
+  document.getElementById('longDelta').addEventListener('input', function() {
+    document.getElementById('longDeltaValue').textContent = (this.value / 100).toFixed(2);
+  });
+  document.getElementById('trendScore').addEventListener('input', function() {
+    document.getElementById('trendScoreValue').textContent = this.value;
+  });
+  document.getElementById('rewardRisk').addEventListener('input', function() {
+    document.getElementById('rewardRiskValue').textContent = (this.value / 10).toFixed(1) + ':1';
+  });
+  document.getElementById('maxDebit').addEventListener('input', function() {
+    document.getElementById('maxDebitValue').textContent = this.value + '%';
+  });
+  document.getElementById('profitTarget').addEventListener('input', function() {
+    document.getElementById('profitTargetValue').textContent = this.value + '%';
+  });
+  document.getElementById('stopLoss').addEventListener('input', function() {
+    document.getElementById('stopLossValue').textContent = this.value + '%';
+  });
+</script>
+{% endblock javascripts %}

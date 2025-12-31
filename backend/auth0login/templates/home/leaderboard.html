@@ -1,0 +1,958 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Strategy Leaderboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h2 class="text-white mb-1">Strategy Leaderboard</h2>
+                            <p class="text-white opacity-8 mb-0">
+                                Compare strategy performance, track rankings, and build hypothetical portfolios
+                            </p>
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <button class="btn btn-white btn-sm me-2" onclick="refreshLeaderboard()">
+                                <i class="fas fa-sync-alt me-1"></i> Refresh
+                            </button>
+                            <button class="btn btn-outline-white btn-sm" data-bs-toggle="modal" data-bs-target="#hypotheticalModal">
+                                <i class="fas fa-calculator me-1"></i> Hypothetical Portfolio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performers Cards -->
+    <div class="row mb-4">
+        {% for metric, data in top_performers.categories.items %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <h6 class="mb-0">
+                        {% if metric == 'sharpe_ratio' %}
+                        <i class="fas fa-chart-line text-primary me-2"></i>Best Risk-Adjusted
+                        {% elif metric == 'total_return_pct' %}
+                        <i class="fas fa-trophy text-success me-2"></i>Highest Returns
+                        {% else %}
+                        <i class="fas fa-bullseye text-info me-2"></i>Best Win Rate
+                        {% endif %}
+                    </h6>
+                </div>
+                <div class="card-body pt-2">
+                    {% for strategy in data.top_strategies %}
+                    <div class="d-flex align-items-center py-2 {% if not forloop.last %}border-bottom{% endif %}">
+                        <div class="avatar avatar-sm bg-gradient-{% if forloop.first %}primary{% elif forloop.counter == 2 %}secondary{% else %}info{% endif %} me-3">
+                            <span class="text-white">{{ forloop.counter }}</span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0 text-sm">{{ strategy.strategy_display_name }}</h6>
+                            <p class="text-xs text-muted mb-0">{{ strategy.category|title }}</p>
+                        </div>
+                        <div class="text-end">
+                            {% if metric == 'sharpe_ratio' %}
+                            <span class="badge bg-gradient-primary">{{ strategy.sharpe_ratio|floatformat:2 }}</span>
+                            {% elif metric == 'total_return_pct' %}
+                            <span class="badge bg-gradient-{% if strategy.total_return_pct >= 0 %}success{% else %}danger{% endif %}">
+                                {{ strategy.total_return_pct|floatformat:1 }}%
+                            </span>
+                            {% else %}
+                            <span class="badge bg-gradient-info">{{ strategy.win_rate|floatformat:0 }}%</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">No data available</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Filters and Main Leaderboard -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6">
+                            <h5 class="mb-0">Strategy Rankings</h5>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="d-flex justify-content-end gap-2">
+                                <!-- Period Filter -->
+                                <select class="form-select form-select-sm" id="periodFilter" style="width: auto;">
+                                    {% for period in periods %}
+                                    <option value="{{ period }}" {% if period == default_period %}selected{% endif %}>
+                                        {{ period }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+
+                                <!-- Metric Filter -->
+                                <select class="form-select form-select-sm" id="metricFilter" style="width: auto;">
+                                    {% for key, label in metrics.items %}
+                                    <option value="{{ key }}" {% if key == default_metric %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+
+                                <!-- Compare Button -->
+                                <button class="btn btn-sm btn-outline-primary" id="compareBtn" disabled>
+                                    <i class="fas fa-columns me-1"></i> Compare Selected
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body px-0 pt-0 pb-2">
+                    <div class="table-responsive p-0">
+                        <table class="table align-items-center mb-0" id="leaderboardTable">
+                            <thead>
+                                <tr>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 50px;">
+                                        <input type="checkbox" id="selectAll" class="form-check-input">
+                                    </th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 60px;">Rank</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Strategy</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Return</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Sharpe</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Win Rate</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Max DD</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Trades</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Trend</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboardBody">
+                                {% for entry in leaderboard.leaderboard %}
+                                <tr data-strategy="{{ entry.strategy_name }}">
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input strategy-checkbox" value="{{ entry.strategy_name }}">
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-gradient-{% if entry.rank == 1 %}warning{% elif entry.rank == 2 %}secondary{% elif entry.rank == 3 %}info{% else %}light text-dark{% endif %} badge-sm">
+                                            #{{ entry.rank }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm">{{ entry.strategy_display_name }}</h6>
+                                                <p class="text-xs text-secondary mb-0">
+                                                    <span class="badge badge-sm bg-light text-dark">{{ entry.category|title }}</span>
+                                                    <span class="badge badge-sm bg-{% if entry.risk_level == 'low' %}success{% elif entry.risk_level == 'medium' %}warning{% elif entry.risk_level == 'high' %}danger{% else %}dark{% endif %}">
+                                                        {{ entry.risk_level|title }} Risk
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="text-{% if entry.total_return_pct >= 0 %}success{% else %}danger{% endif %} text-sm font-weight-bold">
+                                            {% if entry.total_return_pct >= 0 %}+{% endif %}{{ entry.total_return_pct|floatformat:2 }}%
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="text-sm font-weight-bold">{{ entry.sharpe_ratio|floatformat:2 }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="progress-wrapper" style="width: 60px; margin: 0 auto;">
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-gradient-{% if entry.win_rate >= 60 %}success{% elif entry.win_rate >= 50 %}warning{% else %}danger{% endif %}"
+                                                     role="progressbar"
+                                                     style="width: {{ entry.win_rate }}%">
+                                                </div>
+                                            </div>
+                                            <span class="text-xs">{{ entry.win_rate|floatformat:0 }}%</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="text-danger text-sm">-{{ entry.max_drawdown_pct|floatformat:1 }}%</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="text-sm">{{ entry.trades_count }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if entry.trend == 'up' %}
+                                        <i class="fas fa-arrow-up text-success"></i>
+                                        {% elif entry.trend == 'down' %}
+                                        <i class="fas fa-arrow-down text-danger"></i>
+                                        {% else %}
+                                        <i class="fas fa-minus text-secondary"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-link text-secondary mb-0" onclick="showStrategyDetails('{{ entry.strategy_name }}')">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                        <button class="btn btn-link text-primary mb-0" onclick="showRankHistory('{{ entry.strategy_name }}')">
+                                            <i class="fas fa-chart-line"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center py-4">
+                                        <p class="text-muted mb-0">No strategy data available. Run the snapshot generator first.</p>
+                                        <code class="text-xs">python manage.py generate_leaderboard_snapshots</code>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Strategy Details Modal -->
+<div class="modal fade" id="strategyDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="strategyDetailsTitle">Strategy Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="strategyDetailsContent">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Strategy Comparison Modal -->
+<div class="modal fade" id="compareModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Strategy Comparison</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="compareContent">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hypothetical Portfolio Modal -->
+<div class="modal fade" id="hypotheticalModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Hypothetical Portfolio Builder</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-4">
+                    Build a hypothetical portfolio by allocating percentages to different strategies.
+                    See what your performance would have been.
+                </p>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Initial Capital ($)</label>
+                        <input type="number" class="form-control" id="initialCapital" value="100000" min="1000" step="1000">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Period</label>
+                        <select class="form-select" id="hypotheticalPeriod">
+                            {% for period in periods %}
+                            <option value="{{ period }}">{{ period }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <h6 class="mb-3">Strategy Allocations (must sum to 100%)</h6>
+                <div id="allocationInputs">
+                    {% for strategy in all_strategies %}
+                    <div class="row mb-2 allocation-row">
+                        <div class="col-8">
+                            <span class="text-sm">{{ strategy.display_name }}</span>
+                            <span class="badge badge-sm bg-{% if strategy.risk_level == 'low' %}success{% elif strategy.risk_level == 'medium' %}warning{% elif strategy.risk_level == 'high' %}danger{% else %}dark{% endif %} ms-2">
+                                {{ strategy.risk_level|title }}
+                            </span>
+                        </div>
+                        <div class="col-4">
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control allocation-input"
+                                       data-strategy="{{ strategy.strategy_name }}"
+                                       value="0" min="0" max="100" step="5">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <p class="mb-0">Total Allocation: <strong id="totalAllocation">0%</strong></p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span id="allocationWarning" class="text-danger text-sm" style="display: none;">
+                            Must equal 100%
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="calculateHypotheticalBtn" onclick="calculateHypothetical()">
+                    <i class="fas fa-calculator me-1"></i> Calculate
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hypothetical Results Modal -->
+<div class="modal fade" id="hypotheticalResultsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Hypothetical Portfolio Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="hypotheticalResultsContent">
+                <!-- Results populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rank History Modal -->
+<div class="modal fade" id="rankHistoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rankHistoryTitle">Rank History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="rankHistoryContent">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Global variables
+    let currentPeriod = '{{ default_period }}';
+    let currentMetric = '{{ default_metric }}';
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Period filter change
+        document.getElementById('periodFilter').addEventListener('change', function() {
+            currentPeriod = this.value;
+            refreshLeaderboard();
+        });
+
+        // Metric filter change
+        document.getElementById('metricFilter').addEventListener('change', function() {
+            currentMetric = this.value;
+            refreshLeaderboard();
+        });
+
+        // Select all checkbox
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.strategy-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            updateCompareButton();
+        });
+
+        // Individual checkboxes
+        document.querySelectorAll('.strategy-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateCompareButton);
+        });
+
+        // Allocation inputs
+        document.querySelectorAll('.allocation-input').forEach(input => {
+            input.addEventListener('input', updateTotalAllocation);
+        });
+
+        // Compare button
+        document.getElementById('compareBtn').addEventListener('click', compareSelected);
+    });
+
+    function updateCompareButton() {
+        const checked = document.querySelectorAll('.strategy-checkbox:checked');
+        const compareBtn = document.getElementById('compareBtn');
+        compareBtn.disabled = checked.length < 2;
+        compareBtn.textContent = checked.length > 0
+            ? `Compare Selected (${checked.length})`
+            : 'Compare Selected';
+    }
+
+    function refreshLeaderboard() {
+        fetch(`/api/leaderboard/?period=${currentPeriod}&metric=${currentMetric}&limit=15`)
+            .then(response => response.json())
+            .then(data => {
+                renderLeaderboard(data);
+            })
+            .catch(error => {
+                console.error('Error fetching leaderboard:', error);
+            });
+    }
+
+    function renderLeaderboard(data) {
+        const tbody = document.getElementById('leaderboardBody');
+
+        if (!data.leaderboard || data.leaderboard.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="10" class="text-center py-4">
+                        <p class="text-muted mb-0">No strategy data available for ${data.period}</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = data.leaderboard.map(entry => `
+            <tr data-strategy="${entry.strategy_name}">
+                <td class="text-center">
+                    <input type="checkbox" class="form-check-input strategy-checkbox" value="${entry.strategy_name}">
+                </td>
+                <td class="text-center">
+                    <span class="badge bg-gradient-${entry.rank === 1 ? 'warning' : entry.rank === 2 ? 'secondary' : entry.rank === 3 ? 'info' : 'light text-dark'} badge-sm">
+                        #${entry.rank}
+                    </span>
+                </td>
+                <td>
+                    <div class="d-flex px-2 py-1">
+                        <div class="d-flex flex-column justify-content-center">
+                            <h6 class="mb-0 text-sm">${entry.strategy_display_name || entry.strategy_name}</h6>
+                            <p class="text-xs text-secondary mb-0">
+                                <span class="badge badge-sm bg-light text-dark">${capitalize(entry.category || 'other')}</span>
+                                <span class="badge badge-sm bg-${getRiskColor(entry.risk_level)}">
+                                    ${capitalize(entry.risk_level || 'unknown')} Risk
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-center">
+                    <span class="text-${entry.total_return_pct >= 0 ? 'success' : 'danger'} text-sm font-weight-bold">
+                        ${entry.total_return_pct >= 0 ? '+' : ''}${entry.total_return_pct.toFixed(2)}%
+                    </span>
+                </td>
+                <td class="text-center">
+                    <span class="text-sm font-weight-bold">${entry.sharpe_ratio.toFixed(2)}</span>
+                </td>
+                <td class="text-center">
+                    <div class="progress-wrapper" style="width: 60px; margin: 0 auto;">
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-gradient-${entry.win_rate >= 60 ? 'success' : entry.win_rate >= 50 ? 'warning' : 'danger'}"
+                                 role="progressbar"
+                                 style="width: ${entry.win_rate}%">
+                            </div>
+                        </div>
+                        <span class="text-xs">${entry.win_rate.toFixed(0)}%</span>
+                    </div>
+                </td>
+                <td class="text-center">
+                    <span class="text-danger text-sm">-${entry.max_drawdown_pct.toFixed(1)}%</span>
+                </td>
+                <td class="text-center">
+                    <span class="text-sm">${entry.trades_count}</span>
+                </td>
+                <td class="text-center">
+                    ${getTrendIcon(entry.trend)}
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-link text-secondary mb-0" onclick="showStrategyDetails('${entry.strategy_name}')">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                    <button class="btn btn-link text-primary mb-0" onclick="showRankHistory('${entry.strategy_name}')">
+                        <i class="fas fa-chart-line"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        // Re-attach checkbox listeners
+        document.querySelectorAll('.strategy-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateCompareButton);
+        });
+    }
+
+    function showStrategyDetails(strategyName) {
+        const modal = new bootstrap.Modal(document.getElementById('strategyDetailsModal'));
+        document.getElementById('strategyDetailsContent').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+        modal.show();
+
+        fetch(`/api/leaderboard/strategy/${strategyName}/?period=${currentPeriod}`)
+            .then(response => response.json())
+            .then(data => {
+                renderStrategyDetails(data);
+            })
+            .catch(error => {
+                document.getElementById('strategyDetailsContent').innerHTML = `
+                    <div class="alert alert-danger">Error loading strategy details</div>
+                `;
+            });
+    }
+
+    function renderStrategyDetails(data) {
+        document.getElementById('strategyDetailsTitle').textContent = data.display_name || data.strategy_name;
+
+        if (data.no_data) {
+            document.getElementById('strategyDetailsContent').innerHTML = `
+                <div class="alert alert-warning">${data.message}</div>
+            `;
+            return;
+        }
+
+        document.getElementById('strategyDetailsContent').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted text-xs mb-3">Performance Metrics</h6>
+                    <table class="table table-sm">
+                        <tr><td>Total Return</td><td class="text-end"><strong class="text-${data.performance.total_return_pct >= 0 ? 'success' : 'danger'}">${data.performance.total_return_pct >= 0 ? '+' : ''}${data.performance.total_return_pct.toFixed(2)}%</strong></td></tr>
+                        <tr><td>Sharpe Ratio</td><td class="text-end"><strong>${data.performance.sharpe_ratio.toFixed(2)}</strong></td></tr>
+                        <tr><td>Sortino Ratio</td><td class="text-end">${data.performance.sortino_ratio.toFixed(2)}</td></tr>
+                        <tr><td>Win Rate</td><td class="text-end">${data.performance.win_rate.toFixed(1)}%</td></tr>
+                        <tr><td>Profit Factor</td><td class="text-end">${data.performance.profit_factor.toFixed(2)}</td></tr>
+                        <tr><td>Max Drawdown</td><td class="text-end text-danger">-${data.performance.max_drawdown_pct.toFixed(2)}%</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted text-xs mb-3">Trading Statistics</h6>
+                    <table class="table table-sm">
+                        <tr><td>Total Trades</td><td class="text-end"><strong>${data.trading_stats.trades_count}</strong></td></tr>
+                        <tr><td>Winning Trades</td><td class="text-end text-success">${data.trading_stats.winning_trades}</td></tr>
+                        <tr><td>Losing Trades</td><td class="text-end text-danger">${data.trading_stats.losing_trades}</td></tr>
+                        <tr><td>Avg Trade P&L</td><td class="text-end">$${data.trading_stats.avg_trade_pnl.toFixed(2)}</td></tr>
+                        <tr><td>Best Trade</td><td class="text-end text-success">$${data.trading_stats.best_trade_pnl.toFixed(2)}</td></tr>
+                        <tr><td>Worst Trade</td><td class="text-end text-danger">$${data.trading_stats.worst_trade_pnl.toFixed(2)}</td></tr>
+                    </table>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted text-xs mb-3">Benchmark Comparison</h6>
+                    <table class="table table-sm">
+                        <tr><td>vs SPY</td><td class="text-end"><span class="text-${data.benchmark_comparison.vs_spy_return >= 0 ? 'success' : 'danger'}">${data.benchmark_comparison.vs_spy_return >= 0 ? '+' : ''}${data.benchmark_comparison.vs_spy_return.toFixed(2)}%</span></td></tr>
+                        <tr><td>Alpha</td><td class="text-end">${data.benchmark_comparison.alpha.toFixed(2)}</td></tr>
+                        <tr><td>Beta</td><td class="text-end">${data.risk_metrics.beta.toFixed(2)}</td></tr>
+                        <tr><td>Correlation</td><td class="text-end">${data.benchmark_comparison.correlation_spy.toFixed(2)}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted text-xs mb-3">Current Rankings</h6>
+                    <table class="table table-sm">
+                        <tr><td>By Sharpe</td><td class="text-end"><span class="badge bg-primary">#${data.rankings.rank_by_sharpe}</span> / ${data.rankings.total_strategies}</td></tr>
+                        <tr><td>By Return</td><td class="text-end"><span class="badge bg-success">#${data.rankings.rank_by_return}</span> / ${data.rankings.total_strategies}</td></tr>
+                        <tr><td>Risk-Adjusted</td><td class="text-end"><span class="badge bg-info">#${data.rankings.rank_by_risk_adjusted}</span> / ${data.rankings.total_strategies}</td></tr>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    function showRankHistory(strategyName) {
+        const modal = new bootstrap.Modal(document.getElementById('rankHistoryModal'));
+        document.getElementById('rankHistoryTitle').textContent = `Rank History: ${strategyName}`;
+        document.getElementById('rankHistoryContent').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+        modal.show();
+
+        fetch(`/api/leaderboard/strategy/${strategyName}/history/?metric=${currentMetric}&days=90`)
+            .then(response => response.json())
+            .then(data => {
+                renderRankHistory(data);
+            })
+            .catch(error => {
+                document.getElementById('rankHistoryContent').innerHTML = `
+                    <div class="alert alert-danger">Error loading rank history</div>
+                `;
+            });
+    }
+
+    function renderRankHistory(data) {
+        document.getElementById('rankHistoryTitle').textContent = `Rank History: ${data.display_name || data.strategy_name}`;
+
+        const trendBadge = data.trend === 'improving'
+            ? '<span class="badge bg-success">Improving</span>'
+            : data.trend === 'declining'
+            ? '<span class="badge bg-danger">Declining</span>'
+            : '<span class="badge bg-secondary">Stable</span>';
+
+        document.getElementById('rankHistoryContent').innerHTML = `
+            <div class="row mb-4">
+                <div class="col-md-4 text-center">
+                    <h4 class="mb-0">#${data.current_rank || '-'}</h4>
+                    <p class="text-muted text-sm">Current Rank</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h4 class="mb-0">${data.rank_change > 0 ? '+' : ''}${data.rank_change}</h4>
+                    <p class="text-muted text-sm">Rank Change</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    ${trendBadge}
+                    <p class="text-muted text-sm mt-2">Trend</p>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <small class="text-muted">Best Rank: <strong>#${data.best_rank || '-'}</strong></small>
+                </div>
+                <div class="col-6 text-end">
+                    <small class="text-muted">Worst Rank: <strong>#${data.worst_rank || '-'}</strong></small>
+                </div>
+            </div>
+            <canvas id="rankHistoryChart" height="200"></canvas>
+        `;
+
+        // Render chart
+        if (data.history && data.history.length > 0) {
+            const ctx = document.getElementById('rankHistoryChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.history.map(h => h.date),
+                    datasets: [{
+                        label: 'Rank',
+                        data: data.history.map(h => h.rank),
+                        borderColor: '#5e72e4',
+                        backgroundColor: 'rgba(94, 114, 228, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            reverse: true, // Lower rank is better
+                            beginAtZero: false,
+                            min: 1
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function compareSelected() {
+        const checked = document.querySelectorAll('.strategy-checkbox:checked');
+        if (checked.length < 2) return;
+
+        const strategies = Array.from(checked).map(cb => cb.value);
+
+        const modal = new bootstrap.Modal(document.getElementById('compareModal'));
+        document.getElementById('compareContent').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+        modal.show();
+
+        fetch('/api/leaderboard/compare/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                strategies: strategies,
+                period: currentPeriod
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            renderComparison(data);
+        })
+        .catch(error => {
+            document.getElementById('compareContent').innerHTML = `
+                <div class="alert alert-danger">Error loading comparison</div>
+            `;
+        });
+    }
+
+    function renderComparison(data) {
+        if (!data.comparison || data.comparison.length === 0) {
+            document.getElementById('compareContent').innerHTML = `
+                <div class="alert alert-warning">No comparison data available</div>
+            `;
+            return;
+        }
+
+        const metrics = ['total_return_pct', 'sharpe_ratio', 'win_rate', 'max_drawdown_pct', 'profit_factor', 'trades_count'];
+        const metricLabels = {
+            total_return_pct: 'Total Return %',
+            sharpe_ratio: 'Sharpe Ratio',
+            win_rate: 'Win Rate %',
+            max_drawdown_pct: 'Max Drawdown %',
+            profit_factor: 'Profit Factor',
+            trades_count: 'Trades'
+        };
+
+        let html = '<div class="table-responsive"><table class="table table-sm">';
+        html += '<thead><tr><th>Metric</th>';
+        data.comparison.forEach(s => {
+            html += `<th class="text-center">${s.display_name || s.strategy_name}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        metrics.forEach(metric => {
+            html += `<tr><td><strong>${metricLabels[metric]}</strong></td>`;
+            data.comparison.forEach(s => {
+                if (s.no_data) {
+                    html += '<td class="text-center text-muted">N/A</td>';
+                } else {
+                    const value = s.metrics[metric];
+                    const isBest = data.metrics_summary[metric]?.best?.strategy === s.strategy_name;
+                    const isWorst = data.metrics_summary[metric]?.worst?.strategy === s.strategy_name;
+
+                    let displayValue = typeof value === 'number' ? value.toFixed(2) : value;
+                    if (metric.includes('pct')) displayValue += '%';
+
+                    let cellClass = '';
+                    if (isBest) cellClass = 'text-success font-weight-bold';
+                    else if (isWorst) cellClass = 'text-danger';
+
+                    html += `<td class="text-center ${cellClass}">${displayValue}</td>`;
+                }
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+
+        document.getElementById('compareContent').innerHTML = html;
+    }
+
+    function updateTotalAllocation() {
+        const inputs = document.querySelectorAll('.allocation-input');
+        let total = 0;
+        inputs.forEach(input => {
+            total += parseFloat(input.value) || 0;
+        });
+
+        document.getElementById('totalAllocation').textContent = total.toFixed(0) + '%';
+        document.getElementById('allocationWarning').style.display = Math.abs(total - 100) > 0.01 ? 'inline' : 'none';
+        document.getElementById('calculateHypotheticalBtn').disabled = Math.abs(total - 100) > 0.01;
+    }
+
+    function calculateHypothetical() {
+        const allocations = {};
+        document.querySelectorAll('.allocation-input').forEach(input => {
+            const value = parseFloat(input.value) || 0;
+            if (value > 0) {
+                allocations[input.dataset.strategy] = value;
+            }
+        });
+
+        const period = document.getElementById('hypotheticalPeriod').value;
+        const initialCapital = parseFloat(document.getElementById('initialCapital').value) || 100000;
+
+        // Close first modal
+        bootstrap.Modal.getInstance(document.getElementById('hypotheticalModal')).hide();
+
+        // Show results modal
+        const resultsModal = new bootstrap.Modal(document.getElementById('hypotheticalResultsModal'));
+        document.getElementById('hypotheticalResultsContent').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+        resultsModal.show();
+
+        fetch('/api/leaderboard/hypothetical/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                allocations: allocations,
+                period: period,
+                initial_capital: initialCapital
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            renderHypotheticalResults(data);
+        })
+        .catch(error => {
+            document.getElementById('hypotheticalResultsContent').innerHTML = `
+                <div class="alert alert-danger">Error calculating portfolio</div>
+            `;
+        });
+    }
+
+    function renderHypotheticalResults(data) {
+        if (data.error) {
+            document.getElementById('hypotheticalResultsContent').innerHTML = `
+                <div class="alert alert-danger">${data.error}</div>
+            `;
+            return;
+        }
+
+        const pm = data.portfolio_metrics;
+        const bc = data.benchmark_comparison;
+
+        let html = `
+            <div class="row mb-4">
+                <div class="col-md-4 text-center">
+                    <h3 class="text-${pm.total_return_pct >= 0 ? 'success' : 'danger'} mb-0">
+                        ${pm.total_return_pct >= 0 ? '+' : ''}${pm.total_return_pct.toFixed(2)}%
+                    </h3>
+                    <p class="text-muted text-sm">Total Return</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h3 class="mb-0">$${data.final_value.toLocaleString(undefined, {maximumFractionDigits: 0})}</h3>
+                    <p class="text-muted text-sm">Final Value</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h3 class="text-${bc.beat_benchmark ? 'success' : 'danger'} mb-0">
+                        ${bc.vs_benchmark >= 0 ? '+' : ''}${bc.vs_benchmark.toFixed(2)}%
+                    </h3>
+                    <p class="text-muted text-sm">vs SPY</p>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-3 text-center">
+                    <h5 class="mb-0">${pm.sharpe_ratio.toFixed(2)}</h5>
+                    <p class="text-muted text-xs">Sharpe</p>
+                </div>
+                <div class="col-md-3 text-center">
+                    <h5 class="mb-0 text-danger">-${pm.max_drawdown_pct.toFixed(1)}%</h5>
+                    <p class="text-muted text-xs">Max DD</p>
+                </div>
+                <div class="col-md-3 text-center">
+                    <h5 class="mb-0">${pm.win_rate.toFixed(0)}%</h5>
+                    <p class="text-muted text-xs">Win Rate</p>
+                </div>
+                <div class="col-md-3 text-center">
+                    <h5 class="mb-0">${pm.total_trades}</h5>
+                    <p class="text-muted text-xs">Trades</p>
+                </div>
+            </div>
+
+            <hr>
+
+            <h6 class="text-uppercase text-muted text-xs mb-3">Strategy Breakdown</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Strategy</th>
+                            <th class="text-center">Allocation</th>
+                            <th class="text-center">Return</th>
+                            <th class="text-center">Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        data.strategy_breakdown.forEach(s => {
+            if (!s.no_data) {
+                html += `
+                    <tr>
+                        <td>${s.display_name}</td>
+                        <td class="text-center">${s.allocation_pct}%</td>
+                        <td class="text-center text-${s.return_pct >= 0 ? 'success' : 'danger'}">
+                            ${s.return_pct >= 0 ? '+' : ''}${s.return_pct.toFixed(2)}%
+                        </td>
+                        <td class="text-center">${s.contribution_to_return.toFixed(2)}%</td>
+                    </tr>
+                `;
+            }
+        });
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+            <div class="alert alert-info mt-3">
+                <i class="fas fa-info-circle me-2"></i>
+                Diversification Score: <strong>${data.diversification_score}/100</strong>
+            </div>
+        `;
+
+        document.getElementById('hypotheticalResultsContent').innerHTML = html;
+    }
+
+    // Utility functions
+    function capitalize(str) {
+        return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+    }
+
+    function getRiskColor(level) {
+        const colors = {
+            'low': 'success',
+            'medium': 'warning',
+            'high': 'danger',
+            'very_high': 'dark'
+        };
+        return colors[level] || 'secondary';
+    }
+
+    function getTrendIcon(trend) {
+        if (trend === 'up') return '<i class="fas fa-arrow-up text-success"></i>';
+        if (trend === 'down') return '<i class="fas fa-arrow-down text-danger"></i>';
+        return '<i class="fas fa-minus text-secondary"></i>';
+    }
+
+    function getCsrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+               document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='))?.split('=')[1] || '';
+    }
+</script>
+{% endblock %}

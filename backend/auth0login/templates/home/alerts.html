@@ -1,0 +1,564 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Alerts {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .alert-item {
+    transition: all 0.3s ease;
+    border-left: 4px solid;
+  }
+  .alert-item.critical { border-left-color: #f5365c; }
+  .alert-item.warning { border-left-color: #fb6340; }
+  .alert-item.info { border-left-color: #11cdef; }
+  .alert-item.success { border-left-color: #2dce89; }
+  .alert-item:hover {
+    background-color: rgba(0,0,0,0.02);
+  }
+  .alert-item.unread {
+    background-color: rgba(203, 12, 159, 0.05);
+  }
+  .notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #f5365c;
+    color: white;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .setting-tip { background: linear-gradient(to right, rgba(17,205,239,0.05), rgba(45,206,137,0.05)); border-radius: 8px; padding: 10px; margin-top: 10px; }
+  .implication-box { background: linear-gradient(to right, rgba(203,12,159,0.05), rgba(94,114,228,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .priority-legend { background: rgba(0,0,0,0.02); border-radius: 8px; padding: 12px; }
+  .priority-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .priority-item:last-child { margin-bottom: 0; }
+  .priority-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .priority-dot.critical { background: #f5365c; }
+  .priority-dot.warning { background: #fb6340; }
+  .priority-dot.info { background: #11cdef; }
+  .priority-dot.success { background: #2dce89; }
+  .alert-type-help { font-size: 11px; color: #8898aa; margin-left: 4px; cursor: help; }
+  .channel-description { font-size: 11px; color: #8898aa; margin-top: 2px; }
+  .rule-help-box { background: linear-gradient(to right, rgba(251,99,64,0.05), rgba(245,54,92,0.05)); border-radius: 8px; padding: 12px; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-info">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-lg-8">
+              <h4 class="text-white mb-1"><i class="fas fa-bell me-2"></i>Alert Center</h4>
+              <p class="text-white opacity-8 mb-0">Monitor trading alerts, system notifications, and configure alert preferences.</p>
+            </div>
+            <div class="col-lg-4 text-end">
+              <button class="btn btn-white mb-0" id="markAllReadBtn" data-bs-toggle="tooltip" title="Mark all unread alerts as read - they'll stay in history but won't show as new">
+                <i class="fas fa-check-double me-2"></i>Mark All Read
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Purpose Implication Box -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="implication-box">
+        <div class="row">
+          <div class="col-md-8">
+            <h6 class="mb-2"><i class="fas fa-info-circle text-primary me-2"></i>Why Alerts Matter</h6>
+            <p class="text-sm text-secondary mb-0">
+              <strong>Alerts are your trading safety net.</strong> They notify you of important events so you don't have to constantly monitor the dashboard.
+              Critical alerts like circuit breakers and stop losses help protect your capital even when you're away.
+              Configure your notification channels to match your availability - you'll never miss an important event.
+            </p>
+          </div>
+          <div class="col-md-4">
+            <div class="priority-legend">
+              <small class="text-uppercase text-secondary font-weight-bold mb-2 d-block">Priority Levels</small>
+              <div class="priority-item">
+                <span class="priority-dot critical"></span>
+                <small><strong>Critical</strong> - Immediate action needed</small>
+              </div>
+              <div class="priority-item">
+                <span class="priority-dot warning"></span>
+                <small><strong>Warning</strong> - Review when convenient</small>
+              </div>
+              <div class="priority-item">
+                <span class="priority-dot info"></span>
+                <small><strong>Info</strong> - Good to know</small>
+              </div>
+              <div class="priority-item">
+                <span class="priority-dot success"></span>
+                <small><strong>Success</strong> - Positive outcomes</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Alert Settings -->
+    <div class="col-lg-4 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-cog me-2"></i>Alert Settings</h6>
+          <p class="text-xs text-secondary mb-0">Configure which alerts you want to receive and how</p>
+        </div>
+        <div class="card-body">
+          <!-- Alert Types -->
+          <h6 class="text-xs text-uppercase text-secondary mb-3">Alert Types</h6>
+
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="alertTradeExecuted" checked>
+            <label class="form-check-label" for="alertTradeExecuted">
+              Trade Executed
+              <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="Notifies you when a trade is placed. Useful for confirming the bot is working as expected."></i>
+            </label>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="alertStopLoss" checked>
+            <label class="form-check-label" for="alertStopLoss">
+              Stop Loss Hit
+              <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="CRITICAL: Your position was closed to prevent further losses. Review your strategy parameters if this happens frequently."></i>
+            </label>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="alertTakeProfit" checked>
+            <label class="form-check-label" for="alertTakeProfit">
+              Take Profit Hit
+              <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="Your position reached your profit target and was closed. Celebrate these wins!"></i>
+            </label>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="alertCircuitBreaker" checked>
+            <label class="form-check-label" for="alertCircuitBreaker">
+              Circuit Breaker Triggered
+              <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="CRITICAL: Trading was automatically paused due to unusual losses or market conditions. This protects your capital - review before resuming."></i>
+            </label>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="alertPositionLimit" checked>
+            <label class="form-check-label" for="alertPositionLimit">
+              Position Limit Reached
+              <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="The bot wanted to buy more but hit your maximum position limit. This prevents overexposure to a single stock."></i>
+            </label>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="alertSystemError" checked>
+            <label class="form-check-label" for="alertSystemError">
+              System Error
+              <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="CRITICAL: Something went wrong with the trading system. May require manual intervention to resolve."></i>
+            </label>
+          </div>
+
+          <div class="setting-tip">
+            <small class="text-secondary"><i class="fas fa-lightbulb text-warning me-1"></i><strong>Pro Tip:</strong> Keep "Circuit Breaker" and "System Error" always enabled - these are your safety net. Other alerts can be adjusted based on your trading style.</small>
+          </div>
+
+          <hr>
+
+          <!-- Notification Channels -->
+          <h6 class="text-xs text-uppercase text-secondary mb-3">Notification Channels</h6>
+          <div class="mb-3">
+            <label class="form-label text-sm">
+              Email
+              <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="Best for: Daily summaries and non-urgent alerts. Emails are logged and searchable."></i>
+            </label>
+            <input type="email" class="form-control" placeholder="your@email.com">
+            <div class="channel-description">Receives all alert types. Good for record-keeping.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-sm">
+              SMS (Phone)
+              <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="Best for: Critical alerts only. Gets your attention immediately but can be disruptive."></i>
+            </label>
+            <input type="tel" class="form-control" placeholder="+1 (555) 123-4567">
+            <div class="channel-description">Reserved for CRITICAL alerts. Standard messaging rates apply.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-sm">
+              Discord Webhook
+              <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="Best for: Real-time trade updates. Create a private channel to see all your trades."></i>
+            </label>
+            <input type="url" class="form-control" placeholder="https://discord.com/api/webhooks/...">
+            <div class="channel-description">Real-time updates. <a href="https://support.discord.com/hc/en-us/articles/228383668" target="_blank">How to create a webhook</a></div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-sm">
+              Telegram Bot Token
+              <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="Best for: Mobile notifications. Telegram bots are free and reliable."></i>
+            </label>
+            <input type="text" class="form-control" placeholder="bot_token:chat_id">
+            <div class="channel-description">Format: BOT_TOKEN:CHAT_ID. <a href="https://core.telegram.org/bots#creating-a-new-bot" target="_blank">Create a Telegram bot</a></div>
+          </div>
+
+          <div class="setting-tip">
+            <small class="text-secondary"><i class="fas fa-mobile-alt text-info me-1"></i><strong>Multi-channel strategy:</strong> Use SMS for CRITICAL alerts only (don't spam yourself). Discord/Telegram for regular trade updates. Email for daily summaries. This keeps you informed without notification fatigue.</small>
+          </div>
+
+          <hr>
+
+          <!-- Sound Settings -->
+          <h6 class="text-xs text-uppercase text-secondary mb-3">Sound</h6>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="soundEnabled" checked>
+            <label class="form-check-label" for="soundEnabled">
+              Enable Sound Alerts
+              <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="Plays a sound in the browser when new alerts arrive. Only works when the dashboard is open."></i>
+            </label>
+          </div>
+
+          <button class="btn bg-gradient-primary w-100 mb-0" data-bs-toggle="tooltip" title="Save all alert preferences to your account">
+            <i class="fas fa-save me-2"></i>Save Settings
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert Feed -->
+    <div class="col-lg-8">
+      <!-- Filters -->
+      <div class="card mb-4">
+        <div class="card-body p-3">
+          <div class="row align-items-center">
+            <div class="col-md-3">
+              <select class="form-select form-select-sm" id="priorityFilter" data-bs-toggle="tooltip" title="Filter by how urgent the alert is">
+                <option value="all">All Priorities</option>
+                <option value="critical">Critical</option>
+                <option value="warning">Warning</option>
+                <option value="info">Info</option>
+                <option value="success">Success</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select class="form-select form-select-sm" id="typeFilter" data-bs-toggle="tooltip" title="Filter by what triggered the alert">
+                <option value="all">All Types</option>
+                <option value="trade">Trade</option>
+                <option value="risk">Risk</option>
+                <option value="system">System</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <input type="date" class="form-control form-control-sm" id="dateFilter" data-bs-toggle="tooltip" title="Show alerts from a specific date">
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-sm btn-outline-secondary w-100 mb-0" id="clearFiltersBtn">
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert List -->
+      <div class="card">
+        <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-0">Recent Alerts</h6>
+            <p class="text-xs text-secondary mb-0">Click an alert for details and recommended actions</p>
+          </div>
+          <span class="badge bg-gradient-primary" data-bs-toggle="tooltip" title="Alerts you haven't acknowledged yet">{{ unread_count|default:"0" }} unread</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            {% for alert in alerts %}
+            <div class="list-group-item alert-item {{ alert.alert_type }} {% if not alert.acknowledged %}unread{% endif %} p-3" style="cursor: pointer;" data-bs-toggle="tooltip" title="Click to view details and take action">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="icon icon-shape bg-gradient-{% if alert.alert_type == 'critical' %}danger{% elif alert.alert_type == 'warning' %}warning{% elif alert.alert_type == 'success' %}success{% else %}info{% endif %} text-white rounded-circle">
+                    <i class="fas {% if alert.alert_type == 'critical' %}fa-exclamation-triangle{% elif alert.alert_type == 'warning' %}fa-exclamation{% elif alert.alert_type == 'success' %}fa-check{% else %}fa-info{% endif %}"></i>
+                  </div>
+                </div>
+                <div class="col">
+                  <h6 class="mb-1">{{ alert.title }}</h6>
+                  <p class="text-sm text-secondary mb-0">{{ alert.message }}</p>
+                  <small class="text-muted">{{ alert.timestamp|timesince }} ago - {{ alert.strategy }}</small>
+                </div>
+                <div class="col-auto">
+                  <span class="badge bg-{% if alert.alert_type == 'critical' %}danger{% elif alert.alert_type == 'warning' %}warning{% elif alert.alert_type == 'success' %}success{% else %}info{% endif %}">{{ alert.priority|upper }}</span>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="list-group-item p-4 text-center">
+              <div class="icon icon-shape bg-gradient-secondary text-white rounded-circle mx-auto mb-3" style="width: 60px; height: 60px;">
+                <i class="fas fa-bell-slash fa-lg"></i>
+              </div>
+              <h6 class="text-secondary mb-2">No Alerts Yet</h6>
+              <p class="text-sm text-muted mb-0">When your strategies execute trades or encounter events, alerts will appear here. This is normal if you just started or have no active strategies.</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card-footer text-center">
+          <button class="btn btn-link text-primary mb-0" data-bs-toggle="tooltip" title="Load older alerts from history">Load More Alerts</button>
+        </div>
+      </div>
+
+      <!-- Custom Alert Rules -->
+      <div class="card mt-4">
+        <div class="card-header pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-0"><i class="fas fa-magic me-2"></i>Custom Alert Rules</h6>
+              <p class="text-xs text-secondary mb-0">Create personalized alerts based on your trading metrics</p>
+            </div>
+            <button class="btn btn-sm bg-gradient-primary mb-0" data-bs-toggle="modal" data-bs-target="#addRuleModal">
+              <i class="fas fa-plus me-1"></i>Add Rule
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Custom Rules Help Box -->
+          <div class="rule-help-box mb-3">
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <i class="fas fa-shield-alt fa-2x text-warning"></i>
+              </div>
+              <div class="col">
+                <h6 class="mb-1 text-sm">Custom Rules = Your Personal Risk Manager</h6>
+                <p class="text-xs text-secondary mb-0">
+                  Set up rules like "if daily loss exceeds $500, pause trading and send SMS" to protect your capital automatically.
+                  Rules run continuously and can take automatic actions like pausing strategies when triggered.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                    Rule
+                    <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="Name of your custom alert rule"></i>
+                  </th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">
+                    Condition
+                    <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="When this condition is true, the alert fires"></i>
+                  </th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">
+                    Action
+                    <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="What happens when the rule triggers"></i>
+                  </th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">
+                    Status
+                    <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="Active rules are being monitored, Paused rules are ignored"></i>
+                  </th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <span class="font-weight-bold">Daily Loss Alert</span>
+                    <div class="text-xs text-muted">Protect against bad days</div>
+                  </td>
+                  <td class="text-center text-sm">daily_loss > $1000</td>
+                  <td class="text-center text-sm">Email + SMS</td>
+                  <td class="text-center"><span class="badge bg-success">Active</span></td>
+                  <td class="text-center">
+                    <button class="btn btn-link text-secondary p-0 me-2" data-bs-toggle="tooltip" title="Edit this rule"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-link text-danger p-0" data-bs-toggle="tooltip" title="Delete this rule"><i class="fas fa-trash"></i></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span class="font-weight-bold">Position Concentration</span>
+                    <div class="text-xs text-muted">Prevent overexposure</div>
+                  </td>
+                  <td class="text-center text-sm">position_pct > 8%</td>
+                  <td class="text-center text-sm">Discord</td>
+                  <td class="text-center"><span class="badge bg-success">Active</span></td>
+                  <td class="text-center">
+                    <button class="btn btn-link text-secondary p-0 me-2" data-bs-toggle="tooltip" title="Edit this rule"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-link text-danger p-0" data-bs-toggle="tooltip" title="Delete this rule"><i class="fas fa-trash"></i></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <span class="font-weight-bold">Win Streak</span>
+                    <div class="text-xs text-muted">Celebrate the wins!</div>
+                  </td>
+                  <td class="text-center text-sm">consecutive_wins >= 5</td>
+                  <td class="text-center text-sm">Email</td>
+                  <td class="text-center"><span class="badge bg-secondary">Paused</span></td>
+                  <td class="text-center">
+                    <button class="btn btn-link text-secondary p-0 me-2" data-bs-toggle="tooltip" title="Edit this rule"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-link text-danger p-0" data-bs-toggle="tooltip" title="Delete this rule"><i class="fas fa-trash"></i></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="setting-tip mt-3">
+            <small class="text-secondary"><i class="fas fa-lightbulb text-warning me-1"></i><strong>Rule Ideas:</strong>
+              Set up a "consecutive_losses >= 3" rule to pause trading and review your strategy.
+              Or create a "drawdown > 5%" rule to get an SMS before things get worse.
+              Custom rules are your automated risk manager.
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+
+<!-- Add Rule Modal -->
+<div class="modal fade" id="addRuleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-magic me-2"></i>Add Custom Alert Rule</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info mb-3">
+          <i class="fas fa-info-circle me-2"></i>
+          <small>Custom rules monitor your trading metrics in real-time and trigger alerts or actions when conditions are met.</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Rule Name</label>
+          <input type="text" class="form-control" placeholder="e.g., High Loss Alert">
+          <small class="text-muted">Give it a name you'll recognize in your alert feed</small>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">
+            Metric
+            <i class="fas fa-question-circle alert-type-help" data-bs-toggle="tooltip" title="The value to monitor. Choose based on what you want to protect against."></i>
+          </label>
+          <select class="form-select" id="metricSelect">
+            <option value="daily_loss">daily_loss - Today's total losses ($)</option>
+            <option value="daily_gain">daily_gain - Today's total gains ($)</option>
+            <option value="position_pct">position_pct - Single position as % of portfolio</option>
+            <option value="drawdown">drawdown - Current drawdown from peak (%)</option>
+            <option value="win_rate">win_rate - Recent win rate (%)</option>
+            <option value="consecutive_wins">consecutive_wins - Trades won in a row</option>
+            <option value="consecutive_losses">consecutive_losses - Trades lost in a row</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Operator</label>
+          <select class="form-select">
+            <option value=">">> (greater than)</option>
+            <option value="<">< (less than)</option>
+            <option value=">=">>= (greater than or equal)</option>
+            <option value="<="><= (less than or equal)</option>
+            <option value="==">== (exactly equals)</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Value</label>
+          <input type="text" class="form-control" placeholder="e.g., 1000" id="ruleValueInput">
+          <small class="text-muted" id="valueHint">Enter the threshold value for your condition</small>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Actions (select multiple)</label>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="actionEmail">
+            <label class="form-check-label" for="actionEmail">
+              <i class="fas fa-envelope text-secondary me-1"></i>Send Email
+              <small class="text-muted d-block">Good for record-keeping and non-urgent alerts</small>
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="actionSMS">
+            <label class="form-check-label" for="actionSMS">
+              <i class="fas fa-sms text-secondary me-1"></i>Send SMS
+              <small class="text-muted d-block">Best for critical alerts that need immediate attention</small>
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="actionDiscord">
+            <label class="form-check-label" for="actionDiscord">
+              <i class="fab fa-discord text-secondary me-1"></i>Send to Discord
+              <small class="text-muted d-block">Real-time updates to your Discord channel</small>
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="actionPause">
+            <label class="form-check-label" for="actionPause">
+              <i class="fas fa-pause-circle text-warning me-1"></i>Pause Trading
+              <small class="text-muted d-block"><strong>Recommended for loss rules</strong> - automatically stops the bot</small>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn bg-gradient-primary">
+          <i class="fas fa-check me-1"></i>Create Rule
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  // Initialize tooltips
+  document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+
+  // Mark all as read
+  document.getElementById('markAllReadBtn').addEventListener('click', function() {
+    document.querySelectorAll('.alert-item.unread').forEach(item => {
+      item.classList.remove('unread');
+    });
+    document.querySelector('.badge.bg-gradient-primary').textContent = '0 unread';
+  });
+
+  // Dynamic value hints based on metric selection
+  document.getElementById('metricSelect').addEventListener('change', function() {
+    const hints = {
+      'daily_loss': 'Enter amount in dollars (e.g., 500 for $500)',
+      'daily_gain': 'Enter amount in dollars (e.g., 1000 for $1000)',
+      'position_pct': 'Enter percentage (e.g., 8 for 8%)',
+      'drawdown': 'Enter percentage (e.g., 5 for 5% drawdown)',
+      'win_rate': 'Enter percentage (e.g., 40 for 40% win rate)',
+      'consecutive_wins': 'Enter number of consecutive wins (e.g., 5)',
+      'consecutive_losses': 'Enter number of consecutive losses (e.g., 3)'
+    };
+    document.getElementById('valueHint').textContent = hints[this.value] || 'Enter the threshold value';
+  });
+
+  // Filter functionality
+  document.getElementById('priorityFilter').addEventListener('change', filterAlerts);
+  document.getElementById('typeFilter').addEventListener('change', filterAlerts);
+  document.getElementById('dateFilter').addEventListener('change', filterAlerts);
+  document.getElementById('clearFiltersBtn').addEventListener('click', function() {
+    document.getElementById('priorityFilter').value = 'all';
+    document.getElementById('typeFilter').value = 'all';
+    document.getElementById('dateFilter').value = '';
+    filterAlerts();
+  });
+
+  function filterAlerts() {
+    const priority = document.getElementById('priorityFilter').value;
+    const type = document.getElementById('typeFilter').value;
+    // Add actual filter logic when backend is connected
+  }
+</script>
+{% endblock javascripts %}

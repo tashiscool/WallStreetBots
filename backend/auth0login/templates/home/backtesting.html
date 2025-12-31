@@ -1,0 +1,581 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Backtesting {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .backtest-progress {
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .results-card {
+    transition: all 0.3s ease;
+  }
+  .results-card:hover {
+    transform: scale(1.02);
+  }
+  .param-tip { background: linear-gradient(to right, rgba(94,114,228,0.05), rgba(203,12,159,0.05)); border-radius: 8px; padding: 10px; margin-top: 8px; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-primary">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-lg-8">
+              <h4 class="text-white mb-1"><i class="fas fa-history me-2"></i>Strategy Backtesting</h4>
+              <p class="text-white opacity-8 mb-0">Test your strategies against historical data before deploying with real capital.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Backtest Configuration -->
+    <div class="col-lg-4 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-cog me-2"></i>Backtest Configuration</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Strategy</label>
+            <select class="form-select" id="backtestStrategy">
+              <option value="wsb-dip-bot">WSB Dip Bot</option>
+              <option value="momentum-weeklies">Momentum Weeklies</option>
+              <option value="wheel-strategy">Wheel Strategy</option>
+              <option value="earnings-protection">Earnings Protection</option>
+              <option value="debit-spreads">Debit Spreads</option>
+              <option value="leaps-tracker">LEAPS Tracker</option>
+              <option value="lotto-scanner">Lotto Scanner</option>
+              <option value="swing-trading">Swing Trading</option>
+              <option value="spx-credit-spreads">SPX Credit Spreads</option>
+              <option value="index-baseline">Index Baseline</option>
+            </select>
+          </div>
+          <div class="row">
+            <div class="col-6 mb-3">
+              <label class="form-label">Start Date</label>
+              <input type="date" class="form-control" id="startDate" value="2023-01-01">
+            </div>
+            <div class="col-6 mb-3">
+              <label class="form-label">End Date</label>
+              <input type="date" class="form-control" id="endDate" value="2024-01-01">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Initial Capital ($)</label>
+            <input type="number" class="form-control" id="initialCapital" value="100000">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Benchmark</label>
+            <select class="form-select" id="benchmark">
+              <option value="SPY">SPY (S&P 500)</option>
+              <option value="QQQ">QQQ (Nasdaq 100)</option>
+              <option value="IWM">IWM (Russell 2000)</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          <hr>
+          <h6 class="text-sm mb-3">Strategy Parameters</h6>
+          <div class="mb-3">
+            <label class="form-label text-sm">Position Size (%)</label>
+            <input type="range" class="form-range" min="1" max="10" value="3" id="btPositionSize">
+            <span class="text-sm" id="btPositionSizeValue">3%</span>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-sm">Stop Loss (%)</label>
+            <input type="range" class="form-range" min="1" max="20" value="5" id="btStopLoss">
+            <span class="text-sm" id="btStopLossValue">5%</span>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-sm">Take Profit (%)</label>
+            <input type="range" class="form-range" min="5" max="50" value="15" id="btTakeProfit">
+            <span class="text-sm" id="btTakeProfitValue">15%</span>
+          </div>
+
+          <div class="param-tip">
+            <small class="text-secondary"><i class="fas fa-lightbulb text-warning me-1"></i><strong>Backtest wisdom:</strong> Past performance doesn't guarantee future results! But it DOES reveal strategy edge, optimal parameters, and risk profile. Run multiple scenarios to stress test your strategy.</small>
+          </div>
+
+          <button class="btn bg-gradient-success w-100 mb-0 mt-3" id="runBacktestBtn">
+            <i class="fas fa-play me-2"></i>Run Backtest
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backtest Results -->
+    <div class="col-lg-8">
+      <!-- Progress (shown during backtest) -->
+      <div class="card mb-4" id="progressCard" style="display: none;">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-sm font-weight-bold">Running Backtest...</span>
+            <span class="text-sm" id="progressPercent">0%</span>
+          </div>
+          <div class="progress backtest-progress">
+            <div class="progress-bar bg-gradient-primary" id="progressBar" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Summary -->
+      <div class="row mb-4" id="resultsCards">
+        <div class="col-md-3 col-6 mb-3">
+          <div class="card results-card">
+            <div class="card-body p-3 text-center">
+              <h4 class="text-success mb-0" id="totalReturn">+24.5%</h4>
+              <p class="text-sm text-secondary mb-0">Total Return</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+          <div class="card results-card">
+            <div class="card-body p-3 text-center">
+              <h4 class="mb-0" id="sharpeRatio">1.85</h4>
+              <p class="text-sm text-secondary mb-0">Sharpe Ratio</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+          <div class="card results-card">
+            <div class="card-body p-3 text-center">
+              <h4 class="text-danger mb-0" id="maxDrawdown">-8.2%</h4>
+              <p class="text-sm text-secondary mb-0">Max Drawdown</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+          <div class="card results-card">
+            <div class="card-body p-3 text-center">
+              <h4 class="mb-0" id="winRate">68%</h4>
+              <p class="text-sm text-secondary mb-0">Win Rate</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Equity Curve Chart -->
+      <div class="card mb-4">
+        <div class="card-header pb-0">
+          <h6>Equity Curve</h6>
+        </div>
+        <div class="card-body">
+          <canvas id="equityCurveChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Monthly Returns & Trades -->
+      <div class="row">
+        <div class="col-md-6 mb-4">
+          <div class="card h-100">
+            <div class="card-header pb-0">
+              <h6>Monthly Returns</h6>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <tbody>
+                    <tr><td>Jan 2023</td><td class="text-success text-end">+3.2%</td></tr>
+                    <tr><td>Feb 2023</td><td class="text-success text-end">+1.8%</td></tr>
+                    <tr><td>Mar 2023</td><td class="text-danger text-end">-2.1%</td></tr>
+                    <tr><td>Apr 2023</td><td class="text-success text-end">+4.5%</td></tr>
+                    <tr><td>May 2023</td><td class="text-success text-end">+2.9%</td></tr>
+                    <tr><td>Jun 2023</td><td class="text-success text-end">+1.2%</td></tr>
+                    <tr><td>Jul 2023</td><td class="text-success text-end">+3.8%</td></tr>
+                    <tr><td>Aug 2023</td><td class="text-danger text-end">-1.5%</td></tr>
+                    <tr><td>Sep 2023</td><td class="text-success text-end">+2.4%</td></tr>
+                    <tr><td>Oct 2023</td><td class="text-success text-end">+3.1%</td></tr>
+                    <tr><td>Nov 2023</td><td class="text-success text-end">+4.2%</td></tr>
+                    <tr><td>Dec 2023</td><td class="text-success text-end">+1.0%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 mb-4">
+          <div class="card h-100">
+            <div class="card-header pb-0">
+              <h6>Performance Metrics</h6>
+            </div>
+            <div class="card-body">
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between px-0">
+                  <span>Total Trades</span>
+                  <span class="font-weight-bold">156</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-0">
+                  <span>Winning Trades</span>
+                  <span class="font-weight-bold text-success">106</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-0">
+                  <span>Losing Trades</span>
+                  <span class="font-weight-bold text-danger">50</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-0">
+                  <span>Avg Win</span>
+                  <span class="font-weight-bold text-success">+$385</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-0">
+                  <span>Avg Loss</span>
+                  <span class="font-weight-bold text-danger">-$210</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-0">
+                  <span>Profit Factor</span>
+                  <span class="font-weight-bold">1.95</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-0">
+                  <span>Avg Hold Time</span>
+                  <span class="font-weight-bold">3.2 days</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-0">
+                  <span>Sortino Ratio</span>
+                  <span class="font-weight-bold">2.15</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trade List -->
+      <div class="card">
+        <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">Trade History</h6>
+          <button class="btn btn-sm btn-outline-primary mb-0">
+            <i class="fas fa-download me-2"></i>Export CSV
+          </button>
+        </div>
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive" style="max-height: 300px;">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Date</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Symbol</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Side</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Entry</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Exit</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">P&L</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="ps-3"><span class="text-xs">2023-12-28</span></td>
+                  <td><span class="font-weight-bold">NVDA</span></td>
+                  <td class="text-center"><span class="badge bg-success">BUY</span></td>
+                  <td class="text-center">$485.20</td>
+                  <td class="text-center">$512.40</td>
+                  <td class="text-center text-success">+$542</td>
+                </tr>
+                <tr>
+                  <td class="ps-3"><span class="text-xs">2023-12-22</span></td>
+                  <td><span class="font-weight-bold">AAPL</span></td>
+                  <td class="text-center"><span class="badge bg-success">BUY</span></td>
+                  <td class="text-center">$189.50</td>
+                  <td class="text-center">$195.20</td>
+                  <td class="text-center text-success">+$285</td>
+                </tr>
+                <tr>
+                  <td class="ps-3"><span class="text-xs">2023-12-18</span></td>
+                  <td><span class="font-weight-bold">TSLA</span></td>
+                  <td class="text-center"><span class="badge bg-success">BUY</span></td>
+                  <td class="text-center">$245.80</td>
+                  <td class="text-center">$238.10</td>
+                  <td class="text-center text-danger">-$154</td>
+                </tr>
+                <tr>
+                  <td class="ps-3"><span class="text-xs">2023-12-15</span></td>
+                  <td><span class="font-weight-bold">MSFT</span></td>
+                  <td class="text-center"><span class="badge bg-success">BUY</span></td>
+                  <td class="text-center">$372.50</td>
+                  <td class="text-center">$385.20</td>
+                  <td class="text-center text-success">+$381</td>
+                </tr>
+                <tr>
+                  <td class="ps-3"><span class="text-xs">2023-12-12</span></td>
+                  <td><span class="font-weight-bold">AMD</span></td>
+                  <td class="text-center"><span class="badge bg-success">BUY</span></td>
+                  <td class="text-center">$138.20</td>
+                  <td class="text-center">$145.80</td>
+                  <td class="text-center text-success">+$304</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Slider value updates
+  document.getElementById('btPositionSize').addEventListener('input', function() {
+    document.getElementById('btPositionSizeValue').textContent = this.value + '%';
+  });
+  document.getElementById('btStopLoss').addEventListener('input', function() {
+    document.getElementById('btStopLossValue').textContent = this.value + '%';
+  });
+  document.getElementById('btTakeProfit').addEventListener('input', function() {
+    document.getElementById('btTakeProfitValue').textContent = this.value + '%';
+  });
+
+  // Equity Curve Chart
+  const ctx = document.getElementById('equityCurveChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [{
+        label: 'Strategy',
+        data: [100000, 103200, 105056, 102780, 107405, 110520, 111847, 116101, 114360, 117106, 121783, 124586],
+        borderColor: '#cb0c9f',
+        backgroundColor: 'rgba(203, 12, 159, 0.1)',
+        fill: true,
+        tension: 0.4
+      }, {
+        label: 'SPY',
+        data: [100000, 101500, 104340, 107500, 109725, 112015, 114255, 116540, 114270, 117698, 121189, 124012],
+        borderColor: '#3A416F',
+        backgroundColor: 'rgba(58, 65, 111, 0.1)',
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        y: {
+          ticks: { callback: value => '$' + value.toLocaleString() }
+        }
+      }
+    }
+  });
+
+  // Run backtest via API
+  document.getElementById('runBacktestBtn').addEventListener('click', async function() {
+    const progressCard = document.getElementById('progressCard');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const btn = this;
+
+    // Collect form data
+    const formData = {
+      strategy: document.getElementById('backtestStrategy').value,
+      start_date: document.getElementById('startDate').value,
+      end_date: document.getElementById('endDate').value,
+      initial_capital: parseFloat(document.getElementById('initialCapital').value),
+      benchmark: document.getElementById('benchmark').value,
+      position_size_pct: parseFloat(document.getElementById('btPositionSize').value),
+      stop_loss_pct: parseFloat(document.getElementById('btStopLoss').value),
+      take_profit_pct: parseFloat(document.getElementById('btTakeProfit').value),
+    };
+
+    // Show progress
+    progressCard.style.display = 'block';
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Running...';
+
+    // Simulate progress while API runs
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress = Math.min(progress + Math.random() * 5, 90);
+      progressBar.style.width = progress + '%';
+      progressPercent.textContent = Math.round(progress) + '%';
+    }, 300);
+
+    try {
+      const response = await fetch('/api/backtest/run', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(formData),
+      });
+
+      clearInterval(progressInterval);
+      progressBar.style.width = '100%';
+      progressPercent.textContent = '100%';
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        updateResults(result.results);
+        setTimeout(() => progressCard.style.display = 'none', 500);
+      } else {
+        alert('Backtest error: ' + result.message);
+        progressCard.style.display = 'none';
+      }
+    } catch (error) {
+      clearInterval(progressInterval);
+      alert('Error running backtest: ' + error.message);
+      progressCard.style.display = 'none';
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-play me-2"></i>Run Backtest';
+  });
+
+  // Update results display
+  function updateResults(results) {
+    const summary = results.summary;
+
+    // Update summary cards
+    document.getElementById('totalReturn').textContent =
+      (summary.total_return_pct >= 0 ? '+' : '') + summary.total_return_pct.toFixed(1) + '%';
+    document.getElementById('totalReturn').className =
+      'mb-0 ' + (summary.total_return_pct >= 0 ? 'text-success' : 'text-danger');
+
+    document.getElementById('sharpeRatio').textContent = summary.sharpe_ratio.toFixed(2);
+    document.getElementById('maxDrawdown').textContent = '-' + summary.max_drawdown_pct.toFixed(1) + '%';
+    document.getElementById('winRate').textContent = Math.round(summary.win_rate) + '%';
+
+    // Update equity curve chart
+    const labels = results.equity_curve.map(d => d.date.split('-').slice(1).join('/'));
+    const strategyData = results.equity_curve.map(d => d.equity);
+    const benchmarkData = results.equity_curve.map(d => d.benchmark);
+
+    if (window.equityCurveChart) {
+      window.equityCurveChart.data.labels = labels;
+      window.equityCurveChart.data.datasets[0].data = strategyData;
+      window.equityCurveChart.data.datasets[1].data = benchmarkData;
+      window.equityCurveChart.update();
+    }
+
+    // Update monthly returns table
+    const monthlyBody = document.querySelector('.table-responsive tbody');
+    if (monthlyBody && results.monthly_returns) {
+      monthlyBody.innerHTML = Object.entries(results.monthly_returns).slice(-12).map(([month, ret]) => `
+        <tr>
+          <td>${month}</td>
+          <td class="${ret >= 0 ? 'text-success' : 'text-danger'} text-end">
+            ${ret >= 0 ? '+' : ''}${ret.toFixed(1)}%
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Update performance metrics
+    const metricsList = document.querySelector('.list-group');
+    if (metricsList) {
+      metricsList.innerHTML = `
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span>Total Trades</span>
+          <span class="font-weight-bold">${summary.total_trades}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span>Winning Trades</span>
+          <span class="font-weight-bold text-success">${summary.winning_trades}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span>Losing Trades</span>
+          <span class="font-weight-bold text-danger">${summary.losing_trades}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span>Avg Win</span>
+          <span class="font-weight-bold text-success">+$${Math.abs(summary.avg_win).toFixed(0)}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span>Avg Loss</span>
+          <span class="font-weight-bold text-danger">-$${Math.abs(summary.avg_loss).toFixed(0)}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span>Profit Factor</span>
+          <span class="font-weight-bold">${summary.profit_factor.toFixed(2)}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span>Avg Hold Time</span>
+          <span class="font-weight-bold">${summary.avg_hold_days.toFixed(1)} days</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span>Sortino Ratio</span>
+          <span class="font-weight-bold">${summary.sortino_ratio.toFixed(2)}</span>
+        </li>
+      `;
+    }
+
+    // Update trade history table
+    const tradesBody = document.querySelector('.table.align-items-center tbody');
+    if (tradesBody && results.trades) {
+      tradesBody.innerHTML = results.trades.slice(0, 10).map(trade => `
+        <tr>
+          <td class="ps-3"><span class="text-xs">${trade.entry_date}</span></td>
+          <td><span class="font-weight-bold">${trade.symbol}</span></td>
+          <td class="text-center"><span class="badge bg-success">${trade.direction.toUpperCase()}</span></td>
+          <td class="text-center">$${trade.entry_price.toFixed(2)}</td>
+          <td class="text-center">${trade.exit_price ? '$' + trade.exit_price.toFixed(2) : '-'}</td>
+          <td class="text-center ${trade.pnl >= 0 ? 'text-success' : 'text-danger'}">
+            ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(0)}
+          </td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  // Get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Store chart reference for updating
+  window.equityCurveChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [{
+        label: 'Strategy',
+        data: [100000, 103200, 105056, 102780, 107405, 110520, 111847, 116101, 114360, 117106, 121783, 124586],
+        borderColor: '#cb0c9f',
+        backgroundColor: 'rgba(203, 12, 159, 0.1)',
+        fill: true,
+        tension: 0.4
+      }, {
+        label: 'SPY',
+        data: [100000, 101500, 104340, 107500, 109725, 112015, 114255, 116540, 114270, 117698, 121189, 124012],
+        borderColor: '#3A416F',
+        backgroundColor: 'rgba(58, 65, 111, 0.1)',
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        y: {
+          ticks: { callback: value => '$' + value.toLocaleString() }
+        }
+      }
+    }
+  });
+</script>
+{% endblock javascripts %}

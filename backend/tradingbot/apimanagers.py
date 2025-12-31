@@ -359,18 +359,85 @@ class AlpacaManager:
         quantity: int,
         order_type: str = "market",
         limit_price: float | None = None,
+        strategy_name: str | None = None,
+        user=None,
+        enforce_allocation: bool = True,
+        enforce_recovery: bool = True,
     ) -> dict[str, Any]:
-        """Place a market buy order.
+        """Place a market buy order with optional allocation and recovery enforcement.
 
         Args:
             symbol: Stock symbol
             quantity: Number of shares
             order_type: 'market' or 'limit'
             limit_price: Limit price if order_type is 'limit'
+            strategy_name: Strategy name for allocation tracking
+            user: Django user for allocation lookup
+            enforce_allocation: Whether to enforce allocation limits
+            enforce_recovery: Whether to enforce recovery mode limits
 
         Returns:
             Order response dictionary
         """
+        # Check recovery mode and apply position size multiplier
+        recovery_multiplier = 1.0
+        original_quantity = quantity
+        if user and enforce_recovery:
+            try:
+                from backend.auth0login.services.recovery_manager import get_recovery_manager
+                recovery_mgr = get_recovery_manager(user)
+                recovery_status = recovery_mgr.get_recovery_status()
+
+                # Block trading if paused
+                if not recovery_status.can_trade:
+                    return {
+                        "error": "Trading paused - circuit breaker active",
+                        "recovery_blocked": True,
+                        "recovery_mode": recovery_status.current_mode.value,
+                        "message": recovery_status.message,
+                    }
+
+                # Apply position size multiplier
+                recovery_multiplier = recovery_status.position_multiplier
+                if recovery_multiplier < 1.0:
+                    quantity = max(1, int(quantity * recovery_multiplier))
+                    print(f"Recovery mode: Position size reduced from {original_quantity} to {quantity} ({recovery_multiplier * 100:.0f}%)")
+
+            except Exception as e:
+                print(f"Recovery check failed (allowing order): {e}")
+
+        # Calculate estimated order value for allocation check
+        estimated_value = None
+        if strategy_name and user and enforce_allocation:
+            try:
+                # Get current price for value estimation
+                price = limit_price if limit_price else self.get_last_trade(symbol).get('price', 0)
+                estimated_value = price * quantity
+            except Exception:
+                pass
+
+        # Enforce allocation limits if configured
+        allocation_reserved = False
+        if strategy_name and user and enforce_allocation and estimated_value:
+            try:
+                from backend.auth0login.services.allocation_manager import (
+                    get_allocation_manager,
+                    AllocationExceededError
+                )
+                manager = get_allocation_manager()
+                manager.enforce_allocation(
+                    user=user,
+                    strategy_name=strategy_name,
+                    proposed_amount=estimated_value,
+                    order_id=None,  # Will be set after order submission
+                    symbol=symbol
+                )
+                allocation_reserved = True
+            except AllocationExceededError as e:
+                return {"error": str(e), "allocation_exceeded": True}
+            except Exception as e:
+                print(f"Allocation check failed (allowing order): {e}")
+
         try:
             if order_type.lower() == "limit" and limit_price:
                 order_data = LimitOrderRequest(
@@ -390,7 +457,7 @@ class AlpacaManager:
 
             order = self.trading_client.submit_order(order_data=order_data)
 
-            return {
+            result = {
                 "id": order.id,
                 "status": order.status,
                 "symbol": order.symbol,
@@ -403,7 +470,32 @@ class AlpacaManager:
                 else None,
             }
 
+            # Reserve allocation with actual order ID
+            if strategy_name and user and enforce_allocation and estimated_value:
+                try:
+                    from backend.auth0login.services.allocation_manager import get_allocation_manager
+                    manager = get_allocation_manager()
+                    manager.reserve_allocation(
+                        user=user,
+                        strategy_name=strategy_name,
+                        amount=estimated_value,
+                        order_id=str(order.id),
+                        symbol=symbol
+                    )
+                except Exception as e:
+                    print(f"Failed to reserve allocation: {e}")
+
+            return result
+
         except Exception as e:
+            # Release allocation if order failed
+            if allocation_reserved and strategy_name and user and estimated_value:
+                try:
+                    from backend.auth0login.services.allocation_manager import get_allocation_manager
+                    manager = get_allocation_manager()
+                    manager.release_allocation(user, strategy_name, estimated_value)
+                except Exception:
+                    pass
             return {"error": f"Failed to place buy order: {e!s}"}
 
     def market_sell(

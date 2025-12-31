@@ -1,37 +1,160 @@
-"""Health check views for production monitoring."""
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
-from django.http import HttpResponse
-import logging
+"""Health check views for production monitoring.
 
-from backend.tradingbot.monitoring.health_check import health_checker
+Provides comprehensive health checks including:
+- Database connectivity
+- Redis connectivity (if configured)
+- Memory and CPU usage
+- Trading system components
+"""
+import logging
+import time
+from typing import Any, Dict
+
+import psutil
+from django.conf import settings
+from django.db import connection
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
 from backend.tradingbot.metrics.collectors import trading_registry
+from backend.tradingbot.monitoring.health_check import health_checker
 
 log = logging.getLogger(__name__)
+
+
+def check_database() -> Dict[str, Any]:
+    """Check database connectivity."""
+    start = time.time()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        latency_ms = (time.time() - start) * 1000
+        return {
+            "status": "healthy",
+            "latency_ms": round(latency_ms, 2),
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+        }
+
+
+def check_redis() -> Dict[str, Any]:
+    """Check Redis connectivity if configured."""
+    try:
+        from django.core.cache import cache
+
+        # Check if Redis is the cache backend
+        cache_backend = settings.CACHES.get("default", {}).get("BACKEND", "")
+        if "redis" not in cache_backend.lower():
+            return {"status": "not_configured"}
+
+        start = time.time()
+        cache.set("health_check", "ok", timeout=5)
+        result = cache.get("health_check")
+        latency_ms = (time.time() - start) * 1000
+
+        if result == "ok":
+            return {
+                "status": "healthy",
+                "latency_ms": round(latency_ms, 2),
+            }
+        return {"status": "unhealthy", "error": "Cache read failed"}
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e)}
+
+
+def check_system_resources() -> Dict[str, Any]:
+    """Check system resource usage."""
+    try:
+        memory = psutil.virtual_memory()
+        cpu_percent = psutil.cpu_percent(interval=0.1)
+
+        status = "healthy"
+        warnings = []
+
+        if memory.percent > 90:
+            status = "degraded"
+            warnings.append(f"High memory usage: {memory.percent}%")
+        if cpu_percent > 90:
+            status = "degraded"
+            warnings.append(f"High CPU usage: {cpu_percent}%")
+
+        return {
+            "status": status,
+            "memory_percent": memory.percent,
+            "memory_available_mb": round(memory.available / (1024 * 1024), 2),
+            "cpu_percent": cpu_percent,
+            "warnings": warnings if warnings else None,
+        }
+    except Exception as e:
+        return {"status": "unknown", "error": str(e)}
 
 
 @csrf_exempt
 @require_http_methods(["GET"])
 def health_check(request):
-    """Health check endpoint for load balancers and monitoring."""
+    """Comprehensive health check endpoint for load balancers and monitoring.
+
+    Returns detailed health status for all system components:
+    - Database: Connectivity and latency
+    - Redis: Connectivity (if configured)
+    - System: Memory and CPU usage
+    - Trading: Strategy execution components
+    """
     try:
-        health_status = health_checker.check_health()
+        # Collect health from all subsystems
+        db_health = check_database()
+        redis_health = check_redis()
+        system_health = check_system_resources()
 
-        # Return appropriate HTTP status
-        if health_status["status"] == "healthy":
-            status_code = 200
-        elif health_status["status"] == "degraded":
-            status_code = 200  # Still serve traffic but log warning
-        else:  # unhealthy
+        # Get trading system health
+        try:
+            trading_health = health_checker.check_health()
+        except Exception as e:
+            log.warning(f"Trading health check failed: {e}")
+            trading_health = {"status": "unknown", "error": str(e)}
+
+        # Determine overall status
+        statuses = [
+            db_health.get("status"),
+            system_health.get("status"),
+            trading_health.get("status"),
+        ]
+        # Don't include Redis if not configured
+        if redis_health.get("status") != "not_configured":
+            statuses.append(redis_health.get("status"))
+
+        if "unhealthy" in statuses or "unknown" in statuses:
+            overall_status = "unhealthy"
             status_code = 503
+        elif "degraded" in statuses:
+            overall_status = "degraded"
+            status_code = 200  # Still serve traffic
+        else:
+            overall_status = "healthy"
+            status_code = 200
 
-        return JsonResponse(health_status, status=status_code)
+        health_response = {
+            "status": overall_status,
+            "timestamp": time.time(),
+            "components": {
+                "database": db_health,
+                "redis": redis_health,
+                "system": system_health,
+                "trading": trading_health,
+            },
+        }
+
+        return JsonResponse(health_response, status=status_code)
     except Exception as e:
         log.error(f"Health check failed: {e}")
         return JsonResponse(
-            {"status": "unhealthy", "error": str(e)},
+            {"status": "unhealthy", "error": str(e), "timestamp": time.time()},
             status=503
         )
 

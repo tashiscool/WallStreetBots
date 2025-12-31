@@ -1,0 +1,200 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Extended Hours {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .session-card { transition: all 0.3s ease; }
+  .session-card.active { border-left: 4px solid #2dce89; }
+  .session-card.inactive { border-left: 4px solid #8392ab; }
+  .time-display { font-size: 2rem; font-weight: 700; }
+  .session-indicator { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .session-indicator.pre-market { background: #11cdef; }
+  .session-indicator.regular { background: #2dce89; }
+  .session-indicator.after-hours { background: #fb6340; }
+  .session-indicator.closed { background: #8392ab; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-info">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-clock text-info fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">Extended Hours Trading</h4>
+              <p class="text-white opacity-8 mb-0">Trade during pre-market (4AM-9:30AM ET) and after-hours (4PM-8PM ET) sessions.</p>
+            </div>
+            <div class="col-auto">
+              {% if extended.is_available %}
+              <span class="badge bg-white text-success px-3 py-2"><i class="fas fa-check-circle me-1"></i>Module Available</span>
+              {% else %}
+              <span class="badge bg-white text-danger px-3 py-2"><i class="fas fa-times-circle me-1"></i>Not Available</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Message -->
+  {% if settings_message %}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="alert alert-{% if settings_status == 'success' %}success{% elif settings_status == 'error' %}danger{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+        <strong>{% if settings_status == 'success' %}Success!{% elif settings_status == 'error' %}Error!{% else %}Info{% endif %}</strong> {{ settings_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if extended.is_available %}
+  <div class="row">
+    <!-- Current Session -->
+    <div class="col-lg-4 mb-4">
+      <div class="card session-card {% if extended.current_session != 'closed' %}active{% else %}inactive{% endif %} h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-broadcast-tower me-2"></i>Current Session</h6>
+        </div>
+        <div class="card-body text-center">
+          <span class="session-indicator {{ extended.current_session }}"></span>
+          <h3 class="mb-2 mt-2">{{ extended.current_session|title }}</h3>
+          {% if extended.current_session != 'closed' %}
+          <p class="text-sm text-secondary mb-0">
+            <i class="fas fa-clock me-1"></i>{{ extended.session_start }} - {{ extended.session_end }}
+          </p>
+          {% if extended.is_optimal_window %}
+          <span class="badge bg-success mt-2"><i class="fas fa-star me-1"></i>Optimal Trading Window</span>
+          {% endif %}
+          {% else %}
+          <p class="text-sm text-secondary mb-0">Market is currently closed</p>
+          {% endif %}
+        </div>
+        <div class="card-footer text-center">
+          <small class="text-secondary">Next: {{ extended.next_session|title }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Session Schedule -->
+    <div class="col-lg-8 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-calendar-alt me-2"></i>Trading Sessions (Eastern Time)</h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Session</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Hours</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Status</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="session-indicator pre-market me-2"></span>Pre-Market</td>
+                  <td>4:00 AM - 9:30 AM</td>
+                  <td>{% if extended.pre_market_enabled %}<span class="badge bg-success">Enabled</span>{% else %}<span class="badge bg-secondary">Disabled</span>{% endif %}</td>
+                  <td><small class="text-secondary">Lower liquidity, wider spreads</small></td>
+                </tr>
+                <tr>
+                  <td><span class="session-indicator regular me-2"></span>Regular</td>
+                  <td>9:30 AM - 4:00 PM</td>
+                  <td><span class="badge bg-success">Always On</span></td>
+                  <td><small class="text-secondary">Primary trading session</small></td>
+                </tr>
+                <tr>
+                  <td><span class="session-indicator after-hours me-2"></span>After-Hours</td>
+                  <td>4:00 PM - 8:00 PM</td>
+                  <td>{% if extended.after_hours_enabled %}<span class="badge bg-success">Enabled</span>{% else %}<span class="badge bg-secondary">Disabled</span>{% endif %}</td>
+                  <td><small class="text-secondary">Earnings reactions, news events</small></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-cog me-2"></i>Extended Hours Settings</h6>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_settings">
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" name="pre_market_enabled" id="enablePreMarket" {% if extended.pre_market_enabled %}checked{% endif %}>
+              <label class="form-check-label" for="enablePreMarket">
+                <strong>Enable Pre-Market Trading</strong>
+                <br><small class="text-secondary">Allow orders during 4AM-9:30AM ET</small>
+              </label>
+            </div>
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" name="after_hours_enabled" id="enableAfterHours" {% if extended.after_hours_enabled %}checked{% endif %}>
+              <label class="form-check-label" for="enableAfterHours">
+                <strong>Enable After-Hours Trading</strong>
+                <br><small class="text-secondary">Allow orders during 4PM-8PM ET</small>
+              </label>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between align-items-center">
+              <small class="text-secondary"><i class="fas fa-info-circle me-1"></i>Extended hours orders are limit orders only.</small>
+              <button type="submit" class="btn btn-sm btn-primary">Save Settings</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Extended Hours Risks</h6>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li class="py-2 border-bottom"><i class="fas fa-chart-line text-danger me-2"></i><strong>Lower Liquidity</strong> - Fewer participants mean larger spreads</li>
+            <li class="py-2 border-bottom"><i class="fas fa-exchange-alt text-warning me-2"></i><strong>Price Volatility</strong> - Prices can move rapidly on low volume</li>
+            <li class="py-2 border-bottom"><i class="fas fa-hourglass-half text-info me-2"></i><strong>Limit Orders Only</strong> - Market orders not available</li>
+            <li class="py-2"><i class="fas fa-percentage text-secondary me-2"></i><strong>Reduced Position Sizes</strong> - 50% of normal maximum</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+          <h5>Extended Hours Module Not Available</h5>
+          <p class="text-secondary">The extended hours trading module requires additional configuration.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}

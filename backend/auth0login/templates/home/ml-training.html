@@ -1,0 +1,459 @@
+{% extends 'layouts/base.html' %}
+{% block title %} ML Training Center {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .model-card { transition: all 0.3s ease; }
+  .model-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+  .status-available { border-left: 4px solid #2dce89; }
+  .status-unavailable { border-left: 4px solid #8392ab; }
+  .status-training { border-left: 4px solid #11cdef; }
+  .training-progress { height: 6px; border-radius: 3px; }
+  .model-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-dark">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-brain text-dark fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">ML Training Center</h4>
+              <p class="text-white opacity-8 mb-0">Train, evaluate, and deploy machine learning models for trading predictions.</p>
+            </div>
+            <div class="col-auto">
+              <a href="/feature-status" class="btn btn-outline-white btn-sm">
+                <i class="fas fa-info-circle me-1"></i>Feature Status
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Training Status Message -->
+  {% if training_message %}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="alert alert-{% if training_status == 'success' %}success{% elif training_status == 'error' %}danger{% elif training_status == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+        <strong>{% if training_status == 'success' %}Success!{% elif training_status == 'error' %}Error!{% elif training_status == 'warning' %}Warning{% else %}Info{% endif %}</strong> {{ training_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Training Quick Actions -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-6 mb-4">
+      <div class="card">
+        <div class="card-body text-center p-3">
+          <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md mx-auto mb-3">
+            <i class="fas fa-play text-white"></i>
+          </div>
+          <h6 class="mb-1">Start Training</h6>
+          <p class="text-sm text-secondary mb-2">Begin training session</p>
+          <form method="post" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="start_training">
+            <input type="hidden" name="model_type" value="lstm">
+            <button type="submit" class="btn btn-sm btn-primary" {% if not features.training_utils %}disabled{% endif %}>
+              {% if features.training_utils %}Train Models{% else %}Unavailable{% endif %}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6 mb-4">
+      <div class="card">
+        <div class="card-body text-center p-3">
+          <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md mx-auto mb-3">
+            <i class="fas fa-download text-white"></i>
+          </div>
+          <h6 class="mb-1">Fetch Data</h6>
+          <p class="text-sm text-secondary mb-2">Download market data</p>
+          <form method="post" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="fetch_data">
+            <input type="hidden" name="symbols" value="nasdaq100">
+            <input type="hidden" name="period" value="2y">
+            <button type="submit" class="btn btn-sm btn-success" {% if not features.data_fetcher %}disabled{% endif %}>
+              {% if features.data_fetcher %}Fetch Data{% else %}Unavailable{% endif %}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6 mb-4">
+      <div class="card">
+        <div class="card-body text-center p-3">
+          <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md mx-auto mb-3">
+            <i class="fas fa-sync text-white"></i>
+          </div>
+          <h6 class="mb-1">Auto-Train</h6>
+          <p class="text-sm text-secondary mb-2">Schedule training</p>
+          <button class="btn btn-sm btn-info" {% if not features.training_utils %}disabled{% endif %} data-bs-toggle="modal" data-bs-target="#autoTrainModal">
+            {% if features.training_utils %}Configure{% else %}Unavailable{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6 mb-4">
+      <div class="card">
+        <div class="card-body text-center p-3">
+          <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md mx-auto mb-3">
+            <i class="fas fa-chart-line text-white"></i>
+          </div>
+          <h6 class="mb-1">Evaluate</h6>
+          <p class="text-sm text-secondary mb-2">Run backtests</p>
+          <button class="btn btn-sm btn-warning" {% if not features.lstm_pipeline %}disabled{% endif %}>
+            {% if features.lstm_pipeline %}Evaluate{% else %}Unavailable{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Predictor Models -->
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6><i class="fas fa-chart-area me-2"></i>Price Predictor Models</h6>
+            <span class="badge bg-gradient-primary">Deep Learning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <!-- LSTM -->
+            <div class="col-lg-3 col-md-6 mb-3">
+              <div class="card model-card {% if models.predictors.lstm.available %}status-available{% else %}status-unavailable{% endif %} h-100">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="model-icon bg-gradient-primary me-3">
+                      <i class="fas fa-brain text-white"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0">{{ models.predictors.lstm.name }}</h6>
+                      {% if models.predictors.lstm.available %}
+                      <span class="badge bg-success">Available</span>
+                      {% else %}
+                      <span class="badge bg-secondary">Not Installed</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <p class="text-sm text-secondary mb-3">{{ models.predictors.lstm.description }}</p>
+                  {% if models.predictors.lstm.available %}
+                  <div class="d-flex justify-content-between">
+                    <button class="btn btn-sm btn-outline-primary">Train</button>
+                    <button class="btn btn-sm btn-outline-info">Configure</button>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Transformer -->
+            <div class="col-lg-3 col-md-6 mb-3">
+              <div class="card model-card {% if models.predictors.transformer.available %}status-available{% else %}status-unavailable{% endif %} h-100">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="model-icon bg-gradient-info me-3">
+                      <i class="fas fa-project-diagram text-white"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0">{{ models.predictors.transformer.name }}</h6>
+                      {% if models.predictors.transformer.available %}
+                      <span class="badge bg-success">Available</span>
+                      {% else %}
+                      <span class="badge bg-secondary">Not Installed</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <p class="text-sm text-secondary mb-3">{{ models.predictors.transformer.description }}</p>
+                  {% if models.predictors.transformer.available %}
+                  <div class="d-flex justify-content-between">
+                    <button class="btn btn-sm btn-outline-primary">Train</button>
+                    <button class="btn btn-sm btn-outline-info">Configure</button>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- CNN -->
+            <div class="col-lg-3 col-md-6 mb-3">
+              <div class="card model-card {% if models.predictors.cnn.available %}status-available{% else %}status-unavailable{% endif %} h-100">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="model-icon bg-gradient-success me-3">
+                      <i class="fas fa-layer-group text-white"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0">{{ models.predictors.cnn.name }}</h6>
+                      {% if models.predictors.cnn.available %}
+                      <span class="badge bg-success">Available</span>
+                      {% else %}
+                      <span class="badge bg-secondary">Not Installed</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <p class="text-sm text-secondary mb-3">{{ models.predictors.cnn.description }}</p>
+                  {% if models.predictors.cnn.available %}
+                  <div class="d-flex justify-content-between">
+                    <button class="btn btn-sm btn-outline-primary">Train</button>
+                    <button class="btn btn-sm btn-outline-info">Configure</button>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Ensemble -->
+            <div class="col-lg-3 col-md-6 mb-3">
+              <div class="card model-card {% if models.predictors.ensemble.available %}status-available{% else %}status-unavailable{% endif %} h-100">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="model-icon bg-gradient-warning me-3">
+                      <i class="fas fa-cubes text-white"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0">{{ models.predictors.ensemble.name }}</h6>
+                      {% if models.predictors.ensemble.available %}
+                      <span class="badge bg-success">Available</span>
+                      {% else %}
+                      <span class="badge bg-secondary">Not Installed</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <p class="text-sm text-secondary mb-3">{{ models.predictors.ensemble.description }}</p>
+                  {% if models.predictors.ensemble.available %}
+                  <div class="d-flex justify-content-between">
+                    <button class="btn btn-sm btn-outline-primary">Train</button>
+                    <button class="btn btn-sm btn-outline-info">Configure</button>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RL Agents -->
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6><i class="fas fa-robot me-2"></i>Reinforcement Learning Agents</h6>
+            <span class="badge bg-gradient-danger">RL</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <!-- PPO -->
+            <div class="col-md-6 mb-3">
+              <div class="card model-card {% if models.rl_agents.ppo.available %}status-available{% else %}status-unavailable{% endif %}">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-2">
+                    <div class="model-icon bg-gradient-danger me-3" style="width:40px;height:40px;">
+                      <i class="fas fa-balance-scale text-white"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0 text-sm">{{ models.rl_agents.ppo.name }}</h6>
+                      {% if models.rl_agents.ppo.available %}
+                      <span class="badge bg-success badge-sm">Ready</span>
+                      {% else %}
+                      <span class="badge bg-secondary badge-sm">N/A</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <p class="text-xs text-secondary mb-0">{{ models.rl_agents.ppo.description }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- DQN -->
+            <div class="col-md-6 mb-3">
+              <div class="card model-card {% if models.rl_agents.dqn.available %}status-available{% else %}status-unavailable{% endif %}">
+                <div class="card-body p-3">
+                  <div class="d-flex align-items-center mb-2">
+                    <div class="model-icon bg-gradient-dark me-3" style="width:40px;height:40px;">
+                      <i class="fas fa-network-wired text-white"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-0 text-sm">{{ models.rl_agents.dqn.name }}</h6>
+                      {% if models.rl_agents.dqn.available %}
+                      <span class="badge bg-success badge-sm">Ready</span>
+                      {% else %}
+                      <span class="badge bg-secondary badge-sm">N/A</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <p class="text-xs text-secondary mb-0">{{ models.rl_agents.dqn.description }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {% if features.rl_agents and features.rl_environment %}
+          <hr>
+          <div class="d-flex justify-content-between">
+            <button class="btn btn-sm btn-outline-danger">Train RL Agents</button>
+            <button class="btn btn-sm btn-outline-info">Run Simulation</button>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Infrastructure Components -->
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6><i class="fas fa-cogs me-2"></i>ML Infrastructure</h6>
+            <span class="badge bg-gradient-secondary">System</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li class="py-2 border-bottom d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ models.infrastructure.environment.name }}</strong>
+                <br><small class="text-secondary">{{ models.infrastructure.environment.description }}</small>
+              </div>
+              {% if models.infrastructure.environment.available %}
+              <span class="badge bg-success">Ready</span>
+              {% else %}
+              <span class="badge bg-secondary">N/A</span>
+              {% endif %}
+            </li>
+            <li class="py-2 border-bottom d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ models.infrastructure.signal_calculator.name }}</strong>
+                <br><small class="text-secondary">{{ models.infrastructure.signal_calculator.description }}</small>
+              </div>
+              {% if models.infrastructure.signal_calculator.available %}
+              <span class="badge bg-success">Ready</span>
+              {% else %}
+              <span class="badge bg-secondary">N/A</span>
+              {% endif %}
+            </li>
+            <li class="py-2 border-bottom d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ models.infrastructure.pipeline.name }}</strong>
+                <br><small class="text-secondary">{{ models.infrastructure.pipeline.description }}</small>
+              </div>
+              {% if models.infrastructure.pipeline.available %}
+              <span class="badge bg-success">Ready</span>
+              {% else %}
+              <span class="badge bg-secondary">N/A</span>
+              {% endif %}
+            </li>
+            <li class="py-2 border-bottom d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ models.infrastructure.training.name }}</strong>
+                <br><small class="text-secondary">{{ models.infrastructure.training.description }}</small>
+              </div>
+              {% if models.infrastructure.training.available %}
+              <span class="badge bg-success">Ready</span>
+              {% else %}
+              <span class="badge bg-secondary">N/A</span>
+              {% endif %}
+            </li>
+            <li class="py-2 d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ models.infrastructure.data_fetcher.name }}</strong>
+                <br><small class="text-secondary">{{ models.infrastructure.data_fetcher.description }}</small>
+              </div>
+              {% if models.infrastructure.data_fetcher.available %}
+              <span class="badge bg-success">Ready</span>
+              {% else %}
+              <span class="badge bg-secondary">N/A</span>
+              {% endif %}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Training Configuration -->
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-sliders-h me-2"></i>Training Configuration</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <label class="form-label">Training Data Period</label>
+              <select class="form-select mb-3">
+                <option value="1y">1 Year</option>
+                <option value="2y" selected>2 Years</option>
+                <option value="5y">5 Years</option>
+                <option value="max">Maximum Available</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Validation Split</label>
+              <select class="form-select mb-3">
+                <option value="0.1">10%</option>
+                <option value="0.2" selected>20%</option>
+                <option value="0.3">30%</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Target Symbols</label>
+              <select class="form-select mb-3">
+                <option value="watchlist">Watchlist</option>
+                <option value="sp500">S&P 500</option>
+                <option value="nasdaq100" selected>NASDAQ 100</option>
+                <option value="custom">Custom List</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <label class="form-label">Learning Rate</label>
+              <input type="number" class="form-control mb-3" value="0.001" step="0.0001">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Epochs</label>
+              <input type="number" class="form-control mb-3" value="100">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Batch Size</label>
+              <input type="number" class="form-control mb-3" value="32">
+            </div>
+          </div>
+          <div class="text-end">
+            <button class="btn btn-secondary me-2">Reset to Defaults</button>
+            <button class="btn btn-primary" {% if not features.training_utils %}disabled{% endif %}>
+              <i class="fas fa-save me-1"></i>Save Configuration
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}

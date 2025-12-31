@@ -1,0 +1,315 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Index Baseline Configuration {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .param-card { border-left: 4px solid #1171ef; transition: all 0.3s ease; }
+  .param-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+  .tooltip-icon { cursor: help; color: #8898aa; font-size: 14px; margin-left: 5px; }
+  .param-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #e9ecef; }
+  .param-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(310deg, #1171ef 0%, #11cdef 100%); cursor: pointer; }
+  .benchmark-card { transition: all 0.2s ease; cursor: pointer; }
+  .benchmark-card:hover { transform: translateY(-2px); }
+  .benchmark-card.selected { border: 2px solid #1171ef; }
+  .performance-compare { background: linear-gradient(to right, rgba(17,113,239,0.05), rgba(17,205,239,0.05)); border-radius: 10px; padding: 20px; }
+  .implication-box { background: linear-gradient(to right, rgba(17,113,239,0.05), rgba(17,205,239,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .warning-implication { background: linear-gradient(to right, rgba(245,54,92,0.1), rgba(251,99,64,0.05)); }
+  .success-implication { background: linear-gradient(to right, rgba(45,206,137,0.1), rgba(17,205,239,0.05)); }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-info">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="icon icon-shape bg-white shadow text-center border-radius-md p-3">
+                <i class="fas fa-chart-bar text-info fa-2x"></i>
+              </div>
+            </div>
+            <div class="col">
+              <h4 class="text-white mb-1">Index Fund Baseline Comparison</h4>
+              <p class="text-white opacity-8 mb-0">Track your strategies vs. SPY/VTI baseline. If you can't beat buying and holding, why trade actively?</p>
+            </div>
+            <div class="col-auto">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="strategyEnabled" checked style="width: 50px; height: 26px;">
+                <label class="form-check-label text-white ms-2" for="strategyEnabled">Enabled</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- The Important Question -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="text-center py-3">
+            <i class="fas fa-question-circle fa-3x text-info mb-3"></i>
+            <h5>Are you beating the market?</h5>
+            <p class="text-secondary mb-0">This tracker compares your active trading performance against simply buying and holding index funds. If you consistently underperform, it may be time to reassess your strategy.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Benchmark Selection -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-flag-checkered me-2"></i>Benchmark Indices</h6>
+          <p class="text-sm text-secondary mb-0">Select indices to compare your performance against</p>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-2 mb-3">
+              <div class="card benchmark-card selected" data-benchmark="SPY">
+                <div class="card-body p-3 text-center">
+                  <h5 class="text-primary mb-1">SPY</h5>
+                  <p class="text-xs text-secondary mb-0">S&P 500 ETF</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2 mb-3">
+              <div class="card benchmark-card selected" data-benchmark="VTI">
+                <div class="card-body p-3 text-center">
+                  <h5 class="text-success mb-1">VTI</h5>
+                  <p class="text-xs text-secondary mb-0">Total Market</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2 mb-3">
+              <div class="card benchmark-card selected" data-benchmark="QQQ">
+                <div class="card-body p-3 text-center">
+                  <h5 class="text-info mb-1">QQQ</h5>
+                  <p class="text-xs text-secondary mb-0">Nasdaq 100</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2 mb-3">
+              <div class="card benchmark-card" data-benchmark="IWM">
+                <div class="card-body p-3 text-center">
+                  <h5 class="text-warning mb-1">IWM</h5>
+                  <p class="text-xs text-secondary mb-0">Russell 2000</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2 mb-3">
+              <div class="card benchmark-card" data-benchmark="DIA">
+                <div class="card-body p-3 text-center">
+                  <h5 class="text-secondary mb-1">DIA</h5>
+                  <p class="text-xs text-secondary mb-0">Dow Jones</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2 mb-3">
+              <div class="card benchmark-card" data-benchmark="VOO">
+                <div class="card-body p-3 text-center">
+                  <h5 class="text-danger mb-1">VOO</h5>
+                  <p class="text-xs text-secondary mb-0">Vanguard S&P</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Comparison Settings -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-cog me-2"></i>Comparison Settings</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label">Comparison Periods</label>
+            <div class="row">
+              <div class="col-6">
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="period1d" checked><label class="form-check-label">Daily</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="period1w" checked><label class="form-check-label">Weekly</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="period1m" checked><label class="form-check-label">Monthly</label></div>
+              </div>
+              <div class="col-6">
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="period3m" checked><label class="form-check-label">Quarterly</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="periodYtd" checked><label class="form-check-label">YTD</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="period1y"><label class="form-check-label">1 Year</label></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Trading Cost Assumption (% per trade) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Estimated cost per trade including commissions and slippage"></i></span>
+              <span class="badge bg-gradient-warning" id="tradingCostValue">0.1%</span>
+            </label>
+            <input type="range" class="param-slider" id="tradingCost" min="0" max="50" value="10">
+            <div class="implication-box" id="tradingCostImplication">
+              <small class="text-secondary"><i class="fas fa-receipt text-warning me-1"></i><strong>0.1% per trade:</strong> Includes commissions + slippage. This is realistic for options. Index funds have ~0% trading cost - your active trading needs to beat the market by MORE than your costs to truly outperform.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Include in Comparison</label>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="includeSharpe" checked><label class="form-check-label">Sharpe Ratio</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="includeDrawdown" checked><label class="form-check-label">Max Drawdown</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="includeWinRate" checked><label class="form-check-label">Win Rate</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="includeAlpha" checked><label class="form-check-label">Alpha vs Benchmark</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert Settings -->
+    <div class="col-lg-6 mb-4">
+      <div class="card param-card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-bell me-2"></i>Performance Alerts</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Underperformance Alert (%) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Alert when trailing benchmark by this much"></i></span>
+              <span class="badge bg-gradient-danger" id="underperformAlertValue">5%</span>
+            </label>
+            <input type="range" class="param-slider" id="underperformAlert" min="1" max="20" value="5">
+            <div class="implication-box warning-implication" id="underperformAlertImplication">
+              <small class="text-secondary"><i class="fas fa-exclamation-triangle text-danger me-1"></i><strong>5% underperform alert:</strong> If you're trailing SPY by 5%+, it's time to reassess. WSB wisdom: "Time in the market beats timing the market." If you can't consistently beat buying and holding, consider a hybrid approach.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label d-flex justify-content-between">
+              <span>Outperformance Celebration (%) <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Celebrate when beating benchmark by this much"></i></span>
+              <span class="badge bg-gradient-success" id="outperformAlertValue">10%</span>
+            </label>
+            <input type="range" class="param-slider" id="outperformAlert" min="5" max="30" value="10">
+            <div class="implication-box success-implication" id="outperformAlertImplication">
+              <small class="text-secondary"><i class="fas fa-trophy text-success me-1"></i><strong>10% outperformance:</strong> You're crushing it! Beating the market by 10%+ means your active strategies are adding real value. But stay humble - markets are humbling. Keep tracking to ensure it's not just luck.</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Alert Frequency</label>
+            <select class="form-select" id="alertFreq">
+              <option value="daily">Daily Summary</option>
+              <option value="weekly" selected>Weekly Summary</option>
+              <option value="monthly">Monthly Summary</option>
+              <option value="realtime">Real-time</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Report Generation</label>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="autoReport" checked><label class="form-check-label">Auto-generate monthly performance report</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="emailReport"><label class="form-check-label">Email report summary</label></div>
+          </div>
+
+          <div class="alert alert-info mb-0 mt-3">
+            <i class="fas fa-lightbulb me-2"></i><strong>Pro Tip:</strong> Track Sharpe ratio, not just returns. A 20% return with 30% drawdown is worse than 15% with 10% drawdown. Risk-adjusted returns tell the real story.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Strategies to Track -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card param-card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-robot me-2"></i>Strategies to Compare Against Index</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> WSB Dip Bot</div>
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> Wheel Strategy</div>
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> Momentum Weeklies</div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> SPX Credit Spreads</div>
+              <div class="form-check"><input class="form-check-input" type="checkbox" checked> LEAPS Tracker</div>
+              <div class="form-check"><input class="form-check-input" type="checkbox"> Swing Trading</div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-check"><input class="form-check-input" type="checkbox"> Debit Spreads</div>
+              <div class="form-check"><input class="form-check-input" type="checkbox"> Earnings Protection</div>
+              <div class="form-check"><input class="form-check-input" type="checkbox"> Lotto Scanner</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- The Truth Box -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card" style="background: linear-gradient(to right, rgba(17,113,239,0.1), rgba(45,206,137,0.1)); border: 2px solid #1171ef;">
+        <div class="card-body text-center py-4">
+          <i class="fas fa-balance-scale fa-3x text-info mb-3"></i>
+          <h5>The Honest Question Every Trader Should Ask</h5>
+          <p class="text-secondary mb-0">Over 80% of active traders underperform buy-and-hold index investing over 10+ years. The ones who DO outperform typically have strict risk management, consistent strategies, and track performance ruthlessly. This tool helps you be honest with yourself.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <button class="btn btn-outline-secondary mb-0"><i class="fas fa-undo me-2"></i>Reset</button>
+              <button class="btn btn-outline-info mb-0 ms-2"><i class="fas fa-download me-2"></i>Export Report</button>
+            </div>
+            <div>
+              <button class="btn btn-outline-primary mb-0 me-2"><i class="fas fa-chart-line me-2"></i>View Comparison</button>
+              <button class="btn bg-gradient-info mb-0"><i class="fas fa-save me-2"></i>Save Configuration</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+  document.getElementById('tradingCost').addEventListener('input', function() {
+    document.getElementById('tradingCostValue').textContent = (this.value / 100).toFixed(2) + '%';
+  });
+  document.getElementById('underperformAlert').addEventListener('input', function() {
+    document.getElementById('underperformAlertValue').textContent = this.value + '%';
+  });
+  document.getElementById('outperformAlert').addEventListener('input', function() {
+    document.getElementById('outperformAlertValue').textContent = this.value + '%';
+  });
+
+  document.querySelectorAll('.benchmark-card').forEach(card => {
+    card.addEventListener('click', function() {
+      this.classList.toggle('selected');
+    });
+  });
+</script>
+{% endblock javascripts %}

@@ -1,0 +1,891 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Strategy Manager {% endblock title %}
+
+{% block stylesheets %}
+<style>
+  .strategy-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .strategy-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  }
+  .strategy-card.active {
+    border: 2px solid #cb0c9f;
+  }
+  .strategy-toggle {
+    width: 50px;
+    height: 26px;
+  }
+  .param-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #e9ecef;
+    outline: none;
+  }
+  .param-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(310deg, #7928CA 0%, #FF0080 100%);
+    cursor: pointer;
+  }
+  .config-panel {
+    background: linear-gradient(310deg, #141727 0%, #3A416F 100%);
+    border-radius: 1rem;
+  }
+  .implication-box { background: linear-gradient(to right, rgba(203,12,159,0.05), rgba(94,114,228,0.05)); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .strategy-tip { background: linear-gradient(to right, rgba(45,206,137,0.05), rgba(17,205,239,0.05)); border-radius: 8px; padding: 10px; margin-top: 8px; }
+  .param-help { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+  .strategy-badge { font-size: 9px; padding: 2px 6px; }
+  .risk-indicator { display: inline-flex; gap: 2px; }
+  .risk-dot { width: 8px; height: 8px; border-radius: 50%; background: #e9ecef; }
+  .risk-dot.filled.low { background: #2dce89; }
+  .risk-dot.filled.medium { background: #fb6340; }
+  .risk-dot.filled.high { background: #f5365c; }
+  .perf-help { font-size: 10px; color: #8898aa; margin-top: 2px; }
+  .warning-box { background: linear-gradient(to right, rgba(251,99,64,0.05), rgba(245,54,92,0.05)); border-radius: 8px; padding: 12px; }
+
+  /* Allocation Bar Styles */
+  .allocation-bar-container {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+  }
+  .allocation-bar {
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+  .allocation-bar .used {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+  .allocation-bar .used.low { background: linear-gradient(90deg, #2dce89, #26a769); }
+  .allocation-bar .used.moderate { background: linear-gradient(90deg, #11cdef, #0da6c2); }
+  .allocation-bar .used.warning { background: linear-gradient(90deg, #fb6340, #ec5229); }
+  .allocation-bar .used.critical { background: linear-gradient(90deg, #f5365c, #d41b47); }
+  .allocation-bar .used.maxed { background: linear-gradient(90deg, #5e72e4, #4b5ec7); }
+
+  .allocation-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .allocation-label {
+    font-size: 10px;
+    color: #8898aa;
+  }
+  .allocation-value {
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .allocation-value.low { color: #2dce89; }
+  .allocation-value.moderate { color: #11cdef; }
+  .allocation-value.warning { color: #fb6340; }
+  .allocation-value.critical { color: #f5365c; }
+  .allocation-value.maxed { color: #5e72e4; }
+
+  .maxed-badge {
+    font-size: 9px;
+    padding: 1px 5px;
+    background: linear-gradient(90deg, #f5365c, #d41b47);
+    color: white;
+    border-radius: 3px;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+  }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-dark">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-lg-6">
+              <h4 class="text-white mb-1">Strategy Manager</h4>
+              <p class="text-white opacity-8 mb-0">Configure and manage your automated trading strategies. Enable/disable strategies and fine-tune parameters.</p>
+            </div>
+            <div class="col-lg-2 text-center">
+              <span class="badge bg-success px-3 py-2" data-bs-toggle="tooltip" title="Number of strategies currently running and monitoring the market">{{ active_count|default:"4" }} / {{ total_count|default:"10" }} Active</span>
+              {% if regime %}
+              <br>
+              <small class="text-white opacity-7" data-bs-toggle="tooltip" title="Current market regime detected by ML models - strategies may adapt their behavior">Regime: {{ regime.current_regime|title }}</small>
+              {% endif %}
+            </div>
+            <div class="col-lg-4 text-end">
+              <button class="btn btn-white mb-0" id="startAllBtn" data-bs-toggle="tooltip" title="Enable all strategies to start monitoring and trading">
+                <i class="fas fa-play me-2"></i> Start All
+              </button>
+              <button class="btn btn-outline-white mb-0" id="stopAllBtn" data-bs-toggle="tooltip" title="Disable all strategies - no new trades will be placed, existing positions remain">
+                <i class="fas fa-stop me-2"></i> Stop All
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Strategy Selection Guide -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="implication-box">
+        <div class="row">
+          <div class="col-md-8">
+            <h6 class="mb-2"><i class="fas fa-compass text-primary me-2"></i>Choosing the Right Strategies</h6>
+            <p class="text-sm text-secondary mb-0">
+              <strong>Don't run all strategies at once.</strong> Start with 1-2 that match your risk tolerance and goals.
+              Conservative traders should start with <strong>Wheel Strategy</strong> or <strong>Index Baseline</strong>.
+              Aggressive traders might prefer <strong>WSB Dip Bot</strong> or <strong>Momentum Weeklies</strong>.
+              Each strategy has different capital requirements and risk profiles.
+            </p>
+          </div>
+          <div class="col-md-4">
+            <div class="bg-light rounded p-2">
+              <small class="text-uppercase text-secondary font-weight-bold d-block mb-2">Risk Levels</small>
+              <div class="d-flex align-items-center mb-1">
+                <span class="risk-indicator me-2">
+                  <span class="risk-dot filled low"></span>
+                  <span class="risk-dot"></span>
+                  <span class="risk-dot"></span>
+                </span>
+                <small><strong>Low</strong> - Steady income, smaller gains</small>
+              </div>
+              <div class="d-flex align-items-center mb-1">
+                <span class="risk-indicator me-2">
+                  <span class="risk-dot filled medium"></span>
+                  <span class="risk-dot filled medium"></span>
+                  <span class="risk-dot"></span>
+                </span>
+                <small><strong>Medium</strong> - Balanced risk/reward</small>
+              </div>
+              <div class="d-flex align-items-center">
+                <span class="risk-indicator me-2">
+                  <span class="risk-dot filled high"></span>
+                  <span class="risk-dot filled high"></span>
+                  <span class="risk-dot filled high"></span>
+                </span>
+                <small><strong>High</strong> - High reward, high risk</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Strategies List -->
+    <div class="col-lg-5 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-robot me-2"></i>Available Strategies</h6>
+          <p class="text-sm text-secondary mb-0">Click a strategy to configure, toggle to enable/disable</p>
+        </div>
+        <div class="card-body pt-2">
+          <!-- WSB Dip Bot -->
+          <div class="strategy-card card mb-3 active" data-strategy="wsb-dip-bot" data-config-url="/strategies/wsb-dip-bot" data-bs-toggle="tooltip" data-bs-placement="left" title="Buys when popular stocks dip based on momentum indicators. Best for volatile markets.">
+            <div class="card-body p-3">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="fas fa-chart-line text-lg text-white"></i>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0">WSB Dip Bot</h6>
+                    <span class="risk-indicator">
+                      <span class="risk-dot filled high"></span>
+                      <span class="risk-dot filled high"></span>
+                      <span class="risk-dot filled high"></span>
+                    </span>
+                  </div>
+                  <p class="text-xs text-secondary mb-0">"Buy the dip, ride the rocket"</p>
+                  <p class="text-xs text-muted mb-0">Best for: Active traders who love volatility | Hold: Hours to days</p>
+                </div>
+                <div class="col-auto me-2">
+                  <a href="/strategies/wsb-dip-bot" class="btn btn-sm btn-outline-primary mb-0" title="Advanced Configuration">
+                    <i class="fas fa-cog"></i>
+                  </a>
+                </div>
+                <div class="col-auto">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input strategy-toggle" type="checkbox" checked data-bs-toggle="tooltip" title="Toggle to enable/disable this strategy">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Momentum Weeklies -->
+          <div class="strategy-card card mb-3" data-strategy="momentum-weeklies" data-config-url="/strategies/momentum-weeklies" data-bs-toggle="tooltip" data-bs-placement="left" title="Trades weekly options based on momentum signals. High risk, high reward potential.">
+            <div class="card-body p-3">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                    <i class="fas fa-bolt text-lg text-white"></i>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0">Momentum Weeklies</h6>
+                    <span class="risk-indicator">
+                      <span class="risk-dot filled high"></span>
+                      <span class="risk-dot filled high"></span>
+                      <span class="risk-dot filled high"></span>
+                    </span>
+                  </div>
+                  <p class="text-xs text-secondary mb-0">"Fast money on fast moves"</p>
+                  <p class="text-xs text-muted mb-0">Best for: Experienced options traders | Hold: Days</p>
+                </div>
+                <div class="col-auto me-2">
+                  <a href="/strategies/momentum-weeklies" class="btn btn-sm btn-outline-success mb-0" title="Advanced Configuration">
+                    <i class="fas fa-cog"></i>
+                  </a>
+                </div>
+                <div class="col-auto">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input strategy-toggle" type="checkbox">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wheel Strategy -->
+          <div class="strategy-card card mb-3" data-strategy="wheel-strategy" data-config-url="/strategies/wheel" data-bs-toggle="tooltip" data-bs-placement="left" title="Sells cash-secured puts and covered calls. Generates steady income with lower risk.">
+            <div class="card-body p-3">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
+                    <i class="fas fa-sync-alt text-lg text-white"></i>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0">Wheel Strategy</h6>
+                    <span class="strategy-badge badge bg-success">Recommended</span>
+                    <span class="risk-indicator">
+                      <span class="risk-dot filled low"></span>
+                      <span class="risk-dot"></span>
+                      <span class="risk-dot"></span>
+                    </span>
+                  </div>
+                  <p class="text-xs text-secondary mb-0">"Like being a landlord - collect rent on stocks"</p>
+                  <p class="text-xs text-muted mb-0">Best for: Income seekers who don't mind owning stocks | Hold: Weeks</p>
+                </div>
+                <div class="col-auto me-2">
+                  <a href="/strategies/wheel" class="btn btn-sm btn-outline-info mb-0" title="Advanced Configuration">
+                    <i class="fas fa-cog"></i>
+                  </a>
+                </div>
+                <div class="col-auto">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input strategy-toggle" type="checkbox">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Earnings Protection -->
+          <div class="strategy-card card mb-3" data-strategy="earnings-protection" data-config-url="/strategies/earnings-protection" data-bs-toggle="tooltip" data-bs-placement="left" title="Uses straddles/strangles around earnings to profit from volatility. Medium risk.">
+            <div class="card-body p-3">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
+                    <i class="fas fa-shield-alt text-lg text-white"></i>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0">Earnings Protection</h6>
+                    <span class="risk-indicator">
+                      <span class="risk-dot filled medium"></span>
+                      <span class="risk-dot filled medium"></span>
+                      <span class="risk-dot"></span>
+                    </span>
+                  </div>
+                  <p class="text-xs text-secondary mb-0">"Profit from big moves, either direction"</p>
+                  <p class="text-xs text-muted mb-0">Best for: Event traders who love earnings season | Hold: 1-5 days</p>
+                </div>
+                <div class="col-auto me-2">
+                  <a href="/strategies/earnings-protection" class="btn btn-sm btn-outline-warning mb-0" title="Advanced Configuration">
+                    <i class="fas fa-cog"></i>
+                  </a>
+                </div>
+                <div class="col-auto">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input strategy-toggle" type="checkbox">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Debit Spreads -->
+          <div class="strategy-card card mb-3" data-strategy="debit-spreads" data-config-url="/strategies/debit-spreads" data-bs-toggle="tooltip" data-bs-placement="left" title="Automated bull/bear spread construction with defined risk. Good risk/reward ratio.">
+            <div class="card-body p-3">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="icon icon-shape bg-gradient-danger shadow text-center border-radius-md">
+                    <i class="fas fa-layer-group text-lg text-white"></i>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0">Debit Spreads</h6>
+                    <span class="risk-indicator">
+                      <span class="risk-dot filled medium"></span>
+                      <span class="risk-dot filled medium"></span>
+                      <span class="risk-dot"></span>
+                    </span>
+                  </div>
+                  <p class="text-xs text-secondary mb-0">"Defined risk, defined reward"</p>
+                  <p class="text-xs text-muted mb-0">Best for: Risk-conscious options traders | Hold: 1-3 weeks</p>
+                </div>
+                <div class="col-auto me-2">
+                  <a href="/strategies/debit-spreads" class="btn btn-sm btn-outline-danger mb-0" title="Advanced Configuration">
+                    <i class="fas fa-cog"></i>
+                  </a>
+                </div>
+                <div class="col-auto">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input strategy-toggle" type="checkbox">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LEAPS Tracker -->
+          <div class="strategy-card card mb-3" data-strategy="leaps-tracker" data-config-url="/strategies/leaps-tracker" data-bs-toggle="tooltip" data-bs-placement="left" title="Manages long-term options (1+ year). Lower time decay, good for long-term bullish bets.">
+            <div class="card-body p-3">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="icon icon-shape bg-gradient-secondary shadow text-center border-radius-md">
+                    <i class="fas fa-clock text-lg text-white"></i>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0">LEAPS Tracker</h6>
+                    <span class="risk-indicator">
+                      <span class="risk-dot filled medium"></span>
+                      <span class="risk-dot filled medium"></span>
+                      <span class="risk-dot"></span>
+                    </span>
+                  </div>
+                  <p class="text-xs text-secondary mb-0">"Stock ownership with leverage"</p>
+                  <p class="text-xs text-muted mb-0">Best for: Long-term bulls with patience | Hold: 6-24 months</p>
+                </div>
+                <div class="col-auto me-2">
+                  <a href="/strategies/leaps-tracker" class="btn btn-sm btn-outline-secondary mb-0" title="Advanced Configuration">
+                    <i class="fas fa-cog"></i>
+                  </a>
+                </div>
+                <div class="col-auto">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input strategy-toggle" type="checkbox">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Swing Trading -->
+          <div class="strategy-card card mb-3" data-strategy="swing-trading" data-config-url="/strategies/swing-trading" data-bs-toggle="tooltip" data-bs-placement="left" title="Multi-timeframe technical analysis for swing trades. Holds positions for days to weeks.">
+            <div class="card-body p-3">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="icon icon-shape bg-gradient-dark shadow text-center border-radius-md">
+                    <i class="fas fa-wave-square text-lg text-white"></i>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0">Swing Trading</h6>
+                    <span class="risk-indicator">
+                      <span class="risk-dot filled medium"></span>
+                      <span class="risk-dot filled medium"></span>
+                      <span class="risk-dot"></span>
+                    </span>
+                  </div>
+                  <p class="text-xs text-secondary mb-0">"Catch the waves, skip the noise"</p>
+                  <p class="text-xs text-muted mb-0">Best for: Technical traders with some patience | Hold: 2-14 days</p>
+                </div>
+                <div class="col-auto me-2">
+                  <a href="/strategies/swing-trading" class="btn btn-sm btn-outline-dark mb-0" title="Advanced Configuration">
+                    <i class="fas fa-cog"></i>
+                  </a>
+                </div>
+                <div class="col-auto">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input strategy-toggle" type="checkbox">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SPX Credit Spreads -->
+          <div class="strategy-card card mb-3" data-strategy="spx-credit-spreads" data-config-url="/strategies/spx-credit-spreads" data-bs-toggle="tooltip" data-bs-placement="left" title="0DTE SPX credit spreads - advanced strategy. High win rate but significant risk on losing trades.">
+            <div class="card-body p-3">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="icon icon-shape shadow text-center border-radius-md" style="background: linear-gradient(310deg, #8965e0, #bc65e0);">
+                    <i class="fas fa-percentage text-lg text-white"></i>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0">SPX Credit Spreads</h6>
+                    <span class="strategy-badge badge bg-warning text-dark">Advanced</span>
+                    <span class="risk-indicator">
+                      <span class="risk-dot filled high"></span>
+                      <span class="risk-dot filled high"></span>
+                      <span class="risk-dot filled high"></span>
+                    </span>
+                  </div>
+                  <p class="text-xs text-secondary mb-0">"High probability income, high skill required"</p>
+                  <p class="text-xs text-muted mb-0">Best for: Advanced traders only | Hold: Hours (0DTE)</p>
+                </div>
+                <div class="col-auto me-2">
+                  <a href="/strategies/spx-credit-spreads" class="btn btn-sm mb-0" style="border: 1px solid #8965e0; color: #8965e0;" title="Advanced Configuration">
+                    <i class="fas fa-cog"></i>
+                  </a>
+                </div>
+                <div class="col-auto">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input strategy-toggle" type="checkbox">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Index Baseline -->
+          <div class="strategy-card card mb-3" data-strategy="index-baseline" data-config-url="/strategies/index-baseline" data-bs-toggle="tooltip" data-bs-placement="left" title="Simple buy-and-hold index tracking. Compare your active strategies against this benchmark.">
+            <div class="card-body p-3">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
+                    <i class="fas fa-chart-bar text-lg text-white"></i>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0">Index Baseline</h6>
+                    <span class="strategy-badge badge bg-info">Benchmark</span>
+                    <span class="risk-indicator">
+                      <span class="risk-dot filled low"></span>
+                      <span class="risk-dot"></span>
+                      <span class="risk-dot"></span>
+                    </span>
+                  </div>
+                  <p class="text-xs text-secondary mb-0">"The 'boring' strategy that beats most traders"</p>
+                  <p class="text-xs text-muted mb-0">Best for: Everyone as a benchmark | Hold: Forever</p>
+                </div>
+                <div class="col-auto me-2">
+                  <a href="/strategies/index-baseline" class="btn btn-sm btn-outline-info mb-0" title="Advanced Configuration">
+                    <i class="fas fa-cog"></i>
+                  </a>
+                </div>
+                <div class="col-auto">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input strategy-toggle" type="checkbox">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lotto Scanner -->
+          <div class="strategy-card card" data-strategy="lotto-scanner" data-config-url="/strategies/lotto-scanner" data-bs-toggle="tooltip" data-bs-placement="left" title="High-risk 0DTE and earnings lottery plays. Small position sizes, potential for large gains or total loss.">
+            <div class="card-body p-3">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
+                    <i class="fas fa-ticket-alt text-lg text-white"></i>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0">Lotto Scanner</h6>
+                    <span class="strategy-badge badge bg-danger">Speculative</span>
+                    <span class="risk-indicator">
+                      <span class="risk-dot filled high"></span>
+                      <span class="risk-dot filled high"></span>
+                      <span class="risk-dot filled high"></span>
+                    </span>
+                  </div>
+                  <p class="text-xs text-secondary mb-0">"Small bets, moonshot potential"</p>
+                  <p class="text-xs text-muted mb-0">Best for: Gamblers with money to lose | Hold: Hours</p>
+                </div>
+                <div class="col-auto me-2">
+                  <a href="/strategies/lotto-scanner" class="btn btn-sm btn-outline-info mb-0" title="Advanced Configuration">
+                    <i class="fas fa-cog"></i>
+                  </a>
+                </div>
+                <div class="col-auto">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input strategy-toggle" type="checkbox">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configuration Panel -->
+    <div class="col-lg-7">
+      <div class="card config-panel text-white">
+        <div class="card-header bg-transparent border-0 pb-0">
+          <h5 class="text-white mb-0" id="strategyTitle">WSB Dip Bot Configuration</h5>
+          <p class="text-white opacity-8 text-sm mb-0">Adjust strategy parameters below. Hover over labels for explanations.</p>
+        </div>
+        <div class="card-body">
+          <!-- Position Sizing -->
+          <div class="mb-4">
+            <label class="form-label text-white" data-bs-toggle="tooltip" title="What percentage of your total portfolio to risk on each trade. Lower = safer but smaller gains.">
+              <i class="fas fa-percentage me-2"></i>Position Size (% of Portfolio)
+              <i class="fas fa-question-circle ms-1 opacity-7"></i>
+            </label>
+            <div class="row align-items-center">
+              <div class="col-10">
+                <input type="range" class="param-slider" id="positionSize" min="1" max="10" value="3">
+              </div>
+              <div class="col-2 text-end">
+                <span class="badge bg-white text-dark" id="positionSizeValue">3%</span>
+              </div>
+            </div>
+            <div class="param-help">Recommended: 2-5% per trade. Higher = more risk but larger potential gains.</div>
+          </div>
+
+          <!-- Stop Loss -->
+          <div class="mb-4">
+            <label class="form-label text-white" data-bs-toggle="tooltip" title="Automatically sell if the position drops by this percentage. Protects against large losses.">
+              <i class="fas fa-hand-paper me-2"></i>Stop Loss (%)
+              <i class="fas fa-question-circle ms-1 opacity-7"></i>
+            </label>
+            <div class="row align-items-center">
+              <div class="col-10">
+                <input type="range" class="param-slider" id="stopLoss" min="1" max="20" value="5">
+              </div>
+              <div class="col-2 text-end">
+                <span class="badge bg-white text-dark" id="stopLossValue">5%</span>
+              </div>
+            </div>
+            <div class="param-help">Recommended: 3-8%. Tighter stops = less loss per trade but more false exits.</div>
+          </div>
+
+          <!-- Take Profit -->
+          <div class="mb-4">
+            <label class="form-label text-white" data-bs-toggle="tooltip" title="Automatically sell when profit reaches this percentage. Locks in gains.">
+              <i class="fas fa-bullseye me-2"></i>Take Profit (%)
+              <i class="fas fa-question-circle ms-1 opacity-7"></i>
+            </label>
+            <div class="row align-items-center">
+              <div class="col-10">
+                <input type="range" class="param-slider" id="takeProfit" min="5" max="50" value="15">
+              </div>
+              <div class="col-2 text-end">
+                <span class="badge bg-white text-dark" id="takeProfitValue">15%</span>
+              </div>
+            </div>
+            <div class="param-help">Recommended: 10-25%. Higher = bigger wins but fewer winners.</div>
+          </div>
+
+          <!-- Entry Threshold -->
+          <div class="mb-4">
+            <label class="form-label text-white" data-bs-toggle="tooltip" title="Only buy when the stock has dropped by this percentage from recent highs. Bigger dip = better entry price.">
+              <i class="fas fa-door-open me-2"></i>Entry Dip Threshold (%)
+              <i class="fas fa-question-circle ms-1 opacity-7"></i>
+            </label>
+            <div class="row align-items-center">
+              <div class="col-10">
+                <input type="range" class="param-slider" id="entryThreshold" min="3" max="15" value="5">
+              </div>
+              <div class="col-2 text-end">
+                <span class="badge bg-white text-dark" id="entryThresholdValue">5%</span>
+              </div>
+            </div>
+            <div class="param-help">Recommended: 5-10%. Lower = more trades, higher = fewer but better entries.</div>
+          </div>
+
+          <!-- Watchlist -->
+          <div class="mb-4">
+            <label class="form-label text-white" data-bs-toggle="tooltip" title="Symbols this strategy will monitor. Add high-volume stocks for better execution.">
+              <i class="fas fa-list me-2"></i>Watchlist Symbols
+              <i class="fas fa-question-circle ms-1 opacity-7"></i>
+            </label>
+            <input type="text" class="form-control bg-white" placeholder="AAPL, MSFT, GOOGL, TSLA, NVDA" id="watchlist">
+            <div class="param-help">Enter comma-separated symbols. Use high-volume stocks for best results.</div>
+          </div>
+
+          <!-- Trading Schedule -->
+          <div class="mb-4">
+            <label class="form-label text-white" data-bs-toggle="tooltip" title="When the strategy can place trades. Extended hours have lower liquidity.">
+              <i class="fas fa-clock me-2"></i>Trading Schedule
+              <i class="fas fa-question-circle ms-1 opacity-7"></i>
+            </label>
+            <select class="form-select" id="tradingSchedule">
+              <option value="market-hours" selected>Market Hours Only (9:30 AM - 4:00 PM ET)</option>
+              <option value="extended">Extended Hours (4:00 AM - 8:00 PM ET)</option>
+              <option value="24-7">24/7 (Crypto only)</option>
+            </select>
+            <div class="param-help">Market hours recommended - better liquidity and tighter spreads.</div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="row mt-4">
+            <div class="col-6">
+              <button class="btn btn-white w-100 mb-0" id="saveConfigBtn" data-bs-toggle="tooltip" title="Save current configuration for this strategy">
+                <i class="fas fa-save me-2"></i>Save Configuration
+              </button>
+            </div>
+            <div class="col-6">
+              <button class="btn btn-outline-white w-100 mb-0" id="resetConfigBtn" data-bs-toggle="tooltip" title="Restore default values for all parameters">
+                <i class="fas fa-undo me-2"></i>Reset to Defaults
+              </button>
+            </div>
+          </div>
+
+          <div class="strategy-tip mt-3" style="background: rgba(255,255,255,0.1);">
+            <small class="text-white opacity-8"><i class="fas fa-lightbulb text-warning me-1"></i><strong>Tip:</strong>
+              Start with conservative settings (small position size, tight stop loss) until you understand how this strategy performs.
+              You can always increase risk later once you see consistent results.
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Strategy Performance Card -->
+      <div class="card mt-4">
+        <div class="card-header pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-0"><i class="fas fa-chart-area me-2"></i>Strategy Performance</h6>
+              <p class="text-xs text-secondary mb-0">Historical performance metrics for this strategy</p>
+            </div>
+            <span class="badge bg-gradient-info" data-bs-toggle="tooltip" title="Performance data from the last 30 days">30 Day</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3 col-6 mb-3">
+              <div class="text-center">
+                <h4 class="text-success mb-0">+12.5%</h4>
+                <p class="text-sm text-secondary mb-0">Total Return</p>
+                <div class="perf-help">Net profit after all trades</div>
+              </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+              <div class="text-center">
+                <h4 class="mb-0" data-bs-toggle="tooltip" title="Percentage of trades that made money. >50% is good, >60% is great.">68%</h4>
+                <p class="text-sm text-secondary mb-0">Win Rate</p>
+                <div class="perf-help">>50% is profitable</div>
+              </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+              <div class="text-center">
+                <h4 class="mb-0" data-bs-toggle="tooltip" title="Risk-adjusted return. >1.0 is good, >2.0 is excellent.">1.8</h4>
+                <p class="text-sm text-secondary mb-0">Sharpe Ratio</p>
+                <div class="perf-help">>1.0 = good risk-adjusted</div>
+              </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+              <div class="text-center">
+                <h4 class="text-danger mb-0" data-bs-toggle="tooltip" title="Largest peak-to-trough decline. Lower is better.">-4.2%</h4>
+                <p class="text-sm text-secondary mb-0">Max Drawdown</p>
+                <div class="perf-help">Largest decline from peak</div>
+              </div>
+            </div>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between">
+            <span class="text-sm" data-bs-toggle="tooltip" title="Total number of trades executed">Trades: 45</span>
+            <span class="text-sm" data-bs-toggle="tooltip" title="Average time positions are held before closing">Avg Holding: 3.2 days</span>
+            <span class="text-sm" data-bs-toggle="tooltip" title="When this strategy last executed a trade">Last Trade: 2 hours ago</span>
+          </div>
+
+          <div class="strategy-tip mt-3">
+            <small class="text-secondary"><i class="fas fa-info-circle text-info me-1"></i><strong>Reading these metrics:</strong>
+              Win rate above 50% is profitable if average win > average loss.
+              Sharpe ratio >1.0 means good risk-adjusted returns.
+              Max drawdown shows worst-case scenario - make sure you can stomach this!
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  // Initialize tooltips
+  document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+
+  // Strategy card selection
+  document.querySelectorAll('.strategy-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+      if (e.target.type === 'checkbox') return;
+      document.querySelectorAll('.strategy-card').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      const strategyName = this.querySelector('h6').textContent;
+      document.getElementById('strategyTitle').textContent = strategyName + ' Configuration';
+    });
+  });
+
+  // Slider value updates
+  document.getElementById('positionSize').addEventListener('input', function() {
+    document.getElementById('positionSizeValue').textContent = this.value + '%';
+  });
+  document.getElementById('stopLoss').addEventListener('input', function() {
+    document.getElementById('stopLossValue').textContent = this.value + '%';
+  });
+  document.getElementById('takeProfit').addEventListener('input', function() {
+    document.getElementById('takeProfitValue').textContent = this.value + '%';
+  });
+  document.getElementById('entryThreshold').addEventListener('input', function() {
+    document.getElementById('entryThresholdValue').textContent = this.value + '%';
+  });
+
+  // Save configuration with feedback
+  document.getElementById('saveConfigBtn').addEventListener('click', function() {
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+    this.disabled = true;
+    setTimeout(() => {
+      this.innerHTML = '<i class="fas fa-check me-2"></i>Saved!';
+      setTimeout(() => {
+        this.innerHTML = '<i class="fas fa-save me-2"></i>Save Configuration';
+        this.disabled = false;
+      }, 1500);
+    }, 800);
+  });
+
+  // Reset to defaults
+  document.getElementById('resetConfigBtn').addEventListener('click', function() {
+    if (confirm('Reset all parameters to default values?')) {
+      document.getElementById('positionSize').value = 3;
+      document.getElementById('positionSizeValue').textContent = '3%';
+      document.getElementById('stopLoss').value = 5;
+      document.getElementById('stopLossValue').textContent = '5%';
+      document.getElementById('takeProfit').value = 15;
+      document.getElementById('takeProfitValue').textContent = '15%';
+      document.getElementById('entryThreshold').value = 5;
+      document.getElementById('entryThresholdValue').textContent = '5%';
+      document.getElementById('watchlist').value = '';
+    }
+  });
+
+  // Start/Stop all strategies
+  document.getElementById('startAllBtn').addEventListener('click', function() {
+    if (confirm('Start all strategies? They will begin monitoring and trading immediately.')) {
+      document.querySelectorAll('.strategy-toggle').forEach(toggle => {
+        toggle.checked = true;
+      });
+      alert('All strategies started successfully.');
+    }
+  });
+
+  document.getElementById('stopAllBtn').addEventListener('click', function() {
+    if (confirm('Stop all strategies? No new trades will be placed, but existing positions will remain.')) {
+      document.querySelectorAll('.strategy-toggle').forEach(toggle => {
+        toggle.checked = false;
+      });
+      alert('All strategies stopped. Existing positions are unaffected.');
+    }
+  });
+
+  // Load and display allocation data
+  async function loadAllocations() {
+    try {
+      const response = await fetch('/api/allocations/');
+      const data = await response.json();
+
+      if (data.status === 'success' && data.allocations.configured) {
+        data.allocations.strategies.forEach(allocation => {
+          updateStrategyAllocation(allocation);
+        });
+      }
+    } catch (error) {
+      console.error('Error loading allocations:', error);
+    }
+  }
+
+  function updateStrategyAllocation(allocation) {
+    const strategyCard = document.querySelector(`[data-strategy="${allocation.strategy_name}"]`);
+    if (!strategyCard) return;
+
+    // Find or create allocation bar container
+    let container = strategyCard.querySelector('.allocation-bar-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'allocation-bar-container';
+      strategyCard.querySelector('.card-body').appendChild(container);
+    }
+
+    const utilPct = allocation.utilization_pct;
+    const level = allocation.utilization_level;
+
+    let levelClass = 'low';
+    if (utilPct >= 100) levelClass = 'maxed';
+    else if (utilPct >= 90) levelClass = 'critical';
+    else if (utilPct >= 80) levelClass = 'warning';
+    else if (utilPct >= 50) levelClass = 'moderate';
+
+    const isMaxed = allocation.is_maxed_out;
+
+    container.innerHTML = `
+      <div class="allocation-info">
+        <span class="allocation-label">
+          Allocation: ${allocation.allocated_pct.toFixed(0)}%
+          ${isMaxed ? '<span class="maxed-badge">MAXED</span>' : ''}
+        </span>
+        <span class="allocation-value ${levelClass}">
+          $${allocation.current_exposure.toLocaleString()} / $${allocation.allocated_amount.toLocaleString()}
+        </span>
+      </div>
+      <div class="allocation-bar">
+        <div class="used ${levelClass}" style="width: ${Math.min(utilPct, 100)}%"></div>
+      </div>
+    `;
+  }
+
+  // Load allocations on page load
+  loadAllocations();
+
+  // Refresh allocations every 60 seconds
+  setInterval(loadAllocations, 60000);
+</script>
+{% endblock javascripts %}

@@ -1,0 +1,1037 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Strategy Builder{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h2 class="text-white mb-1">Strategy Builder</h2>
+                            <p class="text-white opacity-8 mb-0">
+                                Create custom trading strategies using technical indicators and conditions
+                            </p>
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <button class="btn btn-white btn-sm me-2" onclick="showTemplates()">
+                                <i class="fas fa-copy me-1"></i> Start from Template
+                            </button>
+                            <button class="btn btn-outline-white btn-sm" onclick="showIndicatorReference()">
+                                <i class="fas fa-book me-1"></i> Indicator Reference
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strategy List (when not editing) -->
+    <div class="row mb-4" id="strategyListSection">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6">
+                            <h5 class="mb-0">My Custom Strategies</h5>
+                        </div>
+                        <div class="col-lg-6 text-end">
+                            <button class="btn btn-primary btn-sm" onclick="createNewStrategy()">
+                                <i class="fas fa-plus me-1"></i> New Strategy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body px-0 pt-0 pb-2">
+                    <div class="table-responsive p-0" id="strategyListContainer">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strategy Builder (when editing) -->
+    <div class="row" id="builderSection" style="display: none;">
+        <!-- Builder Header -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col-lg-4">
+                            <button class="btn btn-outline-secondary btn-sm me-2" onclick="cancelEdit()">
+                                <i class="fas fa-arrow-left me-1"></i> Back
+                            </button>
+                            <span class="text-lg font-weight-bold" id="strategyNameDisplay">New Strategy</span>
+                        </div>
+                        <div class="col-lg-4">
+                            <input type="text" class="form-control" id="strategyName" placeholder="Strategy Name" value="">
+                        </div>
+                        <div class="col-lg-4 text-end">
+                            <button class="btn btn-outline-info btn-sm me-2" onclick="validateStrategy()">
+                                <i class="fas fa-check-circle me-1"></i> Validate
+                            </button>
+                            <button class="btn btn-info btn-sm me-2" onclick="runBacktest()">
+                                <i class="fas fa-chart-line me-1"></i> Backtest
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="saveStrategy()">
+                                <i class="fas fa-save me-1"></i> Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Builder Main Area -->
+        <div class="col-lg-6 mb-4">
+            <!-- Entry Conditions -->
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <h6 class="mb-0"><i class="fas fa-sign-in-alt text-success me-2"></i>Entry Conditions</h6>
+                    <p class="text-xs text-muted mb-0">When to BUY - all conditions must be met</p>
+                </div>
+                <div class="card-body">
+                    <div id="entryConditionsContainer">
+                        <!-- Entry conditions added here -->
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-xs text-uppercase">Entry Logic</label>
+                        <select class="form-select form-select-sm" id="entryLogic">
+                            <option value="all">ALL conditions (AND)</option>
+                            <option value="any">ANY condition (OR)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-outline-success btn-sm w-100" onclick="addEntryCondition()">
+                        <i class="fas fa-plus me-1"></i> Add Entry Condition
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <!-- Exit Conditions -->
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <h6 class="mb-0"><i class="fas fa-sign-out-alt text-danger me-2"></i>Exit Conditions</h6>
+                    <p class="text-xs text-muted mb-0">When to SELL - any condition triggers exit</p>
+                </div>
+                <div class="card-body">
+                    <div id="exitConditionsContainer">
+                        <!-- Exit conditions added here -->
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-xs text-uppercase">Exit Logic</label>
+                        <select class="form-select form-select-sm" id="exitLogic">
+                            <option value="any">ANY condition (OR)</option>
+                            <option value="all">ALL conditions (AND)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-outline-danger btn-sm w-100" onclick="addExitCondition()">
+                        <i class="fas fa-plus me-1"></i> Add Exit Condition
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <!-- Position Sizing -->
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h6 class="mb-0"><i class="fas fa-balance-scale text-info me-2"></i>Position Sizing</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-xs text-uppercase">Size Type</label>
+                            <select class="form-select form-select-sm" id="sizingType">
+                                <option value="fixed_percent">Fixed Percentage</option>
+                                <option value="fixed_dollar">Fixed Dollar</option>
+                                <option value="equal_weight">Equal Weight</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-xs text-uppercase">Size Value</label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control" id="sizingValue" value="5" min="1" max="100">
+                                <span class="input-group-text" id="sizingUnit">%</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-xs text-uppercase">Max Concurrent Positions</label>
+                            <input type="number" class="form-control form-control-sm" id="maxPositions" value="5" min="1" max="20">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <!-- Filters -->
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h6 class="mb-0"><i class="fas fa-filter text-warning me-2"></i>Stock Filters</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-xs text-uppercase">Min Price ($)</label>
+                            <input type="number" class="form-control form-control-sm" id="filterMinPrice" value="10" min="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-xs text-uppercase">Min Volume</label>
+                            <input type="number" class="form-control form-control-sm" id="filterMinVolume" value="500000" min="0" step="100000">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-xs text-uppercase">Stock Universe</label>
+                            <select class="form-select form-select-sm" id="universe">
+                                <option value="sp500">S&P 500</option>
+                                <option value="nasdaq100">Nasdaq 100</option>
+                                <option value="dow30">Dow 30</option>
+                                <option value="russell2000">Russell 2000</option>
+                                <option value="custom">Custom List</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" id="filterSkipEarnings" checked>
+                                <label class="form-check-label text-sm" for="filterSkipEarnings">
+                                    Skip earnings week
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="customSymbolsContainer" style="display: none;">
+                        <label class="form-label text-xs text-uppercase">Custom Symbols</label>
+                        <input type="text" class="form-control form-control-sm" id="customSymbols" placeholder="AAPL, MSFT, GOOGL...">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h6 class="mb-0"><i class="fas fa-eye text-primary me-2"></i>Strategy Preview</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-xs text-uppercase text-muted mb-2">Pseudo-Code</h6>
+                            <pre class="bg-light p-3 rounded" id="pseudoCodePreview" style="font-size: 0.85rem;">
+BUY when (no conditions defined)
+SELL when (no conditions defined)
+                            </pre>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-xs text-uppercase text-muted mb-2">Validation Status</h6>
+                            <div id="validationStatus">
+                                <span class="badge bg-secondary">Not validated</span>
+                            </div>
+                            <div id="validationMessages" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backtest Results (shown after running backtest) -->
+        <div class="col-12 mb-4" id="backtestResultsSection" style="display: none;">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h6 class="mb-0"><i class="fas fa-chart-bar text-success me-2"></i>Backtest Results</h6>
+                </div>
+                <div class="card-body" id="backtestResultsContent">
+                    <!-- Results populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Templates Modal -->
+<div class="modal fade" id="templatesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Strategy Templates</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="templatesContent">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Indicator Reference Modal -->
+<div class="modal fade" id="indicatorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Indicator Reference</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="indicatorContent">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ block.super }}
+<script>
+    // Global state
+    let currentStrategyId = null;
+    let indicators = [];
+    let operators = [];
+    let exitTypes = [];
+    let entryConditions = [];
+    let exitConditions = [];
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadStrategies();
+        loadBuilderOptions();
+
+        // Universe change handler
+        document.getElementById('universe').addEventListener('change', function() {
+            document.getElementById('customSymbolsContainer').style.display =
+                this.value === 'custom' ? 'block' : 'none';
+        });
+
+        // Sizing type change handler
+        document.getElementById('sizingType').addEventListener('change', function() {
+            document.getElementById('sizingUnit').textContent =
+                this.value === 'fixed_dollar' ? '$' : '%';
+        });
+    });
+
+    async function loadStrategies() {
+        try {
+            const response = await fetch('/api/custom-strategies/');
+            const data = await response.json();
+
+            renderStrategyList(data.strategies || []);
+        } catch (error) {
+            console.error('Error loading strategies:', error);
+        }
+    }
+
+    async function loadBuilderOptions() {
+        try {
+            const response = await fetch('/api/custom-strategies/indicators/');
+            const data = await response.json();
+
+            indicators = data.indicators || [];
+            operators = data.operators || [];
+            exitTypes = data.exit_types || [];
+        } catch (error) {
+            console.error('Error loading builder options:', error);
+        }
+    }
+
+    function renderStrategyList(strategies) {
+        const container = document.getElementById('strategyListContainer');
+
+        if (strategies.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-drafting-compass fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No custom strategies yet</p>
+                    <button class="btn btn-primary btn-sm" onclick="createNewStrategy()">
+                        <i class="fas fa-plus me-1"></i> Create Your First Strategy
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <table class="table align-items-center mb-0">
+                <thead>
+                    <tr>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Strategy</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Conditions</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Last Backtest</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${strategies.map(s => `
+                        <tr>
+                            <td class="ps-3">
+                                <div class="d-flex flex-column">
+                                    <h6 class="mb-0 text-sm">${s.name}</h6>
+                                    <p class="text-xs text-muted mb-0">${s.description || 'No description'}</p>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                ${s.is_active
+                                    ? '<span class="badge bg-gradient-success">Active</span>'
+                                    : s.is_validated
+                                    ? '<span class="badge bg-gradient-info">Validated</span>'
+                                    : '<span class="badge bg-gradient-secondary">Draft</span>'}
+                            </td>
+                            <td class="text-center">
+                                <span class="text-sm">${s.entry_conditions_count} entry / ${s.exit_conditions_count} exit</span>
+                            </td>
+                            <td class="text-center">
+                                ${s.backtest_summary.has_backtest
+                                    ? `<span class="text-${s.backtest_summary.total_return_pct >= 0 ? 'success' : 'danger'} text-sm">
+                                        ${s.backtest_summary.total_return_pct >= 0 ? '+' : ''}${s.backtest_summary.total_return_pct.toFixed(1)}%
+                                       </span>`
+                                    : '<span class="text-muted text-sm">-</span>'}
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-link text-info p-0 me-2" onclick="editStrategy(${s.id})" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-link text-primary p-0 me-2" onclick="cloneStrategy(${s.id})" title="Clone">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                ${s.is_active
+                                    ? `<button class="btn btn-link text-warning p-0 me-2" onclick="deactivateStrategy(${s.id})" title="Deactivate">
+                                        <i class="fas fa-pause"></i>
+                                       </button>`
+                                    : s.is_validated
+                                    ? `<button class="btn btn-link text-success p-0 me-2" onclick="activateStrategy(${s.id})" title="Activate">
+                                        <i class="fas fa-play"></i>
+                                       </button>`
+                                    : ''}
+                                <button class="btn btn-link text-danger p-0" onclick="deleteStrategy(${s.id}, '${s.name}')" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    function createNewStrategy() {
+        currentStrategyId = null;
+        entryConditions = [];
+        exitConditions = [];
+
+        document.getElementById('strategyName').value = '';
+        document.getElementById('strategyNameDisplay').textContent = 'New Strategy';
+        document.getElementById('entryLogic').value = 'all';
+        document.getElementById('exitLogic').value = 'any';
+        document.getElementById('sizingType').value = 'fixed_percent';
+        document.getElementById('sizingValue').value = '5';
+        document.getElementById('maxPositions').value = '5';
+        document.getElementById('filterMinPrice').value = '10';
+        document.getElementById('filterMinVolume').value = '500000';
+        document.getElementById('universe').value = 'sp500';
+        document.getElementById('filterSkipEarnings').checked = true;
+        document.getElementById('customSymbols').value = '';
+
+        renderEntryConditions();
+        renderExitConditions();
+        updatePreview();
+
+        document.getElementById('strategyListSection').style.display = 'none';
+        document.getElementById('builderSection').style.display = 'flex';
+        document.getElementById('backtestResultsSection').style.display = 'none';
+    }
+
+    async function editStrategy(id) {
+        try {
+            const response = await fetch(`/api/custom-strategies/${id}/`);
+            const data = await response.json();
+            const s = data.strategy;
+
+            currentStrategyId = s.id;
+            entryConditions = s.definition.entry_conditions || [];
+            exitConditions = s.definition.exit_conditions || [];
+
+            document.getElementById('strategyName').value = s.name;
+            document.getElementById('strategyNameDisplay').textContent = s.name;
+            document.getElementById('entryLogic').value = s.definition.entry_logic || 'all';
+            document.getElementById('exitLogic').value = s.definition.exit_logic || 'any';
+
+            const sizing = s.definition.position_sizing || {};
+            document.getElementById('sizingType').value = sizing.type || 'fixed_percent';
+            document.getElementById('sizingValue').value = sizing.value || 5;
+            document.getElementById('maxPositions').value = sizing.max_positions || 5;
+
+            const filters = s.definition.filters || {};
+            document.getElementById('filterMinPrice').value = filters.min_price || 10;
+            document.getElementById('filterMinVolume').value = filters.min_volume || 500000;
+            document.getElementById('filterSkipEarnings').checked = filters.exclude_earnings_window > 0;
+
+            document.getElementById('universe').value = s.universe || 'sp500';
+            document.getElementById('customSymbols').value = (s.custom_symbols || []).join(', ');
+            document.getElementById('customSymbolsContainer').style.display =
+                s.universe === 'custom' ? 'block' : 'none';
+
+            renderEntryConditions();
+            renderExitConditions();
+            updatePreview();
+
+            document.getElementById('strategyListSection').style.display = 'none';
+            document.getElementById('builderSection').style.display = 'flex';
+            document.getElementById('backtestResultsSection').style.display = 'none';
+        } catch (error) {
+            console.error('Error loading strategy:', error);
+            alert('Error loading strategy');
+        }
+    }
+
+    function cancelEdit() {
+        document.getElementById('strategyListSection').style.display = 'block';
+        document.getElementById('builderSection').style.display = 'none';
+        loadStrategies();
+    }
+
+    function addEntryCondition() {
+        entryConditions.push({
+            indicator: 'rsi',
+            operator: 'less_than',
+            value: 30,
+            period: 14
+        });
+        renderEntryConditions();
+        updatePreview();
+    }
+
+    function removeEntryCondition(index) {
+        entryConditions.splice(index, 1);
+        renderEntryConditions();
+        updatePreview();
+    }
+
+    function addExitCondition() {
+        exitConditions.push({
+            type: 'stop_loss',
+            value: 5
+        });
+        renderExitConditions();
+        updatePreview();
+    }
+
+    function removeExitCondition(index) {
+        exitConditions.splice(index, 1);
+        renderExitConditions();
+        updatePreview();
+    }
+
+    function renderEntryConditions() {
+        const container = document.getElementById('entryConditionsContainer');
+
+        if (entryConditions.length === 0) {
+            container.innerHTML = '<p class="text-muted text-sm text-center py-3">No entry conditions. Click below to add one.</p>';
+            return;
+        }
+
+        container.innerHTML = entryConditions.map((cond, idx) => `
+            <div class="entry-condition mb-3 p-3 bg-light rounded">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <select class="form-select form-select-sm" onchange="updateEntryCondition(${idx}, 'indicator', this.value)">
+                            ${indicators.map(i => `<option value="${i.id}" ${cond.indicator === i.id ? 'selected' : ''}>${i.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select form-select-sm" onchange="updateEntryCondition(${idx}, 'operator', this.value)">
+                            ${operators.map(o => `<option value="${o.id}" ${cond.operator === o.id ? 'selected' : ''}>${o.symbol} ${o.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" class="form-control form-control-sm" value="${cond.value || ''}"
+                               onchange="updateEntryCondition(${idx}, 'value', parseFloat(this.value))" placeholder="Value">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" class="form-control form-control-sm" value="${cond.period || ''}"
+                               onchange="updateEntryCondition(${idx}, 'period', parseInt(this.value))" placeholder="Period">
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeEntryCondition(${idx})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderExitConditions() {
+        const container = document.getElementById('exitConditionsContainer');
+
+        if (exitConditions.length === 0) {
+            container.innerHTML = '<p class="text-muted text-sm text-center py-3">No exit conditions. Add stop loss for safety.</p>';
+            return;
+        }
+
+        container.innerHTML = exitConditions.map((cond, idx) => `
+            <div class="exit-condition mb-3 p-3 bg-light rounded">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <select class="form-select form-select-sm" onchange="updateExitType(${idx}, this.value)">
+                            ${exitTypes.map(t => `<option value="${t.id}" ${cond.type === t.id ? 'selected' : ''}>${t.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    ${cond.type === 'indicator' ? `
+                        <div class="col-md-2">
+                            <select class="form-select form-select-sm" onchange="updateExitCondition(${idx}, 'indicator', this.value)">
+                                ${indicators.map(i => `<option value="${i.id}" ${cond.indicator === i.id ? 'selected' : ''}>${i.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select form-select-sm" onchange="updateExitCondition(${idx}, 'operator', this.value)">
+                                ${operators.filter(o => !o.requires_history).map(o => `<option value="${o.id}" ${cond.operator === o.id ? 'selected' : ''}>${o.symbol}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" class="form-control form-control-sm" value="${cond.value || ''}"
+                                   onchange="updateExitCondition(${idx}, 'value', parseFloat(this.value))">
+                        </div>
+                    ` : cond.type === 'time_based' ? `
+                        <div class="col-md-4">
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control" value="${cond.days || 5}"
+                                       onchange="updateExitCondition(${idx}, 'days', parseInt(this.value))">
+                                <span class="input-group-text">days</span>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="col-md-4">
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control" value="${cond.value || ''}"
+                                       onchange="updateExitCondition(${idx}, 'value', parseFloat(this.value))">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    `}
+                    <div class="col text-end">
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeExitCondition(${idx})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function updateEntryCondition(index, field, value) {
+        entryConditions[index][field] = value;
+        updatePreview();
+    }
+
+    function updateExitCondition(index, field, value) {
+        exitConditions[index][field] = value;
+        updatePreview();
+    }
+
+    function updateExitType(index, type) {
+        exitConditions[index] = { type: type };
+        if (type === 'take_profit') exitConditions[index].value = 10;
+        else if (type === 'stop_loss') exitConditions[index].value = 5;
+        else if (type === 'trailing_stop') exitConditions[index].value = 7;
+        else if (type === 'time_based') exitConditions[index].days = 5;
+        else if (type === 'indicator') {
+            exitConditions[index].indicator = 'rsi';
+            exitConditions[index].operator = 'greater_than';
+            exitConditions[index].value = 70;
+        }
+        renderExitConditions();
+        updatePreview();
+    }
+
+    function updatePreview() {
+        const entryLogic = document.getElementById('entryLogic').value;
+        const exitLogic = document.getElementById('exitLogic').value;
+
+        let entryStr = entryConditions.map(c => {
+            const ind = indicators.find(i => i.id === c.indicator);
+            const op = operators.find(o => o.id === c.operator);
+            return `${ind?.name || c.indicator}${c.period ? '(' + c.period + ')' : ''} ${op?.symbol || c.operator} ${c.value}`;
+        }).join(entryLogic === 'all' ? ' AND ' : ' OR ');
+
+        let exitStr = exitConditions.map(c => {
+            if (c.type === 'take_profit') return `Take Profit at ${c.value}%`;
+            if (c.type === 'stop_loss') return `Stop Loss at ${c.value}%`;
+            if (c.type === 'trailing_stop') return `Trailing Stop ${c.value}%`;
+            if (c.type === 'time_based') return `Hold max ${c.days} days`;
+            if (c.type === 'indicator') {
+                const ind = indicators.find(i => i.id === c.indicator);
+                const op = operators.find(o => o.id === c.operator);
+                return `${ind?.name || c.indicator} ${op?.symbol || c.operator} ${c.value}`;
+            }
+            return c.type;
+        }).join(exitLogic === 'any' ? ' OR ' : ' AND ');
+
+        document.getElementById('pseudoCodePreview').textContent =
+            `BUY when ${entryStr || '(no conditions)'}\nSELL when ${exitStr || '(no conditions)'}`;
+    }
+
+    function getDefinition() {
+        return {
+            entry_conditions: entryConditions,
+            entry_logic: document.getElementById('entryLogic').value,
+            exit_conditions: exitConditions,
+            exit_logic: document.getElementById('exitLogic').value,
+            position_sizing: {
+                type: document.getElementById('sizingType').value,
+                value: parseFloat(document.getElementById('sizingValue').value) || 5,
+                max_positions: parseInt(document.getElementById('maxPositions').value) || 5
+            },
+            filters: {
+                min_price: parseFloat(document.getElementById('filterMinPrice').value) || 10,
+                min_volume: parseInt(document.getElementById('filterMinVolume').value) || 500000,
+                exclude_earnings_window: document.getElementById('filterSkipEarnings').checked ? 5 : 0
+            }
+        };
+    }
+
+    async function saveStrategy() {
+        const name = document.getElementById('strategyName').value.trim();
+        if (!name) {
+            alert('Please enter a strategy name');
+            return;
+        }
+
+        const definition = getDefinition();
+        const universe = document.getElementById('universe').value;
+        const customSymbols = document.getElementById('customSymbols').value
+            .split(',').map(s => s.trim().toUpperCase()).filter(s => s);
+
+        try {
+            let response;
+            if (currentStrategyId) {
+                response = await fetch(`/api/custom-strategies/${currentStrategyId}/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({ name, definition, universe, custom_symbols: customSymbols })
+                });
+            } else {
+                response = await fetch('/api/custom-strategies/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({ name, definition, universe, custom_symbols: customSymbols })
+                });
+            }
+
+            const data = await response.json();
+            if (data.status === 'error') {
+                alert(data.message);
+                return;
+            }
+
+            currentStrategyId = data.strategy.id;
+            document.getElementById('strategyNameDisplay').textContent = name;
+            alert('Strategy saved successfully!');
+        } catch (error) {
+            console.error('Error saving strategy:', error);
+            alert('Error saving strategy');
+        }
+    }
+
+    async function validateStrategy() {
+        if (!currentStrategyId) {
+            await saveStrategy();
+            if (!currentStrategyId) return;
+        }
+
+        try {
+            const response = await fetch(`/api/custom-strategies/${currentStrategyId}/validate/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() }
+            });
+            const data = await response.json();
+
+            const statusDiv = document.getElementById('validationStatus');
+            const messagesDiv = document.getElementById('validationMessages');
+
+            if (data.validation.valid) {
+                statusDiv.innerHTML = '<span class="badge bg-success">Valid</span>';
+            } else {
+                statusDiv.innerHTML = '<span class="badge bg-danger">Invalid</span>';
+            }
+
+            let messages = '';
+            if (data.validation.errors.length > 0) {
+                messages += data.validation.errors.map(e =>
+                    `<div class="alert alert-danger py-1 px-2 mb-1 text-sm"><i class="fas fa-times-circle me-1"></i>${e}</div>`
+                ).join('');
+            }
+            if (data.validation.warnings.length > 0) {
+                messages += data.validation.warnings.map(w =>
+                    `<div class="alert alert-warning py-1 px-2 mb-1 text-sm"><i class="fas fa-exclamation-triangle me-1"></i>${w}</div>`
+                ).join('');
+            }
+            messagesDiv.innerHTML = messages || '<div class="text-success text-sm">All checks passed!</div>';
+
+        } catch (error) {
+            console.error('Error validating:', error);
+        }
+    }
+
+    async function runBacktest() {
+        if (!currentStrategyId) {
+            await saveStrategy();
+            if (!currentStrategyId) return;
+        }
+
+        document.getElementById('backtestResultsSection').style.display = 'block';
+        document.getElementById('backtestResultsContent').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Running backtest...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(`/api/custom-strategies/${currentStrategyId}/backtest/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({ period: '1Y' })
+            });
+            const data = await response.json();
+
+            if (data.status === 'error') {
+                document.getElementById('backtestResultsContent').innerHTML = `
+                    <div class="alert alert-danger">${data.message}</div>
+                `;
+                return;
+            }
+
+            renderBacktestResults(data.backtest);
+        } catch (error) {
+            console.error('Error running backtest:', error);
+            document.getElementById('backtestResultsContent').innerHTML = `
+                <div class="alert alert-danger">Error running backtest</div>
+            `;
+        }
+    }
+
+    function renderBacktestResults(results) {
+        const r = results;
+        document.getElementById('backtestResultsContent').innerHTML = `
+            <div class="row">
+                <div class="col-md-3 text-center border-end">
+                    <h3 class="text-${r.total_return_pct >= 0 ? 'success' : 'danger'} mb-0">
+                        ${r.total_return_pct >= 0 ? '+' : ''}${r.total_return_pct.toFixed(1)}%
+                    </h3>
+                    <p class="text-muted text-sm">Total Return</p>
+                </div>
+                <div class="col-md-3 text-center border-end">
+                    <h3 class="mb-0">${r.sharpe_ratio.toFixed(2)}</h3>
+                    <p class="text-muted text-sm">Sharpe Ratio</p>
+                </div>
+                <div class="col-md-3 text-center border-end">
+                    <h3 class="text-danger mb-0">-${r.max_drawdown_pct.toFixed(1)}%</h3>
+                    <p class="text-muted text-sm">Max Drawdown</p>
+                </div>
+                <div class="col-md-3 text-center">
+                    <h3 class="mb-0">${r.win_rate.toFixed(0)}%</h3>
+                    <p class="text-muted text-sm">Win Rate</p>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-sm">
+                        <tr><td>Period</td><td class="text-end"><strong>${r.period}</strong></td></tr>
+                        <tr><td>Total Trades</td><td class="text-end"><strong>${r.total_trades}</strong></td></tr>
+                        <tr><td>Winning Trades</td><td class="text-end text-success">${r.winning_trades}</td></tr>
+                        <tr><td>Losing Trades</td><td class="text-end text-danger">${r.losing_trades}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-sm">
+                        <tr><td>Profit Factor</td><td class="text-end"><strong>${r.profit_factor.toFixed(2)}</strong></td></tr>
+                        <tr><td>Avg Win</td><td class="text-end text-success">+${r.avg_win_pct.toFixed(1)}%</td></tr>
+                        <tr><td>Avg Loss</td><td class="text-end text-danger">-${r.avg_loss_pct.toFixed(1)}%</td></tr>
+                        <tr><td>Avg Hold</td><td class="text-end">${r.avg_hold_days.toFixed(1)} days</td></tr>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    async function deleteStrategy(id, name) {
+        if (!confirm(`Delete strategy "${name}"?`)) return;
+
+        try {
+            const response = await fetch(`/api/custom-strategies/${id}/`, {
+                method: 'DELETE',
+                headers: { 'X-CSRFToken': getCsrfToken() }
+            });
+            const data = await response.json();
+
+            if (data.status === 'error') {
+                alert(data.message);
+                return;
+            }
+
+            loadStrategies();
+        } catch (error) {
+            console.error('Error deleting strategy:', error);
+        }
+    }
+
+    async function cloneStrategy(id) {
+        try {
+            const response = await fetch(`/api/custom-strategies/${id}/clone/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() }
+            });
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                loadStrategies();
+            }
+        } catch (error) {
+            console.error('Error cloning strategy:', error);
+        }
+    }
+
+    async function activateStrategy(id) {
+        try {
+            const response = await fetch(`/api/custom-strategies/${id}/activate/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() }
+            });
+            const data = await response.json();
+
+            if (data.status === 'error') {
+                alert(data.message);
+                return;
+            }
+
+            loadStrategies();
+        } catch (error) {
+            console.error('Error activating strategy:', error);
+        }
+    }
+
+    async function deactivateStrategy(id) {
+        try {
+            const response = await fetch(`/api/custom-strategies/${id}/deactivate/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() }
+            });
+            loadStrategies();
+        } catch (error) {
+            console.error('Error deactivating strategy:', error);
+        }
+    }
+
+    async function showTemplates() {
+        const modal = new bootstrap.Modal(document.getElementById('templatesModal'));
+        modal.show();
+
+        try {
+            const response = await fetch('/api/custom-strategies/templates/');
+            const data = await response.json();
+
+            document.getElementById('templatesContent').innerHTML = `
+                <div class="row">
+                    ${data.templates.map(t => `
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="mb-1">${t.name}</h6>
+                                    <p class="text-sm text-muted mb-2">${t.description}</p>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="createFromTemplate('${t.id}')">
+                                        Use This Template
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } catch (error) {
+            document.getElementById('templatesContent').innerHTML = '<div class="alert alert-danger">Error loading templates</div>';
+        }
+    }
+
+    async function createFromTemplate(templateId) {
+        try {
+            const response = await fetch('/api/custom-strategies/from-template/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({ template_id: templateId })
+            });
+            const data = await response.json();
+
+            bootstrap.Modal.getInstance(document.getElementById('templatesModal')).hide();
+
+            if (data.status === 'success') {
+                editStrategy(data.strategy.id);
+            }
+        } catch (error) {
+            console.error('Error creating from template:', error);
+        }
+    }
+
+    async function showIndicatorReference() {
+        const modal = new bootstrap.Modal(document.getElementById('indicatorModal'));
+        modal.show();
+
+        document.getElementById('indicatorContent').innerHTML = `
+            <div class="accordion" id="indicatorAccordion">
+                ${indicators.map((ind, idx) => `
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button ${idx > 0 ? 'collapsed' : ''}" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#ind${idx}">
+                                <strong>${ind.name}</strong>
+                                <span class="badge bg-light text-dark ms-2">${ind.id}</span>
+                            </button>
+                        </h2>
+                        <div id="ind${idx}" class="accordion-collapse collapse ${idx === 0 ? 'show' : ''}"
+                             data-bs-parent="#indicatorAccordion">
+                            <div class="accordion-body">
+                                <p>${ind.description}</p>
+                                ${ind.default_period ? `<p class="text-sm"><strong>Default Period:</strong> ${ind.default_period}</p>` : ''}
+                                ${ind.value_range ? `<p class="text-sm"><strong>Value Range:</strong> ${ind.value_range[0]} to ${ind.value_range[1]}</p>` : ''}
+                                ${ind.typical_buy ? `<p class="text-sm text-success"><strong>Typical Buy Signal:</strong> < ${ind.typical_buy}</p>` : ''}
+                                ${ind.typical_sell ? `<p class="text-sm text-danger"><strong>Typical Sell Signal:</strong> > ${ind.typical_sell}</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function getCsrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+               document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='))?.split('=')[1] || '';
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,5 @@
+# LSTM Model Weights
+
+This directory stores trained LSTM model weights.
+
+Files are named: lstm_{SYMBOL}.pt

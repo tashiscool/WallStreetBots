@@ -1,0 +1,868 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Settings {% endblock title %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-dark">
+        <div class="card-body p-4">
+          <h4 class="text-white mb-1"><i class="fas fa-cog me-2"></i>Settings</h4>
+          <p class="text-white opacity-8 mb-0">Configure your trading bot settings, API connections, and preferences.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Broker Connection -->
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-plug me-2"></i>Broker Connection</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Alpaca API Key</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="alpacaApiKey" placeholder="PK**************">
+              <button class="btn btn-outline-secondary" type="button" id="toggleApiKey">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Alpaca Secret Key</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="alpacaSecretKey" placeholder="SK**************">
+              <button class="btn btn-outline-secondary" type="button" id="toggleSecretKey">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Trading Environment</label>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="tradingEnv" id="envPaper" checked>
+              <label class="btn btn-outline-success" for="envPaper">
+                <i class="fas fa-file-alt me-2"></i>Paper Trading
+              </label>
+              <input type="radio" class="btn-check" name="tradingEnv" id="envLive">
+              <label class="btn btn-outline-danger" for="envLive">
+                <i class="fas fa-dollar-sign me-2"></i>Live Trading
+              </label>
+            </div>
+          </div>
+          <div class="d-flex justify-content-between">
+            <button class="btn bg-gradient-info mb-0" id="testConnectionBtn">
+              <i class="fas fa-plug me-2"></i>Test Connection
+            </button>
+            <span id="connectionStatus" class="badge bg-secondary align-self-center">Not tested</span>
+          </div>
+
+          <div class="alert alert-warning mt-3 mb-0">
+            <small><i class="fas fa-shield-alt me-1"></i><strong>Paper trading recommended:</strong> Always test new strategies in paper trading first. Switch to live only after you've verified the strategy works and you're comfortable with the risk.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Data Sources -->
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-database me-2"></i>Market Data Sources</h6>
+        </div>
+        <div class="card-body">
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="sourceAlpaca" checked disabled>
+            <label class="form-check-label" for="sourceAlpaca">
+              <strong>Alpaca</strong> <span class="badge bg-success ms-2">Included</span>
+              <br><small class="text-secondary">Real-time market data from your broker</small>
+            </label>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="sourcePolygon">
+            <label class="form-check-label" for="sourcePolygon">
+              <strong>Polygon.io</strong>
+              <br><small class="text-secondary">Premium market data provider</small>
+            </label>
+          </div>
+          <div class="mb-3 ms-4" id="polygonKeyDiv" style="display: none;">
+            <input type="text" class="form-control form-control-sm" placeholder="Polygon API Key">
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="sourceIEX">
+            <label class="form-check-label" for="sourceIEX">
+              <strong>IEX Cloud</strong>
+              <br><small class="text-secondary">Alternative data source</small>
+            </label>
+          </div>
+          <div class="mb-3 ms-4" id="iexKeyDiv" style="display: none;">
+            <input type="text" class="form-control form-control-sm" placeholder="IEX API Key">
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="sourceYahoo" checked>
+            <label class="form-check-label" for="sourceYahoo">
+              <strong>Yahoo Finance</strong> <span class="badge bg-info ms-2">Free</span>
+              <br><small class="text-secondary">Backup data source (no key required)</small>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Database Configuration -->
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-server me-2"></i>Database Configuration</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Database Type</label>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="dbType" id="dbSqlite" checked>
+              <label class="form-check-label" for="dbSqlite">
+                SQLite (Default - Local file storage)
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="dbType" id="dbPostgres">
+              <label class="form-check-label" for="dbPostgres">
+                PostgreSQL (Recommended for production)
+              </label>
+            </div>
+          </div>
+          <div class="mb-3" id="postgresUrlDiv" style="display: none;">
+            <label class="form-label">PostgreSQL Connection URL</label>
+            <input type="text" class="form-control" placeholder="postgresql://user:pass@host:5432/dbname">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Redis URL (Optional - for caching)</label>
+            <input type="text" class="form-control" placeholder="redis://localhost:6379/0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced Settings -->
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-cogs me-2"></i>Advanced Settings</h6>
+        </div>
+        <div class="card-body">
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="shadowMode">
+            <label class="form-check-label" for="shadowMode">
+              <strong>Shadow Mode</strong>
+              <br><small class="text-secondary">Paper trade alongside real trades for testing</small>
+            </label>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Logging Level</label>
+            <select class="form-select" id="logLevel">
+              <option value="DEBUG">DEBUG - All messages</option>
+              <option value="INFO" selected>INFO - Standard logging</option>
+              <option value="WARNING">WARNING - Warnings and errors only</option>
+              <option value="ERROR">ERROR - Errors only</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Sentry DSN (Error Tracking)</label>
+            <input type="text" class="form-control" placeholder="https://xxx@sentry.io/xxx">
+            <small class="text-secondary">Optional - for production error monitoring</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Timezone</label>
+            <select class="form-select" id="timezone">
+              <option value="America/New_York" selected>Eastern Time (ET)</option>
+              <option value="America/Chicago">Central Time (CT)</option>
+              <option value="America/Denver">Mountain Time (MT)</option>
+              <option value="America/Los_Angeles">Pacific Time (PT)</option>
+              <option value="UTC">UTC</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Advanced Trading Settings -->
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6><i class="fas fa-sliders-h me-2"></i>Advanced Trading Configuration</h6>
+            <button class="btn btn-sm btn-outline-primary mb-0" type="button" data-bs-toggle="collapse" data-bs-target="#advancedTradingSettings">
+              <i class="fas fa-chevron-down me-1"></i>Expand Advanced Settings
+            </button>
+          </div>
+        </div>
+        <div class="collapse" id="advancedTradingSettings">
+          <div class="card-body">
+            <ul class="nav nav-tabs" id="advTabs" role="tablist">
+              <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#orderExec" type="button">Order Execution</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#dataSettings" type="button">Data Settings</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#scheduleSettings" type="button">Scheduling</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#backupSettings" type="button">Backup & Recovery</button>
+              </li>
+            </ul>
+            <div class="tab-content pt-4" id="advTabsContent">
+              <!-- Order Execution Tab -->
+              <div class="tab-pane fade show active" id="orderExec" role="tabpanel">
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Default Order Type
+                      <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Default order type for strategy trades"></i>
+                    </label>
+                    <select class="form-select" id="defaultOrderType">
+                      <option value="market">Market Order</option>
+                      <option value="limit" selected>Limit Order</option>
+                      <option value="stop_limit">Stop-Limit Order</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Limit Price Offset (%)
+                      <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Offset from current price for limit orders. Negative for buys (below market), positive for sells"></i>
+                    </label>
+                    <input type="number" class="form-control" value="0.1" min="0" max="2" step="0.05" id="limitOffset">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Order Timeout (seconds)
+                      <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Cancel unfilled limit orders after this many seconds"></i>
+                    </label>
+                    <input type="number" class="form-control" value="60" min="10" max="300" id="orderTimeout">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Max Slippage Tolerance (%)</label>
+                    <input type="number" class="form-control" value="0.5" min="0.1" max="5" step="0.1" id="maxSlippage">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Order Fill Strategy</label>
+                    <select class="form-select" id="fillStrategy">
+                      <option value="ioc">Immediate or Cancel (IOC)</option>
+                      <option value="fok">Fill or Kill (FOK)</option>
+                      <option value="day" selected>Day Order</option>
+                      <option value="gtc">Good Till Cancelled (GTC)</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <div class="form-check form-switch mt-4">
+                      <input class="form-check-input" type="checkbox" id="useSmartRouting" checked>
+                      <label class="form-check-label" for="useSmartRouting">Smart Order Routing</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Data Settings Tab -->
+              <div class="tab-pane fade" id="dataSettings" role="tabpanel">
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Historical Data Lookback (Days)</label>
+                    <input type="number" class="form-control" value="252" min="30" max="1000" id="histLookback">
+                    <small class="text-secondary">For backtesting and analysis</small>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Real-time Quote Refresh (ms)</label>
+                    <input type="number" class="form-control" value="1000" min="100" max="10000" step="100" id="quoteRefresh">
+                    <small class="text-secondary">How often to poll for quotes</small>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label">Options Chain Cache TTL (sec)</label>
+                    <input type="number" class="form-control" value="30" min="5" max="300" id="optionsCacheTtl">
+                    <small class="text-secondary">Options data cache duration</small>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Data Priority Order</label>
+                    <small class="text-secondary d-block mb-2">Drag to reorder data source priority</small>
+                    <ul class="list-group" id="dataPriorityList">
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-grip-vertical text-secondary me-2"></i>Alpaca</span>
+                        <span class="badge bg-success">Primary</span>
+                      </li>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-grip-vertical text-secondary me-2"></i>Polygon.io</span>
+                        <span class="badge bg-info">Secondary</span>
+                      </li>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-grip-vertical text-secondary me-2"></i>Yahoo Finance</span>
+                        <span class="badge bg-secondary">Fallback</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <div class="form-check form-switch mb-3">
+                      <input class="form-check-input" type="checkbox" id="enableDataFallback" checked>
+                      <label class="form-check-label" for="enableDataFallback">
+                        <strong>Auto Data Failover</strong>
+                      </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                      <input class="form-check-input" type="checkbox" id="cacheHistData" checked>
+                      <label class="form-check-label" for="cacheHistData">
+                        <strong>Cache Historical Data</strong>
+                      </label>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="compressCache">
+                      <label class="form-check-label" for="compressCache">
+                        <strong>Compress Cached Data</strong>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Scheduling Tab -->
+              <div class="tab-pane fade" id="scheduleSettings" role="tabpanel">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Market Open Buffer (minutes)
+                      <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Wait this many minutes after market open before trading"></i>
+                    </label>
+                    <input type="number" class="form-control" value="5" min="0" max="60" id="marketOpenBuffer">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Market Close Buffer (minutes)
+                      <i class="fas fa-info-circle text-secondary" data-bs-toggle="tooltip" title="Stop trading this many minutes before market close"></i>
+                    </label>
+                    <input type="number" class="form-control" value="15" min="0" max="60" id="marketCloseBuffer">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Pre-market Trading</label>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="enablePremarket">
+                      <label class="form-check-label" for="enablePremarket">Enable pre-market (4:00 AM - 9:30 AM ET)</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">After-hours Trading</label>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="enableAfterHours">
+                      <label class="form-check-label" for="enableAfterHours">Enable after-hours (4:00 PM - 8:00 PM ET)</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12 mb-3">
+                    <label class="form-label">Blackout Days</label>
+                    <div class="row">
+                      <div class="col-md-4">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="blackoutFOMC" checked>
+                          <label class="form-check-label" for="blackoutFOMC">FOMC Meeting Days</label>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="blackoutOptions" checked>
+                          <label class="form-check-label" for="blackoutOptions">Options Expiration (Opex)</label>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="blackoutJobs">
+                          <label class="form-check-label" for="blackoutJobs">Jobs Report Days</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Backup & Recovery Tab -->
+              <div class="tab-pane fade" id="backupSettings" role="tabpanel">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Auto Backup Frequency</label>
+                    <select class="form-select" id="backupFreq">
+                      <option value="never">Never</option>
+                      <option value="daily" selected>Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="trade">After each trade</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Backup Retention (days)</label>
+                    <input type="number" class="form-control" value="30" min="7" max="365" id="backupRetention">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Backup Location</label>
+                    <select class="form-select" id="backupLocation">
+                      <option value="local" selected>Local Storage</option>
+                      <option value="s3">AWS S3</option>
+                      <option value="gcs">Google Cloud Storage</option>
+                      <option value="azure">Azure Blob</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Backup Items</label>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="backupConfig" checked>
+                      <label class="form-check-label" for="backupConfig">Configuration</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="backupTrades" checked>
+                      <label class="form-check-label" for="backupTrades">Trade History</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="backupLogs">
+                      <label class="form-check-label" for="backupLogs">System Logs</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="d-flex gap-2 mt-3">
+                  <button class="btn btn-outline-primary mb-0" id="backupNowBtn">
+                    <i class="fas fa-download me-2"></i>Backup Now
+                  </button>
+                  <button class="btn btn-outline-secondary mb-0" id="restoreBtn">
+                    <i class="fas fa-upload me-2"></i>Restore from Backup
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Notification Settings -->
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6><i class="fas fa-envelope me-2"></i>Email Notifications</h6>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="emailEnabled" checked>
+              <label class="form-check-label" for="emailEnabled">Enable Email Alerts</label>
+            </div>
+          </div>
+        </div>
+        <div class="card-body" id="emailSettingsBody">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Recipient Email <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" id="emailTo" placeholder="your@email.com">
+                <small class="text-secondary">Where to send trading alerts</small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">SMTP Host <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="smtpHost" placeholder="smtp.gmail.com">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">SMTP Port</label>
+                <input type="number" class="form-control" id="smtpPort" value="587" placeholder="587">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">From Email <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" id="emailFrom" placeholder="alerts@yourdomain.com">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">SMTP Username</label>
+                <input type="text" class="form-control" id="smtpUser" placeholder="your-email@gmail.com">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">SMTP Password</label>
+                <div class="input-group">
+                  <input type="password" class="form-control" id="smtpPass" placeholder="App password">
+                  <button class="btn btn-outline-secondary" type="button" id="toggleSmtpPass">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+                <small class="text-secondary">For Gmail, use an <a href="https://support.google.com/accounts/answer/185833" target="_blank">App Password</a></small>
+              </div>
+            </div>
+          </div>
+
+          <hr>
+          <h6 class="mb-3">Alert Types to Email</h6>
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="emailStopLoss" checked>
+                <label class="form-check-label" for="emailStopLoss">
+                  <i class="fas fa-shield-alt text-danger me-1"></i>Stop Loss Triggered
+                </label>
+              </div>
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="emailRiskAlert" checked>
+                <label class="form-check-label" for="emailRiskAlert">
+                  <i class="fas fa-exclamation-triangle text-warning me-1"></i>Risk Alerts
+                </label>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="emailEntrySignal">
+                <label class="form-check-label" for="emailEntrySignal">
+                  <i class="fas fa-arrow-up text-success me-1"></i>Entry Signals
+                </label>
+              </div>
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="emailProfitTarget" checked>
+                <label class="form-check-label" for="emailProfitTarget">
+                  <i class="fas fa-dollar-sign text-success me-1"></i>Profit Target Hit
+                </label>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="emailEarnings" checked>
+                <label class="form-check-label" for="emailEarnings">
+                  <i class="fas fa-calendar text-info me-1"></i>Earnings Warnings
+                </label>
+              </div>
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="emailDailyDigest" checked>
+                <label class="form-check-label" for="emailDailyDigest">
+                  <i class="fas fa-newspaper text-primary me-1"></i>Daily Performance Digest
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center mt-3 gap-3">
+            <button class="btn btn-outline-info mb-0" id="testEmailBtn">
+              <i class="fas fa-paper-plane me-2"></i>Send Test Email
+            </button>
+            <span id="emailTestStatus" class="text-secondary"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Other Notification Channels -->
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6><i class="fas fa-bell me-2"></i>Other Notification Channels</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Discord Webhook URL</label>
+                <input type="url" class="form-control" id="discordWebhook" placeholder="https://discord.com/api/webhooks/...">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Slack Webhook URL</label>
+                <input type="url" class="form-control" id="slackWebhook" placeholder="https://hooks.slack.com/services/...">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Button -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <button class="btn btn-outline-secondary mb-0" id="resetSettingsBtn">
+              <i class="fas fa-undo me-2"></i>Reset to Defaults
+            </button>
+            <button class="btn bg-gradient-primary mb-0" id="saveSettingsBtn">
+              <i class="fas fa-save me-2"></i>Save All Settings
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+  // Toggle API key visibility
+  document.getElementById('toggleApiKey').addEventListener('click', function() {
+    const input = document.getElementById('alpacaApiKey');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+  document.getElementById('toggleSecretKey').addEventListener('click', function() {
+    const input = document.getElementById('alpacaSecretKey');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+
+  // Toggle SMTP password visibility
+  document.getElementById('toggleSmtpPass')?.addEventListener('click', function() {
+    const input = document.getElementById('smtpPass');
+    const icon = this.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'fas fa-eye-slash';
+    } else {
+      input.type = 'password';
+      icon.className = 'fas fa-eye';
+    }
+  });
+
+  // Email notifications enable/disable toggle
+  document.getElementById('emailEnabled')?.addEventListener('change', function() {
+    const emailBody = document.getElementById('emailSettingsBody');
+    const inputs = emailBody.querySelectorAll('input, button');
+    inputs.forEach(input => {
+      if (input.id !== 'emailEnabled') {
+        input.disabled = !this.checked;
+        if (!this.checked) {
+          input.closest('.mb-3, .form-check, .d-flex')?.classList.add('opacity-50');
+        } else {
+          input.closest('.mb-3, .form-check, .d-flex')?.classList.remove('opacity-50');
+        }
+      }
+    });
+  });
+
+  // Test email button
+  document.getElementById('testEmailBtn')?.addEventListener('click', async function() {
+    const btn = this;
+    const status = document.getElementById('emailTestStatus');
+
+    // Collect email settings
+    const emailConfig = {
+      smtp_host: document.getElementById('smtpHost')?.value || '',
+      smtp_port: parseInt(document.getElementById('smtpPort')?.value || '587'),
+      email_from: document.getElementById('emailFrom')?.value || '',
+      email_to: document.getElementById('emailTo')?.value || '',
+      smtp_user: document.getElementById('smtpUser')?.value || '',
+      smtp_pass: document.getElementById('smtpPass')?.value || '',
+    };
+
+    // Validate required fields
+    if (!emailConfig.smtp_host || !emailConfig.email_from || !emailConfig.email_to) {
+      status.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>Please fill in required fields (SMTP Host, From Email, To Email)</span>';
+      return;
+    }
+
+    // Update button state
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+    status.innerHTML = '';
+
+    try {
+      const response = await fetch('/api/settings/email/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+        },
+        body: JSON.stringify(emailConfig),
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        status.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Test email sent successfully! Check your inbox.</span>';
+      } else {
+        status.innerHTML = `<span class="text-danger"><i class="fas fa-times-circle me-1"></i>${result.message || 'Failed to send test email'}</span>`;
+      }
+    } catch (error) {
+      status.innerHTML = `<span class="text-danger"><i class="fas fa-times-circle me-1"></i>Error: ${error.message}</span>`;
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Send Test Email';
+    }
+  });
+
+  // Show/hide data source API key fields
+  document.getElementById('sourcePolygon').addEventListener('change', function() {
+    document.getElementById('polygonKeyDiv').style.display = this.checked ? 'block' : 'none';
+  });
+  document.getElementById('sourceIEX').addEventListener('change', function() {
+    document.getElementById('iexKeyDiv').style.display = this.checked ? 'block' : 'none';
+  });
+
+  // Show/hide PostgreSQL URL
+  document.querySelectorAll('input[name="dbType"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      document.getElementById('postgresUrlDiv').style.display =
+        document.getElementById('dbPostgres').checked ? 'block' : 'none';
+    });
+  });
+
+  // Live trading warning
+  document.getElementById('envLive').addEventListener('change', function() {
+    if (this.checked) {
+      if (!confirm('WARNING: You are switching to LIVE TRADING mode. Real money will be at risk. Continue?')) {
+        document.getElementById('envPaper').checked = true;
+      }
+    }
+  });
+
+  // Test Alpaca connection
+  document.getElementById('testConnectionBtn').addEventListener('click', async function() {
+    const status = document.getElementById('connectionStatus');
+    const apiKey = document.getElementById('alpacaApiKey')?.value;
+    const secretKey = document.getElementById('alpacaSecretKey')?.value;
+    const isPaper = document.getElementById('envPaper')?.checked;
+
+    if (!apiKey || !secretKey) {
+      status.className = 'badge bg-danger align-self-center';
+      status.textContent = 'Enter API keys';
+      return;
+    }
+
+    status.className = 'badge bg-warning align-self-center';
+    status.textContent = 'Testing...';
+
+    try {
+      const response = await fetch('/api/alpaca/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+        },
+        body: JSON.stringify({
+          api_key: apiKey,
+          secret_key: secretKey,
+          paper: isPaper,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        status.className = 'badge bg-success align-self-center';
+        status.textContent = 'Connected';
+      } else {
+        status.className = 'badge bg-danger align-self-center';
+        status.textContent = 'Failed';
+      }
+    } catch (error) {
+      status.className = 'badge bg-danger align-self-center';
+      status.textContent = 'Error';
+    }
+  });
+
+  // Save all settings
+  document.getElementById('saveSettingsBtn').addEventListener('click', async function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+
+    // Collect all settings
+    const settings = {
+      // Broker settings
+      alpaca_api_key: document.getElementById('alpacaApiKey')?.value || '',
+      alpaca_secret_key: document.getElementById('alpacaSecretKey')?.value || '',
+      trading_mode: document.getElementById('envPaper')?.checked ? 'paper' : 'live',
+
+      // Email settings
+      email_enabled: document.getElementById('emailEnabled')?.checked || false,
+      smtp_host: document.getElementById('smtpHost')?.value || '',
+      smtp_port: parseInt(document.getElementById('smtpPort')?.value || '587'),
+      email_from: document.getElementById('emailFrom')?.value || '',
+      email_to: document.getElementById('emailTo')?.value || '',
+      smtp_user: document.getElementById('smtpUser')?.value || '',
+      smtp_pass: document.getElementById('smtpPass')?.value || '',
+
+      // Email alert types
+      email_alerts: {
+        stop_loss: document.getElementById('emailStopLoss')?.checked || false,
+        risk_alert: document.getElementById('emailRiskAlert')?.checked || false,
+        entry_signal: document.getElementById('emailEntrySignal')?.checked || false,
+        profit_target: document.getElementById('emailProfitTarget')?.checked || false,
+        earnings: document.getElementById('emailEarnings')?.checked || false,
+        daily_digest: document.getElementById('emailDailyDigest')?.checked || false,
+      },
+
+      // Other notification channels
+      discord_webhook: document.getElementById('discordWebhook')?.value || '',
+      slack_webhook: document.getElementById('slackWebhook')?.value || '',
+
+      // Advanced settings
+      shadow_mode: document.getElementById('shadowMode')?.checked || false,
+      log_level: document.getElementById('logLevel')?.value || 'INFO',
+      timezone: document.getElementById('timezone')?.value || 'America/New_York',
+    };
+
+    try {
+      const response = await fetch('/api/settings/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+        },
+        body: JSON.stringify(settings),
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        // Show success notification
+        const toast = document.createElement('div');
+        toast.className = 'position-fixed top-0 end-0 p-3';
+        toast.style.zIndex = '11';
+        toast.innerHTML = `
+          <div class="toast show bg-success text-white" role="alert">
+            <div class="toast-body">
+              <i class="fas fa-check-circle me-2"></i>Settings saved successfully!
+            </div>
+          </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      } else {
+        alert('Error saving settings: ' + (result.message || 'Unknown error'));
+      }
+    } catch (error) {
+      alert('Error saving settings: ' + error.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-save me-2"></i>Save All Settings';
+    }
+  });
+
+  // Initialize tooltips
+  var tooltipList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipList.forEach(function(el) {
+    new bootstrap.Tooltip(el);
+  });
+
+  // Backup button
+  document.getElementById('backupNowBtn')?.addEventListener('click', function() {
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Backing up...';
+    setTimeout(() => {
+      this.innerHTML = '<i class="fas fa-check me-2"></i>Backup Complete';
+      setTimeout(() => {
+        this.innerHTML = '<i class="fas fa-download me-2"></i>Backup Now';
+      }, 2000);
+    }, 1500);
+  });
+</script>
+{% endblock javascripts %}

@@ -86,12 +86,17 @@ def mock_integration_manager():
     # Mock portfolio value
     manager.get_portfolio_value = AsyncMock(return_value=100000.0)
 
-    # Mock trade execution
+    # Mock trade execution - create a proper TradeResult with required fields
+    mock_signal = Mock()
+    mock_signal.strategy_name = "wsb-dip-bot"
+    mock_signal.ticker = "AAPL"
     trade_result = TradeResult(
+        trade_id="test_order_123",
+        signal=mock_signal,
         status=TradeStatus.FILLED,
-        order_id="test_order_123",
-        filled_qty=10,
-        filled_price=Decimal("5.00"),
+        filled_quantity=10,
+        filled_price=5.00,
+        commission=0.0,
         error_message=None
     )
     manager.execute_trade = AsyncMock(return_value=trade_result)
@@ -383,12 +388,17 @@ class TestProductionWSBDipBot:
     @pytest.mark.asyncio
     async def test_execute_dip_trade_failed(self, wsb_bot, mock_integration_manager):
         """Test failed trade execution."""
-        # Mock failed trade
+        # Mock failed trade - create proper TradeResult with required fields
+        mock_signal = Mock()
+        mock_signal.strategy_name = "wsb-dip-bot"
+        mock_signal.ticker = "AAPL"
         failed_result = TradeResult(
+            trade_id="failed_order_123",
+            signal=mock_signal,
             status=TradeStatus.REJECTED,
-            order_id=None,
-            filled_qty=0,
-            filled_price=Decimal("0"),
+            filled_quantity=0,
+            filled_price=0.0,
+            commission=0.0,
             error_message="Insufficient buying power"
         )
         mock_integration_manager.execute_trade = AsyncMock(return_value=failed_result)
@@ -714,7 +724,7 @@ class TestProductionWSBDipBot:
     @pytest.mark.asyncio
     async def test_get_real_option_premium(self, wsb_bot, mock_data_provider):
         """Test real option premium calculation."""
-        with patch('backend.tradingbot.strategies.production.production_wsb_dip_bot.create_options_pricing_engine') as mock_engine:
+        with patch('backend.tradingbot.options.pricing_engine.create_options_pricing_engine') as mock_engine:
             mock_pricing = AsyncMock()
             mock_pricing.calculate_theoretical_price = AsyncMock(return_value=Decimal("5.50"))
             mock_engine.return_value = mock_pricing
@@ -731,7 +741,7 @@ class TestProductionWSBDipBot:
     @pytest.mark.asyncio
     async def test_get_real_option_premium_fallback(self, wsb_bot):
         """Test option premium fallback calculation."""
-        with patch('backend.tradingbot.strategies.production.production_wsb_dip_bot.create_options_pricing_engine', side_effect=Exception("Pricing error")):
+        with patch('backend.tradingbot.options.pricing_engine.create_options_pricing_engine', side_effect=Exception("Pricing error")):
             premium = await wsb_bot._get_real_option_premium(
                 "AAPL",
                 Decimal("155"),

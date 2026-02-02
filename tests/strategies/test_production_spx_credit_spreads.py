@@ -110,13 +110,20 @@ def mock_integration_manager():
 
     manager.get_portfolio_value = AsyncMock(return_value=100000.0)
 
+    # Create proper TradeResult with required fields
+    mock_signal = Mock()
+    mock_signal.strategy_name = "spx-credit-spreads"
+    mock_signal.ticker = "SPY"
     trade_result = TradeResult(
+        trade_id="test_123",
+        signal=mock_signal,
         status=TradeStatus.FILLED,
-        order_id="test_123",
-        filled_qty=1,
-        filled_price=Decimal("2.00"),
+        filled_quantity=1,
+        filled_price=2.00,
+        commission=0.0,
         error_message=None
     )
+    manager.execute_trade = AsyncMock(return_value=trade_result)
     manager.execute_trade_signal = AsyncMock(return_value=True)
 
     manager.alert_system = AsyncMock()

@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
-from ...core.trading_interface import OrderSide, OrderType
+from ...core.trading_interface import OrderSide, OrderType, TradeStatus
 from ...production.core.production_integration import (
     ProductionIntegrationManager,
     ProductionTradeSignal,
@@ -708,7 +708,7 @@ class ProductionWSBDipBot:
             # Execute trade
             result = await self.integration.execute_trade(trade_signal)
 
-            if result.status.value == "FILLED":  # Store active position
+            if result.status == TradeStatus.FILLED:  # Store active position
                 self.active_positions[signal.ticker] = signal
 
                 # Send alert
@@ -819,7 +819,7 @@ class ProductionWSBDipBot:
             # Execute exit trade
             result = await self.integration.execute_trade(exit_signal)
 
-            if result.status.value == "FILLED":  # Remove from active positions
+            if result.status == TradeStatus.FILLED:  # Remove from active positions
                 del self.active_positions[position.ticker]
 
                 # Send alert

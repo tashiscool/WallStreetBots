@@ -22,7 +22,7 @@ from backend.tradingbot.production.core.production_integration import (
 from backend.tradingbot.production.data.production_data_integration import (
     EarningsEvent,
 )
-from backend.tradingbot.core.trading_interface import TradeStatus as OrderStatus
+from backend.tradingbot.core.trading_interface import TradeStatus
 
 
 @pytest.fixture
@@ -31,10 +31,9 @@ def mock_integration_manager():
     manager = AsyncMock()
     manager.get_portfolio_value = AsyncMock(return_value=Decimal("100000"))
 
-    # Mock execute_trade to return proper result
+    # Mock execute_trade to return proper result with actual TradeStatus enum
     mock_result = Mock()
-    mock_result.status = Mock()
-    mock_result.status.value = "FILLED"
+    mock_result.status = TradeStatus.FILLED
     mock_result.error_message = None
     manager.execute_trade = AsyncMock(return_value=mock_result)
 
@@ -53,12 +52,13 @@ def mock_data_provider():
     mock_price_data.price = Decimal("150.00")
     provider.get_current_price = AsyncMock(return_value=mock_price_data)
 
-    provider.get_volatility = AsyncMock(return_value=Decimal("0.30"))
+    provider.get_volatility = AsyncMock(return_value=Decimal("0.40"))  # Produces IV percentile of 80
     provider.get_historical_data = AsyncMock(return_value=[])
 
     # Mock earnings calendar
     earnings_event = EarningsEvent(
         ticker="AAPL",
+        company_name="Apple Inc.",
         earnings_date=datetime.now() + timedelta(days=3),
         earnings_time="AMC",
         estimated_eps=Decimal("1.50"),
@@ -189,6 +189,7 @@ class TestAnalyzeEarningsOpportunity:
         """Test analyzing valid earnings opportunity."""
         event = EarningsEvent(
             ticker="AAPL",
+            company_name="Apple Inc.",
             earnings_date=datetime.now() + timedelta(days=3),
             earnings_time="AMC",
             estimated_eps=Decimal("1.50"),
@@ -208,6 +209,7 @@ class TestAnalyzeEarningsOpportunity:
         """Test rejecting earnings too far out."""
         event = EarningsEvent(
             ticker="AAPL",
+            company_name="Apple Inc.",
             earnings_date=datetime.now() + timedelta(days=30),  # Too far
             earnings_time="AMC",
             estimated_eps=Decimal("1.50"),
@@ -225,6 +227,7 @@ class TestAnalyzeEarningsOpportunity:
         """Test rejecting earnings too soon."""
         event = EarningsEvent(
             ticker="AAPL",
+            company_name="Apple Inc.",
             earnings_date=datetime.now() + timedelta(hours=12),  # < 1 day
             earnings_time="AMC",
             estimated_eps=Decimal("1.50"),
@@ -242,6 +245,7 @@ class TestAnalyzeEarningsOpportunity:
         """Test rejecting low implied move."""
         event = EarningsEvent(
             ticker="AAPL",
+            company_name="Apple Inc.",
             earnings_date=datetime.now() + timedelta(days=3),
             earnings_time="AMC",
             estimated_eps=Decimal("1.50"),
@@ -259,6 +263,7 @@ class TestAnalyzeEarningsOpportunity:
         """Test rejecting low IV percentile."""
         event = EarningsEvent(
             ticker="AAPL",
+            company_name="Apple Inc.",
             earnings_date=datetime.now() + timedelta(days=3),
             earnings_time="AMC",
             estimated_eps=Decimal("1.50"),
@@ -279,6 +284,7 @@ class TestAnalyzeEarningsOpportunity:
         """Test handling missing market data."""
         event = EarningsEvent(
             ticker="AAPL",
+            company_name="Apple Inc.",
             earnings_date=datetime.now() + timedelta(days=3),
             earnings_time="AMC",
             estimated_eps=Decimal("1.50"),

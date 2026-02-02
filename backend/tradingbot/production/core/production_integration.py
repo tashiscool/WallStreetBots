@@ -44,40 +44,68 @@ class ProductionTradeSignal(TradeSignal):
     risk_amount: Decimal = Decimal("0.00")
     expected_return: Decimal = Decimal("0.00")
     metadata: dict[str, Any] = field(default_factory=dict)
+    # Option-specific fields
+    option_type: str | None = None
+    strike_price: Decimal | None = None
+    expiration_date: Any = None
+    premium: Decimal | None = None
+    # Signal-related fields
+    signal_strength: float = 0.0
+    confidence: float = 0.0
 
     def __init__(self, symbol=None, action=None, **kwargs):
         """Initialize with backward compatibility for symbol/action."""
         from ...core.trading_interface import OrderSide
-        
+
         # Handle backward compatibility
         if symbol is not None:
             kwargs['ticker'] = symbol
         if action is not None:
             kwargs['side'] = OrderSide.BUY if action.lower() == 'buy' else OrderSide.SELL
-        
+
         # Set defaults for required fields
         kwargs.setdefault('strategy_name', 'manual_trade')
         kwargs.setdefault('ticker', 'UNKNOWN')
         kwargs.setdefault('side', OrderSide.BUY)
         kwargs.setdefault('order_type', OrderType.MARKET)
         kwargs.setdefault('quantity', 0)
-        
+
         # Extract ProductionTradeSignal-specific parameters
         price = kwargs.pop('price', 0.0)
         trade_type = kwargs.pop('trade_type', 'stock')
         risk_amount = kwargs.pop('risk_amount', Decimal('0.00'))
         expected_return = kwargs.pop('expected_return', Decimal('0.00'))
         metadata = kwargs.pop('metadata', {})
-        
+
+        # Extract option-specific parameters
+        option_type = kwargs.pop('option_type', None)
+        strike_price = kwargs.pop('strike_price', None)
+        expiration_date = kwargs.pop('expiration_date', None)
+        premium = kwargs.pop('premium', None)
+
+        # Extract signal-related parameters
+        signal_strength = kwargs.pop('signal_strength', 0.0)
+        confidence = kwargs.pop('confidence', 0.0)
+
         # Initialize base class
         super().__init__(**kwargs)
-        
+
         # Set ProductionTradeSignal-specific attributes
         self.price = price
         self.trade_type = trade_type
         self.risk_amount = risk_amount
         self.expected_return = expected_return
         self.metadata = metadata
+
+        # Set option-specific attributes
+        self.option_type = option_type
+        self.strike_price = strike_price
+        self.expiration_date = expiration_date
+        self.premium = premium
+
+        # Set signal-related attributes
+        self.signal_strength = signal_strength
+        self.confidence = confidence
 
     @property
     def symbol(self) -> str:

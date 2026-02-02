@@ -40,6 +40,31 @@ class TestAllocationManagerService(TestCase):
         self.user.username = "testuser"
         self.service = AllocationManagerService()
 
+    def _create_mock_allocation(self, **overrides):
+        """Create a complete mock allocation with all required fields."""
+        defaults = {
+            'strategy_name': 'test-strategy',
+            'allocated_pct': Decimal('20.0'),
+            'allocated_amount': Decimal('20000.0'),
+            'current_exposure': Decimal('15000.0'),
+            'reserved_amount': Decimal('2000.0'),
+            'available_capital': Decimal('3000.0'),
+            'utilization_pct': 75.0,
+            'utilization_level': 'high',
+            'is_maxed_out': False,
+            'is_enabled': True,
+        }
+        defaults.update(overrides)
+
+        mock_allocation = Mock()
+        for key, value in defaults.items():
+            setattr(mock_allocation, key, value)
+        return mock_allocation
+
+    def _setup_mock_model(self, mock_model):
+        """Configure mock model with DoesNotExist exception."""
+        mock_model.DoesNotExist = MockDoesNotExist
+
     def test_initialization(self):
         """Test service initialization."""
         service = AllocationManagerService()
@@ -60,19 +85,8 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_get_strategy_allocation_exists(self, mock_model):
         """Test get_strategy_allocation when allocation exists."""
-        mock_model.DoesNotExist = MockDoesNotExist
-        mock_allocation = Mock()
-        mock_allocation.strategy_name = 'wsb-dip-bot'
-        mock_allocation.allocated_pct = Decimal('20.0')
-        mock_allocation.allocated_amount = Decimal('20000.0')
-        mock_allocation.current_exposure = Decimal('15000.0')
-        mock_allocation.reserved_amount = Decimal('2000.0')
-        mock_allocation.available_capital = Decimal('3000.0')
-        mock_allocation.utilization_pct = 75.0
-        mock_allocation.utilization_level = 'high'
-        mock_allocation.is_maxed_out = False
-        mock_allocation.is_enabled = True
-
+        self._setup_mock_model(mock_model)
+        mock_allocation = self._create_mock_allocation(strategy_name='wsb-dip-bot')
         mock_model.objects.get.return_value = mock_allocation
 
         result = self.service.get_strategy_allocation(self.user, 'wsb-dip-bot')
@@ -85,6 +99,7 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_get_strategy_allocation_not_exists(self, mock_model):
         """Test get_strategy_allocation when allocation doesn't exist."""
+        self._setup_mock_model(mock_model)
         mock_model.objects.get.side_effect = MockDoesNotExist
 
         result = self.service.get_strategy_allocation(self.user, 'unknown-strategy')
@@ -94,6 +109,7 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_check_allocation_available_no_limit(self, mock_model):
         """Test check_allocation_available when no limit is configured."""
+        self._setup_mock_model(mock_model)
         mock_model.objects.get.side_effect = MockDoesNotExist
 
         is_available, message = self.service.check_allocation_available(
@@ -106,8 +122,8 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_check_allocation_available_disabled(self, mock_model):
         """Test check_allocation_available when limits are disabled."""
-        mock_allocation = Mock()
-        mock_allocation.is_enabled = False
+        self._setup_mock_model(mock_model)
+        mock_allocation = self._create_mock_allocation(is_enabled=False)
         mock_model.objects.get.return_value = mock_allocation
 
         is_available, message = self.service.check_allocation_available(
@@ -120,9 +136,11 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_check_allocation_available_sufficient(self, mock_model):
         """Test check_allocation_available when sufficient capital available."""
-        mock_allocation = Mock()
-        mock_allocation.is_enabled = True
-        mock_allocation.available_capital = Decimal('10000.0')
+        self._setup_mock_model(mock_model)
+        mock_allocation = self._create_mock_allocation(
+            is_enabled=True,
+            available_capital=Decimal('10000.0')
+        )
         mock_model.objects.get.return_value = mock_allocation
 
         is_available, message = self.service.check_allocation_available(
@@ -135,9 +153,11 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_check_allocation_available_insufficient(self, mock_model):
         """Test check_allocation_available when insufficient capital."""
-        mock_allocation = Mock()
-        mock_allocation.is_enabled = True
-        mock_allocation.available_capital = Decimal('3000.0')
+        self._setup_mock_model(mock_model)
+        mock_allocation = self._create_mock_allocation(
+            is_enabled=True,
+            available_capital=Decimal('3000.0')
+        )
         mock_model.objects.get.return_value = mock_allocation
 
         is_available, message = self.service.check_allocation_available(
@@ -147,12 +167,12 @@ class TestAllocationManagerService(TestCase):
         self.assertFalse(is_available)
         self.assertIn('Insufficient', message)
 
-    @patch('backend.auth0login.services.allocation_manager.AllocationReservation')
+    @patch('backend.tradingbot.models.models.AllocationReservation')
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_reserve_allocation_success(self, mock_limit_model, mock_reservation_model):
         """Test successful reservation."""
-        mock_allocation = Mock()
-        mock_allocation.is_enabled = True
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(is_enabled=True)
         mock_allocation.reserve.return_value = True
 
         mock_queryset = MagicMock()
@@ -170,8 +190,8 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_reserve_allocation_disabled(self, mock_limit_model):
         """Test reservation when limits are disabled."""
-        mock_allocation = Mock()
-        mock_allocation.is_enabled = False
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(is_enabled=False)
 
         mock_queryset = MagicMock()
         mock_limit_model.objects.select_for_update.return_value = mock_queryset
@@ -186,10 +206,12 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_reserve_allocation_insufficient(self, mock_limit_model):
         """Test reservation when insufficient capital."""
-        mock_allocation = Mock()
-        mock_allocation.is_enabled = True
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(
+            is_enabled=True,
+            available_capital=Decimal('1000.0')
+        )
         mock_allocation.reserve.return_value = False
-        mock_allocation.available_capital = Decimal('1000.0')
 
         mock_queryset = MagicMock()
         mock_limit_model.objects.select_for_update.return_value = mock_queryset
@@ -204,9 +226,10 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_reserve_allocation_no_config(self, mock_limit_model):
         """Test reservation when no allocation configured."""
+        self._setup_mock_model(mock_limit_model)
         mock_queryset = MagicMock()
         mock_limit_model.objects.select_for_update.return_value = mock_queryset
-        mock_queryset.get.side_effect = mock_limit_model.DoesNotExist
+        mock_queryset.get.side_effect = MockDoesNotExist
 
         result = self.service.reserve_allocation(
             self.user, 'strategy1', 5000.0, 'order123', 'AAPL'
@@ -214,11 +237,12 @@ class TestAllocationManagerService(TestCase):
 
         self.assertTrue(result)  # Allows order when no config
 
-    @patch('backend.auth0login.services.allocation_manager.AllocationReservation')
+    @patch('backend.tradingbot.models.models.AllocationReservation')
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_release_allocation(self, mock_limit_model, mock_reservation_model):
         """Test releasing allocation."""
-        mock_allocation = Mock()
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation()
         mock_queryset = MagicMock()
         mock_limit_model.objects.select_for_update.return_value = mock_queryset
         mock_queryset.get.return_value = mock_allocation
@@ -231,11 +255,12 @@ class TestAllocationManagerService(TestCase):
         mock_allocation.release_reservation.assert_called_once_with(5000.0)
         mock_reservation.resolve.assert_called_once_with('cancelled')
 
-    @patch('backend.auth0login.services.allocation_manager.AllocationReservation')
+    @patch('backend.tradingbot.models.models.AllocationReservation')
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_release_allocation_no_order_id(self, mock_limit_model, mock_reservation_model):
         """Test releasing allocation without order ID."""
-        mock_allocation = Mock()
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation()
         mock_queryset = MagicMock()
         mock_limit_model.objects.select_for_update.return_value = mock_queryset
         mock_queryset.get.return_value = mock_allocation
@@ -244,11 +269,12 @@ class TestAllocationManagerService(TestCase):
 
         mock_allocation.release_reservation.assert_called_once_with(5000.0)
 
-    @patch('backend.auth0login.services.allocation_manager.AllocationReservation')
+    @patch('backend.tradingbot.models.models.AllocationReservation')
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_confirm_allocation(self, mock_limit_model, mock_reservation_model):
         """Test confirming allocation."""
-        mock_allocation = Mock()
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation()
         mock_queryset = MagicMock()
         mock_limit_model.objects.select_for_update.return_value = mock_queryset
         mock_queryset.get.return_value = mock_allocation
@@ -264,7 +290,8 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_reduce_exposure(self, mock_limit_model):
         """Test reducing exposure."""
-        mock_allocation = Mock()
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(current_exposure=Decimal('10000.0'))
         mock_queryset = MagicMock()
         mock_limit_model.objects.select_for_update.return_value = mock_queryset
         mock_queryset.get.return_value = mock_allocation
@@ -276,10 +303,10 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_recalculate_all_allocations(self, mock_limit_model):
         """Test recalculating all allocations."""
-        mock_allocation1 = Mock()
-        mock_allocation2 = Mock()
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation1 = self._create_mock_allocation(strategy_name='strategy1')
+        mock_allocation2 = self._create_mock_allocation(strategy_name='strategy2')
 
-        mock_queryset = MagicMock()
         mock_limit_model.objects.filter.return_value = [mock_allocation1, mock_allocation2]
 
         self.service.recalculate_all_allocations(self.user, 150000.0)
@@ -290,9 +317,11 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_get_allocation_summary_not_configured(self, mock_limit_model):
         """Test get_allocation_summary when not configured."""
+        self._setup_mock_model(mock_limit_model)
         mock_queryset = MagicMock()
-        mock_limit_model.objects.filter.return_value = mock_queryset
         mock_queryset.exists.return_value = False
+        mock_queryset.__iter__ = Mock(return_value=iter([]))
+        mock_limit_model.objects.filter.return_value = mock_queryset
 
         result = self.service.get_allocation_summary(self.user)
 
@@ -302,19 +331,26 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_get_allocation_summary_configured(self, mock_limit_model):
         """Test get_allocation_summary with configured allocations."""
-        mock_allocation = Mock()
-        mock_allocation.allocated_pct = Decimal('20.0')
-        mock_allocation.current_exposure = Decimal('18000.0')
-        mock_allocation.available_capital = Decimal('2000.0')
-        mock_allocation.utilization_level = 'normal'
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(
+            strategy_name='strategy1',
+            allocated_pct=Decimal('20.0'),
+            current_exposure=Decimal('18000.0'),
+            available_capital=Decimal('2000.0'),
+            utilization_level='normal',
+            utilization_pct=90.0
+        )
         mock_allocation.to_dict.return_value = {
             'strategy_name': 'strategy1',
-            'utilization_pct': 90.0
+            'allocated_pct': float(mock_allocation.allocated_pct),
+            'utilization_pct': mock_allocation.utilization_pct
         }
 
+        # Create a mock queryset that behaves like a list and supports exists()
         mock_queryset = MagicMock()
-        mock_limit_model.objects.filter.return_value = [mock_allocation]
         mock_queryset.exists.return_value = True
+        mock_queryset.__iter__ = Mock(return_value=iter([mock_allocation]))
+        mock_limit_model.objects.filter.return_value = mock_queryset
 
         result = self.service.get_allocation_summary(self.user)
 
@@ -349,12 +385,13 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_reconcile_allocations(self, mock_limit_model):
         """Test reconciling allocations with actual positions."""
-        mock_allocation = Mock()
-        mock_allocation.strategy_name = 'strategy1'
-        mock_allocation.current_exposure = Decimal('10000.0')
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(
+            strategy_name='strategy1',
+            current_exposure=Decimal('10000.0')
+        )
         mock_allocation.last_reconciled = None
 
-        mock_queryset = MagicMock()
         mock_limit_model.objects.filter.return_value = [mock_allocation]
 
         positions = [
@@ -373,7 +410,9 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_initialize_allocations_conservative(self, mock_limit_model):
         """Test initializing allocations with conservative profile."""
-        mock_limit_model.objects.update_or_create.return_value = (Mock(), True)
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation()
+        mock_limit_model.objects.update_or_create.return_value = (mock_allocation, True)
 
         self.service.initialize_allocations(self.user, 'conservative', 100000.0)
 
@@ -384,7 +423,9 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_initialize_allocations_with_enabled_filter(self, mock_limit_model):
         """Test initializing allocations with enabled strategies filter."""
-        mock_limit_model.objects.update_or_create.return_value = (Mock(), True)
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation()
+        mock_limit_model.objects.update_or_create.return_value = (mock_allocation, True)
 
         enabled_strategies = ['index-baseline', 'wheel']
         self.service.initialize_allocations(
@@ -398,7 +439,8 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_update_allocation(self, mock_limit_model):
         """Test updating allocation percentage."""
-        mock_allocation = Mock()
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(strategy_name='strategy1')
         mock_limit_model.objects.get_or_create.return_value = (mock_allocation, False)
 
         self.service.update_allocation(
@@ -412,12 +454,13 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_get_rebalance_recommendations(self, mock_limit_model):
         """Test generating rebalance recommendations."""
-        mock_allocation = Mock()
-        mock_allocation.strategy_name = 'strategy1'
-        mock_allocation.current_exposure = Decimal('15000.0')
-        mock_allocation.allocated_pct = Decimal('20.0')
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(
+            strategy_name='strategy1',
+            current_exposure=Decimal('15000.0'),
+            allocated_pct=Decimal('20.0')
+        )
 
-        mock_queryset = MagicMock()
         mock_limit_model.objects.filter.return_value = [mock_allocation]
 
         recommendations = self.service.get_rebalance_recommendations(
@@ -431,12 +474,13 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_get_rebalance_recommendations_with_target_profile(self, mock_limit_model):
         """Test rebalance recommendations with target profile."""
-        mock_allocation = Mock()
-        mock_allocation.strategy_name = 'index-baseline'
-        mock_allocation.current_exposure = Decimal('10000.0')
-        mock_allocation.allocated_pct = Decimal('10.0')
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(
+            strategy_name='index-baseline',
+            current_exposure=Decimal('10000.0'),
+            allocated_pct=Decimal('10.0')
+        )
 
-        mock_queryset = MagicMock()
         mock_limit_model.objects.filter.return_value = [mock_allocation]
 
         recommendations = self.service.get_rebalance_recommendations(
@@ -448,7 +492,8 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_enforce_allocation_no_config(self, mock_limit_model):
         """Test enforce_allocation when no config exists."""
-        mock_limit_model.objects.get.side_effect = mock_limit_model.DoesNotExist
+        self._setup_mock_model(mock_limit_model)
+        mock_limit_model.objects.get.side_effect = MockDoesNotExist
 
         result = self.service.enforce_allocation(
             self.user, 'strategy1', 5000.0
@@ -460,8 +505,8 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_enforce_allocation_disabled(self, mock_limit_model):
         """Test enforce_allocation when limits disabled."""
-        mock_allocation = Mock()
-        mock_allocation.is_enabled = False
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(is_enabled=False)
         mock_limit_model.objects.get.return_value = mock_allocation
 
         result = self.service.enforce_allocation(
@@ -474,9 +519,11 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_enforce_allocation_exceeded(self, mock_limit_model):
         """Test enforce_allocation when limit exceeded."""
-        mock_allocation = Mock()
-        mock_allocation.is_enabled = True
-        mock_allocation.available_capital = Decimal('3000.0')
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(
+            is_enabled=True,
+            available_capital=Decimal('3000.0')
+        )
         mock_limit_model.objects.get.return_value = mock_allocation
 
         with self.assertRaises(AllocationExceededError) as context:
@@ -491,9 +538,11 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_enforce_allocation_with_reservation(self, mock_limit_model):
         """Test enforce_allocation with reservation."""
-        mock_allocation = Mock()
-        mock_allocation.is_enabled = True
-        mock_allocation.available_capital = Decimal('10000.0')
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(
+            is_enabled=True,
+            available_capital=Decimal('10000.0')
+        )
         mock_limit_model.objects.get.return_value = mock_allocation
 
         with patch.object(self.service, 'reserve_allocation', return_value=True):
@@ -506,9 +555,11 @@ class TestAllocationManagerService(TestCase):
     @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_enforce_allocation_reservation_failed(self, mock_limit_model):
         """Test enforce_allocation when reservation fails."""
-        mock_allocation = Mock()
-        mock_allocation.is_enabled = True
-        mock_allocation.available_capital = Decimal('10000.0')
+        self._setup_mock_model(mock_limit_model)
+        mock_allocation = self._create_mock_allocation(
+            is_enabled=True,
+            available_capital=Decimal('10000.0')
+        )
         mock_limit_model.objects.get.return_value = mock_allocation
 
         with patch.object(self.service, 'reserve_allocation', return_value=False):

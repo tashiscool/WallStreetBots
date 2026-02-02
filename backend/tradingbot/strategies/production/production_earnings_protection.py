@@ -16,7 +16,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from ...core.trading_interface import OrderSide, OrderType
+from ...core.trading_interface import OrderSide, OrderType, TradeStatus
 from ...production.core.production_integration import (
     ProductionIntegrationManager,
     ProductionTradeSignal,
@@ -156,7 +156,7 @@ class ProductionEarningsProtection:
             risk_amount = portfolio_value * Decimal(str(self.max_position_size))
 
             # Calculate confidence
-            confidence = min(1.0, (iv_percentile / 100) * (implied_move / 0.10))
+            confidence = min(1.0, (iv_percentile / 100) * (float(implied_move) / 0.10))
 
             return EarningsSignal(
                 ticker=event.ticker,
@@ -194,7 +194,7 @@ class ProductionEarningsProtection:
             volatility = await self.data_provider.get_volatility(ticker, 20)
             if volatility:
                 # Rough estimate: IV * sqrt(days_to_expiry / 365) * spot_price
-                implied_move = volatility * Decimal("0.1")  # Simplified
+                implied_move = abs(volatility) * Decimal("0.1")  # Simplified, use abs to handle invalid negative volatility
                 return implied_move
             else:
                 return Decimal("0.05")  # 5% default
@@ -259,7 +259,7 @@ class ProductionEarningsProtection:
             # Execute trade
             result = await self.integration.execute_trade(trade_signal)
 
-            if result.status.value == "FILLED":  # Store active position
+            if result.status == TradeStatus.FILLED:  # Store active position
                 self.active_positions[signal.ticker] = signal
 
                 # Send alert
@@ -414,7 +414,7 @@ class ProductionEarningsProtection:
             # Execute exit trade
             result = await self.integration.execute_trade(exit_signal)
 
-            if result.status.value == "FILLED":  # Remove from active positions
+            if result.status == TradeStatus.FILLED:  # Remove from active positions
                 del self.active_positions[position.ticker]
 
                 # Send alert

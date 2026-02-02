@@ -16,7 +16,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from ...core.trading_interface import OrderSide, OrderType
+from ...core.trading_interface import OrderSide, OrderType, TradeStatus
 from ...production.core.production_integration import (
     ProductionIntegrationManager,
     ProductionTradeSignal,
@@ -502,7 +502,7 @@ class ProductionIndexBaseline:
             # Execute trade
             result = await self.integration.execute_trade(trade_signal)
 
-            if result.status.value == "FILLED":  # Store active signal
+            if result.status == TradeStatus.FILLED:  # Store active signal
                 self.active_signals[signal.ticker] = signal
 
                 # Send alert

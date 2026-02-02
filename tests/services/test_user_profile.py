@@ -15,7 +15,7 @@ from backend.auth0login.services.user_profile import (
 
 
 @pytest.fixture
-def user():
+def user(db):  # db fixture ensures database access
     return User.objects.create_user(username='testuser', email='test@example.com')
 
 
@@ -24,6 +24,7 @@ def service(user):
     return UserProfileService(user=user)
 
 
+@pytest.mark.django_db
 class TestInit:
     """Test initialization."""
 
@@ -32,10 +33,11 @@ class TestInit:
         assert service.user == user
 
 
+@pytest.mark.django_db
 class TestGetOrCreateProfile:
     """Test profile creation."""
 
-    @patch('backend.auth0login.services.user_profile.UserProfile')
+    @patch('backend.tradingbot.models.models.UserProfile')
     def test_get_or_create_profile_creates(self, mock_model, service, user):
         mock_profile = Mock()
         mock_model.objects.get_or_create.return_value = (mock_profile, True)
@@ -43,7 +45,7 @@ class TestGetOrCreateProfile:
         result = service.get_or_create_profile()
         assert result == mock_profile
 
-    @patch('backend.auth0login.services.user_profile.UserProfile')
+    @patch('backend.tradingbot.models.models.UserProfile')
     def test_get_or_create_profile_gets(self, mock_model, service, user):
         mock_profile = Mock()
         mock_model.objects.get_or_create.return_value = (mock_profile, False)
@@ -52,10 +54,11 @@ class TestGetOrCreateProfile:
         assert result == mock_profile
 
 
+@pytest.mark.django_db
 class TestUpdateProfile:
     """Test profile updates."""
 
-    @patch('backend.auth0login.services.user_profile.UserProfile')
+    @patch('backend.tradingbot.models.models.UserProfile')
     def test_update_profile_success(self, mock_model, service, user):
         mock_profile = Mock()
         mock_model.objects.get_or_create.return_value = (mock_profile, False)
@@ -66,6 +69,7 @@ class TestUpdateProfile:
         assert success is True
 
 
+@pytest.mark.django_db
 class TestRiskAssessment:
     """Test risk assessment."""
 
@@ -73,7 +77,7 @@ class TestRiskAssessment:
         questions = service.get_risk_questions()
         assert len(questions) == len(RISK_ASSESSMENT_QUESTIONS)
 
-    @patch('backend.auth0login.services.user_profile.UserProfile')
+    @patch('backend.tradingbot.models.models.UserProfile')
     def test_submit_risk_assessment(self, mock_model, service, user):
         mock_profile = Mock()
         mock_profile.calculate_risk_score.return_value = 50
@@ -88,10 +92,11 @@ class TestRiskAssessment:
         assert 'risk_score' in result
 
 
+@pytest.mark.django_db
 class TestOnboardingStatus:
     """Test onboarding status."""
 
-    @patch('backend.auth0login.services.user_profile.UserProfile')
+    @patch('backend.tradingbot.models.models.UserProfile')
     def test_get_onboarding_status(self, mock_model, service, user):
         mock_profile = Mock()
         mock_profile.onboarding_step = 1
@@ -109,10 +114,11 @@ class TestOnboardingStatus:
         assert 'steps' in result
 
 
+@pytest.mark.django_db
 class TestCompleteStep:
     """Test completing onboarding steps."""
 
-    @patch('backend.auth0login.services.user_profile.UserProfile')
+    @patch('backend.tradingbot.models.models.UserProfile')
     def test_complete_step(self, mock_model, service, user):
         mock_profile = Mock()
         mock_profile.complete_onboarding_step = Mock()
@@ -124,10 +130,11 @@ class TestCompleteStep:
         assert result['success'] is True
 
 
+@pytest.mark.django_db
 class TestTradingMode:
     """Test trading mode switching."""
 
-    @patch('backend.auth0login.services.user_profile.UserProfile')
+    @patch('backend.tradingbot.models.models.UserProfile')
     def test_switch_to_paper_mode(self, mock_model, service, user):
         mock_profile = Mock()
         mock_profile.is_paper_trading = True
@@ -137,7 +144,7 @@ class TestTradingMode:
         result = service.switch_trading_mode('paper')
         assert result['success'] is True
 
-    @patch('backend.auth0login.services.user_profile.UserProfile')
+    @patch('backend.tradingbot.models.models.UserProfile')
     def test_switch_to_live_mode_approved(self, mock_model, service, user):
         mock_profile = Mock()
         mock_profile.live_trading_approved = True
@@ -148,10 +155,11 @@ class TestTradingMode:
         assert result['success'] is True
 
 
+@pytest.mark.django_db
 class TestGetProfileSummary:
     """Test profile summary."""
 
-    @patch('backend.auth0login.services.user_profile.UserProfile')
+    @patch('backend.tradingbot.models.models.UserProfile')
     def test_get_profile_summary(self, mock_model, service, user):
         mock_profile = Mock()
         mock_profile.risk_profile_name = 'Moderate'

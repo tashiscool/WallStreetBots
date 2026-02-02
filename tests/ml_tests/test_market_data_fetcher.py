@@ -113,8 +113,8 @@ class TestMarketDataFetcherInitialization:
 class TestYFinanceDataFetching:
     """Tests for yfinance data source."""
 
-    @patch('ml.tradingbots.data.market_data_fetcher.yf')
-    def test_fetch_yfinance_success(self, mock_yf):
+    @patch('yfinance.Ticker')
+    def test_fetch_yfinance_success(self, mock_ticker_class):
         """Test successful data fetching from yfinance."""
         # Mock ticker and history
         mock_ticker = Mock()
@@ -128,7 +128,7 @@ class TestYFinanceDataFetching:
         }, index=dates)
 
         mock_ticker.history.return_value = mock_df
-        mock_yf.Ticker.return_value = mock_ticker
+        mock_ticker_class.return_value = mock_ticker
 
         fetcher = MarketDataFetcher()
         df = fetcher.fetch_prices("AAPL")
@@ -138,8 +138,8 @@ class TestYFinanceDataFetching:
         assert 'open' in df.columns
         assert 'volume' in df.columns
 
-    @patch('ml.tradingbots.data.market_data_fetcher.yf')
-    def test_fetch_yfinance_with_dates(self, mock_yf):
+    @patch('yfinance.Ticker')
+    def test_fetch_yfinance_with_dates(self, mock_ticker_class):
         """Test fetching with specific date range."""
         mock_ticker = Mock()
         dates = pd.date_range('2023-01-01', periods=50, freq='D')
@@ -152,7 +152,7 @@ class TestYFinanceDataFetching:
         }, index=dates)
 
         mock_ticker.history.return_value = mock_df
-        mock_yf.Ticker.return_value = mock_ticker
+        mock_ticker_class.return_value = mock_ticker
 
         fetcher = MarketDataFetcher()
         start = datetime(2023, 1, 1)
@@ -163,20 +163,20 @@ class TestYFinanceDataFetching:
         assert not df.empty
         mock_ticker.history.assert_called_once()
 
-    @patch('ml.tradingbots.data.market_data_fetcher.yf')
-    def test_fetch_yfinance_empty_dataframe(self, mock_yf):
+    @patch('yfinance.Ticker')
+    def test_fetch_yfinance_empty_dataframe(self, mock_ticker_class):
         """Test handling of empty DataFrame."""
         mock_ticker = Mock()
         mock_ticker.history.return_value = pd.DataFrame()
-        mock_yf.Ticker.return_value = mock_ticker
+        mock_ticker_class.return_value = mock_ticker
 
         fetcher = MarketDataFetcher()
 
         with pytest.raises(ValueError, match="No data found"):
             fetcher.fetch_prices("INVALID")
 
-    @patch('ml.tradingbots.data.market_data_fetcher.yf')
-    def test_fetch_yfinance_column_standardization(self, mock_yf):
+    @patch('yfinance.Ticker')
+    def test_fetch_yfinance_column_standardization(self, mock_ticker_class):
         """Test column name standardization."""
         mock_ticker = Mock()
         dates = pd.date_range('2023-01-01', periods=10, freq='D')
@@ -189,7 +189,7 @@ class TestYFinanceDataFetching:
         }, index=dates)
 
         mock_ticker.history.return_value = mock_df
-        mock_yf.Ticker.return_value = mock_ticker
+        mock_ticker_class.return_value = mock_ticker
 
         fetcher = MarketDataFetcher()
         df = fetcher.fetch_prices("AAPL")
@@ -205,7 +205,7 @@ class TestYFinanceDataFetching:
 class TestAlphaVantageDataFetching:
     """Tests for Alpha Vantage data source."""
 
-    @patch('ml.tradingbots.data.market_data_fetcher.requests')
+    @patch('requests.get')
     def test_fetch_alphavantage_success(self, mock_requests):
         """Test successful Alpha Vantage fetch."""
         # Mock response
@@ -230,7 +230,7 @@ class TestAlphaVantageDataFetching:
                 }
             }
         }
-        mock_requests.get.return_value = mock_response
+        mock_requests.return_value = mock_response
 
         config = DataConfig(source="alphavantage", alphavantage_key="test_key")
         fetcher = MarketDataFetcher(config=config)
@@ -241,14 +241,14 @@ class TestAlphaVantageDataFetching:
         assert 'close' in df.columns
         assert 'volume' in df.columns
 
-    @patch('ml.tradingbots.data.market_data_fetcher.requests')
+    @patch('requests.get')
     def test_fetch_alphavantage_error(self, mock_requests):
         """Test Alpha Vantage error handling."""
         mock_response = Mock()
         mock_response.json.return_value = {
             "Note": "API call frequency limit reached"
         }
-        mock_requests.get.return_value = mock_response
+        mock_requests.return_value = mock_response
 
         config = DataConfig(source="alphavantage", alphavantage_key="test_key")
         fetcher = MarketDataFetcher(config=config)
@@ -256,7 +256,7 @@ class TestAlphaVantageDataFetching:
         with pytest.raises(ValueError, match="Alpha Vantage error"):
             fetcher.fetch_prices("AAPL")
 
-    @patch('ml.tradingbots.data.market_data_fetcher.requests')
+    @patch('requests.get')
     def test_fetch_alphavantage_date_filtering(self, mock_requests):
         """Test date range filtering for Alpha Vantage."""
         mock_response = Mock()
@@ -273,7 +273,7 @@ class TestAlphaVantageDataFetching:
                 for i in range(1, 32)
             }
         }
-        mock_requests.get.return_value = mock_response
+        mock_requests.return_value = mock_response
 
         config = DataConfig(source="alphavantage", alphavantage_key="test_key")
         fetcher = MarketDataFetcher(config=config)
@@ -403,7 +403,7 @@ class TestMLDataPreparation:
     @pytest.fixture
     def mock_fetcher_with_data(self):
         """Create fetcher with mocked data."""
-        with patch('ml.tradingbots.data.market_data_fetcher.yf') as mock_yf:
+        with patch('yfinance.Ticker') as mock_ticker_class:
             mock_ticker = Mock()
             dates = pd.date_range('2023-01-01', periods=300, freq='D')
             np.random.seed(42)
@@ -417,7 +417,7 @@ class TestMLDataPreparation:
             }, index=dates)
 
             mock_ticker.history.return_value = mock_df
-            mock_yf.Ticker.return_value = mock_ticker
+            mock_ticker_class.return_value = mock_ticker
 
             yield MarketDataFetcher()
 
@@ -508,7 +508,7 @@ class TestMLDataPreparation:
             }, index=dates)
 
             mock_ticker.history.return_value = mock_df
-            mock_yf.Ticker.return_value = mock_ticker
+            mock_yf.return_value = mock_ticker
 
             config = DataConfig(
                 include_volume=False,
@@ -546,7 +546,7 @@ class TestMLDataPreparation:
 class TestDataHandling:
     """Tests for data handling and preprocessing."""
 
-    @patch('ml.tradingbots.data.market_data_fetcher.yf')
+    @patch('yfinance.Ticker')
     def test_handle_missing_ffill(self, mock_yf):
         """Test forward fill for missing data."""
         mock_ticker = Mock()
@@ -563,7 +563,7 @@ class TestDataHandling:
         }, index=dates)
 
         mock_ticker.history.return_value = mock_df
-        mock_yf.Ticker.return_value = mock_ticker
+        mock_yf.return_value = mock_ticker
 
         config = DataConfig(handle_missing="ffill", include_technical_indicators=False)
         fetcher = MarketDataFetcher(config=config)
@@ -574,7 +574,7 @@ class TestDataHandling:
         assert not np.isnan(data['X_train']).any()
         assert not np.isnan(data['X_test']).any()
 
-    @patch('ml.tradingbots.data.market_data_fetcher.yf')
+    @patch('yfinance.Ticker')
     def test_handle_missing_drop(self, mock_yf):
         """Test dropping missing data."""
         mock_ticker = Mock()
@@ -592,7 +592,7 @@ class TestDataHandling:
         }, index=dates)
 
         mock_ticker.history.return_value = mock_df
-        mock_yf.Ticker.return_value = mock_ticker
+        mock_yf.return_value = mock_ticker
 
         config = DataConfig(handle_missing="drop", include_technical_indicators=False)
         fetcher = MarketDataFetcher(config=config)
@@ -606,7 +606,7 @@ class TestDataHandling:
 class TestMultiAssetDataFetcher:
     """Tests for multi-asset data fetching."""
 
-    @patch('ml.tradingbots.data.market_data_fetcher.yf')
+    @patch('yfinance.Ticker')
     def test_fetch_multiple_symbols(self, mock_yf):
         """Test fetching multiple symbols."""
         mock_ticker = Mock()
@@ -621,7 +621,7 @@ class TestMultiAssetDataFetcher:
         }, index=dates)
 
         mock_ticker.history.return_value = mock_df
-        mock_yf.Ticker.return_value = mock_ticker
+        mock_yf.return_value = mock_ticker
 
         multi_fetcher = MultiAssetDataFetcher()
         symbols = ["AAPL", "GOOGL", "MSFT"]
@@ -632,7 +632,7 @@ class TestMultiAssetDataFetcher:
         assert all(symbol in data for symbol in symbols)
         assert all(not df.empty for df in data.values())
 
-    @patch('ml.tradingbots.data.market_data_fetcher.yf')
+    @patch('yfinance.Ticker')
     def test_fetch_multiple_with_error(self, mock_yf):
         """Test multi-fetch with one symbol failing."""
         def mock_ticker_side_effect(symbol):
@@ -664,7 +664,7 @@ class TestMultiAssetDataFetcher:
         # INVALID might not be in data or might be empty
         assert len(data) >= 2
 
-    @patch('ml.tradingbots.data.market_data_fetcher.yf')
+    @patch('yfinance.Ticker')
     def test_prepare_ensemble_data(self, mock_yf):
         """Test preparing ensemble data for multiple symbols."""
         mock_ticker = Mock()
@@ -679,7 +679,7 @@ class TestMultiAssetDataFetcher:
         }, index=dates)
 
         mock_ticker.history.return_value = mock_df
-        mock_yf.Ticker.return_value = mock_ticker
+        mock_yf.return_value = mock_ticker
 
         multi_fetcher = MultiAssetDataFetcher()
         symbols = ["AAPL", "GOOGL"]
@@ -743,7 +743,7 @@ class TestEdgeCases:
         with pytest.raises(ValueError, match="Unknown source"):
             fetcher.fetch_prices("AAPL")
 
-    @patch('ml.tradingbots.data.market_data_fetcher.yf')
+    @patch('yfinance.Ticker')
     def test_very_short_data(self, mock_yf):
         """Test with very short data."""
         mock_ticker = Mock()
@@ -758,7 +758,7 @@ class TestEdgeCases:
         }, index=dates)
 
         mock_ticker.history.return_value = mock_df
-        mock_yf.Ticker.return_value = mock_ticker
+        mock_yf.return_value = mock_ticker
 
         fetcher = MarketDataFetcher()
 
@@ -766,7 +766,7 @@ class TestEdgeCases:
         df = fetcher.fetch_prices("AAPL")
         assert len(df) == 10
 
-    @patch('ml.tradingbots.data.market_data_fetcher.yf')
+    @patch('yfinance.Ticker')
     def test_constant_prices(self, mock_yf):
         """Test with constant prices."""
         mock_ticker = Mock()
@@ -781,7 +781,7 @@ class TestEdgeCases:
         }, index=dates)
 
         mock_ticker.history.return_value = mock_df
-        mock_yf.Ticker.return_value = mock_ticker
+        mock_yf.return_value = mock_ticker
 
         fetcher = MarketDataFetcher()
         df_with_indicators = fetcher.add_technical_indicators(
@@ -791,7 +791,7 @@ class TestEdgeCases:
         # Should handle without crashing
         assert not df_with_indicators.empty
 
-    @patch('ml.tradingbots.data.market_data_fetcher.yf')
+    @patch('yfinance.Ticker')
     def test_extreme_volatility(self, mock_yf):
         """Test with extreme price volatility."""
         mock_ticker = Mock()
@@ -809,7 +809,7 @@ class TestEdgeCases:
         }, index=dates)
 
         mock_ticker.history.return_value = mock_df
-        mock_yf.Ticker.return_value = mock_ticker
+        mock_yf.return_value = mock_ticker
 
         fetcher = MarketDataFetcher()
         df = fetcher.fetch_prices("AAPL")

@@ -661,6 +661,34 @@ class TestDisplayRLTrainingSummary:
 class TestEdgeCases:
     """Tests for edge cases."""
 
+    @pytest.fixture
+    def mock_agent(self):
+        """Create mock agent for edge case tests."""
+        agent = Mock()
+        agent.__class__.__name__ = "MockAgent"
+        agent.select_action = Mock(return_value=(np.array([0.5]), 0.0, 0.0))
+        agent.store_transition = Mock()
+        agent.update = Mock(return_value={"loss": 0.1})
+        return agent
+
+    @pytest.fixture
+    def mock_env(self):
+        """Create mock environment for edge case tests."""
+        env = Mock()
+        env.reset = Mock(return_value=np.random.randn(4))
+
+        step_count = [0]
+
+        def step_side_effect(action):
+            step_count[0] += 1
+            done = step_count[0] >= 10
+            if done:
+                step_count[0] = 0  # Reset for next episode
+            return np.random.randn(4), 1.0, done, {"return": 1.0}
+
+        env.step = Mock(side_effect=step_side_effect)
+        return env
+
     def test_running_mean_std_single_value(self):
         """Test RunningMeanStd with single value."""
         rms = RunningMeanStd(shape=())

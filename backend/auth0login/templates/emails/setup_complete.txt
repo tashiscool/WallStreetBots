@@ -1,0 +1,62 @@
+WallStreetBots - Your Trading Bot is Ready!
+==========================================
+
+Hi {{ user.first_name|default:user.username }},
+
+Great news! Your WallStreetBots trading configuration has been successfully
+set up. Your bot is now ready to scan markets and execute trades based on
+your selected strategies.
+
+YOUR CONFIGURATION
+------------------
+Trading Mode: {{ trading_mode|title }} Trading
+Risk Profile: {{ risk_profile|title }}
+Max Position Size: {{ max_position_pct }}%
+Max Daily Loss: {{ max_daily_loss_pct }}%
+Selected Strategies: {{ strategies|join:", " }}
+
+WHAT HAPPENS NEXT
+-----------------
+1. Watch the system trade - The bot will scan markets during trading hours
+   and place trades based on your strategies.
+
+2. Check your Alpaca dashboard - Log into Alpaca to see your positions
+   in real-time.
+
+3. Review daily reports - Check the Analytics page for detailed
+   performance breakdowns.
+
+4. Fine-tune after you understand - Adjust parameters once you see how
+   each strategy works.
+
+{% if trading_mode == 'paper' %}
+PAPER TRADING MODE ACTIVE
+-------------------------
+You're trading with $100,000 in simulated money. No real money is at risk.
+We recommend paper trading for at least 30 days before switching to live
+trading.
+{% else %}
+LIVE TRADING MODE ACTIVE
+------------------------
+You're trading with real money. Please ensure you're comfortable with the
+selected risk settings. Start with small positions and increase gradually
+as you gain confidence.
+{% endif %}
+
+VIEW YOUR DASHBOARD
+-------------------
+{{ dashboard_url }}
+
+If you have any questions or need help, visit our support page or check
+the documentation.
+
+Happy Trading!
+The WallStreetBots Team
+
+---
+This email was sent because you completed the WallStreetBots setup wizard.
+Dashboard: {{ dashboard_url }}
+Settings: {{ settings_url }}
+Help: {{ help_url }}
+
+(c) {{ year }} WallStreetBots. All rights reserved.

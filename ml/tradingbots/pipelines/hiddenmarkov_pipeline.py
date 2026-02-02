@@ -1,7 +1,7 @@
 import datetime
 from datetime import timedelta
 
-from pipeline import Pipeline
+from .pipeline import Pipeline
 
 from backend.settings import BACKEND_ALPACA_ID, BACKEND_ALPACA_KEY
 

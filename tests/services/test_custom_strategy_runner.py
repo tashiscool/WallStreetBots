@@ -39,12 +39,17 @@ class TestCustomStrategyRunner(TestCase):
         }
         self.runner = CustomStrategyRunner(self.basic_definition)
 
-        # Create sample DataFrame
+        # Create sample DataFrame with consistent OHLC data
+        np.random.seed(42)  # For reproducibility
         dates = pd.date_range(start='2024-01-01', periods=100, freq='D')
+        close_prices = np.random.uniform(90, 110, 100)
+        # Ensure high >= close >= low
+        high_prices = close_prices + np.random.uniform(0, 5, 100)
+        low_prices = close_prices - np.random.uniform(0, 5, 100)
         self.df = pd.DataFrame({
-            'close': np.random.uniform(90, 110, 100),
-            'high': np.random.uniform(95, 115, 100),
-            'low': np.random.uniform(85, 105, 100),
+            'close': close_prices,
+            'high': high_prices,
+            'low': low_prices,
             'volume': np.random.uniform(1000000, 5000000, 100),
         }, index=dates)
         self.df['open'] = self.df['close']
@@ -371,8 +376,11 @@ class TestCustomStrategyRunner(TestCase):
         }
         runner = CustomStrategyRunner(definition)
 
-        # Entry 10 days ago
-        entry_date = datetime.now() - timedelta(days=10)
+        # Entry date should be before the last date in the DataFrame
+        # DataFrame dates start at '2024-01-01' and have 100 days, so last date is around April 2024
+        # Set entry date to be 10 days before the end of the DataFrame
+        last_date = self.df.index[-1]
+        entry_date = last_date - timedelta(days=10)
         should_exit, reason, details = runner.check_exit_conditions(
             self.df, 100.0, entry_date, idx=-1
         )

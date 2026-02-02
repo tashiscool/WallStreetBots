@@ -84,6 +84,13 @@ STATIC_URL = "/static/"
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Credential Encryption Settings (for testing)
+CREDENTIAL_ENCRYPTION_SALT = b'test_salt_for_unit_tests_v1'
+
+# Alpaca API settings (for testing)
+BACKEND_ALPACA_ID = os.getenv("APCA_API_KEY_ID", "test_alpaca_key_id")
+BACKEND_ALPACA_KEY = os.getenv("APCA_API_SECRET_KEY", "test_alpaca_secret_key")
+
 # Email backend for testing
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 

@@ -1,0 +1,999 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Circuit Breaker Control {% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-1">Circuit Breaker Control Panel</h4>
+                    <p class="text-sm text-muted mb-0">Monitor and manage trading circuit breakers</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" onclick="refreshCircuitBreakers()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                    <button class="btn btn-danger" onclick="triggerEmergencyStop()" id="emergencyStopBtn">
+                        <i class="fas fa-stop-circle me-2"></i>Emergency Stop All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Status Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card" id="globalStatusCard">
+                <div class="card-body p-3">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="icon icon-shape bg-gradient-success text-white rounded-circle shadow" id="globalStatusIcon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h5 class="mb-0" id="globalStatusText">System Operating Normally</h5>
+                            <p class="text-sm text-muted mb-0" id="globalStatusDetail">All circuit breakers inactive</p>
+                        </div>
+                        <div class="col-auto">
+                            <span class="badge bg-success fs-6" id="globalStatusBadge">NORMAL</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon icon-shape bg-gradient-success text-white rounded-circle shadow me-3">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm mb-0 text-muted">Active Strategies</p>
+                            <h5 class="mb-0" id="activeCount">0</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon icon-shape bg-gradient-warning text-white rounded-circle shadow me-3">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm mb-0 text-muted">Triggered Breakers</p>
+                            <h5 class="mb-0" id="triggeredCount">0</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon icon-shape bg-gradient-info text-white rounded-circle shadow me-3">
+                            <i class="fas fa-redo"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm mb-0 text-muted">In Recovery</p>
+                            <h5 class="mb-0" id="recoveryCount">0</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon icon-shape bg-gradient-danger text-white rounded-circle shadow me-3">
+                            <i class="fas fa-ban"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm mb-0 text-muted">Halted</p>
+                            <h5 class="mb-0" id="haltedCount">0</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Circuit Breaker Timeline -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6>Circuit Breaker Timeline</h6>
+                            <p class="text-sm text-muted">Recent events and state changes</p>
+                        </div>
+                        <div>
+                            <select class="form-select form-select-sm" id="timelineFilter" onchange="refreshTimeline()">
+                                <option value="all">All Events</option>
+                                <option value="triggered">Triggered Only</option>
+                                <option value="recovered">Recovered Only</option>
+                                <option value="manual">Manual Actions</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="timelineContainer" style="max-height: 400px; overflow-y: auto;">
+                        <div class="text-center py-4">
+                            <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                            <p class="text-sm text-muted mt-2">Loading timeline...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recovery Stage Monitor -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <h6>Recovery Stage Monitor</h6>
+                    <p class="text-sm text-muted">Strategies currently in recovery</p>
+                </div>
+                <div class="card-body">
+                    <div id="recoveryStageList">
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle text-success fa-2x"></i>
+                            <p class="text-sm text-muted mt-2">No strategies in recovery</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Circuit Breaker States Grid -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6>Circuit Breaker States</h6>
+                            <p class="text-sm text-muted">Current state of all circuit breakers</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-success" onclick="resetAllBreakers()">
+                                <i class="fas fa-undo me-1"></i>Reset All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body px-0 pb-0">
+                    <div class="table-responsive">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Strategy</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">State</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Trigger Type</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Last Triggered</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Recovery Stage</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Cooldown</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="circuitBreakerTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                                        <p class="text-sm text-muted mt-2">Loading circuit breakers...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Threshold Configuration -->
+    <div class="row mt-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h6>Global Thresholds</h6>
+                    <p class="text-sm text-muted">System-wide circuit breaker settings</p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-sm">Max Daily Loss (%)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="maxDailyLoss" value="5" min="1" max="50" step="0.5">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-sm">Max Drawdown (%)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="maxDrawdown" value="10" min="1" max="50" step="0.5">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-sm">Consecutive Losses</label>
+                            <input type="number" class="form-control" id="consecutiveLosses" value="5" min="2" max="20">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-sm">Cooldown Period (min)</label>
+                            <input type="number" class="form-control" id="cooldownPeriod" value="30" min="5" max="1440">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-sm">VIX Trigger Level</label>
+                            <input type="number" class="form-control" id="vixTrigger" value="30" min="15" max="80">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-sm">Recovery Stages</label>
+                            <select class="form-select" id="recoveryStages">
+                                <option value="1">1 Stage (Immediate)</option>
+                                <option value="2">2 Stages (25%, 100%)</option>
+                                <option value="3" selected>3 Stages (25%, 50%, 100%)</option>
+                                <option value="4">4 Stages (25%, 50%, 75%, 100%)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary w-100" onclick="saveGlobalThresholds()">
+                        <i class="fas fa-save me-2"></i>Save Thresholds
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Trigger History -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <h6>Recent Trigger History</h6>
+                    <p class="text-sm text-muted">Last 10 circuit breaker events</p>
+                </div>
+                <div class="card-body px-0 pb-0">
+                    <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                        <table class="table table-sm align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Time</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Strategy</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Event</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody id="triggerHistoryBody">
+                                <tr>
+                                    <td colspan="4" class="text-center py-4">
+                                        <p class="text-sm text-muted mb-0">No recent events</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Strategy Detail Modal -->
+<div class="modal fade" id="strategyDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Circuit Breaker Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="detailStrategyId">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Strategy</h6>
+                        <h5 id="detailStrategyName">-</h5>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <h6 class="text-muted">Current State</h6>
+                        <h5 id="detailCurrentState">-</h5>
+                    </div>
+                </div>
+
+                <!-- Strategy-Specific Thresholds -->
+                <h6 class="mb-3">Strategy Thresholds</h6>
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-sm">Max Position Loss (%)</label>
+                        <input type="number" class="form-control" id="detailMaxPositionLoss" min="1" max="100">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-sm">Max Daily Trades</label>
+                        <input type="number" class="form-control" id="detailMaxDailyTrades" min="1" max="1000">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-sm">Auto-Reset</label>
+                        <select class="form-select" id="detailAutoReset">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled (Manual Only)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <h6 class="mb-3">Recent Activity</h6>
+                <div id="detailActivityLog" style="max-height: 200px; overflow-y: auto;">
+                    <p class="text-sm text-muted">No activity recorded</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning" onclick="triggerManualBreaker()">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Trigger Breaker
+                </button>
+                <button type="button" class="btn btn-success" onclick="resetStrategyBreaker()">
+                    <i class="fas fa-undo me-2"></i>Reset Breaker
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Emergency Stop Confirmation Modal -->
+<div class="modal fade" id="emergencyStopModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Emergency Stop</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3"><strong>This will immediately:</strong></p>
+                <ul>
+                    <li>Halt all trading strategies</li>
+                    <li>Cancel all pending orders</li>
+                    <li>Close all open positions (optional)</li>
+                    <li>Trigger all circuit breakers</li>
+                </ul>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="closePositions">
+                    <label class="form-check-label" for="closePositions">
+                        Also close all open positions
+                    </label>
+                </div>
+                <div class="alert alert-danger mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This action requires manual reset for each strategy.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmEmergencyStop()">
+                    <i class="fas fa-stop-circle me-2"></i>Confirm Emergency Stop
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global state
+let circuitBreakers = [];
+let timelineEvents = [];
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    refreshCircuitBreakers();
+    // Auto-refresh every 30 seconds
+    setInterval(refreshCircuitBreakers, 30000);
+});
+
+// Fetch circuit breaker data
+async function refreshCircuitBreakers() {
+    try {
+        const response = await fetch('/api/circuit-breakers/');
+        if (!response.ok) throw new Error('Failed to fetch circuit breakers');
+        const data = await response.json();
+
+        circuitBreakers = data.circuit_breakers || [];
+        timelineEvents = data.events || [];
+
+        updateGlobalStatus(data);
+        updateSummaryCards(data);
+        renderCircuitBreakerTable(circuitBreakers);
+        renderTimeline(timelineEvents);
+        renderRecoveryStages(circuitBreakers.filter(cb => cb.state === 'recovering'));
+        renderTriggerHistory(data.history || []);
+        loadGlobalThresholds(data.thresholds || {});
+
+    } catch (error) {
+        console.error('Error fetching circuit breakers:', error);
+        showNotification('Failed to load circuit breaker data', 'error');
+    }
+}
+
+// Update global status banner
+function updateGlobalStatus(data) {
+    const card = document.getElementById('globalStatusCard');
+    const icon = document.getElementById('globalStatusIcon');
+    const text = document.getElementById('globalStatusText');
+    const detail = document.getElementById('globalStatusDetail');
+    const badge = document.getElementById('globalStatusBadge');
+
+    const triggered = (data.circuit_breakers || []).filter(cb => cb.state === 'triggered' || cb.state === 'halted');
+    const recovering = (data.circuit_breakers || []).filter(cb => cb.state === 'recovering');
+
+    if (triggered.length > 0) {
+        card.classList.remove('border-success', 'border-warning');
+        card.classList.add('border-danger');
+        icon.className = 'icon icon-shape bg-gradient-danger text-white rounded-circle shadow';
+        icon.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
+        text.textContent = `${triggered.length} Circuit Breaker${triggered.length > 1 ? 's' : ''} Triggered`;
+        detail.textContent = triggered.map(cb => cb.strategy_name).join(', ');
+        badge.className = 'badge bg-danger fs-6';
+        badge.textContent = 'ALERT';
+    } else if (recovering.length > 0) {
+        card.classList.remove('border-success', 'border-danger');
+        card.classList.add('border-warning');
+        icon.className = 'icon icon-shape bg-gradient-warning text-white rounded-circle shadow';
+        icon.innerHTML = '<i class="fas fa-redo"></i>';
+        text.textContent = `${recovering.length} Strateg${recovering.length > 1 ? 'ies' : 'y'} Recovering`;
+        detail.textContent = recovering.map(cb => `${cb.strategy_name} (Stage ${cb.recovery_stage})`).join(', ');
+        badge.className = 'badge bg-warning fs-6';
+        badge.textContent = 'RECOVERING';
+    } else {
+        card.classList.remove('border-danger', 'border-warning');
+        card.classList.add('border-success');
+        icon.className = 'icon icon-shape bg-gradient-success text-white rounded-circle shadow';
+        icon.innerHTML = '<i class="fas fa-shield-alt"></i>';
+        text.textContent = 'System Operating Normally';
+        detail.textContent = 'All circuit breakers inactive';
+        badge.className = 'badge bg-success fs-6';
+        badge.textContent = 'NORMAL';
+    }
+}
+
+// Update summary cards
+function updateSummaryCards(data) {
+    const breakers = data.circuit_breakers || [];
+    document.getElementById('activeCount').textContent = breakers.filter(cb => cb.state === 'active' || cb.state === 'normal').length;
+    document.getElementById('triggeredCount').textContent = breakers.filter(cb => cb.state === 'triggered').length;
+    document.getElementById('recoveryCount').textContent = breakers.filter(cb => cb.state === 'recovering').length;
+    document.getElementById('haltedCount').textContent = breakers.filter(cb => cb.state === 'halted').length;
+}
+
+// Render circuit breaker table
+function renderCircuitBreakerTable(breakers) {
+    const tbody = document.getElementById('circuitBreakerTableBody');
+
+    if (!breakers || breakers.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <p class="text-sm text-muted mb-0">No circuit breakers configured</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = breakers.map(cb => {
+        const stateInfo = getStateInfo(cb.state);
+        const recoveryDisplay = cb.state === 'recovering'
+            ? `<div class="progress" style="height: 20px;">
+                <div class="progress-bar bg-info" style="width: ${cb.recovery_progress || 0}%">
+                    Stage ${cb.recovery_stage || 1}
+                </div>
+               </div>`
+            : '-';
+
+        const cooldownDisplay = cb.cooldown_remaining
+            ? formatDuration(cb.cooldown_remaining)
+            : '-';
+
+        return `
+            <tr>
+                <td class="ps-3">
+                    <div class="d-flex align-items-center">
+                        <div class="status-indicator me-2 ${stateInfo.indicatorClass}"></div>
+                        <div>
+                            <h6 class="mb-0 text-sm">${cb.strategy_name}</h6>
+                            <p class="text-xs text-muted mb-0">${cb.strategy_type || 'Custom'}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-center">
+                    <span class="badge ${stateInfo.badgeClass}">${stateInfo.label}</span>
+                </td>
+                <td class="text-center">
+                    <span class="text-sm">${cb.trigger_type || '-'}</span>
+                </td>
+                <td class="text-center">
+                    <span class="text-sm">${cb.last_triggered ? new Date(cb.last_triggered).toLocaleString() : 'Never'}</span>
+                </td>
+                <td class="text-center" style="min-width: 120px;">
+                    ${recoveryDisplay}
+                </td>
+                <td class="text-center">
+                    <span class="text-sm ${cb.cooldown_remaining ? 'text-warning' : ''}">${cooldownDisplay}</span>
+                </td>
+                <td class="text-center">
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="viewStrategyDetails('${cb.strategy_id}')" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-success" onclick="resetBreaker('${cb.strategy_id}')"
+                                ${cb.state === 'active' || cb.state === 'normal' ? 'disabled' : ''} title="Reset">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="manualTrigger('${cb.strategy_id}')"
+                                ${cb.state === 'triggered' || cb.state === 'halted' ? 'disabled' : ''} title="Trigger">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Render timeline
+function renderTimeline(events) {
+    const container = document.getElementById('timelineContainer');
+    const filter = document.getElementById('timelineFilter').value;
+
+    let filtered = events;
+    if (filter !== 'all') {
+        filtered = events.filter(e => {
+            if (filter === 'triggered') return e.type === 'triggered';
+            if (filter === 'recovered') return e.type === 'recovered' || e.type === 'reset';
+            if (filter === 'manual') return e.is_manual;
+            return true;
+        });
+    }
+
+    if (!filtered || filtered.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-history text-muted fa-2x mb-2"></i>
+                <p class="text-sm text-muted mb-0">No events to display</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="timeline timeline-one-side" data-timeline-axis-style="dashed">
+            ${filtered.map(event => {
+                const eventInfo = getEventInfo(event.type);
+                return `
+                    <div class="timeline-block mb-3">
+                        <span class="timeline-step ${eventInfo.stepClass}">
+                            <i class="${eventInfo.icon}"></i>
+                        </span>
+                        <div class="timeline-content">
+                            <h6 class="text-sm font-weight-bold mb-0">${event.strategy_name}</h6>
+                            <p class="text-xs text-muted mb-1">${new Date(event.timestamp).toLocaleString()}</p>
+                            <p class="text-sm mb-0">
+                                <span class="badge ${eventInfo.badgeClass} me-1">${eventInfo.label}</span>
+                                ${event.reason || ''}
+                                ${event.is_manual ? '<span class="badge bg-secondary ms-1">Manual</span>' : ''}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+function refreshTimeline() {
+    renderTimeline(timelineEvents);
+}
+
+// Render recovery stages
+function renderRecoveryStages(recovering) {
+    const container = document.getElementById('recoveryStageList');
+
+    if (!recovering || recovering.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-3">
+                <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                <p class="text-sm text-muted mb-0">No strategies in recovery</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = recovering.map(cb => {
+        const stages = cb.total_stages || 3;
+        const currentStage = cb.recovery_stage || 1;
+        const progress = (currentStage / stages) * 100;
+
+        return `
+            <div class="recovery-item mb-3 pb-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0 text-sm">${cb.strategy_name}</h6>
+                    <span class="text-xs text-muted">Stage ${currentStage} of ${stages}</span>
+                </div>
+                <div class="progress mb-2" style="height: 8px;">
+                    <div class="progress-bar bg-info" style="width: ${progress}%"></div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-xs">${cb.recovery_capacity || 0}% capacity</span>
+                    <span class="text-xs text-muted">${cb.time_to_next_stage || 'N/A'} to next stage</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Render trigger history
+function renderTriggerHistory(history) {
+    const tbody = document.getElementById('triggerHistoryBody');
+
+    if (!history || history.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center py-4">
+                    <p class="text-sm text-muted mb-0">No recent events</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = history.slice(0, 10).map(item => {
+        const eventInfo = getEventInfo(item.type);
+        return `
+            <tr>
+                <td class="ps-3 text-xs">${new Date(item.timestamp).toLocaleString()}</td>
+                <td class="text-sm">${item.strategy_name}</td>
+                <td class="text-center">
+                    <span class="badge ${eventInfo.badgeClass}">${eventInfo.label}</span>
+                </td>
+                <td class="text-xs">${item.reason || '-'}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Load global thresholds
+function loadGlobalThresholds(thresholds) {
+    if (thresholds.max_daily_loss) document.getElementById('maxDailyLoss').value = thresholds.max_daily_loss;
+    if (thresholds.max_drawdown) document.getElementById('maxDrawdown').value = thresholds.max_drawdown;
+    if (thresholds.consecutive_losses) document.getElementById('consecutiveLosses').value = thresholds.consecutive_losses;
+    if (thresholds.cooldown_period) document.getElementById('cooldownPeriod').value = thresholds.cooldown_period;
+    if (thresholds.vix_trigger) document.getElementById('vixTrigger').value = thresholds.vix_trigger;
+    if (thresholds.recovery_stages) document.getElementById('recoveryStages').value = thresholds.recovery_stages;
+}
+
+// Save global thresholds
+async function saveGlobalThresholds() {
+    const thresholds = {
+        max_daily_loss: parseFloat(document.getElementById('maxDailyLoss').value),
+        max_drawdown: parseFloat(document.getElementById('maxDrawdown').value),
+        consecutive_losses: parseInt(document.getElementById('consecutiveLosses').value),
+        cooldown_period: parseInt(document.getElementById('cooldownPeriod').value),
+        vix_trigger: parseFloat(document.getElementById('vixTrigger').value),
+        recovery_stages: parseInt(document.getElementById('recoveryStages').value)
+    };
+
+    try {
+        const response = await fetch('/api/circuit-breakers/thresholds/', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify(thresholds)
+        });
+
+        if (!response.ok) throw new Error('Failed to save thresholds');
+        showNotification('Thresholds saved successfully', 'success');
+
+    } catch (error) {
+        console.error('Error saving thresholds:', error);
+        showNotification('Failed to save thresholds', 'error');
+    }
+}
+
+// View strategy details
+async function viewStrategyDetails(strategyId) {
+    const cb = circuitBreakers.find(c => c.strategy_id === strategyId);
+    if (!cb) return;
+
+    document.getElementById('detailStrategyId').value = strategyId;
+    document.getElementById('detailStrategyName').textContent = cb.strategy_name;
+    document.getElementById('detailCurrentState').innerHTML = getStateInfo(cb.state).badge;
+    document.getElementById('detailMaxPositionLoss').value = cb.max_position_loss || 10;
+    document.getElementById('detailMaxDailyTrades').value = cb.max_daily_trades || 100;
+    document.getElementById('detailAutoReset').value = cb.auto_reset !== false ? 'true' : 'false';
+
+    // Load activity log
+    try {
+        const response = await fetch(`/api/circuit-breakers/${strategyId}/history/`);
+        if (response.ok) {
+            const data = await response.json();
+            renderActivityLog(data.history || []);
+        }
+    } catch (error) {
+        console.error('Error loading activity log:', error);
+    }
+
+    new bootstrap.Modal(document.getElementById('strategyDetailModal')).show();
+}
+
+// Render activity log in modal
+function renderActivityLog(history) {
+    const container = document.getElementById('detailActivityLog');
+
+    if (!history || history.length === 0) {
+        container.innerHTML = '<p class="text-sm text-muted">No activity recorded</p>';
+        return;
+    }
+
+    container.innerHTML = history.map(item => {
+        const eventInfo = getEventInfo(item.type);
+        return `
+            <div class="d-flex align-items-start mb-2 pb-2 border-bottom">
+                <span class="badge ${eventInfo.badgeClass} me-2">${eventInfo.label}</span>
+                <div>
+                    <p class="text-sm mb-0">${item.reason || 'No details'}</p>
+                    <p class="text-xs text-muted mb-0">${new Date(item.timestamp).toLocaleString()}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Reset individual breaker
+async function resetBreaker(strategyId) {
+    if (!confirm('Reset this circuit breaker?')) return;
+
+    try {
+        const response = await fetch(`/api/circuit-breakers/${strategyId}/reset/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to reset breaker');
+        showNotification('Circuit breaker reset successfully', 'success');
+        refreshCircuitBreakers();
+
+    } catch (error) {
+        console.error('Error resetting breaker:', error);
+        showNotification('Failed to reset circuit breaker', 'error');
+    }
+}
+
+// Manual trigger
+async function manualTrigger(strategyId) {
+    if (!confirm('Manually trigger this circuit breaker? This will halt trading for this strategy.')) return;
+
+    try {
+        const response = await fetch(`/api/circuit-breakers/${strategyId}/trigger/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ reason: 'Manual trigger by user' })
+        });
+
+        if (!response.ok) throw new Error('Failed to trigger breaker');
+        showNotification('Circuit breaker triggered', 'warning');
+        refreshCircuitBreakers();
+
+    } catch (error) {
+        console.error('Error triggering breaker:', error);
+        showNotification('Failed to trigger circuit breaker', 'error');
+    }
+}
+
+// Trigger from modal
+function triggerManualBreaker() {
+    const strategyId = document.getElementById('detailStrategyId').value;
+    bootstrap.Modal.getInstance(document.getElementById('strategyDetailModal')).hide();
+    manualTrigger(strategyId);
+}
+
+// Reset from modal
+function resetStrategyBreaker() {
+    const strategyId = document.getElementById('detailStrategyId').value;
+    bootstrap.Modal.getInstance(document.getElementById('strategyDetailModal')).hide();
+    resetBreaker(strategyId);
+}
+
+// Reset all breakers
+async function resetAllBreakers() {
+    if (!confirm('Reset ALL circuit breakers? This will restore trading for all strategies.')) return;
+
+    try {
+        const response = await fetch('/api/circuit-breakers/reset-all/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to reset all breakers');
+        showNotification('All circuit breakers reset', 'success');
+        refreshCircuitBreakers();
+
+    } catch (error) {
+        console.error('Error resetting all breakers:', error);
+        showNotification('Failed to reset circuit breakers', 'error');
+    }
+}
+
+// Emergency stop
+function triggerEmergencyStop() {
+    new bootstrap.Modal(document.getElementById('emergencyStopModal')).show();
+}
+
+async function confirmEmergencyStop() {
+    const closePositions = document.getElementById('closePositions').checked;
+
+    try {
+        const response = await fetch('/api/circuit-breakers/emergency-stop/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ close_positions: closePositions })
+        });
+
+        if (!response.ok) throw new Error('Failed to execute emergency stop');
+
+        bootstrap.Modal.getInstance(document.getElementById('emergencyStopModal')).hide();
+        showNotification('Emergency stop executed - all trading halted', 'warning');
+        refreshCircuitBreakers();
+
+    } catch (error) {
+        console.error('Error executing emergency stop:', error);
+        showNotification('Failed to execute emergency stop', 'error');
+    }
+}
+
+// Utility functions
+function getStateInfo(state) {
+    const states = {
+        'active': { label: 'Active', badgeClass: 'bg-success', indicatorClass: 'bg-success', badge: '<span class="badge bg-success">Active</span>' },
+        'normal': { label: 'Normal', badgeClass: 'bg-success', indicatorClass: 'bg-success', badge: '<span class="badge bg-success">Normal</span>' },
+        'triggered': { label: 'Triggered', badgeClass: 'bg-danger', indicatorClass: 'bg-danger', badge: '<span class="badge bg-danger">Triggered</span>' },
+        'recovering': { label: 'Recovering', badgeClass: 'bg-info', indicatorClass: 'bg-info pulse', badge: '<span class="badge bg-info">Recovering</span>' },
+        'halted': { label: 'Halted', badgeClass: 'bg-danger', indicatorClass: 'bg-danger', badge: '<span class="badge bg-danger">Halted</span>' },
+        'cooldown': { label: 'Cooldown', badgeClass: 'bg-warning', indicatorClass: 'bg-warning', badge: '<span class="badge bg-warning">Cooldown</span>' }
+    };
+    return states[state] || states['active'];
+}
+
+function getEventInfo(type) {
+    const events = {
+        'triggered': { label: 'Triggered', badgeClass: 'bg-danger', stepClass: 'bg-danger', icon: 'fas fa-exclamation-triangle' },
+        'recovered': { label: 'Recovered', badgeClass: 'bg-success', stepClass: 'bg-success', icon: 'fas fa-check' },
+        'reset': { label: 'Reset', badgeClass: 'bg-info', stepClass: 'bg-info', icon: 'fas fa-undo' },
+        'stage_advanced': { label: 'Stage Up', badgeClass: 'bg-info', stepClass: 'bg-info', icon: 'fas fa-arrow-up' },
+        'threshold_updated': { label: 'Updated', badgeClass: 'bg-secondary', stepClass: 'bg-secondary', icon: 'fas fa-cog' },
+        'manual': { label: 'Manual', badgeClass: 'bg-warning', stepClass: 'bg-warning', icon: 'fas fa-hand-paper' }
+    };
+    return events[type] || { label: type, badgeClass: 'bg-secondary', stepClass: 'bg-secondary', icon: 'fas fa-circle' };
+}
+
+function formatDuration(seconds) {
+    if (seconds < 60) return `${seconds}s`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+    return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+}
+
+function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [cookieName, cookieValue] = cookie.trim().split('=');
+        if (cookieName === name) return cookieValue;
+    }
+    return '';
+}
+
+function showNotification(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : type === 'error' ? 'alert-danger' : 'alert-warning';
+    const notification = document.createElement('div');
+    notification.className = `alert ${alertClass} position-fixed top-0 end-0 m-3`;
+    notification.style.zIndex = '9999';
+    notification.innerHTML = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+</script>
+
+<style>
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-indicator.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.icon-shape {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+}
+
+.timeline-one-side {
+    position: relative;
+    padding-left: 40px;
+}
+
+.timeline-one-side::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+    border-style: dashed;
+}
+
+.timeline-block {
+    position: relative;
+}
+
+.timeline-step {
+    position: absolute;
+    left: -40px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+}
+
+.timeline-content {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.recovery-item:last-child {
+    border-bottom: none !important;
+}
+</style>
+{% endblock %}

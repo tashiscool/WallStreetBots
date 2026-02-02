@@ -171,10 +171,10 @@ class TestBuildSpreadAPI(TestCase):
         async def mock_build_spread(*args, **kwargs):
             return mock_result
 
-        mock_dashboard_service.build_exotic_spread = mock_build_spread
+        mock_dashboard_service.build_spread = mock_build_spread
 
         response = self.client.post(
-            '/api/options/build-spread',
+            '/api/spreads/build',
             data=json.dumps({
                 'spread_type': 'bull_call',
                 'symbol': 'SPY',
@@ -193,10 +193,10 @@ class TestBuildSpreadAPI(TestCase):
         async def mock_build_spread(*args, **kwargs):
             raise ValueError("Invalid spread parameters")
 
-        mock_dashboard_service.build_exotic_spread = mock_build_spread
+        mock_dashboard_service.build_spread = mock_build_spread
 
         response = self.client.post(
-            '/api/options/build-spread',
+            '/api/spreads/build',
             data=json.dumps({'spread_type': 'invalid'}),
             content_type='application/json',
         )
@@ -217,10 +217,10 @@ class TestTradingGateAPI(TestCase):
         )
         self.client.login(username='testuser', password='testpass123')
 
-    @patch('backend.auth0login.api_views.trading_gate_service')
+    @patch('backend.auth0login.services.trading_gate.trading_gate_service')
     def test_trading_gate_status_success(self, mock_service):
         """Test getting trading gate status."""
-        from backend.auth0login.services.trading_gate import TradingGateStatus, Requirement
+        from backend.auth0login.services.trading_gate import GateStatus as TradingGateStatus, GateRequirement as Requirement
 
         mock_status = TradingGateStatus(
             user_id=self.user.id,
@@ -264,7 +264,7 @@ class TestTradingGateAPI(TestCase):
         self.assertEqual(data['gate']['is_paper_trading'], True)
         self.assertEqual(data['gate']['days_in_paper'], 5)
 
-    @patch('backend.auth0login.api_views.trading_gate_service')
+    @patch('backend.auth0login.services.trading_gate.trading_gate_service')
     def test_trading_gate_status_error(self, mock_service):
         """Test trading gate status error handling."""
         mock_service.get_gate_status.side_effect = Exception("Database error")
@@ -275,7 +275,7 @@ class TestTradingGateAPI(TestCase):
         data = response.json()
         self.assertEqual(data['status'], 'error')
 
-    @patch('backend.auth0login.api_views.trading_gate_service')
+    @patch('backend.auth0login.services.trading_gate.trading_gate_service')
     def test_trading_gate_request_live_success(self, mock_service):
         """Test requesting live trading."""
         mock_service.request_live_trading.return_value = {
@@ -291,7 +291,7 @@ class TestTradingGateAPI(TestCase):
         self.assertEqual(data['status'], 'success')
         self.assertTrue(data['result']['approved'])
 
-    @patch('backend.auth0login.api_views.trading_gate_service')
+    @patch('backend.auth0login.services.trading_gate.trading_gate_service')
     def test_trading_gate_request_live_error(self, mock_service):
         """Test request live trading error handling."""
         mock_service.request_live_trading.side_effect = Exception("Service error")
@@ -302,10 +302,10 @@ class TestTradingGateAPI(TestCase):
         data = response.json()
         self.assertEqual(data['status'], 'error')
 
-    @patch('backend.auth0login.api_views.trading_gate_service')
+    @patch('backend.auth0login.services.trading_gate.trading_gate_service')
     def test_trading_gate_requirements_success(self, mock_service):
         """Test getting trading gate requirements."""
-        from backend.auth0login.services.trading_gate import Requirement
+        from backend.auth0login.services.trading_gate import GateRequirement as Requirement
 
         mock_requirements = [
             Requirement(
@@ -334,7 +334,7 @@ class TestTradingGateAPI(TestCase):
         self.assertEqual(len(data['requirements']), 2)
         self.assertFalse(data['all_requirements_met'])
 
-    @patch('backend.auth0login.api_views.trading_gate_service')
+    @patch('backend.auth0login.services.trading_gate.trading_gate_service')
     def test_trading_gate_requirements_error(self, mock_service):
         """Test requirements error handling."""
         mock_service.get_requirements.side_effect = Exception("Error")
@@ -343,7 +343,7 @@ class TestTradingGateAPI(TestCase):
 
         self.assertEqual(response.status_code, 500)
 
-    @patch('backend.auth0login.api_views.trading_gate_service')
+    @patch('backend.auth0login.services.trading_gate.trading_gate_service')
     def test_trading_gate_start_paper_success(self, mock_service):
         """Test starting paper trading."""
         from backend.auth0login.models import TradingGate
@@ -361,7 +361,7 @@ class TestTradingGateAPI(TestCase):
         self.assertEqual(data['status'], 'success')
         self.assertIn('paper_trading_started_at', data)
 
-    @patch('backend.auth0login.api_views.trading_gate_service')
+    @patch('backend.auth0login.services.trading_gate.trading_gate_service')
     def test_trading_gate_start_paper_error(self, mock_service):
         """Test start paper trading error handling."""
         mock_service.start_paper_trading.side_effect = Exception("Error")
@@ -384,7 +384,7 @@ class TestRiskAssessmentAPI(TestCase):
         )
         self.client.login(username='testuser', password='testpass123')
 
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_risk_assessment_questions_success(self, mock_service):
         """Test getting risk assessment questions."""
         mock_questions = [
@@ -410,7 +410,7 @@ class TestRiskAssessmentAPI(TestCase):
         self.assertEqual(len(data['questions']), 2)
         self.assertEqual(data['total_questions'], 2)
 
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_risk_assessment_questions_error(self, mock_service):
         """Test questions error handling."""
         mock_service.get_questions.side_effect = Exception("Error")
@@ -419,7 +419,7 @@ class TestRiskAssessmentAPI(TestCase):
 
         self.assertEqual(response.status_code, 500)
 
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_risk_assessment_submit_success(self, mock_service):
         """Test submitting risk assessment."""
         mock_result = {
@@ -446,7 +446,7 @@ class TestRiskAssessmentAPI(TestCase):
         self.assertEqual(data['status'], 'success')
         self.assertEqual(data['profile'], 'moderate')
 
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_risk_assessment_submit_no_responses(self, mock_service):
         """Test submit without responses."""
         response = self.client.post(
@@ -460,7 +460,7 @@ class TestRiskAssessmentAPI(TestCase):
         self.assertEqual(data['status'], 'error')
         self.assertIn('No responses', data['message'])
 
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_risk_assessment_submit_invalid_json(self, mock_service):
         """Test submit with invalid JSON."""
         response = self.client.post(
@@ -473,7 +473,7 @@ class TestRiskAssessmentAPI(TestCase):
         data = response.json()
         self.assertIn('Invalid JSON', data['message'])
 
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_risk_assessment_submit_error(self, mock_service):
         """Test submit error handling."""
         mock_service.submit_assessment.side_effect = Exception("Error")
@@ -486,7 +486,7 @@ class TestRiskAssessmentAPI(TestCase):
 
         self.assertEqual(response.status_code, 500)
 
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_risk_assessment_result_found(self, mock_service):
         """Test getting existing assessment result."""
         mock_result = {
@@ -505,7 +505,7 @@ class TestRiskAssessmentAPI(TestCase):
         self.assertTrue(data['has_assessment'])
         self.assertEqual(data['assessment']['profile'], 'aggressive')
 
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_risk_assessment_result_not_found(self, mock_service):
         """Test getting result when no assessment exists."""
         mock_service.get_user_assessment.return_value = None
@@ -518,7 +518,7 @@ class TestRiskAssessmentAPI(TestCase):
         self.assertFalse(data['has_assessment'])
         self.assertIsNone(data['assessment'])
 
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_risk_assessment_result_error(self, mock_service):
         """Test result error handling."""
         mock_service.get_user_assessment.side_effect = Exception("Error")
@@ -527,14 +527,18 @@ class TestRiskAssessmentAPI(TestCase):
 
         self.assertEqual(response.status_code, 500)
 
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_risk_assessment_calculate_success(self, mock_service):
         """Test calculating risk profile without saving."""
-        mock_result = {
-            'score': 65,
-            'profile': 'moderate',
-            'profile_range': '50-80',
-        }
+        from backend.auth0login.services.risk_assessment import QuestionnaireResult
+
+        mock_result = QuestionnaireResult(
+            total_score=65,
+            max_possible_score=100,
+            recommended_profile='moderate',
+            profile_explanation='Balanced approach to risk',
+            score_breakdown={'q1': 32, 'q2': 33},
+        )
 
         mock_service.calculate_score.return_value = mock_result
 
@@ -546,9 +550,10 @@ class TestRiskAssessmentAPI(TestCase):
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['score'], 65)
+        self.assertEqual(data['total_score'], 65)
+        self.assertEqual(data['recommended_profile'], 'moderate')
 
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_risk_assessment_calculate_no_responses(self, mock_service):
         """Test calculate without responses."""
         response = self.client.post(
@@ -559,7 +564,7 @@ class TestRiskAssessmentAPI(TestCase):
 
         self.assertEqual(response.status_code, 400)
 
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_risk_assessment_calculate_error(self, mock_service):
         """Test calculate error handling."""
         mock_service.calculate_score.side_effect = Exception("Error")
@@ -586,8 +591,8 @@ class TestStrategyRecommendationsAPI(TestCase):
         )
         self.client.login(username='testuser', password='testpass123')
 
-    @patch('backend.auth0login.api_views.strategy_recommender_service')
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.strategy_recommender.strategy_recommender_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_strategy_recommendations_with_profile(self, mock_risk_service, mock_strategy_service):
         """Test getting recommendations with explicit profile."""
         mock_result = {
@@ -601,7 +606,7 @@ class TestStrategyRecommendationsAPI(TestCase):
         mock_strategy_service.get_recommendations.return_value = mock_result
 
         response = self.client.get(
-            '/api/strategies/recommendations',
+            '/api/strategy-recommendations',
             {'risk_profile': 'moderate', 'capital_amount': 50000}
         )
 
@@ -609,8 +614,8 @@ class TestStrategyRecommendationsAPI(TestCase):
         data = response.json()
         self.assertEqual(data['status'], 'success')
 
-    @patch('backend.auth0login.api_views.strategy_recommender_service')
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.strategy_recommender.strategy_recommender_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_strategy_recommendations_from_assessment(self, mock_risk_service, mock_strategy_service):
         """Test getting recommendations from user's assessment."""
         mock_risk_service.get_user_assessment.return_value = {
@@ -623,12 +628,12 @@ class TestStrategyRecommendationsAPI(TestCase):
         }
         mock_strategy_service.get_recommendations.return_value = mock_result
 
-        response = self.client.get('/api/strategies/recommendations')
+        response = self.client.get('/api/strategy-recommendations')
 
         self.assertEqual(response.status_code, 200)
 
-    @patch('backend.auth0login.api_views.strategy_recommender_service')
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.strategy_recommender.strategy_recommender_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_strategy_recommendations_default_profile(self, mock_risk_service, mock_strategy_service):
         """Test recommendations with default profile when no assessment."""
         mock_risk_service.get_user_assessment.return_value = None
@@ -636,18 +641,18 @@ class TestStrategyRecommendationsAPI(TestCase):
         mock_result = {'status': 'success', 'recommendations': []}
         mock_strategy_service.get_recommendations.return_value = mock_result
 
-        response = self.client.get('/api/strategies/recommendations')
+        response = self.client.get('/api/strategy-recommendations')
 
         self.assertEqual(response.status_code, 200)
 
-    @patch('backend.auth0login.api_views.strategy_recommender_service')
+    @patch('backend.auth0login.services.strategy_recommender.strategy_recommender_service')
     def test_strategy_recommendations_post_json(self, mock_strategy_service):
         """Test POST with JSON data."""
         mock_result = {'status': 'success', 'recommendations': []}
         mock_strategy_service.get_recommendations.return_value = mock_result
 
         response = self.client.post(
-            '/api/strategies/recommendations',
+            '/api/strategy-recommendations',
             data=json.dumps({
                 'risk_profile': 'conservative',
                 'capital_amount': 25000,
@@ -658,39 +663,39 @@ class TestStrategyRecommendationsAPI(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-    @patch('backend.auth0login.api_views.strategy_recommender_service')
+    @patch('backend.auth0login.services.strategy_recommender.strategy_recommender_service')
     def test_strategy_recommendations_invalid_json(self, mock_strategy_service):
         """Test with invalid JSON."""
         response = self.client.post(
-            '/api/strategies/recommendations',
+            '/api/strategy-recommendations',
             data='invalid{json',
             content_type='application/json',
         )
 
         self.assertEqual(response.status_code, 400)
 
-    @patch('backend.auth0login.api_views.strategy_recommender_service')
+    @patch('backend.auth0login.services.strategy_recommender.strategy_recommender_service')
     def test_strategy_recommendations_value_error(self, mock_strategy_service):
         """Test with invalid parameter values."""
         response = self.client.get(
-            '/api/strategies/recommendations',
+            '/api/strategy-recommendations',
             {'capital_amount': 'not-a-number'}
         )
 
         self.assertEqual(response.status_code, 400)
 
-    @patch('backend.auth0login.api_views.strategy_recommender_service')
-    @patch('backend.auth0login.api_views.risk_assessment_service')
+    @patch('backend.auth0login.services.strategy_recommender.strategy_recommender_service')
+    @patch('backend.auth0login.services.risk_assessment.risk_assessment_service')
     def test_strategy_recommendations_error(self, mock_risk_service, mock_strategy_service):
         """Test error handling."""
         mock_risk_service.get_user_assessment.return_value = None
         mock_strategy_service.get_recommendations.side_effect = Exception("Error")
 
-        response = self.client.get('/api/strategies/recommendations')
+        response = self.client.get('/api/strategy-recommendations')
 
         self.assertEqual(response.status_code, 500)
 
-    @patch('backend.auth0login.api_views.strategy_recommender_service')
+    @patch('backend.auth0login.services.strategy_recommender.strategy_recommender_service')
     def test_strategy_details_found(self, mock_service):
         """Test getting strategy details."""
         mock_details = {
@@ -702,30 +707,30 @@ class TestStrategyRecommendationsAPI(TestCase):
 
         mock_service.get_strategy_details.return_value = mock_details
 
-        response = self.client.get('/api/strategies/details/wsb-dip-bot')
+        response = self.client.get('/api/strategy/wsb-dip-bot')
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data['status'], 'success')
         self.assertEqual(data['strategy']['name'], 'WSB Dip Bot')
 
-    @patch('backend.auth0login.api_views.strategy_recommender_service')
+    @patch('backend.auth0login.services.strategy_recommender.strategy_recommender_service')
     def test_strategy_details_not_found(self, mock_service):
         """Test strategy details when not found."""
         mock_service.get_strategy_details.return_value = None
 
-        response = self.client.get('/api/strategies/details/nonexistent')
+        response = self.client.get('/api/strategy/nonexistent')
 
         self.assertEqual(response.status_code, 404)
         data = response.json()
         self.assertEqual(data['status'], 'error')
 
-    @patch('backend.auth0login.api_views.strategy_recommender_service')
+    @patch('backend.auth0login.services.strategy_recommender.strategy_recommender_service')
     def test_strategy_details_error(self, mock_service):
         """Test strategy details error handling."""
         mock_service.get_strategy_details.side_effect = Exception("Error")
 
-        response = self.client.get('/api/strategies/details/test')
+        response = self.client.get('/api/strategy/test')
 
         self.assertEqual(response.status_code, 500)
 
@@ -743,7 +748,7 @@ class TestAllocationManagementAPI(TestCase):
         )
         self.client.login(username='testuser', password='testpass123')
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_list_success(self, mock_manager):
         """Test getting allocation list."""
         mock_allocations = [
@@ -761,53 +766,60 @@ class TestAllocationManagementAPI(TestCase):
             },
         ]
 
-        mock_manager.get_allocations.return_value = mock_allocations
+        mock_manager.return_value.get_allocation_summary.return_value = mock_allocations
 
-        response = self.client.get('/api/allocation/list')
+        response = self.client.get('/api/allocations/')
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data['status'], 'success')
         self.assertEqual(len(data['allocations']), 2)
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_list_error(self, mock_manager):
         """Test allocation list error handling."""
-        mock_manager.get_allocations.side_effect = Exception("Error")
+        mock_manager.return_value.get_allocation_summary.side_effect = Exception("Error")
 
-        response = self.client.get('/api/allocation/list')
+        response = self.client.get('/api/allocations/')
 
         self.assertEqual(response.status_code, 500)
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_detail_success(self, mock_manager):
         """Test getting allocation detail."""
-        mock_detail = {
-            'strategy_name': 'Strategy1',
-            'target_pct': 30,
-            'current_pct': 28,
-            'positions': [],
-        }
+        from unittest.mock import MagicMock
 
-        mock_manager.get_allocation_detail.return_value = mock_detail
+        mock_allocation = MagicMock()
+        mock_allocation.strategy_name = 'Strategy1'
+        mock_allocation.allocated_pct = 30.0
+        mock_allocation.allocated_amount = 30000.0
+        mock_allocation.current_exposure = 28000.0
+        mock_allocation.reserved_amount = 0.0
+        mock_allocation.available_capital = 2000.0
+        mock_allocation.utilization_pct = 93.3
+        mock_allocation.utilization_level = 'high'
+        mock_allocation.is_maxed_out = False
+        mock_allocation.is_enabled = True
 
-        response = self.client.get('/api/allocation/detail/Strategy1')
+        mock_manager.return_value.get_strategy_allocation.return_value = mock_allocation
+
+        response = self.client.get('/api/allocations/Strategy1/')
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data['status'], 'success')
         self.assertEqual(data['allocation']['strategy_name'], 'Strategy1')
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_detail_error(self, mock_manager):
         """Test allocation detail error handling."""
-        mock_manager.get_allocation_detail.side_effect = Exception("Error")
+        mock_manager.return_value.get_strategy_allocation.side_effect = Exception("Error")
 
-        response = self.client.get('/api/allocation/detail/Strategy1')
+        response = self.client.get('/api/allocations/Strategy1/')
 
         self.assertEqual(response.status_code, 500)
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_update_success(self, mock_manager):
         """Test updating allocation."""
         mock_result = {
@@ -816,10 +828,10 @@ class TestAllocationManagementAPI(TestCase):
             'new_target_pct': 40,
         }
 
-        mock_manager.update_allocation.return_value = mock_result
+        mock_manager.return_value.update_allocation.return_value = mock_result
 
-        response = self.client.post(
-            '/api/allocation/update/Strategy1',
+        response = self.client.put(
+            '/api/allocations/Strategy1/update',
             data=json.dumps({'target_pct': 40}),
             content_type='application/json',
         )
@@ -828,79 +840,90 @@ class TestAllocationManagementAPI(TestCase):
         data = response.json()
         self.assertEqual(data['status'], 'success')
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_update_error(self, mock_manager):
         """Test allocation update error handling."""
-        mock_manager.update_allocation.side_effect = Exception("Error")
+        mock_manager.return_value.update_allocation.side_effect = Exception("Error")
 
-        response = self.client.post(
-            '/api/allocation/update/Strategy1',
+        response = self.client.put(
+            '/api/allocations/Strategy1/update',
             data=json.dumps({'target_pct': 40}),
             content_type='application/json',
         )
 
         self.assertEqual(response.status_code, 500)
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_initialize_success(self, mock_manager):
         """Test initializing allocations."""
-        mock_result = {
-            'status': 'success',
-            'allocations_created': 3,
+        # Mock initialize_allocations to do nothing (returns None)
+        mock_manager.return_value.initialize_allocations.return_value = None
+        # Mock get_allocation_summary to return the allocations
+        mock_manager.return_value.get_allocation_summary.return_value = {
+            'total_allocated': 100000,
+            'allocations': [
+                {'strategy_name': 'S1', 'allocated_pct': 30},
+                {'strategy_name': 'S2', 'allocated_pct': 70},
+            ]
         }
 
-        mock_manager.initialize_allocations.return_value = mock_result
-
         response = self.client.post(
-            '/api/allocation/initialize',
+            '/api/allocations/initialize',
             data=json.dumps({
-                'strategies': [
-                    {'name': 'S1', 'target_pct': 30},
-                    {'name': 'S2', 'target_pct': 70},
-                ]
+                'profile': 'moderate',
+                'portfolio_value': 100000,
             }),
             content_type='application/json',
         )
 
         self.assertEqual(response.status_code, 200)
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_initialize_error(self, mock_manager):
         """Test allocation initialize error handling."""
-        mock_manager.initialize_allocations.side_effect = Exception("Error")
+        mock_manager.return_value.initialize_allocations.side_effect = Exception("Error")
 
         response = self.client.post(
-            '/api/allocation/initialize',
-            data=json.dumps({'strategies': []}),
+            '/api/allocations/initialize',
+            data=json.dumps({'profile': 'moderate'}),
             content_type='application/json',
         )
 
         self.assertEqual(response.status_code, 500)
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_rebalance_success(self, mock_manager):
         """Test rebalancing allocations."""
-        mock_result = {
-            'status': 'success',
-            'trades_executed': 5,
-        }
+        from unittest.mock import MagicMock
 
-        mock_manager.rebalance.return_value = mock_result
+        # Create mock recommendation objects
+        mock_rec = MagicMock()
+        mock_rec.strategy_name = 'Strategy1'
+        mock_rec.current_allocation = 30.0
+        mock_rec.target_allocation = 35.0
+        mock_rec.current_amount = 30000.0
+        mock_rec.target_amount = 35000.0
+        mock_rec.action = 'increase'
+        mock_rec.adjustment_amount = 5000.0
+        mock_rec.priority = 1
+        mock_rec.reason = 'Underallocated'
 
-        response = self.client.post('/api/allocation/rebalance')
+        mock_manager.return_value.get_rebalance_recommendations.return_value = [mock_rec]
+
+        response = self.client.post('/api/allocations/rebalance')
 
         self.assertEqual(response.status_code, 200)
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_rebalance_error(self, mock_manager):
         """Test allocation rebalance error handling."""
-        mock_manager.rebalance.side_effect = Exception("Error")
+        mock_manager.return_value.get_rebalance_recommendations.side_effect = Exception("Error")
 
-        response = self.client.post('/api/allocation/rebalance')
+        response = self.client.post('/api/allocations/rebalance')
 
         self.assertEqual(response.status_code, 500)
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_reconcile_success(self, mock_manager):
         """Test reconciling allocations."""
         mock_result = {
@@ -908,41 +931,49 @@ class TestAllocationManagementAPI(TestCase):
             'discrepancies': [],
         }
 
-        mock_manager.reconcile.return_value = mock_result
+        mock_manager.return_value.reconcile_allocations.return_value = mock_result
 
-        response = self.client.post('/api/allocation/reconcile')
+        response = self.client.post('/api/allocations/reconcile')
 
         self.assertEqual(response.status_code, 200)
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_reconcile_error(self, mock_manager):
         """Test allocation reconcile error handling."""
-        mock_manager.reconcile.side_effect = Exception("Error")
+        mock_manager.return_value.reconcile_allocations.side_effect = Exception("Error")
 
-        response = self.client.post('/api/allocation/reconcile')
+        response = self.client.post('/api/allocations/reconcile')
 
         self.assertEqual(response.status_code, 500)
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_recalculate_success(self, mock_manager):
         """Test recalculating allocations."""
-        mock_result = {
-            'status': 'success',
+        # Mock the methods called by the API
+        mock_manager.return_value.recalculate_all_allocations.return_value = None
+        mock_manager.return_value.get_allocation_summary.return_value = {
             'allocations': [],
+            'total_allocated': 100000,
         }
 
-        mock_manager.recalculate.return_value = mock_result
-
-        response = self.client.post('/api/allocation/recalculate')
+        response = self.client.post(
+            '/api/allocations/recalculate',
+            data=json.dumps({'portfolio_value': 100000}),
+            content_type='application/json',
+        )
 
         self.assertEqual(response.status_code, 200)
 
-    @patch('backend.auth0login.api_views.allocation_manager')
+    @patch('backend.auth0login.services.allocation_manager.get_allocation_manager')
     def test_allocation_recalculate_error(self, mock_manager):
         """Test allocation recalculate error handling."""
-        mock_manager.recalculate.side_effect = Exception("Error")
+        mock_manager.return_value.recalculate_all_allocations.side_effect = Exception("Error")
 
-        response = self.client.post('/api/allocation/recalculate')
+        response = self.client.post(
+            '/api/allocations/recalculate',
+            data=json.dumps({'portfolio_value': 100000}),
+            content_type='application/json',
+        )
 
         self.assertEqual(response.status_code, 500)
 
@@ -960,7 +991,7 @@ class TestVIXMonitoringAPI(TestCase):
         )
         self.client.login(username='testuser', password='testpass123')
 
-    @patch('backend.auth0login.api_views.market_monitor')
+    @patch('backend.auth0login.services.market_monitor.get_market_monitor')
     def test_vix_status_success(self, mock_monitor):
         """Test getting VIX status."""
         mock_status = {
@@ -970,7 +1001,7 @@ class TestVIXMonitoringAPI(TestCase):
             'last_updated': '2024-01-01T12:00:00Z',
         }
 
-        mock_monitor.get_vix_status.return_value = mock_status
+        mock_monitor.return_value.get_status.return_value = mock_status
 
         response = self.client.get('/api/vix/status')
 
@@ -979,27 +1010,22 @@ class TestVIXMonitoringAPI(TestCase):
         self.assertEqual(data['status'], 'success')
         self.assertEqual(data['vix']['current_vix'], 18.5)
 
-    @patch('backend.auth0login.api_views.market_monitor')
+    @patch('backend.auth0login.services.market_monitor.get_market_monitor')
     def test_vix_status_error(self, mock_monitor):
         """Test VIX status error handling."""
-        mock_monitor.get_vix_status.side_effect = Exception("Error")
+        mock_monitor.return_value.get_status.side_effect = Exception("Error")
 
         response = self.client.get('/api/vix/status')
 
         self.assertEqual(response.status_code, 500)
 
-    @patch('backend.auth0login.api_views.market_monitor')
+    @patch('backend.auth0login.services.market_monitor.get_market_monitor')
     def test_vix_history_success(self, mock_monitor):
         """Test getting VIX history."""
-        mock_history = {
-            'data': [
-                {'date': '2024-01-01', 'vix': 18.5},
-                {'date': '2024-01-02', 'vix': 19.0},
-            ],
-            'period': '30d',
-        }
+        # Mock history as a list (API uses list indexing)
+        mock_history = [18.5, 19.0, 17.5, 20.0, 18.0]
 
-        mock_monitor.get_vix_history.return_value = mock_history
+        mock_monitor.return_value.get_vix_history.return_value = mock_history
 
         response = self.client.get('/api/vix/history', {'days': 30})
 
@@ -1007,10 +1033,10 @@ class TestVIXMonitoringAPI(TestCase):
         data = response.json()
         self.assertEqual(data['status'], 'success')
 
-    @patch('backend.auth0login.api_views.market_monitor')
+    @patch('backend.auth0login.services.market_monitor.get_market_monitor')
     def test_vix_history_error(self, mock_monitor):
         """Test VIX history error handling."""
-        mock_monitor.get_vix_history.side_effect = Exception("Error")
+        mock_monitor.return_value.get_vix_history.side_effect = Exception("Error")
 
         response = self.client.get('/api/vix/history')
 
@@ -2378,7 +2404,7 @@ class TestGetLocateQuoteAPI(TestCase):
     def test_get_locate_quote_success(self, mock_alpaca):
         """Test getting locate quote."""
         mock_manager = MagicMock()
-        mock_manager.get_locate_quote.return_value = {
+        mock_manager.return_value.get_locate_quote.return_value = {
             'symbol': 'GME',
             'rate': 0.05,
             'availability': 'available',
@@ -2638,7 +2664,7 @@ class TestAvailableStrategiesAPI(TestCase):
         )
         self.client.login(username='testuser', password='testpass123')
 
-    @patch('backend.auth0login.api_views.strategy_recommender_service')
+    @patch('backend.auth0login.services.strategy_recommender.strategy_recommender_service')
     def test_available_strategies_success(self, mock_service):
         """Test getting available strategies."""
         mock_strategies = [

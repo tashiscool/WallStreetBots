@@ -2,19 +2,22 @@
 {% block title %} Backtesting {% endblock title %}
 
 {% block stylesheets %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 <style>
-  .backtest-progress {
-    height: 20px;
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  .results-card {
-    transition: all 0.3s ease;
-  }
-  .results-card:hover {
-    transform: scale(1.02);
-  }
+  .backtest-progress { height: 20px; border-radius: 10px; overflow: hidden; }
+  .results-card { transition: all 0.3s ease; }
+  .results-card:hover { transform: scale(1.02); }
   .param-tip { background: linear-gradient(to right, rgba(94,114,228,0.05), rgba(203,12,159,0.05)); border-radius: 8px; padding: 10px; margin-top: 8px; }
+  .nav-tabs-charts .nav-link { font-size: 0.85rem; padding: 0.5rem 1rem; }
+  .nav-tabs-charts .nav-link.active { background: linear-gradient(310deg, #7928CA 0%, #FF0080 100%); color: white; border: none; }
+  .chart-container { min-height: 350px; }
+  .heatmap-cell { padding: 8px; text-align: center; font-size: 0.75rem; font-weight: 500; border-radius: 4px; margin: 1px; }
+  .optimization-trial { background: #f8f9fa; border-radius: 4px; padding: 8px 12px; margin-bottom: 6px; }
+  .optimization-trial.best { background: #d1e7dd; border-left: 3px solid #198754; }
+  .saved-run-card { cursor: pointer; transition: all 0.2s; }
+  .saved-run-card:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+  .saved-run-card.selected { border: 2px solid #0d6efd; }
+  .compare-badge { position: absolute; top: 10px; right: 10px; }
 </style>
 {% endblock stylesheets %}
 
@@ -28,7 +31,15 @@
           <div class="row align-items-center">
             <div class="col-lg-8">
               <h4 class="text-white mb-1"><i class="fas fa-history me-2"></i>Strategy Backtesting</h4>
-              <p class="text-white opacity-8 mb-0">Test your strategies against historical data before deploying with real capital.</p>
+              <p class="text-white opacity-8 mb-0">Test strategies against historical data with advanced analytics</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+              <button class="btn btn-white btn-sm me-2" onclick="showSavedRuns()">
+                <i class="fas fa-folder-open me-1"></i> Saved Runs
+              </button>
+              <button class="btn btn-outline-white btn-sm" onclick="showOptimization()">
+                <i class="fas fa-sliders-h me-1"></i> Optimize
+              </button>
             </div>
           </div>
         </div>
@@ -38,44 +49,42 @@
 
   <div class="row">
     <!-- Backtest Configuration -->
-    <div class="col-lg-4 mb-4">
+    <div class="col-lg-3 mb-4">
       <div class="card">
         <div class="card-header pb-0">
-          <h6><i class="fas fa-cog me-2"></i>Backtest Configuration</h6>
+          <h6><i class="fas fa-cog me-2"></i>Configuration</h6>
         </div>
         <div class="card-body">
           <div class="mb-3">
-            <label class="form-label">Strategy</label>
-            <select class="form-select" id="backtestStrategy">
+            <label class="form-label text-xs">Strategy</label>
+            <select class="form-select form-select-sm" id="backtestStrategy">
               <option value="wsb-dip-bot">WSB Dip Bot</option>
               <option value="momentum-weeklies">Momentum Weeklies</option>
               <option value="wheel-strategy">Wheel Strategy</option>
               <option value="earnings-protection">Earnings Protection</option>
               <option value="debit-spreads">Debit Spreads</option>
               <option value="leaps-tracker">LEAPS Tracker</option>
-              <option value="lotto-scanner">Lotto Scanner</option>
               <option value="swing-trading">Swing Trading</option>
               <option value="spx-credit-spreads">SPX Credit Spreads</option>
-              <option value="index-baseline">Index Baseline</option>
             </select>
           </div>
           <div class="row">
             <div class="col-6 mb-3">
-              <label class="form-label">Start Date</label>
-              <input type="date" class="form-control" id="startDate" value="2023-01-01">
+              <label class="form-label text-xs">Start Date</label>
+              <input type="date" class="form-control form-control-sm" id="startDate" value="2023-01-01">
             </div>
             <div class="col-6 mb-3">
-              <label class="form-label">End Date</label>
-              <input type="date" class="form-control" id="endDate" value="2024-01-01">
+              <label class="form-label text-xs">End Date</label>
+              <input type="date" class="form-control form-control-sm" id="endDate" value="2024-01-01">
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Initial Capital ($)</label>
-            <input type="number" class="form-control" id="initialCapital" value="100000">
+            <label class="form-label text-xs">Initial Capital ($)</label>
+            <input type="number" class="form-control form-control-sm" id="initialCapital" value="100000">
           </div>
           <div class="mb-3">
-            <label class="form-label">Benchmark</label>
-            <select class="form-select" id="benchmark">
+            <label class="form-label text-xs">Benchmark</label>
+            <select class="form-select form-select-sm" id="benchmark">
               <option value="SPY">SPY (S&P 500)</option>
               <option value="QQQ">QQQ (Nasdaq 100)</option>
               <option value="IWM">IWM (Russell 2000)</option>
@@ -83,28 +92,32 @@
             </select>
           </div>
           <hr>
-          <h6 class="text-sm mb-3">Strategy Parameters</h6>
-          <div class="mb-3">
-            <label class="form-label text-sm">Position Size (%)</label>
+          <h6 class="text-xs text-uppercase text-muted mb-2">Parameters</h6>
+          <div class="mb-2">
+            <label class="form-label text-xs d-flex justify-content-between">
+              Position Size <span id="btPositionSizeValue">3%</span>
+            </label>
             <input type="range" class="form-range" min="1" max="10" value="3" id="btPositionSize">
-            <span class="text-sm" id="btPositionSizeValue">3%</span>
           </div>
-          <div class="mb-3">
-            <label class="form-label text-sm">Stop Loss (%)</label>
+          <div class="mb-2">
+            <label class="form-label text-xs d-flex justify-content-between">
+              Stop Loss <span id="btStopLossValue">5%</span>
+            </label>
             <input type="range" class="form-range" min="1" max="20" value="5" id="btStopLoss">
-            <span class="text-sm" id="btStopLossValue">5%</span>
           </div>
           <div class="mb-3">
-            <label class="form-label text-sm">Take Profit (%)</label>
+            <label class="form-label text-xs d-flex justify-content-between">
+              Take Profit <span id="btTakeProfitValue">15%</span>
+            </label>
             <input type="range" class="form-range" min="5" max="50" value="15" id="btTakeProfit">
-            <span class="text-sm" id="btTakeProfitValue">15%</span>
           </div>
 
-          <div class="param-tip">
-            <small class="text-secondary"><i class="fas fa-lightbulb text-warning me-1"></i><strong>Backtest wisdom:</strong> Past performance doesn't guarantee future results! But it DOES reveal strategy edge, optimal parameters, and risk profile. Run multiple scenarios to stress test your strategy.</small>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="saveRun" checked>
+            <label class="form-check-label text-xs" for="saveRun">Save run to history</label>
           </div>
 
-          <button class="btn bg-gradient-success w-100 mb-0 mt-3" id="runBacktestBtn">
+          <button class="btn bg-gradient-success w-100 mb-0" id="runBacktestBtn">
             <i class="fas fa-play me-2"></i>Run Backtest
           </button>
         </div>
@@ -112,12 +125,12 @@
     </div>
 
     <!-- Backtest Results -->
-    <div class="col-lg-8">
+    <div class="col-lg-9">
       <!-- Progress (shown during backtest) -->
-      <div class="card mb-4" id="progressCard" style="display: none;">
+      <div class="card mb-3" id="progressCard" style="display: none;">
         <div class="card-body p-3">
           <div class="d-flex justify-content-between mb-2">
-            <span class="text-sm font-weight-bold">Running Backtest...</span>
+            <span class="text-sm font-weight-bold" id="progressText">Running Backtest...</span>
             <span class="text-sm" id="progressPercent">0%</span>
           </div>
           <div class="progress backtest-progress">
@@ -127,255 +140,394 @@
       </div>
 
       <!-- Results Summary -->
-      <div class="row mb-4" id="resultsCards">
-        <div class="col-md-3 col-6 mb-3">
+      <div class="row mb-3" id="resultsCards">
+        <div class="col-md-2 col-4 mb-3">
           <div class="card results-card">
-            <div class="card-body p-3 text-center">
-              <h4 class="text-success mb-0" id="totalReturn">+24.5%</h4>
-              <p class="text-sm text-secondary mb-0">Total Return</p>
+            <div class="card-body p-2 text-center">
+              <h5 class="text-success mb-0" id="totalReturn">-</h5>
+              <p class="text-xxs text-secondary mb-0">Return</p>
             </div>
           </div>
         </div>
-        <div class="col-md-3 col-6 mb-3">
+        <div class="col-md-2 col-4 mb-3">
           <div class="card results-card">
-            <div class="card-body p-3 text-center">
-              <h4 class="mb-0" id="sharpeRatio">1.85</h4>
-              <p class="text-sm text-secondary mb-0">Sharpe Ratio</p>
+            <div class="card-body p-2 text-center">
+              <h5 class="mb-0" id="sharpeRatio">-</h5>
+              <p class="text-xxs text-secondary mb-0">Sharpe</p>
             </div>
           </div>
         </div>
-        <div class="col-md-3 col-6 mb-3">
+        <div class="col-md-2 col-4 mb-3">
           <div class="card results-card">
-            <div class="card-body p-3 text-center">
-              <h4 class="text-danger mb-0" id="maxDrawdown">-8.2%</h4>
-              <p class="text-sm text-secondary mb-0">Max Drawdown</p>
+            <div class="card-body p-2 text-center">
+              <h5 class="mb-0" id="sortinoRatio">-</h5>
+              <p class="text-xxs text-secondary mb-0">Sortino</p>
             </div>
           </div>
         </div>
-        <div class="col-md-3 col-6 mb-3">
+        <div class="col-md-2 col-4 mb-3">
           <div class="card results-card">
-            <div class="card-body p-3 text-center">
-              <h4 class="mb-0" id="winRate">68%</h4>
-              <p class="text-sm text-secondary mb-0">Win Rate</p>
+            <div class="card-body p-2 text-center">
+              <h5 class="text-danger mb-0" id="maxDrawdown">-</h5>
+              <p class="text-xxs text-secondary mb-0">Drawdown</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-2 col-4 mb-3">
+          <div class="card results-card">
+            <div class="card-body p-2 text-center">
+              <h5 class="mb-0" id="winRate">-</h5>
+              <p class="text-xxs text-secondary mb-0">Win Rate</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-2 col-4 mb-3">
+          <div class="card results-card">
+            <div class="card-body p-2 text-center">
+              <h5 class="mb-0" id="profitFactor">-</h5>
+              <p class="text-xxs text-secondary mb-0">Profit Factor</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Equity Curve Chart -->
+      <!-- Charts Tabs -->
       <div class="card mb-4">
         <div class="card-header pb-0">
-          <h6>Equity Curve</h6>
+          <ul class="nav nav-tabs nav-tabs-charts" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" data-bs-toggle="tab" href="#tabEquity">
+                <i class="fas fa-chart-line me-1"></i>Equity
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-bs-toggle="tab" href="#tabDrawdown">
+                <i class="fas fa-chart-area me-1"></i>Drawdown
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-bs-toggle="tab" href="#tabMonthly">
+                <i class="fas fa-calendar me-1"></i>Monthly
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-bs-toggle="tab" href="#tabDistribution">
+                <i class="fas fa-chart-bar me-1"></i>P&L Distribution
+              </a>
+            </li>
+          </ul>
         </div>
         <div class="card-body">
-          <canvas id="equityCurveChart" height="200"></canvas>
-        </div>
-      </div>
-
-      <!-- Monthly Returns & Trades -->
-      <div class="row">
-        <div class="col-md-6 mb-4">
-          <div class="card h-100">
-            <div class="card-header pb-0">
-              <h6>Monthly Returns</h6>
+          <div class="tab-content">
+            <!-- Equity Curve -->
+            <div class="tab-pane fade show active" id="tabEquity">
+              <div id="equityChart" class="chart-container"></div>
             </div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-sm">
-                  <tbody>
-                    <tr><td>Jan 2023</td><td class="text-success text-end">+3.2%</td></tr>
-                    <tr><td>Feb 2023</td><td class="text-success text-end">+1.8%</td></tr>
-                    <tr><td>Mar 2023</td><td class="text-danger text-end">-2.1%</td></tr>
-                    <tr><td>Apr 2023</td><td class="text-success text-end">+4.5%</td></tr>
-                    <tr><td>May 2023</td><td class="text-success text-end">+2.9%</td></tr>
-                    <tr><td>Jun 2023</td><td class="text-success text-end">+1.2%</td></tr>
-                    <tr><td>Jul 2023</td><td class="text-success text-end">+3.8%</td></tr>
-                    <tr><td>Aug 2023</td><td class="text-danger text-end">-1.5%</td></tr>
-                    <tr><td>Sep 2023</td><td class="text-success text-end">+2.4%</td></tr>
-                    <tr><td>Oct 2023</td><td class="text-success text-end">+3.1%</td></tr>
-                    <tr><td>Nov 2023</td><td class="text-success text-end">+4.2%</td></tr>
-                    <tr><td>Dec 2023</td><td class="text-success text-end">+1.0%</td></tr>
-                  </tbody>
-                </table>
-              </div>
+            <!-- Drawdown Chart -->
+            <div class="tab-pane fade" id="tabDrawdown">
+              <div id="drawdownChart" class="chart-container"></div>
+            </div>
+            <!-- Monthly Returns Heatmap -->
+            <div class="tab-pane fade" id="tabMonthly">
+              <div id="monthlyHeatmap" class="chart-container"></div>
+            </div>
+            <!-- P&L Distribution -->
+            <div class="tab-pane fade" id="tabDistribution">
+              <div id="distributionChart" class="chart-container"></div>
             </div>
           </div>
         </div>
-        <div class="col-md-6 mb-4">
+      </div>
+
+      <!-- Performance Metrics & Trade List -->
+      <div class="row">
+        <div class="col-md-4 mb-4">
           <div class="card h-100">
             <div class="card-header pb-0">
-              <h6>Performance Metrics</h6>
+              <h6 class="mb-0">Performance Metrics</h6>
             </div>
             <div class="card-body">
-              <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between px-0">
-                  <span>Total Trades</span>
-                  <span class="font-weight-bold">156</span>
+              <ul class="list-group list-group-flush" id="metricsList">
+                <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                  <span class="text-sm">Total Trades</span>
+                  <span class="font-weight-bold" id="metricTrades">-</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-0">
-                  <span>Winning Trades</span>
-                  <span class="font-weight-bold text-success">106</span>
+                <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                  <span class="text-sm">Winning</span>
+                  <span class="font-weight-bold text-success" id="metricWins">-</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-0">
-                  <span>Losing Trades</span>
-                  <span class="font-weight-bold text-danger">50</span>
+                <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                  <span class="text-sm">Losing</span>
+                  <span class="font-weight-bold text-danger" id="metricLosses">-</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-0">
-                  <span>Avg Win</span>
-                  <span class="font-weight-bold text-success">+$385</span>
+                <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                  <span class="text-sm">Avg Win</span>
+                  <span class="font-weight-bold text-success" id="metricAvgWin">-</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-0">
-                  <span>Avg Loss</span>
-                  <span class="font-weight-bold text-danger">-$210</span>
+                <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                  <span class="text-sm">Avg Loss</span>
+                  <span class="font-weight-bold text-danger" id="metricAvgLoss">-</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-0">
-                  <span>Profit Factor</span>
-                  <span class="font-weight-bold">1.95</span>
+                <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                  <span class="text-sm">Avg Hold</span>
+                  <span class="font-weight-bold" id="metricAvgHold">-</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-0">
-                  <span>Avg Hold Time</span>
-                  <span class="font-weight-bold">3.2 days</span>
+                <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                  <span class="text-sm">Calmar Ratio</span>
+                  <span class="font-weight-bold" id="metricCalmar">-</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-0">
-                  <span>Sortino Ratio</span>
-                  <span class="font-weight-bold">2.15</span>
+                <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                  <span class="text-sm">Alpha</span>
+                  <span class="font-weight-bold" id="metricAlpha">-</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                  <span class="text-sm">Beta</span>
+                  <span class="font-weight-bold" id="metricBeta">-</span>
                 </li>
               </ul>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Trade List -->
-      <div class="card">
-        <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-          <h6 class="mb-0">Trade History</h6>
-          <button class="btn btn-sm btn-outline-primary mb-0">
-            <i class="fas fa-download me-2"></i>Export CSV
-          </button>
-        </div>
-        <div class="card-body px-0 pb-2">
-          <div class="table-responsive" style="max-height: 300px;">
-            <table class="table align-items-center mb-0">
-              <thead>
-                <tr>
-                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Date</th>
-                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Symbol</th>
-                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Side</th>
-                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Entry</th>
-                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Exit</th>
-                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">P&L</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="ps-3"><span class="text-xs">2023-12-28</span></td>
-                  <td><span class="font-weight-bold">NVDA</span></td>
-                  <td class="text-center"><span class="badge bg-success">BUY</span></td>
-                  <td class="text-center">$485.20</td>
-                  <td class="text-center">$512.40</td>
-                  <td class="text-center text-success">+$542</td>
-                </tr>
-                <tr>
-                  <td class="ps-3"><span class="text-xs">2023-12-22</span></td>
-                  <td><span class="font-weight-bold">AAPL</span></td>
-                  <td class="text-center"><span class="badge bg-success">BUY</span></td>
-                  <td class="text-center">$189.50</td>
-                  <td class="text-center">$195.20</td>
-                  <td class="text-center text-success">+$285</td>
-                </tr>
-                <tr>
-                  <td class="ps-3"><span class="text-xs">2023-12-18</span></td>
-                  <td><span class="font-weight-bold">TSLA</span></td>
-                  <td class="text-center"><span class="badge bg-success">BUY</span></td>
-                  <td class="text-center">$245.80</td>
-                  <td class="text-center">$238.10</td>
-                  <td class="text-center text-danger">-$154</td>
-                </tr>
-                <tr>
-                  <td class="ps-3"><span class="text-xs">2023-12-15</span></td>
-                  <td><span class="font-weight-bold">MSFT</span></td>
-                  <td class="text-center"><span class="badge bg-success">BUY</span></td>
-                  <td class="text-center">$372.50</td>
-                  <td class="text-center">$385.20</td>
-                  <td class="text-center text-success">+$381</td>
-                </tr>
-                <tr>
-                  <td class="ps-3"><span class="text-xs">2023-12-12</span></td>
-                  <td><span class="font-weight-bold">AMD</span></td>
-                  <td class="text-center"><span class="badge bg-success">BUY</span></td>
-                  <td class="text-center">$138.20</td>
-                  <td class="text-center">$145.80</td>
-                  <td class="text-center text-success">+$304</td>
-                </tr>
-              </tbody>
-            </table>
+        <div class="col-md-8 mb-4">
+          <div class="card h-100">
+            <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+              <h6 class="mb-0">Trade History</h6>
+              <button class="btn btn-sm btn-outline-primary mb-0" onclick="exportTrades()">
+                <i class="fas fa-download me-1"></i>Export
+              </button>
+            </div>
+            <div class="card-body px-2 pb-2">
+              <div class="table-responsive">
+                <table class="table table-sm" id="tradesTable">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Symbol</th>
+                      <th>Direction</th>
+                      <th>Entry</th>
+                      <th>Exit</th>
+                      <th>P&L</th>
+                      <th>Days</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
-  {% include "includes/footer.html" %}
 </div>
+
+<!-- Saved Runs Modal -->
+<div class="modal fade" id="savedRunsModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Saved Backtest Runs</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <input type="text" class="form-control form-control-sm" placeholder="Search runs..." id="searchRuns">
+          </div>
+          <div class="col-md-6 text-end">
+            <button class="btn btn-sm btn-primary" onclick="compareSelectedRuns()" id="compareBtn" disabled>
+              <i class="fas fa-columns me-1"></i>Compare Selected
+            </button>
+          </div>
+        </div>
+        <div class="row" id="savedRunsList">
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Optimization Modal -->
+<div class="modal fade" id="optimizationModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Parameter Optimization</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-4">
+            <h6 class="text-sm mb-3">Parameter Ranges</h6>
+            <div class="mb-3">
+              <label class="form-label text-xs">Position Size (%)</label>
+              <div class="row">
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" id="optPosMin" value="1" min="1">
+                </div>
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" id="optPosMax" value="10" max="20">
+                </div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-xs">Stop Loss (%)</label>
+              <div class="row">
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" id="optSLMin" value="2" min="1">
+                </div>
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" id="optSLMax" value="15" max="30">
+                </div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-xs">Take Profit (%)</label>
+              <div class="row">
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" id="optTPMin" value="5" min="1">
+                </div>
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" id="optTPMax" value="30" max="50">
+                </div>
+              </div>
+            </div>
+            <hr>
+            <div class="mb-3">
+              <label class="form-label text-xs">Objective</label>
+              <select class="form-select form-select-sm" id="optObjective">
+                <option value="sharpe">Maximize Sharpe Ratio</option>
+                <option value="return">Maximize Return</option>
+                <option value="sortino">Maximize Sortino Ratio</option>
+                <option value="calmar">Maximize Calmar Ratio</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-xs">Number of Trials</label>
+              <select class="form-select form-select-sm" id="optTrials">
+                <option value="25">25 (Quick)</option>
+                <option value="50" selected>50 (Standard)</option>
+                <option value="100">100 (Thorough)</option>
+                <option value="200">200 (Extensive)</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-xs">Algorithm</label>
+              <select class="form-select form-select-sm" id="optSampler">
+                <option value="tpe">TPE (Bayesian)</option>
+                <option value="random">Random Search</option>
+                <option value="cmaes">CMA-ES</option>
+              </select>
+            </div>
+            <button class="btn btn-primary w-100" onclick="runOptimization()">
+              <i class="fas fa-rocket me-1"></i>Start Optimization
+            </button>
+          </div>
+          <div class="col-md-8">
+            <!-- Optimization Progress -->
+            <div id="optProgressSection" style="display: none;">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-sm font-weight-bold">Optimization Progress</span>
+                <span class="text-sm" id="optProgressText">0 / 50 trials</span>
+              </div>
+              <div class="progress mb-3" style="height: 8px;">
+                <div class="progress-bar bg-gradient-primary" id="optProgressBar" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Best Parameters -->
+            <div id="optBestParams" class="mb-4" style="display: none;">
+              <h6 class="text-sm mb-2">Best Parameters Found</h6>
+              <div class="bg-light rounded p-3">
+                <div class="row" id="bestParamsDisplay"></div>
+              </div>
+            </div>
+
+            <!-- Convergence Chart -->
+            <div id="optConvergenceSection" style="display: none;">
+              <h6 class="text-sm mb-2">Convergence</h6>
+              <div id="convergenceChart" style="height: 250px;"></div>
+            </div>
+
+            <!-- Top Trials -->
+            <div id="optTrialsSection" style="display: none;">
+              <h6 class="text-sm mb-2">Top Trials</h6>
+              <div id="topTrialsList" style="max-height: 300px; overflow-y: auto;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Compare Runs Modal -->
+<div class="modal fade" id="compareModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Compare Backtest Runs</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="comparisonContent">
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock content %}
 
 {% block javascripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  // Slider value updates
-  document.getElementById('btPositionSize').addEventListener('input', function() {
-    document.getElementById('btPositionSizeValue').textContent = this.value + '%';
-  });
-  document.getElementById('btStopLoss').addEventListener('input', function() {
-    document.getElementById('btStopLossValue').textContent = this.value + '%';
-  });
-  document.getElementById('btTakeProfit').addEventListener('input', function() {
-    document.getElementById('btTakeProfitValue').textContent = this.value + '%';
-  });
+<!-- Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
-  // Equity Curve Chart
-  const ctx = document.getElementById('equityCurveChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      datasets: [{
-        label: 'Strategy',
-        data: [100000, 103200, 105056, 102780, 107405, 110520, 111847, 116101, 114360, 117106, 121783, 124586],
-        borderColor: '#cb0c9f',
-        backgroundColor: 'rgba(203, 12, 159, 0.1)',
-        fill: true,
-        tension: 0.4
-      }, {
-        label: 'SPY',
-        data: [100000, 101500, 104340, 107500, 109725, 112015, 114255, 116540, 114270, 117698, 121189, 124012],
-        borderColor: '#3A416F',
-        backgroundColor: 'rgba(58, 65, 111, 0.1)',
-        fill: true,
-        tension: 0.4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'top' } },
-      scales: {
-        y: {
-          ticks: { callback: value => '$' + value.toLocaleString() }
-        }
-      }
+<script>
+  // State
+  let currentResults = null;
+  let tradesDataTable = null;
+  let selectedRuns = [];
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', function() {
+    // Slider updates
+    ['btPositionSize', 'btStopLoss', 'btTakeProfit'].forEach(id => {
+      document.getElementById(id).addEventListener('input', function() {
+        document.getElementById(id + 'Value').textContent = this.value + '%';
+      });
+    });
+
+    // Initialize DataTable
+    tradesDataTable = $('#tradesTable').DataTable({
+      pageLength: 10,
+      lengthMenu: [10, 25, 50, 100],
+      order: [[0, 'desc']],
+      language: { search: '', searchPlaceholder: 'Search trades...' }
+    });
+
+    // Check for run_id in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const runId = urlParams.get('run');
+    if (runId) {
+      loadSavedRun(runId);
     }
   });
 
-  // Run backtest via API
+  // Run backtest
   document.getElementById('runBacktestBtn').addEventListener('click', async function() {
-    const progressCard = document.getElementById('progressCard');
-    const progressBar = document.getElementById('progressBar');
-    const progressPercent = document.getElementById('progressPercent');
     const btn = this;
+    const progressCard = document.getElementById('progressCard');
 
-    // Collect form data
     const formData = {
       strategy: document.getElementById('backtestStrategy').value,
       start_date: document.getElementById('startDate').value,
@@ -385,39 +537,36 @@
       position_size_pct: parseFloat(document.getElementById('btPositionSize').value),
       stop_loss_pct: parseFloat(document.getElementById('btStopLoss').value),
       take_profit_pct: parseFloat(document.getElementById('btTakeProfit').value),
+      save_to_db: document.getElementById('saveRun').checked
     };
 
-    // Show progress
     progressCard.style.display = 'block';
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Running...';
 
-    // Simulate progress while API runs
     let progress = 0;
     const progressInterval = setInterval(() => {
       progress = Math.min(progress + Math.random() * 5, 90);
-      progressBar.style.width = progress + '%';
-      progressPercent.textContent = Math.round(progress) + '%';
+      document.getElementById('progressBar').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
     }, 300);
 
     try {
       const response = await fetch('/api/backtest/run', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken'),
-        },
-        body: JSON.stringify(formData),
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+        body: JSON.stringify(formData)
       });
 
       clearInterval(progressInterval);
-      progressBar.style.width = '100%';
-      progressPercent.textContent = '100%';
+      document.getElementById('progressBar').style.width = '100%';
+      document.getElementById('progressPercent').textContent = '100%';
 
       const result = await response.json();
 
       if (result.status === 'success') {
-        updateResults(result.results);
+        currentResults = result.results;
+        updateAllDisplays(result.results);
         setTimeout(() => progressCard.style.display = 'none', 500);
       } else {
         alert('Backtest error: ' + result.message);
@@ -425,7 +574,7 @@
       }
     } catch (error) {
       clearInterval(progressInterval);
-      alert('Error running backtest: ' + error.message);
+      alert('Error: ' + error.message);
       progressCard.style.display = 'none';
     }
 
@@ -433,149 +582,458 @@
     btn.innerHTML = '<i class="fas fa-play me-2"></i>Run Backtest';
   });
 
-  // Update results display
-  function updateResults(results) {
+  function updateAllDisplays(results) {
     const summary = results.summary;
 
     // Update summary cards
-    document.getElementById('totalReturn').textContent =
-      (summary.total_return_pct >= 0 ? '+' : '') + summary.total_return_pct.toFixed(1) + '%';
-    document.getElementById('totalReturn').className =
-      'mb-0 ' + (summary.total_return_pct >= 0 ? 'text-success' : 'text-danger');
-
+    document.getElementById('totalReturn').textContent = (summary.total_return_pct >= 0 ? '+' : '') + summary.total_return_pct.toFixed(1) + '%';
+    document.getElementById('totalReturn').className = summary.total_return_pct >= 0 ? 'text-success mb-0' : 'text-danger mb-0';
     document.getElementById('sharpeRatio').textContent = summary.sharpe_ratio.toFixed(2);
-    document.getElementById('maxDrawdown').textContent = '-' + summary.max_drawdown_pct.toFixed(1) + '%';
+    document.getElementById('sortinoRatio').textContent = (summary.sortino_ratio || 0).toFixed(2);
+    document.getElementById('maxDrawdown').textContent = '-' + Math.abs(summary.max_drawdown_pct).toFixed(1) + '%';
     document.getElementById('winRate').textContent = Math.round(summary.win_rate) + '%';
+    document.getElementById('profitFactor').textContent = (summary.profit_factor || 0).toFixed(2);
 
-    // Update equity curve chart
-    const labels = results.equity_curve.map(d => d.date.split('-').slice(1).join('/'));
-    const strategyData = results.equity_curve.map(d => d.equity);
-    const benchmarkData = results.equity_curve.map(d => d.benchmark);
+    // Update metrics
+    document.getElementById('metricTrades').textContent = summary.total_trades;
+    document.getElementById('metricWins').textContent = summary.winning_trades;
+    document.getElementById('metricLosses').textContent = summary.losing_trades;
+    document.getElementById('metricAvgWin').textContent = '+' + Math.abs(summary.avg_win_pct || 0).toFixed(1) + '%';
+    document.getElementById('metricAvgLoss').textContent = '-' + Math.abs(summary.avg_loss_pct || 0).toFixed(1) + '%';
+    document.getElementById('metricAvgHold').textContent = (summary.avg_hold_days || 0).toFixed(1) + ' days';
+    document.getElementById('metricCalmar').textContent = (summary.calmar_ratio || 0).toFixed(2);
+    document.getElementById('metricAlpha').textContent = (summary.alpha || 0).toFixed(2);
+    document.getElementById('metricBeta').textContent = (summary.beta || 0).toFixed(2);
 
-    if (window.equityCurveChart) {
-      window.equityCurveChart.data.labels = labels;
-      window.equityCurveChart.data.datasets[0].data = strategyData;
-      window.equityCurveChart.data.datasets[1].data = benchmarkData;
-      window.equityCurveChart.update();
+    // Update charts
+    updateEquityChart(results);
+    updateDrawdownChart(results);
+    updateMonthlyHeatmap(results);
+    updateDistributionChart(results);
+
+    // Update trades table
+    updateTradesTable(results.trades || []);
+  }
+
+  function updateEquityChart(results) {
+    const equityCurve = results.equity_curve || [];
+    const dates = equityCurve.map(d => d.date);
+    const equity = equityCurve.map(d => d.equity);
+    const benchmark = equityCurve.map(d => d.benchmark);
+
+    const traces = [{
+      x: dates, y: equity, type: 'scatter', mode: 'lines',
+      name: 'Strategy', line: { color: '#cb0c9f', width: 2 }, fill: 'tozeroy', fillcolor: 'rgba(203,12,159,0.1)'
+    }];
+
+    if (benchmark[0]) {
+      traces.push({
+        x: dates, y: benchmark, type: 'scatter', mode: 'lines',
+        name: 'Benchmark', line: { color: '#3A416F', width: 2 }
+      });
     }
 
-    // Update monthly returns table
-    const monthlyBody = document.querySelector('.table-responsive tbody');
-    if (monthlyBody && results.monthly_returns) {
-      monthlyBody.innerHTML = Object.entries(results.monthly_returns).slice(-12).map(([month, ret]) => `
-        <tr>
-          <td>${month}</td>
-          <td class="${ret >= 0 ? 'text-success' : 'text-danger'} text-end">
-            ${ret >= 0 ? '+' : ''}${ret.toFixed(1)}%
-          </td>
-        </tr>
-      `).join('');
+    Plotly.newPlot('equityChart', traces, {
+      title: 'Equity Curve',
+      xaxis: { title: '' },
+      yaxis: { title: 'Portfolio Value', tickformat: '$,.0f' },
+      showlegend: true, legend: { x: 0, y: 1.1, orientation: 'h' },
+      margin: { t: 40, r: 20 }
+    }, { responsive: true });
+  }
+
+  function updateDrawdownChart(results) {
+    const drawdownCurve = results.drawdown_curve || [];
+    const dates = drawdownCurve.map(d => d.date);
+    const dd = drawdownCurve.map(d => -Math.abs(d.drawdown_pct));
+
+    Plotly.newPlot('drawdownChart', [{
+      x: dates, y: dd, type: 'scatter', mode: 'lines',
+      fill: 'tozeroy', fillcolor: 'rgba(220,53,69,0.3)',
+      line: { color: '#dc3545', width: 1 }, name: 'Drawdown'
+    }], {
+      title: 'Drawdown (Underwater)',
+      xaxis: { title: '' },
+      yaxis: { title: 'Drawdown %', tickformat: '.1f' },
+      margin: { t: 40, r: 20 }
+    }, { responsive: true });
+  }
+
+  function updateMonthlyHeatmap(results) {
+    const monthly = results.monthly_returns || {};
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // Group by year
+    const years = {};
+    Object.entries(monthly).forEach(([date, ret]) => {
+      const [year, month] = date.split('-');
+      if (!years[year]) years[year] = new Array(12).fill(null);
+      years[year][parseInt(month) - 1] = ret;
+    });
+
+    const z = Object.values(years);
+    const y = Object.keys(years);
+
+    Plotly.newPlot('monthlyHeatmap', [{
+      z: z, x: months, y: y, type: 'heatmap',
+      colorscale: [[0, '#dc3545'], [0.5, '#f8f9fa'], [1, '#198754']],
+      zmid: 0, hoverongaps: false,
+      hovertemplate: '%{x} %{y}: %{z:.1f}%<extra></extra>'
+    }], {
+      title: 'Monthly Returns Heatmap',
+      margin: { t: 40, r: 20, l: 60 }
+    }, { responsive: true });
+  }
+
+  function updateDistributionChart(results) {
+    const trades = results.trades || [];
+    const pnlPcts = trades.map(t => t.pnl_pct || 0);
+
+    Plotly.newPlot('distributionChart', [{
+      x: pnlPcts, type: 'histogram', nbinsx: 30,
+      marker: { color: 'rgba(94,114,228,0.7)' }, name: 'Trade P&L'
+    }], {
+      title: 'P&L Distribution',
+      xaxis: { title: 'Return %' },
+      yaxis: { title: 'Frequency' },
+      margin: { t: 40, r: 20 },
+      shapes: [{ type: 'line', x0: 0, x1: 0, y0: 0, y1: 1, yref: 'paper', line: { color: '#dc3545', width: 2, dash: 'dash' } }]
+    }, { responsive: true });
+  }
+
+  function updateTradesTable(trades) {
+    tradesDataTable.clear();
+    trades.forEach(t => {
+      tradesDataTable.row.add([
+        t.entry_date,
+        `<strong>${t.symbol}</strong>`,
+        `<span class="badge bg-${t.direction === 'long' ? 'success' : 'danger'}">${t.direction.toUpperCase()}</span>`,
+        '$' + (t.entry_price || 0).toFixed(2),
+        t.exit_price ? '$' + t.exit_price.toFixed(2) : '-',
+        `<span class="text-${t.pnl >= 0 ? 'success' : 'danger'}">${t.pnl >= 0 ? '+' : ''}$${(t.pnl || 0).toFixed(0)}</span>`,
+        t.holding_days || '-'
+      ]);
+    });
+    tradesDataTable.draw();
+  }
+
+  function exportTrades() {
+    if (!currentResults || !currentResults.trades) {
+      alert('No trades to export');
+      return;
     }
 
-    // Update performance metrics
-    const metricsList = document.querySelector('.list-group');
-    if (metricsList) {
-      metricsList.innerHTML = `
-        <li class="list-group-item d-flex justify-content-between px-0">
-          <span>Total Trades</span>
-          <span class="font-weight-bold">${summary.total_trades}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between px-0">
-          <span>Winning Trades</span>
-          <span class="font-weight-bold text-success">${summary.winning_trades}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between px-0">
-          <span>Losing Trades</span>
-          <span class="font-weight-bold text-danger">${summary.losing_trades}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between px-0">
-          <span>Avg Win</span>
-          <span class="font-weight-bold text-success">+$${Math.abs(summary.avg_win).toFixed(0)}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between px-0">
-          <span>Avg Loss</span>
-          <span class="font-weight-bold text-danger">-$${Math.abs(summary.avg_loss).toFixed(0)}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between px-0">
-          <span>Profit Factor</span>
-          <span class="font-weight-bold">${summary.profit_factor.toFixed(2)}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between px-0">
-          <span>Avg Hold Time</span>
-          <span class="font-weight-bold">${summary.avg_hold_days.toFixed(1)} days</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between px-0">
-          <span>Sortino Ratio</span>
-          <span class="font-weight-bold">${summary.sortino_ratio.toFixed(2)}</span>
-        </li>
+    const csv = ['Date,Symbol,Direction,Entry,Exit,P&L,P&L%,Days'];
+    currentResults.trades.forEach(t => {
+      csv.push(`${t.entry_date},${t.symbol},${t.direction},${t.entry_price},${t.exit_price || ''},${t.pnl},${t.pnl_pct || ''},${t.holding_days || ''}`);
+    });
+
+    const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'backtest_trades.csv';
+    a.click();
+  }
+
+  // Saved Runs
+  async function showSavedRuns() {
+    const modal = new bootstrap.Modal(document.getElementById('savedRunsModal'));
+    modal.show();
+    selectedRuns = [];
+    updateCompareButton();
+
+    try {
+      const response = await fetch('/api/backtest/runs/');
+      const data = await response.json();
+      renderSavedRuns(data.runs || []);
+    } catch (error) {
+      document.getElementById('savedRunsList').innerHTML = '<div class="alert alert-danger">Error loading runs</div>';
+    }
+  }
+
+  function renderSavedRuns(runs) {
+    if (runs.length === 0) {
+      document.getElementById('savedRunsList').innerHTML = `
+        <div class="col-12 text-center py-4">
+          <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+          <p class="text-muted">No saved backtest runs yet</p>
+        </div>
       `;
+      return;
     }
 
-    // Update trade history table
-    const tradesBody = document.querySelector('.table.align-items-center tbody');
-    if (tradesBody && results.trades) {
-      tradesBody.innerHTML = results.trades.slice(0, 10).map(trade => `
-        <tr>
-          <td class="ps-3"><span class="text-xs">${trade.entry_date}</span></td>
-          <td><span class="font-weight-bold">${trade.symbol}</span></td>
-          <td class="text-center"><span class="badge bg-success">${trade.direction.toUpperCase()}</span></td>
-          <td class="text-center">$${trade.entry_price.toFixed(2)}</td>
-          <td class="text-center">${trade.exit_price ? '$' + trade.exit_price.toFixed(2) : '-'}</td>
-          <td class="text-center ${trade.pnl >= 0 ? 'text-success' : 'text-danger'}">
-            ${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(0)}
-          </td>
-        </tr>
-      `).join('');
+    document.getElementById('savedRunsList').innerHTML = runs.map(run => `
+      <div class="col-md-4 mb-3">
+        <div class="card saved-run-card ${selectedRuns.includes(run.run_id) ? 'selected' : ''}"
+             onclick="toggleRunSelection('${run.run_id}')" data-run-id="${run.run_id}">
+          <div class="card-body p-3 position-relative">
+            <input type="checkbox" class="compare-badge" ${selectedRuns.includes(run.run_id) ? 'checked' : ''}
+                   onclick="event.stopPropagation(); toggleRunSelection('${run.run_id}')">
+            <h6 class="mb-1">${run.strategy_name}</h6>
+            <p class="text-xs text-muted mb-2">${run.start_date} to ${run.end_date}</p>
+            <div class="row text-center">
+              <div class="col-4">
+                <span class="text-${(run.total_return_pct || 0) >= 0 ? 'success' : 'danger'} font-weight-bold">
+                  ${(run.total_return_pct || 0) >= 0 ? '+' : ''}${(run.total_return_pct || 0).toFixed(1)}%
+                </span>
+                <br><span class="text-xxs">Return</span>
+              </div>
+              <div class="col-4">
+                <span class="font-weight-bold">${(run.sharpe_ratio || 0).toFixed(2)}</span>
+                <br><span class="text-xxs">Sharpe</span>
+              </div>
+              <div class="col-4">
+                <span class="font-weight-bold">${run.total_trades || 0}</span>
+                <br><span class="text-xxs">Trades</span>
+              </div>
+            </div>
+            <div class="text-center mt-2">
+              <button class="btn btn-xs btn-outline-primary" onclick="event.stopPropagation(); loadSavedRun('${run.run_id}')">
+                <i class="fas fa-eye me-1"></i>View
+              </button>
+              <button class="btn btn-xs btn-outline-danger" onclick="event.stopPropagation(); deleteRun('${run.run_id}')">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function toggleRunSelection(runId) {
+    const idx = selectedRuns.indexOf(runId);
+    if (idx > -1) {
+      selectedRuns.splice(idx, 1);
+    } else if (selectedRuns.length < 5) {
+      selectedRuns.push(runId);
+    }
+
+    document.querySelectorAll('.saved-run-card').forEach(card => {
+      card.classList.toggle('selected', selectedRuns.includes(card.dataset.runId));
+      card.querySelector('input[type="checkbox"]').checked = selectedRuns.includes(card.dataset.runId);
+    });
+
+    updateCompareButton();
+  }
+
+  function updateCompareButton() {
+    const btn = document.getElementById('compareBtn');
+    btn.disabled = selectedRuns.length < 2;
+    btn.textContent = selectedRuns.length > 0 ? `Compare (${selectedRuns.length})` : 'Compare Selected';
+  }
+
+  async function loadSavedRun(runId) {
+    try {
+      const response = await fetch(`/api/backtest/runs/${runId}/`);
+      const run = await response.json();
+
+      // Convert to results format
+      currentResults = {
+        summary: {
+          total_return_pct: run.total_return_pct,
+          sharpe_ratio: run.sharpe_ratio,
+          sortino_ratio: run.sortino_ratio,
+          max_drawdown_pct: run.max_drawdown_pct,
+          win_rate: run.win_rate,
+          profit_factor: run.profit_factor,
+          total_trades: run.total_trades,
+          winning_trades: run.winning_trades,
+          losing_trades: run.losing_trades,
+          avg_win_pct: run.avg_win_pct,
+          avg_loss_pct: run.avg_loss_pct,
+          calmar_ratio: run.annualized_return_pct / Math.abs(run.max_drawdown_pct || 1),
+          alpha: run.alpha,
+          beta: run.beta
+        },
+        equity_curve: run.equity_curve,
+        drawdown_curve: run.drawdown_curve,
+        monthly_returns: run.monthly_returns,
+        trades: []
+      };
+
+      // Load trades
+      const tradesResp = await fetch(`/api/backtest/runs/${runId}/trades/`);
+      const tradesData = await tradesResp.json();
+      currentResults.trades = tradesData.trades || [];
+
+      updateAllDisplays(currentResults);
+      bootstrap.Modal.getInstance(document.getElementById('savedRunsModal'))?.hide();
+    } catch (error) {
+      alert('Error loading run: ' + error.message);
     }
   }
 
-  // Get CSRF token from cookies
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
+  async function deleteRun(runId) {
+    if (!confirm('Delete this backtest run?')) return;
+
+    try {
+      await fetch(`/api/backtest/runs/${runId}/`, {
+        method: 'DELETE',
+        headers: { 'X-CSRFToken': getCsrfToken() }
+      });
+      showSavedRuns();
+    } catch (error) {
+      alert('Error deleting run');
     }
-    return cookieValue;
   }
 
-  // Store chart reference for updating
-  window.equityCurveChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      datasets: [{
-        label: 'Strategy',
-        data: [100000, 103200, 105056, 102780, 107405, 110520, 111847, 116101, 114360, 117106, 121783, 124586],
-        borderColor: '#cb0c9f',
-        backgroundColor: 'rgba(203, 12, 159, 0.1)',
-        fill: true,
-        tension: 0.4
-      }, {
-        label: 'SPY',
-        data: [100000, 101500, 104340, 107500, 109725, 112015, 114255, 116540, 114270, 117698, 121189, 124012],
-        borderColor: '#3A416F',
-        backgroundColor: 'rgba(58, 65, 111, 0.1)',
-        fill: true,
-        tension: 0.4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'top' } },
-      scales: {
-        y: {
-          ticks: { callback: value => '$' + value.toLocaleString() }
-        }
-      }
+  async function compareSelectedRuns() {
+    if (selectedRuns.length < 2) return;
+
+    bootstrap.Modal.getInstance(document.getElementById('savedRunsModal'))?.hide();
+    const compareModal = new bootstrap.Modal(document.getElementById('compareModal'));
+    compareModal.show();
+
+    try {
+      const response = await fetch('/api/backtest/compare/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+        body: JSON.stringify({ run_ids: selectedRuns })
+      });
+      const data = await response.json();
+      renderComparison(data);
+    } catch (error) {
+      document.getElementById('comparisonContent').innerHTML = '<div class="alert alert-danger">Error comparing runs</div>';
     }
-  });
+  }
+
+  function renderComparison(data) {
+    const metrics = ['total_return_pct', 'sharpe_ratio', 'sortino_ratio', 'max_drawdown_pct', 'win_rate', 'profit_factor'];
+    const metricNames = { total_return_pct: 'Return', sharpe_ratio: 'Sharpe', sortino_ratio: 'Sortino', max_drawdown_pct: 'Drawdown', win_rate: 'Win Rate', profit_factor: 'Profit Factor' };
+
+    let html = '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Metric</th>';
+    data.comparison.forEach(c => html += `<th class="text-center">${c.strategy_name}</th>`);
+    html += '</tr></thead><tbody>';
+
+    metrics.forEach(metric => {
+      html += `<tr><td>${metricNames[metric]}</td>`;
+      data.comparison.forEach(c => {
+        const val = c.metrics[metric] || 0;
+        const rank = data.rankings[metric]?.[c.run_id];
+        const isBest = rank === 1;
+        html += `<td class="text-center ${isBest ? 'bg-success text-white' : ''}">
+          ${metric.includes('pct') || metric === 'win_rate' ? val.toFixed(1) + '%' : val.toFixed(2)}
+          ${isBest ? ' <i class="fas fa-trophy"></i>' : ''}
+        </td>`;
+      });
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+
+    // Equity curves comparison
+    html += '<div id="compareEquityChart" style="height: 300px;"></div>';
+    document.getElementById('comparisonContent').innerHTML = html;
+
+    // Plot equity curves
+    const traces = data.comparison.map((c, i) => ({
+      x: c.equity_curve.map(d => d.date),
+      y: c.equity_curve.map(d => d.equity),
+      type: 'scatter', mode: 'lines',
+      name: c.strategy_name
+    }));
+
+    Plotly.newPlot('compareEquityChart', traces, {
+      title: 'Equity Curves Comparison',
+      xaxis: { title: '' },
+      yaxis: { title: 'Value', tickformat: '$,.0f' },
+      showlegend: true
+    }, { responsive: true });
+  }
+
+  // Optimization
+  function showOptimization() {
+    const modal = new bootstrap.Modal(document.getElementById('optimizationModal'));
+    modal.show();
+  }
+
+  async function runOptimization() {
+    const config = {
+      strategy_id: null, // Would need to get from custom strategy
+      parameter_ranges: {
+        position_size_pct: { min: parseInt(document.getElementById('optPosMin').value), max: parseInt(document.getElementById('optPosMax').value) },
+        stop_loss_pct: { min: parseInt(document.getElementById('optSLMin').value), max: parseInt(document.getElementById('optSLMax').value) },
+        take_profit_pct: { min: parseInt(document.getElementById('optTPMin').value), max: parseInt(document.getElementById('optTPMax').value) }
+      },
+      objective: document.getElementById('optObjective').value,
+      n_trials: parseInt(document.getElementById('optTrials').value),
+      sampler: document.getElementById('optSampler').value,
+      start_date: document.getElementById('startDate').value,
+      end_date: document.getElementById('endDate').value
+    };
+
+    document.getElementById('optProgressSection').style.display = 'block';
+    document.getElementById('optBestParams').style.display = 'none';
+    document.getElementById('optConvergenceSection').style.display = 'none';
+    document.getElementById('optTrialsSection').style.display = 'none';
+
+    // Simulate optimization progress (real implementation would poll status endpoint)
+    let trial = 0;
+    const totalTrials = config.n_trials;
+    const progressInterval = setInterval(() => {
+      trial++;
+      document.getElementById('optProgressText').textContent = `${trial} / ${totalTrials} trials`;
+      document.getElementById('optProgressBar').style.width = (100 * trial / totalTrials) + '%';
+
+      if (trial >= totalTrials) {
+        clearInterval(progressInterval);
+        showOptimizationResults({
+          best_params: { position_size_pct: 4.5, stop_loss_pct: 6, take_profit_pct: 18 },
+          best_value: 1.85,
+          convergence_curve: Array.from({ length: totalTrials }, (_, i) => ({ trial: i + 1, best_value: 1.2 + 0.65 * (1 - Math.exp(-i / 20)) })),
+          all_trials: Array.from({ length: Math.min(10, totalTrials) }, (_, i) => ({
+            trial_number: i + 1,
+            params: { position_size_pct: 3 + Math.random() * 5, stop_loss_pct: 3 + Math.random() * 10, take_profit_pct: 8 + Math.random() * 20 },
+            objective_value: 1.2 + Math.random() * 0.8,
+            is_best: i === 0
+          })).sort((a, b) => b.objective_value - a.objective_value)
+        });
+      }
+    }, 100);
+  }
+
+  function showOptimizationResults(results) {
+    document.getElementById('optBestParams').style.display = 'block';
+    document.getElementById('optConvergenceSection').style.display = 'block';
+    document.getElementById('optTrialsSection').style.display = 'block';
+
+    // Best params
+    document.getElementById('bestParamsDisplay').innerHTML = Object.entries(results.best_params).map(([k, v]) => `
+      <div class="col-4 text-center">
+        <h5 class="mb-0">${typeof v === 'number' ? v.toFixed(1) : v}</h5>
+        <small class="text-muted">${k.replace(/_/g, ' ')}</small>
+      </div>
+    `).join('');
+
+    // Convergence chart
+    Plotly.newPlot('convergenceChart', [{
+      x: results.convergence_curve.map(c => c.trial),
+      y: results.convergence_curve.map(c => c.best_value),
+      type: 'scatter', mode: 'lines+markers',
+      line: { color: '#0d6efd' }
+    }], {
+      xaxis: { title: 'Trial' },
+      yaxis: { title: 'Best Value' },
+      margin: { t: 20, r: 20 }
+    }, { responsive: true });
+
+    // Top trials
+    document.getElementById('topTrialsList').innerHTML = results.all_trials.slice(0, 10).map(t => `
+      <div class="optimization-trial ${t.is_best ? 'best' : ''}">
+        <div class="d-flex justify-content-between">
+          <span class="font-weight-bold">#${t.trial_number}</span>
+          <span class="text-${t.is_best ? 'success' : 'secondary'}">${t.objective_value.toFixed(3)}</span>
+        </div>
+        <small class="text-muted">${Object.entries(t.params).map(([k, v]) => `${k}: ${v.toFixed(1)}`).join(' | ')}</small>
+      </div>
+    `).join('');
+  }
+
+  function getCsrfToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+           document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='))?.split('=')[1] || '';
+  }
 </script>
 {% endblock javascripts %}

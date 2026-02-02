@@ -105,6 +105,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Email backend for testing
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
+# Credential Encryption Settings
+CREDENTIAL_ENCRYPTION_SALT = os.getenv(
+    "CREDENTIAL_ENCRYPTION_SALT",
+    b'default_salt_change_in_production_v1'
+)
+
+# Alpaca API settings
+BACKEND_ALPACA_ID = os.getenv("APCA_API_KEY_ID", "")
+BACKEND_ALPACA_KEY = os.getenv("APCA_API_SECRET_KEY", "")
+
 # Cache configuration
 REDIS_URL = os.getenv("REDIS_URL")
 if REDIS_URL:

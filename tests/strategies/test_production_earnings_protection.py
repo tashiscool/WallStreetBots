@@ -22,7 +22,7 @@ from backend.tradingbot.production.core.production_integration import (
 from backend.tradingbot.production.data.production_data_integration import (
     EarningsEvent,
 )
-from backend.tradingbot.core.trading_interface import OrderStatus
+from backend.tradingbot.core.trading_interface import TradeStatus as OrderStatus
 
 
 @pytest.fixture

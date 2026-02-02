@@ -1,0 +1,528 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Market Context - WallStreetBots{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .market-status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    .market-status-badge.open { background: linear-gradient(310deg, #2dce89 0%, #2dcecc 100%); color: white; }
+    .market-status-badge.pre_market { background: linear-gradient(310deg, #fb6340 0%, #fbb140 100%); color: white; }
+    .market-status-badge.after_hours { background: linear-gradient(310deg, #5e72e4 0%, #825ee4 100%); color: white; }
+    .market-status-badge.closed { background: linear-gradient(310deg, #8898aa 0%, #a8b8c8 100%); color: white; }
+
+    .index-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .index-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .price-up { color: #2dce89; }
+    .price-down { color: #f5365c; }
+    .price-flat { color: #8898aa; }
+
+    .vix-gauge {
+        position: relative;
+        width: 200px;
+        height: 100px;
+        margin: 0 auto;
+    }
+    .vix-level-indicator {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .vix-low { background: #2dce89; color: white; }
+    .vix-normal { background: #11cdef; color: white; }
+    .vix-elevated { background: #fb6340; color: white; }
+    .vix-high { background: #f5365c; color: white; }
+    .vix-extreme { background: #8b0000; color: white; }
+
+    .sector-heatmap {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 8px;
+    }
+    .sector-cell {
+        padding: 12px 8px;
+        border-radius: 8px;
+        text-align: center;
+        transition: transform 0.2s;
+    }
+    .sector-cell:hover {
+        transform: scale(1.05);
+    }
+    .sector-cell .symbol { font-weight: 700; font-size: 0.875rem; }
+    .sector-cell .name { font-size: 0.7rem; opacity: 0.9; }
+    .sector-cell .change { font-weight: 600; font-size: 0.8rem; margin-top: 4px; }
+
+    .event-card {
+        border-left: 4px solid #5e72e4;
+        padding-left: 1rem;
+    }
+    .event-card.earnings { border-color: #fb6340; }
+    .event-card.ex-dividend { border-color: #2dce89; }
+    .event-card.economic-high { border-color: #f5365c; }
+    .event-card.economic-medium { border-color: #ffd600; }
+
+    .refresh-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+    }
+
+    .last-updated {
+        font-size: 0.75rem;
+        color: #8898aa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary">
+                <div class="card-body p-4 position-relative">
+                    <button class="btn btn-sm btn-white refresh-btn" onclick="refreshAll()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4 class="text-white mb-2">Market Context</h4>
+                            <p class="text-white-50 mb-0">Real-time market overview and upcoming events</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <span id="market-status-badge" class="market-status-badge closed">
+                                <span class="status-dot me-2"></span>
+                                <span id="market-status-text">Loading...</span>
+                            </span>
+                            <div class="text-white-50 mt-2" id="market-next-event"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Indices -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h6 class="text-uppercase text-muted mb-3">Major Indices</h6>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3" id="index-spy">
+            <div class="card index-card h-100">
+                <div class="card-body text-center">
+                    <div class="skeleton-loader" style="height: 80px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3" id="index-qqq">
+            <div class="card index-card h-100">
+                <div class="card-body text-center">
+                    <div class="skeleton-loader" style="height: 80px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3" id="index-iwm">
+            <div class="card index-card h-100">
+                <div class="card-body text-center">
+                    <div class="skeleton-loader" style="height: 80px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3" id="index-dia">
+            <div class="card index-card h-100">
+                <div class="card-body text-center">
+                    <div class="skeleton-loader" style="height: 80px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- VIX Monitor -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <h6>VIX - Fear & Greed Index</h6>
+                </div>
+                <div class="card-body text-center" id="vix-container">
+                    <div class="skeleton-loader" style="height: 150px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sector Heat Map -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <h6>Sector Performance</h6>
+                </div>
+                <div class="card-body">
+                    <div class="sector-heatmap" id="sector-heatmap">
+                        <div class="skeleton-loader" style="height: 200px; grid-column: 1/-1;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Holdings Events -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <div class="d-flex justify-content-between">
+                        <h6>Upcoming Events for Holdings</h6>
+                        <small class="text-muted">Next 14 days</small>
+                    </div>
+                </div>
+                <div class="card-body" id="holdings-events">
+                    <div class="skeleton-loader" style="height: 200px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Economic Calendar -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <div class="d-flex justify-content-between">
+                        <h6>Economic Calendar</h6>
+                        <small class="text-muted">Next 7 days</small>
+                    </div>
+                </div>
+                <div class="card-body" id="economic-calendar">
+                    <div class="skeleton-loader" style="height: 200px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Last Updated -->
+    <div class="row">
+        <div class="col-12 text-end">
+            <span class="last-updated">Last updated: <span id="last-updated">--</span></span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    // Market Context Dashboard JavaScript
+
+    let refreshInterval = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadMarketContext();
+        // Auto-refresh every 60 seconds
+        refreshInterval = setInterval(loadMarketContext, 60000);
+    });
+
+    function refreshAll() {
+        loadMarketContext(true);
+    }
+
+    async function loadMarketContext(forceRefresh = false) {
+        try {
+            const url = forceRefresh ? '/api/market-context/?force=true' : '/api/market-context/';
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.status === 'success' || data.overview) {
+                updateMarketStatus(data.overview?.market_status || data.market_status);
+                updateIndices(data.overview?.indices || data.indices || {});
+                updateVIX(data.overview?.vix || data.vix);
+                updateSectorHeatmap(data.sectors || []);
+                updateHoldingsEvents(data.holdings_events || []);
+                updateEconomicCalendar(data.economic_calendar || []);
+                document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+            }
+        } catch (error) {
+            console.error('Failed to load market context:', error);
+            // Show mock data for demo
+            showMockData();
+        }
+    }
+
+    function showMockData() {
+        // Mock data for demonstration
+        updateMarketStatus({
+            status: 'closed',
+            is_open: false,
+            next_event: 'Market opens Monday at 9:30 AM ET',
+            current_time: new Date().toLocaleTimeString()
+        });
+
+        updateIndices({
+            SPY: { symbol: 'SPY', name: 'S&P 500', price: 478.52, change: 3.21, change_pct: 0.67, trend: 'up' },
+            QQQ: { symbol: 'QQQ', name: 'Nasdaq 100', price: 412.18, change: -1.45, change_pct: -0.35, trend: 'down' },
+            IWM: { symbol: 'IWM', name: 'Russell 2000', price: 198.76, change: 1.23, change_pct: 0.62, trend: 'up' },
+            DIA: { symbol: 'DIA', name: 'Dow Jones', price: 385.42, change: 2.15, change_pct: 0.56, trend: 'up' }
+        });
+
+        updateVIX({ value: 18.5, change: -0.8, level: 'normal' });
+
+        updateSectorHeatmap([
+            { symbol: 'XLK', name: 'Technology', change_pct: 1.25, trend: 'up' },
+            { symbol: 'XLF', name: 'Financials', change_pct: 0.85, trend: 'up' },
+            { symbol: 'XLE', name: 'Energy', change_pct: -0.45, trend: 'down' },
+            { symbol: 'XLV', name: 'Healthcare', change_pct: 0.32, trend: 'up' },
+            { symbol: 'XLI', name: 'Industrials', change_pct: 0.67, trend: 'up' },
+            { symbol: 'XLP', name: 'Staples', change_pct: -0.12, trend: 'down' },
+            { symbol: 'XLY', name: 'Discretionary', change_pct: 0.95, trend: 'up' },
+            { symbol: 'XLU', name: 'Utilities', change_pct: -0.28, trend: 'down' },
+            { symbol: 'XLRE', name: 'Real Estate', change_pct: 0.15, trend: 'up' },
+            { symbol: 'XLC', name: 'Communication', change_pct: 0.72, trend: 'up' },
+            { symbol: 'XLB', name: 'Materials', change_pct: 0.48, trend: 'up' }
+        ]);
+
+        updateHoldingsEvents([
+            { symbol: 'AAPL', event: 'earnings', date: '2026-02-05', days_until: 4, details: 'Q4 2025' },
+            { symbol: 'MSFT', event: 'ex-dividend', date: '2026-02-08', days_until: 7, details: 'Yield: 0.85%' }
+        ]);
+
+        updateEconomicCalendar([
+            { event: 'Jobs Report (NFP)', date: '2026-02-07', time: '8:30 AM ET', importance: 'high' },
+            { event: 'CPI (Inflation)', date: '2026-02-12', time: '8:30 AM ET', importance: 'high' }
+        ]);
+
+        document.getElementById('last-updated').textContent = new Date().toLocaleTimeString() + ' (Demo)';
+    }
+
+    function updateMarketStatus(status) {
+        if (!status) return;
+
+        const badge = document.getElementById('market-status-badge');
+        const statusText = document.getElementById('market-status-text');
+        const nextEvent = document.getElementById('market-next-event');
+
+        badge.className = 'market-status-badge ' + status.status;
+
+        const statusLabels = {
+            'open': 'Market Open',
+            'pre_market': 'Pre-Market',
+            'after_hours': 'After Hours',
+            'closed': 'Market Closed'
+        };
+
+        statusText.textContent = statusLabels[status.status] || status.status;
+        nextEvent.textContent = status.next_event || '';
+    }
+
+    function updateIndices(indices) {
+        const indexMap = ['spy', 'qqq', 'iwm', 'dia'];
+
+        indexMap.forEach(key => {
+            const container = document.getElementById('index-' + key);
+            const data = indices[key.toUpperCase()];
+
+            if (data) {
+                const trendClass = data.trend === 'up' ? 'price-up' : (data.trend === 'down' ? 'price-down' : 'price-flat');
+                const trendIcon = data.trend === 'up' ? 'fa-arrow-up' : (data.trend === 'down' ? 'fa-arrow-down' : 'fa-minus');
+                const sign = data.change >= 0 ? '+' : '';
+
+                container.innerHTML = `
+                    <div class="card index-card h-100">
+                        <div class="card-body text-center py-3">
+                            <p class="text-sm mb-0 text-uppercase font-weight-bold text-muted">${data.name}</p>
+                            <h3 class="mb-0">${data.price.toFixed(2)}</h3>
+                            <div class="${trendClass}">
+                                <i class="fas ${trendIcon} fa-sm me-1"></i>
+                                ${sign}${data.change.toFixed(2)} (${sign}${data.change_pct.toFixed(2)}%)
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    }
+
+    function updateVIX(vix) {
+        const container = document.getElementById('vix-container');
+
+        if (!vix) {
+            container.innerHTML = '<p class="text-muted">VIX data unavailable</p>';
+            return;
+        }
+
+        const levelClasses = {
+            'low': 'vix-low',
+            'normal': 'vix-normal',
+            'elevated': 'vix-elevated',
+            'high': 'vix-high',
+            'extreme': 'vix-extreme'
+        };
+
+        const levelLabels = {
+            'low': 'Low Volatility',
+            'normal': 'Normal',
+            'elevated': 'Elevated',
+            'high': 'High Volatility',
+            'extreme': 'Extreme!'
+        };
+
+        const levelClass = levelClasses[vix.level] || 'vix-normal';
+        const levelLabel = levelLabels[vix.level] || vix.level;
+        const changeClass = vix.change >= 0 ? 'price-down' : 'price-up'; // Inverted for VIX
+        const sign = vix.change >= 0 ? '+' : '';
+
+        container.innerHTML = `
+            <div class="mb-3">
+                <h1 class="display-4 mb-0">${vix.value.toFixed(2)}</h1>
+                <div class="${changeClass}">
+                    ${sign}${vix.change.toFixed(2)}
+                </div>
+            </div>
+            <span class="vix-level-indicator ${levelClass}">${levelLabel}</span>
+            <div class="mt-3">
+                <small class="text-muted">
+                    <strong>VIX Levels:</strong> &lt;15 Low | 15-20 Normal | 20-25 Elevated | 25-35 High | &gt;35 Extreme
+                </small>
+            </div>
+        `;
+    }
+
+    function updateSectorHeatmap(sectors) {
+        const container = document.getElementById('sector-heatmap');
+
+        if (!sectors || sectors.length === 0) {
+            container.innerHTML = '<p class="text-muted">Sector data unavailable</p>';
+            return;
+        }
+
+        container.innerHTML = sectors.map(sector => {
+            // Color based on performance
+            const intensity = Math.min(Math.abs(sector.change_pct) * 40, 100);
+            let bgColor;
+
+            if (sector.change_pct > 0) {
+                bgColor = `rgba(45, 206, 137, ${0.3 + intensity/200})`;
+            } else if (sector.change_pct < 0) {
+                bgColor = `rgba(245, 54, 92, ${0.3 + intensity/200})`;
+            } else {
+                bgColor = 'rgba(136, 152, 170, 0.3)';
+            }
+
+            const sign = sector.change_pct >= 0 ? '+' : '';
+
+            return `
+                <div class="sector-cell" style="background: ${bgColor}; color: ${Math.abs(sector.change_pct) > 1 ? 'white' : 'inherit'}">
+                    <div class="symbol">${sector.symbol}</div>
+                    <div class="name">${sector.name}</div>
+                    <div class="change">${sign}${sector.change_pct.toFixed(2)}%</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function updateHoldingsEvents(events) {
+        const container = document.getElementById('holdings-events');
+
+        if (!events || events.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-calendar-check fa-2x mb-3"></i>
+                    <p>No upcoming events for your holdings</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = events.map(event => {
+            const eventClass = event.event === 'earnings' ? 'earnings' : 'ex-dividend';
+            const icon = event.event === 'earnings' ? 'fa-chart-line' : 'fa-hand-holding-usd';
+
+            return `
+                <div class="event-card ${eventClass} mb-3 p-3 bg-gray-100 rounded">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="fas ${icon} me-2 text-primary"></i>
+                                <strong>${event.symbol}</strong>
+                                <span class="badge bg-secondary ms-2">${event.event}</span>
+                            </div>
+                            <small class="text-muted">${event.details}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="font-weight-bold">${event.days_until} days</div>
+                            <small class="text-muted">${event.date}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function updateEconomicCalendar(events) {
+        const container = document.getElementById('economic-calendar');
+
+        if (!events || events.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-globe fa-2x mb-3"></i>
+                    <p>No major economic events this week</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = events.map(event => {
+            const importanceClass = event.importance === 'high' ? 'economic-high' : 'economic-medium';
+            const importanceBadge = event.importance === 'high' ? 'danger' : 'warning';
+
+            return `
+                <div class="event-card ${importanceClass} mb-3 p-3 bg-gray-100 rounded">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="fas fa-globe me-2 text-info"></i>
+                                <strong>${event.event}</strong>
+                                <span class="badge bg-${importanceBadge} ms-2">${event.importance}</span>
+                            </div>
+                            <small class="text-muted">${event.time || ''}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="font-weight-bold">${event.date}</div>
+                            ${event.forecast ? `<small class="text-muted">Forecast: ${event.forecast}</small>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // CSRF token helper for POST requests
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [cookieName, cookieValue] = cookie.trim().split('=');
+            if (cookieName === name) return cookieValue;
+        }
+        return '';
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+        }
+    });
+</script>
+{% endblock %}

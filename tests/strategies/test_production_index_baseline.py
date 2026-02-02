@@ -20,7 +20,7 @@ from backend.tradingbot.production.core.production_integration import (
     OrderSide,
     OrderType,
 )
-from backend.tradingbot.core.trading_interface import OrderStatus
+from backend.tradingbot.core.trading_interface import TradeStatus as OrderStatus
 
 
 @pytest.fixture

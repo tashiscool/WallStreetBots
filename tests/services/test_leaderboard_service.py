@@ -107,7 +107,7 @@ class TestLeaderboardService(TestCase):
         ordering = self.service._get_ordering('unknown_metric')
         self.assertEqual(ordering, '-unknown_metric')
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_get_leaderboard_basic(self, mock_snapshot):
         """Test get_leaderboard with basic parameters."""
         # Mock queryset
@@ -126,7 +126,7 @@ class TestLeaderboardService(TestCase):
         self.assertIn('available_metrics', result)
         self.assertIn('available_periods', result)
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_get_leaderboard_with_snapshots(self, mock_snapshot_model):
         """Test get_leaderboard with mock snapshots."""
         # Create mock snapshots
@@ -168,21 +168,25 @@ class TestLeaderboardService(TestCase):
         self.assertEqual(result['metric'], 'sharpe_ratio')
         self.assertIsInstance(result['leaderboard'], list)
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_get_leaderboard_with_category_filter(self, mock_snapshot):
         """Test get_leaderboard with category filtering."""
         mock_queryset = MagicMock()
+        # Set up proper query chain - each method returns the same mock queryset
         mock_snapshot.objects.filter.return_value = mock_queryset
-        mock_queryset.values.return_value.annotate.return_value = []
+        mock_queryset.values.return_value.annotate.return_value = mock_queryset
         mock_queryset.filter.return_value = mock_queryset
-        mock_queryset.order_by.return_value = []
+        mock_queryset.order_by.return_value = mock_queryset
+        # Make it iterable but empty
+        mock_queryset.__iter__ = lambda self: iter([])
+        mock_queryset.__getitem__ = lambda self, key: []
 
         result = self.service.get_leaderboard(category='momentum')
 
         # Verify filter was called
         self.assertIn('leaderboard', result)
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_compare_strategies_empty_list(self, mock_snapshot):
         """Test compare_strategies with empty strategy list."""
         result = self.service.compare_strategies([])
@@ -190,7 +194,7 @@ class TestLeaderboardService(TestCase):
         self.assertIn('error', result)
         self.assertEqual(result['strategies'], [])
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_compare_strategies_with_data(self, mock_snapshot):
         """Test compare_strategies with valid data."""
         # Mock snapshot
@@ -226,7 +230,7 @@ class TestLeaderboardService(TestCase):
         self.assertIn('comparison', result)
         self.assertGreater(len(result['comparison']), 0)
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_compare_strategies_no_data(self, mock_snapshot):
         """Test compare_strategies when strategy has no data."""
         mock_queryset = MagicMock()
@@ -287,7 +291,7 @@ class TestLeaderboardService(TestCase):
         # Should only have one valid entry
         self.assertIn('total_return_pct', summary)
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_get_strategy_rank_history(self, mock_snapshot):
         """Test get_strategy_rank_history."""
         # Mock snapshots
@@ -317,7 +321,7 @@ class TestLeaderboardService(TestCase):
         self.assertEqual(result['trend'], 'improving')
         self.assertEqual(result['rank_change'], 2)
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_get_strategy_rank_history_declining(self, mock_snapshot):
         """Test get_strategy_rank_history with declining trend."""
         mock_snap1 = Mock()
@@ -341,7 +345,7 @@ class TestLeaderboardService(TestCase):
         self.assertEqual(result['trend'], 'declining')
         self.assertEqual(result['rank_change'], -4)
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_get_strategy_rank_history_stable(self, mock_snapshot):
         """Test get_strategy_rank_history with stable trend."""
         mock_snap1 = Mock()
@@ -365,7 +369,7 @@ class TestLeaderboardService(TestCase):
         self.assertEqual(result['trend'], 'stable')
         self.assertEqual(result['rank_change'], 0)
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_get_strategy_rank_history_insufficient_data(self, mock_snapshot):
         """Test get_strategy_rank_history with insufficient data."""
         mock_queryset = MagicMock()
@@ -378,7 +382,7 @@ class TestLeaderboardService(TestCase):
         self.assertEqual(result['rank_change'], 0)
         self.assertIsNone(result['current_rank'])
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_calculate_hypothetical_portfolio_invalid_allocation(self, mock_snapshot):
         """Test calculate_hypothetical_portfolio with invalid allocation sum."""
         allocations = {'wsb_dip_bot': 50.0, 'wheel_strategy': 30.0}  # Only 80%
@@ -388,7 +392,7 @@ class TestLeaderboardService(TestCase):
         self.assertIn('error', result)
         self.assertIn('100%', result['error'])
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_calculate_hypothetical_portfolio_valid(self, mock_snapshot):
         """Test calculate_hypothetical_portfolio with valid allocations."""
         allocations = {'wsb_dip_bot': 60.0, 'wheel_strategy': 40.0}
@@ -477,7 +481,7 @@ class TestLeaderboardService(TestCase):
         score = self.service._calculate_diversification_score(breakdown)
         self.assertGreater(score, 0)
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_get_top_performers(self, mock_snapshot):
         """Test get_top_performers."""
         mock_leaderboard = {
@@ -496,7 +500,7 @@ class TestLeaderboardService(TestCase):
             self.assertIn('total_return_pct', result['categories'])
             self.assertIn('win_rate', result['categories'])
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_get_strategy_details_with_data(self, mock_snapshot):
         """Test get_strategy_details with existing data."""
         mock_snap = Mock()
@@ -544,7 +548,7 @@ class TestLeaderboardService(TestCase):
             self.assertIn('rankings', result)
             self.assertIn('rank_history', result)
 
-    @patch('backend.auth0login.services.leaderboard_service.StrategyPerformanceSnapshot')
+    @patch('backend.tradingbot.models.models.StrategyPerformanceSnapshot')
     def test_get_strategy_details_no_data(self, mock_snapshot):
         """Test get_strategy_details with no data."""
         mock_queryset = MagicMock()

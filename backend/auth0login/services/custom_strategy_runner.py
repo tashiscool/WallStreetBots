@@ -500,6 +500,129 @@ class CustomStrategyRunner:
 
         return False
 
+    def evaluate_nested_conditions(
+        self,
+        condition_group: Dict[str, Any],
+        df: pd.DataFrame,
+        idx: int = -1
+    ) -> Tuple[bool, List[Dict]]:
+        """
+        Recursively evaluate nested condition groups.
+
+        Supports nested AND/OR groups for complex condition logic like:
+        (RSI < 30 AND (MACD > 0 OR Stoch < 20))
+
+        Args:
+            condition_group: Condition group with 'type', 'logic', and 'conditions'
+            df: DataFrame with OHLCV data
+            idx: Index to check (default -1 for latest)
+
+        Returns:
+            Tuple of (conditions_met, details)
+
+        Example condition_group:
+            {
+                "type": "group",
+                "logic": "AND",
+                "conditions": [
+                    {"type": "condition", "indicator": "rsi", "operator": "less_than", "value": 30},
+                    {
+                        "type": "group",
+                        "logic": "OR",
+                        "conditions": [
+                            {"type": "condition", "indicator": "macd", "operator": "greater_than", "value": 0},
+                            {"type": "condition", "indicator": "stoch_k", "operator": "less_than", "value": 20}
+                        ]
+                    }
+                ]
+            }
+        """
+        group_type = condition_group.get('type', 'group')
+        logic = condition_group.get('logic', 'AND').upper()
+        conditions = condition_group.get('conditions', [])
+
+        if not conditions:
+            return False, [{'error': 'Empty condition group'}]
+
+        results = []
+        met_values = []
+
+        for cond in conditions:
+            cond_type = cond.get('type', 'condition')
+
+            if cond_type == 'group':
+                # Recursive call for nested groups
+                nested_met, nested_details = self.evaluate_nested_conditions(cond, df, idx)
+                results.append({
+                    'type': 'group',
+                    'logic': cond.get('logic', 'AND'),
+                    'met': nested_met,
+                    'nested_results': nested_details,
+                })
+                met_values.append(nested_met)
+
+            elif cond_type in ('condition', 'indicator'):
+                # Evaluate single condition
+                indicator = cond.get('indicator')
+                period = cond.get('period')
+
+                try:
+                    values = self.calculate_indicator(df, indicator, period)
+                    current_value = float(values.iloc[idx])
+                    previous_value = float(values.iloc[idx - 1]) if idx != 0 else current_value
+
+                    met = self.evaluate_condition(current_value, previous_value, cond)
+
+                    results.append({
+                        'type': 'condition',
+                        'indicator': indicator,
+                        'operator': cond.get('operator'),
+                        'threshold': cond.get('value'),
+                        'current_value': round(current_value, 2),
+                        'met': met,
+                    })
+                    met_values.append(met)
+                except Exception as e:
+                    results.append({
+                        'type': 'condition',
+                        'indicator': indicator,
+                        'error': str(e),
+                        'met': False,
+                    })
+                    met_values.append(False)
+
+            elif cond_type == 'exit_rule':
+                # Exit rules are handled separately in check_exit_conditions
+                pass
+
+        # Apply logic
+        if logic == 'AND':
+            group_met = all(met_values) if met_values else False
+        elif logic == 'OR':
+            group_met = any(met_values) if met_values else False
+        else:
+            group_met = False
+
+        return group_met, results
+
+    def _is_nested_format(self, entry_conditions: Any) -> bool:
+        """Check if entry conditions use the new nested format."""
+        if isinstance(entry_conditions, dict):
+            return entry_conditions.get('type') == 'group'
+        return False
+
+    def _convert_flat_to_nested(self, flat_conditions: List[Dict], logic: str = 'all') -> Dict:
+        """Convert flat condition list to nested format for unified processing."""
+        nested_logic = 'AND' if logic == 'all' else 'OR'
+        return {
+            'type': 'group',
+            'logic': nested_logic,
+            'conditions': [
+                {'type': 'condition', **cond}
+                for cond in flat_conditions
+            ]
+        }
+
     def check_entry_conditions(
         self,
         df: pd.DataFrame,
@@ -508,12 +631,20 @@ class CustomStrategyRunner:
         """
         Check if entry conditions are met for given data.
 
+        Supports both flat condition lists (legacy) and nested condition groups.
+
         Args:
             df: DataFrame with OHLCV data
             idx: Index to check (default -1 for latest)
 
         Returns:
             Tuple of (conditions_met, details)
+
+        Flat format (legacy):
+            {"entry_conditions": [{"indicator": "rsi", "operator": "less_than", "value": 30}]}
+
+        Nested format (new):
+            {"entry_conditions": {"type": "group", "logic": "AND", "conditions": [...]}}
         """
         entry_conditions = self.definition.get('entry_conditions', [])
         entry_logic = self.definition.get('entry_logic', 'all')
@@ -521,9 +652,27 @@ class CustomStrategyRunner:
         if not entry_conditions:
             return False, [{'error': 'No entry conditions defined'}]
 
+        # Check if using nested format
+        if self._is_nested_format(entry_conditions):
+            # Use new recursive nested evaluation
+            return self.evaluate_nested_conditions(entry_conditions, df, idx)
+
+        # Legacy flat format - convert to nested for unified processing
+        # or handle directly for backward compatibility
         results = []
 
         for cond in entry_conditions:
+            # Check if this is a nested group within a flat list
+            if cond.get('type') == 'group':
+                nested_met, nested_details = self.evaluate_nested_conditions(cond, df, idx)
+                results.append({
+                    'type': 'group',
+                    'logic': cond.get('logic', 'AND'),
+                    'met': nested_met,
+                    'nested_results': nested_details,
+                })
+                continue
+
             indicator = cond.get('indicator')
             period = cond.get('period')
 
@@ -549,11 +698,11 @@ class CustomStrategyRunner:
                 })
 
         # Apply logic
-        met_list = [r['met'] for r in results]
+        met_list = [r.get('met', False) for r in results]
         if entry_logic == 'all':
-            all_met = all(met_list)
+            all_met = all(met_list) if met_list else False
         else:  # 'any'
-            all_met = any(met_list)
+            all_met = any(met_list) if met_list else False
 
         return all_met, results
 
@@ -688,9 +837,116 @@ class CustomStrategyRunner:
 
         return should_exit, exit_reason, {'conditions': results}
 
+    def _validate_nested_conditions(
+        self,
+        condition_group: Any,
+        prefix: str = 'Entry'
+    ) -> Tuple[List[str], List[str]]:
+        """
+        Recursively validate nested condition groups.
+
+        Args:
+            condition_group: Condition group to validate
+            prefix: Prefix for error messages ('Entry' or 'Exit')
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        # Handle nested group format
+        if isinstance(condition_group, dict) and condition_group.get('type') == 'group':
+            logic = condition_group.get('logic', 'AND').upper()
+            if logic not in ('AND', 'OR'):
+                errors.append(f'{prefix} group: logic must be "AND" or "OR"')
+
+            conditions = condition_group.get('conditions', [])
+            if not conditions:
+                errors.append(f'{prefix} group: at least one condition is required')
+
+            for i, cond in enumerate(conditions):
+                cond_type = cond.get('type', 'condition')
+
+                if cond_type == 'group':
+                    # Recursive validation for nested groups
+                    nested_errors, nested_warnings = self._validate_nested_conditions(
+                        cond, f'{prefix} group[{i + 1}]'
+                    )
+                    errors.extend(nested_errors)
+                    warnings.extend(nested_warnings)
+
+                elif cond_type in ('condition', 'indicator'):
+                    cond_errors, cond_warnings = self._validate_single_condition(
+                        cond, f'{prefix} condition {i + 1}'
+                    )
+                    errors.extend(cond_errors)
+                    warnings.extend(cond_warnings)
+
+        # Handle flat list format (legacy)
+        elif isinstance(condition_group, list):
+            for i, cond in enumerate(condition_group):
+                if cond.get('type') == 'group':
+                    nested_errors, nested_warnings = self._validate_nested_conditions(
+                        cond, f'{prefix} group[{i + 1}]'
+                    )
+                    errors.extend(nested_errors)
+                    warnings.extend(nested_warnings)
+                else:
+                    cond_errors, cond_warnings = self._validate_single_condition(
+                        cond, f'{prefix} condition {i + 1}'
+                    )
+                    errors.extend(cond_errors)
+                    warnings.extend(cond_warnings)
+
+        return errors, warnings
+
+    def _validate_single_condition(
+        self,
+        cond: Dict,
+        prefix: str
+    ) -> Tuple[List[str], List[str]]:
+        """Validate a single indicator condition."""
+        errors = []
+        warnings = []
+
+        indicator = cond.get('indicator')
+        operator = cond.get('operator')
+
+        if not indicator:
+            errors.append(f'{prefix}: indicator is required')
+        elif indicator not in self.INDICATORS:
+            errors.append(f'{prefix}: unknown indicator "{indicator}"')
+
+        if not operator:
+            errors.append(f'{prefix}: operator is required')
+        elif operator not in self.OPERATORS:
+            errors.append(f'{prefix}: unknown operator "{operator}"')
+
+        if 'value' not in cond and operator not in ('crosses_above', 'crosses_below'):
+            if operator != 'between':
+                errors.append(f'{prefix}: value is required')
+
+        # Check value ranges
+        if indicator in self.INDICATORS:
+            info = self.INDICATORS[indicator]
+            value_range = info.get('value_range')
+            value = cond.get('value')
+
+            if value_range and value is not None:
+                if value < value_range[0] or value > value_range[1]:
+                    warnings.append(
+                        f'{prefix}: {indicator} value {value} '
+                        f'is outside typical range {value_range}'
+                    )
+
+        return errors, warnings
+
     def validate_definition(self, definition: Dict = None) -> Dict[str, Any]:
         """
         Validate strategy definition for errors and warnings.
+
+        Supports both flat condition lists and nested condition groups.
 
         Args:
             definition: Definition to validate (uses self.definition if not provided)
@@ -702,42 +958,18 @@ class CustomStrategyRunner:
         errors = []
         warnings = []
 
-        # Check entry conditions
+        # Check entry conditions (supports both nested and flat formats)
         entry_conditions = definition.get('entry_conditions', [])
         if not entry_conditions:
             errors.append('At least one entry condition is required')
         else:
-            for i, cond in enumerate(entry_conditions):
-                indicator = cond.get('indicator')
-                operator = cond.get('operator')
+            entry_errors, entry_warnings = self._validate_nested_conditions(
+                entry_conditions, 'Entry'
+            )
+            errors.extend(entry_errors)
+            warnings.extend(entry_warnings)
 
-                if not indicator:
-                    errors.append(f'Entry condition {i + 1}: indicator is required')
-                elif indicator not in self.INDICATORS:
-                    errors.append(f'Entry condition {i + 1}: unknown indicator "{indicator}"')
-
-                if not operator:
-                    errors.append(f'Entry condition {i + 1}: operator is required')
-                elif operator not in self.OPERATORS:
-                    errors.append(f'Entry condition {i + 1}: unknown operator "{operator}"')
-
-                if 'value' not in cond and operator not in ('crosses_above', 'crosses_below'):
-                    errors.append(f'Entry condition {i + 1}: value is required')
-
-                # Check value ranges
-                if indicator in self.INDICATORS:
-                    info = self.INDICATORS[indicator]
-                    value_range = info.get('value_range')
-                    value = cond.get('value')
-
-                    if value_range and value is not None:
-                        if value < value_range[0] or value > value_range[1]:
-                            warnings.append(
-                                f'Entry condition {i + 1}: {indicator} value {value} '
-                                f'is outside typical range {value_range}'
-                            )
-
-        # Check entry logic
+        # Check entry logic (for flat format)
         entry_logic = definition.get('entry_logic')
         if entry_logic and entry_logic not in ('all', 'any'):
             errors.append('entry_logic must be "all" or "any"')

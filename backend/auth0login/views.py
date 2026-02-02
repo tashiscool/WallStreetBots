@@ -547,6 +547,30 @@ def system_status(request):
 
 
 @login_required
+def market_context(request):
+    """Market Context Dashboard - comprehensive market overview."""
+    return render(request, "home/market-context.html", {"segment": "market-context"})
+
+
+@login_required
+def allocations(request):
+    """Allocation Management - view and manage strategy allocations."""
+    return render(request, "home/allocations.html", {"segment": "allocations"})
+
+
+@login_required
+def circuit_breakers(request):
+    """Circuit Breaker Control Panel - monitor and manage circuit breakers."""
+    return render(request, "home/circuit-breakers.html", {"segment": "circuit-breakers"})
+
+
+@login_required
+def ml_agents(request):
+    """ML/RL Agent Control Panel - manage ML models and RL agents."""
+    return render(request, "home/ml-agents.html", {"segment": "ml-agents"})
+
+
+@login_required
 def user_settings_page(request):
     """Settings page - configure API connections and preferences."""
     return render(request, "home/settings.html", {"segment": "settings"})

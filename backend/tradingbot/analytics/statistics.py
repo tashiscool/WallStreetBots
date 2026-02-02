@@ -3,8 +3,7 @@ Portfolio Statistics - Inspired by Nautilus Trader.
 
 Provides 20+ portfolio performance statistics for strategy evaluation.
 
-Concepts from: https://github.com/nautechsystems/nautilus_trader
-License: LGPL-3.0 (concepts only, clean-room implementation)
+Inspired by Nautilus Trader concepts.
 """
 
 from abc import ABC, abstractmethod

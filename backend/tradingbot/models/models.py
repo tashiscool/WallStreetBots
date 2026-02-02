@@ -4122,6 +4122,961 @@ class CustomStrategy(models.Model):
         return clone
 
 
+class BacktestRun(models.Model):
+    """Persisted backtest run with full results for history and comparison.
+
+    Stores complete backtest configuration, metrics, equity curve, and trades
+    for later analysis and comparison between runs.
+    """
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('running', 'Running'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+
+    # Identification
+    run_id = models.CharField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        help_text="Unique identifier for this backtest run"
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='backtest_runs',
+        help_text="User who ran this backtest"
+    )
+    name = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="User-defined name for this run"
+    )
+
+    # Configuration
+    strategy_name = models.CharField(
+        max_length=100,
+        db_index=True,
+        help_text="Strategy that was backtested"
+    )
+    custom_strategy = models.ForeignKey(
+        CustomStrategy,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='backtest_runs',
+        help_text="Custom strategy if applicable"
+    )
+    start_date = models.DateField(help_text="Backtest start date")
+    end_date = models.DateField(help_text="Backtest end date")
+    initial_capital = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        help_text="Starting capital for backtest"
+    )
+    benchmark = models.CharField(
+        max_length=20,
+        default='SPY',
+        help_text="Benchmark symbol for comparison"
+    )
+
+    # Parameters (JSON blob for flexibility)
+    parameters = models.JSONField(
+        default=dict,
+        help_text="Strategy parameters used in this run"
+    )
+    """
+    Parameters structure:
+    {
+        "position_size_pct": 3.0,
+        "stop_loss_pct": 5.0,
+        "take_profit_pct": 15.0,
+        "max_positions": 10,
+        "commission_per_trade": 0,
+        "slippage_pct": 0.05
+    }
+    """
+
+    # Status
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        help_text="Current status of the backtest"
+    )
+    progress = models.IntegerField(
+        default=0,
+        help_text="Progress percentage (0-100)"
+    )
+    error_message = models.TextField(
+        blank=True,
+        help_text="Error message if backtest failed"
+    )
+
+    # Summary Metrics
+    total_return_pct = models.FloatField(null=True, help_text="Total return percentage")
+    benchmark_return_pct = models.FloatField(null=True, help_text="Benchmark return percentage")
+    alpha = models.FloatField(null=True, help_text="Alpha vs benchmark")
+    beta = models.FloatField(null=True, help_text="Beta vs benchmark")
+    sharpe_ratio = models.FloatField(null=True, help_text="Sharpe ratio")
+    sortino_ratio = models.FloatField(null=True, help_text="Sortino ratio")
+    calmar_ratio = models.FloatField(null=True, help_text="Calmar ratio")
+    max_drawdown_pct = models.FloatField(null=True, help_text="Maximum drawdown percentage")
+    win_rate = models.FloatField(null=True, help_text="Win rate percentage")
+    profit_factor = models.FloatField(null=True, help_text="Profit factor")
+    total_trades = models.IntegerField(null=True, help_text="Total number of trades")
+    winning_trades = models.IntegerField(null=True, help_text="Number of winning trades")
+    losing_trades = models.IntegerField(null=True, help_text="Number of losing trades")
+    avg_win = models.DecimalField(max_digits=12, decimal_places=2, null=True, help_text="Average winning trade")
+    avg_loss = models.DecimalField(max_digits=12, decimal_places=2, null=True, help_text="Average losing trade")
+    avg_hold_days = models.FloatField(null=True, help_text="Average holding period in days")
+    final_equity = models.DecimalField(max_digits=15, decimal_places=2, null=True, help_text="Final portfolio value")
+    total_pnl = models.DecimalField(max_digits=15, decimal_places=2, null=True, help_text="Total profit/loss")
+
+    # Detailed Results (JSON)
+    monthly_returns = models.JSONField(
+        default=dict,
+        help_text="Monthly returns {YYYY-MM: return_pct}"
+    )
+    equity_curve = models.JSONField(
+        default=list,
+        help_text="Daily equity snapshots [{date, equity, benchmark}]"
+    )
+    drawdown_curve = models.JSONField(
+        default=list,
+        help_text="Daily drawdown values [{date, drawdown_pct}]"
+    )
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    # Organization
+    tags = models.JSONField(default=list, help_text="Tags for filtering")
+    is_favorite = models.BooleanField(default=False, help_text="User marked as favorite")
+    notes = models.TextField(blank=True, help_text="User notes about this run")
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Backtest Run'
+        verbose_name_plural = 'Backtest Runs'
+        indexes = [
+            models.Index(fields=['user', 'strategy_name', 'created_at']),
+            models.Index(fields=['status', 'created_at']),
+            models.Index(fields=['user', 'is_favorite']),
+        ]
+
+    def __str__(self):
+        return f"Backtest {self.run_id}: {self.strategy_name} ({self.start_date} to {self.end_date})"
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for API responses."""
+        return {
+            'run_id': self.run_id,
+            'name': self.name,
+            'strategy_name': self.strategy_name,
+            'custom_strategy_id': self.custom_strategy_id,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'initial_capital': float(self.initial_capital) if self.initial_capital else None,
+            'benchmark': self.benchmark,
+            'parameters': self.parameters,
+            'status': self.status,
+            'progress': self.progress,
+            'error_message': self.error_message,
+            'summary': {
+                'total_return_pct': self.total_return_pct,
+                'benchmark_return_pct': self.benchmark_return_pct,
+                'alpha': self.alpha,
+                'sharpe_ratio': self.sharpe_ratio,
+                'sortino_ratio': self.sortino_ratio,
+                'max_drawdown_pct': self.max_drawdown_pct,
+                'win_rate': self.win_rate,
+                'profit_factor': self.profit_factor,
+                'total_trades': self.total_trades,
+                'avg_hold_days': self.avg_hold_days,
+                'final_equity': float(self.final_equity) if self.final_equity else None,
+                'total_pnl': float(self.total_pnl) if self.total_pnl else None,
+            },
+            'monthly_returns': self.monthly_returns,
+            'equity_curve': self.equity_curve,
+            'drawdown_curve': self.drawdown_curve,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'is_favorite': self.is_favorite,
+            'tags': self.tags,
+        }
+
+
+class BacktestTrade(models.Model):
+    """Individual trade from a backtest run."""
+
+    DIRECTION_CHOICES = [
+        ('long', 'Long'),
+        ('short', 'Short'),
+    ]
+
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('closed', 'Closed'),
+        ('stopped_out', 'Stopped Out'),
+        ('take_profit', 'Take Profit'),
+        ('time_exit', 'Time Exit'),
+    ]
+
+    backtest_run = models.ForeignKey(
+        BacktestRun,
+        on_delete=models.CASCADE,
+        related_name='trades',
+        help_text="Parent backtest run"
+    )
+    trade_id = models.CharField(max_length=50, help_text="Trade identifier within the run")
+    symbol = models.CharField(max_length=20, db_index=True, help_text="Traded symbol")
+    direction = models.CharField(max_length=10, choices=DIRECTION_CHOICES, help_text="Trade direction")
+
+    # Entry
+    entry_date = models.DateField(help_text="Entry date")
+    entry_price = models.DecimalField(max_digits=12, decimal_places=4, help_text="Entry price")
+    quantity = models.IntegerField(help_text="Number of shares/contracts")
+
+    # Exit
+    exit_date = models.DateField(null=True, blank=True, help_text="Exit date")
+    exit_price = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True, help_text="Exit price")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open', help_text="Trade status")
+
+    # P&L
+    pnl = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Profit/loss in dollars")
+    pnl_pct = models.FloatField(default=0, help_text="Profit/loss percentage")
+    commission = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Commission paid")
+    slippage = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Slippage cost")
+
+    # Metadata
+    entry_reason = models.CharField(max_length=200, blank=True, help_text="Signal that triggered entry")
+    exit_reason = models.CharField(max_length=200, blank=True, help_text="Reason for exit")
+
+    class Meta:
+        ordering = ['-entry_date']
+        verbose_name = 'Backtest Trade'
+        verbose_name_plural = 'Backtest Trades'
+        indexes = [
+            models.Index(fields=['backtest_run', 'symbol']),
+            models.Index(fields=['backtest_run', 'entry_date']),
+        ]
+
+    def __str__(self):
+        return f"{self.direction.upper()} {self.symbol} @ {self.entry_price}"
+
+    @property
+    def hold_days(self) -> int:
+        """Calculate holding period in days."""
+        if self.exit_date and self.entry_date:
+            return (self.exit_date - self.entry_date).days
+        return 0
+
+    @property
+    def is_winner(self) -> bool:
+        """Check if trade was profitable."""
+        return self.pnl > 0
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for API responses."""
+        return {
+            'trade_id': self.trade_id,
+            'symbol': self.symbol,
+            'direction': self.direction,
+            'entry_date': self.entry_date.isoformat() if self.entry_date else None,
+            'entry_price': float(self.entry_price) if self.entry_price else None,
+            'quantity': self.quantity,
+            'exit_date': self.exit_date.isoformat() if self.exit_date else None,
+            'exit_price': float(self.exit_price) if self.exit_price else None,
+            'status': self.status,
+            'pnl': float(self.pnl),
+            'pnl_pct': self.pnl_pct,
+            'hold_days': self.hold_days,
+            'is_winner': self.is_winner,
+            'entry_reason': self.entry_reason,
+            'exit_reason': self.exit_reason,
+        }
+
+
+class OptimizationRun(models.Model):
+    """Parameter optimization run results using Optuna."""
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('running', 'Running'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    LOSS_FUNCTION_CHOICES = [
+        ('sharpe', 'Maximize Sharpe Ratio'),
+        ('sortino', 'Maximize Sortino Ratio'),
+        ('calmar', 'Maximize Calmar Ratio'),
+        ('return', 'Maximize Total Return'),
+        ('profit_factor', 'Maximize Profit Factor'),
+        ('win_rate', 'Maximize Win Rate'),
+        ('min_drawdown', 'Minimize Max Drawdown'),
+    ]
+
+    SAMPLER_CHOICES = [
+        ('tpe', 'TPE (Tree-structured Parzen Estimator)'),
+        ('random', 'Random Search'),
+        ('cmaes', 'CMA-ES'),
+        ('grid', 'Grid Search'),
+    ]
+
+    # Identification
+    run_id = models.CharField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        help_text="Unique identifier for this optimization run"
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='optimization_runs',
+        help_text="User who ran this optimization"
+    )
+    name = models.CharField(max_length=200, blank=True, help_text="User-defined name")
+
+    # Strategy
+    strategy_name = models.CharField(max_length=100, help_text="Strategy being optimized")
+    custom_strategy = models.ForeignKey(
+        CustomStrategy,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='optimization_runs'
+    )
+
+    # Configuration
+    start_date = models.DateField(help_text="Backtest period start")
+    end_date = models.DateField(help_text="Backtest period end")
+    initial_capital = models.DecimalField(max_digits=15, decimal_places=2)
+
+    # Optimization settings
+    loss_function = models.CharField(
+        max_length=50,
+        choices=LOSS_FUNCTION_CHOICES,
+        default='sharpe',
+        help_text="Metric to optimize"
+    )
+    n_trials = models.IntegerField(default=100, help_text="Number of optimization trials")
+    sampler = models.CharField(
+        max_length=20,
+        choices=SAMPLER_CHOICES,
+        default='tpe',
+        help_text="Optimization algorithm"
+    )
+    parameter_ranges = models.JSONField(
+        default=dict,
+        help_text="Parameter ranges for optimization"
+    )
+    """
+    Parameter ranges structure:
+    {
+        "position_size_pct": {"min": 1, "max": 10, "step": 0.5},
+        "stop_loss_pct": {"min": 2, "max": 15, "step": 1},
+        "take_profit_pct": {"min": 5, "max": 30, "step": 2},
+        "rsi_period": {"min": 7, "max": 21, "step": 1}
+    }
+    """
+
+    # Status
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    progress = models.IntegerField(default=0, help_text="Progress 0-100")
+    current_trial = models.IntegerField(default=0, help_text="Current trial number")
+
+    # Results
+    best_params = models.JSONField(default=dict, help_text="Best parameters found")
+    best_value = models.FloatField(null=True, help_text="Best objective value")
+    best_sharpe = models.FloatField(null=True, help_text="Sharpe ratio with best params")
+    best_return_pct = models.FloatField(null=True, help_text="Return with best params")
+    best_drawdown_pct = models.FloatField(null=True, help_text="Max drawdown with best params")
+
+    # All trials for visualization
+    all_trials = models.JSONField(
+        default=list,
+        help_text="All trial results [{params, value, metrics}]"
+    )
+    parameter_importance = models.JSONField(
+        default=dict,
+        help_text="Parameter importance scores"
+    )
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Optimization Run'
+        verbose_name_plural = 'Optimization Runs'
+
+    def __str__(self):
+        return f"Optimization {self.run_id}: {self.strategy_name} ({self.status})"
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for API responses."""
+        return {
+            'run_id': self.run_id,
+            'name': self.name,
+            'strategy_name': self.strategy_name,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'loss_function': self.loss_function,
+            'n_trials': self.n_trials,
+            'sampler': self.sampler,
+            'parameter_ranges': self.parameter_ranges,
+            'status': self.status,
+            'progress': self.progress,
+            'current_trial': self.current_trial,
+            'best_params': self.best_params,
+            'best_value': self.best_value,
+            'best_sharpe': self.best_sharpe,
+            'best_return_pct': self.best_return_pct,
+            'best_drawdown_pct': self.best_drawdown_pct,
+            'parameter_importance': self.parameter_importance,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+        }
+
+
+class WalkForwardRun(models.Model):
+    """Walk-forward analysis run for strategy robustness testing."""
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('running', 'Running'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+
+    # Identification
+    run_id = models.CharField(max_length=100, unique=True, db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='walkforward_runs')
+    name = models.CharField(max_length=200, blank=True)
+
+    # Strategy
+    strategy_name = models.CharField(max_length=100)
+    custom_strategy = models.ForeignKey(
+        CustomStrategy,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='walkforward_runs'
+    )
+
+    # Configuration
+    start_date = models.DateField()
+    end_date = models.DateField()
+    initial_capital = models.DecimalField(max_digits=15, decimal_places=2)
+    train_window_days = models.IntegerField(default=90, help_text="Training window in days")
+    test_window_days = models.IntegerField(default=30, help_text="Out-of-sample test window in days")
+    step_days = models.IntegerField(default=30, help_text="Step size between windows")
+    parameters = models.JSONField(default=dict, help_text="Fixed parameters for testing")
+
+    # Status
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    progress = models.IntegerField(default=0)
+
+    # Results
+    total_windows = models.IntegerField(default=0, help_text="Total number of walk-forward windows")
+    windows_completed = models.IntegerField(default=0)
+
+    # Aggregated metrics
+    avg_is_return = models.FloatField(null=True, help_text="Average in-sample return")
+    avg_oos_return = models.FloatField(null=True, help_text="Average out-of-sample return")
+    avg_is_sharpe = models.FloatField(null=True, help_text="Average in-sample Sharpe")
+    avg_oos_sharpe = models.FloatField(null=True, help_text="Average out-of-sample Sharpe")
+    robustness_ratio = models.FloatField(null=True, help_text="OOS/IS performance ratio")
+    stability_score = models.FloatField(null=True, help_text="Performance stability across windows")
+
+    # Detailed window results
+    window_results = models.JSONField(
+        default=list,
+        help_text="Results for each walk-forward window"
+    )
+    """
+    Window results structure:
+    [{
+        "window": 1,
+        "train_start": "2023-01-01",
+        "train_end": "2023-03-31",
+        "test_start": "2023-04-01",
+        "test_end": "2023-04-30",
+        "is_return": 5.2,
+        "oos_return": 3.1,
+        "is_sharpe": 1.5,
+        "oos_sharpe": 1.1,
+        "best_params": {...}
+    }]
+    """
+
+    recommendations = models.JSONField(default=list, help_text="Recommendations based on analysis")
+    warnings = models.JSONField(default=list, help_text="Warnings about strategy robustness")
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Walk-Forward Run'
+        verbose_name_plural = 'Walk-Forward Runs'
+
+    def __str__(self):
+        return f"WalkForward {self.run_id}: {self.strategy_name}"
+
+
+# ============================================================================
+# ML/RL Agent Models
+# ============================================================================
+
+class MLModel(models.Model):
+    """Machine Learning model configuration and state."""
+
+    MODEL_TYPES = [
+        ('lstm', 'LSTM - Sequence Prediction'),
+        ('cnn', 'CNN - Pattern Recognition'),
+        ('transformer', 'Transformer - Attention Model'),
+        ('hmm', 'HMM - Regime Detection'),
+        ('xgboost', 'XGBoost - Gradient Boosting'),
+        ('random_forest', 'Random Forest'),
+    ]
+
+    MODEL_STATUS = [
+        ('idle', 'Idle'),
+        ('active', 'Active'),
+        ('training', 'Training'),
+        ('error', 'Error'),
+    ]
+
+    PREDICTION_TARGETS = [
+        ('direction', 'Price Direction'),
+        ('returns', 'Returns'),
+        ('volatility', 'Volatility'),
+        ('regime', 'Market Regime'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_models')
+    name = models.CharField(max_length=100)
+    model_type = models.CharField(max_length=20, choices=MODEL_TYPES, default='lstm')
+    status = models.CharField(max_length=20, choices=MODEL_STATUS, default='idle')
+
+    # Target configuration
+    symbols = models.CharField(max_length=500, help_text="Comma-separated symbols")
+    prediction_target = models.CharField(max_length=20, choices=PREDICTION_TARGETS, default='direction')
+    lookback_period = models.IntegerField(default=60, help_text="Days of historical data")
+
+    # Hyperparameters (stored as JSON for flexibility)
+    hyperparameters = models.JSONField(default=dict, help_text="Model hyperparameters")
+    """
+    Default hyperparameters structure:
+    {
+        "learning_rate": 0.001,
+        "batch_size": 32,
+        "epochs": 100,
+        "hidden_layers": 2,
+        "hidden_units": 64,
+        "dropout": 0.2,
+        "optimizer": "adam",
+        "loss_function": "binary_crossentropy"
+    }
+    """
+
+    # Performance metrics
+    accuracy = models.FloatField(null=True, blank=True)
+    precision = models.FloatField(null=True, blank=True)
+    recall = models.FloatField(null=True, blank=True)
+    f1_score = models.FloatField(null=True, blank=True)
+    predictions_count = models.IntegerField(default=0)
+
+    # Training history
+    accuracy_history = models.JSONField(default=list)
+    loss_history = models.JSONField(default=list)
+    validation_history = models.JSONField(default=list)
+
+    # Model artifact storage
+    model_path = models.CharField(max_length=500, blank=True, help_text="Path to saved model file")
+    model_version = models.IntegerField(default=1)
+
+    # Feature configuration
+    features_config = models.JSONField(default=dict, help_text="Feature engineering config")
+    feature_importance = models.JSONField(default=dict, help_text="Feature importance scores")
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_trained = models.DateTimeField(null=True, blank=True)
+    last_prediction = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+        unique_together = ['user', 'name']
+
+    def __str__(self):
+        return f"{self.name} ({self.model_type})"
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'name': self.name,
+            'type': self.model_type,
+            'status': self.status,
+            'symbols': self.symbols,
+            'prediction_target': self.prediction_target,
+            'lookback_period': self.lookback_period,
+            'hyperparameters': self.hyperparameters,
+            'accuracy': self.accuracy,
+            'precision': self.precision,
+            'recall': self.recall,
+            'f1_score': self.f1_score,
+            'predictions_count': self.predictions_count,
+            'accuracy_history': self.accuracy_history,
+            'loss_history': self.loss_history,
+            'feature_importance': self.feature_importance,
+            'model_version': self.model_version,
+            'last_trained': self.last_trained.isoformat() if self.last_trained else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+    def get_default_hyperparameters(self):
+        """Return default hyperparameters based on model type."""
+        defaults = {
+            'lstm': {
+                'learning_rate': 0.001,
+                'batch_size': 32,
+                'epochs': 100,
+                'hidden_layers': 2,
+                'hidden_units': 64,
+                'dropout': 0.2,
+                'sequence_length': 20,
+            },
+            'cnn': {
+                'learning_rate': 0.001,
+                'batch_size': 64,
+                'epochs': 50,
+                'filters': [32, 64, 128],
+                'kernel_size': 3,
+                'dropout': 0.25,
+            },
+            'transformer': {
+                'learning_rate': 0.0001,
+                'batch_size': 32,
+                'epochs': 100,
+                'num_heads': 4,
+                'ff_dim': 128,
+                'num_layers': 2,
+                'dropout': 0.1,
+            },
+            'hmm': {
+                'n_states': 3,
+                'n_iterations': 100,
+                'covariance_type': 'full',
+            },
+        }
+        return defaults.get(self.model_type, defaults['lstm'])
+
+
+class RLAgent(models.Model):
+    """Reinforcement Learning agent configuration and state."""
+
+    AGENT_TYPES = [
+        ('ppo', 'PPO - Proximal Policy Optimization'),
+        ('ddpg', 'DDPG - Deep Deterministic Policy Gradient'),
+        ('a2c', 'A2C - Advantage Actor-Critic'),
+        ('sac', 'SAC - Soft Actor-Critic'),
+        ('td3', 'TD3 - Twin Delayed DDPG'),
+    ]
+
+    AGENT_STATUS = [
+        ('idle', 'Idle'),
+        ('active', 'Active'),
+        ('training', 'Training'),
+        ('error', 'Error'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rl_agents')
+    name = models.CharField(max_length=100)
+    agent_type = models.CharField(max_length=20, choices=AGENT_TYPES, default='ppo')
+    status = models.CharField(max_length=20, choices=AGENT_STATUS, default='idle')
+
+    # Environment configuration
+    symbols = models.CharField(max_length=500, default='SPY', help_text="Trading symbols")
+    initial_capital = models.DecimalField(max_digits=15, decimal_places=2, default=100000)
+    max_position_size = models.FloatField(default=1.0, help_text="Max position as fraction of portfolio")
+    transaction_cost = models.FloatField(default=0.001, help_text="Transaction cost as fraction")
+
+    # Hyperparameters
+    hyperparameters = models.JSONField(default=dict)
+    """
+    Default hyperparameters structure:
+    {
+        "actor_lr": 0.0003,
+        "critic_lr": 0.0003,
+        "gamma": 0.99,
+        "tau": 0.005,
+        "buffer_size": 100000,
+        "batch_size": 64,
+        "update_frequency": 1,
+        "clip_ratio": 0.2,  # PPO specific
+        "entropy_coef": 0.01,
+        "risk_penalty": 0.1
+    }
+    """
+
+    # Training state
+    total_episodes = models.IntegerField(default=0)
+    total_timesteps = models.IntegerField(default=0)
+
+    # Performance metrics
+    avg_reward = models.FloatField(null=True, blank=True)
+    sharpe_ratio = models.FloatField(null=True, blank=True)
+    sortino_ratio = models.FloatField(null=True, blank=True)
+    max_drawdown = models.FloatField(null=True, blank=True)
+    win_rate = models.FloatField(null=True, blank=True)
+    avg_return = models.FloatField(null=True, blank=True)
+    total_return = models.FloatField(null=True, blank=True)
+
+    # History
+    reward_history = models.JSONField(default=list)
+    returns_history = models.JSONField(default=list)
+    episode_lengths = models.JSONField(default=list)
+
+    # Model storage
+    actor_path = models.CharField(max_length=500, blank=True)
+    critic_path = models.CharField(max_length=500, blank=True)
+    model_version = models.IntegerField(default=1)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_trained = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+        unique_together = ['user', 'name']
+
+    def __str__(self):
+        return f"{self.name} ({self.agent_type})"
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'name': self.name,
+            'type': self.agent_type,
+            'status': self.status,
+            'symbols': self.symbols,
+            'episodes': self.total_episodes,
+            'timesteps': self.total_timesteps,
+            'avg_reward': self.avg_reward,
+            'sharpe': self.sharpe_ratio,
+            'sortino': self.sortino_ratio,
+            'max_drawdown': self.max_drawdown,
+            'win_rate': self.win_rate,
+            'avg_return': self.avg_return,
+            'total_return': self.total_return,
+            'reward_history': self.reward_history[-100:] if self.reward_history else [],
+            'returns_history': self.returns_history[-100:] if self.returns_history else [],
+            'hyperparameters': self.hyperparameters,
+            'model_version': self.model_version,
+            'last_trained': self.last_trained.isoformat() if self.last_trained else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+    def get_default_hyperparameters(self):
+        """Return default hyperparameters based on agent type."""
+        defaults = {
+            'ppo': {
+                'actor_lr': 0.0003,
+                'critic_lr': 0.0003,
+                'gamma': 0.99,
+                'clip_ratio': 0.2,
+                'entropy_coef': 0.01,
+                'value_coef': 0.5,
+                'max_grad_norm': 0.5,
+                'n_steps': 2048,
+                'batch_size': 64,
+                'n_epochs': 10,
+            },
+            'ddpg': {
+                'actor_lr': 0.0001,
+                'critic_lr': 0.001,
+                'gamma': 0.99,
+                'tau': 0.005,
+                'buffer_size': 100000,
+                'batch_size': 64,
+                'noise_std': 0.1,
+                'noise_clip': 0.5,
+            },
+            'sac': {
+                'actor_lr': 0.0003,
+                'critic_lr': 0.0003,
+                'gamma': 0.99,
+                'tau': 0.005,
+                'alpha': 0.2,
+                'buffer_size': 100000,
+                'batch_size': 256,
+            },
+        }
+        return defaults.get(self.agent_type, defaults['ppo'])
+
+
+class TrainingJob(models.Model):
+    """Track ML model and RL agent training jobs."""
+
+    JOB_STATUS = [
+        ('queued', 'Queued'),
+        ('running', 'Running'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    JOB_TYPES = [
+        ('ml_model', 'ML Model Training'),
+        ('rl_agent', 'RL Agent Training'),
+        ('optimization', 'Hyperparameter Optimization'),
+    ]
+
+    job_id = models.CharField(max_length=100, unique=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='training_jobs')
+    job_type = models.CharField(max_length=20, choices=JOB_TYPES)
+    status = models.CharField(max_length=20, choices=JOB_STATUS, default='queued')
+
+    # Reference to model/agent being trained
+    ml_model = models.ForeignKey(MLModel, on_delete=models.CASCADE, null=True, blank=True, related_name='training_jobs')
+    rl_agent = models.ForeignKey(RLAgent, on_delete=models.CASCADE, null=True, blank=True, related_name='training_jobs')
+
+    # Training configuration
+    training_config = models.JSONField(default=dict)
+    """
+    Config structure:
+    {
+        "epochs": 100,
+        "batch_size": 32,
+        "validation_split": 0.2,
+        "early_stopping": true,
+        "patience": 10,
+        "data_start": "2020-01-01",
+        "data_end": "2024-01-01"
+    }
+    """
+
+    # Progress tracking
+    progress = models.FloatField(default=0, help_text="Progress 0-100")
+    current_epoch = models.IntegerField(default=0)
+    total_epochs = models.IntegerField(default=100)
+    current_loss = models.FloatField(null=True, blank=True)
+    current_metric = models.FloatField(null=True, blank=True)
+
+    # Training metrics (updated during training)
+    metrics_history = models.JSONField(default=list)
+    """
+    Metrics history structure:
+    [{
+        "epoch": 1,
+        "train_loss": 0.5,
+        "val_loss": 0.6,
+        "train_accuracy": 0.6,
+        "val_accuracy": 0.55,
+        "timestamp": "2024-01-01T10:00:00"
+    }]
+    """
+
+    # Results
+    final_metrics = models.JSONField(default=dict, help_text="Final training metrics")
+    best_epoch = models.IntegerField(null=True, blank=True)
+    best_metric_value = models.FloatField(null=True, blank=True)
+
+    # Error tracking
+    error_message = models.TextField(blank=True)
+    error_traceback = models.TextField(blank=True)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    # Computed fields
+    @property
+    def duration_seconds(self):
+        if self.started_at and self.completed_at:
+            return (self.completed_at - self.started_at).total_seconds()
+        elif self.started_at:
+            from django.utils import timezone
+            return (timezone.now() - self.started_at).total_seconds()
+        return None
+
+    @property
+    def eta_seconds(self):
+        if self.progress > 0 and self.started_at:
+            elapsed = self.duration_seconds
+            if elapsed:
+                return (elapsed / self.progress) * (100 - self.progress)
+        return None
+
+    @property
+    def model_name(self):
+        if self.ml_model:
+            return self.ml_model.name
+        elif self.rl_agent:
+            return self.rl_agent.name
+        return "Unknown"
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Training Job {self.job_id}: {self.model_name}"
+
+    def to_dict(self):
+        return {
+            'id': self.job_id,
+            'model_name': self.model_name,
+            'type': self.job_type,
+            'status': self.status,
+            'progress': self.progress,
+            'current_epoch': self.current_epoch,
+            'total_epochs': self.total_epochs,
+            'current_loss': self.current_loss,
+            'eta': self._format_eta(),
+            'started': self.started_at.isoformat() if self.started_at else None,
+            'duration': self._format_duration(),
+            'final_metrics': self.final_metrics,
+            'error_message': self.error_message if self.status == 'failed' else None,
+        }
+
+    def _format_duration(self):
+        seconds = self.duration_seconds
+        if not seconds:
+            return None
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        if hours > 0:
+            return f"{hours}h {minutes}m"
+        return f"{minutes}m"
+
+    def _format_eta(self):
+        seconds = self.eta_seconds
+        if not seconds:
+            return "Calculating..."
+        minutes = int(seconds // 60)
+        if minutes > 60:
+            hours = minutes // 60
+            minutes = minutes % 60
+            return f"{hours}h {minutes}m"
+        return f"{minutes} minutes"
+
+
 # Signal to auto-create UserProfile when User is created
 from django.db.models.signals import post_save
 from django.dispatch import receiver

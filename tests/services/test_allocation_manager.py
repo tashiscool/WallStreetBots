@@ -11,6 +11,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch, MagicMock
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 from django.utils import timezone
 
@@ -21,6 +22,12 @@ from backend.auth0login.services.allocation_manager import (
     RebalanceRecommendation,
     get_allocation_manager,
 )
+
+
+# Create a proper DoesNotExist exception for mocking
+class MockDoesNotExist(ObjectDoesNotExist):
+    """Mock DoesNotExist exception for testing."""
+    pass
 
 
 class TestAllocationManagerService(TestCase):
@@ -50,9 +57,10 @@ class TestAllocationManagerService(TestCase):
             total = sum(allocations.values())
             self.assertEqual(total, 100, f"{profile} allocations should sum to 100%")
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_get_strategy_allocation_exists(self, mock_model):
         """Test get_strategy_allocation when allocation exists."""
+        mock_model.DoesNotExist = MockDoesNotExist
         mock_allocation = Mock()
         mock_allocation.strategy_name = 'wsb-dip-bot'
         mock_allocation.allocated_pct = Decimal('20.0')
@@ -74,19 +82,19 @@ class TestAllocationManagerService(TestCase):
         self.assertEqual(result.allocated_pct, 20.0)
         self.assertEqual(result.available_capital, 3000.0)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_get_strategy_allocation_not_exists(self, mock_model):
         """Test get_strategy_allocation when allocation doesn't exist."""
-        mock_model.objects.get.side_effect = mock_model.DoesNotExist
+        mock_model.objects.get.side_effect = MockDoesNotExist
 
         result = self.service.get_strategy_allocation(self.user, 'unknown-strategy')
 
         self.assertIsNone(result)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_check_allocation_available_no_limit(self, mock_model):
         """Test check_allocation_available when no limit is configured."""
-        mock_model.objects.get.side_effect = mock_model.DoesNotExist
+        mock_model.objects.get.side_effect = MockDoesNotExist
 
         is_available, message = self.service.check_allocation_available(
             self.user, 'strategy1', 5000.0
@@ -95,7 +103,7 @@ class TestAllocationManagerService(TestCase):
         self.assertTrue(is_available)
         self.assertIn('No allocation limit', message)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_check_allocation_available_disabled(self, mock_model):
         """Test check_allocation_available when limits are disabled."""
         mock_allocation = Mock()
@@ -109,7 +117,7 @@ class TestAllocationManagerService(TestCase):
         self.assertTrue(is_available)
         self.assertIn('disabled', message)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_check_allocation_available_sufficient(self, mock_model):
         """Test check_allocation_available when sufficient capital available."""
         mock_allocation = Mock()
@@ -124,7 +132,7 @@ class TestAllocationManagerService(TestCase):
         self.assertTrue(is_available)
         self.assertIn('available', message.lower())
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_check_allocation_available_insufficient(self, mock_model):
         """Test check_allocation_available when insufficient capital."""
         mock_allocation = Mock()
@@ -140,7 +148,7 @@ class TestAllocationManagerService(TestCase):
         self.assertIn('Insufficient', message)
 
     @patch('backend.auth0login.services.allocation_manager.AllocationReservation')
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_reserve_allocation_success(self, mock_limit_model, mock_reservation_model):
         """Test successful reservation."""
         mock_allocation = Mock()
@@ -159,7 +167,7 @@ class TestAllocationManagerService(TestCase):
         mock_allocation.reserve.assert_called_once_with(5000.0)
         mock_reservation_model.objects.create.assert_called_once()
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_reserve_allocation_disabled(self, mock_limit_model):
         """Test reservation when limits are disabled."""
         mock_allocation = Mock()
@@ -175,7 +183,7 @@ class TestAllocationManagerService(TestCase):
 
         self.assertTrue(result)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_reserve_allocation_insufficient(self, mock_limit_model):
         """Test reservation when insufficient capital."""
         mock_allocation = Mock()
@@ -193,7 +201,7 @@ class TestAllocationManagerService(TestCase):
 
         self.assertFalse(result)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_reserve_allocation_no_config(self, mock_limit_model):
         """Test reservation when no allocation configured."""
         mock_queryset = MagicMock()
@@ -207,7 +215,7 @@ class TestAllocationManagerService(TestCase):
         self.assertTrue(result)  # Allows order when no config
 
     @patch('backend.auth0login.services.allocation_manager.AllocationReservation')
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_release_allocation(self, mock_limit_model, mock_reservation_model):
         """Test releasing allocation."""
         mock_allocation = Mock()
@@ -224,7 +232,7 @@ class TestAllocationManagerService(TestCase):
         mock_reservation.resolve.assert_called_once_with('cancelled')
 
     @patch('backend.auth0login.services.allocation_manager.AllocationReservation')
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_release_allocation_no_order_id(self, mock_limit_model, mock_reservation_model):
         """Test releasing allocation without order ID."""
         mock_allocation = Mock()
@@ -237,7 +245,7 @@ class TestAllocationManagerService(TestCase):
         mock_allocation.release_reservation.assert_called_once_with(5000.0)
 
     @patch('backend.auth0login.services.allocation_manager.AllocationReservation')
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_confirm_allocation(self, mock_limit_model, mock_reservation_model):
         """Test confirming allocation."""
         mock_allocation = Mock()
@@ -253,7 +261,7 @@ class TestAllocationManagerService(TestCase):
         mock_allocation.add_exposure.assert_called_once_with(5000.0)
         mock_reservation.resolve.assert_called_once_with('filled')
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_reduce_exposure(self, mock_limit_model):
         """Test reducing exposure."""
         mock_allocation = Mock()
@@ -265,7 +273,7 @@ class TestAllocationManagerService(TestCase):
 
         mock_allocation.remove_exposure.assert_called_once_with(3000.0)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_recalculate_all_allocations(self, mock_limit_model):
         """Test recalculating all allocations."""
         mock_allocation1 = Mock()
@@ -279,7 +287,7 @@ class TestAllocationManagerService(TestCase):
         mock_allocation1.recalculate_allocated_amount.assert_called_once_with(150000.0)
         mock_allocation2.recalculate_allocated_amount.assert_called_once_with(150000.0)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_get_allocation_summary_not_configured(self, mock_limit_model):
         """Test get_allocation_summary when not configured."""
         mock_queryset = MagicMock()
@@ -291,7 +299,7 @@ class TestAllocationManagerService(TestCase):
         self.assertFalse(result['configured'])
         self.assertEqual(result['total_allocated_pct'], 0)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_get_allocation_summary_configured(self, mock_limit_model):
         """Test get_allocation_summary with configured allocations."""
         mock_allocation = Mock()
@@ -338,7 +346,7 @@ class TestAllocationManagerService(TestCase):
         self.assertTrue(any('maxed out' in w for w in warnings))
         self.assertTrue(any('near limit' in w for w in warnings))
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_reconcile_allocations(self, mock_limit_model):
         """Test reconciling allocations with actual positions."""
         mock_allocation = Mock()
@@ -362,7 +370,7 @@ class TestAllocationManagerService(TestCase):
             self.assertIn('adjustments', report)
             self.assertGreater(len(report['adjustments']), 0)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_initialize_allocations_conservative(self, mock_limit_model):
         """Test initializing allocations with conservative profile."""
         mock_limit_model.objects.update_or_create.return_value = (Mock(), True)
@@ -373,7 +381,7 @@ class TestAllocationManagerService(TestCase):
         call_count = mock_limit_model.objects.update_or_create.call_count
         self.assertGreater(call_count, 0)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_initialize_allocations_with_enabled_filter(self, mock_limit_model):
         """Test initializing allocations with enabled strategies filter."""
         mock_limit_model.objects.update_or_create.return_value = (Mock(), True)
@@ -387,7 +395,7 @@ class TestAllocationManagerService(TestCase):
         call_count = mock_limit_model.objects.update_or_create.call_count
         self.assertLessEqual(call_count, len(enabled_strategies))
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_update_allocation(self, mock_limit_model):
         """Test updating allocation percentage."""
         mock_allocation = Mock()
@@ -401,7 +409,7 @@ class TestAllocationManagerService(TestCase):
         self.assertEqual(mock_allocation.allocated_amount, Decimal('25000.0'))
         mock_allocation.save.assert_called_once()
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_get_rebalance_recommendations(self, mock_limit_model):
         """Test generating rebalance recommendations."""
         mock_allocation = Mock()
@@ -420,7 +428,7 @@ class TestAllocationManagerService(TestCase):
         if len(recommendations) > 0:
             self.assertIsInstance(recommendations[0], RebalanceRecommendation)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_get_rebalance_recommendations_with_target_profile(self, mock_limit_model):
         """Test rebalance recommendations with target profile."""
         mock_allocation = Mock()
@@ -437,7 +445,7 @@ class TestAllocationManagerService(TestCase):
 
         self.assertIsInstance(recommendations, list)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_enforce_allocation_no_config(self, mock_limit_model):
         """Test enforce_allocation when no config exists."""
         mock_limit_model.objects.get.side_effect = mock_limit_model.DoesNotExist
@@ -449,7 +457,7 @@ class TestAllocationManagerService(TestCase):
         self.assertTrue(result['allowed'])
         self.assertIn('No allocation limit', result['message'])
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_enforce_allocation_disabled(self, mock_limit_model):
         """Test enforce_allocation when limits disabled."""
         mock_allocation = Mock()
@@ -463,7 +471,7 @@ class TestAllocationManagerService(TestCase):
         self.assertTrue(result['allowed'])
         self.assertIn('disabled', result['message'])
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_enforce_allocation_exceeded(self, mock_limit_model):
         """Test enforce_allocation when limit exceeded."""
         mock_allocation = Mock()
@@ -480,7 +488,7 @@ class TestAllocationManagerService(TestCase):
         self.assertEqual(context.exception.available, 3000.0)
         self.assertEqual(context.exception.requested, 5000.0)
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_enforce_allocation_with_reservation(self, mock_limit_model):
         """Test enforce_allocation with reservation."""
         mock_allocation = Mock()
@@ -495,7 +503,7 @@ class TestAllocationManagerService(TestCase):
 
             self.assertTrue(result['allowed'])
 
-    @patch('backend.auth0login.services.allocation_manager.StrategyAllocationLimit')
+    @patch('backend.tradingbot.models.models.StrategyAllocationLimit')
     def test_enforce_allocation_reservation_failed(self, mock_limit_model):
         """Test enforce_allocation when reservation fails."""
         mock_allocation = Mock()

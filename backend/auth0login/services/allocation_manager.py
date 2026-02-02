@@ -725,3 +725,7 @@ def get_allocation_manager() -> AllocationManagerService:
     if _allocation_manager is None:
         _allocation_manager = AllocationManagerService()
     return _allocation_manager
+
+
+# Alias for backward compatibility with api_views.py
+AllocationManager = AllocationManagerService

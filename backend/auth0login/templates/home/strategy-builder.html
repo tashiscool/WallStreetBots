@@ -3,6 +3,171 @@
 
 {% block title %}Strategy Builder{% endblock %}
 
+{% block stylesheets %}
+{{ block.super }}
+<style>
+    /* Drag-Drop Styles */
+    .indicator-palette {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .indicator-item {
+        padding: 8px 12px;
+        margin-bottom: 6px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        cursor: grab;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+    }
+    .indicator-item:hover {
+        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+        transform: translateX(3px);
+    }
+    .indicator-item:active {
+        cursor: grabbing;
+    }
+    .indicator-item.sortable-ghost {
+        opacity: 0.4;
+    }
+    .indicator-item .badge {
+        font-size: 0.65rem;
+    }
+
+    /* Condition Group Styles */
+    .condition-group {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+        min-height: 60px;
+        background: #fafbfc;
+        transition: all 0.2s ease;
+    }
+    .condition-group.sortable-ghost {
+        opacity: 0.4;
+    }
+    .condition-group.group-dragover {
+        border-color: #0d6efd;
+        background: #e7f1ff;
+    }
+    .condition-group.group-and {
+        border-color: #198754;
+        background: rgba(25, 135, 84, 0.05);
+    }
+    .condition-group.group-or {
+        border-color: #fd7e14;
+        background: rgba(253, 126, 20, 0.05);
+    }
+    .condition-group-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .condition-group-content {
+        min-height: 40px;
+    }
+    .condition-group .empty-placeholder {
+        text-align: center;
+        padding: 15px;
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+
+    /* Condition Block Styles */
+    .condition-block {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: grab;
+        transition: all 0.2s ease;
+    }
+    .condition-block:hover {
+        border-color: #0d6efd;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .condition-block.sortable-ghost {
+        opacity: 0.4;
+    }
+    .condition-block .form-select-sm,
+    .condition-block .form-control-sm {
+        font-size: 0.8rem;
+    }
+    .condition-block .remove-btn {
+        opacity: 0.5;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    .condition-block:hover .remove-btn {
+        opacity: 1;
+    }
+
+    /* Logic Badge */
+    .logic-badge {
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+    }
+    .logic-badge.and {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+    .logic-badge.or {
+        background: #fff3cd;
+        color: #664d03;
+    }
+
+    /* Condition Tree Visualization */
+    .condition-tree {
+        font-family: monospace;
+        font-size: 0.85rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        white-space: pre-wrap;
+        line-height: 1.6;
+    }
+    .condition-tree .keyword {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+    .condition-tree .operator {
+        color: #dc3545;
+    }
+    .condition-tree .value {
+        color: #198754;
+    }
+    .condition-tree .group-and {
+        color: #0f5132;
+    }
+    .condition-tree .group-or {
+        color: #664d03;
+    }
+
+    /* Palette Category */
+    .palette-category {
+        margin-bottom: 15px;
+    }
+    .palette-category-header {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #e9ecef;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
     <!-- Page Header -->
@@ -14,7 +179,7 @@
                         <div class="col-lg-8">
                             <h2 class="text-white mb-1">Strategy Builder</h2>
                             <p class="text-white opacity-8 mb-0">
-                                Create custom trading strategies using technical indicators and conditions
+                                Drag and drop indicators to build custom trading strategies with nested conditions
                             </p>
                         </div>
                         <div class="col-lg-4 text-lg-end">
@@ -88,171 +253,207 @@
             </div>
         </div>
 
+        <!-- Indicator Palette (Sidebar) -->
+        <div class="col-lg-3 mb-4">
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <h6 class="mb-0"><i class="fas fa-palette text-primary me-2"></i>Indicator Palette</h6>
+                    <p class="text-xs text-muted mb-0">Drag indicators to entry/exit areas</p>
+                </div>
+                <div class="card-body indicator-palette" id="indicatorPalette">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
         <!-- Builder Main Area -->
-        <div class="col-lg-6 mb-4">
-            <!-- Entry Conditions -->
-            <div class="card h-100">
-                <div class="card-header pb-0">
-                    <h6 class="mb-0"><i class="fas fa-sign-in-alt text-success me-2"></i>Entry Conditions</h6>
-                    <p class="text-xs text-muted mb-0">When to BUY - all conditions must be met</p>
-                </div>
-                <div class="card-body">
-                    <div id="entryConditionsContainer">
-                        <!-- Entry conditions added here -->
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label text-xs text-uppercase">Entry Logic</label>
-                        <select class="form-select form-select-sm" id="entryLogic">
-                            <option value="all">ALL conditions (AND)</option>
-                            <option value="any">ANY condition (OR)</option>
-                        </select>
-                    </div>
-
-                    <button class="btn btn-outline-success btn-sm w-100" onclick="addEntryCondition()">
-                        <i class="fas fa-plus me-1"></i> Add Entry Condition
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6 mb-4">
-            <!-- Exit Conditions -->
-            <div class="card h-100">
-                <div class="card-header pb-0">
-                    <h6 class="mb-0"><i class="fas fa-sign-out-alt text-danger me-2"></i>Exit Conditions</h6>
-                    <p class="text-xs text-muted mb-0">When to SELL - any condition triggers exit</p>
-                </div>
-                <div class="card-body">
-                    <div id="exitConditionsContainer">
-                        <!-- Exit conditions added here -->
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label text-xs text-uppercase">Exit Logic</label>
-                        <select class="form-select form-select-sm" id="exitLogic">
-                            <option value="any">ANY condition (OR)</option>
-                            <option value="all">ALL conditions (AND)</option>
-                        </select>
-                    </div>
-
-                    <button class="btn btn-outline-danger btn-sm w-100" onclick="addExitCondition()">
-                        <i class="fas fa-plus me-1"></i> Add Exit Condition
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6 mb-4">
-            <!-- Position Sizing -->
-            <div class="card">
-                <div class="card-header pb-0">
-                    <h6 class="mb-0"><i class="fas fa-balance-scale text-info me-2"></i>Position Sizing</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-xs text-uppercase">Size Type</label>
-                            <select class="form-select form-select-sm" id="sizingType">
-                                <option value="fixed_percent">Fixed Percentage</option>
-                                <option value="fixed_dollar">Fixed Dollar</option>
-                                <option value="equal_weight">Equal Weight</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-xs text-uppercase">Size Value</label>
-                            <div class="input-group input-group-sm">
-                                <input type="number" class="form-control" id="sizingValue" value="5" min="1" max="100">
-                                <span class="input-group-text" id="sizingUnit">%</span>
+        <div class="col-lg-9">
+            <div class="row">
+                <!-- Entry Conditions -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0"><i class="fas fa-sign-in-alt text-success me-2"></i>Entry Conditions</h6>
+                                <p class="text-xs text-muted mb-0">When to BUY - drag conditions here</p>
                             </div>
+                            <button class="btn btn-outline-success btn-sm" onclick="addConditionGroup('entry')">
+                                <i class="fas fa-layer-group me-1"></i> Add Group
+                            </button>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label text-xs text-uppercase">Max Concurrent Positions</label>
-                            <input type="number" class="form-control form-control-sm" id="maxPositions" value="5" min="1" max="20">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6 mb-4">
-            <!-- Filters -->
-            <div class="card">
-                <div class="card-header pb-0">
-                    <h6 class="mb-0"><i class="fas fa-filter text-warning me-2"></i>Stock Filters</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-xs text-uppercase">Min Price ($)</label>
-                            <input type="number" class="form-control form-control-sm" id="filterMinPrice" value="10" min="0">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-xs text-uppercase">Min Volume</label>
-                            <input type="number" class="form-control form-control-sm" id="filterMinVolume" value="500000" min="0" step="100000">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-xs text-uppercase">Stock Universe</label>
-                            <select class="form-select form-select-sm" id="universe">
-                                <option value="sp500">S&P 500</option>
-                                <option value="nasdaq100">Nasdaq 100</option>
-                                <option value="dow30">Dow 30</option>
-                                <option value="russell2000">Russell 2000</option>
-                                <option value="custom">Custom List</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="form-check mt-4">
-                                <input class="form-check-input" type="checkbox" id="filterSkipEarnings" checked>
-                                <label class="form-check-label text-sm" for="filterSkipEarnings">
-                                    Skip earnings week
-                                </label>
+                        <div class="card-body">
+                            <div id="entryConditionsContainer" class="condition-group group-and">
+                                <div class="condition-group-header">
+                                    <span class="logic-badge and">ALL (AND)</span>
+                                    <div>
+                                        <button class="btn btn-xs btn-outline-secondary" onclick="toggleGroupLogic('entry-root')">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="condition-group-content" id="entry-root" data-group-id="root" data-logic="AND">
+                                    <div class="empty-placeholder">
+                                        <i class="fas fa-hand-pointer me-1"></i>
+                                        Drag indicators here or click "Add Group" for complex conditions
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div id="customSymbolsContainer" style="display: none;">
-                        <label class="form-label text-xs text-uppercase">Custom Symbols</label>
-                        <input type="text" class="form-control form-control-sm" id="customSymbols" placeholder="AAPL, MSFT, GOOGL...">
-                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Live Preview -->
-        <div class="col-12 mb-4">
-            <div class="card">
-                <div class="card-header pb-0">
-                    <h6 class="mb-0"><i class="fas fa-eye text-primary me-2"></i>Strategy Preview</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-xs text-uppercase text-muted mb-2">Pseudo-Code</h6>
-                            <pre class="bg-light p-3 rounded" id="pseudoCodePreview" style="font-size: 0.85rem;">
-BUY when (no conditions defined)
-SELL when (no conditions defined)
-                            </pre>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="text-xs text-uppercase text-muted mb-2">Validation Status</h6>
-                            <div id="validationStatus">
-                                <span class="badge bg-secondary">Not validated</span>
+                <!-- Exit Conditions -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0"><i class="fas fa-sign-out-alt text-danger me-2"></i>Exit Conditions</h6>
+                                <p class="text-xs text-muted mb-0">When to SELL - any condition triggers exit</p>
                             </div>
-                            <div id="validationMessages" class="mt-2"></div>
+                            <button class="btn btn-outline-danger btn-sm" onclick="addConditionGroup('exit')">
+                                <i class="fas fa-layer-group me-1"></i> Add Group
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="exitConditionsContainer" class="condition-group group-or">
+                                <div class="condition-group-header">
+                                    <span class="logic-badge or">ANY (OR)</span>
+                                    <div>
+                                        <button class="btn btn-xs btn-outline-secondary" onclick="toggleGroupLogic('exit-root')">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="condition-group-content" id="exit-root" data-group-id="root" data-logic="OR">
+                                    <div class="empty-placeholder">
+                                        <i class="fas fa-hand-pointer me-1"></i>
+                                        Drag exit types here (Stop Loss, Take Profit, etc.)
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Backtest Results (shown after running backtest) -->
-        <div class="col-12 mb-4" id="backtestResultsSection" style="display: none;">
-            <div class="card">
-                <div class="card-header pb-0">
-                    <h6 class="mb-0"><i class="fas fa-chart-bar text-success me-2"></i>Backtest Results</h6>
+            <!-- Position Sizing & Filters -->
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <!-- Position Sizing -->
+                    <div class="card">
+                        <div class="card-header pb-0">
+                            <h6 class="mb-0"><i class="fas fa-balance-scale text-info me-2"></i>Position Sizing</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-xs text-uppercase">Size Type</label>
+                                    <select class="form-select form-select-sm" id="sizingType">
+                                        <option value="fixed_percent">Fixed Percentage</option>
+                                        <option value="fixed_dollar">Fixed Dollar</option>
+                                        <option value="equal_weight">Equal Weight</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-xs text-uppercase">Size Value</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" id="sizingValue" value="5" min="1" max="100">
+                                        <span class="input-group-text" id="sizingUnit">%</span>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-xs text-uppercase">Max Concurrent Positions</label>
+                                    <input type="number" class="form-control form-control-sm" id="maxPositions" value="5" min="1" max="20">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body" id="backtestResultsContent">
-                    <!-- Results populated by JavaScript -->
+
+                <div class="col-md-6 mb-4">
+                    <!-- Filters -->
+                    <div class="card">
+                        <div class="card-header pb-0">
+                            <h6 class="mb-0"><i class="fas fa-filter text-warning me-2"></i>Stock Filters</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-xs text-uppercase">Min Price ($)</label>
+                                    <input type="number" class="form-control form-control-sm" id="filterMinPrice" value="10" min="0">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-xs text-uppercase">Stock Universe</label>
+                                    <select class="form-select form-select-sm" id="universe">
+                                        <option value="sp500">S&P 500</option>
+                                        <option value="nasdaq100">Nasdaq 100</option>
+                                        <option value="dow30">Dow 30</option>
+                                        <option value="russell2000">Russell 2000</option>
+                                        <option value="custom">Custom List</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-xs text-uppercase">Min Volume</label>
+                                    <input type="number" class="form-control form-control-sm" id="filterMinVolume" value="500000" min="0" step="100000">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="filterSkipEarnings" checked>
+                                        <label class="form-check-label text-sm" for="filterSkipEarnings">
+                                            Skip earnings week
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="customSymbolsContainer" style="display: none;">
+                                <label class="form-label text-xs text-uppercase">Custom Symbols</label>
+                                <input type="text" class="form-control form-control-sm" id="customSymbols" placeholder="AAPL, MSFT, GOOGL...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Preview -->
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-header pb-0">
+                            <h6 class="mb-0"><i class="fas fa-eye text-primary me-2"></i>Strategy Preview</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <h6 class="text-xs text-uppercase text-muted mb-2">Condition Tree</h6>
+                                    <div class="condition-tree" id="conditionTreePreview">
+                                        <span class="keyword">BUY</span> when (no conditions defined)
+                                        <span class="keyword">SELL</span> when (no conditions defined)
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <h6 class="text-xs text-uppercase text-muted mb-2">Validation Status</h6>
+                                    <div id="validationStatus">
+                                        <span class="badge bg-secondary">Not validated</span>
+                                    </div>
+                                    <div id="validationMessages" class="mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backtest Results -->
+            <div class="row" id="backtestResultsSection" style="display: none;">
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-header pb-0">
+                            <h6 class="mb-0"><i class="fas fa-chart-bar text-success me-2"></i>Backtest Results</h6>
+                        </div>
+                        <div class="card-body" id="backtestResultsContent">
+                            <!-- Results populated by JavaScript -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -296,14 +497,19 @@ SELL when (no conditions defined)
 
 {% block javascripts %}
 {{ block.super }}
+<!-- SortableJS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
 <script>
     // Global state
     let currentStrategyId = null;
     let indicators = [];
     let operators = [];
     let exitTypes = [];
-    let entryConditions = [];
-    let exitConditions = [];
+    let entryConditionTree = { type: 'group', logic: 'AND', conditions: [] };
+    let exitConditionTree = { type: 'group', logic: 'OR', conditions: [] };
+    let conditionIdCounter = 0;
+    let sortableInstances = [];
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
@@ -327,7 +533,6 @@ SELL when (no conditions defined)
         try {
             const response = await fetch('/api/custom-strategies/');
             const data = await response.json();
-
             renderStrategyList(data.strategies || []);
         } catch (error) {
             console.error('Error loading strategies:', error);
@@ -342,8 +547,409 @@ SELL when (no conditions defined)
             indicators = data.indicators || [];
             operators = data.operators || [];
             exitTypes = data.exit_types || [];
+
+            renderIndicatorPalette();
         } catch (error) {
             console.error('Error loading builder options:', error);
+        }
+    }
+
+    function renderIndicatorPalette() {
+        const container = document.getElementById('indicatorPalette');
+
+        // Group indicators by category
+        const categories = {
+            momentum: { name: 'Momentum', items: [] },
+            trend: { name: 'Trend', items: [] },
+            volatility: { name: 'Volatility', items: [] },
+            volume: { name: 'Volume', items: [] },
+            price: { name: 'Price', items: [] },
+            exits: { name: 'Exit Types', items: [] }
+        };
+
+        // Categorize indicators
+        indicators.forEach(ind => {
+            const cat = ind.category || 'momentum';
+            if (categories[cat]) {
+                categories[cat].items.push(ind);
+            } else {
+                categories.momentum.items.push(ind);
+            }
+        });
+
+        // Add exit types
+        exitTypes.forEach(exit => {
+            categories.exits.items.push({
+                id: exit.id,
+                name: exit.name,
+                description: exit.description,
+                isExit: true
+            });
+        });
+
+        let html = '';
+        for (const [key, cat] of Object.entries(categories)) {
+            if (cat.items.length === 0) continue;
+
+            html += `
+                <div class="palette-category">
+                    <div class="palette-category-header">${cat.name}</div>
+                    <div class="indicator-list" id="palette-${key}">
+                        ${cat.items.map(item => `
+                            <div class="indicator-item" draggable="true"
+                                 data-indicator-id="${item.id}"
+                                 data-indicator-name="${item.name}"
+                                 data-is-exit="${item.isExit || false}">
+                                <i class="fas fa-grip-vertical text-muted me-2"></i>
+                                ${item.name}
+                                ${item.default_period ? `<span class="badge bg-light text-muted float-end">${item.default_period}</span>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = html;
+
+        // Initialize drag from palette
+        document.querySelectorAll('.indicator-item').forEach(item => {
+            item.addEventListener('dragstart', handleIndicatorDragStart);
+        });
+    }
+
+    function handleIndicatorDragStart(e) {
+        e.dataTransfer.setData('application/json', JSON.stringify({
+            indicatorId: e.target.dataset.indicatorId,
+            indicatorName: e.target.dataset.indicatorName,
+            isExit: e.target.dataset.isExit === 'true'
+        }));
+        e.dataTransfer.effectAllowed = 'copy';
+    }
+
+    function initializeSortables() {
+        // Clean up existing instances
+        sortableInstances.forEach(s => s.destroy());
+        sortableInstances = [];
+
+        // Initialize sortables for entry conditions
+        initializeSortableGroup('entry-root', 'entry');
+
+        // Initialize sortables for exit conditions
+        initializeSortableGroup('exit-root', 'exit');
+    }
+
+    function initializeSortableGroup(containerId, type) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const sortable = new Sortable(container, {
+            group: {
+                name: type + '-conditions',
+                pull: true,
+                put: true
+            },
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            handle: '.condition-block, .condition-group',
+            onAdd: function(evt) {
+                updatePreview();
+            },
+            onEnd: function(evt) {
+                updatePreview();
+            }
+        });
+        sortableInstances.push(sortable);
+
+        // Allow dropping from palette
+        container.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            container.parentElement.classList.add('group-dragover');
+        });
+
+        container.addEventListener('dragleave', (e) => {
+            container.parentElement.classList.remove('group-dragover');
+        });
+
+        container.addEventListener('drop', (e) => {
+            e.preventDefault();
+            container.parentElement.classList.remove('group-dragover');
+
+            try {
+                const data = JSON.parse(e.dataTransfer.getData('application/json'));
+                if (data.indicatorId) {
+                    addConditionFromPalette(containerId, data, type);
+                }
+            } catch (err) {
+                console.log('Not a palette drop');
+            }
+        });
+    }
+
+    function addConditionFromPalette(containerId, data, type) {
+        const container = document.getElementById(containerId);
+
+        // Remove placeholder if present
+        const placeholder = container.querySelector('.empty-placeholder');
+        if (placeholder) placeholder.remove();
+
+        const condId = `cond-${++conditionIdCounter}`;
+
+        if (data.isExit) {
+            // Exit condition (stop loss, take profit, etc.)
+            const exitType = exitTypes.find(e => e.id === data.indicatorId);
+            const defaultValue = data.indicatorId === 'stop_loss' ? 5 :
+                                data.indicatorId === 'take_profit' ? 10 :
+                                data.indicatorId === 'trailing_stop' ? 7 : 5;
+
+            const html = `
+                <div class="condition-block exit-condition" id="${condId}" data-type="${data.indicatorId}">
+                    <i class="fas fa-grip-vertical text-muted"></i>
+                    <span class="text-sm font-weight-bold">${data.indicatorName}</span>
+                    ${data.indicatorId === 'time_based' ? `
+                        <input type="number" class="form-control form-control-sm" style="width: 60px;"
+                               value="5" min="1" onchange="updatePreview()">
+                        <span class="text-sm">days</span>
+                    ` : data.indicatorId === 'indicator' ? `
+                        <select class="form-select form-select-sm" style="width: 100px;" onchange="updatePreview()">
+                            ${indicators.map(i => `<option value="${i.id}">${i.name}</option>`).join('')}
+                        </select>
+                        <select class="form-select form-select-sm" style="width: 60px;" onchange="updatePreview()">
+                            ${operators.map(o => `<option value="${o.id}">${o.symbol}</option>`).join('')}
+                        </select>
+                        <input type="number" class="form-control form-control-sm" style="width: 60px;"
+                               value="70" onchange="updatePreview()">
+                    ` : `
+                        <input type="number" class="form-control form-control-sm" style="width: 60px;"
+                               value="${defaultValue}" min="0" step="0.5" onchange="updatePreview()">
+                        <span class="text-sm">%</span>
+                    `}
+                    <i class="fas fa-times text-danger remove-btn ms-auto" onclick="removeCondition('${condId}')"></i>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        } else {
+            // Entry condition (indicator-based)
+            const indicator = indicators.find(i => i.id === data.indicatorId);
+            const defaultPeriod = indicator?.default_period || 14;
+            const defaultValue = indicator?.typical_buy || 30;
+
+            const html = `
+                <div class="condition-block entry-condition" id="${condId}" data-indicator="${data.indicatorId}">
+                    <i class="fas fa-grip-vertical text-muted"></i>
+                    <select class="form-select form-select-sm" style="width: 90px;" onchange="updatePreview()">
+                        ${indicators.map(i => `<option value="${i.id}" ${i.id === data.indicatorId ? 'selected' : ''}>${i.name}</option>`).join('')}
+                    </select>
+                    <input type="number" class="form-control form-control-sm" style="width: 50px;"
+                           value="${defaultPeriod}" min="1" title="Period" onchange="updatePreview()">
+                    <select class="form-select form-select-sm" style="width: 60px;" onchange="updatePreview()">
+                        ${operators.map(o => `<option value="${o.id}">${o.symbol}</option>`).join('')}
+                    </select>
+                    <input type="number" class="form-control form-control-sm" style="width: 60px;"
+                           value="${defaultValue}" step="0.1" onchange="updatePreview()">
+                    <i class="fas fa-times text-danger remove-btn ms-auto" onclick="removeCondition('${condId}')"></i>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        updatePreview();
+    }
+
+    function addConditionGroup(type) {
+        const containerId = type === 'entry' ? 'entry-root' : 'exit-root';
+        const container = document.getElementById(containerId);
+
+        // Remove placeholder if present
+        const placeholder = container.querySelector('.empty-placeholder');
+        if (placeholder) placeholder.remove();
+
+        const groupId = `group-${++conditionIdCounter}`;
+        const defaultLogic = type === 'entry' ? 'OR' : 'AND'; // Opposite of parent for variety
+
+        const html = `
+            <div class="condition-group group-${defaultLogic.toLowerCase()}" id="${groupId}-wrapper">
+                <div class="condition-group-header">
+                    <span class="logic-badge ${defaultLogic.toLowerCase()}">${defaultLogic === 'AND' ? 'ALL (AND)' : 'ANY (OR)'}</span>
+                    <div>
+                        <button class="btn btn-xs btn-outline-secondary me-1" onclick="toggleGroupLogic('${groupId}')">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                        <button class="btn btn-xs btn-outline-danger" onclick="removeGroup('${groupId}-wrapper')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="condition-group-content" id="${groupId}" data-group-id="${groupId}" data-logic="${defaultLogic}">
+                    <div class="empty-placeholder">
+                        <i class="fas fa-hand-pointer me-1"></i>
+                        Drag conditions here
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', html);
+
+        // Initialize sortable for the new group
+        initializeSortableGroup(groupId, type);
+        updatePreview();
+    }
+
+    function toggleGroupLogic(groupId) {
+        const container = document.getElementById(groupId);
+        const wrapper = container.parentElement;
+        const badge = wrapper.querySelector('.logic-badge');
+
+        const currentLogic = container.dataset.logic;
+        const newLogic = currentLogic === 'AND' ? 'OR' : 'AND';
+
+        container.dataset.logic = newLogic;
+        badge.textContent = newLogic === 'AND' ? 'ALL (AND)' : 'ANY (OR)';
+        badge.className = `logic-badge ${newLogic.toLowerCase()}`;
+        wrapper.className = `condition-group group-${newLogic.toLowerCase()}`;
+
+        updatePreview();
+    }
+
+    function removeCondition(condId) {
+        const element = document.getElementById(condId);
+        if (element) {
+            element.remove();
+            updatePreview();
+        }
+    }
+
+    function removeGroup(groupId) {
+        const element = document.getElementById(groupId);
+        if (element) {
+            element.remove();
+            updatePreview();
+        }
+    }
+
+    function getConditionsFromContainer(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return null;
+
+        const logic = container.dataset.logic || 'AND';
+        const conditions = [];
+
+        // Get direct children conditions
+        container.querySelectorAll(':scope > .condition-block').forEach(block => {
+            const cond = parseConditionBlock(block);
+            if (cond) conditions.push(cond);
+        });
+
+        // Get nested groups
+        container.querySelectorAll(':scope > .condition-group').forEach(group => {
+            const nestedContainer = group.querySelector('.condition-group-content');
+            if (nestedContainer) {
+                const nested = getConditionsFromContainer(nestedContainer.id);
+                if (nested && nested.conditions.length > 0) {
+                    conditions.push(nested);
+                }
+            }
+        });
+
+        return {
+            type: 'group',
+            logic: logic,
+            conditions: conditions
+        };
+    }
+
+    function parseConditionBlock(block) {
+        if (block.classList.contains('entry-condition')) {
+            const selects = block.querySelectorAll('select');
+            const inputs = block.querySelectorAll('input[type="number"]');
+
+            return {
+                type: 'condition',
+                indicator: selects[0]?.value || 'rsi',
+                period: parseInt(inputs[0]?.value) || 14,
+                operator: selects[1]?.value || 'less_than',
+                value: parseFloat(inputs[1]?.value) || 30
+            };
+        } else if (block.classList.contains('exit-condition')) {
+            const exitType = block.dataset.type;
+            const inputs = block.querySelectorAll('input[type="number"]');
+            const selects = block.querySelectorAll('select');
+
+            if (exitType === 'time_based') {
+                return { type: 'time_based', days: parseInt(inputs[0]?.value) || 5 };
+            } else if (exitType === 'indicator') {
+                return {
+                    type: 'indicator',
+                    indicator: selects[0]?.value || 'rsi',
+                    operator: selects[1]?.value || 'greater_than',
+                    value: parseFloat(inputs[0]?.value) || 70
+                };
+            } else {
+                return { type: exitType, value: parseFloat(inputs[0]?.value) || 5 };
+            }
+        }
+        return null;
+    }
+
+    function updatePreview() {
+        entryConditionTree = getConditionsFromContainer('entry-root') || { type: 'group', logic: 'AND', conditions: [] };
+        exitConditionTree = getConditionsFromContainer('exit-root') || { type: 'group', logic: 'OR', conditions: [] };
+
+        // Render condition tree
+        const preview = document.getElementById('conditionTreePreview');
+        let html = '<span class="keyword">BUY</span> when ';
+        html += renderConditionTreeHTML(entryConditionTree);
+        html += '\n\n<span class="keyword">SELL</span> when ';
+        html += renderConditionTreeHTML(exitConditionTree);
+        preview.innerHTML = html;
+    }
+
+    function renderConditionTreeHTML(node, indent = 0) {
+        if (node.type === 'group') {
+            if (node.conditions.length === 0) {
+                return '<span class="text-muted">(no conditions)</span>';
+            }
+
+            const logicClass = node.logic === 'AND' ? 'group-and' : 'group-or';
+            const logicText = node.logic === 'AND' ? 'AND' : 'OR';
+            const padding = '  '.repeat(indent);
+
+            if (node.conditions.length === 1) {
+                return renderConditionTreeHTML(node.conditions[0], indent);
+            }
+
+            let html = '(\n';
+            node.conditions.forEach((cond, idx) => {
+                html += padding + '  ' + renderConditionTreeHTML(cond, indent + 1);
+                if (idx < node.conditions.length - 1) {
+                    html += `\n${padding}  <span class="${logicClass}">${logicText}</span>\n`;
+                }
+            });
+            html += '\n' + padding + ')';
+            return html;
+        } else if (node.type === 'condition') {
+            const ind = indicators.find(i => i.id === node.indicator);
+            const op = operators.find(o => o.id === node.operator);
+            return `<span class="keyword">${ind?.name || node.indicator}</span>` +
+                   (node.period ? `(${node.period})` : '') +
+                   ` <span class="operator">${op?.symbol || node.operator}</span>` +
+                   ` <span class="value">${node.value}</span>`;
+        } else {
+            // Exit condition types
+            if (node.type === 'stop_loss') return `Stop Loss at <span class="value">${node.value}%</span>`;
+            if (node.type === 'take_profit') return `Take Profit at <span class="value">${node.value}%</span>`;
+            if (node.type === 'trailing_stop') return `Trailing Stop <span class="value">${node.value}%</span>`;
+            if (node.type === 'time_based') return `Hold max <span class="value">${node.days} days</span>`;
+            if (node.type === 'indicator') {
+                const ind = indicators.find(i => i.id === node.indicator);
+                const op = operators.find(o => o.id === node.operator);
+                return `<span class="keyword">${ind?.name || node.indicator}</span>` +
+                       ` <span class="operator">${op?.symbol || node.operator}</span>` +
+                       ` <span class="value">${node.value}</span>`;
+            }
+            return node.type;
         }
     }
 
@@ -394,7 +1000,7 @@ SELL when (no conditions defined)
                                 <span class="text-sm">${s.entry_conditions_count} entry / ${s.exit_conditions_count} exit</span>
                             </td>
                             <td class="text-center">
-                                ${s.backtest_summary.has_backtest
+                                ${s.backtest_summary && s.backtest_summary.has_backtest
                                     ? `<span class="text-${s.backtest_summary.total_return_pct >= 0 ? 'success' : 'danger'} text-sm">
                                         ${s.backtest_summary.total_return_pct >= 0 ? '+' : ''}${s.backtest_summary.total_return_pct.toFixed(1)}%
                                        </span>`
@@ -429,13 +1035,12 @@ SELL when (no conditions defined)
 
     function createNewStrategy() {
         currentStrategyId = null;
-        entryConditions = [];
-        exitConditions = [];
+        conditionIdCounter = 0;
+        entryConditionTree = { type: 'group', logic: 'AND', conditions: [] };
+        exitConditionTree = { type: 'group', logic: 'OR', conditions: [] };
 
         document.getElementById('strategyName').value = '';
         document.getElementById('strategyNameDisplay').textContent = 'New Strategy';
-        document.getElementById('entryLogic').value = 'all';
-        document.getElementById('exitLogic').value = 'any';
         document.getElementById('sizingType').value = 'fixed_percent';
         document.getElementById('sizingValue').value = '5';
         document.getElementById('maxPositions').value = '5';
@@ -445,8 +1050,30 @@ SELL when (no conditions defined)
         document.getElementById('filterSkipEarnings').checked = true;
         document.getElementById('customSymbols').value = '';
 
-        renderEntryConditions();
-        renderExitConditions();
+        // Reset condition containers
+        document.getElementById('entry-root').innerHTML = `
+            <div class="empty-placeholder">
+                <i class="fas fa-hand-pointer me-1"></i>
+                Drag indicators here or click "Add Group" for complex conditions
+            </div>
+        `;
+        document.getElementById('exit-root').innerHTML = `
+            <div class="empty-placeholder">
+                <i class="fas fa-hand-pointer me-1"></i>
+                Drag exit types here (Stop Loss, Take Profit, etc.)
+            </div>
+        `;
+
+        // Reset logic badges
+        document.querySelector('#entryConditionsContainer .logic-badge').textContent = 'ALL (AND)';
+        document.querySelector('#entryConditionsContainer .logic-badge').className = 'logic-badge and';
+        document.querySelector('#exitConditionsContainer .logic-badge').textContent = 'ANY (OR)';
+        document.querySelector('#exitConditionsContainer .logic-badge').className = 'logic-badge or';
+
+        document.getElementById('entry-root').dataset.logic = 'AND';
+        document.getElementById('exit-root').dataset.logic = 'OR';
+
+        initializeSortables();
         updatePreview();
 
         document.getElementById('strategyListSection').style.display = 'none';
@@ -461,13 +1088,10 @@ SELL when (no conditions defined)
             const s = data.strategy;
 
             currentStrategyId = s.id;
-            entryConditions = s.definition.entry_conditions || [];
-            exitConditions = s.definition.exit_conditions || [];
+            conditionIdCounter = 0;
 
             document.getElementById('strategyName').value = s.name;
             document.getElementById('strategyNameDisplay').textContent = s.name;
-            document.getElementById('entryLogic').value = s.definition.entry_logic || 'all';
-            document.getElementById('exitLogic').value = s.definition.exit_logic || 'any';
 
             const sizing = s.definition.position_sizing || {};
             document.getElementById('sizingType').value = sizing.type || 'fixed_percent';
@@ -484,8 +1108,29 @@ SELL when (no conditions defined)
             document.getElementById('customSymbolsContainer').style.display =
                 s.universe === 'custom' ? 'block' : 'none';
 
-            renderEntryConditions();
-            renderExitConditions();
+            // Load conditions into tree format
+            entryConditionTree = convertToTreeFormat(s.definition.entry_conditions, s.definition.entry_logic);
+            exitConditionTree = convertToTreeFormat(s.definition.exit_conditions, s.definition.exit_logic);
+
+            // Render conditions
+            renderConditionsFromTree('entry-root', entryConditionTree, 'entry');
+            renderConditionsFromTree('exit-root', exitConditionTree, 'exit');
+
+            // Update root logic badges
+            const entryLogic = entryConditionTree.logic || 'AND';
+            const exitLogic = exitConditionTree.logic || 'OR';
+
+            document.querySelector('#entryConditionsContainer .logic-badge').textContent = entryLogic === 'AND' ? 'ALL (AND)' : 'ANY (OR)';
+            document.querySelector('#entryConditionsContainer .logic-badge').className = `logic-badge ${entryLogic.toLowerCase()}`;
+            document.getElementById('entry-root').dataset.logic = entryLogic;
+            document.querySelector('#entryConditionsContainer').className = `condition-group group-${entryLogic.toLowerCase()}`;
+
+            document.querySelector('#exitConditionsContainer .logic-badge').textContent = exitLogic === 'AND' ? 'ALL (AND)' : 'ANY (OR)';
+            document.querySelector('#exitConditionsContainer .logic-badge').className = `logic-badge ${exitLogic.toLowerCase()}`;
+            document.getElementById('exit-root').dataset.logic = exitLogic;
+            document.querySelector('#exitConditionsContainer').className = `condition-group group-${exitLogic.toLowerCase()}`;
+
+            initializeSortables();
             updatePreview();
 
             document.getElementById('strategyListSection').style.display = 'none';
@@ -497,199 +1142,153 @@ SELL when (no conditions defined)
         }
     }
 
+    function convertToTreeFormat(conditions, logic) {
+        if (!conditions || conditions.length === 0) {
+            return { type: 'group', logic: (logic || 'AND').toUpperCase(), conditions: [] };
+        }
+
+        // Check if already in tree format
+        if (conditions.type === 'group') {
+            return conditions;
+        }
+
+        // Convert flat array to tree
+        return {
+            type: 'group',
+            logic: (logic || 'AND').toUpperCase(),
+            conditions: conditions.map(c => {
+                if (c.type === 'group') return c;
+                return { type: c.type || 'condition', ...c };
+            })
+        };
+    }
+
+    function renderConditionsFromTree(containerId, tree, type) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        if (!tree.conditions || tree.conditions.length === 0) {
+            container.innerHTML = `
+                <div class="empty-placeholder">
+                    <i class="fas fa-hand-pointer me-1"></i>
+                    ${type === 'entry' ? 'Drag indicators here or click "Add Group" for complex conditions' : 'Drag exit types here (Stop Loss, Take Profit, etc.)'}
+                </div>
+            `;
+            return;
+        }
+
+        tree.conditions.forEach(cond => {
+            if (cond.type === 'group') {
+                renderNestedGroup(containerId, cond, type);
+            } else {
+                renderConditionBlock(containerId, cond, type);
+            }
+        });
+    }
+
+    function renderNestedGroup(parentId, group, type) {
+        const container = document.getElementById(parentId);
+        const groupId = `group-${++conditionIdCounter}`;
+        const logic = group.logic || 'AND';
+
+        const html = `
+            <div class="condition-group group-${logic.toLowerCase()}" id="${groupId}-wrapper">
+                <div class="condition-group-header">
+                    <span class="logic-badge ${logic.toLowerCase()}">${logic === 'AND' ? 'ALL (AND)' : 'ANY (OR)'}</span>
+                    <div>
+                        <button class="btn btn-xs btn-outline-secondary me-1" onclick="toggleGroupLogic('${groupId}')">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                        <button class="btn btn-xs btn-outline-danger" onclick="removeGroup('${groupId}-wrapper')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="condition-group-content" id="${groupId}" data-group-id="${groupId}" data-logic="${logic}">
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+
+        // Render nested conditions
+        renderConditionsFromTree(groupId, group, type);
+
+        // Initialize sortable for nested group
+        initializeSortableGroup(groupId, type);
+    }
+
+    function renderConditionBlock(parentId, cond, type) {
+        const container = document.getElementById(parentId);
+        const condId = `cond-${++conditionIdCounter}`;
+
+        if (type === 'exit' || cond.type !== 'condition') {
+            // Exit condition
+            const exitType = cond.type;
+            const html = `
+                <div class="condition-block exit-condition" id="${condId}" data-type="${exitType}">
+                    <i class="fas fa-grip-vertical text-muted"></i>
+                    <span class="text-sm font-weight-bold">${getExitTypeName(exitType)}</span>
+                    ${exitType === 'time_based' ? `
+                        <input type="number" class="form-control form-control-sm" style="width: 60px;"
+                               value="${cond.days || 5}" min="1" onchange="updatePreview()">
+                        <span class="text-sm">days</span>
+                    ` : exitType === 'indicator' ? `
+                        <select class="form-select form-select-sm" style="width: 100px;" onchange="updatePreview()">
+                            ${indicators.map(i => `<option value="${i.id}" ${i.id === cond.indicator ? 'selected' : ''}>${i.name}</option>`).join('')}
+                        </select>
+                        <select class="form-select form-select-sm" style="width: 60px;" onchange="updatePreview()">
+                            ${operators.map(o => `<option value="${o.id}" ${o.id === cond.operator ? 'selected' : ''}>${o.symbol}</option>`).join('')}
+                        </select>
+                        <input type="number" class="form-control form-control-sm" style="width: 60px;"
+                               value="${cond.value || 70}" onchange="updatePreview()">
+                    ` : `
+                        <input type="number" class="form-control form-control-sm" style="width: 60px;"
+                               value="${cond.value || 5}" min="0" step="0.5" onchange="updatePreview()">
+                        <span class="text-sm">%</span>
+                    `}
+                    <i class="fas fa-times text-danger remove-btn ms-auto" onclick="removeCondition('${condId}')"></i>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        } else {
+            // Entry condition
+            const html = `
+                <div class="condition-block entry-condition" id="${condId}" data-indicator="${cond.indicator}">
+                    <i class="fas fa-grip-vertical text-muted"></i>
+                    <select class="form-select form-select-sm" style="width: 90px;" onchange="updatePreview()">
+                        ${indicators.map(i => `<option value="${i.id}" ${i.id === cond.indicator ? 'selected' : ''}>${i.name}</option>`).join('')}
+                    </select>
+                    <input type="number" class="form-control form-control-sm" style="width: 50px;"
+                           value="${cond.period || 14}" min="1" title="Period" onchange="updatePreview()">
+                    <select class="form-select form-select-sm" style="width: 60px;" onchange="updatePreview()">
+                        ${operators.map(o => `<option value="${o.id}" ${o.id === cond.operator ? 'selected' : ''}>${o.symbol}</option>`).join('')}
+                    </select>
+                    <input type="number" class="form-control form-control-sm" style="width: 60px;"
+                           value="${cond.value || 30}" step="0.1" onchange="updatePreview()">
+                    <i class="fas fa-times text-danger remove-btn ms-auto" onclick="removeCondition('${condId}')"></i>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+    }
+
+    function getExitTypeName(type) {
+        const exit = exitTypes.find(e => e.id === type);
+        return exit?.name || type;
+    }
+
     function cancelEdit() {
         document.getElementById('strategyListSection').style.display = 'block';
         document.getElementById('builderSection').style.display = 'none';
         loadStrategies();
     }
 
-    function addEntryCondition() {
-        entryConditions.push({
-            indicator: 'rsi',
-            operator: 'less_than',
-            value: 30,
-            period: 14
-        });
-        renderEntryConditions();
-        updatePreview();
-    }
-
-    function removeEntryCondition(index) {
-        entryConditions.splice(index, 1);
-        renderEntryConditions();
-        updatePreview();
-    }
-
-    function addExitCondition() {
-        exitConditions.push({
-            type: 'stop_loss',
-            value: 5
-        });
-        renderExitConditions();
-        updatePreview();
-    }
-
-    function removeExitCondition(index) {
-        exitConditions.splice(index, 1);
-        renderExitConditions();
-        updatePreview();
-    }
-
-    function renderEntryConditions() {
-        const container = document.getElementById('entryConditionsContainer');
-
-        if (entryConditions.length === 0) {
-            container.innerHTML = '<p class="text-muted text-sm text-center py-3">No entry conditions. Click below to add one.</p>';
-            return;
-        }
-
-        container.innerHTML = entryConditions.map((cond, idx) => `
-            <div class="entry-condition mb-3 p-3 bg-light rounded">
-                <div class="row align-items-center">
-                    <div class="col-md-3">
-                        <select class="form-select form-select-sm" onchange="updateEntryCondition(${idx}, 'indicator', this.value)">
-                            ${indicators.map(i => `<option value="${i.id}" ${cond.indicator === i.id ? 'selected' : ''}>${i.name}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select form-select-sm" onchange="updateEntryCondition(${idx}, 'operator', this.value)">
-                            ${operators.map(o => `<option value="${o.id}" ${cond.operator === o.id ? 'selected' : ''}>${o.symbol} ${o.name}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <input type="number" class="form-control form-control-sm" value="${cond.value || ''}"
-                               onchange="updateEntryCondition(${idx}, 'value', parseFloat(this.value))" placeholder="Value">
-                    </div>
-                    <div class="col-md-2">
-                        <input type="number" class="form-control form-control-sm" value="${cond.period || ''}"
-                               onchange="updateEntryCondition(${idx}, 'period', parseInt(this.value))" placeholder="Period">
-                    </div>
-                    <div class="col-md-2 text-end">
-                        <button class="btn btn-sm btn-outline-danger" onclick="removeEntryCondition(${idx})">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function renderExitConditions() {
-        const container = document.getElementById('exitConditionsContainer');
-
-        if (exitConditions.length === 0) {
-            container.innerHTML = '<p class="text-muted text-sm text-center py-3">No exit conditions. Add stop loss for safety.</p>';
-            return;
-        }
-
-        container.innerHTML = exitConditions.map((cond, idx) => `
-            <div class="exit-condition mb-3 p-3 bg-light rounded">
-                <div class="row align-items-center">
-                    <div class="col-md-4">
-                        <select class="form-select form-select-sm" onchange="updateExitType(${idx}, this.value)">
-                            ${exitTypes.map(t => `<option value="${t.id}" ${cond.type === t.id ? 'selected' : ''}>${t.name}</option>`).join('')}
-                        </select>
-                    </div>
-                    ${cond.type === 'indicator' ? `
-                        <div class="col-md-2">
-                            <select class="form-select form-select-sm" onchange="updateExitCondition(${idx}, 'indicator', this.value)">
-                                ${indicators.map(i => `<option value="${i.id}" ${cond.indicator === i.id ? 'selected' : ''}>${i.name}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <select class="form-select form-select-sm" onchange="updateExitCondition(${idx}, 'operator', this.value)">
-                                ${operators.filter(o => !o.requires_history).map(o => `<option value="${o.id}" ${cond.operator === o.id ? 'selected' : ''}>${o.symbol}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <input type="number" class="form-control form-control-sm" value="${cond.value || ''}"
-                                   onchange="updateExitCondition(${idx}, 'value', parseFloat(this.value))">
-                        </div>
-                    ` : cond.type === 'time_based' ? `
-                        <div class="col-md-4">
-                            <div class="input-group input-group-sm">
-                                <input type="number" class="form-control" value="${cond.days || 5}"
-                                       onchange="updateExitCondition(${idx}, 'days', parseInt(this.value))">
-                                <span class="input-group-text">days</span>
-                            </div>
-                        </div>
-                    ` : `
-                        <div class="col-md-4">
-                            <div class="input-group input-group-sm">
-                                <input type="number" class="form-control" value="${cond.value || ''}"
-                                       onchange="updateExitCondition(${idx}, 'value', parseFloat(this.value))">
-                                <span class="input-group-text">%</span>
-                            </div>
-                        </div>
-                    `}
-                    <div class="col text-end">
-                        <button class="btn btn-sm btn-outline-danger" onclick="removeExitCondition(${idx})">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function updateEntryCondition(index, field, value) {
-        entryConditions[index][field] = value;
-        updatePreview();
-    }
-
-    function updateExitCondition(index, field, value) {
-        exitConditions[index][field] = value;
-        updatePreview();
-    }
-
-    function updateExitType(index, type) {
-        exitConditions[index] = { type: type };
-        if (type === 'take_profit') exitConditions[index].value = 10;
-        else if (type === 'stop_loss') exitConditions[index].value = 5;
-        else if (type === 'trailing_stop') exitConditions[index].value = 7;
-        else if (type === 'time_based') exitConditions[index].days = 5;
-        else if (type === 'indicator') {
-            exitConditions[index].indicator = 'rsi';
-            exitConditions[index].operator = 'greater_than';
-            exitConditions[index].value = 70;
-        }
-        renderExitConditions();
-        updatePreview();
-    }
-
-    function updatePreview() {
-        const entryLogic = document.getElementById('entryLogic').value;
-        const exitLogic = document.getElementById('exitLogic').value;
-
-        let entryStr = entryConditions.map(c => {
-            const ind = indicators.find(i => i.id === c.indicator);
-            const op = operators.find(o => o.id === c.operator);
-            return `${ind?.name || c.indicator}${c.period ? '(' + c.period + ')' : ''} ${op?.symbol || c.operator} ${c.value}`;
-        }).join(entryLogic === 'all' ? ' AND ' : ' OR ');
-
-        let exitStr = exitConditions.map(c => {
-            if (c.type === 'take_profit') return `Take Profit at ${c.value}%`;
-            if (c.type === 'stop_loss') return `Stop Loss at ${c.value}%`;
-            if (c.type === 'trailing_stop') return `Trailing Stop ${c.value}%`;
-            if (c.type === 'time_based') return `Hold max ${c.days} days`;
-            if (c.type === 'indicator') {
-                const ind = indicators.find(i => i.id === c.indicator);
-                const op = operators.find(o => o.id === c.operator);
-                return `${ind?.name || c.indicator} ${op?.symbol || c.operator} ${c.value}`;
-            }
-            return c.type;
-        }).join(exitLogic === 'any' ? ' OR ' : ' AND ');
-
-        document.getElementById('pseudoCodePreview').textContent =
-            `BUY when ${entryStr || '(no conditions)'}\nSELL when ${exitStr || '(no conditions)'}`;
-    }
-
     function getDefinition() {
         return {
-            entry_conditions: entryConditions,
-            entry_logic: document.getElementById('entryLogic').value,
-            exit_conditions: exitConditions,
-            exit_logic: document.getElementById('exitLogic').value,
+            entry_conditions: entryConditionTree,
+            entry_logic: entryConditionTree.logic || 'AND',
+            exit_conditions: exitConditionTree,
+            exit_logic: exitConditionTree.logic || 'OR',
             position_sizing: {
                 type: document.getElementById('sizingType').value,
                 value: parseFloat(document.getElementById('sizingValue').value) || 5,
@@ -709,6 +1308,9 @@ SELL when (no conditions defined)
             alert('Please enter a strategy name');
             return;
         }
+
+        // Update condition trees from UI
+        updatePreview();
 
         const definition = getDefinition();
         const universe = document.getElementById('universe').value;
@@ -802,7 +1404,7 @@ SELL when (no conditions defined)
         document.getElementById('backtestResultsContent').innerHTML = `
             <div class="text-center py-4">
                 <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2">Running backtest...</p>
+                <p class="mt-2">Running backtest with real historical data...</p>
             </div>
         `;
 
@@ -813,7 +1415,7 @@ SELL when (no conditions defined)
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCsrfToken()
                 },
-                body: JSON.stringify({ period: '1Y' })
+                body: JSON.stringify({ period: '1Y', save_to_db: true })
             });
             const data = await response.json();
 
@@ -848,7 +1450,7 @@ SELL when (no conditions defined)
                     <p class="text-muted text-sm">Sharpe Ratio</p>
                 </div>
                 <div class="col-md-3 text-center border-end">
-                    <h3 class="text-danger mb-0">-${r.max_drawdown_pct.toFixed(1)}%</h3>
+                    <h3 class="text-danger mb-0">-${Math.abs(r.max_drawdown_pct).toFixed(1)}%</h3>
                     <p class="text-muted text-sm">Max Drawdown</p>
                 </div>
                 <div class="col-md-3 text-center">
@@ -860,7 +1462,7 @@ SELL when (no conditions defined)
             <div class="row">
                 <div class="col-md-6">
                     <table class="table table-sm">
-                        <tr><td>Period</td><td class="text-end"><strong>${r.period}</strong></td></tr>
+                        <tr><td>Period</td><td class="text-end"><strong>${r.period || '1 Year'}</strong></td></tr>
                         <tr><td>Total Trades</td><td class="text-end"><strong>${r.total_trades}</strong></td></tr>
                         <tr><td>Winning Trades</td><td class="text-end text-success">${r.winning_trades}</td></tr>
                         <tr><td>Losing Trades</td><td class="text-end text-danger">${r.losing_trades}</td></tr>
@@ -868,13 +1470,14 @@ SELL when (no conditions defined)
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm">
-                        <tr><td>Profit Factor</td><td class="text-end"><strong>${r.profit_factor.toFixed(2)}</strong></td></tr>
-                        <tr><td>Avg Win</td><td class="text-end text-success">+${r.avg_win_pct.toFixed(1)}%</td></tr>
-                        <tr><td>Avg Loss</td><td class="text-end text-danger">-${r.avg_loss_pct.toFixed(1)}%</td></tr>
-                        <tr><td>Avg Hold</td><td class="text-end">${r.avg_hold_days.toFixed(1)} days</td></tr>
+                        <tr><td>Profit Factor</td><td class="text-end"><strong>${r.profit_factor?.toFixed(2) || '-'}</strong></td></tr>
+                        <tr><td>Avg Win</td><td class="text-end text-success">+${r.avg_win_pct?.toFixed(1) || '-'}%</td></tr>
+                        <tr><td>Avg Loss</td><td class="text-end text-danger">-${Math.abs(r.avg_loss_pct || 0).toFixed(1)}%</td></tr>
+                        <tr><td>Avg Hold</td><td class="text-end">${r.avg_hold_days?.toFixed(1) || '-'} days</td></tr>
                     </table>
                 </div>
             </div>
+            ${r.run_id ? `<div class="text-end mt-3"><a href="/backtesting?run=${r.run_id}" class="btn btn-sm btn-outline-primary">View Full Details</a></div>` : ''}
         `;
     }
 

@@ -1,160 +1,56 @@
-pandas>=2.2.0,<3.0.0
-numpy>=1.26.0,<2.3.0  # Python 3.12 compatible
-yfinance>=0.2.65,<0.3.0
-pytz>=2025.2,<2026.0
-requests>=2.32.0,<3.0.0
+# Django and Web Framework
+Django>=4.2,<5.0
+djangorestframework>=3.14.0
+dj-database-url>=2.1.0
+whitenoise>=6.6.0
 
-# Django and web framework
-Django>=4.2.0,<5.0.0  # Python 3.12 compatible
-python-dotenv>=0.19.0
-dj-database-url>=0.5.0
-django-cors-headers>=3.10.0,<4.0.0
-djangorestframework>=3.15.0,<4.0.0
-social-auth-app-django>=5.0.0,<6.0.0
-django-admin-interface>=0.18.0,<1.0.0
-django-colorfield>=0.4.2,<1.0.0
+# Authentication
+social-auth-app-django>=5.4.0
+python-jose>=3.3.0
+authlib>=1.2.0
 
 # Database
-psycopg2-binary>=2.9.10
+psycopg2-binary>=2.9.9
 
-# Background tasks
-APScheduler>=3.9.0
+# Async Support
+asgiref>=3.7.2
 
-# Trading APIs
-alpaca-py>=0.42.0,<1.0.0  # Modern Alpaca API client (replaces alpaca-trade-api)
-alpaca-trade-api>=3.2.0,<4.0.0  # Legacy Alpaca API client (for backwards compatibility)
-aiohttp>=3.12.0,<4.0.0  # For async HTTP requests to data providers
-ccxt>=3.1.0,<4.0.0  # Multi-exchange trading library
-websockets>=10.3,<15.0  # Compatible with polygon-api-client
+# API and HTTP
+requests>=2.31.0
+httpx>=0.26.0
+aiohttp>=3.9.0
 
-# Options pricing and mathematical libraries
-scipy>=1.14.0,<2.0.0  # For Black-Scholes calculations (norm.cdf, norm.pdf)
-py-vollib>=1.0.0,<2.0.0  # Volatility library for options pricing
-polygon-api-client>=1.13.0,<2.0.0  # Polygon.io for real options data (optional)
+# Data Processing
+numpy>=1.26.0
+pandas>=2.1.0
+scipy>=1.12.0
 
-# Data visualization
-plotly>=6.3.0
+# Financial Data
+yfinance>=0.2.36
+alpaca-trade-api>=3.0.0
+
+# Machine Learning
+scikit-learn>=1.4.0
+optuna>=3.5.0
+
+# Deep Learning (optional - for ML/RL agents)
+torch>=2.0.0
+gymnasium>=0.29.0
+stable-baselines3>=2.0.0
+hmmlearn>=0.3.0
+
+# Cryptography
+cryptography>=42.0.0
 
 # Testing
-pytest>=8.4.0
-pytest-django>=4.11.0
-pytest-asyncio>=0.24.0
-hypothesis>=6.0.0  # Property-based testing
-pytest-mock>=3.14.0  # Mock testing utilities
-pytest-cov>=6.2.0  # Coverage testing
+pytest>=7.4.0
+pytest-asyncio>=0.23.0
+pytest-django>=4.7.0
+pytest-cov>=4.1.0
 
-# Production dependencies
-structlog>=25.4.0  # Structured logging
-tenacity>=9.1.0  # Retry library
-prometheus-client>=0.22.0  # Metrics collection
-pybreaker>=1.0.0  # Circuit breaker pattern
-backoff>=2.2.0  # Backoff and retry decorators
-pydantic>=2.7.0  # Data validation and settings
-pydantic-settings>=2.7.0  # Settings management
-psutil>=6.1.0  # System resource monitoring
+# Utilities
+python-dotenv>=1.0.0
+python-dateutil>=2.8.2
 
-# Additional production libraries
-redis>=5.2.1  # Redis client for caching and message queuing
-celery>=5.4.0  # Distributed task queue
-gunicorn>=23.0.0  # WSGI HTTP Server for production
-uvicorn[standard]>=0.34.0  # ASGI server for async applications
-whitenoise>=6.8.2  # Static file serving for Django
-django-extensions>=3.2.3  # Useful Django extensions
-django-debug-toolbar>=4.4.6  # Development debugging (dev only)
-django-environ>=0.11.2  # Environment variable management
-
-# Security and observability
-# gitleaks>=8.18.0  # Secret detection (CLI tool - install separately as binary)
-bandit>=1.7.0  # Security linting
-safety>=3.2.0  # Dependency security scanning
-sentry-sdk[django]>=2.19.2  # Error tracking and performance monitoring
-python-json-logger>=2.0.7  # JSON logging formatter
-colorlog>=6.8.2  # Colored console logging
-
-# Development tools
-ruff>=0.8.0
-black>=24.0.0
-mypy>=1.13.0
-pre-commit>=4.1.0  # Pre-commit hooks
-isort>=5.13.2  # Import sorting
-coverage>=7.6.10  # Code coverage
-pip-audit>=2.7.3  # Security audit for pip packages
-
-# Data science and analysis (optional but useful for backtesting)
-jupyter>=1.1.1  # Jupyter notebook
-matplotlib>=3.10.0  # Plotting library
-seaborn>=0.13.2  # Statistical plotting
-scikit-learn>=1.6.1  # Machine learning library (for feature engineering)
-tqdm>=4.66.0  # Progress bars for training UX
-
-# findatapy dependencies (vendored library for multi-source market data)
-keyring>=25.0.0  # Secure credential storage
-openpyxl>=3.1.0  # Excel file support
-pandas_datareader>=0.10.0  # Additional data readers
-quandl>=3.7.0  # Quandl market data
-statsmodels>=0.14.0  # Statistical models
-multiprocess>=0.70.0  # Multiprocessing
-pyarrow>=17.0.0  # Parquet file support
-alpha_vantage>=3.0.0  # Alpha Vantage API client
-
-# Deep Learning
-torch>=2.1.0,<3.0.0  # PyTorch for LSTM price prediction
-
-# Performance and optimization
-cython>=3.0.0  # C extensions for performance critical code
-numba>=0.60.0  # JIT compiler for numerical functions
-bottleneck>=1.4.2  # Fast NumPy array functions
-
-# Network and HTTP utilities
-httpx>=0.28.1  # Modern HTTP client
-urllib3>=2.2.3  # HTTP client library
-certifi>=2024.12.14  # SSL certificates
-
-# Authentication and Security
-python-jose[cryptography]>=3.3.0  # JWT handling with cryptographic backend
-PyJWT>=2.8.0  # JWT encoding/decoding
-cryptography>=42.0.0  # Cryptographic primitives
-
-# AWS SDK (for S3 storage, etc.)
-boto3>=1.34.0  # AWS SDK for Python
-
-# Async database support
-asyncpg>=0.29.0  # Async PostgreSQL driver
-
-# Web scraping and data collection
-beautifulsoup4>=4.12.0  # HTML parsing
-feedparser>=6.0.0  # RSS/Atom feed parsing
-lxml>=5.0.0  # XML/HTML parser (used with BeautifulSoup)
-
-# CLI utilities
-fire>=0.6.0  # Python Fire for CLI argument parsing
-
-# Machine Learning - Additional
-hmmlearn>=0.3.0  # Hidden Markov Models for regime detection
-
-# Redis caching for Django
-django-redis>=5.4.0  # Redis cache backend for Django
-
-# ========================================
-# NEW FRAMEWORK DEPENDENCIES
-# ========================================
-
-# Hyperparameter Optimization (from freqtrade)
-optuna>=3.4.0  # ML-based hyperparameter optimization
-joblib>=1.3.0  # Parallel processing for hyperopt
-
-# Telegram Bot Interface (from freqtrade)
-python-telegram-bot>=20.0  # Telegram bot API
-
-# Technical Analysis (from freqtrade/lumibot)
-TA-Lib>=0.4.0;sys_platform!='win32'  # Technical indicators (requires system TA-Lib)
-pandas-ta>=0.3.14  # Pure Python technical analysis
-
-# Discord Bot (alternative to Telegram)
-discord.py>=2.3.0  # Discord bot API (optional)
-
-# Data handling and consolidation
-polars>=0.20.0  # High-performance DataFrame library (optional, faster backtests)
-
-# Additional trading framework utilities
-schedule>=1.2.0  # Job scheduling for cron-like functionality
+# Type hints
+typing-extensions>=4.9.0

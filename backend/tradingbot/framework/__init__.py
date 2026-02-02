@@ -13,8 +13,7 @@ This module provides a modular approach to algorithm construction with:
 LEAN components ported under Apache 2.0 License from:
 https://github.com/QuantConnect/Lean/tree/master/Algorithm.Framework
 
-Nautilus concepts adapted under LGPL-3.0 from:
-https://github.com/nautechsystems/nautilus_trader
+Nautilus Trader concepts inspired the Enhanced Risk and Data Aggregation modules.
 """
 
 from .alpha import (

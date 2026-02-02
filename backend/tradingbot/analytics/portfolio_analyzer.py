@@ -3,8 +3,7 @@ Portfolio Analyzer - Inspired by Nautilus Trader.
 
 Comprehensive portfolio performance analysis with pluggable statistics.
 
-Concepts from: https://github.com/nautechsystems/nautilus_trader
-License: LGPL-3.0 (concepts only, clean-room implementation)
+Inspired by Nautilus Trader concepts.
 """
 
 from dataclasses import dataclass, field

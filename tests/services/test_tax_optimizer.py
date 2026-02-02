@@ -44,7 +44,7 @@ class TestTaxOptimizer(TestCase):
         self.assertEqual(LONG_TERM_TAX_RATE, Decimal('0.15'))
         self.assertEqual(WASH_SALE_WINDOW_DAYS, 30)
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_get_all_lots(self, mock_lot_model):
         """Test get_all_lots returns lot data."""
         mock_lot = Mock()
@@ -63,7 +63,7 @@ class TestTaxOptimizer(TestCase):
         self.assertIsInstance(lots, list)
         self.assertEqual(len(lots), 1)
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_get_all_lots_with_symbol_filter(self, mock_lot_model):
         """Test get_all_lots with symbol filter."""
         mock_queryset = MagicMock()
@@ -76,7 +76,7 @@ class TestTaxOptimizer(TestCase):
         # Should filter by symbol
         mock_queryset.filter.assert_called_once()
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_get_all_lots_include_closed(self, mock_lot_model):
         """Test get_all_lots can include closed lots."""
         mock_queryset = MagicMock()
@@ -88,7 +88,7 @@ class TestTaxOptimizer(TestCase):
         # Should not filter by is_closed when include_closed=True
         self.assertEqual(mock_queryset.filter.call_count, 0)
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_get_lots_by_symbol(self, mock_lot_model):
         """Test get_lots_by_symbol returns summary."""
         mock_lot = Mock()
@@ -112,7 +112,7 @@ class TestTaxOptimizer(TestCase):
         self.assertIn('summary', result)
         self.assertGreater(result['summary']['total_quantity'], 0)
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_get_harvesting_opportunities(self, mock_lot_model):
         """Test get_harvesting_opportunities finds loss positions."""
         mock_lot = Mock()
@@ -138,8 +138,8 @@ class TestTaxOptimizer(TestCase):
 
                             self.assertIsInstance(opportunities, list)
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
-    @patch('backend.auth0login.services.tax_optimizer.TaxLotSale')
+    @patch('backend.tradingbot.models.models.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLotSale')
     def test_check_wash_sale_risk_no_recent_purchases(self, mock_sale_model, mock_lot_model):
         """Test check_wash_sale_risk with no recent purchases."""
         mock_queryset = MagicMock()
@@ -152,7 +152,7 @@ class TestTaxOptimizer(TestCase):
             self.assertEqual(result['risk_level'], 'none')
             self.assertFalse(result['is_risky'])
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_check_wash_sale_risk_recent_purchase(self, mock_lot_model):
         """Test check_wash_sale_risk with recent purchase."""
         mock_lot = Mock()
@@ -170,7 +170,7 @@ class TestTaxOptimizer(TestCase):
             self.assertEqual(result['risk_level'], 'high')
             self.assertTrue(result['is_risky'])
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_check_wash_sale_risk_pending_buys(self, mock_lot_model):
         """Test check_wash_sale_risk with pending strategy buys."""
         mock_queryset = MagicMock()
@@ -183,7 +183,7 @@ class TestTaxOptimizer(TestCase):
             self.assertEqual(result['risk_level'], 'medium')
             self.assertTrue(result['is_risky'])
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_preview_sale_tax_impact_no_lots(self, mock_lot_model):
         """Test preview_sale_tax_impact with no available lots."""
         with patch.object(self.optimizer, '_select_lots', return_value=[]):
@@ -192,7 +192,7 @@ class TestTaxOptimizer(TestCase):
             self.assertIn('error', result)
             self.assertFalse(result['success'])
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_preview_sale_tax_impact_profit(self, mock_lot_model):
         """Test preview_sale_tax_impact with profitable sale."""
         mock_lot = Mock()
@@ -215,7 +215,7 @@ class TestTaxOptimizer(TestCase):
                     self.assertGreater(result['summary']['total_gain_loss'], 0)
                     self.assertGreater(result['summary']['long_term_gain_loss'], 0)
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_preview_sale_tax_impact_loss(self, mock_lot_model):
         """Test preview_sale_tax_impact with loss."""
         mock_lot = Mock()
@@ -237,7 +237,7 @@ class TestTaxOptimizer(TestCase):
                     self.assertTrue(result['success'])
                     self.assertLess(result['summary']['total_gain_loss'], 0)
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_select_lots_fifo(self, mock_lot_model):
         """Test _select_lots with FIFO method."""
         mock_lot1 = Mock()
@@ -255,7 +255,7 @@ class TestTaxOptimizer(TestCase):
         self.assertEqual(result[0]['quantity'], Decimal('100'))
         self.assertEqual(result[1]['quantity'], Decimal('50'))
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_select_lots_lifo(self, mock_lot_model):
         """Test _select_lots with LIFO method."""
         mock_queryset = MagicMock()
@@ -267,7 +267,7 @@ class TestTaxOptimizer(TestCase):
         # Verify LIFO ordering was used
         mock_queryset.order_by.assert_called_with('-acquired_at')
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_select_lots_hifo(self, mock_lot_model):
         """Test _select_lots with HIFO method."""
         mock_queryset = MagicMock()
@@ -311,7 +311,7 @@ class TestTaxOptimizer(TestCase):
 
             self.assertEqual(result['recommended_method'], 'specific')
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLotSale')
+    @patch('backend.tradingbot.models.models.TaxLotSale')
     def test_get_year_summary(self, mock_sale_model):
         """Test get_year_summary."""
         mock_sale = Mock()
@@ -333,7 +333,7 @@ class TestTaxOptimizer(TestCase):
         self.assertIn('short_term', result)
         self.assertIn('long_term', result)
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLotSale')
+    @patch('backend.tradingbot.models.models.TaxLotSale')
     def test_get_year_summary_current_year(self, mock_sale_model):
         """Test get_year_summary defaults to current year."""
         mock_queryset = MagicMock()
@@ -343,7 +343,7 @@ class TestTaxOptimizer(TestCase):
 
         self.assertEqual(result['year'], timezone.now().year)
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLotSale')
+    @patch('backend.tradingbot.models.models.TaxLotSale')
     def test_get_year_summary_with_losses(self, mock_sale_model):
         """Test get_year_summary with losses."""
         mock_sale = Mock()
@@ -362,7 +362,7 @@ class TestTaxOptimizer(TestCase):
         self.assertLess(result['net_gain_loss'], 0)
         self.assertGreater(result['loss_carryforward'], 0)
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLot')
+    @patch('backend.tradingbot.models.models.TaxLot')
     def test_compare_lot_selection_methods(self, mock_lot_model):
         """Test _compare_lot_selection_methods."""
         mock_lot = Mock()
@@ -420,7 +420,7 @@ class TestTaxOptimizer(TestCase):
         self.assertGreater(result['estimated_savings'], 0)
         self.assertEqual(result['holding_type'], 'long_term')
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLotSale')
+    @patch('backend.tradingbot.models.models.TaxLotSale')
     def test_days_until_wash_safe_no_sales(self, mock_sale_model):
         """Test _days_until_wash_safe with no recent sales."""
         mock_queryset = MagicMock()
@@ -431,7 +431,7 @@ class TestTaxOptimizer(TestCase):
 
         self.assertEqual(result, 0)
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLotSale')
+    @patch('backend.tradingbot.models.models.TaxLotSale')
     def test_days_until_wash_safe_recent_sale(self, mock_sale_model):
         """Test _days_until_wash_safe with recent sale."""
         mock_sale = Mock()
@@ -445,7 +445,7 @@ class TestTaxOptimizer(TestCase):
 
         self.assertEqual(result, 15)  # 30 - 15 = 15 days
 
-    @patch('backend.auth0login.services.tax_optimizer.TaxLotSale')
+    @patch('backend.tradingbot.models.models.TaxLotSale')
     def test_days_until_wash_safe_past_window(self, mock_sale_model):
         """Test _days_until_wash_safe past wash sale window."""
         mock_sale = Mock()

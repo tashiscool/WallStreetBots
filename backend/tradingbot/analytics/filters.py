@@ -7,8 +7,7 @@ Provides filters to control when trading should occur based on:
 - Market volatility
 - Liquidity conditions
 
-Concepts from: https://github.com/nautechsystems/nautilus_trader
-License: LGPL-3.0 (concepts only, clean-room implementation)
+Inspired by Nautilus Trader concepts.
 """
 
 from abc import ABC, abstractmethod

@@ -5462,17 +5462,23 @@ def custom_strategy_validate(request, strategy_id):
 @require_http_methods(["POST"])
 @login_required
 def custom_strategy_backtest(request, strategy_id):
-    """Run backtest for a custom strategy.
+    """Run backtest for a custom strategy using real historical data.
 
     POST body:
-        period: Backtest period ('1M', '3M', '6M', '1Y')
+        period: Backtest period ('1M', '3M', '6M', '1Y', '2Y')
         initial_capital: Starting capital (default 100000)
-        symbols: Optional list of specific symbols to test
+        benchmark: Benchmark symbol (default 'SPY')
+        save_to_db: Whether to persist results (default True)
     """
+    import asyncio
+    from decimal import Decimal
+    from datetime import datetime, timedelta
     from backend.tradingbot.models.models import CustomStrategy
     from .services.custom_strategy_runner import CustomStrategyRunner
-    from datetime import datetime, timedelta
-    import random
+    from .services.strategy_backtest_adapter import (
+        CustomStrategyBacktestAdapter,
+        CustomStrategyBacktestConfig,
+    )
 
     try:
         strategy = CustomStrategy.objects.get(id=strategy_id, user=request.user)
@@ -5485,7 +5491,9 @@ def custom_strategy_backtest(request, strategy_id):
     try:
         data = json.loads(request.body) if request.body else {}
         period = data.get('period', '1Y')
-        initial_capital = float(data.get('initial_capital', 100000))
+        initial_capital = Decimal(str(data.get('initial_capital', 100000)))
+        benchmark = data.get('benchmark', 'SPY')
+        save_to_db = data.get('save_to_db', True)
 
         # First validate the strategy
         runner = CustomStrategyRunner(strategy.definition)
@@ -5499,92 +5507,43 @@ def custom_strategy_backtest(request, strategy_id):
             }, status=400)
 
         # Calculate date range
-        end_date = datetime.now()
+        end_date = datetime.now().date()
         period_days = {'1M': 30, '3M': 90, '6M': 180, '1Y': 365, '2Y': 730}
         start_date = end_date - timedelta(days=period_days.get(period, 365))
 
-        # Simulate backtest results
-        # In production, this would run actual backtest with historical data
-        entry_conditions = strategy.definition.get('entry_conditions', [])
-        exit_conditions = strategy.definition.get('exit_conditions', [])
+        # Create backtest config
+        config = CustomStrategyBacktestConfig(
+            strategy=strategy,
+            start_date=start_date,
+            end_date=end_date,
+            initial_capital=initial_capital,
+            benchmark=benchmark,
+        )
 
-        # Generate realistic-looking results based on strategy characteristics
-        has_stop_loss = any(c.get('type') == 'stop_loss' for c in exit_conditions)
-        has_take_profit = any(c.get('type') == 'take_profit' for c in exit_conditions)
-        num_conditions = len(entry_conditions)
+        # Create adapter and run backtest
+        adapter = CustomStrategyBacktestAdapter(strategy)
 
-        # More conditions = fewer but higher quality trades
-        base_trades = max(10, 100 - (num_conditions * 15))
-        total_trades = int(base_trades * (period_days.get(period, 365) / 365))
+        # Run async backtest
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
 
-        # Stop loss improves win rate slightly
-        base_win_rate = 48 if not has_stop_loss else 52
-        win_rate = base_win_rate + random.uniform(-5, 10)
+        results = loop.run_until_complete(
+            adapter.run_backtest(
+                config,
+                save_to_db=save_to_db,
+                user=request.user,
+            )
+        )
 
-        winning_trades = int(total_trades * (win_rate / 100))
-        losing_trades = total_trades - winning_trades
+        # Convert results to response format
+        backtest_results = results.to_dict()
 
-        # Calculate P&L
-        avg_win = random.uniform(3, 8) if has_take_profit else random.uniform(2, 12)
-        avg_loss = random.uniform(2, 5) if has_stop_loss else random.uniform(3, 10)
-
-        total_gain = winning_trades * avg_win
-        total_loss = losing_trades * avg_loss
-        total_return_pct = total_gain - total_loss
-
-        # Risk metrics
-        max_drawdown = random.uniform(5, 15) if has_stop_loss else random.uniform(10, 25)
-        volatility = abs(total_return_pct) * random.uniform(0.3, 0.6)
-
-        # Sharpe ratio
-        risk_free = 5.0
-        sharpe = (total_return_pct - risk_free) / volatility if volatility > 0 else 0
-
-        # Sortino (assume downside deviation is 70% of volatility)
-        sortino = (total_return_pct - risk_free) / (volatility * 0.7) if volatility > 0 else 0
-
-        # Profit factor
-        profit_factor = (winning_trades * avg_win) / (losing_trades * avg_loss) if losing_trades > 0 else 2.0
-
-        # Generate sample signals
-        signals_sample = []
-        for i in range(min(5, total_trades)):
-            signal_date = start_date + timedelta(days=random.randint(0, period_days.get(period, 365)))
-            signals_sample.append({
-                'date': signal_date.strftime('%Y-%m-%d'),
-                'symbol': random.choice(['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'AMZN', 'META']),
-                'price': round(random.uniform(50, 500), 2),
-                'type': 'entry',
-            })
-
-        backtest_results = {
-            'period': period,
-            'start_date': start_date.strftime('%Y-%m-%d'),
-            'end_date': end_date.strftime('%Y-%m-%d'),
-            'initial_capital': initial_capital,
-            'final_capital': initial_capital * (1 + total_return_pct / 100),
-            'total_return_pct': round(total_return_pct, 2),
-            'sharpe_ratio': round(sharpe, 2),
-            'sortino_ratio': round(sortino, 2),
-            'max_drawdown_pct': round(max_drawdown, 2),
-            'win_rate': round(win_rate, 1),
-            'profit_factor': round(min(profit_factor, 5), 2),
-            'total_trades': total_trades,
-            'winning_trades': winning_trades,
-            'losing_trades': losing_trades,
-            'avg_win_pct': round(avg_win, 2),
-            'avg_loss_pct': round(avg_loss, 2),
-            'best_trade_pct': round(avg_win * random.uniform(2, 4), 2),
-            'worst_trade_pct': round(-avg_loss * random.uniform(2, 3), 2),
-            'avg_hold_days': round(random.uniform(2, 10), 1),
-            'signals_sample': signals_sample,
-            'run_at': datetime.now().isoformat(),
-        }
-
-        # Save results to strategy
-        strategy.backtest_results = backtest_results
-        strategy.last_backtest_at = datetime.now()
-        strategy.save()
+        # Add some additional fields for compatibility
+        backtest_results['period'] = period
+        backtest_results['run_at'] = datetime.now().isoformat()
 
         return JsonResponse({
             'status': 'success',
@@ -5592,7 +5551,7 @@ def custom_strategy_backtest(request, strategy_id):
         })
 
     except Exception as e:
-        logger.error(f"Error running backtest: {e}")
+        logger.error(f"Error running backtest: {e}", exc_info=True)
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
@@ -5937,4 +5896,1914 @@ def custom_strategy_preview_signals(request, strategy_id):
 
     except Exception as e:
         logger.error(f"Error previewing signals: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# =============================================================================
+# BACKTEST RUN PERSISTENCE API
+# =============================================================================
+
+
+@require_http_methods(["GET"])
+@login_required
+def backtest_runs_list(request):
+    """List user's saved backtest runs.
+
+    Query parameters:
+        strategy_name: Filter by strategy name
+        status: Filter by status (pending, running, completed, failed)
+        limit: Maximum results to return (default 50)
+        offset: Pagination offset (default 0)
+    """
+    from backend.tradingbot.models.models import BacktestRun
+
+    try:
+        queryset = BacktestRun.objects.filter(user=request.user)
+
+        # Apply filters
+        strategy_name = request.GET.get('strategy_name')
+        if strategy_name:
+            queryset = queryset.filter(strategy_name__icontains=strategy_name)
+
+        status = request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+
+        # Order by most recent
+        queryset = queryset.order_by('-created_at')
+
+        # Pagination
+        limit = min(int(request.GET.get('limit', 50)), 100)
+        offset = int(request.GET.get('offset', 0))
+        total = queryset.count()
+
+        runs = queryset[offset:offset + limit]
+
+        return JsonResponse({
+            'runs': [
+                {
+                    'run_id': run.run_id,
+                    'strategy_name': run.strategy_name,
+                    'start_date': run.start_date.isoformat() if run.start_date else None,
+                    'end_date': run.end_date.isoformat() if run.end_date else None,
+                    'initial_capital': float(run.initial_capital) if run.initial_capital else None,
+                    'total_return_pct': run.total_return_pct,
+                    'sharpe_ratio': run.sharpe_ratio,
+                    'max_drawdown_pct': run.max_drawdown_pct,
+                    'win_rate': run.win_rate,
+                    'total_trades': run.total_trades,
+                    'status': run.status,
+                    'created_at': run.created_at.isoformat() if run.created_at else None,
+                }
+                for run in runs
+            ],
+            'total': total,
+            'limit': limit,
+            'offset': offset,
+        })
+
+    except Exception as e:
+        logger.error(f"Error listing backtest runs: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["GET", "DELETE"])
+@login_required
+def backtest_run_detail(request, run_id):
+    """Get or delete a specific backtest run.
+
+    GET: Returns full run details including equity curve and trades
+    DELETE: Deletes the run and associated trades
+    """
+    from backend.tradingbot.models.models import BacktestRun
+
+    try:
+        run = BacktestRun.objects.get(run_id=run_id, user=request.user)
+    except BacktestRun.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Backtest run not found',
+        }, status=404)
+
+    if request.method == 'DELETE':
+        run.delete()
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Backtest run deleted',
+        })
+
+    # GET - return full details
+    return JsonResponse({
+        'run_id': run.run_id,
+        'strategy_name': run.strategy_name,
+        'custom_strategy_id': run.custom_strategy_id,
+        'start_date': run.start_date.isoformat() if run.start_date else None,
+        'end_date': run.end_date.isoformat() if run.end_date else None,
+        'symbols': run.symbols,
+        'initial_capital': float(run.initial_capital) if run.initial_capital else None,
+        'final_capital': float(run.final_capital) if run.final_capital else None,
+        'position_size_pct': float(run.position_size_pct) if run.position_size_pct else None,
+        'stop_loss_pct': float(run.stop_loss_pct) if run.stop_loss_pct else None,
+        'take_profit_pct': float(run.take_profit_pct) if run.take_profit_pct else None,
+        'total_return_pct': run.total_return_pct,
+        'annualized_return_pct': run.annualized_return_pct,
+        'sharpe_ratio': run.sharpe_ratio,
+        'sortino_ratio': run.sortino_ratio,
+        'max_drawdown_pct': run.max_drawdown_pct,
+        'win_rate': run.win_rate,
+        'profit_factor': run.profit_factor,
+        'total_trades': run.total_trades,
+        'winning_trades': run.winning_trades,
+        'losing_trades': run.losing_trades,
+        'avg_win_pct': run.avg_win_pct,
+        'avg_loss_pct': run.avg_loss_pct,
+        'equity_curve': run.equity_curve,
+        'drawdown_curve': run.drawdown_curve,
+        'monthly_returns': run.monthly_returns,
+        'benchmark_symbol': run.benchmark_symbol,
+        'benchmark_return_pct': run.benchmark_return_pct,
+        'alpha': run.alpha,
+        'beta': run.beta,
+        'status': run.status,
+        'error_message': run.error_message,
+        'execution_time_seconds': run.execution_time_seconds,
+        'created_at': run.created_at.isoformat() if run.created_at else None,
+        'completed_at': run.completed_at.isoformat() if run.completed_at else None,
+    })
+
+
+@require_http_methods(["GET"])
+@login_required
+def backtest_run_trades(request, run_id):
+    """Get trades for a specific backtest run.
+
+    Query parameters:
+        symbol: Filter by symbol
+        direction: Filter by direction (long, short)
+        limit: Maximum results (default 100)
+        offset: Pagination offset (default 0)
+    """
+    from backend.tradingbot.models.models import BacktestRun, BacktestTrade
+
+    try:
+        run = BacktestRun.objects.get(run_id=run_id, user=request.user)
+    except BacktestRun.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Backtest run not found',
+        }, status=404)
+
+    queryset = BacktestTrade.objects.filter(backtest_run=run)
+
+    # Apply filters
+    symbol = request.GET.get('symbol')
+    if symbol:
+        queryset = queryset.filter(symbol__iexact=symbol)
+
+    direction = request.GET.get('direction')
+    if direction:
+        queryset = queryset.filter(direction=direction)
+
+    # Order by entry date
+    queryset = queryset.order_by('-entry_date')
+
+    # Pagination
+    limit = min(int(request.GET.get('limit', 100)), 500)
+    offset = int(request.GET.get('offset', 0))
+    total = queryset.count()
+
+    trades = queryset[offset:offset + limit]
+
+    return JsonResponse({
+        'run_id': run_id,
+        'trades': [
+            {
+                'id': trade.id,
+                'symbol': trade.symbol,
+                'direction': trade.direction,
+                'entry_date': trade.entry_date.isoformat() if trade.entry_date else None,
+                'entry_price': float(trade.entry_price) if trade.entry_price else None,
+                'entry_reason': trade.entry_reason,
+                'exit_date': trade.exit_date.isoformat() if trade.exit_date else None,
+                'exit_price': float(trade.exit_price) if trade.exit_price else None,
+                'exit_reason': trade.exit_reason,
+                'shares': trade.shares,
+                'pnl': float(trade.pnl) if trade.pnl else None,
+                'pnl_pct': trade.pnl_pct,
+                'holding_days': trade.holding_days,
+                'max_favorable': trade.max_favorable,
+                'max_adverse': trade.max_adverse,
+            }
+            for trade in trades
+        ],
+        'total': total,
+        'limit': limit,
+        'offset': offset,
+    })
+
+
+@require_http_methods(["POST"])
+@login_required
+def backtest_runs_compare(request):
+    """Compare multiple backtest runs side-by-side.
+
+    POST body:
+        run_ids: List of run IDs to compare (2-5 runs)
+    """
+    from backend.tradingbot.models.models import BacktestRun
+
+    try:
+        data = json.loads(request.body) if request.body else {}
+        run_ids = data.get('run_ids', [])
+
+        if not run_ids or len(run_ids) < 2:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Must provide at least 2 run_ids to compare',
+            }, status=400)
+
+        if len(run_ids) > 5:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Cannot compare more than 5 runs at once',
+            }, status=400)
+
+        runs = BacktestRun.objects.filter(
+            run_id__in=run_ids,
+            user=request.user,
+            status='completed'
+        )
+
+        if runs.count() != len(run_ids):
+            found_ids = set(runs.values_list('run_id', flat=True))
+            missing = set(run_ids) - found_ids
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Some runs not found or not completed: {list(missing)}',
+            }, status=404)
+
+        comparison = []
+        for run in runs:
+            comparison.append({
+                'run_id': run.run_id,
+                'strategy_name': run.strategy_name,
+                'start_date': run.start_date.isoformat() if run.start_date else None,
+                'end_date': run.end_date.isoformat() if run.end_date else None,
+                'initial_capital': float(run.initial_capital) if run.initial_capital else None,
+                'metrics': {
+                    'total_return_pct': run.total_return_pct,
+                    'annualized_return_pct': run.annualized_return_pct,
+                    'sharpe_ratio': run.sharpe_ratio,
+                    'sortino_ratio': run.sortino_ratio,
+                    'max_drawdown_pct': run.max_drawdown_pct,
+                    'win_rate': run.win_rate,
+                    'profit_factor': run.profit_factor,
+                    'total_trades': run.total_trades,
+                    'alpha': run.alpha,
+                    'beta': run.beta,
+                },
+                'equity_curve': run.equity_curve,
+            })
+
+        # Calculate rankings for each metric
+        metrics = ['total_return_pct', 'sharpe_ratio', 'sortino_ratio', 'win_rate', 'profit_factor']
+        rankings = {}
+        for metric in metrics:
+            values = [(c['run_id'], c['metrics'].get(metric, 0) or 0) for c in comparison]
+            values.sort(key=lambda x: x[1], reverse=True)
+            rankings[metric] = {v[0]: i + 1 for i, v in enumerate(values)}
+
+        # For drawdown, lower is better
+        dd_values = [(c['run_id'], c['metrics'].get('max_drawdown_pct', 0) or 0) for c in comparison]
+        dd_values.sort(key=lambda x: x[1])  # Lower is better
+        rankings['max_drawdown_pct'] = {v[0]: i + 1 for i, v in enumerate(dd_values)}
+
+        return JsonResponse({
+            'comparison': comparison,
+            'rankings': rankings,
+            'run_count': len(comparison),
+        })
+
+    except Exception as e:
+        logger.error(f"Error comparing backtest runs: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# =============================================================================
+# PARAMETER OPTIMIZATION API
+# =============================================================================
+
+
+@require_http_methods(["POST"])
+@login_required
+def optimization_run_start(request):
+    """Start a parameter optimization run.
+
+    POST body:
+        strategy_id: Custom strategy ID to optimize
+        parameter_ranges: Dict of parameter names to [min, max] or list of values
+        objective: Metric to optimize ('sharpe', 'return', 'sortino', 'calmar')
+        n_trials: Number of optimization trials (default 50, max 200)
+        sampler: Optimization algorithm ('tpe', 'random', 'cmaes')
+        start_date: Backtest start date
+        end_date: Backtest end date
+        symbols: List of symbols to test on
+    """
+    from backend.tradingbot.models.models import CustomStrategy, OptimizationRun
+    from .services.strategy_backtest_adapter import CustomStrategyBacktestAdapter, CustomStrategyBacktestConfig
+
+    try:
+        data = json.loads(request.body) if request.body else {}
+
+        strategy_id = data.get('strategy_id')
+        if not strategy_id:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'strategy_id is required',
+            }, status=400)
+
+        try:
+            strategy = CustomStrategy.objects.get(id=strategy_id, user=request.user)
+        except CustomStrategy.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Strategy not found',
+            }, status=404)
+
+        parameter_ranges = data.get('parameter_ranges', {})
+        if not parameter_ranges:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'parameter_ranges is required',
+            }, status=400)
+
+        # Validate parameter ranges
+        for param, range_val in parameter_ranges.items():
+            if isinstance(range_val, list):
+                if len(range_val) < 2:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Parameter {param} must have at least 2 values',
+                    }, status=400)
+            elif isinstance(range_val, dict):
+                if 'min' not in range_val or 'max' not in range_val:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Parameter {param} range must have min and max',
+                    }, status=400)
+
+        objective = data.get('objective', 'sharpe')
+        if objective not in ('sharpe', 'return', 'sortino', 'calmar', 'win_rate'):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid objective. Must be one of: sharpe, return, sortino, calmar, win_rate',
+            }, status=400)
+
+        n_trials = min(int(data.get('n_trials', 50)), 200)
+        sampler = data.get('sampler', 'tpe')
+        if sampler not in ('tpe', 'random', 'cmaes'):
+            sampler = 'tpe'
+
+        # Create optimization run record
+        import uuid
+        from datetime import datetime
+        from decimal import Decimal
+
+        run_id = f"opt_{uuid.uuid4().hex[:12]}"
+
+        # Parse dates for database storage
+        start_date_str = data.get('start_date', '2023-01-01')
+        end_date_str = data.get('end_date', '2024-01-01')
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+
+        optimization_run = OptimizationRun.objects.create(
+            run_id=run_id,
+            user=request.user,
+            strategy_name=strategy.name,
+            custom_strategy=strategy,
+            start_date=start_date,
+            end_date=end_date,
+            initial_capital=Decimal(str(data.get('initial_capital', 100000))),
+            loss_function=objective,
+            n_trials=n_trials,
+            sampler=sampler,
+            parameter_ranges=parameter_ranges,
+            status='pending',
+        )
+
+        # Start optimization in background
+        from backend.tradingbot.backtesting.optimization_service import (
+            OptimizationService, OptimizationConfig, OptimizationObjective,
+            SamplerType, ParameterRange
+        )
+
+        # For now, run synchronously (in production, use Celery or similar)
+        # This is a simplified implementation
+        try:
+            optimization_run.status = 'running'
+            optimization_run.save()
+
+            # Convert parameter ranges dict to List[ParameterRange]
+            param_range_list = []
+            for param_name, range_val in parameter_ranges.items():
+                if isinstance(range_val, list):
+                    # Categorical values
+                    param_range_list.append(ParameterRange(
+                        name=param_name,
+                        min_value=min(range_val),
+                        max_value=max(range_val),
+                        param_type='categorical',
+                        choices=range_val
+                    ))
+                elif isinstance(range_val, dict):
+                    # Range with min/max
+                    param_range_list.append(ParameterRange(
+                        name=param_name,
+                        min_value=float(range_val['min']),
+                        max_value=float(range_val['max']),
+                        step=float(range_val.get('step', 1)) if 'step' in range_val else None,
+                        param_type=range_val.get('type', 'float')
+                    ))
+
+            # Convert objective string to enum
+            objective_map = {
+                'sharpe': OptimizationObjective.SHARPE,
+                'return': OptimizationObjective.TOTAL_RETURN,
+                'sortino': OptimizationObjective.SORTINO,
+                'calmar': OptimizationObjective.CALMAR,
+                'win_rate': OptimizationObjective.WIN_RATE,
+            }
+            objective_enum = objective_map.get(objective, OptimizationObjective.SHARPE)
+
+            # Convert sampler string to enum
+            sampler_map = {
+                'tpe': SamplerType.TPE,
+                'random': SamplerType.RANDOM,
+                'cmaes': SamplerType.CMAES,
+            }
+            sampler_enum = sampler_map.get(sampler, SamplerType.TPE)
+
+            config = OptimizationConfig(
+                strategy_name=strategy.name,
+                start_date=start_date,
+                end_date=end_date,
+                initial_capital=Decimal(str(data.get('initial_capital', 100000))),
+                objective=objective_enum,
+                n_trials=n_trials,
+                sampler=sampler_enum,
+                parameter_ranges=param_range_list,
+            )
+
+            service = OptimizationService()
+
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(
+                    service.run_optimization(config, save_to_db=False, user=request.user)
+                )
+            finally:
+                loop.close()
+
+            # Convert TrialResult objects to dicts for JSON storage
+            trials_for_storage = [
+                {
+                    'trial_number': t.trial_number,
+                    'params': t.params,
+                    'objective_value': t.objective_value,
+                    'metrics': t.metrics,
+                    'is_best': t.is_best,
+                }
+                for t in result.all_trials[:100]  # Limit stored trials
+            ]
+
+            # Compute convergence curve from trials and include in storage
+            convergence_data = []
+            best_so_far = float('-inf') if objective != 'min_drawdown' else float('inf')
+            for t in sorted(result.all_trials, key=lambda x: x.trial_number):
+                if objective == 'min_drawdown':
+                    if t.objective_value < best_so_far:
+                        best_so_far = t.objective_value
+                else:
+                    if t.objective_value > best_so_far:
+                        best_so_far = t.objective_value
+                convergence_data.append({'trial': t.trial_number, 'best_value': best_so_far})
+
+            # Add convergence data to trials storage
+            trials_for_storage.append({'_convergence_curve': convergence_data})
+
+            # Get best metrics for storage
+            best_metrics = result.best_metrics if hasattr(result, 'best_metrics') else {}
+
+            # Update run with results
+            optimization_run.status = result.status
+            optimization_run.best_params = result.best_params
+            optimization_run.best_value = result.best_value
+            optimization_run.best_sharpe = best_metrics.get('sharpe_ratio')
+            optimization_run.best_return_pct = best_metrics.get('total_return_pct')
+            optimization_run.best_drawdown_pct = best_metrics.get('max_drawdown_pct')
+            optimization_run.all_trials = trials_for_storage
+            optimization_run.parameter_importance = result.parameter_importance
+            optimization_run.current_trial = n_trials
+            optimization_run.progress = 100
+            optimization_run.save()
+
+        except Exception as opt_error:
+            optimization_run.status = 'failed'
+            optimization_run.error_message = str(opt_error)
+            optimization_run.save()
+            raise
+
+        return JsonResponse({
+            'status': 'success',
+            'run_id': run_id,
+            'optimization_status': optimization_run.status,
+            'best_params': optimization_run.best_params,
+            'best_value': optimization_run.best_value,
+        })
+
+    except Exception as e:
+        logger.error(f"Error starting optimization: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
+def optimization_run_status(request, run_id):
+    """Get status of an optimization run."""
+    from backend.tradingbot.models.models import OptimizationRun
+
+    try:
+        run = OptimizationRun.objects.get(run_id=run_id, user=request.user)
+    except OptimizationRun.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Optimization run not found',
+        }, status=404)
+
+    return JsonResponse({
+        'run_id': run.run_id,
+        'status': run.status,
+        'trials_completed': run.current_trial,
+        'n_trials': run.n_trials,
+        'progress_pct': run.progress,
+        'best_value': run.best_value,
+        'current_best_params': run.best_params,
+        'created_at': run.created_at.isoformat() if run.created_at else None,
+    })
+
+
+@require_http_methods(["GET"])
+@login_required
+def optimization_run_results(request, run_id):
+    """Get full results of a completed optimization run."""
+    from backend.tradingbot.models.models import OptimizationRun
+
+    try:
+        run = OptimizationRun.objects.get(run_id=run_id, user=request.user)
+    except OptimizationRun.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Optimization run not found',
+        }, status=404)
+
+    if run.status != 'completed':
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Optimization run is not completed. Current status: {run.status}',
+            'run_status': run.status,
+        }, status=400)
+
+    # Extract convergence curve from all_trials if present
+    all_trials = run.all_trials or []
+    convergence_curve = []
+    trials_data = []
+    for item in all_trials:
+        if isinstance(item, dict) and '_convergence_curve' in item:
+            convergence_curve = item['_convergence_curve']
+        else:
+            trials_data.append(item)
+
+    return JsonResponse({
+        'run_id': run.run_id,
+        'strategy_name': run.strategy_name,
+        'objective': run.loss_function,
+        'n_trials': run.n_trials,
+        'sampler': run.sampler,
+        'parameter_ranges': run.parameter_ranges,
+        'best_params': run.best_params,
+        'best_value': run.best_value,
+        'best_sharpe': run.best_sharpe,
+        'best_return_pct': run.best_return_pct,
+        'best_drawdown_pct': run.best_drawdown_pct,
+        'convergence_curve': convergence_curve,
+        'param_importance': run.parameter_importance,
+        'all_trials': trials_data,
+        'created_at': run.created_at.isoformat() if run.created_at else None,
+        'completed_at': run.completed_at.isoformat() if run.completed_at else None,
+    })
+
+
+@require_http_methods(["GET"])
+@login_required
+def optimization_runs_list(request):
+    """List user's optimization runs."""
+    from backend.tradingbot.models.models import OptimizationRun
+
+    try:
+        queryset = OptimizationRun.objects.filter(user=request.user).order_by('-created_at')
+
+        limit = min(int(request.GET.get('limit', 50)), 100)
+        offset = int(request.GET.get('offset', 0))
+        total = queryset.count()
+
+        runs = queryset[offset:offset + limit]
+
+        return JsonResponse({
+            'runs': [
+                {
+                    'run_id': run.run_id,
+                    'strategy_name': run.strategy_name,
+                    'objective': run.loss_function,
+                    'n_trials': run.n_trials,
+                    'status': run.status,
+                    'best_value': run.best_value,
+                    'created_at': run.created_at.isoformat() if run.created_at else None,
+                }
+                for run in runs
+            ],
+            'total': total,
+            'limit': limit,
+            'offset': offset,
+        })
+
+    except Exception as e:
+        logger.error(f"Error listing optimization runs: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# =============================================================================
+# WIZARD/ONBOARDING API
+# =============================================================================
+
+
+@require_http_methods(["GET", "POST"])
+@login_required
+def wizard_session(request):
+    """Get or create wizard onboarding session.
+
+    GET: Returns current session state
+    POST: Creates new session or resumes existing one
+    """
+    from .services.onboarding_flow import OnboardingFlowService
+
+    try:
+        service = OnboardingFlowService(request.user)
+
+        if request.method == 'POST':
+            data = json.loads(request.body) if request.body else {}
+            force_new = data.get('force_new', False)
+
+            if force_new:
+                session = service.start_new_session()
+            else:
+                session = service.get_or_create_session()
+
+            return JsonResponse({
+                'status': 'success',
+                'session': {
+                    'session_id': session.session_id,
+                    'current_step': session.current_step,
+                    'steps_completed': session.steps_completed,
+                    'status': session.status,
+                    'step_data': session.step_data,
+                },
+            })
+
+        # GET
+        session = service.get_current_session()
+        if not session:
+            return JsonResponse({
+                'status': 'success',
+                'session': None,
+                'message': 'No active session',
+            })
+
+        return JsonResponse({
+            'status': 'success',
+            'session': {
+                'session_id': session.session_id,
+                'current_step': session.current_step,
+                'steps_completed': session.steps_completed,
+                'status': session.status,
+                'step_data': session.step_data,
+            },
+        })
+
+    except Exception as e:
+        logger.error(f"Error with wizard session: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def wizard_step_submit(request, step):
+    """Submit data for a wizard step.
+
+    POST body: Step-specific data
+        Step 1: trading_mode
+        Step 2: broker_type, api_key, api_secret
+        Step 3: risk questionnaire answers
+        Step 4: selected_strategies, allocations
+        Step 5: confirmation data
+    """
+    from .services.onboarding_flow import OnboardingFlowService
+
+    try:
+        step = int(step)
+        if step < 1 or step > 5:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid step. Must be 1-5',
+            }, status=400)
+
+        data = json.loads(request.body) if request.body else {}
+
+        service = OnboardingFlowService(request.user)
+        result = service.process_step(step, data)
+
+        if result.success:
+            return JsonResponse({
+                'status': 'success',
+                'step': step,
+                'next_step': step + 1 if step < 5 else None,
+                'data': result.data,
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'step': step,
+                'errors': result.errors,
+                'warnings': result.warnings,
+            }, status=400)
+
+    except Exception as e:
+        logger.error(f"Error submitting wizard step {step}: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def wizard_complete(request):
+    """Complete the wizard and finalize configuration."""
+    from .services.onboarding_flow import OnboardingFlowService
+
+    try:
+        data = json.loads(request.body) if request.body else {}
+
+        service = OnboardingFlowService(request.user)
+        result = service.complete_wizard(data)
+
+        if result.success:
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Setup complete! Your trading configuration has been saved.',
+                'config': result.data.get('config'),
+                'email_sent': result.data.get('email_sent', False),
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'errors': result.errors,
+            }, status=400)
+
+    except Exception as e:
+        logger.error(f"Error completing wizard: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def wizard_skip(request):
+    """Skip the wizard (for returning users with existing config)."""
+    from .models import WizardConfiguration, OnboardingSession
+
+    try:
+        # Check if user has completed wizard before
+        has_config = WizardConfiguration.objects.filter(user=request.user).exists()
+
+        if has_config:
+            # Mark any in-progress sessions as skipped
+            OnboardingSession.objects.filter(
+                user=request.user,
+                status='in_progress'
+            ).update(status='abandoned')
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Wizard skipped. Using existing configuration.',
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Cannot skip wizard - no existing configuration found. Please complete setup.',
+            }, status=400)
+
+    except Exception as e:
+        logger.error(f"Error skipping wizard: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
+def wizard_config(request):
+    """Get user's saved wizard configuration."""
+    from .models import WizardConfiguration
+
+    try:
+        config = WizardConfiguration.objects.filter(user=request.user).first()
+
+        if not config:
+            return JsonResponse({
+                'status': 'success',
+                'config': None,
+                'has_config': False,
+            })
+
+        return JsonResponse({
+            'status': 'success',
+            'has_config': True,
+            'config': {
+                'trading_mode': config.trading_mode,
+                'selected_strategies': config.selected_strategies,
+                'risk_profile': config.risk_profile,
+                'max_position_pct': float(config.max_position_pct) if config.max_position_pct else None,
+                'max_daily_loss_pct': float(config.max_daily_loss_pct) if config.max_daily_loss_pct else None,
+                'max_total_exposure_pct': float(config.max_total_exposure_pct) if config.max_total_exposure_pct else None,
+                'broker_validated': config.broker_validated,
+                'setup_completed': config.setup_completed,
+                'setup_completed_at': config.setup_completed_at.isoformat() if config.setup_completed_at else None,
+                'last_modified': config.updated_at.isoformat() if config.updated_at else None,
+            },
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting wizard config: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
+def wizard_needs_setup(request):
+    """Check if user needs to complete wizard setup."""
+    from .models import WizardConfiguration
+
+    try:
+        config = WizardConfiguration.objects.filter(user=request.user).first()
+
+        needs_setup = (
+            config is None or
+            not config.setup_completed or
+            not config.broker_validated
+        )
+
+        return JsonResponse({
+            'needs_setup': needs_setup,
+            'reason': 'No configuration' if config is None else (
+                'Setup not completed' if not config.setup_completed else (
+                    'Broker not validated' if not config.broker_validated else None
+                )
+            ),
+        })
+
+    except Exception as e:
+        logger.error(f"Error checking wizard needs: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# =============================================================================
+# Market Context API
+# =============================================================================
+
+@require_http_methods(["GET"])
+@login_required
+def market_context_overview(request):
+    """Get comprehensive market context for dashboard.
+
+    Query parameters:
+        force: If true, bypass cache and force refresh
+    """
+    from .services.market_context import get_market_context_service
+
+    try:
+        force_refresh = request.GET.get('force', '').lower() == 'true'
+        service = get_market_context_service()
+
+        # Get user's holdings for events
+        holding_symbols = []
+        try:
+            from .dashboard_service import dashboard_service
+            positions = dashboard_service.get_positions()
+            holding_symbols = [p.get('symbol') for p in positions if p.get('symbol')]
+        except Exception:
+            pass
+
+        context = {
+            'overview': service.get_market_overview(force_refresh=force_refresh),
+            'sectors': service.get_sector_performance(force_refresh=force_refresh),
+            'holdings_events': service.get_holdings_events(holding_symbols),
+            'economic_calendar': service.get_economic_calendar(),
+        }
+
+        return JsonResponse(context)
+
+    except Exception as e:
+        logger.error(f"Error getting market context: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
+def market_context_sectors(request):
+    """Get sector performance data for heatmap."""
+    from .services.market_context import get_market_context_service
+
+    try:
+        service = get_market_context_service()
+        sectors = service.get_sector_performance()
+
+        return JsonResponse({'sectors': sectors})
+
+    except Exception as e:
+        logger.error(f"Error getting sector data: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# =============================================================================
+# Allocation Management API
+# =============================================================================
+
+@require_http_methods(["GET"])
+@login_required
+def allocations_list(request):
+    """Get all strategy allocations for the user."""
+    from .services.allocation_manager import get_allocation_manager
+
+    try:
+        manager = get_allocation_manager()
+        summary = manager.get_allocation_summary(request.user)
+
+        return JsonResponse({
+            'allocations': summary.get('allocations', []),
+            'total_allocated': summary.get('total_allocated', 0),
+            'total_exposure': summary.get('total_exposure', 0),
+            'warnings': summary.get('warnings', []),
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting allocations: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def allocations_rebalance(request):
+    """Trigger rebalancing of allocations."""
+    from .services.allocation_manager import get_allocation_manager
+
+    try:
+        manager = get_allocation_manager()
+        recommendations = manager.get_rebalance_recommendations(request.user)
+
+        return JsonResponse({
+            'status': 'success',
+            'recommendations': [
+                {
+                    'strategy_name': r.strategy_name,
+                    'current_allocation': r.current_allocation,
+                    'target_allocation': r.target_allocation,
+                    'action': r.action,
+                    'adjustment_amount': r.adjustment_amount,
+                    'priority': r.priority,
+                    'reason': r.reason,
+                }
+                for r in recommendations
+            ],
+        })
+
+    except Exception as e:
+        logger.error(f"Error rebalancing: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["PUT"])
+@login_required
+def allocation_update(request, strategy_name):
+    """Update allocation for a specific strategy."""
+    from .services.allocation_manager import get_allocation_manager
+
+    try:
+        data = json.loads(request.body) if request.body else {}
+
+        manager = get_allocation_manager()
+        result = manager.update_allocation(
+            user=request.user,
+            strategy_name=strategy_name,
+            new_allocation_pct=data.get('target_pct'),
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'allocation': result,
+        })
+
+    except Exception as e:
+        logger.error(f"Error updating allocation: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# =============================================================================
+# Circuit Breaker API
+# =============================================================================
+
+@require_http_methods(["GET"])
+@login_required
+def circuit_breaker_states(request):
+    """Get all circuit breaker states."""
+    from backend.tradingbot.models.models import CircuitBreakerState
+
+    try:
+        states = CircuitBreakerState.objects.all()
+
+        return JsonResponse({
+            'breakers': [
+                {
+                    'breaker_type': s.breaker_type,
+                    'state': s.state,
+                    'trigger_count': s.trigger_count,
+                    'last_triggered': s.last_triggered_at.isoformat() if s.last_triggered_at else None,
+                    'recovery_stage': s.recovery_stage,
+                    'cooldown_until': s.cooldown_until.isoformat() if s.cooldown_until else None,
+                    'metadata': s.metadata,
+                }
+                for s in states
+            ]
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting circuit breaker states: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def circuit_breaker_reset(request, breaker_type):
+    """Reset a specific circuit breaker."""
+    from backend.tradingbot.models.models import CircuitBreakerState
+
+    try:
+        breaker = CircuitBreakerState.objects.get(breaker_type=breaker_type)
+        breaker.reset()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'{breaker_type} breaker reset',
+        })
+
+    except CircuitBreakerState.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Breaker not found',
+        }, status=404)
+    except Exception as e:
+        logger.error(f"Error resetting circuit breaker: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
+def circuit_breaker_history(request):
+    """Get circuit breaker history."""
+    from backend.tradingbot.models.models import CircuitBreakerHistory
+
+    try:
+        limit = int(request.GET.get('limit', 50))
+        breaker_type = request.GET.get('type')
+
+        queryset = CircuitBreakerHistory.objects.all()
+        if breaker_type:
+            queryset = queryset.filter(breaker_type=breaker_type)
+
+        history = queryset.order_by('-triggered_at')[:limit]
+
+        return JsonResponse({
+            'history': [
+                {
+                    'id': h.id,
+                    'breaker_type': h.breaker_type,
+                    'trigger_reason': h.trigger_reason,
+                    'triggered_at': h.triggered_at.isoformat(),
+                    'recovered_at': h.recovered_at.isoformat() if h.recovered_at else None,
+                    'duration_seconds': h.duration_seconds,
+                    'metadata': h.metadata,
+                }
+                for h in history
+            ]
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting circuit breaker history: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# ============================================================================
+# ML/RL Agent Endpoints
+# ============================================================================
+
+@require_http_methods(["GET"])
+@login_required
+def ml_models_list(request):
+    """List all ML models for the user."""
+    from backend.tradingbot.models.models import MLModel
+
+    try:
+        # Filter by type if specified
+        model_type = request.GET.get('type')
+        status_filter = request.GET.get('status')
+
+        queryset = MLModel.objects.filter(user=request.user)
+
+        if model_type and model_type != 'all':
+            queryset = queryset.filter(model_type=model_type)
+        if status_filter and status_filter != 'all':
+            queryset = queryset.filter(status=status_filter)
+
+        models = queryset.order_by('-updated_at')
+
+        return JsonResponse({
+            'models': [model.to_dict() for model in models],
+            'total': models.count(),
+            'by_type': {
+                'lstm': MLModel.objects.filter(user=request.user, model_type='lstm').count(),
+                'cnn': MLModel.objects.filter(user=request.user, model_type='cnn').count(),
+                'transformer': MLModel.objects.filter(user=request.user, model_type='transformer').count(),
+                'hmm': MLModel.objects.filter(user=request.user, model_type='hmm').count(),
+            },
+            'by_status': {
+                'active': MLModel.objects.filter(user=request.user, status='active').count(),
+                'training': MLModel.objects.filter(user=request.user, status='training').count(),
+                'idle': MLModel.objects.filter(user=request.user, status='idle').count(),
+                'error': MLModel.objects.filter(user=request.user, status='error').count(),
+            }
+        })
+
+    except Exception as e:
+        logger.error(f"Error listing ML models: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def ml_models_create(request):
+    """Create a new ML model."""
+    from backend.tradingbot.models.models import MLModel
+
+    try:
+        data = json.loads(request.body) if request.body else {}
+
+        model_name = data.get('name', '').strip()
+        model_type = data.get('type', 'lstm')
+        symbols = data.get('symbols', 'SPY')
+        target = data.get('target', 'direction')
+        lookback = data.get('lookback', 60)
+
+        if not model_name:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Model name is required',
+            }, status=400)
+
+        # Check for duplicate names
+        if MLModel.objects.filter(user=request.user, name=model_name).exists():
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Model with name "{model_name}" already exists',
+            }, status=400)
+
+        # Validate model type
+        valid_types = ['lstm', 'cnn', 'transformer', 'hmm', 'xgboost', 'random_forest']
+        if model_type not in valid_types:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Invalid model type. Must be one of: {valid_types}',
+            }, status=400)
+
+        # Create the model
+        model = MLModel.objects.create(
+            user=request.user,
+            name=model_name,
+            model_type=model_type,
+            symbols=symbols,
+            prediction_target=target,
+            lookback_period=lookback,
+            status='idle',
+        )
+
+        # Set default hyperparameters
+        model.hyperparameters = model.get_default_hyperparameters()
+        model.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'model': model.to_dict(),
+            'message': f'Model "{model_name}" created successfully',
+        })
+
+    except Exception as e:
+        logger.error(f"Error creating ML model: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def ml_model_train(request, model_id):
+    """Start training an ML model."""
+    from backend.tradingbot.models.models import MLModel, TrainingJob
+    from django.utils import timezone
+    import uuid
+
+    try:
+        # Get the model
+        try:
+            model = MLModel.objects.get(id=model_id, user=request.user)
+        except MLModel.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Model not found',
+            }, status=404)
+
+        # Check if already training
+        if model.status == 'training':
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Model is already training',
+            }, status=400)
+
+        # Parse training config from request
+        data = json.loads(request.body) if request.body else {}
+        epochs = data.get('epochs', model.hyperparameters.get('epochs', 100))
+        batch_size = data.get('batch_size', model.hyperparameters.get('batch_size', 32))
+
+        # Create training job
+        job_id = f"train-ml-{model_id}-{uuid.uuid4().hex[:8]}"
+        job = TrainingJob.objects.create(
+            job_id=job_id,
+            user=request.user,
+            job_type='ml_model',
+            ml_model=model,
+            status='queued',
+            total_epochs=epochs,
+            training_config={
+                'epochs': epochs,
+                'batch_size': batch_size,
+                'validation_split': data.get('validation_split', 0.2),
+                'early_stopping': data.get('early_stopping', True),
+                'patience': data.get('patience', 10),
+            }
+        )
+
+        # Update model status
+        model.status = 'training'
+        model.save()
+
+        # In a real implementation, this would queue the training job
+        # to a background worker (Celery, RQ, etc.)
+        # For now, we'll simulate starting the job
+        job.status = 'running'
+        job.started_at = timezone.now()
+        job.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Training started for model {model.name}',
+            'job_id': job_id,
+            'job': job.to_dict(),
+        })
+
+    except Exception as e:
+        logger.error(f"Error starting model training: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["PUT"])
+@login_required
+def ml_model_status(request, model_id):
+    """Update ML model status (activate/deactivate)."""
+    from backend.tradingbot.models.models import MLModel
+
+    try:
+        data = json.loads(request.body) if request.body else {}
+        new_status = data.get('status', 'idle')
+
+        # Validate status
+        valid_statuses = ['idle', 'active']
+        if new_status not in valid_statuses:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Invalid status. Must be one of: {valid_statuses}',
+            }, status=400)
+
+        try:
+            model = MLModel.objects.get(id=model_id, user=request.user)
+        except MLModel.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Model not found',
+            }, status=404)
+
+        # Can't activate a model that's training or errored
+        if new_status == 'active' and model.status in ['training', 'error']:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Cannot activate model with status "{model.status}"',
+            }, status=400)
+
+        model.status = new_status
+        model.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'model_id': str(model.id),
+            'new_status': new_status,
+            'message': f'Model status updated to {new_status}',
+        })
+
+    except Exception as e:
+        logger.error(f"Error updating model status: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
+def ml_model_detail(request, model_id):
+    """Get detailed information about an ML model."""
+    from backend.tradingbot.models.models import MLModel
+
+    try:
+        try:
+            model = MLModel.objects.get(id=model_id, user=request.user)
+        except MLModel.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Model not found',
+            }, status=404)
+
+        # Get recent training jobs
+        recent_jobs = model.training_jobs.order_by('-created_at')[:5]
+
+        return JsonResponse({
+            'model': model.to_dict(),
+            'hyperparameters': model.hyperparameters,
+            'features_config': model.features_config,
+            'recent_training_jobs': [job.to_dict() for job in recent_jobs],
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting model detail: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["PUT"])
+@login_required
+def ml_model_update(request, model_id):
+    """Update ML model configuration."""
+    from backend.tradingbot.models.models import MLModel
+
+    try:
+        data = json.loads(request.body) if request.body else {}
+
+        try:
+            model = MLModel.objects.get(id=model_id, user=request.user)
+        except MLModel.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Model not found',
+            }, status=404)
+
+        # Update allowed fields
+        if 'name' in data:
+            # Check for duplicate names
+            new_name = data['name'].strip()
+            if MLModel.objects.filter(user=request.user, name=new_name).exclude(id=model_id).exists():
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Model with name "{new_name}" already exists',
+                }, status=400)
+            model.name = new_name
+
+        if 'symbols' in data:
+            model.symbols = data['symbols']
+        if 'prediction_target' in data:
+            model.prediction_target = data['prediction_target']
+        if 'lookback_period' in data:
+            model.lookback_period = data['lookback_period']
+        if 'hyperparameters' in data:
+            # Merge with existing hyperparameters
+            model.hyperparameters.update(data['hyperparameters'])
+        if 'features_config' in data:
+            model.features_config = data['features_config']
+
+        model.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'model': model.to_dict(),
+            'message': 'Model updated successfully',
+        })
+
+    except Exception as e:
+        logger.error(f"Error updating model: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["DELETE"])
+@login_required
+def ml_model_delete(request, model_id):
+    """Delete an ML model."""
+    from backend.tradingbot.models.models import MLModel
+
+    try:
+        try:
+            model = MLModel.objects.get(id=model_id, user=request.user)
+        except MLModel.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Model not found',
+            }, status=404)
+
+        # Can't delete while training
+        if model.status == 'training':
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Cannot delete model while training',
+            }, status=400)
+
+        model_name = model.name
+        model.delete()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Model "{model_name}" deleted successfully',
+        })
+
+    except Exception as e:
+        logger.error(f"Error deleting model: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
+def rl_agents_list(request):
+    """List all RL agents."""
+    from backend.tradingbot.models.models import RLAgent
+
+    try:
+        agents = RLAgent.objects.filter(user=request.user).order_by('-updated_at')
+
+        return JsonResponse({
+            'agents': [agent.to_dict() for agent in agents],
+            'total': agents.count(),
+            'by_type': {
+                'ppo': RLAgent.objects.filter(user=request.user, agent_type='ppo').count(),
+                'ddpg': RLAgent.objects.filter(user=request.user, agent_type='ddpg').count(),
+                'sac': RLAgent.objects.filter(user=request.user, agent_type='sac').count(),
+                'a2c': RLAgent.objects.filter(user=request.user, agent_type='a2c').count(),
+            },
+            'by_status': {
+                'active': RLAgent.objects.filter(user=request.user, status='active').count(),
+                'training': RLAgent.objects.filter(user=request.user, status='training').count(),
+                'idle': RLAgent.objects.filter(user=request.user, status='idle').count(),
+            }
+        })
+
+    except Exception as e:
+        logger.error(f"Error listing RL agents: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def rl_agents_create(request):
+    """Create a new RL agent."""
+    from backend.tradingbot.models.models import RLAgent
+
+    try:
+        data = json.loads(request.body) if request.body else {}
+
+        agent_name = data.get('name', '').strip()
+        agent_type = data.get('type', 'ppo')
+        symbols = data.get('symbols', 'SPY')
+
+        if not agent_name:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Agent name is required',
+            }, status=400)
+
+        # Check for duplicate names
+        if RLAgent.objects.filter(user=request.user, name=agent_name).exists():
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Agent with name "{agent_name}" already exists',
+            }, status=400)
+
+        # Validate agent type
+        valid_types = ['ppo', 'ddpg', 'sac', 'a2c', 'td3']
+        if agent_type not in valid_types:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Invalid agent type. Must be one of: {valid_types}',
+            }, status=400)
+
+        # Create the agent
+        agent = RLAgent.objects.create(
+            user=request.user,
+            name=agent_name,
+            agent_type=agent_type,
+            symbols=symbols,
+            initial_capital=data.get('initial_capital', 100000),
+            max_position_size=data.get('max_position_size', 1.0),
+            transaction_cost=data.get('transaction_cost', 0.001),
+            status='idle',
+        )
+
+        # Set default hyperparameters
+        agent.hyperparameters = agent.get_default_hyperparameters()
+        agent.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'agent': agent.to_dict(),
+            'message': f'Agent "{agent_name}" created successfully',
+        })
+
+    except Exception as e:
+        logger.error(f"Error creating RL agent: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def rl_agent_train(request, agent_type):
+    """Start training an RL agent."""
+    from backend.tradingbot.models.models import RLAgent, TrainingJob
+    from django.utils import timezone
+    import uuid
+
+    try:
+        # Get or create the agent for this type
+        agent, created = RLAgent.objects.get_or_create(
+            user=request.user,
+            agent_type=agent_type,
+            defaults={
+                'name': f'{agent_type.upper()} Agent',
+                'symbols': 'SPY',
+                'status': 'idle',
+            }
+        )
+
+        if created:
+            agent.hyperparameters = agent.get_default_hyperparameters()
+            agent.save()
+
+        # Check if already training
+        if agent.status == 'training':
+            return JsonResponse({
+                'status': 'error',
+                'message': f'{agent_type.upper()} agent is already training',
+            }, status=400)
+
+        # Parse training config
+        data = json.loads(request.body) if request.body else {}
+        episodes = data.get('episodes', 1000)
+
+        # Create training job
+        job_id = f"train-rl-{agent_type}-{uuid.uuid4().hex[:8]}"
+        job = TrainingJob.objects.create(
+            job_id=job_id,
+            user=request.user,
+            job_type='rl_agent',
+            rl_agent=agent,
+            status='queued',
+            total_epochs=episodes,
+            training_config={
+                'episodes': episodes,
+                'eval_frequency': data.get('eval_frequency', 100),
+                'save_frequency': data.get('save_frequency', 500),
+            }
+        )
+
+        # Update agent status
+        agent.status = 'training'
+        agent.save()
+
+        # Start the job
+        job.status = 'running'
+        job.started_at = timezone.now()
+        job.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Training started for {agent_type.upper()} agent',
+            'job_id': job_id,
+            'job': job.to_dict(),
+        })
+
+    except Exception as e:
+        logger.error(f"Error starting agent training: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["PUT"])
+@login_required
+def rl_agent_status(request, agent_type):
+    """Update RL agent status (activate/deactivate)."""
+    from backend.tradingbot.models.models import RLAgent
+
+    try:
+        data = json.loads(request.body) if request.body else {}
+        new_status = data.get('status', 'idle')
+
+        # Validate status
+        valid_statuses = ['idle', 'active']
+        if new_status not in valid_statuses:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Invalid status. Must be one of: {valid_statuses}',
+            }, status=400)
+
+        try:
+            agent = RLAgent.objects.get(user=request.user, agent_type=agent_type)
+        except RLAgent.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'{agent_type.upper()} agent not found',
+            }, status=404)
+
+        # Can't activate if training
+        if new_status == 'active' and agent.status == 'training':
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Cannot activate agent while training',
+            }, status=400)
+
+        agent.status = new_status
+        agent.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'agent_type': agent_type,
+            'new_status': new_status,
+            'message': f'{agent_type.upper()} agent status updated to {new_status}',
+        })
+
+    except Exception as e:
+        logger.error(f"Error updating agent status: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["PUT"])
+@login_required
+def rl_agent_config(request, agent_type):
+    """Update RL agent configuration."""
+    from backend.tradingbot.models.models import RLAgent
+
+    try:
+        data = json.loads(request.body) if request.body else {}
+
+        try:
+            agent = RLAgent.objects.get(user=request.user, agent_type=agent_type)
+        except RLAgent.DoesNotExist:
+            # Create the agent if it doesn't exist
+            agent = RLAgent.objects.create(
+                user=request.user,
+                name=f'{agent_type.upper()} Agent',
+                agent_type=agent_type,
+                symbols='SPY',
+                status='idle',
+            )
+            agent.hyperparameters = agent.get_default_hyperparameters()
+
+        # Update hyperparameters
+        hyperparameter_fields = [
+            'actor_lr', 'critic_lr', 'gamma', 'tau', 'buffer_size',
+            'batch_size', 'update_frequency', 'clip_ratio', 'entropy_coef',
+            'risk_penalty', 'noise_std'
+        ]
+        for field in hyperparameter_fields:
+            if field in data:
+                agent.hyperparameters[field] = data[field]
+
+        # Update environment settings
+        if 'max_position' in data:
+            agent.max_position_size = data['max_position']
+        if 'transaction_cost' in data:
+            agent.transaction_cost = data['transaction_cost']
+        if 'symbols' in data:
+            agent.symbols = data['symbols']
+
+        agent.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'agent_type': agent_type,
+            'config': agent.hyperparameters,
+            'message': f'{agent_type.upper()} agent configuration updated',
+        })
+
+    except Exception as e:
+        logger.error(f"Error updating agent config: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
+def rl_agent_detail(request, agent_type):
+    """Get detailed information about an RL agent."""
+    from backend.tradingbot.models.models import RLAgent
+
+    try:
+        try:
+            agent = RLAgent.objects.get(user=request.user, agent_type=agent_type)
+        except RLAgent.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'{agent_type.upper()} agent not found',
+            }, status=404)
+
+        # Get recent training jobs
+        recent_jobs = agent.training_jobs.order_by('-created_at')[:5]
+
+        return JsonResponse({
+            'agent': agent.to_dict(),
+            'hyperparameters': agent.hyperparameters,
+            'recent_training_jobs': [job.to_dict() for job in recent_jobs],
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting agent detail: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
+def training_jobs_list(request):
+    """List all training jobs."""
+    from backend.tradingbot.models.models import TrainingJob
+
+    try:
+        # Get active jobs
+        active_jobs = TrainingJob.objects.filter(
+            user=request.user,
+            status__in=['queued', 'running']
+        ).order_by('-created_at')
+
+        # Get completed/failed jobs (history)
+        history_jobs = TrainingJob.objects.filter(
+            user=request.user,
+            status__in=['completed', 'failed', 'cancelled']
+        ).order_by('-completed_at')[:20]
+
+        return JsonResponse({
+            'jobs': [job.to_dict() for job in active_jobs],
+            'history': [job.to_dict() for job in history_jobs],
+            'active_count': active_jobs.filter(status='running').count(),
+            'queued_count': active_jobs.filter(status='queued').count(),
+        })
+
+    except Exception as e:
+        logger.error(f"Error listing training jobs: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@login_required
+def training_job_detail(request, job_id):
+    """Get detailed information about a training job."""
+    from backend.tradingbot.models.models import TrainingJob
+
+    try:
+        try:
+            job = TrainingJob.objects.get(job_id=job_id, user=request.user)
+        except TrainingJob.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Training job not found',
+            }, status=404)
+
+        return JsonResponse({
+            'job': job.to_dict(),
+            'metrics_history': job.metrics_history,
+            'training_config': job.training_config,
+            'final_metrics': job.final_metrics,
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting training job detail: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def training_job_cancel(request, job_id):
+    """Cancel a training job."""
+    from backend.tradingbot.models.models import TrainingJob
+    from django.utils import timezone
+
+    try:
+        try:
+            job = TrainingJob.objects.get(job_id=job_id, user=request.user)
+        except TrainingJob.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Training job not found',
+            }, status=404)
+
+        # Can only cancel queued or running jobs
+        if job.status not in ['queued', 'running']:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Cannot cancel job with status "{job.status}"',
+            }, status=400)
+
+        # Update job status
+        job.status = 'cancelled'
+        job.completed_at = timezone.now()
+        job.save()
+
+        # Update model/agent status back to idle
+        if job.ml_model:
+            job.ml_model.status = 'idle'
+            job.ml_model.save()
+        elif job.rl_agent:
+            job.rl_agent.status = 'idle'
+            job.rl_agent.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'job_id': job_id,
+            'message': f'Training job {job_id} cancelled',
+        })
+
+    except Exception as e:
+        logger.error(f"Error cancelling training job: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def training_job_update_progress(request, job_id):
+    """Update training job progress (called by training worker)."""
+    from backend.tradingbot.models.models import TrainingJob
+
+    try:
+        data = json.loads(request.body) if request.body else {}
+
+        try:
+            job = TrainingJob.objects.get(job_id=job_id, user=request.user)
+        except TrainingJob.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Training job not found',
+            }, status=404)
+
+        # Update progress
+        if 'progress' in data:
+            job.progress = data['progress']
+        if 'current_epoch' in data:
+            job.current_epoch = data['current_epoch']
+        if 'current_loss' in data:
+            job.current_loss = data['current_loss']
+        if 'current_metric' in data:
+            job.current_metric = data['current_metric']
+
+        # Append to metrics history
+        if 'metrics' in data:
+            job.metrics_history.append({
+                'epoch': job.current_epoch,
+                **data['metrics'],
+                'timestamp': timezone.now().isoformat() if 'timezone' in dir() else None,
+            })
+
+        job.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'job_id': job_id,
+            'progress': job.progress,
+        })
+
+    except Exception as e:
+        logger.error(f"Error updating training job progress: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

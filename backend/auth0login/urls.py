@@ -52,6 +52,12 @@ urlpatterns = [
     path("feature-status", views.feature_status, name="feature-status"),
     path("ml-training", views.ml_training, name="ml-training"),
 
+    # New Dashboard Pages
+    path("market-context", views.market_context, name="market-context"),
+    path("allocations", views.allocations, name="allocations"),
+    path("circuit-breakers", views.circuit_breakers, name="circuit-breakers"),
+    path("ml-agents", views.ml_agents, name="ml-agents"),
+
     # API Endpoints (JSON responses for AJAX)
     path("api/backtest/run", api_views.run_backtest, name="api-run-backtest"),
     path("api/spreads/build", api_views.build_spread, name="api-build-spread"),
@@ -216,4 +222,57 @@ urlpatterns = [
     path("api/custom-strategies/<int:strategy_id>/deactivate/", api_views.custom_strategy_deactivate, name="api-custom-strategy-deactivate"),
     path("api/custom-strategies/<int:strategy_id>/clone/", api_views.custom_strategy_clone, name="api-custom-strategy-clone"),
     path("api/custom-strategies/<int:strategy_id>/preview-signals/", api_views.custom_strategy_preview_signals, name="api-custom-strategy-preview"),
+
+    # Backtest Run Persistence API
+    path("api/backtest/runs/", api_views.backtest_runs_list, name="api-backtest-runs"),
+    path("api/backtest/runs/<str:run_id>/", api_views.backtest_run_detail, name="api-backtest-run-detail"),
+    path("api/backtest/runs/<str:run_id>/trades/", api_views.backtest_run_trades, name="api-backtest-run-trades"),
+    path("api/backtest/compare/", api_views.backtest_runs_compare, name="api-backtest-compare"),
+
+    # Parameter Optimization API
+    path("api/backtest/optimize/", api_views.optimization_run_start, name="api-optimization-start"),
+    path("api/backtest/optimize/list/", api_views.optimization_runs_list, name="api-optimization-list"),
+    path("api/backtest/optimize/<str:run_id>/status/", api_views.optimization_run_status, name="api-optimization-status"),
+    path("api/backtest/optimize/<str:run_id>/results/", api_views.optimization_run_results, name="api-optimization-results"),
+
+    # Wizard/Onboarding API
+    path("api/wizard/session/", api_views.wizard_session, name="api-wizard-session"),
+    path("api/wizard/step/<int:step>/", api_views.wizard_step_submit, name="api-wizard-step"),
+    path("api/wizard/complete/", api_views.wizard_complete, name="api-wizard-complete"),
+    path("api/wizard/skip/", api_views.wizard_skip, name="api-wizard-skip"),
+    path("api/wizard/config/", api_views.wizard_config, name="api-wizard-config"),
+    path("api/wizard/needs-setup/", api_views.wizard_needs_setup, name="api-wizard-needs-setup"),
+
+    # Market Context API
+    path("api/market-context/", api_views.market_context_overview, name="api-market-context"),
+    path("api/market-context/sectors/", api_views.market_context_sectors, name="api-market-context-sectors"),
+
+    # Allocation Management API
+    path("api/allocations/", api_views.allocations_list, name="api-allocations-list"),
+    path("api/allocations/rebalance/", api_views.allocations_rebalance, name="api-allocations-rebalance"),
+    path("api/allocations/<str:strategy_name>/", api_views.allocation_update, name="api-allocation-update"),
+
+    # Circuit Breaker API
+    path("api/circuit-breakers/", api_views.circuit_breaker_states, name="api-circuit-breaker-states"),
+    path("api/circuit-breakers/<str:breaker_type>/reset/", api_views.circuit_breaker_reset, name="api-circuit-breaker-reset"),
+    path("api/circuit-breakers/history/", api_views.circuit_breaker_history, name="api-circuit-breaker-history"),
+
+    # ML/RL Agent API
+    path("api/ml-agents/models/", api_views.ml_models_list, name="api-ml-models-list"),
+    path("api/ml-agents/models/create/", api_views.ml_models_create, name="api-ml-models-create"),
+    path("api/ml-agents/models/<str:model_id>/", api_views.ml_model_detail, name="api-ml-model-detail"),
+    path("api/ml-agents/models/<str:model_id>/train/", api_views.ml_model_train, name="api-ml-model-train"),
+    path("api/ml-agents/models/<str:model_id>/status/", api_views.ml_model_status, name="api-ml-model-status"),
+    path("api/ml-agents/models/<str:model_id>/update/", api_views.ml_model_update, name="api-ml-model-update"),
+    path("api/ml-agents/models/<str:model_id>/delete/", api_views.ml_model_delete, name="api-ml-model-delete"),
+    path("api/ml-agents/agents/", api_views.rl_agents_list, name="api-rl-agents-list"),
+    path("api/ml-agents/agents/create/", api_views.rl_agents_create, name="api-rl-agents-create"),
+    path("api/ml-agents/agents/<str:agent_type>/", api_views.rl_agent_detail, name="api-rl-agent-detail"),
+    path("api/ml-agents/agents/<str:agent_type>/train/", api_views.rl_agent_train, name="api-rl-agent-train"),
+    path("api/ml-agents/agents/<str:agent_type>/status/", api_views.rl_agent_status, name="api-rl-agent-status"),
+    path("api/ml-agents/agents/<str:agent_type>/config/", api_views.rl_agent_config, name="api-rl-agent-config"),
+    path("api/ml-agents/training/", api_views.training_jobs_list, name="api-training-jobs-list"),
+    path("api/ml-agents/training/<str:job_id>/", api_views.training_job_detail, name="api-training-job-detail"),
+    path("api/ml-agents/training/<str:job_id>/cancel/", api_views.training_job_cancel, name="api-training-job-cancel"),
+    path("api/ml-agents/training/<str:job_id>/progress/", api_views.training_job_update_progress, name="api-training-job-progress"),
 ]

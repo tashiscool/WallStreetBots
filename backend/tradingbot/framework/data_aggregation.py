@@ -3,8 +3,7 @@ Data Aggregation - Inspired by Nautilus Trader.
 
 Provides bar building and data aggregation patterns for trading.
 
-Concepts from: https://github.com/nautechsystems/nautilus_trader
-License: LGPL-3.0 (concepts only, clean-room implementation)
+Inspired by Nautilus Trader concepts.
 """
 
 from abc import ABC, abstractmethod

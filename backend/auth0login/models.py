@@ -6,28 +6,154 @@ from backend.tradingbot.models.models import Portfolio
 
 
 class Credential(models.Model):
-    """stores the user's Alpaca API key and secret key."""
+    """Stores the user's Alpaca API key and secret key with encryption.
 
-    ALPACA_ID_MAX_LENGTH = 100
-    ALPACA_KEY_MAX_LENGTH = 100
-    # Fields
+    Credentials are encrypted at rest using Fernet symmetric encryption.
+    The encryption is transparent through the alpaca_api_key and
+    alpaca_secret_key properties.
+    """
+
+    # Increased length for encrypted values
+    ALPACA_ID_MAX_LENGTH = 500
+    ALPACA_KEY_MAX_LENGTH = 500
+
+    # User relationship
     user = models.OneToOneField(
-        User, help_text="Associated user", on_delete=models.CASCADE
+        User,
+        help_text="Associated user",
+        on_delete=models.CASCADE
     )
+
+    # Encrypted credential fields (stored as encrypted base64 strings)
+    # Use _encrypted suffix to indicate these are not plaintext
     alpaca_id = models.CharField(
-        max_length=ALPACA_ID_MAX_LENGTH, help_text="Enter your Alpaca id"
+        max_length=ALPACA_ID_MAX_LENGTH,
+        help_text="Encrypted Alpaca API key",
+        blank=True,
+        default=''
     )
     alpaca_key = models.CharField(
-        max_length=ALPACA_KEY_MAX_LENGTH, help_text="Enter your Alpaca key"
+        max_length=ALPACA_KEY_MAX_LENGTH,
+        help_text="Encrypted Alpaca secret key",
+        blank=True,
+        default=''
     )
 
-    # Metadata
+    # Key metadata for rotation tracking
+    key_version = models.IntegerField(
+        default=1,
+        help_text="Encryption key version for rotation"
+    )
+    last_rotated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When credentials were last rotated"
+    )
+
+    # Validation status
+    is_valid = models.BooleanField(
+        default=False,
+        help_text="Whether credentials have been validated"
+    )
+    last_validated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When credentials were last validated"
+    )
+    validation_error = models.TextField(
+        blank=True,
+        default='',
+        help_text="Last validation error message if any"
+    )
+
+    # Audit fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         ordering = ["user"]
 
-    # Methods
     def __str__(self):
-        return "Credential for " + str(self.user)
+        return f"Credential for {self.user}"
+
+    @property
+    def alpaca_api_key(self) -> str:
+        """Get decrypted Alpaca API key."""
+        if not self.alpaca_id:
+            return ''
+        try:
+            from backend.auth0login.services.credential_encryption import decrypt_credential
+            # Check if value is encrypted (for migration from plaintext)
+            from backend.auth0login.services.credential_encryption import get_encryption_service
+            service = get_encryption_service()
+            if service.is_encrypted(self.alpaca_id):
+                return decrypt_credential(self.alpaca_id)
+            # Return as-is if not encrypted (legacy plaintext)
+            return self.alpaca_id
+        except Exception:
+            # Return empty on decryption failure
+            return ''
+
+    @alpaca_api_key.setter
+    def alpaca_api_key(self, value: str):
+        """Set and encrypt Alpaca API key."""
+        if not value:
+            self.alpaca_id = ''
+            return
+        from backend.auth0login.services.credential_encryption import encrypt_credential
+        self.alpaca_id = encrypt_credential(value)
+
+    @property
+    def alpaca_secret_key(self) -> str:
+        """Get decrypted Alpaca secret key."""
+        if not self.alpaca_key:
+            return ''
+        try:
+            from backend.auth0login.services.credential_encryption import decrypt_credential
+            from backend.auth0login.services.credential_encryption import get_encryption_service
+            service = get_encryption_service()
+            if service.is_encrypted(self.alpaca_key):
+                return decrypt_credential(self.alpaca_key)
+            # Return as-is if not encrypted (legacy plaintext)
+            return self.alpaca_key
+        except Exception:
+            return ''
+
+    @alpaca_secret_key.setter
+    def alpaca_secret_key(self, value: str):
+        """Set and encrypt Alpaca secret key."""
+        if not value:
+            self.alpaca_key = ''
+            return
+        from backend.auth0login.services.credential_encryption import encrypt_credential
+        self.alpaca_key = encrypt_credential(value)
+
+    def rotate_credentials(self, new_api_key: str, new_secret_key: str):
+        """Rotate credentials with new values."""
+        self.alpaca_api_key = new_api_key
+        self.alpaca_secret_key = new_secret_key
+        self.key_version += 1
+        self.last_rotated_at = timezone.now()
+        self.is_valid = False  # Requires re-validation
+        self.save()
+
+    def mark_validated(self):
+        """Mark credentials as validated."""
+        self.is_valid = True
+        self.last_validated_at = timezone.now()
+        self.validation_error = ''
+        self.save(update_fields=['is_valid', 'last_validated_at', 'validation_error', 'updated_at'])
+
+    def mark_invalid(self, error: str):
+        """Mark credentials as invalid with error message."""
+        self.is_valid = False
+        self.validation_error = error
+        self.save(update_fields=['is_valid', 'validation_error', 'updated_at'])
+
+    @property
+    def has_credentials(self) -> bool:
+        """Check if both credentials are set."""
+        return bool(self.alpaca_id and self.alpaca_key)
 
 
 class BotInstance(models.Model):
@@ -314,3 +440,314 @@ class RiskAssessment(models.Model):
             user=user,
             completed_at__isnull=False
         ).order_by('-completed_at').first()
+
+
+class WizardConfiguration(models.Model):
+    """Persistent storage for wizard configuration.
+
+    This model stores all configuration from the setup wizard,
+    replacing the environment variable approach for persistence.
+    """
+
+    TRADING_MODE_CHOICES = [
+        ('paper', 'Paper Trading'),
+        ('live', 'Live Trading'),
+    ]
+
+    RISK_PROFILE_CHOICES = [
+        ('conservative', 'Conservative'),
+        ('moderate', 'Moderate'),
+        ('aggressive', 'Aggressive'),
+    ]
+
+    # User relationship
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='wizard_config',
+        help_text="User this configuration belongs to"
+    )
+
+    # Trading Configuration
+    trading_mode = models.CharField(
+        max_length=10,
+        choices=TRADING_MODE_CHOICES,
+        default='paper',
+        help_text="Paper or live trading mode"
+    )
+
+    # Selected Strategies (stored as JSON array)
+    selected_strategies = models.JSONField(
+        default=list,
+        help_text="List of strategy IDs selected by user"
+    )
+
+    # Risk Configuration
+    risk_profile = models.CharField(
+        max_length=20,
+        choices=RISK_PROFILE_CHOICES,
+        default='moderate',
+        help_text="User's risk profile"
+    )
+    max_position_pct = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=3.00,
+        help_text="Maximum position size percentage"
+    )
+    max_daily_loss_pct = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=8.00,
+        help_text="Maximum daily loss percentage"
+    )
+    max_positions = models.IntegerField(
+        default=10,
+        help_text="Maximum number of open positions"
+    )
+
+    # Risk Assessment Reference
+    risk_assessment = models.ForeignKey(
+        RiskAssessment,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='wizard_configs',
+        help_text="Associated risk assessment"
+    )
+
+    # Configuration Status
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Whether this configuration is currently active"
+    )
+    broker_validated = models.BooleanField(
+        default=False,
+        help_text="Whether broker connection has been validated"
+    )
+    broker_validated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When broker connection was last validated"
+    )
+
+    # Email Confirmation
+    email_confirmation_sent = models.BooleanField(
+        default=False,
+        help_text="Whether setup confirmation email was sent"
+    )
+    email_confirmation_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When confirmation email was sent"
+    )
+
+    # Audit Fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Wizard Configuration"
+        verbose_name_plural = "Wizard Configurations"
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['created_at']),
+        ]
+
+    def __str__(self):
+        return f"WizardConfig for {self.user.username}: {self.trading_mode} ({self.risk_profile})"
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for API responses."""
+        return {
+            'id': self.id,
+            'trading_mode': self.trading_mode,
+            'selected_strategies': self.selected_strategies,
+            'risk_profile': self.risk_profile,
+            'max_position_pct': float(self.max_position_pct),
+            'max_daily_loss_pct': float(self.max_daily_loss_pct),
+            'max_positions': self.max_positions,
+            'is_active': self.is_active,
+            'broker_validated': self.broker_validated,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class OnboardingSession(models.Model):
+    """Tracks wizard session state for resume/skip functionality.
+
+    This model enables users to resume the wizard where they left off
+    and tracks overall onboarding progress.
+    """
+
+    SESSION_STATUS_CHOICES = [
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('abandoned', 'Abandoned'),
+        ('skipped', 'Skipped'),
+    ]
+
+    # User relationship
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='onboarding_sessions',
+        help_text="User this session belongs to"
+    )
+
+    # Session identifier (for multi-device support)
+    session_id = models.CharField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        help_text="Unique session identifier"
+    )
+
+    # Progress Tracking
+    current_step = models.IntegerField(
+        default=1,
+        help_text="Current wizard step (1-5)"
+    )
+    steps_completed = models.JSONField(
+        default=list,
+        help_text="List of completed step numbers"
+    )
+    step_data = models.JSONField(
+        default=dict,
+        help_text="Data collected at each step (for resume)"
+    )
+
+    # Status
+    status = models.CharField(
+        max_length=20,
+        choices=SESSION_STATUS_CHOICES,
+        default='in_progress',
+        help_text="Current session status"
+    )
+
+    # Timing
+    started_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When the session started"
+    )
+    last_activity_at = models.DateTimeField(
+        auto_now=True,
+        help_text="Last activity timestamp"
+    )
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the session was completed"
+    )
+
+    # Step-level timing (for analytics)
+    step_timings = models.JSONField(
+        default=dict,
+        help_text="Time spent on each step in seconds"
+    )
+
+    # Final Configuration (linked after completion)
+    wizard_configuration = models.OneToOneField(
+        WizardConfiguration,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='onboarding_session',
+        help_text="Final configuration created from this session"
+    )
+
+    # User Agent / Device Info (for analytics)
+    user_agent = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="Browser user agent"
+    )
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="Client IP address"
+    )
+
+    class Meta:
+        ordering = ['-started_at']
+        verbose_name = "Onboarding Session"
+        verbose_name_plural = "Onboarding Sessions"
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['session_id']),
+            models.Index(fields=['status', 'started_at']),
+        ]
+
+    def __str__(self):
+        return f"OnboardingSession {self.session_id[:8]}... for {self.user.username}: Step {self.current_step}"
+
+    @property
+    def progress_percentage(self) -> int:
+        """Calculate completion percentage."""
+        return int((len(self.steps_completed) / 5) * 100)
+
+    @property
+    def is_resumable(self) -> bool:
+        """Check if session can be resumed."""
+        from datetime import timedelta
+        if self.status != 'in_progress':
+            return False
+        # Session is stale after 7 days
+        stale_threshold = timezone.now() - timedelta(days=7)
+        return self.last_activity_at > stale_threshold
+
+    def complete_step(self, step: int, data: dict = None):
+        """Mark a step as completed and store its data."""
+        if step not in self.steps_completed:
+            self.steps_completed = self.steps_completed + [step]
+        if data:
+            self.step_data[str(step)] = data
+        self.current_step = max(self.current_step, step + 1)
+        self.save()
+
+    def mark_completed(self, config: 'WizardConfiguration'):
+        """Mark session as completed."""
+        self.status = 'completed'
+        self.completed_at = timezone.now()
+        self.wizard_configuration = config
+        self.save()
+
+    @classmethod
+    def get_active_session(cls, user):
+        """Get or create active session for user."""
+        import uuid
+
+        session = cls.objects.filter(
+            user=user,
+            status='in_progress'
+        ).first()
+
+        if session and session.is_resumable:
+            return session
+        elif session:
+            # Mark stale session as abandoned
+            session.status = 'abandoned'
+            session.save()
+
+        # Create new session
+        return cls.objects.create(
+            user=user,
+            session_id=str(uuid.uuid4())
+        )
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for API responses."""
+        return {
+            'session_id': self.session_id,
+            'current_step': self.current_step,
+            'steps_completed': self.steps_completed,
+            'step_data': self.step_data,
+            'status': self.status,
+            'progress_percentage': self.progress_percentage,
+            'is_resumable': self.is_resumable,
+            'started_at': self.started_at.isoformat() if self.started_at else None,
+            'last_activity_at': self.last_activity_at.isoformat() if self.last_activity_at else None,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+        }

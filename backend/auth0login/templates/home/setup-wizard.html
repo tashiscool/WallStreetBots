@@ -807,11 +807,14 @@
 {% block javascripts %}
 <script>
   // Initialize tooltips
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', async function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.forEach(function(tooltipTriggerEl) {
       new bootstrap.Tooltip(tooltipTriggerEl);
     });
+
+    // Check if user needs setup or can resume
+    await checkWizardState();
   });
 
   let currentStep = 1;
@@ -823,9 +826,162 @@
   let recommendedProfile = 'moderate';
   let questionnaireCompleted = false;
   let assessmentId = null;
+  let sessionId = null;
+  let hasExistingConfig = false;
 
-  // Start wizard button
-  document.getElementById('startWizardBtn').addEventListener('click', function() {
+  // Check wizard state on load
+  async function checkWizardState() {
+    try {
+      // Check if user needs setup
+      const needsSetupResp = await fetch('/api/wizard/needs-setup/', {
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+      });
+      const needsSetupData = await needsSetupResp.json();
+
+      if (!needsSetupData.needs_setup) {
+        // User has completed setup - show skip option
+        hasExistingConfig = true;
+        showReturningUserOptions();
+        return;
+      }
+
+      // Check for existing session to resume
+      const sessionResp = await fetch('/api/wizard/session/', {
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+      });
+      const sessionData = await sessionResp.json();
+
+      if (sessionData.session && sessionData.session.status === 'in_progress') {
+        // Show resume option
+        sessionId = sessionData.session.session_id;
+        const savedStep = sessionData.session.current_step;
+        const stepData = sessionData.session.step_data || {};
+
+        showResumeOption(savedStep, stepData);
+      }
+    } catch (error) {
+      console.error('Error checking wizard state:', error);
+    }
+  }
+
+  function showReturningUserOptions() {
+    const welcomeContent = document.getElementById('welcomeHero').querySelector('.card-body');
+    welcomeContent.innerHTML = `
+      <div class="icon icon-shape bg-white shadow text-center border-radius-md mx-auto mb-4" style="width: 80px; height: 80px;">
+        <i class="fas fa-check-circle text-success fa-3x"></i>
+      </div>
+      <h2 class="text-white mb-2">Welcome Back!</h2>
+      <p class="text-white opacity-8 mb-4">Your trading bot is already configured and running.</p>
+      <div class="row justify-content-center mb-4">
+        <div class="col-md-4">
+          <button class="btn btn-white btn-lg w-100" onclick="window.location.href='/dashboard'">
+            <i class="fas fa-chart-line me-2"></i>Go to Dashboard
+          </button>
+        </div>
+        <div class="col-md-4">
+          <button class="btn btn-outline-white btn-lg w-100" onclick="startFreshWizard()">
+            <i class="fas fa-redo me-2"></i>Reconfigure
+          </button>
+        </div>
+      </div>
+      <p class="text-white opacity-7 text-sm">
+        <i class="fas fa-info-circle me-1"></i>
+        Your current settings will be preserved unless you complete the new setup.
+      </p>
+    `;
+  }
+
+  function showResumeOption(savedStep, stepData) {
+    const startBtn = document.getElementById('startWizardBtn');
+    startBtn.parentNode.innerHTML = `
+      <div class="row justify-content-center">
+        <div class="col-md-4 mb-3">
+          <button class="btn btn-white btn-lg w-100" onclick="resumeWizard(${savedStep})">
+            <i class="fas fa-play me-2"></i>Resume from Step ${savedStep}
+          </button>
+        </div>
+        <div class="col-md-4 mb-3">
+          <button class="btn btn-outline-white btn-lg w-100" onclick="startFreshWizard()">
+            <i class="fas fa-redo me-2"></i>Start Fresh
+          </button>
+        </div>
+      </div>
+      <p class="text-white opacity-7 text-sm mt-2">
+        <i class="fas fa-info-circle me-1"></i>
+        You have an incomplete setup from a previous session.
+      </p>
+    `;
+
+    // Restore saved data
+    if (stepData.trading_mode) selectedMode = stepData.trading_mode;
+    if (stepData.strategies) selectedStrategies = stepData.strategies;
+    if (stepData.risk_profile) selectedRisk = stepData.risk_profile;
+    if (stepData.questionnaire_responses) questionnaireResponses = stepData.questionnaire_responses;
+  }
+
+  async function startFreshWizard() {
+    try {
+      const response = await fetch('/api/wizard/session/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ force_new: true })
+      });
+      const data = await response.json();
+      if (data.session) {
+        sessionId = data.session.session_id;
+      }
+    } catch (error) {
+      console.error('Error creating session:', error);
+    }
+
+    // Reset state
+    currentStep = 1;
+    selectedStrategies = ['wsb-dip-bot'];
+    selectedRisk = 'moderate';
+    selectedMode = 'paper';
+    questionnaireResponses = {};
+    questionnaireCompleted = false;
+
+    document.getElementById('welcomeHero').style.display = 'none';
+    document.getElementById('wizardProgress').style.display = 'block';
+    document.getElementById('wizardContent').style.display = 'flex';
+    updateProgress();
+  }
+
+  async function resumeWizard(step) {
+    currentStep = step;
+    document.getElementById('welcomeHero').style.display = 'none';
+    document.getElementById('wizardProgress').style.display = 'block';
+    document.getElementById('wizardContent').style.display = 'flex';
+    updateProgress();
+
+    // Load data for current step
+    if (currentStep === 4) loadQuestionnaire();
+    if (currentStep === 5) updateReview();
+  }
+
+  // Start wizard button (original handler)
+  document.getElementById('startWizardBtn')?.addEventListener('click', async function() {
+    try {
+      // Create new session
+      const response = await fetch('/api/wizard/session/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      });
+      const data = await response.json();
+      if (data.session) {
+        sessionId = data.session.session_id;
+      }
+    } catch (error) {
+      console.error('Error creating session:', error);
+    }
+
     document.getElementById('welcomeHero').style.display = 'none';
     document.getElementById('wizardProgress').style.display = 'block';
     document.getElementById('wizardContent').style.display = 'flex';
@@ -1230,13 +1386,34 @@
     });
   }
 
-  // Navigation
+  // Navigation with session state saving
   document.getElementById('nextBtn').addEventListener('click', async function() {
+    // Validate and save current step
+    const stepData = getStepData(currentStep);
+
+    // Step-specific validation
+    if (currentStep === 1) {
+      const apiKey = document.getElementById('wizardApiKey').value;
+      const secretKey = document.getElementById('wizardSecretKey').value;
+      if (!apiKey || !secretKey) {
+        alert('Please enter your Alpaca API credentials and test the connection.');
+        return;
+      }
+    }
+
+    if (currentStep === 3 && selectedStrategies.length === 0) {
+      alert('Please select at least one trading strategy.');
+      return;
+    }
+
     // Special handling for step 4 (questionnaire)
     if (currentStep === 4 && !questionnaireCompleted) {
       const success = await submitQuestionnaire();
       if (!success) return;
     }
+
+    // Save step to server
+    await saveStepToServer(currentStep, stepData);
 
     if (currentStep < totalSteps) {
       currentStep++;
@@ -1252,6 +1429,47 @@
       updateProgress();
     }
   });
+
+  function getStepData(step) {
+    switch (step) {
+      case 1:
+        return {
+          api_key: document.getElementById('wizardApiKey').value,
+          secret_key: document.getElementById('wizardSecretKey').value
+        };
+      case 2:
+        return { trading_mode: selectedMode };
+      case 3:
+        return { strategies: selectedStrategies };
+      case 4:
+        return {
+          questionnaire_responses: questionnaireResponses,
+          risk_profile: selectedRisk,
+          max_position_pct: parseFloat(document.getElementById('customMaxPosition').value),
+          max_daily_loss_pct: parseFloat(document.getElementById('customMaxDailyLoss').value),
+          max_positions: parseInt(document.getElementById('customMaxPositions').value)
+        };
+      case 5:
+        return { confirmed: document.getElementById('agreeTerms').checked };
+      default:
+        return {};
+    }
+  }
+
+  async function saveStepToServer(step, data) {
+    try {
+      await fetch(`/api/wizard/step/${step}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(data)
+      });
+    } catch (error) {
+      console.error('Error saving step:', error);
+    }
+  }
 
   // Toggle secret key visibility
   document.getElementById('toggleWizardSecret').addEventListener('click', function() {
@@ -1378,7 +1596,7 @@
     document.getElementById('reviewStrategies').innerHTML = badges;
   }
 
-  // Launch button - save config via real API
+  // Launch button - complete wizard via API
   document.getElementById('launchBtn').addEventListener('click', async function() {
     if (!document.getElementById('agreeTerms').checked) {
       alert('Please agree to the Terms of Service to continue.');
@@ -1402,7 +1620,8 @@
     this.disabled = true;
 
     try {
-      const response = await fetch('/api/wizard/save', {
+      // First save credentials via the old endpoint (for backward compatibility)
+      await fetch('/api/wizard/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1420,16 +1639,43 @@
         }),
       });
 
-      const result = await response.json();
+      // Then complete the wizard session (which triggers email)
+      const completeResponse = await fetch('/api/wizard/complete/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+          api_key: apiKey,
+          secret_key: secretKey,
+          trading_mode: selectedMode,
+          strategies: selectedStrategies,
+          risk_profile: selectedRisk,
+          max_position_pct: parseFloat(document.getElementById('customMaxPosition').value),
+          max_daily_loss_pct: parseFloat(document.getElementById('customMaxDailyLoss').value),
+          max_positions: parseInt(document.getElementById('customMaxPositions').value),
+        }),
+      });
+
+      const result = await completeResponse.json();
 
       if (result.status === 'success') {
         this.innerHTML = '<i class="fas fa-check me-2"></i>Success!';
+
+        // Show success message
+        let successMsg = 'WallStreetBots has been configured successfully!';
+        if (result.email_sent) {
+          successMsg += ' A confirmation email has been sent to your registered email address.';
+        }
+        successMsg += ' Redirecting to dashboard...';
+
         setTimeout(() => {
-          alert('WallStreetBots has been configured successfully! Redirecting to dashboard...');
+          alert(successMsg);
           window.location.href = '/dashboard';
         }, 500);
       } else {
-        alert('Error: ' + result.message);
+        alert('Error: ' + (result.errors ? result.errors.join(', ') : result.message));
         this.innerHTML = '<i class="fas fa-rocket me-2"></i>Launch Trading Bot';
         this.disabled = false;
       }

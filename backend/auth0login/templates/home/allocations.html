@@ -1,0 +1,915 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Allocation Management {% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-1">Portfolio Allocation Management</h4>
+                    <p class="text-sm text-muted mb-0">Manage strategy allocations and rebalancing</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" onclick="refreshAllocations()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                    <button class="btn btn-primary" onclick="executeRebalance()" id="rebalanceBtn" disabled>
+                        <i class="fas fa-balance-scale me-2"></i>Execute Rebalance
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon icon-shape bg-gradient-primary text-white rounded-circle shadow me-3">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm mb-0 text-muted">Total Portfolio</p>
+                            <h5 class="mb-0" id="totalPortfolioValue">$0.00</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon icon-shape bg-gradient-success text-white rounded-circle shadow me-3">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm mb-0 text-muted">Active Strategies</p>
+                            <h5 class="mb-0" id="activeStrategies">0</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon icon-shape bg-gradient-warning text-white rounded-circle shadow me-3">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm mb-0 text-muted">Drift Warning</p>
+                            <h5 class="mb-0" id="driftWarning">None</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon icon-shape bg-gradient-info text-white rounded-circle shadow me-3">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm mb-0 text-muted">Last Rebalance</p>
+                            <h5 class="mb-0" id="lastRebalance">Never</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Current vs Target Allocation Charts -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <h6>Current Allocation</h6>
+                    <p class="text-sm text-muted">Actual portfolio distribution</p>
+                </div>
+                <div class="card-body">
+                    <div id="currentAllocationChart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <h6>Target Allocation</h6>
+                    <p class="text-sm text-muted">Desired portfolio distribution</p>
+                </div>
+                <div class="card-body">
+                    <div id="targetAllocationChart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Allocation Drift Comparison -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6>Allocation Drift Analysis</h6>
+                            <p class="text-sm text-muted">Current vs Target comparison by strategy</p>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="showDriftOnly" onchange="toggleDriftFilter()">
+                            <label class="form-check-label text-sm" for="showDriftOnly">Show drift only</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="driftComparisonChart" style="height: 350px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rebalance Recommendations -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header pb-0">
+                    <h6>Rebalance Recommendations</h6>
+                    <p class="text-sm text-muted">Suggested actions to reach targets</p>
+                </div>
+                <div class="card-body">
+                    <div id="recommendationsList">
+                        <div class="text-center py-4">
+                            <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                            <p class="text-sm text-muted mt-2">Loading recommendations...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strategy Allocation Grid -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6>Strategy Allocation Grid</h6>
+                            <p class="text-sm text-muted">Manage individual strategy allocations</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="resetToDefaults()">
+                                <i class="fas fa-undo me-1"></i>Reset to Defaults
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="saveAllocations()">
+                                <i class="fas fa-save me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body px-0 pb-0">
+                    <div class="table-responsive">
+                        <table class="table align-items-center mb-0" id="allocationTable">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Strategy</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Status</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Current %</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Target %</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Drift</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Current Value</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Target Value</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allocationTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">
+                                        <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                                        <p class="text-sm text-muted mt-2">Loading allocations...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-light">
+                                    <td class="ps-3"><strong>Total</strong></td>
+                                    <td></td>
+                                    <td class="text-center"><strong id="totalCurrentPct">0%</strong></td>
+                                    <td class="text-center"><strong id="totalTargetPct">0%</strong></td>
+                                    <td></td>
+                                    <td class="text-center"><strong id="totalCurrentValue">$0</strong></td>
+                                    <td class="text-center"><strong id="totalTargetValue">$0</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rebalance History -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h6>Rebalance History</h6>
+                    <p class="text-sm text-muted">Past rebalancing actions</p>
+                </div>
+                <div class="card-body px-0 pb-0">
+                    <div class="table-responsive">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Date</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Type</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Strategies Affected</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Total Trades</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Est. Cost</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rebalanceHistoryBody">
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <p class="text-sm text-muted mb-0">No rebalance history available</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Allocation Modal -->
+<div class="modal fade" id="editAllocationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Allocation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editStrategyId">
+                <div class="mb-3">
+                    <label class="form-label">Strategy</label>
+                    <input type="text" class="form-control" id="editStrategyName" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Target Allocation (%)</label>
+                    <input type="number" class="form-control" id="editTargetPct" min="0" max="100" step="0.1">
+                    <small class="text-muted">Enter a value between 0 and 100</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="editStatus">
+                        <option value="active">Active</option>
+                        <option value="paused">Paused</option>
+                        <option value="disabled">Disabled</option>
+                    </select>
+                </div>
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <small>Changes will require a rebalance to take effect on actual positions.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveAllocationEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rebalance Confirmation Modal -->
+<div class="modal fade" id="rebalanceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Rebalance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action will execute trades to rebalance your portfolio.
+                </div>
+                <h6>Proposed Trades</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Strategy</th>
+                                <th>Action</th>
+                                <th>Amount</th>
+                                <th>Est. Impact</th>
+                            </tr>
+                        </thead>
+                        <tbody id="proposedTradesBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Total Buy Orders:</strong> <span id="totalBuyOrders">0</span></p>
+                        <p class="mb-1"><strong>Total Sell Orders:</strong> <span id="totalSellOrders">0</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Est. Transaction Cost:</strong> <span id="estTransactionCost">$0</span></p>
+                        <p class="mb-1"><strong>Est. Tax Impact:</strong> <span id="estTaxImpact">$0</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="confirmRebalance()">
+                    <i class="fas fa-balance-scale me-2"></i>Confirm Rebalance
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script>
+// Global state
+let allocationsData = [];
+let portfolioTotal = 0;
+let pendingChanges = {};
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    refreshAllocations();
+});
+
+// Fetch allocation data from API
+async function refreshAllocations() {
+    try {
+        const response = await fetch('/api/allocations/');
+        if (!response.ok) throw new Error('Failed to fetch allocations');
+        const data = await response.json();
+
+        allocationsData = data.allocations || [];
+        portfolioTotal = data.total_portfolio_value || 0;
+
+        updateSummaryCards(data);
+        renderAllocationTable(allocationsData);
+        renderCurrentAllocationChart(allocationsData);
+        renderTargetAllocationChart(allocationsData);
+        renderDriftComparisonChart(allocationsData);
+        renderRecommendations(data.recommendations || []);
+        renderRebalanceHistory(data.rebalance_history || []);
+
+        // Enable rebalance button if there's drift
+        const hasDrift = allocationsData.some(a => Math.abs(a.drift || 0) > 1);
+        document.getElementById('rebalanceBtn').disabled = !hasDrift;
+
+    } catch (error) {
+        console.error('Error fetching allocations:', error);
+        showNotification('Failed to load allocation data', 'error');
+    }
+}
+
+// Update summary cards
+function updateSummaryCards(data) {
+    document.getElementById('totalPortfolioValue').textContent = formatCurrency(data.total_portfolio_value || 0);
+    document.getElementById('activeStrategies').textContent = (data.allocations || []).filter(a => a.status === 'active').length;
+
+    const maxDrift = Math.max(...(data.allocations || []).map(a => Math.abs(a.drift || 0)));
+    if (maxDrift > 5) {
+        document.getElementById('driftWarning').innerHTML = `<span class="text-danger">${maxDrift.toFixed(1)}%</span>`;
+    } else if (maxDrift > 2) {
+        document.getElementById('driftWarning').innerHTML = `<span class="text-warning">${maxDrift.toFixed(1)}%</span>`;
+    } else {
+        document.getElementById('driftWarning').textContent = 'None';
+    }
+
+    if (data.last_rebalance) {
+        const date = new Date(data.last_rebalance);
+        document.getElementById('lastRebalance').textContent = date.toLocaleDateString();
+    }
+}
+
+// Render current allocation pie chart
+function renderCurrentAllocationChart(allocations) {
+    const data = [{
+        values: allocations.map(a => a.current_pct || 0),
+        labels: allocations.map(a => a.strategy_name),
+        type: 'pie',
+        hole: 0.4,
+        marker: {
+            colors: generateColors(allocations.length)
+        },
+        textinfo: 'label+percent',
+        textposition: 'outside'
+    }];
+
+    const layout = {
+        showlegend: false,
+        margin: { t: 20, b: 20, l: 20, r: 20 },
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent'
+    };
+
+    Plotly.newPlot('currentAllocationChart', data, layout, { responsive: true, displayModeBar: false });
+}
+
+// Render target allocation pie chart
+function renderTargetAllocationChart(allocations) {
+    const data = [{
+        values: allocations.map(a => a.target_pct || 0),
+        labels: allocations.map(a => a.strategy_name),
+        type: 'pie',
+        hole: 0.4,
+        marker: {
+            colors: generateColors(allocations.length)
+        },
+        textinfo: 'label+percent',
+        textposition: 'outside'
+    }];
+
+    const layout = {
+        showlegend: false,
+        margin: { t: 20, b: 20, l: 20, r: 20 },
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent'
+    };
+
+    Plotly.newPlot('targetAllocationChart', data, layout, { responsive: true, displayModeBar: false });
+}
+
+// Render drift comparison bar chart
+function renderDriftComparisonChart(allocations) {
+    const showDriftOnly = document.getElementById('showDriftOnly').checked;
+    let filtered = allocations;
+    if (showDriftOnly) {
+        filtered = allocations.filter(a => Math.abs(a.drift || 0) > 0.5);
+    }
+
+    const data = [
+        {
+            x: filtered.map(a => a.strategy_name),
+            y: filtered.map(a => a.current_pct || 0),
+            name: 'Current',
+            type: 'bar',
+            marker: { color: '#5e72e4' }
+        },
+        {
+            x: filtered.map(a => a.strategy_name),
+            y: filtered.map(a => a.target_pct || 0),
+            name: 'Target',
+            type: 'bar',
+            marker: { color: '#2dce89' }
+        }
+    ];
+
+    const layout = {
+        barmode: 'group',
+        showlegend: true,
+        legend: { orientation: 'h', y: -0.2 },
+        margin: { t: 20, b: 80, l: 50, r: 20 },
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        yaxis: { title: 'Allocation %', gridcolor: 'rgba(0,0,0,0.1)' },
+        xaxis: { tickangle: -45 }
+    };
+
+    Plotly.newPlot('driftComparisonChart', data, layout, { responsive: true, displayModeBar: false });
+}
+
+// Toggle drift filter
+function toggleDriftFilter() {
+    renderDriftComparisonChart(allocationsData);
+}
+
+// Render allocation table
+function renderAllocationTable(allocations) {
+    const tbody = document.getElementById('allocationTableBody');
+
+    if (!allocations || allocations.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-4">
+                    <p class="text-sm text-muted mb-0">No allocations configured</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    let totalCurrentPct = 0;
+    let totalTargetPct = 0;
+    let totalCurrentValue = 0;
+    let totalTargetValue = 0;
+
+    tbody.innerHTML = allocations.map(alloc => {
+        totalCurrentPct += alloc.current_pct || 0;
+        totalTargetPct += alloc.target_pct || 0;
+        totalCurrentValue += alloc.current_value || 0;
+        totalTargetValue += alloc.target_value || 0;
+
+        const drift = alloc.drift || 0;
+        let driftClass = '';
+        if (Math.abs(drift) > 5) driftClass = 'text-danger';
+        else if (Math.abs(drift) > 2) driftClass = 'text-warning';
+
+        const statusBadge = getStatusBadge(alloc.status);
+
+        return `
+            <tr data-strategy-id="${alloc.strategy_id}">
+                <td class="ps-3">
+                    <div class="d-flex align-items-center">
+                        <div class="strategy-color-dot me-2" style="background: ${getStrategyColor(alloc.strategy_id)}"></div>
+                        <div>
+                            <h6 class="mb-0 text-sm">${alloc.strategy_name}</h6>
+                            <p class="text-xs text-muted mb-0">${alloc.strategy_type || 'Custom'}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-center">${statusBadge}</td>
+                <td class="text-center">${(alloc.current_pct || 0).toFixed(1)}%</td>
+                <td class="text-center">
+                    <input type="number" class="form-control form-control-sm text-center target-input"
+                           value="${(alloc.target_pct || 0).toFixed(1)}"
+                           min="0" max="100" step="0.1"
+                           data-strategy-id="${alloc.strategy_id}"
+                           onchange="handleTargetChange(this)">
+                </td>
+                <td class="text-center ${driftClass}">
+                    ${drift > 0 ? '+' : ''}${drift.toFixed(1)}%
+                    ${Math.abs(drift) > 2 ? '<i class="fas fa-exclamation-circle ms-1"></i>' : ''}
+                </td>
+                <td class="text-center">${formatCurrency(alloc.current_value || 0)}</td>
+                <td class="text-center">${formatCurrency(alloc.target_value || 0)}</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-link text-primary p-0" onclick="editAllocation('${alloc.strategy_id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    // Update totals
+    document.getElementById('totalCurrentPct').textContent = totalCurrentPct.toFixed(1) + '%';
+    document.getElementById('totalTargetPct').textContent = totalTargetPct.toFixed(1) + '%';
+    document.getElementById('totalCurrentValue').textContent = formatCurrency(totalCurrentValue);
+    document.getElementById('totalTargetValue').textContent = formatCurrency(totalTargetValue);
+}
+
+// Handle target percentage change
+function handleTargetChange(input) {
+    const strategyId = input.dataset.strategyId;
+    const newValue = parseFloat(input.value) || 0;
+    pendingChanges[strategyId] = newValue;
+
+    // Highlight changed cell
+    input.classList.add('border-warning');
+}
+
+// Render recommendations
+function renderRecommendations(recommendations) {
+    const container = document.getElementById('recommendationsList');
+
+    if (!recommendations || recommendations.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-3">
+                <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                <p class="text-sm text-muted mb-0">Portfolio is well-balanced</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = recommendations.map(rec => {
+        const actionIcon = rec.action === 'increase' ? 'fa-arrow-up text-success' : 'fa-arrow-down text-danger';
+        return `
+            <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
+                <div class="icon icon-shape bg-gradient-${rec.action === 'increase' ? 'success' : 'danger'} text-white rounded-circle shadow-sm me-3" style="width: 32px; height: 32px; min-width: 32px;">
+                    <i class="fas ${actionIcon}" style="font-size: 12px;"></i>
+                </div>
+                <div>
+                    <h6 class="mb-1 text-sm">${rec.strategy_name}</h6>
+                    <p class="text-xs text-muted mb-1">${rec.action === 'increase' ? 'Increase' : 'Decrease'} by ${Math.abs(rec.amount || 0).toFixed(1)}%</p>
+                    <p class="text-xs mb-0">${rec.reason || ''}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Render rebalance history
+function renderRebalanceHistory(history) {
+    const tbody = document.getElementById('rebalanceHistoryBody');
+
+    if (!history || history.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <p class="text-sm text-muted mb-0">No rebalance history available</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = history.map(item => `
+        <tr>
+            <td class="ps-3">${new Date(item.date).toLocaleString()}</td>
+            <td>${item.type || 'Manual'}</td>
+            <td class="text-center">${item.strategies_affected || 0}</td>
+            <td class="text-center">${item.total_trades || 0}</td>
+            <td class="text-center">${formatCurrency(item.est_cost || 0)}</td>
+            <td class="text-center">${getStatusBadge(item.status)}</td>
+        </tr>
+    `).join('');
+}
+
+// Edit allocation modal
+function editAllocation(strategyId) {
+    const alloc = allocationsData.find(a => a.strategy_id === strategyId);
+    if (!alloc) return;
+
+    document.getElementById('editStrategyId').value = strategyId;
+    document.getElementById('editStrategyName').value = alloc.strategy_name;
+    document.getElementById('editTargetPct').value = alloc.target_pct || 0;
+    document.getElementById('editStatus').value = alloc.status || 'active';
+
+    new bootstrap.Modal(document.getElementById('editAllocationModal')).show();
+}
+
+// Save allocation edit
+async function saveAllocationEdit() {
+    const strategyId = document.getElementById('editStrategyId').value;
+    const targetPct = parseFloat(document.getElementById('editTargetPct').value);
+    const status = document.getElementById('editStatus').value;
+
+    try {
+        const response = await fetch(`/api/allocations/${strategyId}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ target_pct: targetPct, status: status })
+        });
+
+        if (!response.ok) throw new Error('Failed to update allocation');
+
+        bootstrap.Modal.getInstance(document.getElementById('editAllocationModal')).hide();
+        showNotification('Allocation updated successfully', 'success');
+        refreshAllocations();
+
+    } catch (error) {
+        console.error('Error updating allocation:', error);
+        showNotification('Failed to update allocation', 'error');
+    }
+}
+
+// Save all pending changes
+async function saveAllocations() {
+    if (Object.keys(pendingChanges).length === 0) {
+        showNotification('No changes to save', 'info');
+        return;
+    }
+
+    try {
+        const updates = Object.entries(pendingChanges).map(([strategyId, targetPct]) => ({
+            strategy_id: strategyId,
+            target_pct: targetPct
+        }));
+
+        const response = await fetch('/api/allocations/batch/', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ allocations: updates })
+        });
+
+        if (!response.ok) throw new Error('Failed to save allocations');
+
+        pendingChanges = {};
+        document.querySelectorAll('.target-input').forEach(input => {
+            input.classList.remove('border-warning');
+        });
+
+        showNotification('Allocations saved successfully', 'success');
+        refreshAllocations();
+
+    } catch (error) {
+        console.error('Error saving allocations:', error);
+        showNotification('Failed to save allocations', 'error');
+    }
+}
+
+// Reset to default allocations
+async function resetToDefaults() {
+    if (!confirm('Reset all allocations to default values?')) return;
+
+    try {
+        const response = await fetch('/api/allocations/reset/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to reset allocations');
+
+        pendingChanges = {};
+        showNotification('Allocations reset to defaults', 'success');
+        refreshAllocations();
+
+    } catch (error) {
+        console.error('Error resetting allocations:', error);
+        showNotification('Failed to reset allocations', 'error');
+    }
+}
+
+// Execute rebalance
+function executeRebalance() {
+    // Show confirmation modal with proposed trades
+    fetchProposedTrades();
+    new bootstrap.Modal(document.getElementById('rebalanceModal')).show();
+}
+
+// Fetch proposed trades for rebalance
+async function fetchProposedTrades() {
+    try {
+        const response = await fetch('/api/allocations/rebalance/preview/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch proposed trades');
+        const data = await response.json();
+
+        renderProposedTrades(data);
+
+    } catch (error) {
+        console.error('Error fetching proposed trades:', error);
+    }
+}
+
+// Render proposed trades in modal
+function renderProposedTrades(data) {
+    const tbody = document.getElementById('proposedTradesBody');
+    const trades = data.trades || [];
+
+    if (trades.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center">No trades required</td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = trades.map(trade => `
+        <tr>
+            <td>${trade.strategy_name}</td>
+            <td>
+                <span class="badge bg-${trade.action === 'buy' ? 'success' : 'danger'}">
+                    ${trade.action.toUpperCase()}
+                </span>
+            </td>
+            <td>${formatCurrency(trade.amount)}</td>
+            <td>${trade.impact || 'N/A'}</td>
+        </tr>
+    `).join('');
+
+    document.getElementById('totalBuyOrders').textContent = trades.filter(t => t.action === 'buy').length;
+    document.getElementById('totalSellOrders').textContent = trades.filter(t => t.action === 'sell').length;
+    document.getElementById('estTransactionCost').textContent = formatCurrency(data.est_transaction_cost || 0);
+    document.getElementById('estTaxImpact').textContent = formatCurrency(data.est_tax_impact || 0);
+}
+
+// Confirm and execute rebalance
+async function confirmRebalance() {
+    try {
+        const response = await fetch('/api/allocations/rebalance/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to execute rebalance');
+
+        bootstrap.Modal.getInstance(document.getElementById('rebalanceModal')).hide();
+        showNotification('Rebalance executed successfully', 'success');
+        refreshAllocations();
+
+    } catch (error) {
+        console.error('Error executing rebalance:', error);
+        showNotification('Failed to execute rebalance', 'error');
+    }
+}
+
+// Utility functions
+function formatCurrency(value) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(value);
+}
+
+function getStatusBadge(status) {
+    const badges = {
+        'active': '<span class="badge bg-success">Active</span>',
+        'paused': '<span class="badge bg-warning">Paused</span>',
+        'disabled': '<span class="badge bg-secondary">Disabled</span>',
+        'completed': '<span class="badge bg-success">Completed</span>',
+        'pending': '<span class="badge bg-info">Pending</span>',
+        'failed': '<span class="badge bg-danger">Failed</span>'
+    };
+    return badges[status] || `<span class="badge bg-secondary">${status}</span>`;
+}
+
+function generateColors(count) {
+    const baseColors = [
+        '#5e72e4', '#2dce89', '#fb6340', '#f5365c', '#11cdef',
+        '#8965e0', '#ffd600', '#172b4d', '#32325d', '#525f7f'
+    ];
+    const colors = [];
+    for (let i = 0; i < count; i++) {
+        colors.push(baseColors[i % baseColors.length]);
+    }
+    return colors;
+}
+
+function getStrategyColor(strategyId) {
+    const colors = generateColors(10);
+    const index = allocationsData.findIndex(a => a.strategy_id === strategyId);
+    return colors[index % colors.length];
+}
+
+function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [cookieName, cookieValue] = cookie.trim().split('=');
+        if (cookieName === name) return cookieValue;
+    }
+    return '';
+}
+
+function showNotification(message, type) {
+    // Simple notification - could be replaced with toast library
+    const alertClass = type === 'success' ? 'alert-success' : type === 'error' ? 'alert-danger' : 'alert-info';
+    const notification = document.createElement('div');
+    notification.className = `alert ${alertClass} position-fixed top-0 end-0 m-3`;
+    notification.style.zIndex = '9999';
+    notification.innerHTML = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+</script>
+
+<style>
+.strategy-color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.icon-shape {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+}
+
+.target-input {
+    width: 70px;
+    display: inline-block;
+}
+
+.target-input.border-warning {
+    border-color: #ffc107 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+</style>
+{% endblock %}

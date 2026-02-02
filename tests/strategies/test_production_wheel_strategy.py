@@ -20,11 +20,8 @@ from backend.tradingbot.production.core.production_integration import (
     OrderSide,
     OrderType,
 )
-from backend.tradingbot.options.smart_selection import (
-    OptionsAnalysis,
-    OptionsContract,
-    OptionsGreeks,
-)
+from backend.tradingbot.options.smart_selection import OptionsAnalysis
+from backend.tradingbot.options.pricing_engine import OptionsContract, Greeks as OptionsGreeks
 
 
 @pytest.fixture

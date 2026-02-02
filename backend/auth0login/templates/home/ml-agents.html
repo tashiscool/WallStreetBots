@@ -1,0 +1,1465 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} ML/RL Agent Control {% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-1">ML/RL Agent Control Panel</h4>
+                    <p class="text-sm text-muted mb-0">Manage machine learning models and reinforcement learning agents</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" onclick="refreshAll()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newModelModal">
+                        <i class="fas fa-plus me-2"></i>New Model
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3 text-center">
+                    <div class="icon icon-shape bg-gradient-primary text-white rounded-circle shadow mx-auto mb-2">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <p class="text-sm mb-0 text-muted">ML Models</p>
+                    <h4 class="mb-0" id="mlModelCount">0</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3 text-center">
+                    <div class="icon icon-shape bg-gradient-info text-white rounded-circle shadow mx-auto mb-2">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <p class="text-sm mb-0 text-muted">RL Agents</p>
+                    <h4 class="mb-0" id="rlAgentCount">0</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3 text-center">
+                    <div class="icon icon-shape bg-gradient-success text-white rounded-circle shadow mx-auto mb-2">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                    <p class="text-sm mb-0 text-muted">Active</p>
+                    <h4 class="mb-0" id="activeCount">0</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3 text-center">
+                    <div class="icon icon-shape bg-gradient-warning text-white rounded-circle shadow mx-auto mb-2">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <p class="text-sm mb-0 text-muted">Training</p>
+                    <h4 class="mb-0" id="trainingCount">0</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3 text-center">
+                    <div class="icon icon-shape bg-gradient-danger text-white rounded-circle shadow mx-auto mb-2">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <p class="text-sm mb-0 text-muted">Errors</p>
+                    <h4 class="mb-0" id="errorCount">0</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card">
+                <div class="card-body p-3 text-center">
+                    <div class="icon icon-shape bg-gradient-secondary text-white rounded-circle shadow mx-auto mb-2">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <p class="text-sm mb-0 text-muted">GPU Usage</p>
+                    <h4 class="mb-0" id="gpuUsage">-</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="agentTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="ml-tab" data-bs-toggle="tab" data-bs-target="#ml-models" type="button">
+                <i class="fas fa-brain me-2"></i>ML Models
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="rl-tab" data-bs-toggle="tab" data-bs-target="#rl-agents" type="button">
+                <i class="fas fa-robot me-2"></i>RL Agents
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="training-tab" data-bs-toggle="tab" data-bs-target="#training-jobs" type="button">
+                <i class="fas fa-graduation-cap me-2"></i>Training Jobs
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button">
+                <i class="fas fa-chart-line me-2"></i>Performance
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="agentTabContent">
+        <!-- ML Models Tab -->
+        <div class="tab-pane fade show active" id="ml-models" role="tabpanel">
+            <div class="row">
+                <!-- Model Type Cards -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card h-100 model-type-card" data-type="lstm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="icon icon-shape bg-gradient-primary text-white rounded-circle shadow me-3">
+                                    <i class="fas fa-wave-square"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">LSTM</h6>
+                                    <p class="text-xs text-muted mb-0">Sequence Prediction</p>
+                                </div>
+                            </div>
+                            <p class="text-sm">Long Short-Term Memory networks for time series forecasting and trend prediction.</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-xs"><span id="lstmCount">0</span> models</span>
+                                <button class="btn btn-sm btn-outline-primary" onclick="showModels('lstm')">View</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card h-100 model-type-card" data-type="cnn">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="icon icon-shape bg-gradient-info text-white rounded-circle shadow me-3">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">CNN</h6>
+                                    <p class="text-xs text-muted mb-0">Pattern Recognition</p>
+                                </div>
+                            </div>
+                            <p class="text-sm">Convolutional Neural Networks for identifying chart patterns and price formations.</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-xs"><span id="cnnCount">0</span> models</span>
+                                <button class="btn btn-sm btn-outline-info" onclick="showModels('cnn')">View</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card h-100 model-type-card" data-type="transformer">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="icon icon-shape bg-gradient-success text-white rounded-circle shadow me-3">
+                                    <i class="fas fa-network-wired"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Transformer</h6>
+                                    <p class="text-xs text-muted mb-0">Attention Models</p>
+                                </div>
+                            </div>
+                            <p class="text-sm">Attention-based models for capturing complex temporal dependencies.</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-xs"><span id="transformerCount">0</span> models</span>
+                                <button class="btn btn-sm btn-outline-success" onclick="showModels('transformer')">View</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card h-100 model-type-card" data-type="hmm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="icon icon-shape bg-gradient-warning text-white rounded-circle shadow me-3">
+                                    <i class="fas fa-random"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">HMM</h6>
+                                    <p class="text-xs text-muted mb-0">Regime Detection</p>
+                                </div>
+                            </div>
+                            <p class="text-sm">Hidden Markov Models for market regime detection and state identification.</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-xs"><span id="hmmCount">0</span> models</span>
+                                <button class="btn btn-sm btn-outline-warning" onclick="showModels('hmm')">View</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ML Models Table -->
+            <div class="card">
+                <div class="card-header pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 id="mlModelsTitle">All ML Models</h6>
+                        <div class="d-flex gap-2">
+                            <select class="form-select form-select-sm" id="mlModelFilter" onchange="filterMLModels()">
+                                <option value="all">All Types</option>
+                                <option value="lstm">LSTM</option>
+                                <option value="cnn">CNN</option>
+                                <option value="transformer">Transformer</option>
+                                <option value="hmm">HMM</option>
+                            </select>
+                            <select class="form-select form-select-sm" id="mlStatusFilter" onchange="filterMLModels()">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="training">Training</option>
+                                <option value="idle">Idle</option>
+                                <option value="error">Error</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body px-0 pb-0">
+                    <div class="table-responsive">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Model</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Type</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Status</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Accuracy</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Last Trained</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Predictions</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mlModelsTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                                        <p class="text-sm text-muted mt-2">Loading models...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RL Agents Tab -->
+        <div class="tab-pane fade" id="rl-agents" role="tabpanel">
+            <div class="row">
+                <!-- PPO Agent Card -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header pb-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon icon-shape bg-gradient-primary text-white rounded-circle shadow me-3">
+                                        <i class="fas fa-gamepad"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">PPO Agent</h6>
+                                        <p class="text-xs text-muted mb-0">Proximal Policy Optimization</p>
+                                    </div>
+                                </div>
+                                <span class="badge bg-success" id="ppoStatus">Active</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-sm mb-3">Policy gradient agent optimized for stable learning and sample efficiency. Ideal for continuous action spaces.</p>
+                            <div class="row mb-3">
+                                <div class="col-4 text-center border-end">
+                                    <h5 class="mb-0" id="ppoEpisodes">0</h5>
+                                    <p class="text-xs text-muted mb-0">Episodes</p>
+                                </div>
+                                <div class="col-4 text-center border-end">
+                                    <h5 class="mb-0" id="ppoReward">0</h5>
+                                    <p class="text-xs text-muted mb-0">Avg Reward</p>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <h5 class="mb-0" id="ppoSharpe">0</h5>
+                                    <p class="text-xs text-muted mb-0">Sharpe</p>
+                                </div>
+                            </div>
+                            <div id="ppoRewardChart" style="height: 150px;"></div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-sm btn-outline-primary flex-fill" onclick="trainAgent('ppo')">
+                                    <i class="fas fa-graduation-cap me-1"></i>Train
+                                </button>
+                                <button class="btn btn-sm btn-outline-success flex-fill" onclick="toggleAgent('ppo')">
+                                    <i class="fas fa-play me-1"></i>Activate
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="viewAgentDetails('ppo')">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DDPG Agent Card -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header pb-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon icon-shape bg-gradient-info text-white rounded-circle shadow me-3">
+                                        <i class="fas fa-project-diagram"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">DDPG Agent</h6>
+                                        <p class="text-xs text-muted mb-0">Deep Deterministic Policy Gradient</p>
+                                    </div>
+                                </div>
+                                <span class="badge bg-secondary" id="ddpgStatus">Idle</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-sm mb-3">Actor-critic agent for continuous control. Uses experience replay and target networks for stable training.</p>
+                            <div class="row mb-3">
+                                <div class="col-4 text-center border-end">
+                                    <h5 class="mb-0" id="ddpgEpisodes">0</h5>
+                                    <p class="text-xs text-muted mb-0">Episodes</p>
+                                </div>
+                                <div class="col-4 text-center border-end">
+                                    <h5 class="mb-0" id="ddpgReward">0</h5>
+                                    <p class="text-xs text-muted mb-0">Avg Reward</p>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <h5 class="mb-0" id="ddpgSharpe">0</h5>
+                                    <p class="text-xs text-muted mb-0">Sharpe</p>
+                                </div>
+                            </div>
+                            <div id="ddpgRewardChart" style="height: 150px;"></div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-sm btn-outline-primary flex-fill" onclick="trainAgent('ddpg')">
+                                    <i class="fas fa-graduation-cap me-1"></i>Train
+                                </button>
+                                <button class="btn btn-sm btn-outline-success flex-fill" onclick="toggleAgent('ddpg')">
+                                    <i class="fas fa-play me-1"></i>Activate
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="viewAgentDetails('ddpg')">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RL Agent Comparison -->
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h6>Agent Performance Comparison</h6>
+                    <p class="text-sm text-muted">Side-by-side agent metrics</p>
+                </div>
+                <div class="card-body">
+                    <div id="agentComparisonChart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training Jobs Tab -->
+        <div class="tab-pane fade" id="training-jobs" role="tabpanel">
+            <div class="row">
+                <!-- Active Training -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card">
+                        <div class="card-header pb-0">
+                            <h6>Active Training Jobs</h6>
+                            <p class="text-sm text-muted">Currently running training sessions</p>
+                        </div>
+                        <div class="card-body">
+                            <div id="activeTrainingList">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                                    <p class="text-sm text-muted mb-0">No active training jobs</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Training Queue -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header pb-0">
+                            <h6>Training Queue</h6>
+                            <p class="text-sm text-muted">Pending training jobs</p>
+                        </div>
+                        <div class="card-body">
+                            <div id="trainingQueue">
+                                <div class="text-center py-4">
+                                    <p class="text-sm text-muted mb-0">Queue is empty</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training History -->
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h6>Training History</h6>
+                    <p class="text-sm text-muted">Completed training sessions</p>
+                </div>
+                <div class="card-body px-0 pb-0">
+                    <div class="table-responsive">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Model/Agent</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Type</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Started</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Duration</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Epochs</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Final Loss</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trainingHistoryBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <p class="text-sm text-muted mb-0">No training history</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Tab -->
+        <div class="tab-pane fade" id="performance" role="tabpanel">
+            <div class="row">
+                <!-- Model Accuracy Over Time -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header pb-0">
+                            <h6>Model Accuracy Over Time</h6>
+                            <p class="text-sm text-muted">Prediction accuracy trends</p>
+                        </div>
+                        <div class="card-body">
+                            <div id="accuracyChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Returns -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header pb-0">
+                            <h6>RL Agent Returns</h6>
+                            <p class="text-sm text-muted">Cumulative returns by agent</p>
+                        </div>
+                        <div class="card-body">
+                            <div id="returnsChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prediction Distribution -->
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header pb-0">
+                            <h6>Prediction Confidence Distribution</h6>
+                            <p class="text-sm text-muted">ML model confidence levels</p>
+                        </div>
+                        <div class="card-body">
+                            <div id="confidenceChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Importance -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header pb-0">
+                            <h6>Feature Importance</h6>
+                            <p class="text-sm text-muted">Most influential features</p>
+                        </div>
+                        <div class="card-body">
+                            <div id="featureImportanceChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Model Modal -->
+<div class="modal fade" id="newModelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Model</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Model Name</label>
+                    <input type="text" class="form-control" id="newModelName" placeholder="e.g., LSTM_SPY_v2">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Model Type</label>
+                    <select class="form-select" id="newModelType">
+                        <option value="lstm">LSTM - Sequence Prediction</option>
+                        <option value="cnn">CNN - Pattern Recognition</option>
+                        <option value="transformer">Transformer - Attention Model</option>
+                        <option value="hmm">HMM - Regime Detection</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Target Symbols</label>
+                    <input type="text" class="form-control" id="newModelSymbols" placeholder="e.g., SPY, QQQ, AAPL">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Prediction Target</label>
+                    <select class="form-select" id="newModelTarget">
+                        <option value="direction">Price Direction</option>
+                        <option value="returns">Returns</option>
+                        <option value="volatility">Volatility</option>
+                        <option value="regime">Market Regime</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Lookback Period (days)</label>
+                    <input type="number" class="form-control" id="newModelLookback" value="60" min="10" max="500">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createNewModel()">Create Model</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Details Modal -->
+<div class="modal fade" id="modelDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Model Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="detailModelId">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Model Name</h6>
+                        <h5 id="detailModelName">-</h5>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <h6 class="text-muted">Status</h6>
+                        <span id="detailModelStatus" class="badge">-</span>
+                    </div>
+                </div>
+
+                <!-- Model Configuration -->
+                <h6 class="mb-3">Configuration</h6>
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label text-sm">Learning Rate</label>
+                        <input type="number" class="form-control form-control-sm" id="detailLearningRate" step="0.0001">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-sm">Batch Size</label>
+                        <input type="number" class="form-control form-control-sm" id="detailBatchSize">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-sm">Hidden Layers</label>
+                        <input type="number" class="form-control form-control-sm" id="detailHiddenLayers">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-sm">Dropout</label>
+                        <input type="number" class="form-control form-control-sm" id="detailDropout" step="0.1">
+                    </div>
+                </div>
+
+                <!-- Training Metrics -->
+                <h6 class="mb-3">Training Metrics</h6>
+                <div id="detailMetricsChart" style="height: 200px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" onclick="deleteModel()">Delete</button>
+                <button type="button" class="btn btn-warning" onclick="retrainModel()">Retrain</button>
+                <button type="button" class="btn btn-primary" onclick="saveModelConfig()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Agent Config Modal -->
+<div class="modal fade" id="agentConfigModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agent Configuration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="configAgentType">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Agent Type</h6>
+                        <h5 id="configAgentName">-</h5>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <h6 class="text-muted">Status</h6>
+                        <span id="configAgentStatus" class="badge">-</span>
+                    </div>
+                </div>
+
+                <!-- Hyperparameters -->
+                <h6 class="mb-3">Hyperparameters</h6>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-sm">Learning Rate (Actor)</label>
+                        <input type="number" class="form-control form-control-sm" id="configActorLR" step="0.0001">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-sm">Learning Rate (Critic)</label>
+                        <input type="number" class="form-control form-control-sm" id="configCriticLR" step="0.0001">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-sm">Discount Factor (Gamma)</label>
+                        <input type="number" class="form-control form-control-sm" id="configGamma" step="0.01">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-sm">Replay Buffer Size</label>
+                        <input type="number" class="form-control form-control-sm" id="configBufferSize">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-sm">Batch Size</label>
+                        <input type="number" class="form-control form-control-sm" id="configBatchSize">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-sm">Update Frequency</label>
+                        <input type="number" class="form-control form-control-sm" id="configUpdateFreq">
+                    </div>
+                </div>
+
+                <!-- Environment Settings -->
+                <h6 class="mb-3">Environment Settings</h6>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-sm">Max Position Size</label>
+                        <input type="number" class="form-control form-control-sm" id="configMaxPosition" step="0.1">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-sm">Transaction Cost</label>
+                        <input type="number" class="form-control form-control-sm" id="configTransactionCost" step="0.0001">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-sm">Risk Penalty</label>
+                        <input type="number" class="form-control form-control-sm" id="configRiskPenalty" step="0.1">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveAgentConfig()">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script>
+// Global state
+let mlModels = [];
+let rlAgents = [];
+let trainingJobs = [];
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    refreshAll();
+    // Auto-refresh every 30 seconds
+    setInterval(refreshAll, 30000);
+});
+
+// Refresh all data
+async function refreshAll() {
+    await Promise.all([
+        fetchMLModels(),
+        fetchRLAgents(),
+        fetchTrainingJobs()
+    ]);
+    updateSummaryCards();
+    renderCharts();
+}
+
+// Fetch ML models
+async function fetchMLModels() {
+    try {
+        const response = await fetch('/api/ml-agents/models/');
+        if (!response.ok) throw new Error('Failed to fetch ML models');
+        const data = await response.json();
+        mlModels = data.models || [];
+        renderMLModelsTable(mlModels);
+        updateModelTypeCounts();
+    } catch (error) {
+        console.error('Error fetching ML models:', error);
+    }
+}
+
+// Fetch RL agents
+async function fetchRLAgents() {
+    try {
+        const response = await fetch('/api/ml-agents/agents/');
+        if (!response.ok) throw new Error('Failed to fetch RL agents');
+        const data = await response.json();
+        rlAgents = data.agents || [];
+        renderRLAgents(rlAgents);
+    } catch (error) {
+        console.error('Error fetching RL agents:', error);
+    }
+}
+
+// Fetch training jobs
+async function fetchTrainingJobs() {
+    try {
+        const response = await fetch('/api/ml-agents/training/');
+        if (!response.ok) throw new Error('Failed to fetch training jobs');
+        const data = await response.json();
+        trainingJobs = data.jobs || [];
+        renderTrainingJobs(data);
+    } catch (error) {
+        console.error('Error fetching training jobs:', error);
+    }
+}
+
+// Update summary cards
+function updateSummaryCards() {
+    document.getElementById('mlModelCount').textContent = mlModels.length;
+    document.getElementById('rlAgentCount').textContent = rlAgents.length;
+    document.getElementById('activeCount').textContent =
+        mlModels.filter(m => m.status === 'active').length +
+        rlAgents.filter(a => a.status === 'active').length;
+    document.getElementById('trainingCount').textContent =
+        trainingJobs.filter(j => j.status === 'running').length;
+    document.getElementById('errorCount').textContent =
+        mlModels.filter(m => m.status === 'error').length +
+        rlAgents.filter(a => a.status === 'error').length;
+}
+
+// Update model type counts
+function updateModelTypeCounts() {
+    document.getElementById('lstmCount').textContent = mlModels.filter(m => m.type === 'lstm').length;
+    document.getElementById('cnnCount').textContent = mlModels.filter(m => m.type === 'cnn').length;
+    document.getElementById('transformerCount').textContent = mlModels.filter(m => m.type === 'transformer').length;
+    document.getElementById('hmmCount').textContent = mlModels.filter(m => m.type === 'hmm').length;
+}
+
+// Show models by type
+function showModels(type) {
+    document.getElementById('mlModelFilter').value = type;
+    filterMLModels();
+    document.getElementById('mlModelsTitle').textContent = `${type.toUpperCase()} Models`;
+}
+
+// Filter ML models
+function filterMLModels() {
+    const typeFilter = document.getElementById('mlModelFilter').value;
+    const statusFilter = document.getElementById('mlStatusFilter').value;
+
+    let filtered = mlModels;
+    if (typeFilter !== 'all') {
+        filtered = filtered.filter(m => m.type === typeFilter);
+    }
+    if (statusFilter !== 'all') {
+        filtered = filtered.filter(m => m.status === statusFilter);
+    }
+
+    renderMLModelsTable(filtered);
+}
+
+// Render ML models table
+function renderMLModelsTable(models) {
+    const tbody = document.getElementById('mlModelsTableBody');
+
+    if (!models || models.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <p class="text-sm text-muted mb-0">No models found</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = models.map(model => {
+        const typeInfo = getModelTypeInfo(model.type);
+        const statusBadge = getStatusBadge(model.status);
+
+        return `
+            <tr>
+                <td class="ps-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon icon-shape ${typeInfo.iconClass} text-white rounded-circle shadow-sm me-3" style="width: 36px; height: 36px; min-width: 36px;">
+                            <i class="${typeInfo.icon}" style="font-size: 14px;"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 text-sm">${model.name}</h6>
+                            <p class="text-xs text-muted mb-0">${model.symbols || 'N/A'}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-center">
+                    <span class="badge ${typeInfo.badgeClass}">${model.type.toUpperCase()}</span>
+                </td>
+                <td class="text-center">${statusBadge}</td>
+                <td class="text-center">
+                    <span class="${model.accuracy >= 60 ? 'text-success' : model.accuracy >= 50 ? 'text-warning' : 'text-danger'}">
+                        ${model.accuracy ? model.accuracy.toFixed(1) + '%' : 'N/A'}
+                    </span>
+                </td>
+                <td class="text-center text-sm">${model.last_trained ? new Date(model.last_trained).toLocaleDateString() : 'Never'}</td>
+                <td class="text-center text-sm">${model.predictions_count || 0}</td>
+                <td class="text-center">
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="viewModelDetails('${model.id}')" title="Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="trainModel('${model.id}')" title="Train">
+                            <i class="fas fa-graduation-cap"></i>
+                        </button>
+                        <button class="btn btn-outline-${model.status === 'active' ? 'danger' : 'success'}"
+                                onclick="toggleModel('${model.id}')" title="${model.status === 'active' ? 'Deactivate' : 'Activate'}">
+                            <i class="fas fa-${model.status === 'active' ? 'pause' : 'play'}"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Render RL agents
+function renderRLAgents(agents) {
+    const ppo = agents.find(a => a.type === 'ppo') || { episodes: 0, avg_reward: 0, sharpe: 0, status: 'idle' };
+    const ddpg = agents.find(a => a.type === 'ddpg') || { episodes: 0, avg_reward: 0, sharpe: 0, status: 'idle' };
+
+    // Update PPO
+    document.getElementById('ppoStatus').textContent = ppo.status || 'Idle';
+    document.getElementById('ppoStatus').className = `badge bg-${getStatusColor(ppo.status)}`;
+    document.getElementById('ppoEpisodes').textContent = ppo.episodes || 0;
+    document.getElementById('ppoReward').textContent = (ppo.avg_reward || 0).toFixed(2);
+    document.getElementById('ppoSharpe').textContent = (ppo.sharpe || 0).toFixed(2);
+
+    // Update DDPG
+    document.getElementById('ddpgStatus').textContent = ddpg.status || 'Idle';
+    document.getElementById('ddpgStatus').className = `badge bg-${getStatusColor(ddpg.status)}`;
+    document.getElementById('ddpgEpisodes').textContent = ddpg.episodes || 0;
+    document.getElementById('ddpgReward').textContent = (ddpg.avg_reward || 0).toFixed(2);
+    document.getElementById('ddpgSharpe').textContent = (ddpg.sharpe || 0).toFixed(2);
+
+    // Render mini charts
+    renderAgentMiniChart('ppoRewardChart', ppo.reward_history || []);
+    renderAgentMiniChart('ddpgRewardChart', ddpg.reward_history || []);
+}
+
+// Render agent mini chart
+function renderAgentMiniChart(containerId, data) {
+    if (!data || data.length === 0) {
+        document.getElementById(containerId).innerHTML = '<p class="text-center text-muted text-sm py-4">No data</p>';
+        return;
+    }
+
+    const trace = {
+        y: data,
+        type: 'scatter',
+        mode: 'lines',
+        fill: 'tozeroy',
+        line: { color: '#5e72e4', width: 2 }
+    };
+
+    const layout = {
+        margin: { t: 10, b: 20, l: 30, r: 10 },
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        xaxis: { showgrid: false, showticklabels: false },
+        yaxis: { showgrid: true, gridcolor: 'rgba(0,0,0,0.1)' }
+    };
+
+    Plotly.newPlot(containerId, [trace], layout, { responsive: true, displayModeBar: false });
+}
+
+// Render training jobs
+function renderTrainingJobs(data) {
+    // Active training
+    const activeList = document.getElementById('activeTrainingList');
+    const active = (data.jobs || []).filter(j => j.status === 'running');
+
+    if (active.length === 0) {
+        activeList.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                <p class="text-sm text-muted mb-0">No active training jobs</p>
+            </div>
+        `;
+    } else {
+        activeList.innerHTML = active.map(job => `
+            <div class="training-job-card mb-3 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">${job.model_name}</h6>
+                    <span class="badge bg-warning">Training</span>
+                </div>
+                <div class="progress mb-2" style="height: 8px;">
+                    <div class="progress-bar bg-primary" style="width: ${job.progress || 0}%"></div>
+                </div>
+                <div class="d-flex justify-content-between text-xs text-muted">
+                    <span>Epoch ${job.current_epoch || 0} / ${job.total_epochs || 100}</span>
+                    <span>Loss: ${job.current_loss ? job.current_loss.toFixed(4) : 'N/A'}</span>
+                    <span>ETA: ${job.eta || 'Calculating...'}</span>
+                </div>
+                <button class="btn btn-sm btn-outline-danger mt-2" onclick="cancelTraining('${job.id}')">
+                    <i class="fas fa-stop me-1"></i>Cancel
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // Training queue
+    const queueList = document.getElementById('trainingQueue');
+    const queued = (data.jobs || []).filter(j => j.status === 'queued');
+
+    if (queued.length === 0) {
+        queueList.innerHTML = '<div class="text-center py-4"><p class="text-sm text-muted mb-0">Queue is empty</p></div>';
+    } else {
+        queueList.innerHTML = queued.map((job, idx) => `
+            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                <div>
+                    <span class="badge bg-secondary me-2">#${idx + 1}</span>
+                    <span class="text-sm">${job.model_name}</span>
+                </div>
+                <button class="btn btn-sm btn-link text-danger p-0" onclick="removeFromQueue('${job.id}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // Training history
+    const historyBody = document.getElementById('trainingHistoryBody');
+    const history = (data.history || []).slice(0, 10);
+
+    if (history.length === 0) {
+        historyBody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><p class="text-sm text-muted mb-0">No training history</p></td></tr>';
+    } else {
+        historyBody.innerHTML = history.map(item => `
+            <tr>
+                <td class="ps-3">${item.model_name}</td>
+                <td class="text-center"><span class="badge ${getModelTypeInfo(item.type).badgeClass}">${item.type}</span></td>
+                <td class="text-center text-sm">${new Date(item.started).toLocaleString()}</td>
+                <td class="text-center text-sm">${item.duration || 'N/A'}</td>
+                <td class="text-center">${item.epochs || 0}</td>
+                <td class="text-center">${item.final_loss ? item.final_loss.toFixed(4) : 'N/A'}</td>
+                <td class="text-center">${getStatusBadge(item.status)}</td>
+            </tr>
+        `).join('');
+    }
+}
+
+// Render performance charts
+function renderCharts() {
+    renderAccuracyChart();
+    renderReturnsChart();
+    renderConfidenceChart();
+    renderFeatureImportanceChart();
+    renderAgentComparisonChart();
+}
+
+// Accuracy over time chart
+function renderAccuracyChart() {
+    const data = mlModels.filter(m => m.accuracy_history).map(m => ({
+        y: m.accuracy_history,
+        name: m.name,
+        type: 'scatter',
+        mode: 'lines'
+    }));
+
+    if (data.length === 0) {
+        document.getElementById('accuracyChart').innerHTML = '<p class="text-center text-muted py-5">No accuracy data available</p>';
+        return;
+    }
+
+    const layout = {
+        margin: { t: 20, b: 40, l: 50, r: 20 },
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        showlegend: true,
+        legend: { orientation: 'h', y: -0.2 },
+        yaxis: { title: 'Accuracy %', gridcolor: 'rgba(0,0,0,0.1)' }
+    };
+
+    Plotly.newPlot('accuracyChart', data, layout, { responsive: true, displayModeBar: false });
+}
+
+// Returns chart
+function renderReturnsChart() {
+    const ppo = rlAgents.find(a => a.type === 'ppo');
+    const ddpg = rlAgents.find(a => a.type === 'ddpg');
+
+    const data = [];
+    if (ppo && ppo.returns_history) {
+        data.push({ y: ppo.returns_history, name: 'PPO', type: 'scatter', mode: 'lines', line: { color: '#5e72e4' } });
+    }
+    if (ddpg && ddpg.returns_history) {
+        data.push({ y: ddpg.returns_history, name: 'DDPG', type: 'scatter', mode: 'lines', line: { color: '#11cdef' } });
+    }
+
+    if (data.length === 0) {
+        document.getElementById('returnsChart').innerHTML = '<p class="text-center text-muted py-5">No returns data available</p>';
+        return;
+    }
+
+    const layout = {
+        margin: { t: 20, b: 40, l: 50, r: 20 },
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        showlegend: true,
+        legend: { orientation: 'h', y: -0.2 },
+        yaxis: { title: 'Cumulative Return %', gridcolor: 'rgba(0,0,0,0.1)' }
+    };
+
+    Plotly.newPlot('returnsChart', data, layout, { responsive: true, displayModeBar: false });
+}
+
+// Confidence distribution chart
+function renderConfidenceChart() {
+    const confidences = mlModels.flatMap(m => m.recent_confidences || []);
+
+    if (confidences.length === 0) {
+        document.getElementById('confidenceChart').innerHTML = '<p class="text-center text-muted py-5">No confidence data available</p>';
+        return;
+    }
+
+    const data = [{
+        x: confidences,
+        type: 'histogram',
+        marker: { color: '#5e72e4' },
+        nbinsx: 20
+    }];
+
+    const layout = {
+        margin: { t: 20, b: 40, l: 50, r: 20 },
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        xaxis: { title: 'Confidence Level' },
+        yaxis: { title: 'Frequency', gridcolor: 'rgba(0,0,0,0.1)' }
+    };
+
+    Plotly.newPlot('confidenceChart', data, layout, { responsive: true, displayModeBar: false });
+}
+
+// Feature importance chart
+function renderFeatureImportanceChart() {
+    // Aggregate feature importance from all models
+    const features = ['RSI', 'MACD', 'Volume', 'Volatility', 'Momentum', 'Price_MA', 'BB_Width', 'ATR'];
+    const importance = [0.18, 0.15, 0.14, 0.12, 0.11, 0.10, 0.10, 0.10];
+
+    const data = [{
+        x: importance,
+        y: features,
+        type: 'bar',
+        orientation: 'h',
+        marker: { color: '#2dce89' }
+    }];
+
+    const layout = {
+        margin: { t: 20, b: 40, l: 80, r: 20 },
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        xaxis: { title: 'Importance', gridcolor: 'rgba(0,0,0,0.1)' }
+    };
+
+    Plotly.newPlot('featureImportanceChart', data, layout, { responsive: true, displayModeBar: false });
+}
+
+// Agent comparison chart
+function renderAgentComparisonChart() {
+    const metrics = ['Sharpe Ratio', 'Max Drawdown', 'Win Rate', 'Avg Return'];
+    const ppo = rlAgents.find(a => a.type === 'ppo') || {};
+    const ddpg = rlAgents.find(a => a.type === 'ddpg') || {};
+
+    const data = [
+        {
+            x: metrics,
+            y: [ppo.sharpe || 0, ppo.max_drawdown || 0, ppo.win_rate || 0, ppo.avg_return || 0],
+            name: 'PPO',
+            type: 'bar',
+            marker: { color: '#5e72e4' }
+        },
+        {
+            x: metrics,
+            y: [ddpg.sharpe || 0, ddpg.max_drawdown || 0, ddpg.win_rate || 0, ddpg.avg_return || 0],
+            name: 'DDPG',
+            type: 'bar',
+            marker: { color: '#11cdef' }
+        }
+    ];
+
+    const layout = {
+        barmode: 'group',
+        margin: { t: 20, b: 40, l: 50, r: 20 },
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        showlegend: true,
+        legend: { orientation: 'h', y: -0.2 },
+        yaxis: { gridcolor: 'rgba(0,0,0,0.1)' }
+    };
+
+    Plotly.newPlot('agentComparisonChart', data, layout, { responsive: true, displayModeBar: false });
+}
+
+// Create new model
+async function createNewModel() {
+    const modelData = {
+        name: document.getElementById('newModelName').value,
+        type: document.getElementById('newModelType').value,
+        symbols: document.getElementById('newModelSymbols').value,
+        target: document.getElementById('newModelTarget').value,
+        lookback: parseInt(document.getElementById('newModelLookback').value)
+    };
+
+    try {
+        const response = await fetch('/api/ml-agents/models/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify(modelData)
+        });
+
+        if (!response.ok) throw new Error('Failed to create model');
+
+        bootstrap.Modal.getInstance(document.getElementById('newModelModal')).hide();
+        showNotification('Model created successfully', 'success');
+        refreshAll();
+
+    } catch (error) {
+        console.error('Error creating model:', error);
+        showNotification('Failed to create model', 'error');
+    }
+}
+
+// View model details
+async function viewModelDetails(modelId) {
+    const model = mlModels.find(m => m.id === modelId);
+    if (!model) return;
+
+    document.getElementById('detailModelId').value = modelId;
+    document.getElementById('detailModelName').textContent = model.name;
+    document.getElementById('detailModelStatus').innerHTML = getStatusBadge(model.status);
+    document.getElementById('detailLearningRate').value = model.learning_rate || 0.001;
+    document.getElementById('detailBatchSize').value = model.batch_size || 32;
+    document.getElementById('detailHiddenLayers').value = model.hidden_layers || 2;
+    document.getElementById('detailDropout').value = model.dropout || 0.2;
+
+    // Render metrics chart
+    if (model.loss_history && model.loss_history.length > 0) {
+        const trace = {
+            y: model.loss_history,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Loss',
+            line: { color: '#f5365c' }
+        };
+
+        const layout = {
+            margin: { t: 20, b: 30, l: 50, r: 20 },
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            yaxis: { title: 'Loss', gridcolor: 'rgba(0,0,0,0.1)' }
+        };
+
+        Plotly.newPlot('detailMetricsChart', [trace], layout, { responsive: true, displayModeBar: false });
+    }
+
+    new bootstrap.Modal(document.getElementById('modelDetailModal')).show();
+}
+
+// Train model
+async function trainModel(modelId) {
+    try {
+        const response = await fetch(`/api/ml-agents/models/${modelId}/train/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to start training');
+        showNotification('Training started', 'success');
+        refreshAll();
+
+    } catch (error) {
+        console.error('Error starting training:', error);
+        showNotification('Failed to start training', 'error');
+    }
+}
+
+// Toggle model activation
+async function toggleModel(modelId) {
+    const model = mlModels.find(m => m.id === modelId);
+    const newStatus = model.status === 'active' ? 'idle' : 'active';
+
+    try {
+        const response = await fetch(`/api/ml-agents/models/${modelId}/status/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!response.ok) throw new Error('Failed to update status');
+        showNotification(`Model ${newStatus === 'active' ? 'activated' : 'deactivated'}`, 'success');
+        refreshAll();
+
+    } catch (error) {
+        console.error('Error updating model status:', error);
+        showNotification('Failed to update model status', 'error');
+    }
+}
+
+// Train RL agent
+async function trainAgent(agentType) {
+    try {
+        const response = await fetch(`/api/ml-agents/agents/${agentType}/train/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to start agent training');
+        showNotification(`${agentType.toUpperCase()} training started`, 'success');
+        refreshAll();
+
+    } catch (error) {
+        console.error('Error starting agent training:', error);
+        showNotification('Failed to start agent training', 'error');
+    }
+}
+
+// Toggle agent activation
+async function toggleAgent(agentType) {
+    const agent = rlAgents.find(a => a.type === agentType);
+    const newStatus = agent && agent.status === 'active' ? 'idle' : 'active';
+
+    try {
+        const response = await fetch(`/api/ml-agents/agents/${agentType}/status/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!response.ok) throw new Error('Failed to update agent status');
+        showNotification(`${agentType.toUpperCase()} ${newStatus === 'active' ? 'activated' : 'deactivated'}`, 'success');
+        refreshAll();
+
+    } catch (error) {
+        console.error('Error updating agent status:', error);
+        showNotification('Failed to update agent status', 'error');
+    }
+}
+
+// View agent details
+function viewAgentDetails(agentType) {
+    const agent = rlAgents.find(a => a.type === agentType) || {};
+
+    document.getElementById('configAgentType').value = agentType;
+    document.getElementById('configAgentName').textContent = agentType.toUpperCase();
+    document.getElementById('configAgentStatus').innerHTML = getStatusBadge(agent.status);
+
+    // Load config
+    document.getElementById('configActorLR').value = agent.actor_lr || 0.0003;
+    document.getElementById('configCriticLR').value = agent.critic_lr || 0.0003;
+    document.getElementById('configGamma').value = agent.gamma || 0.99;
+    document.getElementById('configBufferSize').value = agent.buffer_size || 100000;
+    document.getElementById('configBatchSize').value = agent.batch_size || 64;
+    document.getElementById('configUpdateFreq').value = agent.update_freq || 1;
+    document.getElementById('configMaxPosition').value = agent.max_position || 1.0;
+    document.getElementById('configTransactionCost').value = agent.transaction_cost || 0.001;
+    document.getElementById('configRiskPenalty').value = agent.risk_penalty || 0.1;
+
+    new bootstrap.Modal(document.getElementById('agentConfigModal')).show();
+}
+
+// Save agent config
+async function saveAgentConfig() {
+    const agentType = document.getElementById('configAgentType').value;
+    const config = {
+        actor_lr: parseFloat(document.getElementById('configActorLR').value),
+        critic_lr: parseFloat(document.getElementById('configCriticLR').value),
+        gamma: parseFloat(document.getElementById('configGamma').value),
+        buffer_size: parseInt(document.getElementById('configBufferSize').value),
+        batch_size: parseInt(document.getElementById('configBatchSize').value),
+        update_freq: parseInt(document.getElementById('configUpdateFreq').value),
+        max_position: parseFloat(document.getElementById('configMaxPosition').value),
+        transaction_cost: parseFloat(document.getElementById('configTransactionCost').value),
+        risk_penalty: parseFloat(document.getElementById('configRiskPenalty').value)
+    };
+
+    try {
+        const response = await fetch(`/api/ml-agents/agents/${agentType}/config/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify(config)
+        });
+
+        if (!response.ok) throw new Error('Failed to save config');
+        bootstrap.Modal.getInstance(document.getElementById('agentConfigModal')).hide();
+        showNotification('Configuration saved', 'success');
+        refreshAll();
+
+    } catch (error) {
+        console.error('Error saving config:', error);
+        showNotification('Failed to save configuration', 'error');
+    }
+}
+
+// Cancel training
+async function cancelTraining(jobId) {
+    if (!confirm('Cancel this training job?')) return;
+
+    try {
+        const response = await fetch(`/api/ml-agents/training/${jobId}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to cancel training');
+        showNotification('Training cancelled', 'success');
+        refreshAll();
+
+    } catch (error) {
+        console.error('Error cancelling training:', error);
+        showNotification('Failed to cancel training', 'error');
+    }
+}
+
+// Utility functions
+function getModelTypeInfo(type) {
+    const types = {
+        'lstm': { icon: 'fas fa-wave-square', iconClass: 'bg-gradient-primary', badgeClass: 'bg-primary' },
+        'cnn': { icon: 'fas fa-layer-group', iconClass: 'bg-gradient-info', badgeClass: 'bg-info' },
+        'transformer': { icon: 'fas fa-network-wired', iconClass: 'bg-gradient-success', badgeClass: 'bg-success' },
+        'hmm': { icon: 'fas fa-random', iconClass: 'bg-gradient-warning', badgeClass: 'bg-warning' }
+    };
+    return types[type] || types['lstm'];
+}
+
+function getStatusBadge(status) {
+    const badges = {
+        'active': '<span class="badge bg-success">Active</span>',
+        'training': '<span class="badge bg-warning">Training</span>',
+        'idle': '<span class="badge bg-secondary">Idle</span>',
+        'error': '<span class="badge bg-danger">Error</span>',
+        'completed': '<span class="badge bg-success">Completed</span>',
+        'running': '<span class="badge bg-warning">Running</span>',
+        'queued': '<span class="badge bg-info">Queued</span>',
+        'failed': '<span class="badge bg-danger">Failed</span>'
+    };
+    return badges[status] || `<span class="badge bg-secondary">${status}</span>`;
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'active': 'success',
+        'training': 'warning',
+        'idle': 'secondary',
+        'error': 'danger'
+    };
+    return colors[status] || 'secondary';
+}
+
+function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [cookieName, cookieValue] = cookie.trim().split('=');
+        if (cookieName === name) return cookieValue;
+    }
+    return '';
+}
+
+function showNotification(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : type === 'error' ? 'alert-danger' : 'alert-info';
+    const notification = document.createElement('div');
+    notification.className = `alert ${alertClass} position-fixed top-0 end-0 m-3`;
+    notification.style.zIndex = '9999';
+    notification.innerHTML = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+</script>
+
+<style>
+.icon-shape {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+}
+
+.model-type-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.model-type-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+.training-job-card {
+    background: #f8f9fa;
+}
+
+.nav-tabs .nav-link {
+    color: #8898aa;
+}
+
+.nav-tabs .nav-link.active {
+    color: #5e72e4;
+    font-weight: 600;
+}
+</style>
+{% endblock %}

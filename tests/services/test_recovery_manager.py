@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import Mock, patch
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
 from backend.auth0login.services.recovery_manager import (
@@ -19,8 +20,13 @@ from backend.auth0login.services.recovery_manager import (
 )
 
 
+class MockDoesNotExist(ObjectDoesNotExist):
+    """Mock DoesNotExist exception for testing."""
+    pass
+
+
 @pytest.fixture
-def user():
+def user(db):  # db fixture ensures database access
     return User.objects.create_user(username='testuser', email='test@example.com')
 
 
@@ -79,6 +85,7 @@ class TestRecoverySchedule:
         assert len(schedule.stages) == 2
 
 
+@pytest.mark.django_db
 class TestInit:
     """Test service initialization."""
 
@@ -87,6 +94,7 @@ class TestInit:
         assert service.user == user
 
 
+@pytest.mark.django_db
 class TestGetRecoverySchedule:
     """Test getting recovery schedules."""
 
@@ -100,10 +108,11 @@ class TestGetRecoverySchedule:
         assert isinstance(schedule, list)
 
 
+@pytest.mark.django_db
 class TestCreateBreakerEvent:
     """Test creating breaker events."""
 
-    @patch('backend.auth0login.services.recovery_manager.CircuitBreakerEvent')
+    @patch('backend.tradingbot.models.CircuitBreakerEvent')
     def test_create_breaker_event(self, mock_model, service, user):
         mock_event = Mock()
         mock_model.objects.create.return_value = mock_event
@@ -120,10 +129,11 @@ class TestCreateBreakerEvent:
         mock_model.objects.create.assert_called_once()
 
 
+@pytest.mark.django_db
 class TestGetActiveEvents:
     """Test getting active events."""
 
-    @patch('backend.auth0login.services.recovery_manager.CircuitBreakerEvent')
+    @patch('backend.tradingbot.models.CircuitBreakerEvent')
     def test_get_active_events(self, mock_model, service, user):
         mock_qs = Mock()
         mock_qs.order_by.return_value = []
@@ -134,10 +144,11 @@ class TestGetActiveEvents:
         assert isinstance(result, list)
 
 
+@pytest.mark.django_db
 class TestGetCurrentMode:
     """Test getting current recovery mode."""
 
-    @patch('backend.auth0login.services.recovery_manager.CircuitBreakerEvent')
+    @patch('backend.tradingbot.models.CircuitBreakerEvent')
     def test_get_current_mode_no_events(self, mock_model, service, user):
         mock_qs = Mock()
         mock_qs.order_by.return_value = []
@@ -147,7 +158,7 @@ class TestGetCurrentMode:
 
         assert result == RecoveryMode.NORMAL
 
-    @patch('backend.auth0login.services.recovery_manager.CircuitBreakerEvent')
+    @patch('backend.tradingbot.models.CircuitBreakerEvent')
     def test_get_current_mode_with_events(self, mock_model, service, user):
         mock_event = Mock()
         mock_event.current_recovery_mode = 'paused'
@@ -161,6 +172,7 @@ class TestGetCurrentMode:
         assert result == RecoveryMode.PAUSED
 
 
+@pytest.mark.django_db
 class TestPositionSizeMultiplier:
     """Test position size multiplier."""
 
@@ -180,6 +192,7 @@ class TestPositionSizeMultiplier:
         assert service.get_position_size_multiplier() == 1.0
 
 
+@pytest.mark.django_db
 class TestCanTrade:
     """Test trading permissions."""
 
@@ -194,6 +207,7 @@ class TestCanTrade:
         assert service.can_trade() is True
 
 
+@pytest.mark.django_db
 class TestRecoveryStatus:
     """Test recovery status."""
 
@@ -228,6 +242,7 @@ class TestRecoveryStatus:
         assert result.position_multiplier == 0.25
 
 
+@pytest.mark.django_db
 class TestAutoRecovery:
     """Test automatic recovery advancement."""
 
@@ -249,18 +264,20 @@ class TestAutoRecovery:
         mock_event.advance_recovery_stage.assert_called_once()
 
 
+@pytest.mark.django_db
 class TestAdvanceRecovery:
     """Test manual recovery advancement."""
 
-    @patch('backend.auth0login.services.recovery_manager.CircuitBreakerEvent')
+    @patch('backend.tradingbot.models.CircuitBreakerEvent')
     def test_advance_recovery_not_found(self, mock_model, service, user):
-        mock_model.objects.get.side_effect = mock_model.DoesNotExist
+        mock_model.DoesNotExist = MockDoesNotExist
+        mock_model.objects.get.side_effect = MockDoesNotExist
 
         result = service.advance_recovery(999)
 
         assert result['success'] is False
 
-    @patch('backend.auth0login.services.recovery_manager.CircuitBreakerEvent')
+    @patch('backend.tradingbot.models.CircuitBreakerEvent')
     def test_advance_recovery_success(self, mock_model, service, user):
         mock_event = Mock()
         mock_event.id = 1
@@ -274,16 +291,17 @@ class TestAdvanceRecovery:
         assert result['success'] is True
 
 
+@pytest.mark.django_db
 class TestResetBreaker:
     """Test breaker reset."""
 
-    @patch('backend.auth0login.services.recovery_manager.CircuitBreakerEvent')
+    @patch('backend.tradingbot.models.CircuitBreakerEvent')
     def test_reset_breaker_no_confirmation(self, mock_model, service, user):
         result = service.reset_breaker(1, confirmation='WRONG')
 
         assert result['success'] is False
 
-    @patch('backend.auth0login.services.recovery_manager.CircuitBreakerEvent')
+    @patch('backend.tradingbot.models.CircuitBreakerEvent')
     def test_reset_breaker_success(self, mock_model, service, user):
         mock_event = Mock()
         mock_event.id = 1
@@ -296,6 +314,7 @@ class TestResetBreaker:
         mock_event.resolve.assert_called_once()
 
 
+@pytest.mark.django_db
 class TestRecordTrade:
     """Test recording trades during recovery."""
 
@@ -310,10 +329,11 @@ class TestRecordTrade:
         mock_event.record_recovery_trade.assert_called_once_with(True, 100.0)
 
 
+@pytest.mark.django_db
 class TestGetRecoveryTimeline:
     """Test recovery timeline."""
 
-    @patch('backend.auth0login.services.recovery_manager.CircuitBreakerEvent')
+    @patch('backend.tradingbot.models.CircuitBreakerEvent')
     def test_get_recovery_timeline_no_events(self, mock_model, service, user):
         mock_qs = Mock()
         mock_qs.order_by.return_value = []
@@ -324,6 +344,7 @@ class TestGetRecoveryTimeline:
         assert result['has_active_events'] is False
 
 
+@pytest.mark.django_db
 class TestFactoryFunction:
     """Test factory function."""
 

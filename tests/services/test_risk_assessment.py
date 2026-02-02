@@ -19,7 +19,7 @@ def service():
 
 
 @pytest.fixture
-def user():
+def user(db):  # db fixture ensures database access
     return User.objects.create_user(username='testuser', email='test@example.com')
 
 
@@ -68,10 +68,11 @@ class TestCalculateScore:
         assert result.recommended_profile == 'aggressive'
 
 
+@pytest.mark.django_db
 class TestSubmitAssessment:
     """Test submitting assessment."""
 
-    @patch('backend.auth0login.services.risk_assessment.RiskAssessment')
+    @patch('backend.auth0login.models.RiskAssessment')
     def test_submit_assessment(self, mock_model, service, user):
         responses = {'loss_reaction': 'hold', 'timeline': '3_5_years'}
 
@@ -83,10 +84,11 @@ class TestSubmitAssessment:
         assert result['status'] == 'success'
 
 
+@pytest.mark.django_db
 class TestGetUserAssessment:
     """Test getting user assessment."""
 
-    @patch('backend.auth0login.services.risk_assessment.RiskAssessment')
+    @patch('backend.auth0login.models.RiskAssessment')
     def test_get_user_assessment_found(self, mock_model, service, user):
         mock_assessment = Mock()
         mock_assessment.id = 1
@@ -104,7 +106,7 @@ class TestGetUserAssessment:
         result = service.get_user_assessment(user)
         assert result is not None
 
-    @patch('backend.auth0login.services.risk_assessment.RiskAssessment')
+    @patch('backend.auth0login.models.RiskAssessment')
     def test_get_user_assessment_not_found(self, mock_model, service, user):
         mock_model.get_latest_for_user.return_value = None
         result = service.get_user_assessment(user)

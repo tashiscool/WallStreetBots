@@ -463,7 +463,7 @@ class CustomStrategyBacktestAdapter:
         # Calculate Sharpe and Sortino
         if daily_snapshots:
             returns = [
-                (daily_snapshots[i].equity - daily_snapshots[i-1].equity) / daily_snapshots[i-1].equity
+                float((daily_snapshots[i].equity - daily_snapshots[i-1].equity) / daily_snapshots[i-1].equity)
                 for i in range(1, len(daily_snapshots))
             ]
             if returns:
@@ -471,11 +471,11 @@ class CustomStrategyBacktestAdapter:
                 avg_return = statistics.mean(returns)
                 std_return = statistics.stdev(returns) if len(returns) > 1 else 0.001
                 risk_free_daily = 0.05 / 252  # 5% annual risk-free rate
-                sharpe_ratio = (avg_return - risk_free_daily) / std_return * (252 ** 0.5) if std_return > 0 else 0
+                sharpe_ratio = (avg_return - risk_free_daily) / std_return * (252 ** 0.5) if std_return > 0 else 0.0
 
                 downside_returns = [r for r in returns if r < 0]
                 downside_std = statistics.stdev(downside_returns) if len(downside_returns) > 1 else std_return * 0.7
-                sortino_ratio = (avg_return - risk_free_daily) / downside_std * (252 ** 0.5) if downside_std > 0 else 0
+                sortino_ratio = (avg_return - risk_free_daily) / downside_std * (252 ** 0.5) if downside_std > 0 else 0.0
             else:
                 sharpe_ratio = 0.0
                 sortino_ratio = 0.0

@@ -1,6 +1,7 @@
 """Essential Django models for the trading bot system."""
 
-from datetime import date
+from datetime import date, timedelta
+from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.db import models

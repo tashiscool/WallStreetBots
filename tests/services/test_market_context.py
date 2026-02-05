@@ -74,8 +74,10 @@ class TestMarketStatus:
 class TestMarketOverview:
     """Test market overview."""
 
-    @patch('backend.auth0login.services.market_context.yf')
-    def test_get_market_overview(self, mock_yf, service):
+    @patch.dict('sys.modules', {'yfinance': Mock()})
+    def test_get_market_overview(self, service):
+        import sys
+        mock_yf = sys.modules['yfinance']
         mock_ticker = Mock()
         mock_ticker.history.return_value = Mock(Close=Mock(iloc=[-150.0, -155.0]))
         mock_ticker.history.return_value.__len__ = Mock(return_value=2)

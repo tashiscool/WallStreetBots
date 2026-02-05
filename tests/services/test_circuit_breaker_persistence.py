@@ -716,7 +716,7 @@ class TestRestoreToMemory:
         mock_breaker = Mock()
         mock_breaker.vix_level = None
 
-        with patch('backend.auth0login.services.circuit_breaker_persistence.VIXTripLevel') as mock_vix:
+        with patch('backend.tradingbot.risk.monitoring.circuit_breaker.VIXTripLevel') as mock_vix:
             mock_vix.return_value = Mock()
             result = service.restore_to_memory(mock_breaker)
 
@@ -740,7 +740,7 @@ class TestRestoreToMemory:
         mock_breaker = Mock()
         mock_breaker.is_tripped = False
 
-        with patch('backend.auth0login.services.circuit_breaker_persistence.VIXTripLevel') as mock_vix:
+        with patch('backend.tradingbot.risk.monitoring.circuit_breaker.VIXTripLevel') as mock_vix:
             mock_vix.return_value = Mock()
             result = service.restore_to_memory(mock_breaker)
 
@@ -929,7 +929,7 @@ class TestFactoryFunctions:
         mock_breaker = Mock()
         mock_breaker.vix_level = None
 
-        with patch('backend.auth0login.services.circuit_breaker_persistence.VIXTripLevel'):
+        with patch('backend.tradingbot.risk.monitoring.circuit_breaker.VIXTripLevel'):
             result = restore_circuit_breaker_on_startup(mock_breaker, user)
 
         assert result is True

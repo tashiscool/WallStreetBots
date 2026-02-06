@@ -219,22 +219,27 @@ class TestRegimeValidator:
 
     def test_align_data_with_nans(self, validator):
         """Test alignment with NaN values."""
-        returns = pd.Series(
-            [0.001, np.nan, 0.002, 0.003],
-            index=pd.date_range('2023-01-01', periods=4)
-        )
+        # Need at least 50 clean observations after dropping NaNs
+        np.random.seed(42)
+        n_points = 60
+        returns_data = np.random.normal(0.001, 0.01, n_points)
+        returns_data[5] = np.nan  # Add some NaN values
+        returns_data[15] = np.nan
+        returns = pd.Series(returns_data, index=pd.date_range('2023-01-01', periods=n_points))
 
+        spy_data = 100 + np.cumsum(np.random.normal(0, 1, n_points))
+        spy_data[10] = np.nan
         market = pd.DataFrame({
-            'SPY': [100.0, 101.0, np.nan, 102.0],
-            'VIX': [20.0, 21.0, 22.0, 19.0],
-            'DGS10': [2.5, 2.5, 2.5, 2.5]
-        }, index=pd.date_range('2023-01-01', periods=4))
+            'SPY': spy_data,
+            'VIX': np.random.uniform(15, 25, n_points),
+            'DGS10': np.random.uniform(2, 3, n_points)
+        }, index=pd.date_range('2023-01-01', periods=n_points))
 
         aligned = validator._align_data(returns, market)
 
         # Should drop rows with NaN
         assert aligned is not None
-        assert len(aligned) < 4
+        assert len(aligned) < n_points
 
     def test_calculate_regime_metrics(self, validator):
         """Test regime metrics calculation."""
@@ -519,15 +524,19 @@ class TestRegimeValidatorIntegration:
         # Create market data
         market_data = validator.create_synthetic_market_data('2022-01-01', '2023-12-31')
 
-        # Create strategy returns
+        # Create strategy returns - align all series properly
         np.random.seed(42)
         spy_returns = market_data['SPY'].pct_change().dropna()
+
+        # Use aligned indices for all components
+        aligned_vix = market_data['VIX'].loc[spy_returns.index]
+        noise = pd.Series(np.random.normal(0, 0.01, len(spy_returns)), index=spy_returns.index)
 
         strategy_returns = (
             0.0005 +  # Alpha
             0.6 * spy_returns +
-            -0.01 * (market_data['VIX'] - 20) / 20 +
-            np.random.normal(0, 0.01, len(spy_returns))
+            -0.01 * (aligned_vix - 20) / 20 +
+            noise
         ).dropna()
 
         # Run analysis
@@ -550,20 +559,25 @@ class TestRegimeValidatorIntegration:
         np.random.seed(42)
         spy_returns = market_data['SPY'].pct_change().dropna()
 
+        # Use aligned indices for all components
+        aligned_vix = market_data['VIX'].loc[spy_returns.index]
+        noise1 = pd.Series(np.random.normal(0, 0.008, len(spy_returns)), index=spy_returns.index)
+        noise2 = pd.Series(np.random.normal(0, 0.012, len(spy_returns)), index=spy_returns.index)
+
         # Strategy 1: Low volatility preference
         strategy1 = (
             0.0003 +
             0.5 * spy_returns -
-            0.02 * (market_data['VIX'] - 20) / 20 +
-            np.random.normal(0, 0.008, len(spy_returns))
+            0.02 * (aligned_vix - 20) / 20 +
+            noise1
         ).dropna()
 
         # Strategy 2: High volatility preference
         strategy2 = (
             0.0002 +
             0.7 * spy_returns +
-            0.01 * (market_data['VIX'] - 20) / 20 +
-            np.random.normal(0, 0.012, len(spy_returns))
+            0.01 * (aligned_vix - 20) / 20 +
+            noise2
         ).dropna()
 
         results1 = validator.test_edge_persistence(strategy1, market_data, min_observations=15)

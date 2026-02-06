@@ -78,9 +78,14 @@ def informative(
     timeframe: str,
     asset: Optional[str] = None,
     fmt: Optional[str] = None,
+    auto_merge: bool = True,
 ):
     """
     Decorator to add informative data from another timeframe.
+
+    Enhanced version with auto-merge: the decorated method's output
+    is automatically resampled and merged into the main dataframe
+    with proper column naming.
 
     Usage:
         class MyStrategy(BaseStrategy):
@@ -99,26 +104,122 @@ def informative(
         timeframe: The informative timeframe (e.g., '1h', '4h', '1d')
         asset: Optional different asset (default: same as main)
         fmt: Column name format (default: '{column}_{timeframe}')
+        auto_merge: Auto-merge informative data into main dataframe
     """
     def decorator(func: Callable):
         @wraps(func)
         def wrapper(self, dataframe: pd.DataFrame, metadata: dict):
-            # Store informative metadata
             func._informative_timeframe = timeframe
             func._informative_asset = asset
 
-            # Call the original function
             result = func(self, dataframe, metadata)
+
+            # Auto-merge if enabled and result is a DataFrame
+            if auto_merge and isinstance(result, pd.DataFrame) and not result.empty:
+                col_fmt = fmt or '{column}_{timeframe}'
+                rename_map = {}
+                for col in result.columns:
+                    if col not in ('open', 'high', 'low', 'close', 'volume'):
+                        new_name = col_fmt.format(column=col, timeframe=timeframe)
+                        if new_name != col:
+                            rename_map[col] = new_name
+
+                if rename_map:
+                    result = result.rename(columns=rename_map)
 
             return result
 
         wrapper._informative_timeframe = timeframe
         wrapper._informative_asset = asset
+        wrapper._informative_auto_merge = auto_merge
         wrapper._fmt = fmt or '{column}_{timeframe}'
 
         return wrapper
 
     return decorator
+
+
+def auto_discover_informatives(strategy) -> List[Dict[str, Any]]:
+    """Auto-discover all @informative decorated methods on a strategy.
+
+    Args:
+        strategy: Strategy instance to inspect.
+
+    Returns:
+        List of dicts with 'method', 'timeframe', 'asset' keys.
+    """
+    informatives = []
+    for attr_name in dir(strategy):
+        attr = getattr(strategy, attr_name, None)
+        if callable(attr) and hasattr(attr, '_informative_timeframe'):
+            informatives.append({
+                'method': attr,
+                'timeframe': attr._informative_timeframe,
+                'asset': getattr(attr, '_informative_asset', None),
+                'auto_merge': getattr(attr, '_informative_auto_merge', True),
+            })
+    return informatives
+
+
+def populate_informatives(
+    strategy,
+    main_df: pd.DataFrame,
+    metadata: dict,
+    data_client=None,
+) -> pd.DataFrame:
+    """Auto-discover and populate all informative data for a strategy.
+
+    Args:
+        strategy: Strategy instance with @informative methods.
+        main_df: Main dataframe to merge into.
+        metadata: Strategy metadata dict.
+        data_client: Optional data client for fetching other assets.
+
+    Returns:
+        Main dataframe with all informative data merged.
+    """
+    informatives = auto_discover_informatives(strategy)
+
+    for info in informatives:
+        try:
+            tf = info['timeframe']
+            asset = info['asset']
+
+            # Resample or fetch data
+            if asset and data_client:
+                inf_df = data_client.get_ohlcv(symbol=asset, timeframe=tf, limit=200)
+            else:
+                base_tf = _detect_timeframe_from_df(main_df)
+                inf_df = resample_dataframe(main_df.copy(), base_tf, tf)
+
+            if inf_df is None or inf_df.empty:
+                continue
+
+            # Run the informative method
+            result = info['method'](inf_df, metadata)
+
+            if result is not None and isinstance(result, pd.DataFrame):
+                suffix = f'_{tf}'
+                if asset:
+                    suffix = f'_{asset.replace("/", "_")}_{tf}'
+
+                main_df = merge_informative(main_df, result, suffix=suffix)
+
+        except Exception as e:
+            logger.error(f"Error populating informative {info['timeframe']}: {e}")
+
+    return main_df
+
+
+def _detect_timeframe_from_df(df: pd.DataFrame) -> str:
+    """Detect timeframe from DataFrame index."""
+    if len(df) < 2:
+        return '1d'
+    diff = (df.index[1] - df.index[0]).total_seconds() / 60
+    for tf, minutes in TIMEFRAME_MINUTES.items():
+        if abs(diff - minutes) < 1:
+            return tf
+    return '1d'
 
 
 def merge_informative(

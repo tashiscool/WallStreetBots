@@ -202,8 +202,9 @@ class TestStrategyConfiguration:
 
     def test_save_strategy_config_error(self, dashboard):
         """Test error handling in save_strategy_config."""
-        # Pass invalid config to trigger error
-        with patch.object(dashboard.logger, 'info', side_effect=Exception("Test error")):
+        # Patch the module-level logger to trigger error
+        with patch('backend.auth0login.dashboard_service.logger') as mock_logger:
+            mock_logger.info.side_effect = Exception("Test error")
             result = dashboard.save_strategy_config("test", {})
 
             assert result["status"] == "error"
@@ -454,7 +455,8 @@ class TestExtendedHours:
     @patch('backend.auth0login.dashboard_service.HAS_EXTENDED_HOURS', True)
     def test_update_extended_hours_settings_success(self, dashboard):
         """Test updating extended hours settings."""
-        with patch('backend.auth0login.dashboard_service.create_extended_hours_manager'):
+        # Patch the import inside the function
+        with patch.dict('sys.modules', {'backend.tradingbot.market_hours.extended_hours': MagicMock()}):
             result = dashboard.update_extended_hours_settings(True, True)
 
             assert result["status"] == "success"
@@ -462,7 +464,8 @@ class TestExtendedHours:
     @patch('backend.auth0login.dashboard_service.HAS_EXTENDED_HOURS', True)
     def test_update_extended_hours_settings_disabled(self, dashboard):
         """Test disabling extended hours."""
-        with patch('backend.auth0login.dashboard_service.create_extended_hours_manager'):
+        # Patch the import inside the function
+        with patch.dict('sys.modules', {'backend.tradingbot.market_hours.extended_hours': MagicMock()}):
             result = dashboard.update_extended_hours_settings(False, False)
 
             assert result["status"] == "success"
@@ -605,7 +608,8 @@ class TestErrorHandling:
 
     def test_save_strategy_config_handles_exceptions(self, dashboard):
         """Test exception handling in save_strategy_config."""
-        with patch.object(dashboard, 'logger') as mock_logger:
+        # Patch the module-level logger to trigger error
+        with patch('backend.auth0login.dashboard_service.logger') as mock_logger:
             mock_logger.info.side_effect = Exception("Test error")
 
             result = dashboard.save_strategy_config("test", {})

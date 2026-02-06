@@ -121,7 +121,7 @@ class AlphaFactorAnalyzer:
         factor_t_stats = {k: float(results.tvalues[k]) for k in factor_cols}
 
         r_squared = float(results.rsquared)
-        alpha_significant = abs(t_alpha) >= alpha_sig_t
+        alpha_significant = bool(abs(t_alpha) >= alpha_sig_t)
 
         return FactorResult(
             daily_alpha=float(alpha),
@@ -183,7 +183,7 @@ class AlphaFactorAnalyzer:
             alpha_t_stat=float(t_alpha),
             factor_exposures=exposures,
             r_squared=float(r_squared),
-            alpha_significant=abs(t_alpha) >= alpha_sig_t,
+            alpha_significant=bool(abs(t_alpha) >= alpha_sig_t),
             n_obs=len(df),
             factor_t_stats=factor_t_stats,
             residuals=pd.Series(residuals, index=df.index)

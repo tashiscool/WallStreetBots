@@ -12,9 +12,12 @@ logger = logging.getLogger(__name__)
 def _sharpe(r: pd.Series) -> float:
     """Calculate Sharpe ratio safely."""
     r = r.dropna()
-    if len(r) < 2 or r.std(ddof=1) == 0:
+    if len(r) < 2:
         return 0.0
-    return float(np.sqrt(252) * r.mean() / r.std(ddof=1))
+    std = r.std(ddof=1)
+    if std < 1e-10:  # Use threshold for near-zero volatility
+        return 0.0
+    return float(np.sqrt(252) * r.mean() / std)
 
 
 class EnsembleValidator:

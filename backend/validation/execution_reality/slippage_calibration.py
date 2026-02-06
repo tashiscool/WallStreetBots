@@ -174,9 +174,15 @@ class SlippagePredictor:
 
     def _classify_asset(self, symbol: str) -> str:
         """Classify asset type for model selection."""
-        if any(x in symbol.upper() for x in ['SPY', 'QQQ', 'IWM', 'VIX', 'ETF']):
+        symbol_upper = symbol.upper()
+        # Check for common ETFs first
+        if any(x == symbol_upper for x in ['SPY', 'QQQ', 'IWM', 'VIX', 'DIA', 'GLD', 'SLV', 'TLT']):
             return 'etf'
-        elif len(symbol) > 5 or any(x in symbol for x in ['C', 'P', '2']):  # Options-like
+        elif 'ETF' in symbol_upper:
+            return 'etf'
+        # Options have specific format: SYMBOL + YYMMDD + C/P + Strike (e.g., AAPL240315C00150000)
+        # They are typically longer than 10 characters and contain digits after the ticker
+        elif len(symbol) > 10 and any(c.isdigit() for c in symbol[4:]):
             return 'option'
         else:
             return 'equity'

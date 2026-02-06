@@ -10,6 +10,11 @@ from .momentum_alpha import MomentumAlphaModel
 from .mean_reversion_alpha import MeanReversionAlphaModel
 from .breakout_alpha import BreakoutAlphaModel
 from .ensemble_alpha import EnsembleAlphaModel
+from .pairs_trading_alpha import PairsTradingAlphaModel
+from .bollinger_alpha import BollingerAlphaModel
+from .volatility_alpha import VolatilityAlphaModel
+from .stochastic_alpha import StochasticAlphaModel
+from .atr_reversion_alpha import ATRReversionAlphaModel
 
 __all__ = [
     'RSIAlphaModel',
@@ -18,4 +23,9 @@ __all__ = [
     'MeanReversionAlphaModel',
     'BreakoutAlphaModel',
     'EnsembleAlphaModel',
+    'PairsTradingAlphaModel',
+    'BollingerAlphaModel',
+    'VolatilityAlphaModel',
+    'StochasticAlphaModel',
+    'ATRReversionAlphaModel',
 ]

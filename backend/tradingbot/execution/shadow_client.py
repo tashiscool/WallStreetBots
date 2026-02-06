@@ -23,11 +23,12 @@ class ShadowExecutionClient(ExecutionClient):
 
     def __init__(self, real: ExecutionClient, log_all_orders: bool = True):
         """Initialize shadow client.
-        
+
         Args:
             real: Real execution client to wrap
             log_all_orders: Whether to log all order attempts
         """
+        super().__init__()
         self.real = real
         self.log_all_orders = log_all_orders
         self.order_log: List[Dict[str, Any]] = []

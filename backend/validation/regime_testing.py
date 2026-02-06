@@ -31,10 +31,14 @@ def _sharpe(returns: pd.Series, rf_daily: float = 0.0) -> float:
     """Calculate annualized Sharpe ratio."""
     excess_returns = returns - rf_daily
 
-    if len(excess_returns) < 2 or excess_returns.std(ddof=1) == 0:
+    if len(excess_returns) < 2:
         return 0.0
 
-    return float(np.sqrt(252) * excess_returns.mean() / excess_returns.std(ddof=1))
+    std = excess_returns.std(ddof=1)
+    if std < 1e-10:  # Use threshold for near-zero volatility
+        return 0.0
+
+    return float(np.sqrt(252) * excess_returns.mean() / std)
 
 
 def _calmar_ratio(returns: pd.Series) -> float:

@@ -12,9 +12,15 @@ import matplotlib.dates as mdates
 
 class ValidationReporter:
     """Generates comprehensive validation reports with artifacts."""
-    
+
+    _instance_counter = 0  # Class-level counter for unique directories
+
     def __init__(self, outdir: str = 'reports/validation'):
-        self.base = pathlib.Path(outdir) / datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d_%H%M%S')
+        # Use counter to ensure unique directories even within same second
+        ValidationReporter._instance_counter += 1
+        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d_%H%M%S')
+        unique_suffix = f"_{ValidationReporter._instance_counter}"
+        self.base = pathlib.Path(outdir) / f"{timestamp}{unique_suffix}"
         self.base.mkdir(parents=True, exist_ok=True)
         self.artifacts = []
 
@@ -32,9 +38,16 @@ class ValidationReporter:
         self.artifacts.append(str(file_path))
         return str(file_path)
 
-    def write_equity_curve(self, name: str, equity_data: pd.Series, 
+    def write_equity_curve(self, name: str, equity_data: pd.Series,
                           benchmark_data: Optional[pd.Series] = None) -> str:
         """Generate equity curve plot."""
+        if equity_data is None or len(equity_data) == 0:
+            raise ValueError("Cannot generate equity curve with empty data")
+
+        # Validate data is numeric
+        if not pd.api.types.is_numeric_dtype(equity_data):
+            raise TypeError("Equity data must be numeric")
+
         plt.figure(figsize=(12, 8))
         
         # Plot strategy equity
@@ -99,9 +112,16 @@ class ValidationReporter:
         """Generate regime analysis table."""
         if not regime_results:
             return self.write_json(name, {'error': 'No regime results'})
-        
+
+        # Handle non-dict regime_results (e.g., {'passed': True})
+        if not isinstance(regime_results, dict):
+            return self.write_json(name, {'error': 'Invalid regime results format'})
+
         table_data = []
         for strategy_name, result in regime_results.items():
+            # Skip non-dict entries like 'passed': True
+            if not isinstance(result, dict):
+                continue
             if 'regime_results' in result:
                 for regime_name, regime_result in result['regime_results'].items():
                     row = {
@@ -114,7 +134,7 @@ class ValidationReporter:
                         'Sample Size': regime_result.sample_size
                     }
                     table_data.append(row)
-        
+
         if table_data:
             df = pd.DataFrame(table_data)
             return self.write_csv(name, df)

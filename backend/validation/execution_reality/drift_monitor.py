@@ -254,10 +254,11 @@ class LiveDriftMonitor:
                 return None
 
             returns_array = np.array(recent_returns)
-            if returns_array.std() == 0:
+            std = returns_array.std()
+            if std < 1e-10:  # Use threshold for near-zero volatility
                 return 0.0
 
-            return float(np.sqrt(252) * returns_array.mean() / returns_array.std())
+            return float(np.sqrt(252) * returns_array.mean() / std)
 
         except Exception as e:
             self.logger.error(f"Rolling Sharpe calculation failed: {e}")

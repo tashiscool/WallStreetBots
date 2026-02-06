@@ -46,6 +46,16 @@ class SamplerType(Enum):
     TPE = "tpe"
     RANDOM = "random"
     CMAES = "cmaes"
+    NSGAII = "nsgaii"
+
+
+class PrunerType(Enum):
+    """Optuna pruner types for early trial termination."""
+    NONE = "none"
+    MEDIAN = "median"
+    PERCENTILE = "percentile"
+    HYPERBAND = "hyperband"
+    THRESHOLD = "threshold"
 
 
 @dataclass
@@ -99,8 +109,10 @@ class OptimizationConfig:
 
     # Optimization settings
     objective: OptimizationObjective = OptimizationObjective.SHARPE
+    objectives: Optional[List[OptimizationObjective]] = None  # Multi-objective
     n_trials: int = 100
     sampler: SamplerType = SamplerType.TPE
+    pruner: PrunerType = PrunerType.NONE
     parameter_ranges: List[ParameterRange] = field(default_factory=list)
 
     # Constraints
@@ -110,6 +122,9 @@ class OptimizationConfig:
     # Execution
     n_jobs: int = 1
     timeout_seconds: Optional[int] = None
+
+    # Storage for distributed optimization
+    storage_url: Optional[str] = None  # e.g. "sqlite:///optuna.db" or PostgreSQL URL
 
 
 @dataclass
@@ -246,16 +261,36 @@ class OptimizationService:
         logger.info(f"Starting optimization run {run_id} for {config.strategy_name}")
 
         try:
-            # Create sampler
+            # Create sampler and pruner
             sampler = self._create_sampler(config.sampler)
+            pruner = self._create_pruner(config.pruner) if HAS_OPTUNA else None
 
-            # Create study
-            direction = "minimize" if config.objective == OptimizationObjective.MIN_DRAWDOWN else "maximize"
-            study = optuna.create_study(
-                direction=direction,
-                sampler=sampler,
-                study_name=f"opt_{config.strategy_name}_{run_id[:8]}"
-            )
+            # Storage for distributed optimization
+            storage = config.storage_url if config.storage_url else None
+
+            # Multi-objective or single-objective
+            study_name = f"opt_{config.strategy_name}_{run_id[:8]}"
+            if config.objectives and len(config.objectives) > 1:
+                directions = [
+                    "minimize" if obj == OptimizationObjective.MIN_DRAWDOWN else "maximize"
+                    for obj in config.objectives
+                ]
+                study = optuna.create_study(
+                    directions=directions,
+                    sampler=sampler,
+                    pruner=pruner,
+                    study_name=study_name,
+                    storage=storage,
+                )
+            else:
+                direction = "minimize" if config.objective == OptimizationObjective.MIN_DRAWDOWN else "maximize"
+                study = optuna.create_study(
+                    direction=direction,
+                    sampler=sampler,
+                    pruner=pruner,
+                    study_name=study_name,
+                    storage=storage,
+                )
             self._current_study = study
 
             # Create objective function
@@ -337,8 +372,24 @@ class OptimizationService:
             return RandomSampler(seed=42)
         elif sampler_type == SamplerType.CMAES:
             return CmaEsSampler(seed=42)
+        elif sampler_type == SamplerType.NSGAII:
+            return optuna.samplers.NSGAIISampler(seed=42)
         else:
             return TPESampler(seed=42)
+
+    def _create_pruner(self, pruner_type: PrunerType) -> Optional['optuna.pruners.BasePruner']:
+        """Create an Optuna pruner for early trial stopping."""
+        if pruner_type == PrunerType.NONE:
+            return None
+        elif pruner_type == PrunerType.MEDIAN:
+            return optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=0)
+        elif pruner_type == PrunerType.PERCENTILE:
+            return optuna.pruners.PercentilePruner(25.0, n_startup_trials=5)
+        elif pruner_type == PrunerType.HYPERBAND:
+            return optuna.pruners.HyperbandPruner(min_resource=1, max_resource=100)
+        elif pruner_type == PrunerType.THRESHOLD:
+            return optuna.pruners.ThresholdPruner(lower=0.0)
+        return None
 
     def _create_objective(self, config: OptimizationConfig) -> Callable:
         """Create the objective function for optimization."""

@@ -63,6 +63,40 @@ from .trend import (
     IchimokuCloud,
     SuperTrend,
 )
+from .candlestick import (
+    Doji,
+    Hammer,
+    ShootingStar,
+    Engulfing,
+    MorningStar,
+    EveningStar,
+    Harami,
+    ThreeWhiteSoldiers,
+    ThreeCrows,
+    SpinningTop,
+)
+from .pivot_points import (
+    ClassicPivotPoints,
+    FibonacciPivotPoints,
+    WoodiePivotPoints,
+    CamarillaPivotPoints,
+)
+from .advanced_oscillators import (
+    ElderRayBull,
+    ElderRayBear,
+    DeMarker,
+    ConnorsRSI,
+    FisherTransform,
+    ChandeMomentumOscillator,
+    KlingerVolumeOscillator,
+)
+from .hybrid import (
+    VolumeWeightedMovingAverage,
+    McGinleyDynamic,
+    ZigZag,
+    VolumeProfile,
+    MarketProfile,
+)
 
 __all__ = [
     # Base
@@ -115,4 +149,34 @@ __all__ = [
     "Aroon",
     "IchimokuCloud",
     "SuperTrend",
+    # Candlestick Patterns
+    "Doji",
+    "Hammer",
+    "ShootingStar",
+    "Engulfing",
+    "MorningStar",
+    "EveningStar",
+    "Harami",
+    "ThreeWhiteSoldiers",
+    "ThreeCrows",
+    "SpinningTop",
+    # Pivot Points
+    "ClassicPivotPoints",
+    "FibonacciPivotPoints",
+    "WoodiePivotPoints",
+    "CamarillaPivotPoints",
+    # Advanced Oscillators
+    "ElderRayBull",
+    "ElderRayBear",
+    "DeMarker",
+    "ConnorsRSI",
+    "FisherTransform",
+    "ChandeMomentumOscillator",
+    "KlingerVolumeOscillator",
+    # Hybrid
+    "VolumeWeightedMovingAverage",
+    "McGinleyDynamic",
+    "ZigZag",
+    "VolumeProfile",
+    "MarketProfile",
 ]

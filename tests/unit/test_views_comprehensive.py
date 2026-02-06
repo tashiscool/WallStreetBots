@@ -132,6 +132,8 @@ class TestGetUserInformation:
         mock_authenticated_user,
     ):
         """Test user information when sync returns None."""
+        from backend.auth0login.views import get_user_information
+
         mock_sync.return_value = None
         delattr(mock_authenticated_user, 'credential')
 
@@ -178,7 +180,7 @@ class TestDashboard:
         mock_render.assert_called_once()
 
     @patch('backend.auth0login.views.get_user_information')
-    @patch('backend.auth0login.views.CredentialForm')
+    @patch('backend.auth0login.forms.CredentialForm')
     @patch('backend.auth0login.views.HttpResponseRedirect')
     def test_dashboard_post_credential(
         self,
@@ -205,6 +207,10 @@ class TestDashboard:
         mock_form.get_key.return_value = "new_key"
         mock_form_class.return_value = mock_form
 
+        # Mock the credential attribute with save method
+        mock_credential = Mock()
+        mock_authenticated_user.credential = mock_credential
+
         request = request_factory.post('/dashboard', {"submit_credential": "1"})
         request.user = mock_authenticated_user
         request.method = 'POST'
@@ -214,7 +220,7 @@ class TestDashboard:
         mock_redirect.assert_called_once()
 
     @patch('backend.auth0login.views.get_user_information')
-    @patch('backend.auth0login.views.OrderForm')
+    @patch('backend.auth0login.forms.OrderForm')
     @patch('backend.auth0login.views.render')
     def test_dashboard_post_order(
         self,
@@ -245,7 +251,7 @@ class TestDashboard:
         request.user = mock_authenticated_user
         request.method = 'POST'
 
-        with patch('backend.auth0login.views.Order') as mock_order_class:
+        with patch('backend.tradingbot.models.models.Order') as mock_order_class:
             mock_order_class.objects.filter.return_value.order_by.return_value.iterator.return_value = []
 
             dashboard(request)
@@ -253,7 +259,7 @@ class TestDashboard:
             mock_render.assert_called_once()
 
     @patch('backend.auth0login.views.get_user_information')
-    @patch('backend.auth0login.views.StrategyForm')
+    @patch('backend.auth0login.forms.StrategyForm')
     @patch('backend.auth0login.views.HttpResponseRedirect')
     def test_dashboard_post_strategy(
         self,
@@ -417,7 +423,7 @@ class TestPositions:
         mock_render.assert_called_once()
 
     @patch('backend.auth0login.views.get_user_information')
-    @patch('backend.auth0login.views.WatchListForm')
+    @patch('backend.auth0login.forms.WatchListForm')
     @patch('backend.auth0login.views.render')
     def test_positions_post_watchlist(
         self,
@@ -904,7 +910,7 @@ class TestMLTraining:
 class TestTaxOptimization:
     """Test tax_optimization view."""
 
-    @patch('backend.auth0login.views.get_tax_optimizer_service')
+    @patch('backend.auth0login.services.tax_optimizer.get_tax_optimizer_service')
     @patch('backend.auth0login.views.render')
     def test_tax_optimization(
         self,
@@ -933,7 +939,7 @@ class TestTaxOptimization:
 class TestStrategyLeaderboard:
     """Test strategy_leaderboard view."""
 
-    @patch('backend.auth0login.views.LeaderboardService')
+    @patch('backend.auth0login.services.leaderboard_service.LeaderboardService')
     @patch('backend.auth0login.views.render')
     def test_strategy_leaderboard(
         self,
@@ -962,9 +968,9 @@ class TestStrategyLeaderboard:
 class TestStrategyBuilder:
     """Test strategy_builder view."""
 
-    @patch('backend.auth0login.views.CustomStrategy')
-    @patch('backend.auth0login.views.CustomStrategyRunner')
-    @patch('backend.auth0login.views.get_strategy_templates')
+    @patch('backend.tradingbot.models.models.CustomStrategy')
+    @patch('backend.auth0login.services.custom_strategy_runner.CustomStrategyRunner')
+    @patch('backend.auth0login.services.custom_strategy_runner.get_strategy_templates')
     @patch('backend.auth0login.views.render')
     def test_strategy_builder(
         self,
@@ -978,7 +984,13 @@ class TestStrategyBuilder:
         """Test strategy builder page."""
         from backend.auth0login.views import strategy_builder
 
-        mock_strategy_class.objects.filter.return_value = []
+        # Mock queryset with count() and filter() methods
+        mock_queryset = MagicMock()
+        mock_queryset.__iter__ = Mock(return_value=iter([]))
+        mock_queryset.count.return_value = 0
+        mock_queryset.filter.return_value = mock_queryset
+        mock_strategy_class.objects.filter.return_value = mock_queryset
+
         mock_runner_class.get_available_indicators.return_value = {}
         mock_runner_class.get_available_operators.return_value = {}
         mock_runner_class.get_exit_types.return_value = {}

@@ -272,11 +272,12 @@ class TestIntegratedTradingSystem:
     @pytest.mark.asyncio
     async def test_process_signal_buy(self, trading_system):
         """Test processing buy signal."""
-        from backend.tradingbot.market_regime import MarketSignal, SignalType, TechnicalIndicators
+        from backend.tradingbot.market_regime import MarketSignal, SignalType, TechnicalIndicators, MarketRegime
 
         signal = MarketSignal(
             signal_type=SignalType.BUY,
             confidence=0.8,
+            regime=MarketRegime.BULL,
             reasoning=["Strong momentum", "Dip detected"],
         )
 
@@ -304,11 +305,12 @@ class TestIntegratedTradingSystem:
     @pytest.mark.asyncio
     async def test_process_signal_setup(self, trading_system):
         """Test processing setup signal."""
-        from backend.tradingbot.market_regime import MarketSignal, SignalType, TechnicalIndicators
+        from backend.tradingbot.market_regime import MarketSignal, SignalType, TechnicalIndicators, MarketRegime
 
         signal = MarketSignal(
             signal_type=SignalType.HOLD,
             confidence=0.6,
+            regime=MarketRegime.BULL,
             reasoning=["Setup detected", "Watch for entry"],
         )
 
@@ -334,11 +336,12 @@ class TestIntegratedTradingSystem:
     @pytest.mark.asyncio
     async def test_handle_buy_signal(self, trading_system):
         """Test handling buy signal."""
-        from backend.tradingbot.market_regime import MarketSignal, SignalType, TechnicalIndicators
+        from backend.tradingbot.market_regime import MarketSignal, SignalType, TechnicalIndicators, MarketRegime
 
         signal = MarketSignal(
             signal_type=SignalType.BUY,
             confidence=0.8,
+            regime=MarketRegime.BULL,
             reasoning=["Strong signal"],
         )
 
@@ -363,11 +366,12 @@ class TestIntegratedTradingSystem:
     @pytest.mark.asyncio
     async def test_handle_buy_signal_risk_rejected(self, trading_system):
         """Test buy signal rejected by risk management."""
-        from backend.tradingbot.market_regime import MarketSignal, SignalType, TechnicalIndicators
+        from backend.tradingbot.market_regime import MarketSignal, SignalType, TechnicalIndicators, MarketRegime
 
         signal = MarketSignal(
             signal_type=SignalType.BUY,
             confidence=0.8,
+            regime=MarketRegime.BULL,
             reasoning=["Signal"],
         )
 
@@ -396,11 +400,12 @@ class TestIntegratedTradingSystem:
     @pytest.mark.asyncio
     async def test_handle_setup_signal(self, trading_system):
         """Test handling setup signal."""
-        from backend.tradingbot.market_regime import MarketSignal, SignalType, TechnicalIndicators
+        from backend.tradingbot.market_regime import MarketSignal, SignalType, TechnicalIndicators, MarketRegime
 
         signal = MarketSignal(
             signal_type=SignalType.HOLD,
             confidence=0.6,
+            regime=MarketRegime.BULL,
             reasoning=["Setup detected"],
         )
 
@@ -428,11 +433,15 @@ class TestIntegratedTradingSystem:
             spot_price=200.0,
             strike=205.0,
             expiry_date=date(2024, 12, 31),
+            days_to_expiry=30,
             estimated_premium=3.50,
             recommended_contracts=5,
             total_cost=1750.0,
-            account_risk_pct=3.5,
             breakeven_price=208.50,
+            estimated_delta=0.35,
+            leverage_ratio=10.0,
+            risk_amount=1750.0,
+            account_risk_pct=3.5,
         )
 
         result = trading_system._validate_trade_risk(trade_calc)
@@ -450,11 +459,15 @@ class TestIntegratedTradingSystem:
             spot_price=200.0,
             strike=205.0,
             expiry_date=date(2024, 12, 31),
+            days_to_expiry=30,
             estimated_premium=3.50,
             recommended_contracts=50,
             total_cost=17500.0,
-            account_risk_pct=35.0,  # Exceeds 10% limit
             breakeven_price=208.50,
+            estimated_delta=0.35,
+            leverage_ratio=10.0,
+            risk_amount=17500.0,
+            account_risk_pct=35.0,  # Exceeds 10% limit
         )
 
         result = trading_system._validate_trade_risk(trade_calc)
@@ -464,13 +477,14 @@ class TestIntegratedTradingSystem:
     @pytest.mark.asyncio
     async def test_send_entry_alert(self, trading_system):
         """Test sending entry alert."""
-        from backend.tradingbot.market_regime import MarketSignal, SignalType
+        from backend.tradingbot.market_regime import MarketSignal, SignalType, MarketRegime
         from backend.tradingbot.options_calculator import TradeCalculation
         from datetime import date
 
         signal = MarketSignal(
             signal_type=SignalType.BUY,
             confidence=0.8,
+            regime=MarketRegime.BULL,
             reasoning=["Strong signal"],
         )
 
@@ -479,11 +493,15 @@ class TestIntegratedTradingSystem:
             spot_price=200.0,
             strike=205.0,
             expiry_date=date(2024, 12, 31),
+            days_to_expiry=30,
             estimated_premium=3.50,
             recommended_contracts=5,
             total_cost=1750.0,
-            account_risk_pct=3.5,
             breakeven_price=208.50,
+            estimated_delta=0.35,
+            leverage_ratio=10.0,
+            risk_amount=1750.0,
+            account_risk_pct=3.5,
         )
 
         initial_alerts = trading_system.state.alerts_sent_today
@@ -495,7 +513,7 @@ class TestIntegratedTradingSystem:
     @pytest.mark.asyncio
     async def test_send_entry_alert_disabled(self, trading_system):
         """Test that alert is not sent when disabled."""
-        from backend.tradingbot.market_regime import MarketSignal, SignalType
+        from backend.tradingbot.market_regime import MarketSignal, SignalType, MarketRegime
         from backend.tradingbot.options_calculator import TradeCalculation
         from datetime import date
 
@@ -504,6 +522,7 @@ class TestIntegratedTradingSystem:
         signal = MarketSignal(
             signal_type=SignalType.BUY,
             confidence=0.8,
+            regime=MarketRegime.BULL,
             reasoning=["Signal"],
         )
 
@@ -512,11 +531,15 @@ class TestIntegratedTradingSystem:
             spot_price=200.0,
             strike=205.0,
             expiry_date=date(2024, 12, 31),
+            days_to_expiry=30,
             estimated_premium=3.50,
             recommended_contracts=5,
             total_cost=1750.0,
-            account_risk_pct=3.5,
             breakeven_price=208.50,
+            estimated_delta=0.35,
+            leverage_ratio=10.0,
+            risk_amount=1750.0,
+            account_risk_pct=3.5,
         )
 
         initial_alerts = trading_system.state.alerts_sent_today
@@ -530,19 +553,22 @@ class TestIntegratedTradingSystem:
     async def test_monitor_existing_positions(self, trading_system):
         """Test monitoring existing positions."""
         from backend.tradingbot.risk_management import Position, PositionStatus
-        from datetime import datetime
-        from decimal import Decimal
+        from datetime import datetime, timedelta
 
         # Add a position to risk manager
         position = Position(
             ticker="AAPL",
+            position_type="call",
             entry_date=datetime(2024, 1, 1),
-            entry_price=Decimal("195.00"),
-            quantity=10,
-            option_type="call",
-            strike=Decimal("200.00"),
-            expiry=datetime(2024, 12, 31),
-            premium_paid=Decimal("3.50"),
+            expiry_date=datetime(2024, 12, 31),
+            strike=200.0,
+            contracts=10,
+            entry_premium=3.50,
+            current_premium=4.00,
+            total_cost=3500.0,
+            current_value=4000.0,
+            stop_loss_level=1.75,
+            profit_targets=[1.0, 2.0, 2.5],
             status=PositionStatus.OPEN,
         )
 
@@ -570,28 +596,33 @@ class TestIntegratedTradingSystem:
     async def test_handle_exit_signals(self, trading_system):
         """Test handling exit signals."""
         from backend.tradingbot.risk_management import Position, PositionStatus
-        from backend.tradingbot.exit_planning import ExitSignal, ExitReason, SignalStrength
+        from backend.tradingbot.exit_planning import ExitSignal, ExitReason, ExitSignalStrength
         from datetime import datetime
-        from decimal import Decimal
 
         position = Position(
             ticker="AAPL",
+            position_type="call",
             entry_date=datetime(2024, 1, 1),
-            entry_price=Decimal("195.00"),
-            quantity=10,
-            option_type="call",
-            strike=Decimal("200.00"),
-            expiry=datetime(2024, 12, 31),
-            premium_paid=Decimal("3.50"),
+            expiry_date=datetime(2024, 12, 31),
+            strike=200.0,
+            contracts=10,
+            entry_premium=3.50,
+            current_premium=4.00,
+            total_cost=3500.0,
+            current_value=4000.0,
+            stop_loss_level=1.75,
+            profit_targets=[1.0, 2.0, 2.5],
             status=PositionStatus.OPEN,
         )
 
         exit_signals = [
             ExitSignal(
-                reason=ExitReason.TAKE_PROFIT,
-                strength=SignalStrength.STRONG,
-                confidence=0.9,
-                recommendation="Close position",
+                reason=ExitReason.PROFIT_TARGET,
+                strength=ExitSignalStrength.STRONG,
+                position_fraction=1.0,
+                estimated_exit_price=7.00,
+                expected_pnl=3500.0,
+                reasoning=["Close position"],
             )
         ]
 
@@ -602,17 +633,20 @@ class TestIntegratedTradingSystem:
         """Test position scenario analysis."""
         from backend.tradingbot.risk_management import Position, PositionStatus
         from datetime import datetime
-        from decimal import Decimal
 
         position = Position(
             ticker="AAPL",
+            position_type="call",
             entry_date=datetime(2024, 1, 1),
-            entry_price=Decimal("195.00"),
-            quantity=10,
-            option_type="call",
-            strike=Decimal("200.00"),
-            expiry=datetime(2024, 12, 31),
-            premium_paid=Decimal("3.50"),
+            expiry_date=datetime(2024, 12, 31),
+            strike=200.0,
+            contracts=10,
+            entry_premium=3.50,
+            current_premium=4.00,
+            total_cost=3500.0,
+            current_value=4000.0,
+            stop_loss_level=1.75,
+            profit_targets=[1.0, 2.0, 2.5],
             status=PositionStatus.OPEN,
         )
 
@@ -634,10 +668,12 @@ class TestIntegratedTradingSystem:
             from backend.tradingbot.risk_management import PortfolioRisk
 
             mock_risk.return_value = PortfolioRisk(
-                total_capital_at_risk=50000.0,
+                account_value=500000.0,
+                total_cash=350000.0,
+                total_positions_value=150000.0,
+                total_risk_amount=175000.0,
+                unrealized_pnl=5000.0,
                 risk_utilization=0.35,  # Exceeds 30% limit
-                var_95=15000.0,
-                var_99=20000.0,
             )
 
             await trading_system._update_portfolio_metrics()
@@ -666,17 +702,20 @@ class TestIntegratedTradingSystem:
         """Test adding position to system."""
         from backend.tradingbot.risk_management import Position, PositionStatus
         from datetime import datetime
-        from decimal import Decimal
 
         position = Position(
             ticker="AAPL",
+            position_type="call",
             entry_date=datetime(2024, 1, 1),
-            entry_price=Decimal("195.00"),
-            quantity=10,
-            option_type="call",
-            strike=Decimal("200.00"),
-            expiry=datetime(2024, 12, 31),
-            premium_paid=Decimal("3.50"),
+            expiry_date=datetime(2024, 12, 31),
+            strike=200.0,
+            contracts=10,
+            entry_premium=3.50,
+            current_premium=4.00,
+            total_cost=3500.0,
+            current_value=4000.0,
+            stop_loss_level=1.75,
+            profit_targets=[1.0, 2.0, 2.5],
             status=PositionStatus.OPEN,
         )
 
@@ -694,14 +733,23 @@ class TestIntegratedTradingSystem:
         assert "active_checklists" in status
         assert "config" in status
 
-    def test_force_scan(self, trading_system):
+    @pytest.mark.asyncio
+    async def test_force_scan(self, trading_system):
         """Test forcing an immediate scan."""
-        # This creates an async task
+        # This creates an async task - needs an event loop
         trading_system.tasks = []
         trading_system.force_scan()
 
         # Task should be created
         assert len(trading_system.tasks) > 0
+
+        # Clean up the task to avoid warnings
+        for task in trading_system.tasks:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
 
     def test_calculate_trade_for_ticker(self, trading_system):
         """Test calculating trade for specific ticker."""

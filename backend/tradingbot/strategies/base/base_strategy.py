@@ -57,11 +57,18 @@ class StrategyResult:
 
 class BaseStrategy(ABC):
     """Abstract base class for all trading strategies.
-    
+
     All strategies must implement the core methods defined here to ensure
     consistency and interoperability across the trading system.
+
+    Lifecycle hooks (override for custom behavior):
+        initialize() - Called once at strategy start
+        before_market_opens() - Called before each market open
+        on_trading_iteration() - Called on each trading iteration
+        after_market_closes() - Called after each market close
+        on_abrupt_closing() - Called on unexpected shutdown
     """
-    
+
     def __init__(self, config: StrategyConfig):
         """Initialize strategy with configuration."""
         self.config = config

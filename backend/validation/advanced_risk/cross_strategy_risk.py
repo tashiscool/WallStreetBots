@@ -238,7 +238,17 @@ class CorrelationClusterAnalyzer:
             correlation_discount = 1 - stats['avg_correlation']
 
             # Larger clusters get slightly higher budget (diversification within cluster)
-            cluster_size = len(self.strategy_clusters.get(cluster_id, {}).get('strategy_names', [1]))
+            cluster = self.strategy_clusters.get(cluster_id)
+            if cluster is None:
+                cluster_size = 1
+            elif hasattr(cluster, 'strategy_names'):
+                # Handle StrategyCluster dataclass
+                cluster_size = len(cluster.strategy_names)
+            elif isinstance(cluster, dict):
+                # Handle dict
+                cluster_size = len(cluster.get('strategy_names', [1]))
+            else:
+                cluster_size = 1
             size_bonus = min(1.2, 1 + 0.05 * (cluster_size - 1))
 
             # Combined adjustment weight

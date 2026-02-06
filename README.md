@@ -9,7 +9,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
 [![Django](https://img.shields.io/badge/Django-4.2+-green.svg)](https://djangoproject.com)
-[![Tests](https://img.shields.io/badge/Tests-2420+-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/Tests-5500+-brightgreen.svg)](#testing)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
@@ -55,6 +55,8 @@ A **comprehensive, institutional-grade trading system** implementing WSB-style s
 - **Audit Trail** - Complete transaction and decision logging
 
 ### **🤖 Machine Learning & Analytics**
+- **Reinforcement Learning** - PPO, DQN, SAC, TD3, DDPG, A2C agents with factory pattern
+- **Training Infrastructure** - Callbacks, checkpointing, early stopping, Optuna hyperparameter optimization
 - **Market Regime Detection** - Bull/bear/sideways market identification
 - **Portfolio Optimization** - ML-driven rebalancing with cost-benefit analysis
 - **Advanced Analytics** - Sharpe ratio, Sortino ratio, max drawdown, VaR analysis
@@ -62,6 +64,14 @@ A **comprehensive, institutional-grade trading system** implementing WSB-style s
 - **Performance Attribution** - Alpha, beta, information ratio vs benchmarks
 - **Signal Validation** - Real-time alpha validation with parameter tracking
 - **Data Quality Control** - Automated data validation and quality metrics
+
+### **🔧 Advanced Platform Features**
+- **NLP Sentiment Analysis** - VADER + FinBERT ensemble scoring, Reddit/Twitter/SEC EDGAR sources, sentiment-driven alpha model
+- **Copy/Social Trading** - Signal providers, subscriber replication, proportional sizing, risk-gated subscriptions
+- **PDF Performance Reports** - Automated weekly/monthly/quarterly reports with Plotly charts, WeasyPrint PDF generation
+- **Options Payoff Visualization** - Interactive P&L diagrams, Greeks dashboards, multi-expiry scenario analysis
+- **Visual Strategy Builder** - JSON-based strategy configuration, 21+ indicators, 8 operators, preset templates, backtest integration
+- **Crypto DEX Integration** - Uniswap V3 swaps, encrypted wallet management, multi-chain support (Ethereum, Polygon, Arbitrum)
 
 ## 📚 **Complete Documentation**
 
@@ -93,23 +103,17 @@ A **comprehensive, institutional-grade trading system** implementing WSB-style s
 git clone https://github.com/yourusername/WallStreetBots.git
 cd WallStreetBots
 
-# Create virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# One-command setup (installs deps, creates .env, sets up database)
+bash scripts/setup.sh
 
-# Install dependencies
+# Or manual setup:
 pip install -r requirements.txt
-pip install alpaca-py>=0.42.0
-
-# Setup database
 python manage.py migrate
 ```
 
 ### **Step 3: Configure API Keys** (1 minute)
+Edit the `.env` file created by setup.sh and add your Alpaca keys:
 ```bash
-# Copy environment template
-cp .env.example .env
-
 # Edit .env file and add your keys:
 # ALPACA_API_KEY=your_paper_api_key_here
 # ALPACA_SECRET_KEY=your_paper_secret_key_here
@@ -123,20 +127,17 @@ cp .env.example .env
 
 ### **Step 4: Test Connection** (30 seconds)
 ```bash
-# Verify everything works
-python test_env_keys.py
+# Start the dev server
+bash scripts/run.sh
 
-# You should see:
-# ✅ Connection: True - API validated successfully
-# 💰 Account value: $100,000.00 (paper trading)
+# Visit http://127.0.0.1:8000/health/ to verify
 ```
 
 ### **Step 5: Start Paper Trading!** (Ready to go!)
 ```bash
-# Use the easy launcher (RECOMMENDED)
-python run_wallstreetbots.py
+# Start the server
+bash scripts/run.sh
 
-# Select option 1: "Start Simple Trading Bot (Paper Trading)"
 # The system will start automatically!
 ```
 
@@ -166,6 +167,9 @@ backend/tradingbot/
 │   ├── base/           # Base strategy classes and interfaces
 │   ├── implementations/ # Core strategy algorithms
 │   └── production/     # Production wrapper implementations
+├── framework/           # Quantitative alpha/portfolio framework
+│   ├── alpha_models/   # Alpha signal generation (momentum, sentiment, etc.)
+│   └── portfolio_models/ # Portfolio construction (HRP, Black-Litterman, etc.)
 ├── risk/               # Comprehensive risk management
 │   ├── engines/        # VaR, stress testing, and risk calculation engines
 │   ├── managers/       # Risk management coordination and integration
@@ -175,6 +179,10 @@ backend/tradingbot/
 │   ├── gates/          # Alpha validation gates and filters
 │   ├── metrics/        # Validation metrics and reporting
 │   └── adapters/       # Integration adapters for validation pipeline
+├── sentiment/           # NLP sentiment analysis (VADER + FinBERT)
+├── options/             # Options payoff visualization and Greeks
+├── crypto/              # Crypto DEX integration (Uniswap V3)
+├── analysis/            # PDF performance reports and analytics
 ├── data/               # Data management and providers
 │   ├── providers/      # Market data source integrations
 │   └── quality/        # Data validation and quality assurance
@@ -188,6 +196,13 @@ backend/tradingbot/
 ├── accounting/         # Portfolio accounting and reconciliation
 ├── models/             # Database models and data structures
 └── phases/             # Development phase implementations
+
+ml/tradingbots/
+├── components/          # ML model components
+│   └── rl_agents.py    # PPO, DQN, SAC, TD3, DDPG, A2C agents
+└── training/            # Training infrastructure
+    ├── rl_training.py  # RL training loops and evaluation
+    └── callbacks.py    # Checkpointing, early stopping, logging
 ```
 
 ## 🎯 **What Makes This Production-Ready?**
@@ -206,7 +221,7 @@ backend/tradingbot/
 - **Multi-Source Data** - Alpaca, Polygon, IEX, Yahoo Finance integration
 - **Options Pricing Engine** - Complete Black-Scholes implementation with Greeks
 - **Market Regime Detection** - Bull/bear/sideways market identification
-- **Technical Indicators** - 50+ technical analysis indicators
+- **Technical Indicators** - 70+ technical analysis indicators
 - **Earnings Calendar** - Corporate earnings and ex-dividend tracking
 - **Social Sentiment** - WSB/Reddit sentiment integration
 - **Real-time Data Validation** - Automated quality checks and anomaly detection
@@ -228,10 +243,10 @@ backend/tradingbot/
 - **Data Encryption** - Secure data storage and transmission
 - **Access Controls** - Role-based permissions and authentication
 
-## 🧪 **Thoroughly Tested (2420+ Tests)**
+## 🧪 **Thoroughly Tested (5,500+ Tests)**
 
 ```bash
-# Run all tests (2420+ tests)
+# Run all tests (5,500+ tests)
 python -m pytest tests/ --tb=short -q
 
 # Run by category
@@ -242,6 +257,12 @@ python -m pytest tests/risk/          # Risk management validation
 python -m pytest tests/strategies/    # Strategy implementation tests
 python -m pytest tests/validation/    # Signal validation framework tests
 python -m pytest tests/core/          # Core system functionality tests
+python -m pytest tests/sentiment/     # NLP sentiment tests
+python -m pytest tests/services/      # Copy trading & service tests
+python -m pytest tests/analysis/      # PDF report tests
+python -m pytest tests/options/       # Options payoff viz tests
+python -m pytest tests/crypto/        # DEX integration tests
+python -m pytest tests/ml/            # ML/RL agent tests
 
 # Run specific test types
 python -m pytest tests/ -k "risk"     # All risk-related tests
@@ -266,34 +287,20 @@ python -m pytest tests/ --cov=backend --cov-report=html
 
 ### Quick Start Options
 ```bash
-# Cross-platform Python launcher
-python run_wallstreetbots.py
+# One-command setup
+bash scripts/setup.sh
 
-# Windows (.bat launcher)
-run_wallstreetbots.bat
+# Start the server
+bash scripts/run.sh
 
-# macOS/Linux (shell script)
-./run_wallstreetbots.sh
-
-# Production CLI
-python run.py validate  # Validate configuration
-python run.py status    # Show current status
+# Optional: PostgreSQL setup
+bash scripts/setup_postgres.sh
 ```
 
 ### Automated Deployment
 - **macOS**: Use launchd for automatic startup - see [macOS Setup Guide](examples/macos/README.md)
-- **Windows**: Use Task Scheduler with `run_wallstreetbots.bat`
-- **Linux**: Use systemd or cron jobs with `run_wallstreetbots.sh`
-
-### API Key Setup
-1. Copy `.env.example` to `.env`
-2. Add your Alpaca API keys:
-   ```bash
-   ALPACA_API_KEY=your-key-here
-   ALPACA_SECRET_KEY=your-secret-here
-   ALPACA_BASE_URL=https://paper-api.alpaca.markets  # Paper trading
-   ```
-3. Test configuration: `python test_env_keys.py`
+- **Windows**: Use Task Scheduler
+- **Linux**: Use systemd or cron jobs
 
 ## 📈 **Ready for Production Use**
 
@@ -372,13 +379,20 @@ quality_report = quality_monitor.validate_market_data(market_data)
 | **Infrastructure** | ✅ Scalable | Async architecture, auto-scaling, monitoring |
 | **Signal Validation** | ✅ Production | Alpha validation gates, quality assurance |
 | **Data Quality** | ✅ Automated | Real-time validation, quality monitoring |
+| **NLP Sentiment** | ✅ Complete | VADER + FinBERT, multi-source, alpha model |
+| **Copy Trading** | ✅ Complete | Signal providers, replication, risk gates |
+| **PDF Reports** | ✅ Complete | Automated reports, Plotly charts |
+| **Options Visualization** | ✅ Complete | Payoff diagrams, Greeks dashboards |
+| **Strategy Builder API** | ✅ Complete | 21+ indicators, presets, backtest integration |
+| **Crypto DEX** | ✅ Complete | Uniswap V3, wallet management |
+| **ML/RL Agents** | ✅ Complete | PPO, DQN, SAC, TD3, DDPG, A2C |
 
 ## 🤝 Want to Contribute?
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Add comprehensive tests for new functionality
-4. Ensure all 2420+ tests pass (`python -m pytest tests/`)
+4. Ensure all 5,500+ tests pass (`python -m pytest tests/`)
 5. Update documentation
 6. Submit a pull request
 

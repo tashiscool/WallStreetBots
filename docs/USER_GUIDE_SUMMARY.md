@@ -14,7 +14,8 @@
 
 **For advanced users:**
 7. **[Production Guide](production/PRODUCTION_MODULES.md)** - Enterprise deployment
-8. **[Project Structure](PROJECT_STRUCTURE.md)** - Codebase architecture
+8. **[API Endpoints](web/running_the_app.md)** - REST API documentation
+9. **[Project Structure](PROJECT_STRUCTURE.md)** - Codebase architecture
 
 ---
 

@@ -25,25 +25,10 @@ This guide gets you up and running with paper trading (fake money) in just 5 min
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/WallStreetBots.git
-
-# Go into the folder
 cd WallStreetBots
 
-# Create a virtual environment (keeps things organized)
-python -m venv venv
-
-# Activate it
-# On Mac/Linux:
-source venv/bin/activate
-# On Windows:
-venv\Scripts\activate
-
-# Install everything needed
-pip install -r requirements.txt
-pip install alpaca-py>=0.42.0
-
-# Setup the database
-python manage.py migrate
+# One-command setup (installs deps, creates .env, sets up database)
+bash scripts/setup.sh
 ```
 
 **💡 Don't have Python?** Download from [python.org](https://python.org/downloads) (get version 3.12+)
@@ -52,17 +37,15 @@ python manage.py migrate
 
 ## ✅ Step 3: Add Your API Keys (1 minute)
 
-1. **Find** the `.env.example` file in the WallStreetBots folder
-2. **Copy** it and rename the copy to `.env`
-3. **Open** `.env` in any text editor (Notepad, TextEdit, VS Code, etc.)
-4. **Replace** these lines with your actual keys:
+1. **Open** the `.env` file (created by setup.sh) in any text editor (Notepad, TextEdit, VS Code, etc.)
+2. **Replace** these lines with your actual keys:
 
 ```
 ALPACA_API_KEY=paste_your_api_key_here
 ALPACA_SECRET_KEY=paste_your_secret_key_here
 ```
 
-5. **Save** the file
+3. **Save** the file
 
 **💡 Example:**
 ```
@@ -75,16 +58,11 @@ ALPACA_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ## ✅ Step 4: Test It Works (30 seconds)
 
 ```bash
-# Test your connection
-python test_env_keys.py
-```
+# Start the development server
+bash scripts/run.sh
 
-**You should see:**
-```
-✅ Connection: True - API validated successfully
-💰 Account value: $100,000.00
-💵 Balance: $100,000.00
-📊 Open positions: 0
+# Open http://127.0.0.1:8000/health/ in your browser
+# You should see: {"status": "healthy"}
 ```
 
 **If you see errors:** Check that your API keys are correct in the `.env` file.
@@ -94,34 +72,20 @@ python test_env_keys.py
 ## ✅ Step 5: Start Trading! (Ready!)
 
 ```bash
-# Run the launcher
-python run_wallstreetbots.py
+# Start the platform
+bash scripts/run.sh
 ```
 
-**You'll see a menu like this:**
-```
-╔════════════════════════════════════════╗
-║   🚀 WallStreetBots Trading System     ║
-╚════════════════════════════════════════╝
+**Open your browser to** `http://127.0.0.1:8000/` **and you'll see the Django web interface:**
 
-1. 🚀 Start Simple Trading Bot (Paper Trading)
-2. 💰 Start Simple Trading Bot (Real Money) [DANGER]
-3. 🧪 Run Risk Model Tests
-4. 📊 Run Advanced Feature Tests
-5. 🔧 Django Admin Panel
-6. 📈 Demo Risk Models
-7. 🛠️ Setup/Install Dependencies
-8. 🔍 System Status Check
-9. ❌ Exit
-
-Select an option:
-```
-
-**Choose option 1** - This starts paper trading (safe, fake money)
+- **Dashboard** - Overview of account status, open positions, and performance
+- **Strategies** - Enable/disable trading strategies and configure parameters
+- **Backtesting** - Test strategies against historical data
+- **Admin Panel** - Full system configuration at `/admin/`
 
 **The system will:**
 - ✅ Connect to your Alpaca account
-- ✅ Load all 10 trading strategies
+- ✅ Load all trading strategies
 - ✅ Start scanning for opportunities
 - ✅ Place trades automatically (with fake money!)
 - ✅ Monitor positions and exit when targets are hit
@@ -189,8 +153,7 @@ Select an option:
 - Make sure to check "Add Python to PATH" during installation
 
 ### **"Module not found" errors**
-- Make sure you activated the virtual environment (`source venv/bin/activate`)
-- Run `pip install -r requirements.txt` again
+- Run `bash scripts/setup.sh` again
 
 ### **"API key invalid"**
 - Double-check your keys in the `.env` file
@@ -198,8 +161,7 @@ Select an option:
 - Try regenerating keys in Alpaca dashboard
 
 ### **"Database error"**
-- Run `python manage.py migrate` again
-- Make sure you're in the WallStreetBots folder
+- Run `bash scripts/setup.sh` again
 
 ### **System won't start**
 - Run option 8 (System Status Check) to see what's wrong

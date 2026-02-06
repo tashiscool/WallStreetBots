@@ -340,6 +340,49 @@ START: Check market every 5 minutes
 
 ---
 
+## 🆕 New Platform Features
+
+### NLP Sentiment Analysis
+The system now includes an NLP sentiment engine that:
+- Scores news articles using VADER and FinBERT ensemble
+- Aggregates sentiment from Reddit, Twitter/X, SEC EDGAR filings
+- Generates alpha signals when sentiment exceeds configurable thresholds
+- Integrates as a standard alpha model in the framework pipeline
+
+### Copy/Social Trading
+Follow successful traders and automatically replicate their trades:
+- Signal providers publish trades to subscribers via WebSocket
+- Proportional sizing adjusts positions to your account size
+- Risk gates prevent following strategies above your risk tolerance
+- Track replication performance with detailed analytics
+
+### Strategy Builder
+Build custom trading strategies without code:
+- Choose from 21+ technical indicators (RSI, MACD, Bollinger Bands, etc.)
+- Define entry/exit conditions with AND/OR logic groups
+- Backtest strategies against historical data
+- Use preset templates for common patterns
+
+### PDF Performance Reports
+Generate professional performance reports:
+- Equity curves, drawdown charts, monthly heatmaps
+- Automated weekly, monthly, quarterly, and yearly reports
+- Email delivery to subscribed users
+
+### Options Payoff Visualization
+Visualize options strategies before trading:
+- Interactive P&L diagrams at expiry and pre-expiry
+- Greeks dashboards (delta, gamma, theta, vega)
+- Multi-leg strategy analysis (Iron Condor, Butterfly, etc.)
+
+### Crypto DEX Integration
+Trade on decentralized exchanges:
+- Uniswap V3 integration for token swaps
+- Encrypted wallet management
+- Multi-chain support (Ethereum, Polygon, Arbitrum)
+
+---
+
 ## 🎯 Real-World Example: A Complete Trade
 
 Let's follow a real trade from start to finish:

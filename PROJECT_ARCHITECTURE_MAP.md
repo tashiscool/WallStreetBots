@@ -11,22 +11,28 @@ WallStreetBots is a comprehensive algorithmic trading platform with the followin
 │  Frontend (Django Web Interface)                               │
 │  ├─ Auth0 Authentication                                        │
 │  ├─ Trading Dashboards                                          │
-│  └─ Performance Monitoring                                      │
+│  ├─ Performance Monitoring                                      │
+│  └─ Strategy Builder API                                        │
 ├─────────────────────────────────────────────────────────────────┤
 │  Backend Trading System                                         │
 │  ├─ Production Strategy Manager ⭐                              │
 │  ├─ Signal Validation Framework ⭐ (NEW)                        │
+│  ├─ Sentiment Engine (NLP Analysis)                             │
+│  ├─ Copy Trading System                                         │
 │  ├─ Risk Management System                                      │
 │  ├─ Data Integration Layer                                      │
-│  └─ Broker Integration (Alpaca)                                 │
+│  ├─ Broker Integration (Alpaca)                                 │
+│  └─ Crypto/DEX Integration                                      │
 ├─────────────────────────────────────────────────────────────────┤
 │  Validation & Testing Framework                                 │
 │  ├─ Statistical Validation (Phase 2) ⭐                         │
 │  ├─ Signal Strength Validation ⭐ (NEW)                         │
 │  ├─ Reality Check Testing                                       │
-│  └─ Risk Control Validation                                     │
+│  ├─ Risk Control Validation                                     │
+│  └─ PDF Report Generator                                        │
 ├─────────────────────────────────────────────────────────────────┤
 │  Machine Learning & Analytics                                   │
+│  ├─ ML/RL Agents (6 algorithms: DQN, PPO, SAC, TD3, DDPG, A2C) │
 │  ├─ Advanced Analytics Engine                                   │
 │  ├─ Market Regime Detection                                     │
 │  └─ Performance Attribution                                     │
@@ -62,6 +68,13 @@ backend/tradingbot/
 │   │   ├── production_momentum_weeklies.py # Enhanced ⭐
 │   │   └── production_leaps_tracker.py     # Enhanced ⭐
 │   └── base/                      # Base strategy classes
+├── framework/                     # Quantitative framework
+│   ├── alpha_models/              # Alpha signal generators (5 models)
+│   ├── portfolio_models/          # Portfolio construction (6 models: HRP, BL, etc.)
+│   └── universe.py               # Universe selection models
+├── sentiment/                     # NLP sentiment analysis engine
+├── crypto/                        # Cryptocurrency integration
+│   └── dex_client.py             # DEX integration client
 ├── validation/ ⭐ (NEW)           # Signal validation framework
 │   ├── signal_strength_validator.py       # Core validator
 │   └── strategy_signal_integration.py     # Strategy integration
@@ -94,6 +107,7 @@ backend/validation/
 
 ```
 Market Data Sources → Data Providers → Strategy Execution → Signal Validation ⭐ → Risk Management → Broker Execution
+                   ↗ Sentiment Pipeline (NLP) ↗
 ```
 
 ### Detailed Flow

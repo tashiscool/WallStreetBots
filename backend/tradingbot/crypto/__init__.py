@@ -26,6 +26,17 @@ from .crypto_dip_bot import (
     DipBotState,
     create_dip_bot,
 )
+from .dex_client import (
+    UniswapV3Client,
+    Chain,
+    SwapParams,
+    COMMON_TOKENS,
+    UNISWAP_V3_ROUTER,
+)
+from .wallet_manager import (
+    WalletManager,
+    WalletInfo,
+)
 
 __all__ = [
     # Client
@@ -45,4 +56,13 @@ __all__ = [
     "DipSeverity",
     "DipBotState",
     "create_dip_bot",
+    # DEX Client
+    "UniswapV3Client",
+    "Chain",
+    "SwapParams",
+    "COMMON_TOKENS",
+    "UNISWAP_V3_ROUTER",
+    # Wallet Manager
+    "WalletManager",
+    "WalletInfo",
 ]

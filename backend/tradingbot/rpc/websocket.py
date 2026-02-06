@@ -69,6 +69,10 @@ class MessageType(Enum):
     BACKTEST_PROGRESS = "backtest_progress"
     BACKTEST_COMPLETE = "backtest_complete"
 
+    # Copy Trading
+    COPY_SIGNAL = "copy_signal"
+    COPY_TRADE_EXECUTED = "copy_trade_executed"
+
 
 @dataclass
 class WebSocketMessage:
@@ -603,6 +607,52 @@ class WebSocketBroadcaster:
         )
         await self._broadcast("signals", "trading_message", message)
 
+    async def broadcast_copy_signal(
+        self,
+        provider_name: str,
+        symbol: str,
+        side: str,
+        price: float,
+        **extra,
+    ) -> None:
+        """Broadcast copy trading signal."""
+        message = WebSocketMessage(
+            type=MessageType.COPY_SIGNAL,
+            data={
+                "provider": provider_name,
+                "symbol": symbol,
+                "side": side,
+                "price": price,
+                **extra,
+            },
+        )
+        await self._broadcast("copy_trading", "trading_message", message)
+
+    async def broadcast_copy_trade_executed(
+        self,
+        provider_name: str,
+        symbol: str,
+        side: str,
+        qty: float,
+        price: float,
+        subscriber_id: int,
+        **extra,
+    ) -> None:
+        """Broadcast copy trade execution."""
+        message = WebSocketMessage(
+            type=MessageType.COPY_TRADE_EXECUTED,
+            data={
+                "provider": provider_name,
+                "symbol": symbol,
+                "side": side,
+                "qty": qty,
+                "price": price,
+                "subscriber_id": subscriber_id,
+                **extra,
+            },
+        )
+        await self._broadcast("copy_trading", "trading_message", message)
+
     async def _broadcast(
         self,
         group: str,
@@ -672,6 +722,16 @@ class SyncWebSocketBroadcaster:
         """Broadcast signal (sync)."""
         if CHANNELS_AVAILABLE:
             async_to_sync(self._async_broadcaster.broadcast_signal)(**kwargs)
+
+    def broadcast_copy_signal(self, **kwargs) -> None:
+        """Broadcast copy signal (sync)."""
+        if CHANNELS_AVAILABLE:
+            async_to_sync(self._async_broadcaster.broadcast_copy_signal)(**kwargs)
+
+    def broadcast_copy_trade_executed(self, **kwargs) -> None:
+        """Broadcast copy trade executed (sync)."""
+        if CHANNELS_AVAILABLE:
+            async_to_sync(self._async_broadcaster.broadcast_copy_trade_executed)(**kwargs)
 
 
 # Global broadcaster instance

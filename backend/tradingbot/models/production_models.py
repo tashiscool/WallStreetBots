@@ -198,6 +198,7 @@ class SentimentData:
     sentiment_magnitude: Decimal | None = None
     headline: str | None = None
     url: str | None = None
+    model_used: str = ""
     id: int | None = None
 
     def __str__(self):

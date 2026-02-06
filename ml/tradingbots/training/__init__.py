@@ -32,6 +32,15 @@ from .rl_training import (
     display_rl_training_summary,
 )
 
+from .callbacks import (
+    BaseCallback,
+    CallbackList,
+    EvalCallback,
+    CheckpointCallback,
+    EarlyStoppingRLCallback,
+    TradingMetricsCallback,
+)
+
 __all__ = [
     # General training
     "TrainingConfig",
@@ -52,4 +61,11 @@ __all__ = [
     "train_rl_agent",
     "evaluate_agent",
     "display_rl_training_summary",
+    # Callbacks
+    "BaseCallback",
+    "CallbackList",
+    "EvalCallback",
+    "CheckpointCallback",
+    "EarlyStoppingRLCallback",
+    "TradingMetricsCallback",
 ]

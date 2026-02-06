@@ -11,6 +11,8 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 import pandas as pd
 
+from backend.tradingbot.strategies.base.lifecycle_mixin import LifecycleMixin
+
 
 class StrategyStatus(Enum):
     """Strategy execution status."""
@@ -55,22 +57,26 @@ class StrategyResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-class BaseStrategy(ABC):
+class BaseStrategy(LifecycleMixin, ABC):
     """Abstract base class for all trading strategies.
 
     All strategies must implement the core methods defined here to ensure
     consistency and interoperability across the trading system.
 
-    Lifecycle hooks (override for custom behavior):
+    Inherits LifecycleMixin for lifecycle hooks:
         initialize() - Called once at strategy start
         before_market_opens() - Called before each market open
         on_trading_iteration() - Called on each trading iteration
         after_market_closes() - Called after each market close
         on_abrupt_closing() - Called on unexpected shutdown
+        trace_stats() - Return metrics to track each iteration
+        register_hook(event, callback) - Register lifecycle callbacks
+        run_lifecycle_cycle() - Run a full lifecycle cycle
     """
 
     def __init__(self, config: StrategyConfig):
         """Initialize strategy with configuration."""
+        super().__init__()
         self.config = config
         self.status = StrategyStatus.IDLE
         self.last_update = datetime.now()

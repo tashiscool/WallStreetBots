@@ -286,6 +286,7 @@ def train_rl_agent(
     env: Any,
     config: RLTrainingConfig,
     eval_env: Optional[Any] = None,
+    callbacks: Optional[List[Any]] = None,
 ) -> Tuple[Any, RLTrainingMetrics]:
     """
     Train an RL agent with all best practices.
@@ -296,12 +297,14 @@ def train_rl_agent(
     - Periodic evaluation
     - Model checkpointing
     - Trading-specific metrics (Sharpe, drawdown)
+    - Callback lifecycle hooks (early stopping, custom metrics, etc.)
 
     Args:
-        agent: RL agent (PPO or DQN)
+        agent: RL agent (PPO, DQN, SAC, TD3, DDPG, or A2C)
         env: Training environment
         config: Training configuration
         eval_env: Optional separate evaluation environment
+        callbacks: Optional list of BaseCallback instances for lifecycle hooks
 
     Returns:
         Tuple of (trained_agent, training_metrics)
@@ -323,6 +326,16 @@ def train_rl_agent(
     if config.normalize_rewards:
         reward_rms = RunningMeanStd(shape=())
 
+    # Initialize callbacks
+    callback = None
+    if callbacks:
+        from ml.tradingbots.training.callbacks import CallbackList, BaseCallback
+        if len(callbacks) == 1:
+            callback = callbacks[0]
+        else:
+            callback = CallbackList(callbacks)
+        callback.init_callback(agent, env)
+
     # Initialize metrics
     metrics = RLTrainingMetrics()
     start_time = time.time()
@@ -337,6 +350,10 @@ def train_rl_agent(
     if obs_rms:
         obs_rms.update(obs.reshape(1, -1))
         obs = obs_rms.normalize(obs, config.clip_observations)
+
+    # Notify callbacks of training start
+    if callback:
+        callback.on_training_start({"config": config, "agent": agent, "env": env})
 
     with RLProgressTracker(
         config.total_timesteps,
@@ -381,6 +398,19 @@ def train_rl_agent(
             timestep += 1
             metrics.total_timesteps = timestep
 
+            # Callback on_step (can request early stop)
+            if callback:
+                step_locals = {
+                    "timestep": timestep,
+                    "obs": obs,
+                    "action": action,
+                    "reward": reward,
+                    "done": done,
+                    "info": info,
+                }
+                if not callback.on_step(step_locals):
+                    break  # Early stopping requested by callback
+
             # Handle episode end
             if done:
                 # Calculate trading metrics for episode
@@ -403,6 +433,15 @@ def train_rl_agent(
                     sharpe=sharpe,
                     drawdown=max_dd,
                 )
+
+                # Callback on_episode_end
+                if callback:
+                    callback.on_episode_end({
+                        "episode_reward": metrics.episode_rewards[-1],
+                        "episode_length": metrics.episode_lengths[-1],
+                        "total_episodes": metrics.total_episodes,
+                        "timestep": timestep,
+                    })
 
                 # Reset for next episode
                 episode_reward = 0.0
@@ -452,6 +491,14 @@ def train_rl_agent(
                     agent.save(path)
 
     metrics.training_time = time.time() - start_time
+
+    # Notify callbacks of training end
+    if callback:
+        callback.on_training_end({
+            "metrics": metrics,
+            "agent": agent,
+            "total_timesteps": timestep,
+        })
 
     # Save final model
     if config.checkpoint_dir and hasattr(agent, 'save'):

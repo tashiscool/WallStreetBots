@@ -10,6 +10,15 @@ from .tearsheet import (
     create_tearsheet_generator,
 )
 
+from .pdf_report import (
+    PDFReportConfig,
+    PDFReportGenerator,
+)
+
+from .report_templates import (
+    ReportTemplates,
+)
+
 from .plot_configurator import (
     PlotType,
     PlotLocation,
@@ -35,6 +44,10 @@ __all__ = [
     "PerformanceMetrics",
     "TearsheetGenerator",
     "create_tearsheet_generator",
+    # PDF Report
+    "PDFReportConfig",
+    "PDFReportGenerator",
+    "ReportTemplates",
     # Plot Configurator
     "PlotType",
     "PlotLocation",

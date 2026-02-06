@@ -79,6 +79,12 @@ from .portfolio_greeks import (
     GreeksMonitor,
     RiskMetric,
 )
+from .payoff_visualizer import (
+    PayoffDiagramConfig,
+    PayoffDiagramGenerator,
+    GreeksDashboard,
+    generate_pnl_heatmap,
+)
 
 __all__ = [
     # Pricing
@@ -152,4 +158,9 @@ __all__ = [
     "PortfolioGreeksCalculator",
     "GreeksMonitor",
     "RiskMetric",
+    # Payoff Visualization
+    "PayoffDiagramConfig",
+    "PayoffDiagramGenerator",
+    "GreeksDashboard",
+    "generate_pnl_heatmap",
 ]

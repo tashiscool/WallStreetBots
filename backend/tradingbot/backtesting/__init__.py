@@ -1,8 +1,11 @@
 """
 Backtesting Module
 
-Provides backtesting capabilities for trading strategies.
-Includes realistic fill models for accurate simulation.
+Provides backtesting capabilities for trading strategies:
+- Event-driven backtesting engine with realistic fill models
+- Vectorized backtesting for ultra-fast parameter sweeps
+- Modular loss functions for hyperparameter optimization
+- Optuna-based optimization service
 """
 
 from .backtest_engine import (
@@ -43,6 +46,34 @@ from .progress_monitor import (
     create_progress_monitor,
 )
 
+from .vectorized_engine import (
+    VectorizedResult,
+    VectorizedBacktestEngine,
+)
+
+from .loss_functions import (
+    BaseLossFunction,
+    SharpeLoss,
+    SortinoLoss,
+    CalmarLoss,
+    ProfitLoss,
+    MaxDrawdownLoss,
+    CustomWeightedLoss,
+    get_loss_function,
+)
+
+from .optimization_service import (
+    OptimizationObjective,
+    SamplerType,
+    PrunerType,
+    ParameterRange,
+    OptimizationConfig,
+    TrialResult,
+    OptimizationResult,
+    OptimizationService,
+    get_optimization_service,
+)
+
 __all__ = [
     # Backtest engine
     "BacktestConfig",
@@ -76,4 +107,26 @@ __all__ = [
     "progress_manager",
     "get_progress_manager",
     "create_progress_monitor",
+    # Vectorized Engine
+    "VectorizedResult",
+    "VectorizedBacktestEngine",
+    # Loss Functions
+    "BaseLossFunction",
+    "SharpeLoss",
+    "SortinoLoss",
+    "CalmarLoss",
+    "ProfitLoss",
+    "MaxDrawdownLoss",
+    "CustomWeightedLoss",
+    "get_loss_function",
+    # Optimization Service
+    "OptimizationObjective",
+    "SamplerType",
+    "PrunerType",
+    "ParameterRange",
+    "OptimizationConfig",
+    "TrialResult",
+    "OptimizationResult",
+    "OptimizationService",
+    "get_optimization_service",
 ]

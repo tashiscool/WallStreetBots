@@ -803,3 +803,134 @@ def create_dqn_trading_agent(
         action_dim=env.action_dim,
         config=config,
     )
+
+
+# =============================================================================
+# RL Agent Registry & Factory
+# =============================================================================
+
+# Registry maps agent type names to (AgentClass, ConfigClass, default_kwargs)
+AGENT_REGISTRY: Dict[str, Dict[str, Any]] = {
+    "ppo": {
+        "agent_class": PPOAgent,
+        "config_class": PPOConfig,
+        "continuous": True,
+        "description": "Proximal Policy Optimization - stable on-policy algorithm",
+    },
+    "dqn": {
+        "agent_class": DQNAgent,
+        "config_class": DQNConfig,
+        "continuous": False,
+        "description": "Deep Q-Network - discrete action spaces",
+    },
+}
+
+
+def _register_optional_agents():
+    """Register agents that may not be importable (depend on torch)."""
+    try:
+        from .sac_agent import SACAgent, SACConfig
+        AGENT_REGISTRY["sac"] = {
+            "agent_class": SACAgent,
+            "config_class": SACConfig,
+            "continuous": True,
+            "description": "Soft Actor-Critic - state-of-the-art for continuous control",
+        }
+    except ImportError:
+        pass
+
+    try:
+        from .td3_agent import TD3Agent, TD3Config
+        AGENT_REGISTRY["td3"] = {
+            "agent_class": TD3Agent,
+            "config_class": TD3Config,
+            "continuous": True,
+            "description": "Twin Delayed DDPG - twin critics with delayed policy updates",
+        }
+    except ImportError:
+        pass
+
+    try:
+        from .ddpg_agent import DDPGAgent, DDPGConfig
+        AGENT_REGISTRY["ddpg"] = {
+            "agent_class": DDPGAgent,
+            "config_class": DDPGConfig,
+            "continuous": True,
+            "description": "Deep Deterministic Policy Gradient - continuous control",
+        }
+    except ImportError:
+        pass
+
+    try:
+        from .a2c_agent import A2CAgent, A2CConfig
+        AGENT_REGISTRY["a2c"] = {
+            "agent_class": A2CAgent,
+            "config_class": A2CConfig,
+            "continuous": True,
+            "description": "Advantage Actor-Critic - simpler synchronous variant of PPO",
+        }
+    except ImportError:
+        pass
+
+
+_register_optional_agents()
+
+
+def list_available_agents() -> Dict[str, str]:
+    """List all available RL agent types and their descriptions.
+
+    Returns:
+        Dict mapping agent type name to description string.
+    """
+    return {name: info["description"] for name, info in AGENT_REGISTRY.items()}
+
+
+def create_rl_agent(
+    agent_type: str,
+    state_dim: int,
+    action_dim: int,
+    config: Optional[Any] = None,
+    **kwargs,
+) -> Any:
+    """Create an RL agent by type name.
+
+    Args:
+        agent_type: One of 'ppo', 'dqn', 'sac', 'td3', 'ddpg', 'a2c'
+        state_dim: Observation space dimension
+        action_dim: Action space dimension
+        config: Optional agent-specific config dataclass
+        **kwargs: Additional arguments passed to agent constructor
+
+    Returns:
+        Instantiated RL agent
+
+    Raises:
+        ValueError: If agent_type is not registered
+    """
+    agent_type = agent_type.lower()
+    if agent_type not in AGENT_REGISTRY:
+        available = ", ".join(sorted(AGENT_REGISTRY.keys()))
+        raise ValueError(
+            f"Unknown agent type '{agent_type}'. Available: {available}"
+        )
+
+    info = AGENT_REGISTRY[agent_type]
+    agent_cls = info["agent_class"]
+    config_cls = info["config_class"]
+
+    if config is None:
+        config = config_cls()
+
+    # Build constructor args based on agent type
+    agent_kwargs = {
+        "state_dim": state_dim,
+        "action_dim": action_dim,
+        "config": config,
+    }
+
+    # PPO supports 'continuous' flag
+    if agent_type == "ppo":
+        agent_kwargs["continuous"] = kwargs.pop("continuous", info.get("continuous", True))
+
+    agent_kwargs.update(kwargs)
+    return agent_cls(**agent_kwargs)

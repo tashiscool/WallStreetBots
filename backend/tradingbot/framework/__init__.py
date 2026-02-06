@@ -80,6 +80,7 @@ from .universe import (
     ETFConstituentsUniverseModel,
     CompositeUniverseModel,
     NullUniverseModel,
+    PipelineUniverseSelectionModel,
 )
 from .enhanced_risk import (
     TradingState,
@@ -107,6 +108,22 @@ from .data_aggregation import (
     create_volume_aggregator,
     create_dollar_aggregator,
 )
+from .pipeline import (
+    Factor,
+    AverageDollarVolume,
+    Returns,
+    Volatility,
+    MeanReversion,
+    ScreenFilter,
+    TopFilter,
+    BottomFilter,
+    PercentileFilter,
+    Pipeline,
+)
+
+# Sub-packages with additional models
+from . import alpha_models
+from . import portfolio_models
 
 __all__ = [
     # Alpha
@@ -169,6 +186,7 @@ __all__ = [
     "ETFConstituentsUniverseModel",
     "CompositeUniverseModel",
     "NullUniverseModel",
+    "PipelineUniverseSelectionModel",
     # Enhanced Risk (from Nautilus)
     "TradingState",
     "RiskEngineConfig",
@@ -193,4 +211,18 @@ __all__ = [
     "create_tick_aggregator",
     "create_volume_aggregator",
     "create_dollar_aggregator",
+    # Pipeline
+    "Factor",
+    "AverageDollarVolume",
+    "Returns",
+    "Volatility",
+    "MeanReversion",
+    "ScreenFilter",
+    "TopFilter",
+    "BottomFilter",
+    "PercentileFilter",
+    "Pipeline",
+    # Sub-packages
+    "alpha_models",
+    "portfolio_models",
 ]

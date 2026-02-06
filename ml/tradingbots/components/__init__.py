@@ -8,7 +8,8 @@ This module provides machine learning components for trading analysis:
 - Transformer models for time series prediction
 - CNN models for pattern recognition
 - Ensemble methods combining multiple models
-- Reinforcement Learning agents (PPO/DQN) for trading
+- Reinforcement Learning agents (PPO/DQN/SAC/TD3/DDPG/A2C) for trading
+- Meta-learning for regime-adaptive trading
 """
 
 # Optional imports that depend on alpaca_trade_api
@@ -74,6 +75,24 @@ from .rl_agents import (
     DQNAgent,
     create_ppo_trading_agent,
     create_dqn_trading_agent,
+    AGENT_REGISTRY,
+    list_available_agents,
+    create_rl_agent,
+)
+
+# Additional RL agents
+from .sac_agent import SACConfig, SACAgent
+from .td3_agent import TD3Config, TD3Agent
+from .ddpg_agent import DDPGConfig, DDPGAgent
+from .a2c_agent import A2CConfig, A2CAgent
+
+# Meta-learning components
+from .meta_learning import (
+    RegimeDetector,
+    RegimeAwareConfig,
+    RegimeAwareAgent,
+    TransferLearningTrainer,
+    MultiTaskRLAgent,
 )
 
 __all__ = [
@@ -114,6 +133,24 @@ __all__ = [
     "DQNAgent",
     "create_ppo_trading_agent",
     "create_dqn_trading_agent",
+    "AGENT_REGISTRY",
+    "list_available_agents",
+    "create_rl_agent",
+    # Additional RL Agents
+    "SACConfig",
+    "SACAgent",
+    "TD3Config",
+    "TD3Agent",
+    "DDPGConfig",
+    "DDPGAgent",
+    "A2CConfig",
+    "A2CAgent",
+    # Meta-learning
+    "RegimeDetector",
+    "RegimeAwareConfig",
+    "RegimeAwareAgent",
+    "TransferLearningTrainer",
+    "MultiTaskRLAgent",
     # Portfolio
     "NaiveHMMPortfolioUpdate",
     "PortfolioManager",

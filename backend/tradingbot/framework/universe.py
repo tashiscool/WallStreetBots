@@ -559,3 +559,69 @@ class NullUniverseModel(UniverseSelectionModel):
                timestamp: datetime) -> List[str]:
         """Return empty list."""
         return []
+
+
+class PipelineUniverseSelectionModel(UniverseSelectionModel):
+    """
+    Pipeline-based Universe Selection Model.
+
+    Uses a factor Pipeline (from framework.pipeline) to screen and rank
+    securities using systematic, factor-based criteria. Bridges the
+    Pipeline API to the universe selection framework.
+
+    Example:
+        from backend.tradingbot.framework.pipeline import (
+            Pipeline, AverageDollarVolume, Returns, TopFilter
+        )
+
+        pipe = Pipeline()
+        adv = AverageDollarVolume(window=20)
+        pipe.add(adv, adv.name)
+        pipe.add(Returns(window=60), 'momentum')
+        pipe.set_screen(TopFilter(adv.name, count=500))
+
+        model = PipelineUniverseSelectionModel(pipe)
+        symbols = model.select(securities, datetime.now())
+    """
+
+    def __init__(self, pipeline: Any, name: str = "PipelineUniverse"):
+        super().__init__(name)
+        self._pipeline = pipeline
+
+    @property
+    def pipeline(self) -> Any:
+        """Access the underlying pipeline."""
+        return self._pipeline
+
+    def select(self, securities: List[SecurityData],
+               timestamp: datetime) -> List[str]:
+        """
+        Run the pipeline on securities data and return selected symbols.
+
+        Args:
+            securities: Available securities with price/volume data
+            timestamp: Current timestamp
+
+        Returns:
+            List of symbols that pass the pipeline screen
+        """
+        # Convert SecurityData list to pipeline-compatible data dict
+        data = {}
+        for sec in securities:
+            if not sec.is_tradable:
+                continue
+            data[sec.symbol] = {
+                "close": [sec.price],
+                "volume": [sec.volume],
+                "dollar_volume": [sec.dollar_volume_calc],
+            }
+
+        if not data:
+            return []
+
+        try:
+            result_df = self._pipeline.run(data)
+            return list(result_df.index)
+        except Exception:
+            # Fall back to all tradable symbols if pipeline fails
+            return [sec.symbol for sec in securities if sec.is_tradable]

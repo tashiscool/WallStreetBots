@@ -275,4 +275,33 @@ urlpatterns = [
     path("api/ml-agents/training/<str:job_id>/", api_views.training_job_detail, name="api-training-job-detail"),
     path("api/ml-agents/training/<str:job_id>/cancel/", api_views.training_job_cancel, name="api-training-job-cancel"),
     path("api/ml-agents/training/<str:job_id>/progress/", api_views.training_job_update_progress, name="api-training-job-progress"),
+
+    # Options Payoff Visualization API
+    path("api/options/payoff-diagram/", api_views.options_payoff_diagram, name="api-options-payoff"),
+    path("api/options/greeks-dashboard/", api_views.options_greeks_dashboard, name="api-options-greeks"),
+
+    # Copy Trading API
+    path("api/signals/providers/", api_views.signal_providers_list, name="api-signal-providers"),
+    path("api/signals/providers/create/", api_views.signal_provider_create, name="api-signal-provider-create"),
+    path("api/signals/providers/<int:provider_id>/", api_views.signal_provider_detail, name="api-signal-provider-detail"),
+    path("api/signals/providers/<int:provider_id>/stats/", api_views.signal_provider_stats, name="api-signal-provider-stats"),
+    path("api/signals/subscribe/", api_views.signal_subscribe, name="api-signal-subscribe"),
+    path("api/signals/unsubscribe/", api_views.signal_unsubscribe, name="api-signal-unsubscribe"),
+    path("api/signals/subscriptions/", api_views.signal_subscriptions_list, name="api-signal-subscriptions"),
+    path("api/signals/replicate/", api_views.signal_manual_replicate, name="api-signal-replicate"),
+
+    # PDF Report API
+    path("api/reports/generate/", api_views.generate_pdf_report, name="api-generate-report"),
+    path("api/reports/download/", api_views.download_pdf_report, name="api-download-report"),
+
+    # Strategy Builder API
+    path("api/strategy-builder/validate/", api_views.strategy_validate, name="api-strategy-validate"),
+    path("api/strategy-builder/backtest/", api_views.strategy_compile_and_backtest, name="api-strategy-compile-backtest"),
+    path("api/strategy-builder/indicators/", api_views.strategy_indicators_list, name="api-strategy-indicators"),
+    path("api/strategy-builder/presets/", api_views.strategy_presets, name="api-strategy-presets"),
+
+    # DEX Trading API
+    path("api/dex/swap/", api_views.dex_swap, name="api-dex-swap"),
+    path("api/dex/quote/", api_views.dex_quote, name="api-dex-quote"),
+    path("api/dex/balance/", api_views.dex_wallet_balance, name="api-dex-balance"),
 ]

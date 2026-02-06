@@ -7807,3 +7807,955 @@ def training_job_update_progress(request, job_id):
     except Exception as e:
         logger.error(f"Error updating training job progress: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# ========================
+# Copy Trading API
+# ========================
+
+@login_required
+@require_http_methods(["GET"])
+def signal_providers_list(request):
+    """List available signal providers."""
+    try:
+        from .services.copy_trading_service import CopyTradingService
+
+        service = CopyTradingService()
+        is_public = request.GET.get('is_public', 'true').lower() == 'true'
+        status = request.GET.get('status', 'active')
+        providers = service.get_providers(is_public=is_public, status=status)
+
+        providers_data = []
+        for p in providers:
+            providers_data.append({
+                'id': p.id,
+                'owner': p.owner.username,
+                'strategy_name': p.strategy_name,
+                'display_name': p.display_name,
+                'description': p.description,
+                'fee_type': p.fee_type,
+                'fee_amount': float(p.fee_amount),
+                'status': p.status,
+                'subscribers_count': p.subscribers_count,
+                'max_subscribers': p.max_subscribers,
+                'min_risk_tolerance': p.min_risk_tolerance,
+                'is_public': p.is_public,
+                'total_signals_sent': p.total_signals_sent,
+                'win_rate': float(p.win_rate) if p.win_rate else None,
+                'total_return_pct': float(p.total_return_pct) if p.total_return_pct else None,
+                'created_at': p.created_at.isoformat(),
+            })
+
+        return JsonResponse({
+            'status': 'success',
+            'providers': providers_data,
+            'count': len(providers_data),
+        })
+
+    except Exception as e:
+        logger.error(f"Error listing signal providers: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def signal_provider_detail(request, provider_id):
+    """Get a single signal provider's details."""
+    try:
+        from .services.copy_trading_service import CopyTradingService
+
+        service = CopyTradingService()
+        provider = service.get_provider(provider_id)
+
+        return JsonResponse({
+            'status': 'success',
+            'provider': {
+                'id': provider.id,
+                'owner': provider.owner.username,
+                'strategy_name': provider.strategy_name,
+                'display_name': provider.display_name,
+                'description': provider.description,
+                'fee_type': provider.fee_type,
+                'fee_amount': float(provider.fee_amount),
+                'status': provider.status,
+                'subscribers_count': provider.subscribers_count,
+                'max_subscribers': provider.max_subscribers,
+                'min_risk_tolerance': provider.min_risk_tolerance,
+                'is_public': provider.is_public,
+                'total_signals_sent': provider.total_signals_sent,
+                'win_rate': float(provider.win_rate) if provider.win_rate else None,
+                'total_return_pct': float(provider.total_return_pct) if provider.total_return_pct else None,
+                'created_at': provider.created_at.isoformat(),
+                'updated_at': provider.updated_at.isoformat(),
+            },
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting signal provider {provider_id}: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=404)
+
+
+@login_required
+@require_http_methods(["POST"])
+def signal_provider_create(request):
+    """Create a new signal provider."""
+    try:
+        from .services.copy_trading_service import CopyTradingService
+        from decimal import Decimal
+
+        data = json.loads(request.body) if request.body else {}
+        service = CopyTradingService()
+
+        strategy_name = data.get('strategy_name', '')
+        display_name = data.get('display_name', '')
+
+        if not strategy_name or not display_name:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'strategy_name and display_name are required',
+            }, status=400)
+
+        provider = service.create_provider(
+            user=request.user,
+            strategy_name=strategy_name,
+            display_name=display_name,
+            description=data.get('description', ''),
+            fee_type=data.get('fee_type', 'free'),
+            fee_amount=Decimal(str(data.get('fee_amount', 0))),
+            min_risk_tolerance=int(data.get('min_risk_tolerance', 1)),
+            is_public=data.get('is_public', True),
+            max_subscribers=int(data.get('max_subscribers', 100)),
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f"Provider '{display_name}' created successfully",
+            'provider_id': provider.id,
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON in request body',
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error creating signal provider: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def signal_subscribe(request):
+    """Subscribe to a signal provider."""
+    try:
+        from .services.copy_trading_service import CopyTradingService
+        from decimal import Decimal
+
+        data = json.loads(request.body) if request.body else {}
+        service = CopyTradingService()
+
+        provider_id = data.get('provider_id')
+        if not provider_id:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'provider_id is required',
+            }, status=400)
+
+        subscription = service.subscribe(
+            user=request.user,
+            provider_id=int(provider_id),
+            auto_replicate=data.get('auto_replicate', False),
+            max_allocation_pct=Decimal(str(data.get('max_allocation_pct', 5.00))),
+            proportional_sizing=data.get('proportional_sizing', True),
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f"Subscribed to provider successfully",
+            'subscription_id': subscription.id,
+            'provider_name': subscription.provider.display_name,
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON in request body',
+        }, status=400)
+    except ValueError as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e),
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error subscribing to signal provider: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def signal_unsubscribe(request):
+    """Unsubscribe from a signal provider."""
+    try:
+        from .services.copy_trading_service import CopyTradingService
+
+        data = json.loads(request.body) if request.body else {}
+        service = CopyTradingService()
+
+        provider_id = data.get('provider_id')
+        if not provider_id:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'provider_id is required',
+            }, status=400)
+
+        subscription = service.unsubscribe(
+            user=request.user,
+            provider_id=int(provider_id),
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Unsubscribed successfully',
+            'subscription_id': subscription.id,
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON in request body',
+        }, status=400)
+    except ValueError as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e),
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error unsubscribing from signal provider: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def signal_subscriptions_list(request):
+    """List current user's active signal subscriptions."""
+    try:
+        from .services.copy_trading_service import CopyTradingService
+
+        service = CopyTradingService()
+        subscriptions = service.get_subscriptions(request.user)
+
+        subscriptions_data = []
+        for sub in subscriptions:
+            subscriptions_data.append({
+                'id': sub.id,
+                'provider_id': sub.provider_id,
+                'provider_name': sub.provider.display_name,
+                'provider_owner': sub.provider.owner.username,
+                'provider_strategy': sub.provider.strategy_name,
+                'status': sub.status,
+                'auto_replicate': sub.auto_replicate,
+                'max_allocation_pct': float(sub.max_allocation_pct),
+                'proportional_sizing': sub.proportional_sizing,
+                'max_replication_delay_seconds': sub.max_replication_delay_seconds,
+                'notify_on_signal': sub.notify_on_signal,
+                'notify_on_entry': sub.notify_on_entry,
+                'notify_on_exit': sub.notify_on_exit,
+                'trades_replicated': sub.trades_replicated,
+                'total_pnl': float(sub.total_pnl),
+                'created_at': sub.created_at.isoformat(),
+            })
+
+        return JsonResponse({
+            'status': 'success',
+            'subscriptions': subscriptions_data,
+            'count': len(subscriptions_data),
+        })
+
+    except Exception as e:
+        logger.error(f"Error listing subscriptions: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def signal_manual_replicate(request):
+    """Manually replicate a signal from a provider."""
+    try:
+        from .services.copy_trading_service import CopyTradingService
+
+        data = json.loads(request.body) if request.body else {}
+        service = CopyTradingService()
+
+        provider_id = data.get('provider_id')
+        if not provider_id:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'provider_id is required',
+            }, status=400)
+
+        trade_data = data.get('trade_data', {})
+        if not trade_data.get('symbol') or not trade_data.get('side'):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'trade_data must include symbol and side',
+            }, status=400)
+
+        result = service.manual_replicate(
+            user=request.user,
+            provider_id=int(provider_id),
+            trade_data=trade_data,
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'result': result,
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON in request body',
+        }, status=400)
+    except ValueError as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e),
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error manually replicating signal: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def signal_provider_stats(request, provider_id):
+    """Get statistics for a signal provider."""
+    try:
+        from .services.copy_trading_service import CopyTradingService
+
+        service = CopyTradingService()
+        stats = service.get_provider_stats(provider_id)
+
+        if 'error' in stats:
+            return JsonResponse({
+                'status': 'error',
+                'message': stats['error'],
+            }, status=404)
+
+        return JsonResponse({
+            'status': 'success',
+            'stats': stats,
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting provider stats: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# ========================
+# Options Payoff Visualization API
+# ========================
+
+LEG_TYPE_MAP = {
+    'long_call': 'LONG_CALL',
+    'short_call': 'SHORT_CALL',
+    'long_put': 'LONG_PUT',
+    'short_put': 'SHORT_PUT',
+}
+
+SPREAD_TYPE_MAP = {
+    'iron_condor': 'IRON_CONDOR',
+    'iron_butterfly': 'IRON_BUTTERFLY',
+    'butterfly': 'BUTTERFLY',
+    'broken_wing_butterfly': 'BROKEN_WING_BUTTERFLY',
+    'calendar': 'CALENDAR',
+    'diagonal': 'DIAGONAL',
+    'straddle': 'STRADDLE',
+    'strangle': 'STRANGLE',
+    'ratio_spread': 'RATIO_SPREAD',
+    'vertical_call': 'VERTICAL_CALL',
+    'vertical_put': 'VERTICAL_PUT',
+}
+
+
+def _parse_spread_from_request(data):
+    """Parse an OptionSpread from request data."""
+    from datetime import date as date_type
+    from decimal import Decimal as Dec
+    from backend.tradingbot.options.exotic_spreads import (
+        OptionSpread, SpreadLeg, LegType, SpreadType,
+    )
+
+    ticker = data.get('ticker', 'SPY')
+    spread_type_str = data.get('spread_type', 'straddle')
+    spread_type_key = SPREAD_TYPE_MAP.get(spread_type_str, spread_type_str.upper())
+    spread_type = SpreadType[spread_type_key]
+
+    legs_data = data.get('legs', [])
+    legs = []
+    for leg_data in legs_data:
+        leg_type_str = leg_data.get('leg_type', 'long_call')
+        leg_type_key = LEG_TYPE_MAP.get(leg_type_str, leg_type_str.upper())
+        leg_type = LegType[leg_type_key]
+
+        expiry_str = leg_data.get('expiry', '2025-03-21')
+        expiry_parts = expiry_str.split('-')
+        expiry = date_type(int(expiry_parts[0]), int(expiry_parts[1]), int(expiry_parts[2]))
+
+        leg = SpreadLeg(
+            leg_type=leg_type,
+            strike=Dec(str(leg_data.get('strike', '100'))),
+            expiry=expiry,
+            contracts=int(leg_data.get('contracts', 1)),
+            premium=Dec(str(leg_data.get('premium', '0'))),
+        )
+        legs.append(leg)
+
+    return OptionSpread(
+        spread_type=spread_type,
+        ticker=ticker,
+        legs=legs,
+    )
+
+
+@login_required
+@require_http_methods(["POST"])
+def options_payoff_diagram(request):
+    """
+    Generate options payoff diagram.
+
+    POST JSON parameters:
+        ticker: Stock ticker symbol (e.g., 'AAPL')
+        spread_type: Type of spread ('iron_condor', 'straddle', etc.)
+        current_price: Current underlying price (float)
+        days_to_expiry: Days to expiration (int, default 30)
+        legs: List of leg objects with:
+            - leg_type: 'long_call', 'short_call', 'long_put', 'short_put'
+            - strike: Strike price (string or number)
+            - expiry: Expiration date 'YYYY-MM-DD'
+            - contracts: Number of contracts (int, positive for long, negative for short)
+            - premium: Premium per share (string or number)
+        config: Optional config overrides:
+            - price_range_pct: Price range percentage (float, default 0.30)
+            - volatility: Implied volatility (float, default 0.30)
+            - risk_free_rate: Risk-free rate (float, default 0.05)
+            - show_breakevens: Whether to show breakeven lines (bool, default true)
+            - show_max_profit_loss: Whether to show max P&L annotation (bool, default true)
+
+    Returns:
+        JSON with 'status' and 'html' (interactive Plotly chart HTML)
+    """
+    try:
+        data = json.loads(request.body)
+
+        spread = _parse_spread_from_request(data)
+        current_price = float(data.get('current_price', 100))
+        days_to_expiry = int(data.get('days_to_expiry', 30))
+
+        from backend.tradingbot.options.payoff_visualizer import (
+            PayoffDiagramGenerator,
+            PayoffDiagramConfig,
+        )
+
+        config_data = data.get('config', {})
+        config = PayoffDiagramConfig(
+            price_range_pct=float(config_data.get('price_range_pct', 0.30)),
+            volatility=float(config_data.get('volatility', 0.30)),
+            risk_free_rate=float(config_data.get('risk_free_rate', 0.05)),
+            show_breakevens=bool(config_data.get('show_breakevens', True)),
+            show_max_profit_loss=bool(config_data.get('show_max_profit_loss', True)),
+        )
+
+        generator = PayoffDiagramGenerator(config=config)
+        html = generator.generate(
+            spread=spread,
+            current_price=current_price,
+            days_to_expiry=days_to_expiry,
+            output_format='html',
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'html': html,
+            'ticker': spread.ticker,
+            'spread_type': spread.spread_type.value,
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON in request body',
+        }, status=400)
+    except KeyError as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Invalid parameter value: {e}',
+        }, status=400)
+    except ValueError as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Invalid value: {e}',
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error generating payoff diagram: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Failed to generate payoff diagram: {str(e)}',
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def options_greeks_dashboard(request):
+    """
+    Generate Greeks dashboard for an option spread.
+
+    POST JSON parameters:
+        ticker: Stock ticker symbol (e.g., 'AAPL')
+        spread_type: Type of spread ('iron_condor', 'straddle', etc.)
+        current_price: Current underlying price (float)
+        days_to_expiry: Days to expiration (int, default 30)
+        volatility: Implied volatility (float, default 0.30)
+        risk_free_rate: Risk-free rate (float, default 0.05)
+        legs: List of leg objects (same format as payoff diagram)
+
+    Returns:
+        JSON with 'status' and 'html' (interactive Plotly Greeks dashboard HTML)
+    """
+    try:
+        data = json.loads(request.body)
+
+        spread = _parse_spread_from_request(data)
+        current_price = float(data.get('current_price', 100))
+        days_to_expiry = int(data.get('days_to_expiry', 30))
+        volatility = float(data.get('volatility', 0.30))
+        risk_free_rate = float(data.get('risk_free_rate', 0.05))
+
+        from backend.tradingbot.options.payoff_visualizer import GreeksDashboard
+
+        dashboard = GreeksDashboard()
+        html = dashboard.generate(
+            spread=spread,
+            current_price=current_price,
+            days_to_expiry=days_to_expiry,
+            volatility=volatility,
+            risk_free_rate=risk_free_rate,
+            output_format='html',
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'html': html,
+            'ticker': spread.ticker,
+            'spread_type': spread.spread_type.value,
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON in request body',
+        }, status=400)
+    except KeyError as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Invalid parameter value: {e}',
+        }, status=400)
+    except ValueError as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Invalid value: {e}',
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error generating Greeks dashboard: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Failed to generate Greeks dashboard: {str(e)}',
+        }, status=500)
+
+
+# ========================
+# PDF Report API
+# ========================
+
+@login_required
+@require_http_methods(["POST"])
+def generate_pdf_report(request):
+    """
+    Generate a PDF performance report.
+
+    POST parameters (JSON body):
+        report_type: One of 'weekly', 'monthly', 'quarterly', 'yearly' (default: 'weekly')
+        start_date: Start date string YYYY-MM-DD (optional, auto-calculated)
+        end_date: End date string YYYY-MM-DD (optional, defaults to today)
+        strategy_name: Strategy to report on (optional, defaults to all)
+        send_email: Boolean, whether to email the report (default: false)
+
+    Returns:
+        JSON with report_id, size, and download URL; or error.
+    """
+    from datetime import datetime, date
+    from backend.auth0login.services.report_delivery_service import ReportDeliveryService
+    import uuid
+    import base64
+
+    try:
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+        else:
+            data = request.POST
+
+        report_type = data.get('report_type', 'weekly')
+        strategy_name = data.get('strategy_name', None)
+        send_email = data.get('send_email', False)
+
+        # Parse dates
+        start_date = None
+        end_date = None
+        if data.get('start_date'):
+            try:
+                start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
+            except ValueError:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid start_date format. Use YYYY-MM-DD.',
+                }, status=400)
+
+        if data.get('end_date'):
+            try:
+                end_date = datetime.strptime(data['end_date'], '%Y-%m-%d').date()
+            except ValueError:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid end_date format. Use YYYY-MM-DD.',
+                }, status=400)
+
+        service = ReportDeliveryService()
+
+        # Validate report type
+        valid_types = [rt['id'] for rt in service.get_report_types()]
+        if report_type not in valid_types:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Invalid report_type. Valid types: {", ".join(valid_types)}',
+            }, status=400)
+
+        # Generate report
+        pdf_bytes = service.generate_report(
+            user=request.user,
+            report_type=report_type,
+            start_date=start_date,
+            end_date=end_date,
+            strategy_name=strategy_name,
+        )
+
+        # Store report in session for later download
+        report_id = str(uuid.uuid4())
+        request.session[f'report_{report_id}'] = base64.b64encode(pdf_bytes).decode('utf-8')
+        request.session[f'report_{report_id}_type'] = report_type
+
+        # Optionally email the report
+        email_sent = False
+        if send_email:
+            email_sent = service.email_report(
+                user=request.user,
+                pdf_bytes=pdf_bytes,
+                report_type=report_type,
+            )
+
+        return JsonResponse({
+            'status': 'success',
+            'report_id': report_id,
+            'report_type': report_type,
+            'size_bytes': len(pdf_bytes),
+            'email_sent': email_sent,
+            'download_url': f'/api/reports/download/?report_id={report_id}',
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON in request body',
+        }, status=400)
+    except ValueError as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e),
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error generating PDF report: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Report generation failed: {str(e)}',
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def download_pdf_report(request):
+    """
+    Download a previously generated PDF report.
+
+    GET parameters:
+        report_id: UUID of the report to download (from generate_pdf_report response)
+
+    Returns:
+        PDF file with application/pdf content type, or JSON error.
+    """
+    from django.http import HttpResponse
+    import base64
+
+    report_id = request.GET.get('report_id')
+
+    if not report_id:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Missing report_id parameter',
+        }, status=400)
+
+    # Retrieve report from session
+    session_key = f'report_{report_id}'
+    report_b64 = request.session.get(session_key)
+
+    if not report_b64:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Report not found. It may have expired. Please generate a new report.',
+        }, status=404)
+
+    try:
+        pdf_bytes = base64.b64decode(report_b64)
+    except Exception:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Failed to decode stored report data.',
+        }, status=500)
+
+    # Get report type for filename
+    report_type = request.session.get(f'report_{report_id}_type', 'report')
+    from datetime import date
+    date_str = date.today().strftime('%Y-%m-%d')
+    filename = f'wallstreetbots_{report_type}_report_{date_str}.pdf'
+
+    # Clean up session data after download
+    try:
+        del request.session[session_key]
+        del request.session[f'report_{report_id}_type']
+    except KeyError:
+        pass
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response['Content-Length'] = len(pdf_bytes)
+    return response
+
+
+# ========================
+# Strategy Builder API
+# ========================
+
+@login_required
+@require_http_methods(["POST"])
+def strategy_validate(request):
+    """Validate a strategy builder configuration."""
+    try:
+        data = json.loads(request.body)
+        config = data.get('config', {})
+
+        from .services.strategy_builder_service import StrategyBuilderService
+        service = StrategyBuilderService()
+        result = service.validate_config(config)
+
+        return JsonResponse({
+            'status': 'success',
+            **result,
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        logger.error(f"Strategy validation error: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def strategy_compile_and_backtest(request):
+    """Validate strategy config and run backtest."""
+    try:
+        data = json.loads(request.body)
+        config = data.get('config', {})
+        start_date = data.get('start_date', '2023-01-01')
+        end_date = data.get('end_date', '2024-01-01')
+        initial_capital = float(data.get('initial_capital', 100000))
+
+        from .services.strategy_builder_service import StrategyBuilderService
+        service = StrategyBuilderService()
+
+        # Validate first
+        validation = service.validate_config(config)
+        if not validation['valid']:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Strategy validation failed',
+                'errors': validation['errors'],
+            }, status=400)
+
+        # Run backtest using existing runner
+        from .services.custom_strategy_runner import CustomStrategyRunner
+        runner = CustomStrategyRunner(config)
+        result = runner.run_backtest(
+            start_date=start_date,
+            end_date=end_date,
+            initial_capital=initial_capital,
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'validation': validation,
+            'backtest_results': result,
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        logger.error(f"Strategy compile/backtest error: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def strategy_indicators_list(request):
+    """List available indicators for strategy builder."""
+    from .services.strategy_builder_service import StrategyBuilderService
+    service = StrategyBuilderService()
+    indicators = service.get_available_indicators()
+    operators = service.get_available_operators()
+
+    return JsonResponse({
+        'status': 'success',
+        'indicators': indicators,
+        'operators': operators,
+    })
+
+
+@login_required
+@require_http_methods(["GET"])
+def strategy_presets(request):
+    """Get pre-configured strategy templates."""
+    from .services.strategy_builder_service import StrategyBuilderService
+    service = StrategyBuilderService()
+    presets = service.get_presets()
+
+    return JsonResponse({
+        'status': 'success',
+        'presets': presets,
+    })
+
+
+# ========================
+# DEX Trading API
+# ========================
+
+@login_required
+@require_http_methods(["POST"])
+def dex_swap(request):
+    """Execute a DEX swap."""
+    try:
+        data = json.loads(request.body)
+        token_in = data.get('token_in', '')
+        token_out = data.get('token_out', '')
+        amount = float(data.get('amount', 0))
+        chain = data.get('chain', 'ethereum')
+        slippage = float(data.get('slippage_pct', 0.5))
+
+        if not token_in or not token_out or amount <= 0:
+            return JsonResponse({'status': 'error', 'message': 'Missing required parameters'}, status=400)
+
+        from backend.tradingbot.crypto.dex_client import UniswapV3Client, Chain, HAS_WEB3
+
+        if not HAS_WEB3:
+            return JsonResponse({'status': 'error', 'message': 'web3 not installed'}, status=503)
+
+        chain_enum = Chain(chain)
+        client = UniswapV3Client(chain=chain_enum, default_slippage_pct=slippage)
+
+        from backend.tradingbot.execution.interfaces import OrderRequest
+        import uuid
+
+        req = OrderRequest(
+            client_order_id=str(uuid.uuid4()),
+            symbol=f"{token_in}/{token_out}",
+            qty=amount,
+            side="buy",
+            type="market",
+        )
+
+        ack = client.place_order(req)
+
+        return JsonResponse({
+            'status': 'success' if ack.accepted else 'error',
+            'order_id': ack.client_order_id,
+            'broker_order_id': ack.broker_order_id,
+            'accepted': ack.accepted,
+            'reason': ack.reason,
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        logger.error(f"DEX swap error: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def dex_quote(request):
+    """Get a DEX swap quote."""
+    token_in = request.GET.get('token_in', '')
+    token_out = request.GET.get('token_out', '')
+    amount = request.GET.get('amount', '0')
+    chain = request.GET.get('chain', 'ethereum')
+
+    from backend.tradingbot.crypto.dex_client import UniswapV3Client, Chain, HAS_WEB3
+
+    if not HAS_WEB3:
+        return JsonResponse({'status': 'error', 'message': 'web3 not installed'}, status=503)
+
+    chain_enum = Chain(chain)
+    client = UniswapV3Client(chain=chain_enum)
+
+    gas_estimate = client.estimate_gas(token_in, token_out, float(amount))
+
+    return JsonResponse({
+        'status': 'success',
+        'token_in': token_in,
+        'token_out': token_out,
+        'amount': amount,
+        'chain': chain,
+        'gas_estimate': gas_estimate,
+        'supported_tokens': client.get_supported_tokens(),
+    })
+
+
+@login_required
+@require_http_methods(["GET"])
+def dex_wallet_balance(request):
+    """Get wallet token balances."""
+    chain = request.GET.get('chain', 'ethereum')
+
+    from backend.tradingbot.crypto.dex_client import UniswapV3Client, Chain, HAS_WEB3
+
+    if not HAS_WEB3:
+        return JsonResponse({'status': 'error', 'message': 'web3 not installed'}, status=503)
+
+    chain_enum = Chain(chain)
+    client = UniswapV3Client(chain=chain_enum)
+
+    tokens = client.get_supported_tokens()
+    balances = {}
+    for symbol in tokens:
+        balances[symbol] = str(client.get_token_balance(symbol))
+
+    return JsonResponse({
+        'status': 'success',
+        'chain': chain,
+        'eth_balance': str(client.get_eth_balance()),
+        'token_balances': balances,
+    })

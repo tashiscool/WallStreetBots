@@ -5078,6 +5078,117 @@ class TrainingJob(models.Model):
         return f"{minutes} minutes"
 
 
+# ========================
+# Copy/Social Trading Models
+# ========================
+
+class SignalProvider(models.Model):
+    """Signal provider for copy trading."""
+
+    FEE_TYPE_CHOICES = [
+        ('free', 'Free'),
+        ('flat', 'Flat Fee'),
+        ('performance', 'Performance Fee'),
+    ]
+
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('paused', 'Paused'),
+        ('closed', 'Closed'),
+    ]
+
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='signal_providers')
+    strategy_name = models.CharField(max_length=100)
+    display_name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    fee_type = models.CharField(max_length=20, choices=FEE_TYPE_CHOICES, default='free')
+    fee_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    subscribers_count = models.PositiveIntegerField(default=0)
+    max_subscribers = models.PositiveIntegerField(default=100)
+    min_risk_tolerance = models.IntegerField(default=1, help_text='Minimum risk tolerance (1-5) required to follow')
+    is_public = models.BooleanField(default=True)
+    total_signals_sent = models.PositiveIntegerField(default=0)
+    win_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    total_return_pct = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-subscribers_count']
+        unique_together = ['owner', 'strategy_name']
+
+    def __str__(self):
+        return f"{self.display_name} by {self.owner.username}"
+
+
+class SignalSubscription(models.Model):
+    """Subscription linking a subscriber to a signal provider."""
+
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('paused', 'Paused'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    subscriber = models.ForeignKey(User, on_delete=models.CASCADE, related_name='signal_subscriptions')
+    provider = models.ForeignKey(SignalProvider, on_delete=models.CASCADE, related_name='subscriptions')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    auto_replicate = models.BooleanField(default=False, help_text='Auto-execute trades from provider')
+    max_allocation_pct = models.DecimalField(max_digits=5, decimal_places=2, default=5.00)
+    proportional_sizing = models.BooleanField(default=True)
+    max_replication_delay_seconds = models.PositiveIntegerField(default=300)
+    notify_on_signal = models.BooleanField(default=True)
+    notify_on_entry = models.BooleanField(default=True)
+    notify_on_exit = models.BooleanField(default=True)
+    trades_replicated = models.PositiveIntegerField(default=0)
+    total_pnl = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ['subscriber', 'provider']
+
+    def __str__(self):
+        return f"{self.subscriber.username} -> {self.provider.display_name}"
+
+
+class ReplicatedTrade(models.Model):
+    """Record of a trade replicated from a signal provider to a subscriber."""
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('executed', 'Executed'),
+        ('failed', 'Failed'),
+        ('rejected_risk', 'Rejected - Risk'),
+        ('rejected_delay', 'Rejected - Delay'),
+    ]
+
+    subscription = models.ForeignKey(SignalSubscription, on_delete=models.CASCADE, related_name='replicated_trades')
+    original_trade_id = models.CharField(max_length=100)
+    original_symbol = models.CharField(max_length=20)
+    original_side = models.CharField(max_length=10)
+    original_qty = models.DecimalField(max_digits=12, decimal_places=4)
+    original_price = models.DecimalField(max_digits=12, decimal_places=4)
+    original_timestamp = models.DateTimeField()
+    replicated_qty = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
+    replicated_price = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
+    replicated_timestamp = models.DateTimeField(null=True, blank=True)
+    slippage_pct = models.DecimalField(max_digits=5, decimal_places=4, null=True, blank=True)
+    replication_delay_ms = models.PositiveIntegerField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    failure_reason = models.TextField(blank=True)
+    pnl = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Replicated {self.original_side} {self.original_symbol} ({self.status})"
+
+
 # Signal to auto-create UserProfile when User is created
 from django.db.models.signals import post_save
 from django.dispatch import receiver

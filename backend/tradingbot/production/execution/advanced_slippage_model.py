@@ -1,6 +1,7 @@
 """Advanced Slippage Models
 
 Enhanced slippage prediction using ML and market microstructure.
+Integrates with L2 OrderBook when available for real microstructure features.
 """
 
 import logging
@@ -28,6 +29,31 @@ class MarketMicrostructureFeatures:
     recent_volume: float
     price_momentum: float
     liquidity_score: float
+
+    @classmethod
+    def from_order_book(cls, book_features, volatility: float = 0.02,
+                        recent_volume: float = 1_000_000.0,
+                        price_momentum: float = 0.0) -> "MarketMicrostructureFeatures":
+        """Create from an OrderBookFeatures instance.
+
+        Args:
+            book_features: OrderBookFeatures from order_book module
+            volatility: Recent realized volatility
+            recent_volume: Recent trading volume
+            price_momentum: Recent price momentum
+        """
+        now = datetime.now()
+        return cls(
+            bid_ask_spread=book_features.spread_bps / 10000.0,
+            order_book_imbalance=book_features.imbalance,
+            volume_profile=book_features.depth_ratio,
+            volatility=volatility,
+            time_of_day=(now.hour * 60 + now.minute) / 1440.0,
+            day_of_week=now.weekday(),
+            recent_volume=recent_volume,
+            price_momentum=price_momentum,
+            liquidity_score=book_features.resilience_score,
+        )
 
 
 @dataclass

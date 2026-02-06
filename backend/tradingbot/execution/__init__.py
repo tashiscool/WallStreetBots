@@ -72,6 +72,41 @@ from .arbitrage_detector import (
     configure_arbitrage_detector,
 )
 
+# L2 Order Book (market microstructure)
+from .order_book import (
+    OrderBook,
+    OrderBookFeatures,
+    OrderBookLevel,
+    OrderBookManager,
+    OrderBookSnapshot,
+)
+
+# Adverse selection & toxic flow detection
+from .adverse_selection import (
+    AdverseSelectionMetrics,
+    ToxicFlowDetector,
+    TradeRecord,
+    VPINCalculator,
+    VPINResult,
+)
+
+# Maker/taker fee model & execution optimization
+from .fee_model import (
+    AssetClass,
+    FeeEstimate,
+    FeeModel,
+    FeeOptimizer,
+    FeeSchedule,
+    FeeType,
+    OrderTypeRecommendation,
+    ALPACA_EQUITY,
+    ALPACA_CRYPTO,
+    IBKR_TIERED_EQUITY,
+    IBKR_FIXED_EQUITY,
+    IBKR_OPTIONS,
+    KNOWN_SCHEDULES,
+)
+
 __all__ = [
     # Interfaces
     "ExecutionClient",
@@ -126,4 +161,30 @@ __all__ = [
     "ArbitrageScanner",
     "get_arbitrage_detector",
     "configure_arbitrage_detector",
+    # L2 Order Book (market microstructure)
+    "OrderBook",
+    "OrderBookFeatures",
+    "OrderBookLevel",
+    "OrderBookManager",
+    "OrderBookSnapshot",
+    # Adverse selection & toxic flow detection
+    "AdverseSelectionMetrics",
+    "ToxicFlowDetector",
+    "TradeRecord",
+    "VPINCalculator",
+    "VPINResult",
+    # Maker/taker fee model & execution optimization
+    "AssetClass",
+    "FeeEstimate",
+    "FeeModel",
+    "FeeOptimizer",
+    "FeeSchedule",
+    "FeeType",
+    "OrderTypeRecommendation",
+    "ALPACA_EQUITY",
+    "ALPACA_CRYPTO",
+    "IBKR_TIERED_EQUITY",
+    "IBKR_FIXED_EQUITY",
+    "IBKR_OPTIONS",
+    "KNOWN_SCHEDULES",
 ]

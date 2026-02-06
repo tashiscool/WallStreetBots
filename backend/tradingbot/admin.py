@@ -171,7 +171,7 @@ class CircuitBreakerEventAdmin(admin.ModelAdmin):
         'id', 'user', 'breaker_type', 'triggered_at',
         'current_recovery_mode', 'is_active', 'resolved_at'
     )
-    list_filter = ('breaker_type', 'current_recovery_mode', 'is_active', 'resolution_method')
+    list_filter = ('breaker_type', 'current_recovery_mode', 'resolution_method')
     search_fields = ('user__username',)
     readonly_fields = ('triggered_at',)
     ordering = ('-triggered_at',)

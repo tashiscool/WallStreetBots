@@ -22,6 +22,7 @@ class RegimePrediction:
     predicted_regime: MarketRegime
     confidence: float
     actual_regime: Optional[MarketRegime] = None
+    regime_probabilities: Optional[Dict[MarketRegime, float]] = None
 
 
 class ExPostRegimeLabeler:
@@ -107,24 +108,67 @@ class RegimeAccuracyTracker:
         predicted: MarketRegime,
         confidence: float,
         actual: Optional[MarketRegime] = None,
+        regime_probabilities: Optional[Dict[MarketRegime, float]] = None,
     ) -> None:
-        """Record a new prediction."""
+        """Record a new prediction.
+
+        Parameters
+        ----------
+        predicted : MarketRegime
+            The predicted regime (argmax of probabilities).
+        confidence : float
+            Scalar confidence in the predicted regime.
+        actual : MarketRegime, optional
+            Ground-truth regime if already known.
+        regime_probabilities : dict, optional
+            Full per-regime probability vector from the detector, e.g.
+            ``{MarketRegime.BULL: 0.7, MarketRegime.BEAR: 0.1, MarketRegime.SIDEWAYS: 0.2}``.
+            When provided, ``brier_score()`` and ``log_loss()`` use this
+            directly instead of deriving a synthetic distribution from
+            ``confidence``.
+        """
         self._predictions.append(
             RegimePrediction(
                 timestamp=datetime.now(),
                 predicted_regime=predicted,
                 confidence=confidence,
                 actual_regime=actual,
+                regime_probabilities=regime_probabilities,
             )
         )
 
-    def update_actual(self, timestamp: datetime, actual_regime: MarketRegime) -> None:
+    def update_actual(
+        self,
+        timestamp: datetime,
+        actual_regime: MarketRegime,
+        max_match_delta: Optional[timedelta] = None,
+    ) -> bool:
         """Back-fill the actual regime for a previously recorded prediction.
 
         Matches on the prediction whose timestamp is closest to *timestamp*.
+
+        Parameters
+        ----------
+        timestamp : datetime
+            The timestamp to match against.
+        actual_regime : MarketRegime
+            The ground-truth regime to assign.
+        max_match_delta : timedelta, optional
+            Maximum allowed time difference between *timestamp* and the
+            closest prediction.  If the closest prediction is further away
+            than this, the update is **refused** and ``False`` is returned.
+            Set to e.g. ``timedelta(hours=2)`` or ``2× expected cadence``
+            to avoid silent mislabelling when predictions are not on a
+            fixed cadence or when actuals are backfilled late.
+
+        Returns
+        -------
+        bool
+            ``True`` if a prediction was matched and updated, ``False`` if
+            no predictions exist or *max_match_delta* was exceeded.
         """
         if not self._predictions:
-            return
+            return False
 
         best_idx = 0
         best_diff = abs((self._predictions[0].timestamp - timestamp).total_seconds())
@@ -134,7 +178,11 @@ class RegimeAccuracyTracker:
                 best_diff = diff
                 best_idx = i
 
+        if max_match_delta is not None and best_diff > max_match_delta.total_seconds():
+            return False
+
         self._predictions[best_idx].actual_regime = actual_regime
+        return True
 
     def get_accuracy(self, window_days: int = 30) -> Dict:
         """Compute accuracy metrics over a rolling window.
@@ -258,12 +306,33 @@ class RegimeAccuracyTracker:
 
         return warnings
 
+    def _get_regime_prob(self, prediction: RegimePrediction, regime: MarketRegime) -> float:
+        """Return the probability assigned to *regime* for a prediction.
+
+        If the prediction carries a full ``regime_probabilities`` vector
+        (from a true probabilistic classifier), that value is returned
+        directly.  Otherwise a synthetic distribution is derived: the
+        predicted regime gets ``confidence`` and the remainder is spread
+        uniformly across the other regimes.
+        """
+        if prediction.regime_probabilities is not None:
+            return prediction.regime_probabilities.get(regime, 0.0)
+
+        # Fallback: synthetic distribution from scalar confidence
+        if regime == prediction.predicted_regime:
+            return prediction.confidence
+        return (1.0 - prediction.confidence) / max(len(self.REGIMES) - 1, 1)
+
     def brier_score(self, window_days: int = 30) -> float:
         """Compute Brier score for regime predictions.
 
-        Brier score = mean( (p_predicted - I_actual)^2 ) across all regimes.
+        Brier score = mean( sum_k (p_k - I_k)^2 ) across all regimes.
         Lower is better; 0 = perfect, 1 = worst.
-        Uses confidence as the probability for the predicted regime.
+
+        When ``regime_probabilities`` is stored on a prediction, the true
+        probability vector from the detector is used.  Otherwise a
+        synthetic distribution derived from ``confidence`` is used as a
+        fallback.
         """
         cutoff = datetime.now() - timedelta(days=window_days)
         evaluated = [
@@ -276,12 +345,7 @@ class RegimeAccuracyTracker:
         total = 0.0
         for p in evaluated:
             for regime in self.REGIMES:
-                # Probability assigned to this regime
-                if regime == p.predicted_regime:
-                    prob = p.confidence
-                else:
-                    prob = (1.0 - p.confidence) / max(len(self.REGIMES) - 1, 1)
-                # Indicator: 1 if actual == this regime
+                prob = self._get_regime_prob(p, regime)
                 actual = 1.0 if regime == p.actual_regime else 0.0
                 total += (prob - actual) ** 2
 
@@ -291,6 +355,11 @@ class RegimeAccuracyTracker:
         """Compute log loss (cross-entropy) for regime predictions.
 
         Lower is better; penalises overconfident wrong predictions heavily.
+
+        When ``regime_probabilities`` is stored on a prediction, the true
+        probability vector from the detector is used.  Otherwise a
+        synthetic distribution derived from ``confidence`` is used as a
+        fallback.
         """
         cutoff = datetime.now() - timedelta(days=window_days)
         evaluated = [
@@ -303,10 +372,7 @@ class RegimeAccuracyTracker:
         total = 0.0
         for p in evaluated:
             for regime in self.REGIMES:
-                if regime == p.predicted_regime:
-                    prob = max(p.confidence, eps)
-                else:
-                    prob = max((1.0 - p.confidence) / max(len(self.REGIMES) - 1, 1), eps)
+                prob = max(self._get_regime_prob(p, regime), eps)
                 actual = 1.0 if regime == p.actual_regime else 0.0
                 if actual > 0:
                     total -= math.log(prob)

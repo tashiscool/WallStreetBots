@@ -100,8 +100,35 @@ class RegimeAccuracyTracker:
 
     REGIMES = [MarketRegime.BULL, MarketRegime.BEAR, MarketRegime.SIDEWAYS]
 
+    # Mapping from OnlineHMM integer states to MarketRegime.
+    # OnlineHMM (ml/tradingbots/) returns int (0, 1, 2); this bridge keeps
+    # the ML package free of backend imports.
+    _HMM_STATE_MAP = {
+        0: MarketRegime.BULL,
+        1: MarketRegime.BEAR,
+        2: MarketRegime.SIDEWAYS,
+    }
+
     def __init__(self):
         self._predictions: List[RegimePrediction] = []
+
+    @staticmethod
+    def from_hmm_state(state_index: int) -> MarketRegime:
+        """Map an OnlineHMM integer state to a MarketRegime enum.
+
+        Parameters
+        ----------
+        state_index : int
+            Hidden state index from ``OnlineHMM.get_regime()`` (0, 1, or 2).
+
+        Returns
+        -------
+        MarketRegime
+            BULL for 0, BEAR for 1, SIDEWAYS for 2, UNDEFINED otherwise.
+        """
+        return RegimeAccuracyTracker._HMM_STATE_MAP.get(
+            state_index, MarketRegime.UNDEFINED
+        )
 
     def record_prediction(
         self,

@@ -17,6 +17,25 @@ def tracker():
     return RegimeAccuracyTracker()
 
 
+class TestFromHMMState:
+    """from_hmm_state() maps OnlineHMM int states to MarketRegime."""
+
+    def test_bull(self):
+        assert RegimeAccuracyTracker.from_hmm_state(0) == MarketRegime.BULL
+
+    def test_bear(self):
+        assert RegimeAccuracyTracker.from_hmm_state(1) == MarketRegime.BEAR
+
+    def test_sideways(self):
+        assert RegimeAccuracyTracker.from_hmm_state(2) == MarketRegime.SIDEWAYS
+
+    def test_unknown_returns_undefined(self):
+        assert RegimeAccuracyTracker.from_hmm_state(99) == MarketRegime.UNDEFINED
+
+    def test_negative_returns_undefined(self):
+        assert RegimeAccuracyTracker.from_hmm_state(-1) == MarketRegime.UNDEFINED
+
+
 class TestRecordAndRetrieve:
     def test_record_prediction(self, tracker):
         tracker.record_prediction(MarketRegime.BULL, 0.9, MarketRegime.BULL)

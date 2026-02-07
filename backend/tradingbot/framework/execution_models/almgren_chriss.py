@@ -226,6 +226,7 @@ class AlmgrenChrissExecutionModel(ExecutionModel):
         temporary_impact: float = 0.01,
         risk_aversion: float = 1e-6,
         name: str = "AlmgrenChrissExecution",
+        calibrator: Optional['ImpactCalibrator'] = None,
     ):
         super().__init__(name)
         self.duration_minutes = duration_minutes
@@ -236,7 +237,9 @@ class AlmgrenChrissExecutionModel(ExecutionModel):
         self.temporary_impact = temporary_impact
         self.risk_aversion = risk_aversion
         self._current_positions: Dict[str, Decimal] = {}
+        self._scheduled_slices: List[Dict] = []
         self._model = AlmgrenChrissModel()
+        self._calibrator = calibrator
 
     def set_current_positions(self, positions: Dict[str, Decimal]) -> None:
         """Update current positions."""
@@ -247,8 +250,15 @@ class AlmgrenChrissExecutionModel(ExecutionModel):
         targets: List[PortfolioTarget],
         market_data: Optional[Dict[str, Any]] = None,
     ) -> List[Order]:
-        """Generate optimally-sliced orders using Almgren-Chriss."""
+        """Generate optimally-sliced orders using Almgren-Chriss.
+
+        Returns only the first slice (slice_index=0) immediately.
+        Remaining slices are stored in ``_scheduled_slices`` for later
+        dispatch by an external scheduler, matching the VWAP/TWAP pattern.
+        """
         orders = []
+        now = datetime.now()
+        slice_interval = timedelta(minutes=self.duration_minutes / max(self.num_slices, 1))
 
         for target in targets:
             current_qty = self._current_positions.get(target.symbol, Decimal("0"))
@@ -267,14 +277,23 @@ class AlmgrenChrissExecutionModel(ExecutionModel):
                 vol = sym_data.get('volatility', vol)
                 adv = sym_data.get('daily_volume', adv)
 
+            # Use calibrated impact params if a calibrator is available
+            perm_impact = self.permanent_impact
+            temp_impact = self.temporary_impact
+            if self._calibrator is not None:
+                bucket = ImpactCalibrator.classify_bucket(adv, target.symbol)
+                params = self._calibrator.get_calibrated_params(bucket)
+                perm_impact = params['permanent_impact']
+                temp_impact = params['temporary_impact']
+
             config = AlmgrenChrissConfig(
                 total_shares=total_qty,
                 total_time=self.duration_minutes,
                 num_slices=self.num_slices,
                 volatility=vol,
                 daily_volume=adv,
-                permanent_impact=self.permanent_impact,
-                temporary_impact=self.temporary_impact,
+                permanent_impact=perm_impact,
+                temporary_impact=temp_impact,
                 risk_aversion=self.risk_aversion,
             )
 
@@ -298,4 +317,171 @@ class AlmgrenChrissExecutionModel(ExecutionModel):
                 )
                 orders.append(order)
 
-        return orders
+                # Schedule future slices
+                if i > 0:
+                    self._scheduled_slices.append({
+                        'order': order,
+                        'scheduled_time': now + (slice_interval * i),
+                    })
+
+        # Return only first slice immediately
+        immediate_orders = [o for o in orders if o.metadata.get('slice_index', 0) == 0]
+        return immediate_orders
+
+    def get_scheduled_slices(self) -> List[Dict]:
+        """Get pending scheduled slices."""
+        return self._scheduled_slices.copy()
+
+
+# ---------------------------------------------------------------------------
+# Impact Parameter Calibration from Execution History
+# ---------------------------------------------------------------------------
+
+@dataclass
+class CalibrationRecord:
+    """A single execution observation used for impact calibration."""
+    symbol: str
+    side: str                    # 'buy' or 'sell'
+    filled_quantity: float
+    daily_volume: float          # ADV at time of trade
+    slippage_bps: float          # immediate: (fill - market) / market * 10000
+    impact_5min_bps: float       # permanent: price change at 5min post-fill
+    market_cap_bucket: Optional[LiquidityBucket] = None
+
+    def __post_init__(self):
+        if self.market_cap_bucket is None:
+            self.market_cap_bucket = ImpactCalibrator.classify_bucket(
+                self.daily_volume, self.symbol,
+            )
+
+
+class ImpactCalibrator:
+    """Calibrates Almgren-Chriss impact parameters from execution history.
+
+    Consumes ``CalibrationRecord`` objects (which can be derived from
+    ``ToxicFlowDetector.TradeRecord`` or ``SlippagePredictor.ExecutionRecord``)
+    and produces per-bucket ``(permanent_impact, temporary_impact)`` estimates
+    that replace the hardcoded ``IMPACT_PARAMS`` defaults.
+
+    The calibration approach:
+    * **temporary_impact** — OLS slope of ``slippage_bps ~ beta * participation_rate``
+    * **permanent_impact** — ``median(impact_5min_bps) / median(participation_rate)``
+    """
+
+    MIN_SAMPLES = 30  # per bucket
+
+    # ADV thresholds (shares/day) for bucket classification
+    _ADV_THRESHOLDS = [
+        (50_000_000, LiquidityBucket.MEGA_CAP),
+        (10_000_000, LiquidityBucket.LARGE_CAP),
+        (2_000_000,  LiquidityBucket.MID_CAP),
+        (500_000,    LiquidityBucket.SMALL_CAP),
+    ]
+
+    _CRYPTO_PREFIXES = ('BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'DOT')
+    _CRYPTO_MAJOR = ('BTC', 'ETH')
+
+    def __init__(self) -> None:
+        self._records: List[CalibrationRecord] = []
+        self._calibrated: Dict[LiquidityBucket, Dict[str, float]] = {}
+
+    def record(self, rec: CalibrationRecord) -> None:
+        """Add a calibration observation."""
+        self._records.append(rec)
+
+    @staticmethod
+    def classify_bucket(daily_volume: float, symbol: str = "") -> LiquidityBucket:
+        """Classify a symbol into a liquidity bucket by ADV.
+
+        Crypto symbols are detected by common ticker prefixes; equities
+        are classified purely by average daily volume.
+        """
+        sym_upper = symbol.upper()
+        # Detect crypto by prefix (handles pairs like BTC-USD, BTCUSD, etc.)
+        for prefix in ImpactCalibrator._CRYPTO_PREFIXES:
+            if sym_upper.startswith(prefix):
+                if any(sym_upper.startswith(m) for m in ImpactCalibrator._CRYPTO_MAJOR):
+                    return LiquidityBucket.CRYPTO_MAJOR
+                return LiquidityBucket.CRYPTO_ALT
+
+        for threshold, bucket in ImpactCalibrator._ADV_THRESHOLDS:
+            if daily_volume >= threshold:
+                return bucket
+        return LiquidityBucket.MICRO_CAP
+
+    def calibrate(self) -> Dict[LiquidityBucket, Dict[str, float]]:
+        """Calibrate impact parameters from recorded execution history.
+
+        Groups records by bucket.  For each bucket with at least
+        ``MIN_SAMPLES`` observations:
+        * Computes participation_rate = filled_quantity / daily_volume
+        * Regresses slippage_bps on participation_rate → slope ≈ temporary_impact
+        * permanent_impact = median(impact_5min_bps) / median(participation_rate)
+
+        Buckets with insufficient data retain their ``IMPACT_PARAMS`` defaults.
+
+        Returns
+        -------
+        dict mapping LiquidityBucket → {permanent_impact, temporary_impact}
+        """
+        # Group by bucket
+        grouped: Dict[LiquidityBucket, List[CalibrationRecord]] = {}
+        for rec in self._records:
+            bucket = rec.market_cap_bucket
+            grouped.setdefault(bucket, []).append(rec)
+
+        result: Dict[LiquidityBucket, Dict[str, float]] = {}
+
+        for bucket in LiquidityBucket:
+            records = grouped.get(bucket, [])
+            if len(records) < self.MIN_SAMPLES:
+                result[bucket] = IMPACT_PARAMS[bucket].copy()
+                continue
+
+            participation = np.array([
+                r.filled_quantity / r.daily_volume
+                for r in records if r.daily_volume > 0
+            ])
+            slippage = np.array([
+                r.slippage_bps for r in records if r.daily_volume > 0
+            ])
+            impact_5m = np.array([
+                r.impact_5min_bps for r in records if r.daily_volume > 0
+            ])
+
+            if len(participation) < self.MIN_SAMPLES:
+                result[bucket] = IMPACT_PARAMS[bucket].copy()
+                continue
+
+            # Temporary impact: OLS  slippage ~ beta * participation_rate
+            # beta = Cov(x,y) / Var(x)
+            x_mean = participation.mean()
+            y_mean = slippage.mean()
+            var_x = ((participation - x_mean) ** 2).sum()
+            if var_x > 1e-15:
+                cov_xy = ((participation - x_mean) * (slippage - y_mean)).sum()
+                temp_impact = max(cov_xy / var_x, 1e-6)
+            else:
+                temp_impact = IMPACT_PARAMS[bucket]['temporary_impact']
+
+            # Permanent impact: median(5min impact) / median(participation)
+            med_impact = float(np.median(np.abs(impact_5m)))
+            med_part = float(np.median(participation))
+            if med_part > 1e-15:
+                perm_impact = max(med_impact / med_part, 1e-6)
+            else:
+                perm_impact = IMPACT_PARAMS[bucket]['permanent_impact']
+
+            result[bucket] = {
+                'permanent_impact': perm_impact,
+                'temporary_impact': temp_impact,
+            }
+
+        self._calibrated = result
+        return result
+
+    def get_calibrated_params(self, bucket: LiquidityBucket) -> Dict[str, float]:
+        """Return calibrated params for a bucket, falling back to defaults."""
+        if bucket in self._calibrated:
+            return self._calibrated[bucket].copy()
+        return IMPACT_PARAMS[bucket].copy()

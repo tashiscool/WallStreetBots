@@ -107,6 +107,41 @@ from .fee_model import (
     KNOWN_SCHEDULES,
 )
 
+# Pre-trade compliance
+from .pre_trade_compliance import (
+    ComplianceLimits,
+    ComplianceResult,
+    ComplianceRule,
+    PreTradeComplianceService,
+)
+
+# Maker-checker (four-eyes) approval workflow
+from .maker_checker import (
+    ApprovalRequest,
+    ApprovalStatus,
+    ApprovalThresholds,
+    MakerCheckerService,
+)
+
+# FIX protocol adapter
+from .fix_adapter import (
+    FIXExecutionClient,
+    FIXMessage,
+    FIXMessageBuilder,
+    FIXMsgType,
+    FIXOrdType,
+    FIXSessionConfig,
+    FIXSide,
+    FIXTimeInForce,
+    FIXVersion,
+)
+
+# Order Management System
+from .oms import (
+    ManagedOrder,
+    OrderManagementSystem,
+)
+
 __all__ = [
     # Interfaces
     "ExecutionClient",
@@ -187,4 +222,27 @@ __all__ = [
     "IBKR_FIXED_EQUITY",
     "IBKR_OPTIONS",
     "KNOWN_SCHEDULES",
+    # Pre-trade compliance
+    "ComplianceLimits",
+    "ComplianceResult",
+    "ComplianceRule",
+    "PreTradeComplianceService",
+    # Maker-checker (four-eyes) approval
+    "ApprovalRequest",
+    "ApprovalStatus",
+    "ApprovalThresholds",
+    "MakerCheckerService",
+    # FIX protocol adapter
+    "FIXExecutionClient",
+    "FIXMessage",
+    "FIXMessageBuilder",
+    "FIXMsgType",
+    "FIXOrdType",
+    "FIXSessionConfig",
+    "FIXSide",
+    "FIXTimeInForce",
+    "FIXVersion",
+    # Order Management System
+    "ManagedOrder",
+    "OrderManagementSystem",
 ]

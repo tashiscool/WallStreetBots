@@ -13,6 +13,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 
 from .dashboard_service import dashboard_service
+from .permissions import permission_required_json, role_required
 
 logger = logging.getLogger(__name__)
 
@@ -6958,6 +6959,7 @@ def circuit_breaker_states(request):
 
 @require_http_methods(["POST"])
 @login_required
+@permission_required_json('can_manage_circuit_breakers')
 def circuit_breaker_reset(request, breaker_type):
     """Reset a specific circuit breaker."""
     from backend.tradingbot.models.models import CircuitBreakerState
@@ -7065,6 +7067,7 @@ def ml_models_list(request):
 
 @require_http_methods(["POST"])
 @login_required
+@permission_required_json('can_manage_ml_models')
 def ml_models_create(request):
     """Create a new ML model."""
     from backend.tradingbot.models.models import MLModel
@@ -7127,6 +7130,7 @@ def ml_models_create(request):
 
 @require_http_methods(["POST"])
 @login_required
+@permission_required_json('can_manage_ml_models')
 def ml_model_train(request, model_id):
     """Start training an ML model."""
     from backend.tradingbot.models.models import MLModel, TrainingJob
@@ -7329,6 +7333,7 @@ def ml_model_update(request, model_id):
 
 @require_http_methods(["DELETE"])
 @login_required
+@permission_required_json('can_manage_ml_models')
 def ml_model_delete(request, model_id):
     """Delete an ML model."""
     from backend.tradingbot.models.models import MLModel
@@ -7455,6 +7460,7 @@ def rl_agents_create(request):
 
 @require_http_methods(["POST"])
 @login_required
+@permission_required_json('can_manage_ml_models')
 def rl_agent_train(request, agent_type):
     """Start training an RL agent."""
     from backend.tradingbot.models.models import RLAgent, TrainingJob
@@ -8759,3 +8765,96 @@ def dex_wallet_balance(request):
         'eth_balance': str(client.get_eth_balance()),
         'token_balances': balances,
     })
+
+
+# -----------------------------------------------------------------------
+# User Roles & Permissions API
+# -----------------------------------------------------------------------
+
+@login_required
+@require_http_methods(["GET"])
+def user_roles(request):
+    """Get current user's platform roles and permissions."""
+    from .permissions import (
+        get_user_roles,
+        get_user_permissions,
+        PlatformRoles,
+    )
+
+    roles = get_user_roles(request.user)
+    permissions = get_user_permissions(request.user)
+
+    return JsonResponse({
+        'status': 'success',
+        'user': request.user.username,
+        'roles': roles,
+        'permissions': permissions,
+        'is_superuser': request.user.is_superuser,
+        'is_staff': request.user.is_staff,
+        'available_roles': {
+            name: PlatformRoles.DESCRIPTIONS[name]
+            for name in PlatformRoles.ALL
+        },
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def user_roles_assign(request):
+    """Assign a role to a user (admin only)."""
+    from .permissions import (
+        assign_role,
+        remove_role,
+        has_role,
+        PlatformRoles,
+    )
+
+    if not request.user.is_superuser and not has_role(request.user, PlatformRoles.ADMIN):
+        return JsonResponse({
+            'status': 'error',
+            'error_code': 'INSUFFICIENT_PERMISSIONS',
+            'message': 'Only admins can assign roles.',
+        }, status=403)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+
+    from django.contrib.auth.models import User as UserModel
+    target_username = data.get('username')
+    role = data.get('role')
+    action = data.get('action', 'add')  # 'add' or 'remove'
+
+    if not target_username or not role:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'username and role are required',
+        }, status=400)
+
+    if role not in PlatformRoles.ALL:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Invalid role. Choose from: {", ".join(PlatformRoles.ALL)}',
+        }, status=400)
+
+    try:
+        target_user = UserModel.objects.get(username=target_username)
+    except UserModel.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'User not found: {target_username}',
+        }, status=404)
+
+    if action == 'remove':
+        remove_role(target_user, role)
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Removed role "{role}" from {target_username}',
+        })
+    else:
+        assign_role(target_user, role)
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Assigned role "{role}" to {target_username}',
+        })

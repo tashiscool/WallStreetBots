@@ -46,16 +46,23 @@ class UserProfileInline(admin.StackedInline):
 
 
 class CustomUserAdmin(BaseUserAdmin):
-    """Extended User admin with UserProfile inline."""
+    """Extended User admin with UserProfile inline and platform roles."""
     inlines = (UserProfileInline,)
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'get_trading_mode')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'get_trading_mode', 'get_platform_roles')
     list_select_related = ('profile',)
+    list_filter = BaseUserAdmin.list_filter + ('groups',)
 
     def get_trading_mode(self, obj):
         if hasattr(obj, 'profile'):
             return 'Paper' if obj.profile.is_paper_trading else 'Live'
         return 'N/A'
     get_trading_mode.short_description = 'Trading Mode'
+
+    def get_platform_roles(self, obj):
+        platform_roles = ['viewer', 'trader', 'risk_manager', 'admin']
+        roles = obj.groups.filter(name__in=platform_roles).values_list('name', flat=True)
+        return ', '.join(roles) if roles else 'None'
+    get_platform_roles.short_description = 'Platform Roles'
 
     def get_inline_instances(self, request, obj=None):
         if not obj:

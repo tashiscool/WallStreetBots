@@ -304,4 +304,8 @@ urlpatterns = [
     path("api/dex/swap/", api_views.dex_swap, name="api-dex-swap"),
     path("api/dex/quote/", api_views.dex_quote, name="api-dex-quote"),
     path("api/dex/balance/", api_views.dex_wallet_balance, name="api-dex-balance"),
+
+    # User Roles & Permissions API (RBAC)
+    path("api/roles/", api_views.user_roles, name="api-user-roles"),
+    path("api/roles/assign/", api_views.user_roles_assign, name="api-user-roles-assign"),
 ]

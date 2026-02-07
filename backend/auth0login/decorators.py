@@ -1,5 +1,8 @@
 """
 Custom decorators for the trading platform.
+
+Provides both trading-gate decorators (paper → live transition) and
+RBAC decorators (role/permission checks via Django Groups).
 """
 
 import functools
@@ -8,6 +11,19 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
 from .services.trading_gate import trading_gate_service
+
+# Re-export RBAC decorators so they're available from this module
+from .permissions import (  # noqa: F401
+    role_required,
+    permission_required_json,
+    has_role,
+    has_any_role,
+    has_platform_permission,
+    get_user_roles,
+    get_user_permissions,
+    PlatformRoles,
+    RoleRequiredMixin,
+)
 
 logger = logging.getLogger(__name__)
 

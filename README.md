@@ -57,6 +57,7 @@ A **comprehensive, institutional-grade trading system** implementing WSB-style s
 ### **🤖 Machine Learning & Analytics**
 - **Reinforcement Learning** - PPO, DQN, SAC, TD3, DDPG, A2C agents with factory pattern
 - **Training Infrastructure** - Callbacks, checkpointing, early stopping, Optuna hyperparameter optimization
+- **Auto-Retraining Pipeline** - Drift-triggered retraining with model registry, shadow testing, and validation gates
 - **Market Regime Detection** - Bull/bear/sideways market identification
 - **Portfolio Optimization** - ML-driven rebalancing with cost-benefit analysis
 - **Advanced Analytics** - Sharpe ratio, Sortino ratio, max drawdown, VaR analysis
@@ -67,6 +68,8 @@ A **comprehensive, institutional-grade trading system** implementing WSB-style s
 
 ### **🔧 Advanced Platform Features**
 - **NLP Sentiment Analysis** - VADER + FinBERT ensemble scoring, Reddit/Twitter/SEC EDGAR sources, sentiment-driven alpha model
+- **Alternative Data** - SEC insider transactions (cluster buy detection), FRED macroeconomic indicators (yield curve, CPI, Fed funds), FINRA dark pool volume, earnings calendar
+- **Options Flow Alpha** - Unusual options activity detection (put/call ratios, volume/OI spikes, block trades)
 - **Copy/Social Trading** - Signal providers, subscriber replication, proportional sizing, risk-gated subscriptions
 - **PDF Performance Reports** - Automated weekly/monthly/quarterly reports with Plotly charts, WeasyPrint PDF generation
 - **Options Payoff Visualization** - Interactive P&L diagrams, Greeks dashboards, multi-expiry scenario analysis
@@ -168,7 +171,7 @@ backend/tradingbot/
 │   ├── implementations/ # Core strategy algorithms
 │   └── production/     # Production wrapper implementations
 ├── framework/           # Quantitative alpha/portfolio framework
-│   ├── alpha_models/   # Alpha signal generation (momentum, sentiment, etc.)
+│   ├── alpha_models/   # Alpha signal generation (momentum, sentiment, options flow, insider, etc.)
 │   └── portfolio_models/ # Portfolio construction (HRP, Black-Litterman, etc.)
 ├── risk/               # Comprehensive risk management
 │   ├── engines/        # VaR, stress testing, and risk calculation engines
@@ -179,11 +182,12 @@ backend/tradingbot/
 │   ├── gates/          # Alpha validation gates and filters
 │   ├── metrics/        # Validation metrics and reporting
 │   └── adapters/       # Integration adapters for validation pipeline
-├── sentiment/           # NLP sentiment analysis (VADER + FinBERT)
+├── sentiment/           # NLP sentiment analysis (VADER + FinBERT), insider transactions, earnings calendar
 ├── options/             # Options payoff visualization and Greeks
 ├── crypto/              # Crypto DEX integration (Uniswap V3)
 ├── analysis/            # PDF performance reports and analytics
 ├── data/               # Data management and providers
+│   ├── sources/        # Market data (Yahoo, Polygon, Alpaca, FRED, FINRA dark pool)
 │   ├── providers/      # Market data source integrations
 │   └── quality/        # Data validation and quality assurance
 ├── core/               # Core trading infrastructure
@@ -202,7 +206,10 @@ ml/tradingbots/
 │   └── rl_agents.py    # PPO, DQN, SAC, TD3, DDPG, A2C agents
 └── training/            # Training infrastructure
     ├── rl_training.py  # RL training loops and evaluation
-    └── callbacks.py    # Checkpointing, early stopping, logging
+    ├── callbacks.py    # Checkpointing, early stopping, logging
+    ├── model_registry.py        # Versioned model storage with promote/rollback
+    ├── retraining_policy.py     # Drift/schedule triggers and validation gates
+    └── retraining_orchestrator.py # End-to-end auto-retraining pipeline
 ```
 
 ## 🎯 **What Makes This Production-Ready?**
@@ -218,12 +225,15 @@ ml/tradingbots/
 - **Quality Assurance** - Comprehensive data quality monitoring and validation
 
 ### **📊 Advanced Market Data & Analytics**
-- **Multi-Source Data** - Alpaca, Polygon, IEX, Yahoo Finance integration
+- **Multi-Source Data** - Alpaca, Polygon, IEX, Yahoo Finance, FRED, FINRA ATS integration
 - **Options Pricing Engine** - Complete Black-Scholes implementation with Greeks
 - **Market Regime Detection** - Bull/bear/sideways market identification
 - **Technical Indicators** - 70+ technical analysis indicators
-- **Earnings Calendar** - Corporate earnings and ex-dividend tracking
+- **Earnings Calendar** - Corporate earnings tracking with filing-based date estimation
 - **Social Sentiment** - WSB/Reddit sentiment integration
+- **Macroeconomic Data** - FRED yield curve, unemployment, CPI, Fed funds, VIX
+- **Dark Pool Activity** - FINRA ATS volume data for institutional accumulation detection
+- **Insider Transactions** - SEC EDGAR Form 4 parsing with cluster buy detection
 - **Real-time Data Validation** - Automated quality checks and anomaly detection
 - **Corporate Actions** - Stock splits, dividends, mergers handling
 
@@ -277,9 +287,11 @@ python -m pytest tests/ --cov=backend --cov-report=html
 - **Strategy Logic** - All 10+ trading strategies with edge cases
 - **Risk Management** - VaR, CVaR, stress testing, ML agents
 - **Market Data** - Data quality, corporate actions, real-time feeds
+- **Alternative Data** - FRED, dark pool, insider transactions, earnings calendar, options flow
 - **Execution** - Order routing, replay protection, shadow trading
 - **Compliance** - Regulatory checks, audit trails, position limits
 - **Performance** - Analytics, regime detection, portfolio optimization
+- **Auto-Retraining** - Model registry, retraining policy, orchestrator pipeline
 - **Signal Validation** - Alpha validation gates, parameter tracking, quality metrics
 - **Data Quality** - Validation framework, quality monitoring, automated testing
 
@@ -366,6 +378,30 @@ quality_monitor = DataQualityMonitor()
 quality_report = quality_monitor.validate_market_data(market_data)
 ```
 
+### **Auto-Retraining Pipeline**
+```python
+# Automated drift-triggered model retraining
+from ml.tradingbots.training import ModelRegistry, RetrainingPolicy, RetrainingOrchestrator
+
+registry = ModelRegistry("./model_versions")
+policy = RetrainingPolicy(schedule_interval_days=7, min_sharpe_improvement=0.1)
+orchestrator = RetrainingOrchestrator(registry=registry, policy=policy, drift_monitor=monitor)
+result = orchestrator.check_and_retrain("ppo", env_factory)
+```
+
+### **Alternative Data Sources**
+```python
+# FRED macroeconomic data
+from backend.tradingbot.data.sources.fred import FREDDataSource
+fred = FREDDataSource()
+curve = fred.get_yield_curve()  # {"dgs2": 4.5, "dgs10": 3.8, "inverted": True}
+
+# Dark pool accumulation detection
+from backend.tradingbot.data.sources.dark_pool import DarkPoolDataSource
+dp = DarkPoolDataSource()
+result = dp.detect_accumulation("AAPL")  # {"detected": True, "change_pct": 35.2}
+```
+
 ## 📊 **What's Included - At a Glance**
 
 | Component | Status | Features |
@@ -386,6 +422,8 @@ quality_report = quality_monitor.validate_market_data(market_data)
 | **Strategy Builder API** | ✅ Complete | 21+ indicators, presets, backtest integration |
 | **Crypto DEX** | ✅ Complete | Uniswap V3, wallet management |
 | **ML/RL Agents** | ✅ Complete | PPO, DQN, SAC, TD3, DDPG, A2C |
+| **Auto-Retraining** | ✅ Complete | Model registry, drift-triggered retraining, shadow testing |
+| **Alternative Data** | ✅ Complete | FRED macro, dark pool, insider transactions, earnings, options flow |
 
 ## 🤝 Want to Contribute?
 

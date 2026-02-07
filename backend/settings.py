@@ -45,6 +45,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Audit trail (after auth: needs request.user)
+    "backend.auth0login.audit.AuditMiddleware",
     # Custom security headers (last: adds security headers to response)
     "backend.middleware.security.SecurityHeadersMiddleware",
 ]

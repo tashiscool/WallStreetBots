@@ -813,6 +813,15 @@ def strategy_builder(request):
 
 
 def logout(request):
+    # Audit before log_out() clears the user
+    if request.user.is_authenticated:
+        from .audit import log_event, AuditEventType
+        log_event(
+            AuditEventType.LOGOUT,
+            user=request.user,
+            request=request,
+            description=f"User {request.user.username} logged out",
+        )
     log_out(request)
     return_to = urlencode({"returnTo": request.build_absolute_uri("/")})
     logout_url = f"https://{settings.SOCIAL_AUTH_AUTH0_DOMAIN}/v2/logout?client_id={settings.SOCIAL_AUTH_AUTH0_KEY}&{return_to}"

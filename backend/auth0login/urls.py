@@ -308,4 +308,8 @@ urlpatterns = [
     # User Roles & Permissions API (RBAC)
     path("api/roles/", api_views.user_roles, name="api-user-roles"),
     path("api/roles/assign/", api_views.user_roles_assign, name="api-user-roles-assign"),
+
+    # Audit Trail API
+    path("api/audit/", api_views.audit_log_list, name="api-audit-log"),
+    path("api/audit/summary/", api_views.audit_log_summary, name="api-audit-summary"),
 ]

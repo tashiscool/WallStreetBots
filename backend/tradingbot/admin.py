@@ -528,6 +528,36 @@ class CustomStrategyAdmin(admin.ModelAdmin):
         return super().get_queryset(request).select_related('user')
 
 
+# ---------------------------------------------------------------------------
+# Audit Log Admin
+# ---------------------------------------------------------------------------
+from backend.auth0login.audit import AuditLog
+
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    """Read-only admin for browsing the audit trail."""
+    list_display = ('timestamp', 'event_type', 'severity', 'username', 'description_short', 'ip_address')
+    list_filter = ('severity', 'event_type')
+    search_fields = ('username', 'description', 'event_type', 'correlation_id')
+    readonly_fields = [f.name for f in AuditLog._meta.get_fields() if hasattr(f, 'name')]
+    ordering = ('-timestamp',)
+    date_hierarchy = 'timestamp'
+
+    def description_short(self, obj):
+        return obj.description[:80] + '...' if len(obj.description) > 80 else obj.description
+    description_short.short_description = 'Description'
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 # Register base models
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(Stock, StockAdmin)

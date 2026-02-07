@@ -6968,6 +6968,16 @@ def circuit_breaker_reset(request, breaker_type):
         breaker = CircuitBreakerState.objects.get(breaker_type=breaker_type)
         breaker.reset()
 
+        from .audit import log_event, AuditEventType
+        log_event(
+            AuditEventType.CIRCUIT_BREAKER_RESET,
+            user=request.user,
+            request=request,
+            description=f'Reset circuit breaker: {breaker_type}',
+            target_type="circuit_breaker",
+            target_id=breaker_type,
+        )
+
         return JsonResponse({
             'status': 'success',
             'message': f'{breaker_type} breaker reset',
@@ -7116,6 +7126,17 @@ def ml_models_create(request):
         # Set default hyperparameters
         model.hyperparameters = model.get_default_hyperparameters()
         model.save()
+
+        from .audit import log_event, AuditEventType
+        log_event(
+            AuditEventType.ML_MODEL_CREATED,
+            user=request.user,
+            request=request,
+            description=f'Created ML model "{model_name}" ({model_type})',
+            target_type="ml_model",
+            target_id=str(model.id),
+            detail={"model_type": model_type, "symbols": symbols},
+        )
 
         return JsonResponse({
             'status': 'success',
@@ -7355,7 +7376,19 @@ def ml_model_delete(request, model_id):
             }, status=400)
 
         model_name = model.name
+        model_id_str = str(model.id)
         model.delete()
+
+        from .audit import log_event, AuditEventType
+        log_event(
+            AuditEventType.ML_MODEL_DELETED,
+            user=request.user,
+            request=request,
+            description=f'Deleted ML model "{model_name}"',
+            target_type="ml_model",
+            target_id=model_id_str,
+            detail={"model_name": model_name},
+        )
 
         return JsonResponse({
             'status': 'success',
@@ -8846,15 +8879,142 @@ def user_roles_assign(request):
             'message': f'User not found: {target_username}',
         }, status=404)
 
+    from .audit import log_event, AuditEventType
+
     if action == 'remove':
         remove_role(target_user, role)
+        log_event(
+            AuditEventType.ROLE_REMOVED,
+            user=request.user,
+            request=request,
+            target_user=target_user,
+            description=f'Removed role "{role}" from {target_username}',
+            detail={"role": role},
+        )
         return JsonResponse({
             'status': 'success',
             'message': f'Removed role "{role}" from {target_username}',
         })
     else:
         assign_role(target_user, role)
+        log_event(
+            AuditEventType.ROLE_ASSIGNED,
+            user=request.user,
+            request=request,
+            target_user=target_user,
+            description=f'Assigned role "{role}" to {target_username}',
+            detail={"role": role},
+        )
         return JsonResponse({
             'status': 'success',
             'message': f'Assigned role "{role}" to {target_username}',
         })
+
+
+# -----------------------------------------------------------------------
+# Audit Trail API
+# -----------------------------------------------------------------------
+
+@login_required
+@require_http_methods(["GET"])
+def audit_log_list(request):
+    """Query the platform audit trail.
+
+    Query params:
+        event_type  - filter by event type (e.g. "rbac.role_assigned") or category ("rbac")
+        severity    - filter by severity (info, warning, critical)
+        since       - ISO timestamp lower bound
+        until       - ISO timestamp upper bound
+        username    - filter by actor username
+        limit       - max results (default 100, max 500)
+        offset      - pagination offset
+    """
+    from .audit import get_audit_log, AuditLog
+    from .permissions import has_role, PlatformRoles
+
+    # Only admins and risk managers can view audit logs
+    if not (request.user.is_superuser or has_role(request.user, PlatformRoles.ADMIN)
+            or has_role(request.user, PlatformRoles.RISK_MANAGER)):
+        return JsonResponse({
+            'status': 'error',
+            'error_code': 'INSUFFICIENT_PERMISSIONS',
+            'message': 'Audit log access requires admin or risk_manager role.',
+        }, status=403)
+
+    event_type = request.GET.get('event_type')
+    severity = request.GET.get('severity')
+    since = request.GET.get('since')
+    until = request.GET.get('until')
+    username = request.GET.get('username')
+    limit = min(int(request.GET.get('limit', 100)), 500)
+    offset = int(request.GET.get('offset', 0))
+
+    # Resolve username to user
+    target_actor = None
+    if username:
+        from django.contrib.auth.models import User as UserModel
+        target_actor = UserModel.objects.filter(username=username).first()
+
+    entries, total = get_audit_log(
+        user=target_actor,
+        event_type=event_type,
+        severity=severity,
+        since=since,
+        until=until,
+        limit=limit,
+        offset=offset,
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'total': total,
+        'limit': limit,
+        'offset': offset,
+        'entries': [e.to_dict() for e in entries],
+    })
+
+
+@login_required
+@require_http_methods(["GET"])
+def audit_log_summary(request):
+    """Return aggregate counts of audit events for dashboards."""
+    from .audit import AuditLog
+    from .permissions import has_role, PlatformRoles
+    from django.db.models import Count
+    from django.utils import timezone
+    from datetime import timedelta
+
+    if not (request.user.is_superuser or has_role(request.user, PlatformRoles.ADMIN)
+            or has_role(request.user, PlatformRoles.RISK_MANAGER)):
+        return JsonResponse({
+            'status': 'error',
+            'error_code': 'INSUFFICIENT_PERMISSIONS',
+            'message': 'Audit log access requires admin or risk_manager role.',
+        }, status=403)
+
+    days = int(request.GET.get('days', 7))
+    cutoff = timezone.now() - timedelta(days=days)
+
+    by_type = list(
+        AuditLog.objects.filter(timestamp__gte=cutoff)
+        .values('event_type')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+
+    by_severity = list(
+        AuditLog.objects.filter(timestamp__gte=cutoff)
+        .values('severity')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+
+    total = AuditLog.objects.filter(timestamp__gte=cutoff).count()
+
+    return JsonResponse({
+        'status': 'success',
+        'period_days': days,
+        'total_events': total,
+        'by_type': by_type,
+        'by_severity': by_severity,
+    })

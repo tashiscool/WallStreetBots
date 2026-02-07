@@ -377,12 +377,16 @@ class ImpactCalibrator:
     and produces per-bucket ``(permanent_impact, temporary_impact)`` estimates
     that replace the hardcoded ``IMPACT_PARAMS`` defaults.
 
-    Records are validated at ingestion time: if both ``fill_timestamp`` and
-    ``impact_observed_timestamp`` are present, the actual lag must be within
-    ``impact_lag_tolerance`` of the 300 s target horizon.  Records that were
-    observed too early (mid not yet settled) or too late (measuring a
-    different horizon) are silently rejected to prevent lookahead and
-    survivorship-style contamination.
+    Records are validated at ingestion time:
+
+    * If ``require_timestamps`` is ``True`` (the default for production),
+      records **must** carry both ``fill_timestamp`` and
+      ``impact_observed_timestamp``.  Timestamp-less records are rejected,
+      closing the silent contamination path where untraceable data bypasses
+      the lag guard.
+    * The actual observation lag must fall within ``impact_lag_tolerance``
+      of the 300 s target horizon.  Records observed too early (mid not
+      yet settled) or too late (measuring a different horizon) are rejected.
 
     The calibration approach:
     * **temporary_impact** — OLS slope of ``slippage_bps ~ beta * participation_rate``
@@ -406,6 +410,7 @@ class ImpactCalibrator:
     def __init__(
         self,
         impact_lag_tolerance: float = 60.0,
+        require_timestamps: bool = True,
     ) -> None:
         """
         Parameters
@@ -417,27 +422,49 @@ class ImpactCalibrator:
             Set to ``math.inf`` to disable the check.  Default 60 s
             accepts observations sampled between 4 and 6 minutes
             post-fill.
+        require_timestamps : bool
+            If ``True`` (default), records without both ``fill_timestamp``
+            and ``impact_observed_timestamp`` are rejected.  Set to
+            ``False`` for legacy/backfill ingestion where timestamps are
+            unavailable.
         """
         self._records: List[CalibrationRecord] = []
         self._rejected_count: int = 0
+        self._rejected_no_ts_count: int = 0
+        self._accepted_lags: List[float] = []
         self._calibrated: Dict[LiquidityBucket, Dict[str, float]] = {}
         self._impact_lag_tolerance = impact_lag_tolerance
+        self._require_timestamps = require_timestamps
 
     def record(self, rec: CalibrationRecord) -> bool:
         """Add a calibration observation.
 
-        Returns ``True`` if the record was accepted, ``False`` if it was
-        rejected because its impact observation lag falls outside the
-        tolerance window around the 300 s horizon.  Records without
-        timestamps are accepted unconditionally (no data to validate).
+        Returns ``True`` if the record was accepted, ``False`` if rejected.
+
+        Rejection reasons:
+
+        * **Missing timestamps** — when ``require_timestamps`` is ``True``
+          and either ``fill_timestamp`` or ``impact_observed_timestamp`` is
+          ``None``.
+        * **Lag out of tolerance** — the actual observation lag falls
+          outside the ``[300 - tol, 300 + tol]`` window.
         """
         lag = rec.impact_lag_seconds
-        if lag is not None:
-            lo = self.IMPACT_HORIZON_SECONDS - self._impact_lag_tolerance
-            hi = self.IMPACT_HORIZON_SECONDS + self._impact_lag_tolerance
-            if lag < lo or lag > hi:
-                self._rejected_count += 1
+        if lag is None:
+            if self._require_timestamps:
+                self._rejected_no_ts_count += 1
                 return False
+            # Legacy mode: accept without validation
+            self._records.append(rec)
+            return True
+
+        lo = self.IMPACT_HORIZON_SECONDS - self._impact_lag_tolerance
+        hi = self.IMPACT_HORIZON_SECONDS + self._impact_lag_tolerance
+        if lag < lo or lag > hi:
+            self._rejected_count += 1
+            return False
+
+        self._accepted_lags.append(lag)
         self._records.append(rec)
         return True
 
@@ -445,6 +472,50 @@ class ImpactCalibrator:
     def rejected_count(self) -> int:
         """Number of records rejected due to impact lag violation."""
         return self._rejected_count
+
+    @property
+    def rejected_no_timestamp_count(self) -> int:
+        """Number of records rejected because timestamps were missing."""
+        return self._rejected_no_ts_count
+
+    def lag_stats(self) -> Dict[str, float]:
+        """Observation lag statistics for accepted records.
+
+        Returns
+        -------
+        dict with keys:
+            count            — number of accepted records with valid lag
+            avg_lag          — mean observation lag (seconds)
+            p95_lag          — 95th-percentile observation lag (seconds)
+            reject_rate      — fraction of total submissions rejected
+            reject_lag_count — rejected for lag violation
+            reject_no_ts_count — rejected for missing timestamps
+        """
+        total_submitted = (
+            len(self._records) + self._rejected_count + self._rejected_no_ts_count
+        )
+        reject_rate = (
+            (self._rejected_count + self._rejected_no_ts_count) / total_submitted
+            if total_submitted > 0 else 0.0
+        )
+        if self._accepted_lags:
+            arr = np.array(self._accepted_lags)
+            return {
+                'count': len(self._accepted_lags),
+                'avg_lag': float(arr.mean()),
+                'p95_lag': float(np.percentile(arr, 95)),
+                'reject_rate': reject_rate,
+                'reject_lag_count': self._rejected_count,
+                'reject_no_ts_count': self._rejected_no_ts_count,
+            }
+        return {
+            'count': 0,
+            'avg_lag': 0.0,
+            'p95_lag': 0.0,
+            'reject_rate': reject_rate,
+            'reject_lag_count': self._rejected_count,
+            'reject_no_ts_count': self._rejected_no_ts_count,
+        }
 
     @staticmethod
     def classify_bucket(daily_volume: float, symbol: str = "") -> LiquidityBucket:

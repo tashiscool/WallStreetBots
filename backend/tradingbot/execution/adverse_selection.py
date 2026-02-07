@@ -40,6 +40,12 @@ class TradeRecord:
     mid_price_30s: Optional[float] = None  # Mid 30 seconds after
     mid_price_60s: Optional[float] = None  # Mid 60 seconds after
     mid_price_300s: Optional[float] = None  # Mid 5 minutes after
+    # Observation timestamps: when the horizon measurement was actually taken
+    mid_price_1s_ts: Optional[datetime] = None
+    mid_price_5s_ts: Optional[datetime] = None
+    mid_price_30s_ts: Optional[datetime] = None
+    mid_price_60s_ts: Optional[datetime] = None
+    mid_price_300s_ts: Optional[datetime] = None
     is_maker: bool = False
 
 
@@ -258,13 +264,28 @@ class ToxicFlowDetector:
     are systematically followed by adverse price moves, indicating
     you are trading against informed counterparties.
 
+    Post-fill price impact is measured by buffering timestamped mid-price
+    observations and resolving each horizon (1s, 5s, 30s, 60s, 300s)
+    via linear interpolation between bracketing samples.  This produces
+    accurate measurements regardless of how frequently (or irregularly)
+    ``update_post_fill_prices`` is called.
+
     Example:
         detector = ToxicFlowDetector()
         detector.record_fill("AAPL", "buy", 100, 150.00, mid=150.01)
         # ... later, after price updates ...
-        detector.update_post_fill_prices("AAPL", mid_now=149.50, horizon_seconds=60)
+        detector.update_post_fill_prices("AAPL", mid_now=149.50)
         metrics = detector.get_metrics("AAPL")
     """
+
+    # (price_attr, horizon_seconds, timestamp_attr)
+    _HORIZONS = [
+        ('mid_price_1s', 1, 'mid_price_1s_ts'),
+        ('mid_price_5s', 5, 'mid_price_5s_ts'),
+        ('mid_price_30s', 30, 'mid_price_30s_ts'),
+        ('mid_price_60s', 60, 'mid_price_60s_ts'),
+        ('mid_price_300s', 300, 'mid_price_300s_ts'),
+    ]
 
     def __init__(
         self,
@@ -280,6 +301,8 @@ class ToxicFlowDetector:
         self.toxic_threshold_bps = toxic_threshold_bps
         self._trades: Dict[str, Deque[TradeRecord]] = {}
         self._pending_updates: Dict[str, List[TradeRecord]] = {}
+        # Per-trade buffer of (timestamp, mid_price) for interpolation
+        self._mid_price_buffers: Dict[int, List[Tuple[datetime, float]]] = {}
 
     def record_fill(
         self,
@@ -331,8 +354,12 @@ class ToxicFlowDetector:
         """
         Update post-fill mid prices for pending trades.
 
-        Call this periodically with current market data to populate
-        the post-fill price impact fields.
+        Call this periodically with current market data.  Each call
+        buffers ``(current_time, current_mid)`` per pending trade.
+        Once ``elapsed >= horizon``, the horizon is resolved by
+        linearly interpolating between the two buffered samples that
+        bracket ``fill_ts + horizon`` (or using the nearest sample
+        when only one side is available).
 
         Args:
             symbol: Trading symbol
@@ -344,24 +371,83 @@ class ToxicFlowDetector:
         still_pending = []
 
         for trade in pending:
-            elapsed = (now - trade.timestamp).total_seconds()
+            trade_id = id(trade)
 
-            if trade.mid_price_1s is None and elapsed >= 1:
-                trade.mid_price_1s = current_mid
-            if trade.mid_price_5s is None and elapsed >= 5:
-                trade.mid_price_5s = current_mid
-            if trade.mid_price_30s is None and elapsed >= 30:
-                trade.mid_price_30s = current_mid
-            if trade.mid_price_60s is None and elapsed >= 60:
-                trade.mid_price_60s = current_mid
-            if trade.mid_price_300s is None and elapsed >= 300:
-                trade.mid_price_300s = current_mid
+            # Seed buffer with fill-time mid on first encounter
+            if trade_id not in self._mid_price_buffers:
+                self._mid_price_buffers[trade_id] = [
+                    (trade.timestamp, trade.mid_price_at_fill)
+                ]
+
+            # Append current observation
+            self._mid_price_buffers[trade_id].append((now, current_mid))
+
+            elapsed = (now - trade.timestamp).total_seconds()
+            buf = self._mid_price_buffers[trade_id]
+
+            for price_attr, horizon_secs, ts_attr in self._HORIZONS:
+                if getattr(trade, price_attr) is None and elapsed >= horizon_secs:
+                    target_time = trade.timestamp + timedelta(seconds=horizon_secs)
+                    resolved_mid, resolved_ts = self._resolve_mid_price(
+                        buf, target_time
+                    )
+                    setattr(trade, price_attr, resolved_mid)
+                    setattr(trade, ts_attr, resolved_ts)
 
             # Keep in pending if not all horizons filled
             if trade.mid_price_300s is None:
                 still_pending.append(trade)
+            else:
+                # All horizons resolved — clean up buffer
+                self._mid_price_buffers.pop(trade_id, None)
 
         self._pending_updates[symbol] = still_pending
+
+    @staticmethod
+    def _resolve_mid_price(
+        buffer: List[Tuple[datetime, float]],
+        target_time: datetime,
+    ) -> Tuple[float, datetime]:
+        """
+        Resolve mid price at *target_time* from buffered observations.
+
+        Uses linear interpolation between the two samples that bracket
+        *target_time*.  Falls back to the nearest available sample when
+        only one side exists (e.g. the first update arrives well after
+        the target horizon).
+
+        Returns:
+            (resolved_price, observation_timestamp)
+            *observation_timestamp* is *target_time* when interpolated,
+            or the actual sample timestamp when using nearest-sample.
+        """
+        before_ts: Optional[datetime] = None
+        before_mid: Optional[float] = None
+        after_ts: Optional[datetime] = None
+        after_mid: Optional[float] = None
+
+        for ts, mid in buffer:
+            if ts <= target_time:
+                before_ts, before_mid = ts, mid
+            else:
+                after_ts, after_mid = ts, mid
+                break  # buffer is chronological; first sample past target
+
+        if before_ts is not None and after_ts is not None:
+            dt_total = (after_ts - before_ts).total_seconds()
+            dt_target = (target_time - before_ts).total_seconds()
+            if dt_total > 0:
+                alpha = dt_target / dt_total
+                interpolated = before_mid + alpha * (after_mid - before_mid)
+                return interpolated, target_time
+            return before_mid, before_ts
+
+        if before_ts is not None:
+            return before_mid, before_ts
+        if after_ts is not None:
+            return after_mid, after_ts
+
+        raise ValueError("Empty mid-price buffer")
 
     def get_metrics(
         self,
@@ -502,8 +588,12 @@ class ToxicFlowDetector:
     def reset(self, symbol: Optional[str] = None) -> None:
         """Reset tracking for a symbol or all symbols."""
         if symbol:
-            self._trades.pop(symbol, None)
-            self._pending_updates.pop(symbol, None)
+            # Clean up buffers for trades belonging to this symbol
+            for trade in self._pending_updates.pop(symbol, []):
+                self._mid_price_buffers.pop(id(trade), None)
+            for trade in self._trades.pop(symbol, deque()):
+                self._mid_price_buffers.pop(id(trade), None)
         else:
             self._trades.clear()
             self._pending_updates.clear()
+            self._mid_price_buffers.clear()

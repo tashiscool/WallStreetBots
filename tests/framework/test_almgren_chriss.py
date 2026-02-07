@@ -241,16 +241,22 @@ def _make_synthetic_records(
     daily_volume: float = 20_000_000,
     seed: int = 42,
 ) -> list:
-    """Generate synthetic CalibrationRecords with realistic linear relationship."""
+    """Generate synthetic CalibrationRecords with realistic linear relationship.
+
+    All records carry valid timestamps with a 300s impact observation lag
+    so they pass the default ``require_timestamps=True`` validation.
+    """
     rng = np.random.RandomState(seed)
+    base_time = datetime(2026, 1, 15, 10, 0, 0)
     records = []
-    for _ in range(n):
+    for i in range(n):
         qty = rng.uniform(1000, 50000)
         participation = qty / daily_volume
         # slippage ~ 50 * participation + noise  (temporary impact ≈ 50)
         slippage = 50.0 * participation + rng.normal(0, 0.5)
         # 5min impact ~ 20 * participation + noise  (permanent impact ≈ 20)
         impact_5m = 20.0 * participation + rng.normal(0, 0.3)
+        fill_ts = base_time + timedelta(minutes=i * 10)
         records.append(CalibrationRecord(
             symbol='AAPL',
             side='buy',
@@ -258,6 +264,8 @@ def _make_synthetic_records(
             daily_volume=daily_volume,
             slippage_bps=slippage,
             impact_5min_bps=impact_5m,
+            fill_timestamp=fill_ts,
+            impact_observed_timestamp=fill_ts + timedelta(seconds=300),
             market_cap_bucket=bucket,
         ))
     return records
@@ -451,9 +459,20 @@ class TestImpactLagValidation:
         assert calibrator.record(rec) is False
         assert calibrator.rejected_count == 1
 
-    def test_no_timestamps_accepted_unconditionally(self):
-        """Records without timestamps pass through (backward compat)."""
+    def test_no_timestamps_rejected_by_default(self):
+        """Records without timestamps are rejected when require_timestamps=True (default)."""
         calibrator = ImpactCalibrator()
+        rec = CalibrationRecord(
+            symbol='AAPL', side='buy', filled_quantity=10000,
+            daily_volume=20_000_000, slippage_bps=1.0, impact_5min_bps=0.5,
+            market_cap_bucket=LiquidityBucket.LARGE_CAP,
+        )
+        assert calibrator.record(rec) is False
+        assert calibrator.rejected_no_timestamp_count == 1
+
+    def test_no_timestamps_accepted_in_legacy_mode(self):
+        """Records without timestamps pass through when require_timestamps=False."""
+        calibrator = ImpactCalibrator(require_timestamps=False)
         rec = CalibrationRecord(
             symbol='AAPL', side='buy', filled_quantity=10000,
             daily_volume=20_000_000, slippage_bps=1.0, impact_5min_bps=0.5,
@@ -462,9 +481,20 @@ class TestImpactLagValidation:
         assert calibrator.record(rec) is True
         assert calibrator.rejected_count == 0
 
-    def test_partial_timestamps_accepted(self):
-        """Only fill_timestamp but no impact_timestamp — can't validate, accept."""
+    def test_partial_timestamps_rejected_by_default(self):
+        """Only fill_timestamp but no impact_timestamp — can't validate lag, rejected."""
         calibrator = ImpactCalibrator()
+        rec = CalibrationRecord(
+            symbol='AAPL', side='buy', filled_quantity=10000,
+            daily_volume=20_000_000, slippage_bps=1.0, impact_5min_bps=0.5,
+            fill_timestamp=datetime(2026, 1, 15, 10, 0, 0),
+            market_cap_bucket=LiquidityBucket.LARGE_CAP,
+        )
+        assert calibrator.record(rec) is False
+
+    def test_partial_timestamps_accepted_in_legacy_mode(self):
+        """Partial timestamps accepted when require_timestamps=False."""
+        calibrator = ImpactCalibrator(require_timestamps=False)
         rec = CalibrationRecord(
             symbol='AAPL', side='buy', filled_quantity=10000,
             daily_volume=20_000_000, slippage_bps=1.0, impact_5min_bps=0.5,
@@ -504,3 +534,75 @@ class TestImpactLagValidation:
             daily_volume=20_000_000, slippage_bps=1.0, impact_5min_bps=0.5,
         )
         assert rec.impact_lag_seconds is None
+
+
+class TestLagStats:
+    """Tests for ImpactCalibrator.lag_stats() observability."""
+
+    def _make_record(self, fill_ts, impact_ts):
+        return CalibrationRecord(
+            symbol='AAPL', side='buy', filled_quantity=10000,
+            daily_volume=20_000_000, slippage_bps=1.0, impact_5min_bps=0.5,
+            fill_timestamp=fill_ts, impact_observed_timestamp=impact_ts,
+            market_cap_bucket=LiquidityBucket.LARGE_CAP,
+        )
+
+    def test_lag_stats_empty(self):
+        """Empty calibrator should return zero stats."""
+        cal = ImpactCalibrator()
+        stats = cal.lag_stats()
+        assert stats['count'] == 0
+        assert stats['avg_lag'] == 0.0
+        assert stats['p95_lag'] == 0.0
+        assert stats['reject_rate'] == 0.0
+
+    def test_lag_stats_with_accepted_records(self):
+        """Accepted records should populate avg and p95 lag."""
+        cal = ImpactCalibrator()
+        fill = datetime(2026, 1, 15, 10, 0, 0)
+        for offset in [280, 290, 300, 310, 320]:
+            rec = self._make_record(fill, fill + timedelta(seconds=offset))
+            cal.record(rec)
+
+        stats = cal.lag_stats()
+        assert stats['count'] == 5
+        assert stats['avg_lag'] == pytest.approx(300.0, abs=0.1)
+        assert stats['p95_lag'] >= 310
+        assert stats['reject_rate'] == 0.0
+
+    def test_lag_stats_with_rejections(self):
+        """Reject rate should reflect both lag and timestamp rejections."""
+        cal = ImpactCalibrator()
+        fill = datetime(2026, 1, 15, 10, 0, 0)
+
+        # 2 accepted
+        cal.record(self._make_record(fill, fill + timedelta(seconds=300)))
+        cal.record(self._make_record(fill, fill + timedelta(seconds=310)))
+
+        # 1 rejected (lag too high)
+        cal.record(self._make_record(fill, fill + timedelta(seconds=900)))
+
+        # 1 rejected (no timestamps)
+        cal.record(CalibrationRecord(
+            symbol='AAPL', side='buy', filled_quantity=10000,
+            daily_volume=20_000_000, slippage_bps=1.0, impact_5min_bps=0.5,
+            market_cap_bucket=LiquidityBucket.LARGE_CAP,
+        ))
+
+        stats = cal.lag_stats()
+        assert stats['count'] == 2
+        assert stats['reject_lag_count'] == 1
+        assert stats['reject_no_ts_count'] == 1
+        assert stats['reject_rate'] == pytest.approx(0.5)  # 2 rejected out of 4
+
+    def test_rejected_no_timestamp_count_property(self):
+        """rejected_no_timestamp_count should track missing-timestamp rejections."""
+        cal = ImpactCalibrator()
+        for _ in range(3):
+            cal.record(CalibrationRecord(
+                symbol='AAPL', side='buy', filled_quantity=10000,
+                daily_volume=20_000_000, slippage_bps=1.0, impact_5min_bps=0.5,
+                market_cap_bucket=LiquidityBucket.LARGE_CAP,
+            ))
+        assert cal.rejected_no_timestamp_count == 3
+        assert cal.rejected_count == 0  # These are lag rejections, not timestamp rejections

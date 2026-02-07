@@ -339,13 +339,20 @@ class AlmgrenChrissExecutionModel(ExecutionModel):
 
 @dataclass
 class CalibrationRecord:
-    """A single execution observation used for impact calibration."""
+    """A single execution observation used for impact calibration.
+
+    Includes timestamps so the calibrator can verify the impact observation
+    was actually sampled near the target horizon (≈300 s post-fill) and not
+    forward-filled or stale from a later bar aggregation.
+    """
     symbol: str
     side: str                    # 'buy' or 'sell'
     filled_quantity: float
     daily_volume: float          # ADV at time of trade
     slippage_bps: float          # immediate: (fill - market) / market * 10000
     impact_5min_bps: float       # permanent: price change at 5min post-fill
+    fill_timestamp: Optional[datetime] = None
+    impact_observed_timestamp: Optional[datetime] = None
     market_cap_bucket: Optional[LiquidityBucket] = None
 
     def __post_init__(self):
@@ -353,6 +360,13 @@ class CalibrationRecord:
             self.market_cap_bucket = ImpactCalibrator.classify_bucket(
                 self.daily_volume, self.symbol,
             )
+
+    @property
+    def impact_lag_seconds(self) -> Optional[float]:
+        """Actual seconds between fill and impact observation, or None."""
+        if self.fill_timestamp and self.impact_observed_timestamp:
+            return (self.impact_observed_timestamp - self.fill_timestamp).total_seconds()
+        return None
 
 
 class ImpactCalibrator:
@@ -363,12 +377,20 @@ class ImpactCalibrator:
     and produces per-bucket ``(permanent_impact, temporary_impact)`` estimates
     that replace the hardcoded ``IMPACT_PARAMS`` defaults.
 
+    Records are validated at ingestion time: if both ``fill_timestamp`` and
+    ``impact_observed_timestamp`` are present, the actual lag must be within
+    ``impact_lag_tolerance`` of the 300 s target horizon.  Records that were
+    observed too early (mid not yet settled) or too late (measuring a
+    different horizon) are silently rejected to prevent lookahead and
+    survivorship-style contamination.
+
     The calibration approach:
     * **temporary_impact** — OLS slope of ``slippage_bps ~ beta * participation_rate``
     * **permanent_impact** — ``median(impact_5min_bps) / median(participation_rate)``
     """
 
     MIN_SAMPLES = 30  # per bucket
+    IMPACT_HORIZON_SECONDS = 300.0  # 5-minute target horizon
 
     # ADV thresholds (shares/day) for bucket classification
     _ADV_THRESHOLDS = [
@@ -381,13 +403,48 @@ class ImpactCalibrator:
     _CRYPTO_PREFIXES = ('BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'DOT')
     _CRYPTO_MAJOR = ('BTC', 'ETH')
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        impact_lag_tolerance: float = 60.0,
+    ) -> None:
+        """
+        Parameters
+        ----------
+        impact_lag_tolerance : float
+            Maximum allowed deviation (in seconds) between the actual
+            impact observation lag and the 300 s target horizon.
+            Records outside ``[300 - tol, 300 + tol]`` are rejected.
+            Set to ``math.inf`` to disable the check.  Default 60 s
+            accepts observations sampled between 4 and 6 minutes
+            post-fill.
+        """
         self._records: List[CalibrationRecord] = []
+        self._rejected_count: int = 0
         self._calibrated: Dict[LiquidityBucket, Dict[str, float]] = {}
+        self._impact_lag_tolerance = impact_lag_tolerance
 
-    def record(self, rec: CalibrationRecord) -> None:
-        """Add a calibration observation."""
+    def record(self, rec: CalibrationRecord) -> bool:
+        """Add a calibration observation.
+
+        Returns ``True`` if the record was accepted, ``False`` if it was
+        rejected because its impact observation lag falls outside the
+        tolerance window around the 300 s horizon.  Records without
+        timestamps are accepted unconditionally (no data to validate).
+        """
+        lag = rec.impact_lag_seconds
+        if lag is not None:
+            lo = self.IMPACT_HORIZON_SECONDS - self._impact_lag_tolerance
+            hi = self.IMPACT_HORIZON_SECONDS + self._impact_lag_tolerance
+            if lag < lo or lag > hi:
+                self._rejected_count += 1
+                return False
         self._records.append(rec)
+        return True
+
+    @property
+    def rejected_count(self) -> int:
+        """Number of records rejected due to impact lag violation."""
+        return self._rejected_count
 
     @staticmethod
     def classify_bucket(daily_volume: float, symbol: str = "") -> LiquidityBucket:

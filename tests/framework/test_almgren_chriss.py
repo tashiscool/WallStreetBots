@@ -1,5 +1,6 @@
 """Tests for Almgren-Chriss optimal execution model."""
 
+from datetime import datetime, timedelta
 from decimal import Decimal
 import math
 import pytest
@@ -397,3 +398,109 @@ class TestCalibratedParamsUsedInExecution:
         qty_with = [s['order'].quantity for s in sched_with]
         qty_without = [s['order'].quantity for s in sched_without]
         assert qty_with != qty_without
+
+
+class TestImpactLagValidation:
+    """CalibrationRecord timestamp validation to prevent lookahead contamination."""
+
+    def _make_record(self, fill_ts, impact_ts):
+        return CalibrationRecord(
+            symbol='AAPL',
+            side='buy',
+            filled_quantity=10000,
+            daily_volume=20_000_000,
+            slippage_bps=1.0,
+            impact_5min_bps=0.5,
+            fill_timestamp=fill_ts,
+            impact_observed_timestamp=impact_ts,
+            market_cap_bucket=LiquidityBucket.LARGE_CAP,
+        )
+
+    def test_record_accepted_within_tolerance(self):
+        """Lag of 310s is within default 60s tolerance of 300s target."""
+        calibrator = ImpactCalibrator()
+        fill = datetime(2026, 1, 15, 10, 0, 0)
+        impact = fill + timedelta(seconds=310)
+        rec = self._make_record(fill, impact)
+        assert calibrator.record(rec) is True
+        assert calibrator.rejected_count == 0
+
+    def test_record_accepted_at_exact_horizon(self):
+        """Lag of exactly 300s should be accepted."""
+        calibrator = ImpactCalibrator()
+        fill = datetime(2026, 1, 15, 10, 0, 0)
+        impact = fill + timedelta(seconds=300)
+        rec = self._make_record(fill, impact)
+        assert calibrator.record(rec) is True
+
+    def test_record_rejected_too_late(self):
+        """Lag of 900s (15 min) is way outside tolerance — reject."""
+        calibrator = ImpactCalibrator()
+        fill = datetime(2026, 1, 15, 10, 0, 0)
+        impact = fill + timedelta(seconds=900)
+        rec = self._make_record(fill, impact)
+        assert calibrator.record(rec) is False
+        assert calibrator.rejected_count == 1
+
+    def test_record_rejected_too_early(self):
+        """Lag of 60s — impact not yet settled — reject."""
+        calibrator = ImpactCalibrator()
+        fill = datetime(2026, 1, 15, 10, 0, 0)
+        impact = fill + timedelta(seconds=60)
+        rec = self._make_record(fill, impact)
+        assert calibrator.record(rec) is False
+        assert calibrator.rejected_count == 1
+
+    def test_no_timestamps_accepted_unconditionally(self):
+        """Records without timestamps pass through (backward compat)."""
+        calibrator = ImpactCalibrator()
+        rec = CalibrationRecord(
+            symbol='AAPL', side='buy', filled_quantity=10000,
+            daily_volume=20_000_000, slippage_bps=1.0, impact_5min_bps=0.5,
+            market_cap_bucket=LiquidityBucket.LARGE_CAP,
+        )
+        assert calibrator.record(rec) is True
+        assert calibrator.rejected_count == 0
+
+    def test_partial_timestamps_accepted(self):
+        """Only fill_timestamp but no impact_timestamp — can't validate, accept."""
+        calibrator = ImpactCalibrator()
+        rec = CalibrationRecord(
+            symbol='AAPL', side='buy', filled_quantity=10000,
+            daily_volume=20_000_000, slippage_bps=1.0, impact_5min_bps=0.5,
+            fill_timestamp=datetime(2026, 1, 15, 10, 0, 0),
+            market_cap_bucket=LiquidityBucket.LARGE_CAP,
+        )
+        assert calibrator.record(rec) is True
+
+    def test_custom_tolerance(self):
+        """Tight tolerance (10s) rejects a record that default would accept."""
+        calibrator = ImpactCalibrator(impact_lag_tolerance=10.0)
+        fill = datetime(2026, 1, 15, 10, 0, 0)
+        impact = fill + timedelta(seconds=350)  # 50s off — outside 10s tol
+        rec = self._make_record(fill, impact)
+        assert calibrator.record(rec) is False
+
+    def test_rejected_count_accumulates(self):
+        """Multiple rejected records should accumulate."""
+        calibrator = ImpactCalibrator()
+        fill = datetime(2026, 1, 15, 10, 0, 0)
+        for offset in [60, 900, 1200]:
+            rec = self._make_record(fill, fill + timedelta(seconds=offset))
+            calibrator.record(rec)
+        assert calibrator.rejected_count == 3
+
+    def test_impact_lag_seconds_property(self):
+        """CalibrationRecord.impact_lag_seconds returns correct lag."""
+        fill = datetime(2026, 1, 15, 10, 0, 0)
+        impact = fill + timedelta(seconds=305)
+        rec = self._make_record(fill, impact)
+        assert rec.impact_lag_seconds == pytest.approx(305.0)
+
+    def test_impact_lag_seconds_none_without_timestamps(self):
+        """impact_lag_seconds returns None when timestamps are missing."""
+        rec = CalibrationRecord(
+            symbol='AAPL', side='buy', filled_quantity=10000,
+            daily_volume=20_000_000, slippage_bps=1.0, impact_5min_bps=0.5,
+        )
+        assert rec.impact_lag_seconds is None

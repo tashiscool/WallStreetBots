@@ -19,6 +19,8 @@ from .volatility_alpha import VolatilityAlphaModel
 from .stochastic_alpha import StochasticAlphaModel
 from .atr_reversion_alpha import ATRReversionAlphaModel
 from .sentiment_alpha import SentimentAlphaModel
+from .options_flow_alpha import OptionsFlowAlphaModel
+from .insider_alpha import InsiderAlphaModel
 
 # Registry: name -> class
 ALPHA_MODELS: Dict[str, type] = {
@@ -34,6 +36,8 @@ ALPHA_MODELS: Dict[str, type] = {
     'stochastic': StochasticAlphaModel,
     'atr_reversion': ATRReversionAlphaModel,
     'sentiment': SentimentAlphaModel,
+    'options_flow': OptionsFlowAlphaModel,
+    'insider': InsiderAlphaModel,
 }
 
 
@@ -75,6 +79,8 @@ __all__ = [
     'StochasticAlphaModel',
     'ATRReversionAlphaModel',
     'SentimentAlphaModel',
+    'OptionsFlowAlphaModel',
+    'InsiderAlphaModel',
     'ALPHA_MODELS',
     'get_alpha_model',
     'list_alpha_models',

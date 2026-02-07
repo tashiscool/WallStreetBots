@@ -47,6 +47,8 @@ from .base import (
 from .yahoo import YahooDataSource
 from .polygon import PolygonDataSource
 from .alpaca import AlpacaDataSource
+from .fred import FREDDataSource
+from .dark_pool import DarkPoolDataSource
 
 __all__ = [
     # Types
@@ -64,4 +66,7 @@ __all__ = [
     "YahooDataSource",
     "PolygonDataSource",
     "AlpacaDataSource",
+    # Alternative data
+    "FREDDataSource",
+    "DarkPoolDataSource",
 ]

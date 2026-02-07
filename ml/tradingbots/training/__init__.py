@@ -41,6 +41,10 @@ from .callbacks import (
     TradingMetricsCallback,
 )
 
+from .model_registry import ModelRegistry, ModelVersion
+from .retraining_policy import RetrainingPolicy, RetrainingDecisionEngine
+from .retraining_orchestrator import RetrainingOrchestrator, RetrainingResult
+
 __all__ = [
     # General training
     "TrainingConfig",
@@ -68,4 +72,11 @@ __all__ = [
     "CheckpointCallback",
     "EarlyStoppingRLCallback",
     "TradingMetricsCallback",
+    # Model registry & retraining
+    "ModelRegistry",
+    "ModelVersion",
+    "RetrainingPolicy",
+    "RetrainingDecisionEngine",
+    "RetrainingOrchestrator",
+    "RetrainingResult",
 ]

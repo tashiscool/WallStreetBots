@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 import logging
 from numpy.random import default_rng
+from scipy.stats import t as t_dist
 
 
 @dataclass
@@ -147,7 +148,10 @@ class MultipleTestingController:
             results['reality_check'] = reality_check.test(strategy_returns, benchmark_returns)
 
             # Bonferroni correction
-            results['bonferroni'] = self._bonferroni_correction(strategy_returns, benchmark_returns)
+            results['bonferroni'] = self._parametric_bonferroni(strategy_returns, benchmark_returns)
+
+            # Deflated Sharpe Ratio
+            results['deflated_sharpe'] = self._deflated_sharpe_test(strategy_returns, benchmark_returns)
 
             # Generate recommendation
             results['recommendation'] = self._generate_recommendation(results)
@@ -158,9 +162,9 @@ class MultipleTestingController:
             self.logger.error(f"Multiple testing failed: {e}")
             raise
 
-    def _bonferroni_correction(self, strategy_returns: Dict[str, pd.Series],
+    def _parametric_bonferroni(self, strategy_returns: Dict[str, pd.Series],
                               benchmark_returns: pd.Series) -> Dict[str, Any]:
-        """Simple Bonferroni correction for multiple comparisons."""
+        """Parametric Bonferroni correction (t-distribution p-values, not bootstrap)."""
         try:
             k = len(strategy_returns)
             alpha_bonf = 0.05 / k if k > 0 else 0.05
@@ -175,12 +179,13 @@ class MultipleTestingController:
                 diff = aligned.iloc[:, 0] - aligned.iloc[:, 1]
                 if len(diff) > 1 and diff.std() > 1e-8:
                     t_stat = diff.mean() / (diff.std() / np.sqrt(len(diff)))
-                    p_value_approx = 0.05 if abs(t_stat) > 2.0 else 0.5
+                    df = len(diff) - 1
+                    p_value = float(2 * (1 - t_dist.cdf(abs(t_stat), df)))
 
                     results[strategy_name] = {
                         't_statistic': float(t_stat),
-                        'p_value_approx': p_value_approx,
-                        'significant': p_value_approx < alpha_bonf
+                        'p_value': p_value,
+                        'significant': p_value < alpha_bonf
                     }
 
             return {
@@ -193,8 +198,66 @@ class MultipleTestingController:
             self.logger.error(f"Bonferroni correction failed: {e}")
             return {}
 
+    def _deflated_sharpe_test(self, strategy_returns: Dict[str, pd.Series],
+                             benchmark_returns: pd.Series) -> Dict[str, Any]:
+        """Deflated Sharpe Ratio test for each strategy."""
+        from .deflated_sharpe import DeflatedSharpeRatio
+
+        try:
+            dsr = DeflatedSharpeRatio()
+            num_trials = len(strategy_returns)
+            results = {}
+            significant_strategies = []
+
+            for name, returns in strategy_returns.items():
+                aligned = pd.concat([returns, benchmark_returns], axis=1).dropna()
+                if len(aligned) < 30:
+                    continue
+
+                excess = aligned.iloc[:, 0] - aligned.iloc[:, 1]
+                n = len(excess)
+                if excess.std() < 1e-8:
+                    continue
+
+                observed_sharpe = float(excess.mean() / excess.std()) * np.sqrt(252)
+                skew = float(excess.skew())
+                kurt = float(excess.kurtosis())  # pandas returns excess kurtosis
+
+                dsr_result = dsr.calculate(
+                    observed_sharpe=observed_sharpe,
+                    num_trials=num_trials,
+                    returns_skewness=skew,
+                    returns_kurtosis=kurt,
+                    n_observations=n,
+                )
+                results[name] = {
+                    'observed_sharpe': dsr_result.observed_sharpe,
+                    'deflated_sharpe': dsr_result.deflated_sharpe,
+                    'p_value': dsr_result.p_value,
+                    'is_significant': dsr_result.is_significant,
+                    'expected_max_sharpe': dsr_result.expected_max_sharpe,
+                }
+                if dsr_result.is_significant:
+                    significant_strategies.append(name)
+
+            return {
+                'individual_results': results,
+                'num_trials': num_trials,
+                'significant_strategies': significant_strategies,
+            }
+
+        except Exception as e:
+            self.logger.error(f"Deflated Sharpe test failed: {e}")
+            return {'individual_results': {}, 'num_trials': 0, 'significant_strategies': []}
+
     def _generate_recommendation(self, test_results: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate overall recommendation based on multiple tests."""
+        """Generate recommendation with DSR as primary selection penalty.
+
+        Hierarchy:
+        - DSR: primary individual strategy selection penalty
+        - Reality Check: family-wise error across the strategy set
+        - Bonferroni: secondary parametric confirmation
+        """
         try:
             significant_by_test = {}
 
@@ -204,22 +267,42 @@ class MultipleTestingController:
             if 'bonferroni' in test_results:
                 significant_by_test['bonferroni'] = test_results['bonferroni']['significant_strategies']
 
-            # Find consensus
-            all_strategies = set()
-            for strategies in significant_by_test.values():
-                all_strategies.update(strategies)
+            if 'deflated_sharpe' in test_results:
+                significant_by_test['deflated_sharpe'] = test_results['deflated_sharpe']['significant_strategies']
 
-            consensus_significant = []
-            for strategy in all_strategies:
-                votes = sum(1 for strategies in significant_by_test.values() if strategy in strategies)
-                if votes >= len(significant_by_test):  # Significant in all tests
-                    consensus_significant.append(strategy)
+            # DSR is the primary gate — strategy must pass DSR to be considered
+            dsr_significant = set(significant_by_test.get('deflated_sharpe', []))
+            rc_significant = set(significant_by_test.get('reality_check', []))
+            bonf_significant = set(significant_by_test.get('bonferroni', []))
+
+            # Tier 1: passes DSR + Reality Check (high confidence)
+            tier1 = dsr_significant & rc_significant
+            # Tier 2: passes DSR only (moderate confidence)
+            tier2 = dsr_significant - tier1
+            # Tier 3: passes other tests but not DSR (low confidence, likely data-mined)
+            tier3 = (rc_significant | bonf_significant) - dsr_significant
+
+            if tier1:
+                recommendation = 'DEPLOY'
+                confidence = 'HIGH'
+            elif tier2:
+                recommendation = 'INVESTIGATE'
+                confidence = 'MEDIUM'
+            elif tier3:
+                recommendation = 'SUSPECT'
+                confidence = 'LOW'
+            else:
+                recommendation = 'REJECT'
+                confidence = 'NONE'
 
             return {
                 'significant_by_test': significant_by_test,
-                'consensus_significant': consensus_significant,
-                'recommendation': 'DEPLOY' if consensus_significant else 'INVESTIGATE' if any(significant_by_test.values()) else 'REJECT',
-                'confidence_level': 'HIGH' if consensus_significant else 'MEDIUM' if any(significant_by_test.values()) else 'LOW'
+                'primary_gate': 'deflated_sharpe',
+                'tier1_deploy': sorted(tier1),
+                'tier2_investigate': sorted(tier2),
+                'tier3_suspect': sorted(tier3),
+                'recommendation': recommendation,
+                'confidence_level': confidence,
             }
 
         except Exception as e:

@@ -157,6 +157,9 @@ class OptimizationResult:
     error_message: Optional[str] = None
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
+    parameter_space_size: Optional[int] = None
+    overfitting_warnings: List[str] = field(default_factory=list)
+    actual_trials_evaluated: int = 0  # includes pruned/failed (real DSR input)
 
 
 class OptimizationService:
@@ -320,6 +323,17 @@ class OptimizationService:
                 show_progress_bar=False,
             )
 
+            # Count ALL evaluated trials (complete + pruned + failed)
+            # This is the real num_trials for DSR, not config.n_trials
+            actual_evaluated = sum(
+                1 for t in study.trials
+                if t.state in (
+                    optuna.trial.TrialState.COMPLETE,
+                    optuna.trial.TrialState.PRUNED,
+                    optuna.trial.TrialState.FAIL,
+                )
+            )
+
             # Calculate parameter importance
             try:
                 importance = optuna.importance.get_param_importances(study)
@@ -342,6 +356,12 @@ class OptimizationService:
             best_metrics = study.best_trial.user_attrs.get('metrics', {})
             best_metrics[config.objective.value] = study.best_value
 
+            # Parameter space analysis
+            param_space = self._calculate_parameter_space_size(config)
+            overfit_warnings = self._check_overfitting_risk(config)
+            if overfit_warnings:
+                logger.warning(f"Overfitting risk: {overfit_warnings}")
+
             result = OptimizationResult(
                 run_id=run_id,
                 config=config,
@@ -353,6 +373,9 @@ class OptimizationService:
                 status="completed",
                 started_at=started_at,
                 completed_at=datetime.now(),
+                parameter_space_size=param_space,
+                overfitting_warnings=overfit_warnings,
+                actual_trials_evaluated=actual_evaluated,
             )
 
             # Save to database
@@ -377,6 +400,91 @@ class OptimizationService:
                 started_at=started_at,
                 completed_at=datetime.now(),
             )
+
+    @staticmethod
+    def _calculate_parameter_space_size(config: OptimizationConfig) -> int:
+        """Calculate the total cardinality of the parameter search space."""
+        if not config.parameter_ranges:
+            return 0
+
+        total = 1
+        for pr in config.parameter_ranges:
+            if pr.param_type == "categorical" and pr.choices:
+                total *= len(pr.choices)
+            elif pr.step and pr.step > 0:
+                total *= int((pr.max_value - pr.min_value) / pr.step) + 1
+            else:
+                # Continuous — estimate as a large number
+                total *= 1000
+        return total
+
+    @staticmethod
+    def _check_overfitting_risk(
+        config: OptimizationConfig,
+        n_observations: int = 252,
+        training_window_obs: Optional[int] = None,
+    ) -> List[str]:
+        """Generate warnings about potential overfitting.
+
+        Parameters
+        ----------
+        config : OptimizationConfig
+        n_observations : int
+            Total number of data observations.
+        training_window_obs : int, optional
+            Observations in a single training window (for walk-forward).
+            If provided, uses this for trial-to-sample checks instead of
+            total n_observations.
+        """
+        warnings: List[str] = []
+        space_size = OptimizationService._calculate_parameter_space_size(config)
+
+        if space_size > 0 and config.n_trials > space_size * 0.5:
+            warnings.append(
+                f"Over-explored: {config.n_trials} trials explore "
+                f">{50}% of {space_size} possible combinations"
+            )
+
+        if space_size > n_observations:
+            warnings.append(
+                f"More parameter combos ({space_size}) than data points ({n_observations})"
+            )
+
+        # Effective degrees of freedom: continuous ranges count more
+        eff_dof = 0.0
+        for pr in config.parameter_ranges:
+            if pr.param_type == "categorical" and pr.choices:
+                eff_dof += max(1, len(pr.choices) - 1)
+            elif pr.step and pr.step > 0:
+                n_vals = int((pr.max_value - pr.min_value) / pr.step) + 1
+                eff_dof += max(1, n_vals - 1)
+            else:
+                # Continuous — high effective DoF
+                eff_dof += 10  # penalty for unconstrained continuous range
+
+        if eff_dof > 20:
+            warnings.append(
+                f"High effective degrees of freedom: {eff_dof:.0f} "
+                f"(continuous ranges penalised; recommended ≤20)"
+            )
+
+        if len(config.parameter_ranges) > 7:
+            warnings.append(
+                f"Too many parameter dimensions: {len(config.parameter_ranges)} "
+                f"(recommended ≤7)"
+            )
+
+        # Trial-to-sample ratio (use training window if available)
+        sample_size = training_window_obs or n_observations
+        if sample_size > 0 and config.n_trials > 0:
+            ratio = config.n_trials / sample_size
+            if ratio > 0.5:
+                warnings.append(
+                    f"Trial-to-sample ratio {ratio:.2f} > 0.5: "
+                    f"{config.n_trials} trials vs {sample_size} training observations"
+                )
+
+        return warnings
 
     def _create_sampler(self, sampler_type: SamplerType) -> 'optuna.samplers.BaseSampler':
         """Create an Optuna sampler based on type."""

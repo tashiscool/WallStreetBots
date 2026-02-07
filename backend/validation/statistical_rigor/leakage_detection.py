@@ -10,10 +10,23 @@ from typing import Dict, List, Optional, Any, Set, Tuple
 import logging
 from datetime import datetime, timedelta
 from dataclasses import dataclass
+from enum import Enum
 import inspect
 import ast
 
 logger = logging.getLogger(__name__)
+
+
+class EnforcementMode(Enum):
+    """How to handle detected leakage violations."""
+    AUDIT = "audit"     # Collect violations silently
+    WARN = "warn"       # Log warnings
+    STRICT = "strict"   # Raise on critical violations
+
+
+class LeakageViolationError(Exception):
+    """Raised in STRICT mode when critical violations are found."""
+    pass
 
 
 @dataclass
@@ -85,27 +98,148 @@ class TemporalGuard:
                     # Check for dangerous pandas operations
                     if hasattr(node, 'attr'):
                         if node.attr in ['shift', 'pct_change'] and hasattr(node, 'value'):
-                            # Check if shift has negative values (future data)
                             self._check_shift_operations(node, func.__name__)
 
                 elif isinstance(node, ast.Call):
-                    # Check for rolling operations that might use future data
                     if hasattr(node, 'func') and hasattr(node.func, 'attr'):
-                        if node.func.attr in ['rolling', 'ewm']:
+                        attr = node.func.attr
+                        if attr in ['rolling', 'ewm']:
                             self._check_rolling_operations(node, func.__name__)
+                        elif attr in ['bfill', 'backfill', 'ffill', 'fillna']:
+                            self._check_fill_operations(node, func.__name__)
+
+                # Check for future index access patterns
+                self._check_future_index_access(node, func.__name__)
 
         except Exception as e:
             logger.debug(f"Could not analyze function {func.__name__}: {e}")
 
     def _check_shift_operations(self, node: ast.AST, func_name: str):
-        """Check shift operations for look-ahead bias."""
-        # This is a simplified check - in production you'd want more sophisticated AST analysis
-        pass
+        """Check shift operations for look-ahead bias.
+
+        Detects ``.shift(N)`` where N < 0 and ``.shift(-N)`` patterns
+        which access future data.
+        """
+        # node is an ast.Attribute with attr='shift'.
+        # We need to find the Call node that wraps it (parent).
+        # Walk the tree again looking for Call nodes that invoke this shift.
+        # Since we get the attribute node, check if it's inside a Call.
+        # The AST visitor gives us individual nodes; we inspect from the
+        # module-level tree instead.  For simplicity, we do a targeted walk
+        # in the caller.  Here we just record the potential; the actual
+        # negative-value check is done in _analyze_function_code via
+        # a broader walk that inspects Call nodes.
+        pass  # Actual detection delegated to analyze_source_code
 
     def _check_rolling_operations(self, node: ast.AST, func_name: str):
-        """Check rolling operations for potential leakage."""
-        # This is a simplified check - in production you'd want more sophisticated AST analysis
-        pass
+        """Check rolling/ewm calls for ``center=True`` which leaks future data."""
+        if not isinstance(node, ast.Call):
+            return
+
+        for kw in node.keywords:
+            if kw.arg == 'center':
+                if isinstance(kw.value, ast.Constant) and kw.value.value is True:
+                    self.violations.append(LeakageViolation(
+                        violation_type='rolling_center_leakage',
+                        description=(
+                            f"In {func_name}: rolling/ewm with center=True "
+                            "uses future data for centred windows"
+                        ),
+                        severity='critical',
+                        detected_at=datetime.now(),
+                        suggested_fix="Remove center=True or use center=False",
+                    ))
+
+    def _check_fill_operations(self, node: ast.AST, func_name: str):
+        """Detect bfill/backfill which propagates future values backward."""
+        if not isinstance(node, ast.Call):
+            return
+        attr = getattr(node.func, 'attr', '')
+        if attr in ('bfill', 'backfill'):
+            self.violations.append(LeakageViolation(
+                violation_type='backfill_leakage',
+                description=(
+                    f"In {func_name}: {attr}() propagates future values backward"
+                ),
+                severity='critical',
+                detected_at=datetime.now(),
+                suggested_fix="Use ffill() or forward-fill only",
+            ))
+        elif attr == 'fillna':
+            for kw in node.keywords:
+                if kw.arg == 'method':
+                    if isinstance(kw.value, ast.Constant) and kw.value.value in ('bfill', 'backfill'):
+                        self.violations.append(LeakageViolation(
+                            violation_type='backfill_leakage',
+                            description=(
+                                f"In {func_name}: fillna(method='{kw.value.value}') "
+                                "propagates future values backward"
+                            ),
+                            severity='critical',
+                            detected_at=datetime.now(),
+                            suggested_fix="Use method='ffill' instead",
+                        ))
+
+    def _check_future_index_access(self, node: ast.AST, func_name: str):
+        """Detect potential future-looking index slicing patterns."""
+        # Detect .shift(-N) calls (negative shift = look-ahead)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+            if node.func.attr == 'shift' and node.args:
+                arg = node.args[0]
+                # Literal negative integer
+                if isinstance(arg, ast.UnaryOp) and isinstance(arg.op, ast.USub):
+                    if isinstance(arg.operand, ast.Constant) and isinstance(arg.operand.value, (int, float)):
+                        self.violations.append(LeakageViolation(
+                            violation_type='negative_shift_lookahead',
+                            description=(
+                                f"In {func_name}: .shift(-{arg.operand.value}) "
+                                "accesses future data"
+                            ),
+                            severity='critical',
+                            detected_at=datetime.now(),
+                            suggested_fix="Use positive shift values only",
+                        ))
+                # Literal negative constant (Python 3.8+ folds -1 into Constant)
+                elif isinstance(arg, ast.Constant) and isinstance(arg.value, (int, float)) and arg.value < 0:
+                    self.violations.append(LeakageViolation(
+                        violation_type='negative_shift_lookahead',
+                        description=(
+                            f"In {func_name}: .shift({arg.value}) "
+                            "accesses future data"
+                        ),
+                        severity='critical',
+                        detected_at=datetime.now(),
+                        suggested_fix="Use positive shift values only",
+                    ))
+
+    def analyze_source_code(self, source: str, label: str = "<source>") -> List[LeakageViolation]:
+        """Analyze a raw source code string for leakage patterns.
+
+        Convenience method that does not require an actual function object.
+        Returns the list of newly-detected violations.
+        """
+        before = len(self.violations)
+        try:
+            tree = ast.parse(source)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Attribute):
+                    if hasattr(node, 'attr'):
+                        if node.attr in ['shift', 'pct_change'] and hasattr(node, 'value'):
+                            self._check_shift_operations(node, label)
+
+                elif isinstance(node, ast.Call):
+                    if hasattr(node, 'func') and hasattr(node.func, 'attr'):
+                        attr = node.func.attr
+                        if attr in ['rolling', 'ewm']:
+                            self._check_rolling_operations(node, label)
+                        elif attr in ['bfill', 'backfill', 'ffill', 'fillna']:
+                            self._check_fill_operations(node, label)
+
+                self._check_future_index_access(node, label)
+        except SyntaxError:
+            pass
+
+        return self.violations[before:]
 
 
 class CorporateActionsGuard:
@@ -374,10 +508,128 @@ class ParameterGuard:
         return True
 
 
+class RuntimeLeakageGuard:
+    """Lightweight runtime guard for backtest data alignment.
+
+    Asserts that feature timestamps never exceed label timestamps and
+    that no NaNs were resolved via forward-looking operations after
+    train/test split.
+    """
+
+    def __init__(self):
+        self.violations: List[LeakageViolation] = []
+
+    def assert_no_lookahead(
+        self,
+        feature_timestamps: pd.DatetimeIndex,
+        label_timestamps: pd.DatetimeIndex,
+    ) -> bool:
+        """Verify feature timestamps ≤ label timestamps element-wise.
+
+        Parameters
+        ----------
+        feature_timestamps : pd.DatetimeIndex
+            Timestamps of feature data rows.
+        label_timestamps : pd.DatetimeIndex
+            Timestamps of corresponding labels/targets.
+
+        Returns
+        -------
+        bool : True if no lookahead detected.
+        """
+        if len(feature_timestamps) != len(label_timestamps):
+            self.violations.append(LeakageViolation(
+                violation_type='timestamp_length_mismatch',
+                description=(
+                    f"Feature timestamps ({len(feature_timestamps)}) != "
+                    f"label timestamps ({len(label_timestamps)})"
+                ),
+                severity='critical',
+                detected_at=datetime.now(),
+                suggested_fix="Align feature and label arrays to same length",
+            ))
+            return False
+
+        lookahead_mask = feature_timestamps > label_timestamps
+        if lookahead_mask.any():
+            count = int(lookahead_mask.sum())
+            first_idx = int(np.argmax(lookahead_mask))
+            self.violations.append(LeakageViolation(
+                violation_type='runtime_lookahead',
+                description=(
+                    f"{count} feature timestamps exceed label timestamps "
+                    f"(first at index {first_idx}: feature={feature_timestamps[first_idx]}, "
+                    f"label={label_timestamps[first_idx]})"
+                ),
+                severity='critical',
+                detected_at=datetime.now(),
+                suggested_fix="Ensure features are computed only from data available at label time",
+            ))
+            return False
+
+        return True
+
+    def check_post_split_fill(
+        self,
+        data: pd.DataFrame,
+        split_point: pd.Timestamp,
+    ) -> bool:
+        """Check that no NaN→value transitions cross the split boundary.
+
+        Detects cases where a forward-fill or interpolation after splitting
+        would leak test data into training features.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            Feature data spanning train and test.
+        split_point : pd.Timestamp
+            The train/test split timestamp.
+
+        Returns
+        -------
+        bool : True if no cross-boundary fill detected.
+        """
+        if not isinstance(data.index, pd.DatetimeIndex):
+            return True
+
+        train = data.loc[:split_point]
+        test = data.loc[split_point:]
+
+        if train.empty or test.empty:
+            return True
+
+        # Check: last row of train has NaN but first row of test has value
+        # This pattern suggests fill leaked across split
+        last_train = train.iloc[-1]
+        first_test = test.iloc[0]
+
+        suspect_cols = []
+        for col in data.columns:
+            if pd.isna(last_train[col]) and pd.notna(first_test[col]):
+                suspect_cols.append(col)
+
+        if suspect_cols:
+            self.violations.append(LeakageViolation(
+                violation_type='cross_split_fill',
+                description=(
+                    f"Columns {suspect_cols} have NaN at end of train but "
+                    f"value at start of test — possible post-split fill leakage"
+                ),
+                severity='high',
+                detected_at=datetime.now(),
+                suggested_fix="Apply fillna/interpolation separately to train and test",
+            ))
+            return False
+
+        return True
+
+
 class LeakageDetectionSuite:
     """Comprehensive data leakage detection system."""
 
-    def __init__(self):
+    def __init__(self, enforcement_mode: EnforcementMode = EnforcementMode.AUDIT):
+        self.enforcement_mode = enforcement_mode
         self.temporal_guard = TemporalGuard()
         self.corporate_actions_guard = CorporateActionsGuard()
         self.survivorship_guard = SurvivorshipGuard()
@@ -443,8 +695,21 @@ class LeakageDetectionSuite:
 
         # Update overall pass/fail status
         critical_violations = [v for v in all_violations if v.severity == 'critical']
+        high_violations = [v for v in all_violations if v.severity == 'high']
+        blocking_violations = critical_violations + high_violations
         if critical_violations:
             validation_results['passed'] = False
+
+        # Enforcement
+        if self.enforcement_mode == EnforcementMode.WARN:
+            for v in all_violations:
+                logger.warning(f"Leakage violation ({v.severity}): {v.description}")
+        elif self.enforcement_mode == EnforcementMode.STRICT and blocking_violations:
+            descs = '; '.join(v.description for v in blocking_violations)
+            raise LeakageViolationError(
+                f"{len(blocking_violations)} blocking leakage violation(s) "
+                f"({len(critical_violations)} critical, {len(high_violations)} high): {descs}"
+            )
 
         return validation_results
 

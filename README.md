@@ -239,6 +239,10 @@ ml/tradingbots/
 
 ### **⚡ Execution & Operations**
 - **Smart Order Routing** - Optimal execution with slippage minimization
+- **Almgren-Chriss Optimal Execution** - Hyperbolic trajectory minimising E[cost] + λ·Var[cost] with calibrated market impact
+- **Impact Parameter Calibration** - OLS regression from execution history, per-liquidity-bucket calibration with timestamp-validated observations
+- **VWAP/TWAP Execution** - Volume-profiled and time-weighted slicing with scheduled slice dispatch
+- **Adverse Selection Detection** - VPIN calculator, buffered mid-price interpolation for accurate post-fill impact measurement
 - **Replay Protection** - Exactly-once order execution guarantees
 - **Shadow Trading** - Risk-free strategy validation in production
 - **Automated Rebalancing** - ML-driven portfolio optimization

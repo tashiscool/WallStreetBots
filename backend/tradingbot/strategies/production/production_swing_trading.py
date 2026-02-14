@@ -583,7 +583,7 @@ class ProductionSwingTrading(StrategySignalMixin):
                 return False
 
             # Calculate position size
-            portfolio_value = await self.integration_manager.get_portfolio_value()
+            portfolio_value = float(await self.integration_manager.get_portfolio_value())
             max_risk = portfolio_value * self.max_position_size
 
             # Size based on premium cost

@@ -116,6 +116,7 @@ class ProductionDebitSpreads:
         self.min_risk_reward = config.get("min_risk_reward", 1.5)
         self.min_trend_strength = config.get("min_trend_strength", 0.6)
         self.max_iv_rank = config.get("max_iv_rank", 80)  # Avoid buying high IV
+        self.min_iv_rank = config.get("min_iv_rank", 15)  # Avoid buying extremely cheap spreads
         self.min_volume_score = config.get("min_volume_score", 0.3)
 
         # Exit criteria
@@ -356,6 +357,9 @@ class ProductionDebitSpreads:
 
                     iv_rank = await self.calculate_iv_rank(ticker, estimated_iv)
 
+                    if iv_rank < self.min_iv_rank:
+                        continue
+
                     # Calculate confidence score
                     confidence = (
                         (risk_reward / 3.0) * 0.3  # Risk - reward component
@@ -482,7 +486,8 @@ class ProductionDebitSpreads:
                     # Filter by additional criteria
                     for spread in spreads:
                         if (
-                            spread.iv_rank <= self.max_iv_rank
+                            spread.iv_rank >= self.min_iv_rank
+                            and spread.iv_rank <= self.max_iv_rank
                             and spread.volume_score >= self.min_volume_score
                         ):
                             all_opportunities.append(spread)

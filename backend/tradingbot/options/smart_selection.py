@@ -82,6 +82,8 @@ class SelectionCriteria:
     target_delta_min: float = 0.15  # Minimum delta
     target_delta_max: float = 0.45  # Maximum delta
     max_premium_to_stock_ratio: float = 0.05  # Max 5% of stock price
+    max_bid_ask_spread_pct: float | None = None  # Optional override for max spread
+    min_premium_dollars: float | None = None  # Minimum premium in dollars
 
 
 class SmartOptionsSelector:
@@ -187,6 +189,113 @@ class SmartOptionsSelector:
         except Exception as e:
             self.logger.error(f"Error selecting optimal call option for {ticker}: {e}")
             return None
+
+    async def select_optimal_put_option(
+        self,
+        ticker: str,
+        spot_price: Decimal,
+        custom_criteria: SelectionCriteria | None = None,
+    ) -> OptionsAnalysis | None:
+        """Select optimal put option for cash-secured put strategy.
+
+        Args:
+            ticker: Stock symbol
+            spot_price: Current stock price
+            custom_criteria: Custom selection criteria
+
+        Returns:
+            Best put options contract analysis or None if no suitable options found
+        """
+        try:
+            criteria = custom_criteria or self.default_criteria
+
+            self.logger.info(
+                f"Selecting optimal put option for {ticker} at ${spot_price}"
+            )
+
+            # Get available expiry dates
+            expiry_dates = await self._get_available_expiries(ticker, criteria)
+
+            if not expiry_dates:
+                self.logger.warning(f"No suitable expiry dates found for {ticker}")
+                return None
+
+            # Get options chains for each expiry
+            all_options = []
+            for expiry_date in expiry_dates:
+                options_chain = await self.data_provider.get_options_chain(
+                    ticker, expiry_date
+                )
+                puts = [
+                    opt for opt in options_chain if opt.option_type.lower() == "put"
+                ]
+                all_options.extend(puts)
+
+            if not all_options:
+                self.logger.warning(f"No put options found for {ticker}")
+                return None
+
+            # Analyze all options
+            analyzed_options = []
+            for option in all_options:
+                analysis = await self._analyze_option(option, spot_price, criteria)
+                if analysis and self._meets_put_criteria(analysis, criteria):
+                    analyzed_options.append(analysis)
+
+            if not analyzed_options:
+                self.logger.warning(f"No puts meet selection criteria for {ticker}")
+                return None
+
+            # Sort by overall score and return best option
+            analyzed_options.sort(key=lambda x: x.overall_score, reverse=True)
+            best_option = analyzed_options[0]
+
+            self.logger.info(
+                f"Selected optimal put for {ticker}: ${best_option.strike} strike, "
+                f"{best_option.days_to_expiry}DTE, Score: {best_option.overall_score:.2f}"
+            )
+
+            return best_option
+
+        except Exception as e:
+            self.logger.error(f"Error selecting optimal put option for {ticker}: {e}")
+            return None
+
+    def _meets_put_criteria(
+        self, analysis: OptionsAnalysis, criteria: SelectionCriteria
+    ) -> bool:
+        """Check if put option meets selection criteria."""
+        try:
+            # Basic liquidity requirements
+            if analysis.volume < criteria.min_volume:
+                return False
+            if analysis.open_interest < criteria.min_open_interest:
+                return False
+
+            # Spread check
+            max_spread = criteria.max_bid_ask_spread_pct if criteria.max_bid_ask_spread_pct is not None else criteria.max_spread_percentage
+            if analysis.spread_percentage > max_spread:
+                return False
+
+            # DTE requirements
+            if not (criteria.target_dte_min <= analysis.days_to_expiry <= criteria.target_dte_max):
+                return False
+
+            # Delta requirements (puts have negative delta, check absolute value)
+            delta_val = abs(float(analysis.delta)) if analysis.delta else 0
+            if not (criteria.target_delta_min <= delta_val <= criteria.target_delta_max):
+                return False
+
+            # Premium minimum check
+            if criteria.min_premium_dollars is not None:
+                if float(analysis.mid_price) * 100 < criteria.min_premium_dollars:
+                    return False
+
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Error checking put criteria: {e}")
+            return False
 
     def _get_dynamic_criteria(self, signal_strength: int) -> SelectionCriteria:
         """Get dynamic selection criteria based on signal strength."""

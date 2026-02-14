@@ -117,8 +117,8 @@ class ProductionWheelStrategy:
         self.min_premium_dollars = config.get(
             "min_premium_dollars", 50
         )  # Min premium per contract
-        self.profit_target = config.get("profit_target", 0.25)  # 25% profit target
-        self.max_loss_pct = config.get("max_loss_pct", 0.50)  # 50% max loss
+        self.profit_target = Decimal(str(config.get("profit_target", 0.25)))  # 25% profit target
+        self.max_loss_pct = Decimal(str(config.get("max_loss_pct", 0.50)))  # 50% max loss
         self.assignment_buffer_days = config.get(
             "assignment_buffer_days", 7
         )  # Days before expiry to close

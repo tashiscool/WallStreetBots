@@ -11,7 +11,12 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
-import psutil
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    psutil = None
+    PSUTIL_AVAILABLE = False
 
 
 class HealthStatus(Enum):
@@ -77,18 +82,18 @@ class SystemHealthMonitor:
 
         # Health thresholds
         self.alert_thresholds = {
-            "data_feed_latency": config.get(
+            "data_feed_latency": self.config.get(
                 "data_feed_latency_threshold", 5.0
             ),  # seconds
-            "order_execution_time": config.get(
+            "order_execution_time": self.config.get(
                 "order_execution_time_threshold", 30.0
             ),  # seconds
-            "error_rate": config.get("error_rate_threshold", 0.05),  # 5% error rate
-            "memory_usage": config.get(
+            "error_rate": self.config.get("error_rate_threshold", 0.05),  # 5% error rate
+            "memory_usage": self.config.get(
                 "memory_usage_threshold", 0.80
             ),  # 80% memory usage
-            "cpu_usage": config.get("cpu_usage_threshold", 0.90),  # 90% CPU usage
-            "disk_usage": config.get("disk_usage_threshold", 0.85),  # 85% disk usage
+            "cpu_usage": self.config.get("cpu_usage_threshold", 0.90),  # 90% CPU usage
+            "disk_usage": self.config.get("disk_usage_threshold", 0.85),  # 85% disk usage
         }
 
         # Monitoring state
@@ -378,6 +383,16 @@ class SystemHealthMonitor:
     async def _check_system_resources(self) -> ComponentHealth:
         """Check system resource usage."""
         try:
+            if not PSUTIL_AVAILABLE:
+                return ComponentHealth(
+                    component_name="resources",
+                    status=HealthStatus.UNKNOWN,
+                    last_check=datetime.now(),
+                    response_time_ms=0,
+                    details={"error": "psutil not installed"},
+                    recommendations=["Install psutil: pip install psutil"],
+                )
+
             # Get system resource usage
             cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()

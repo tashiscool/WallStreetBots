@@ -157,7 +157,7 @@ class ProductionLottoScanner:
                 return False
 
             # Check portfolio risk
-            portfolio_value = await self.integration_manager.get_portfolio_value()
+            portfolio_value = float(await self.integration_manager.get_portfolio_value())
             if portfolio_value < 10000:  # Minimum account size for lotto plays
                 self.logger.warning("Account too small for lotto plays")
                 return False
@@ -493,7 +493,7 @@ class ProductionLottoScanner:
             mid_price = (bid + ask) / 2
 
             # Position sizing
-            portfolio_value = await self.integration_manager.get_portfolio_value()
+            portfolio_value = float(await self.integration_manager.get_portfolio_value())
             max_dollar_risk = portfolio_value * self.max_risk_pct
             max_contracts = int(max_dollar_risk / (mid_price * 100))
             max_contracts = min(max_contracts, 10)  # Hard cap

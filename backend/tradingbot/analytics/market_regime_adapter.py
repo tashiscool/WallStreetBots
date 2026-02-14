@@ -370,10 +370,10 @@ class MarketRegimeAdapter:
                     high = spy_data.get("high", price * 1.01)
                     low = spy_data.get("low", price * 0.99)
 
-                    # Use provided indicators or calculate defaults
-                    ema_20 = spy_data.get("ema_20", price * 0.98)
-                    ema_50 = spy_data.get("ema_50", price * 0.95)
-                    ema_200 = spy_data.get("ema_200", price * 0.90)
+                    # Use provided indicators or neutral defaults (EMAs = price)
+                    ema_20 = spy_data.get("ema_20", price)
+                    ema_50 = spy_data.get("ema_50", price)
+                    ema_200 = spy_data.get("ema_200", price)
                     rsi = spy_data.get("rsi", 50.0)
 
                     return create_sample_indicators(
@@ -388,14 +388,15 @@ class MarketRegimeAdapter:
                     )
 
             # Fallback: create indicators from any available price data
+            # Use neutral defaults (EMAs = price) to avoid biasing toward any regime
             for data in market_data.values():
                 if isinstance(data, dict) and "price" in data:
                     price = float(data["price"])
                     return create_sample_indicators(
                         price=price,
-                        ema_20=price * 0.98,
-                        ema_50=price * 0.95,
-                        ema_200=price * 0.90,
+                        ema_20=price,
+                        ema_50=price,
+                        ema_200=price,
                         rsi=50.0,
                     )
 

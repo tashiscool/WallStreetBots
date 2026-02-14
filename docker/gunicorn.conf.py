@@ -43,7 +43,8 @@ max_requests_jitter = int(os.environ.get("GUNICORN_MAX_REQUESTS_JITTER", 1000))
 timeout = int(os.environ.get("GUNICORN_TIMEOUT", 120))
 
 # Graceful timeout for finishing requests during shutdown
-graceful_timeout = int(os.environ.get("GUNICORN_GRACEFUL_TIMEOUT", 30))
+# Must be >= timeout to avoid killing active trading operations mid-execution
+graceful_timeout = int(os.environ.get("GUNICORN_GRACEFUL_TIMEOUT", 120))
 
 # Keep-alive timeout (seconds)
 keepalive = int(os.environ.get("GUNICORN_KEEPALIVE", 5))
@@ -194,6 +195,7 @@ def on_exit(server):
 preload_app = os.environ.get("GUNICORN_PRELOAD", "true").lower() == "true"
 
 # Forward proxy headers (when behind nginx/ALB)
-forwarded_allow_ips = os.environ.get("FORWARDED_ALLOW_IPS", "*")
-proxy_allow_ips = os.environ.get("PROXY_ALLOW_IPS", "*")
+# Default to localhost only; set FORWARDED_ALLOW_IPS=* only if behind a trusted proxy
+forwarded_allow_ips = os.environ.get("FORWARDED_ALLOW_IPS", "127.0.0.1")
+proxy_allow_ips = os.environ.get("PROXY_ALLOW_IPS", "127.0.0.1")
 proxy_protocol = os.environ.get("PROXY_PROTOCOL", "false").lower() == "true"

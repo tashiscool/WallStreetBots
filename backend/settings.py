@@ -113,9 +113,9 @@ CREDENTIAL_ENCRYPTION_SALT = os.getenv(
     b'default_salt_change_in_production_v1'
 )
 
-# Alpaca API settings
-BACKEND_ALPACA_ID = os.getenv("APCA_API_KEY_ID", "")
-BACKEND_ALPACA_KEY = os.getenv("APCA_API_SECRET_KEY", "")
+# Alpaca API settings – accept both APCA_* (Alpaca SDK convention) and ALPACA_* names
+BACKEND_ALPACA_ID = os.getenv("APCA_API_KEY_ID") or os.getenv("ALPACA_API_KEY", "")
+BACKEND_ALPACA_KEY = os.getenv("APCA_API_SECRET_KEY") or os.getenv("ALPACA_SECRET_KEY", "")
 
 # Cache configuration
 REDIS_URL = os.getenv("REDIS_URL")

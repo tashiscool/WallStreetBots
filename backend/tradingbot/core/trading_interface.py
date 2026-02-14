@@ -229,14 +229,16 @@ class TradingInterface:
             account_value = float(account.get("equity", 0))
 
             # Calculate position risk
+            # Options tickers are longer (e.g., AAPL240315C00150000) - multiply by 100 for contract size
+            is_option = len(signal.ticker) > 10
+            contract_multiplier = 100 if is_option else 1
+
             if signal.limit_price:
-                position_value = (
-                    signal.quantity * signal.limit_price * 100
-                )  # Options are per 100 shares
+                position_value = signal.quantity * signal.limit_price * contract_multiplier
             else:
                 # Use current market price as estimate
                 current_price = await self.get_current_price(signal.ticker)
-                position_value = signal.quantity * current_price * 100
+                position_value = signal.quantity * current_price * contract_multiplier
 
             position_risk_pct = position_value / account_value
 
@@ -245,7 +247,7 @@ class TradingInterface:
             if position_risk_pct > max_position_risk:
                 return {
                     "allowed": False,
-                    "reason": f"Position risk {position_risk_pct:.2%} exceeds limit {max_position_risk: .2%}",
+                    "reason": f"Position risk {position_risk_pct:.2%} exceeds limit {max_position_risk:.2%}",
                 }
 
             # Check total portfolio risk

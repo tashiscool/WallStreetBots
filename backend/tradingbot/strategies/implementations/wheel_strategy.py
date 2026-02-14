@@ -447,13 +447,14 @@ class WheelStrategy:
                 ).days
 
                 # Annualized put premium return
+                safe_dte = max(days_to_expiry, 1)
                 put_annual_return = (
-                    (put_premium / put_strike) * (365 / days_to_expiry) * 100
+                    (put_premium / put_strike) * (365 / safe_dte) * 100
                 )
 
                 # If assigned, annualized call premium return
                 call_annual_return = (
-                    (call_premium / current_price) * (365 / days_to_expiry) * 100
+                    (call_premium / current_price) * (365 / safe_dte) * 100
                 )
 
                 # Conservative wheel return estimate (weighted by assignment probability)
@@ -541,26 +542,37 @@ class WheelStrategy:
 
                     # Estimate assignment risk
                     if pos.position_type == "cash_secured_put":
-                        pos.assignment_risk = max(
-                            0, (pos.strike - current_price) / current_price
+                        pos.assignment_risk = min(
+                            1.0,
+                            max(0, (pos.strike - current_price) / current_price),
                         )
                     else:  # covered call
-                        pos.assignment_risk = max(
-                            0, (current_price - pos.strike) / pos.strike
+                        pos.assignment_risk = min(
+                            1.0,
+                            max(0, (current_price - pos.strike) / pos.strike),
                         )
 
                 # Calculate annualized return
                 if pos.days_to_expiry and pos.days_to_expiry > 0:
                     if pos.position_type == "cash_secured_put":
+                        elapsed_days = max(30 - pos.days_to_expiry, 1)
                         pos.annualized_return = (
                             (pos.premium_collected / pos.strike)
-                            * (365 / (30 - pos.days_to_expiry))
+                            * (365 / elapsed_days)
                             * 100
                         )
                     else:
                         pos.annualized_return = (
                             pos.total_premium_collected / (pos.avg_cost * pos.shares)
                         ) * 100
+
+                # TODO: State transition handling between wheel phases.
+                # When a cash_secured_put expires ITM (assignment_risk ~1.0),
+                # transition to assigned_shares with avg_cost = strike - premium.
+                # When assigned_shares exist without an active covered_call,
+                # prompt to sell a covered_call above cost basis.
+                # When a covered_call expires ITM (call-away risk ~1.0),
+                # transition back to cash (close the wheel cycle).
 
             except Exception as e:
                 print(f"Error updating {pos.ticker}: {e}")

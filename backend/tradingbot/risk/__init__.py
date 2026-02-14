@@ -9,6 +9,10 @@ except ImportError:
     RiskDatabaseManager = None
 
 # Circuit breaker (ported from Polymarket-Kalshi arbitrage bot)
+# Note: There are two circuit breaker implementations:
+# - risk.circuit_breaker.CircuitBreaker: Basic, thread-safe, position/loss/error tracking
+# - risk.monitoring.circuit_breaker.CircuitBreaker: Production-grade with VIX, DB persistence
+# Both expose can_trade() for compatibility. Use MonitoringCircuitBreaker for production.
 try:
     from .circuit_breaker import (
         TripReason,
@@ -23,6 +27,18 @@ except ImportError:
     TripReason = CircuitBreakerConfig = CircuitBreakerState = None
     CircuitBreaker = get_circuit_breaker = configure_circuit_breaker = None
     CIRCUIT_BREAKER_AVAILABLE = False
+
+try:
+    from .monitoring.circuit_breaker import (
+        CircuitBreaker as MonitoringCircuitBreaker,
+        BreakerLimits,
+        VIXTripLevel,
+        VIXBreakerConfig,
+    )
+    MONITORING_BREAKER_AVAILABLE = True
+except ImportError:
+    MonitoringCircuitBreaker = BreakerLimits = VIXTripLevel = VIXBreakerConfig = None
+    MONITORING_BREAKER_AVAILABLE = False
 
 try:
     from .ml_risk_predictor import MLRiskPredictor, RiskPrediction, VolatilityForecast
@@ -45,25 +61,19 @@ except ImportError:
 try:
     from .engines.stress_testing_engine import StressScenario, StressTesting2025, StressTestReport
 except ImportError:
-    try:
-        from .stress_testing_engine import StressScenario, StressTesting2025, StressTestReport
-    except ImportError:
-        StressScenario = StressTesting2025 = StressTestReport = None
+    StressScenario = StressTesting2025 = StressTestReport = None
 
-# Risk integration manager with multiple fallback paths
+# Risk integration manager
 RiskIntegrationManager = RiskLimits = RiskMetrics = None
 try:
     from .managers.risk_integration_manager import RiskIntegrationManager, RiskLimits, RiskMetrics
 except ImportError:
-    try:
-        from .risk_integration_manager import RiskIntegrationManager, RiskLimits, RiskMetrics
-    except ImportError:
-        pass
+    pass
 
 # Import complete risk engine utilities
 try:
-    from .risk_engine_complete import RiskEngine
-    from .risk_engine_complete import RiskMetrics as CompleteRiskMetrics
+    from .engines.risk_engine_complete import RiskEngine
+    from .engines.risk_engine_complete import RiskMetrics as CompleteRiskMetrics
 except ImportError:
     # Fallback if complete engine not available
     pass
@@ -89,8 +99,8 @@ try:
         RiskEnvironment,
         RiskState,
     )
-    from .multi_asset_risk_manager import AssetClass, MultiAssetRiskManager, RiskFactor
-    from .regulatory_compliance_manager import (
+    from .managers.multi_asset_risk_manager import AssetClass, MultiAssetRiskManager, RiskFactor
+    from .compliance.regulatory_compliance_manager import (
         ComplianceRule,
         ComplianceStatus,
         RegulatoryAuthority,
@@ -150,6 +160,18 @@ if ADVANCED_FEATURES_AVAILABLE:
             "RiskState",
         ]
     )
+
+# Pre-trade validation engine (ported from Nautilus Trader)
+try:
+    from .validation_engine import (
+        RiskValidationEngine,
+        TradingState,
+        ValidationResult,
+    )
+    VALIDATION_ENGINE_AVAILABLE = True
+except ImportError:
+    RiskValidationEngine = TradingState = ValidationResult = None
+    VALIDATION_ENGINE_AVAILABLE = False
 
 # Import portfolio construction rules
 try:

@@ -58,42 +58,46 @@ class ReplayGuard:
 
     def seen(self, client_order_id: str) -> bool:
         """Check if order ID has been seen before.
-        
+
         Args:
             client_order_id: Client order identifier
-            
+
         Returns:
             True if order has been seen before
         """
-        return client_order_id in self.state
+        with self._lock:
+            return client_order_id in self.state
 
     def record(self, client_order_id: str, state: str) -> None:
         """Record order state.
-        
+
         Args:
             client_order_id: Client order identifier
             state: Terminal state (e.g., 'acknowledged', 'filled', 'rejected')
         """
-        self.state[client_order_id] = state
-        self._save_state()
-        log.debug(f"Recorded order {client_order_id} in state {state}")
+        with self._lock:
+            self.state[client_order_id] = state
+            self._save_state()
+            log.debug(f"Recorded order {client_order_id} in state {state}")
 
     def get_state(self, client_order_id: str) -> Optional[str]:
         """Get recorded state for order.
-        
+
         Args:
             client_order_id: Client order identifier
-            
+
         Returns:
             Recorded state or None if not found
         """
-        return self.state.get(client_order_id)
+        with self._lock:
+            return self.state.get(client_order_id)
 
     def clear(self) -> None:
         """Clear all recorded states (use with caution)."""
-        self.state.clear()
-        self._save_state()
-        log.warning("Cleared all replay guard states")
+        with self._lock:
+            self.state.clear()
+            self._save_state()
+            log.warning("Cleared all replay guard states")
 
     def cleanup_old_orders(self, max_age_days: int = 30) -> int:
         """Clean up old order records.
@@ -110,33 +114,38 @@ class ReplayGuard:
         return 0
 
     def should_process_order(self, order) -> bool:
-        """Check if an order should be processed (not seen before).
-        
+        """Atomically check if an order should be processed and record it.
+
+        This combines the check and the record into a single atomic operation
+        under the lock to prevent TOCTOU race conditions.
+
         Args:
             order: Order object with client_order_id attribute
-            
+
         Returns:
             True if order should be processed (not seen before)
         """
-        with self._lock:  # Thread-safe access
+        with self._lock:
             # Reload state to get latest changes from other processes
             self._load_state()
-            
+
             client_order_id = None
             if hasattr(order, 'client_order_id'):
                 client_order_id = order.client_order_id
             elif hasattr(order, 'id'):
                 client_order_id = order.id
-            
+
             if client_order_id is None:
                 # If no client_order_id, assume it should be processed
                 return True
-                
-            if self.seen(client_order_id):
+
+            # Atomic check-and-record: both under the same lock acquisition
+            if client_order_id in self.state:
                 return False
-            
-            # Record the order as processed
-            self.record(client_order_id, "processed")
+
+            self.state[client_order_id] = "processed"
+            self._save_state()
+            log.debug(f"Recorded order {client_order_id} in state processed")
             return True
 
     def status(self) -> dict:

@@ -2450,58 +2450,6 @@ def circuit_breaker_advance(request, event_id):
 
 @login_required
 @require_http_methods(["POST"])
-def circuit_breaker_reset(request, event_id):
-    """
-    Fully reset a circuit breaker event.
-
-    POST /api/circuit-breakers/{event_id}/reset/
-
-    Body:
-        confirmation: Must be "CONFIRM" to proceed
-        notes: Notes for the reset (optional)
-
-    Returns:
-        JSON with reset result
-    """
-    from .services.recovery_manager import get_recovery_manager
-
-    try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
-
-        confirmation = data.get('confirmation', '')
-        notes = data.get('notes', '')
-
-        recovery_mgr = get_recovery_manager(request.user)
-        result = recovery_mgr.reset_breaker(
-            event_id=int(event_id),
-            confirmation=str(confirmation),
-            notes=str(notes),
-        )
-
-        if result['success']:
-            return JsonResponse({
-                'status': 'success',
-                **result,
-            })
-        else:
-            return JsonResponse({
-                'status': 'error',
-                **result,
-            }, status=400)
-
-    except Exception as e:
-        logger.error(f"Error resetting circuit breaker: {e}")
-        return JsonResponse({
-            'status': 'error',
-            'message': str(e),
-        }, status=500)
-
-
-@login_required
-@require_http_methods(["POST"])
 def circuit_breaker_early_recovery(request, event_id):
     """
     Request early recovery with justification.
@@ -3808,66 +3756,6 @@ def circuit_breaker_state_detail(request, breaker_type):
         }, status=500)
 
 
-@require_http_methods(["POST"])
-@login_required
-def circuit_breaker_reset(request, breaker_type):
-    """Reset a circuit breaker.
-
-    Args:
-        breaker_type: Type of circuit breaker to reset
-
-    Request body:
-        - force: Force reset even if in cooldown (default: false)
-        - confirmation: Must be "CONFIRM" to reset
-        - reason: Reason for reset
-
-    Returns:
-        Reset result
-    """
-    from .services.circuit_breaker_persistence import get_circuit_breaker_persistence
-
-    try:
-        data = json.loads(request.body) if request.body else {}
-    except json.JSONDecodeError:
-        data = {}
-
-    confirmation = data.get('confirmation', '')
-    if confirmation != 'CONFIRM':
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Must provide confirmation="CONFIRM" to reset',
-        }, status=400)
-
-    force = data.get('force', False)
-    reason = data.get('reason', 'Manual reset via API')
-
-    try:
-        persistence = get_circuit_breaker_persistence(request.user)
-        result = persistence.reset_breaker(
-            breaker_type=breaker_type,
-            force=force,
-            reason=reason,
-        )
-
-        if result.get('success'):
-            return JsonResponse({
-                'status': 'success',
-                **result,
-            })
-        else:
-            return JsonResponse({
-                'status': 'error',
-                **result,
-            }, status=400)
-
-    except Exception as e:
-        logger.error(f"Error resetting circuit breaker: {e}")
-        return JsonResponse({
-            'status': 'error',
-            'message': str(e),
-        }, status=500)
-
-
 @require_http_methods(["GET"])
 @login_required
 def circuit_breaker_history_list(request):
@@ -4559,12 +4447,44 @@ def digest_track_click(request, digest_id):
         - url: Destination URL (required)
 
     Returns:
-        Redirect to destination URL
+        Redirect to destination URL (only relative URLs or same-domain URLs allowed)
     """
     from django.shortcuts import redirect
+    from django.conf import settings
+    from urllib.parse import urlparse
     from backend.tradingbot.models.models import DigestLog
 
     destination = request.GET.get('url', '/')
+
+    # Validate redirect destination to prevent open redirect attacks.
+    # Allow relative URLs (starting with '/' but not '//') and same-domain URLs.
+    # Reject everything else and redirect to homepage instead.
+    if destination.startswith('//'):
+        # Protocol-relative URLs like "//evil.com" are external redirects
+        destination = '/'
+    elif destination.startswith('/'):
+        # Relative URLs are safe
+        pass
+    else:
+        # Absolute URL - verify it matches the site's own domain
+        try:
+            parsed = urlparse(destination)
+            allowed_hosts = set(getattr(settings, 'ALLOWED_HOSTS', []))
+            # Remove wildcard entries - they don't help with validation
+            allowed_hosts.discard('*')
+            allowed_hosts.discard('')
+            # Also allow the request's own host
+            request_host = request.get_host().split(':')[0]
+            if request_host:
+                allowed_hosts.add(request_host)
+
+            if not parsed.hostname or parsed.hostname not in allowed_hosts:
+                logger.warning(
+                    f"Blocked open redirect attempt to: {destination}"
+                )
+                destination = '/'
+        except Exception:
+            destination = '/'
 
     try:
         # Try to find the digest - no auth required for click tracking
@@ -6895,32 +6815,6 @@ def allocations_rebalance(request):
 
     except Exception as e:
         logger.error(f"Error rebalancing: {e}")
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
-
-@require_http_methods(["PUT"])
-@login_required
-def allocation_update(request, strategy_name):
-    """Update allocation for a specific strategy."""
-    from .services.allocation_manager import get_allocation_manager
-
-    try:
-        data = json.loads(request.body) if request.body else {}
-
-        manager = get_allocation_manager()
-        result = manager.update_allocation(
-            user=request.user,
-            strategy_name=strategy_name,
-            new_allocation_pct=data.get('target_pct'),
-        )
-
-        return JsonResponse({
-            'status': 'success',
-            'allocation': result,
-        })
-
-    except Exception as e:
-        logger.error(f"Error updating allocation: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 

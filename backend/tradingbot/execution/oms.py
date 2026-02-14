@@ -18,6 +18,7 @@ from .interfaces import ExecutionClient, OrderAck, OrderFill, OrderRequest
 from .order_state_machine import OrderStatus
 from .pre_trade_compliance import ComplianceResult, PreTradeComplianceService
 from .maker_checker import ApprovalRequest, ApprovalStatus, MakerCheckerService
+from .replay_guard import ReplayGuard
 
 logger = logging.getLogger(__name__)
 
@@ -53,10 +54,12 @@ class OrderManagementSystem:
         execution_client: Optional[ExecutionClient] = None,
         compliance: Optional[PreTradeComplianceService] = None,
         maker_checker: Optional[MakerCheckerService] = None,
+        replay_guard: Optional[ReplayGuard] = None,
     ) -> None:
         self.execution_client = execution_client or ExecutionClient()
         self.compliance = compliance or PreTradeComplianceService()
         self.maker_checker = maker_checker
+        self.replay_guard = replay_guard
         self._lock = threading.Lock()
         self._orders: Dict[str, ManagedOrder] = {}
         self._on_fill: Optional[Callable[[ManagedOrder], None]] = None
@@ -236,7 +239,27 @@ class OrderManagementSystem:
                     managed.broker_ack
                     and managed.broker_ack.broker_order_id == broker_order_id
                 ):
-                    managed.fill = fill
+                    # Accumulate partial fills instead of overwriting
+                    if managed.fill is not None and fill.filled_qty > 0:
+                        prev = managed.fill
+                        total_qty = prev.filled_qty + fill.filled_qty
+                        if total_qty > 0:
+                            weighted_avg = (
+                                prev.avg_price * prev.filled_qty
+                                + fill.avg_price * fill.filled_qty
+                            ) / total_qty
+                        else:
+                            weighted_avg = fill.avg_price
+                        managed.fill = OrderFill(
+                            broker_order_id=fill.broker_order_id,
+                            symbol=fill.symbol,
+                            avg_price=weighted_avg,
+                            filled_qty=total_qty,
+                            status=fill.status,
+                        )
+                    else:
+                        managed.fill = fill
+
                     if fill.status == "filled":
                         managed.status = OrderStatus.FILLED
                     elif fill.status == "partially_filled":
@@ -247,7 +270,7 @@ class OrderManagementSystem:
                         managed.status = OrderStatus.REJECTED
                     managed.updated_at = datetime.utcnow()
 
-                    # Update compliance position tracking
+                    # Update compliance position tracking with incremental fill qty
                     if fill.status in ("filled", "partially_filled"):
                         self.compliance.update_position(
                             fill.symbol,
@@ -279,6 +302,19 @@ class OrderManagementSystem:
 
     def _route_to_broker(self, managed: ManagedOrder) -> ManagedOrder:
         """Send order to execution client."""
+        # Replay guard: reject duplicate order submissions
+        if self.replay_guard is not None:
+            if not self.replay_guard.should_process_order(managed.order):
+                managed.status = OrderStatus.REJECTED
+                managed.error = "Duplicate order rejected by replay guard"
+                managed.updated_at = datetime.utcnow()
+                logger.warning(
+                    "Order rejected by replay guard: %s", managed.order_id,
+                )
+                if self._on_reject:
+                    self._on_reject(managed)
+                return managed
+
         try:
             ack = self.execution_client.place_order(managed.order)
             managed.broker_ack = ack

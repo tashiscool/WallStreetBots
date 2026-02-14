@@ -257,7 +257,7 @@ class ProductionIntegrationManager:
         7. Update position tracking with costs
         8. Send alerts
         """
-        trade_id = f"{signal.strategy_name}_{signal.ticker}_{datetime.now().strftime('%Y % m % d_ % H % M % S')}"
+        trade_id = f"{signal.strategy_name}_{signal.ticker}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         try:
             self.logger.info(
@@ -737,11 +737,19 @@ class ProductionIntegrationManager:
                 except ImportError:
                     self._advanced_slippage_model = None
             
+            # Build market conditions dict (needed by both advanced and basic models)
+            current_price = await self.get_current_price(signal.ticker)
+            market_conditions = {
+                'price': float(current_price),
+                'volume': 1000000,  # Default volume estimate
+                'volatility': 0.20,  # Default 20% volatility
+            }
+
             # Use advanced model if available and trained
             if self._advanced_slippage_model and self._advanced_slippage_model.is_trained:
                 try:
                     from ..execution.advanced_slippage_model import MarketMicrostructureFeatures
-                    
+
                     # Try to get microstructure features (simplified for now)
                     microstructure = MarketMicrostructureFeatures(
                         bid_ask_spread=0.001,  # Would get from order book
@@ -776,15 +784,7 @@ class ProductionIntegrationManager:
             if not hasattr(self, '_slippage_predictor'):
                 self._slippage_predictor = SlippagePredictor()
             
-            # Get current market conditions
-            current_price = await self.get_current_price(signal.ticker)
-            market_conditions = {
-                'price': float(current_price),
-                'volume': 1000000,  # Default volume estimate
-                'volatility': 0.20,  # Default 20% volatility
-            }
-            
-            # Predict slippage
+            # Predict slippage (market_conditions already defined above)
             slippage_pred = self._slippage_predictor.predict_slippage(
                 symbol=signal.ticker,
                 side=signal.side.value,

@@ -8,12 +8,12 @@ import logging
 import time
 from typing import Dict, Any
 
-from ..risk.circuit_breaker import CircuitBreaker, BreakerLimits
+from ..risk.monitoring.circuit_breaker import CircuitBreaker, BreakerLimits
 from ..execution.replay_guard import ReplayGuard
 from ..ops.eod_recon import EODReconciler, LocalOrder, BrokerFill
 from ..data.quality import DataQualityMonitor
 from ..infra.build_info import BuildStamper
-from ..risk.greek_exposure_limits import GreekExposureLimiter, PositionGreeks
+from ..risk.monitoring.greek_exposure_limits import GreekExposureLimiter, PositionGreeks
 from ..execution.shadow_client import ShadowExecutionClient
 
 log = logging.getLogger("wsb.integration")

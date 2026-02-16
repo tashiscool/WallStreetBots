@@ -33,6 +33,13 @@ except ImportError:
 
 StrategyProfile = Literal["research_2024", "wsb_2025"]
 
+# Bridge Alpaca SDK env-var names (APCA_*) to the canonical names used below,
+# so either naming convention works.  Existing values are never overwritten.
+if "ALPACA_API_KEY" not in os.environ and "APCA_API_KEY_ID" in os.environ:
+    os.environ["ALPACA_API_KEY"] = os.environ["APCA_API_KEY_ID"]
+if "ALPACA_SECRET_KEY" not in os.environ and "APCA_API_SECRET_KEY" in os.environ:
+    os.environ["ALPACA_SECRET_KEY"] = os.environ["APCA_API_SECRET_KEY"]
+
 
 class AppSettings(BaseSettings):
     # Broker/API

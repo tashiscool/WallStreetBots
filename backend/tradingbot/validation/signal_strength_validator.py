@@ -39,12 +39,12 @@ class SignalType(Enum):
 
 
 class SignalQuality(Enum):
-    """Signal quality levels."""
+    """Signal quality levels (see _grade_signal_quality for thresholds)."""
     EXCELLENT = "excellent"  # 90-100
-    GOOD = "good"          # 75-89
-    FAIR = "fair"          # 60-74
-    POOR = "poor"          # 40-59
-    VERY_POOR = "very_poor" # 0-39
+    GOOD = "good"          # 80-89
+    FAIR = "fair"          # 70-79
+    POOR = "poor"          # 50-69
+    VERY_POOR = "very_poor" # 0-49
 
 
 @dataclass

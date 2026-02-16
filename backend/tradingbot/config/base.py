@@ -77,7 +77,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Trading system configuration
 TRADING_CONFIG = {
     "DEFAULT_PAPER_TRADING": True,
-    "MAX_POSITION_SIZE": float(os.getenv("MAX_POSITION_SIZE", "10000")),
+    # Fraction of account value (0.0 to 1.0); matches Pydantic AppSettings default.
+    "MAX_POSITION_SIZE": float(os.getenv("MAX_POSITION_SIZE", "0.10")),
     "MAX_TOTAL_RISK": float(os.getenv("MAX_TOTAL_RISK", "50000")),
     "STOP_LOSS_PCT": float(os.getenv("STOP_LOSS_PCT", "0.05")),
     "TAKE_PROFIT_MULTIPLIER": float(os.getenv("TAKE_PROFIT_MULTIPLIER", "2.0")),

@@ -52,6 +52,41 @@ class TradeSignal:
     confidence: float = 0.0
     timestamp: datetime = field(default_factory=datetime.now)
 
+    @classmethod
+    def from_legacy(cls, **kwargs) -> "TradeSignal":
+        """Create TradeSignal from legacy field names.
+
+        Maps common alternative field names:
+        - symbol -> ticker
+        - action -> side (mapped to OrderSide)
+        - strategy -> strategy_name
+        - price -> limit_price
+        """
+        # Map field names
+        if "symbol" in kwargs and "ticker" not in kwargs:
+            kwargs["ticker"] = kwargs.pop("symbol")
+        if "strategy" in kwargs and "strategy_name" not in kwargs:
+            kwargs["strategy_name"] = kwargs.pop("strategy")
+        if "action" in kwargs and "side" not in kwargs:
+            action = kwargs.pop("action")
+            action_map = {
+                "BUY": OrderSide.BUY,
+                "SELL": OrderSide.SELL,
+                "BUY_TO_OPEN": OrderSide.BUY,
+                "BUY_TO_CLOSE": OrderSide.BUY,
+                "SELL_TO_OPEN": OrderSide.SELL,
+                "SELL_TO_CLOSE": OrderSide.SELL,
+            }
+            kwargs["side"] = action_map.get(action.upper(), OrderSide.BUY)
+        if "price" in kwargs and "limit_price" not in kwargs:
+            kwargs["limit_price"] = kwargs.pop("price")
+
+        # Remove unknown fields
+        known_fields = {f.name for f in cls.__dataclass_fields__.values()}
+        filtered = {k: v for k, v in kwargs.items() if k in known_fields}
+
+        return cls(**filtered)
+
 
 @dataclass
 class TradeResult:
@@ -229,14 +264,16 @@ class TradingInterface:
             account_value = float(account.get("equity", 0))
 
             # Calculate position risk
+            # Options tickers are longer (e.g., AAPL240315C00150000) - multiply by 100 for contract size
+            is_option = len(signal.ticker) > 10
+            contract_multiplier = 100 if is_option else 1
+
             if signal.limit_price:
-                position_value = (
-                    signal.quantity * signal.limit_price * 100
-                )  # Options are per 100 shares
+                position_value = signal.quantity * signal.limit_price * contract_multiplier
             else:
                 # Use current market price as estimate
                 current_price = await self.get_current_price(signal.ticker)
-                position_value = signal.quantity * current_price * 100
+                position_value = signal.quantity * current_price * contract_multiplier
 
             position_risk_pct = position_value / account_value
 
@@ -245,7 +282,7 @@ class TradingInterface:
             if position_risk_pct > max_position_risk:
                 return {
                     "allowed": False,
-                    "reason": f"Position risk {position_risk_pct:.2%} exceeds limit {max_position_risk: .2%}",
+                    "reason": f"Position risk {position_risk_pct:.2%} exceeds limit {max_position_risk:.2%}",
                 }
 
             # Check total portfolio risk

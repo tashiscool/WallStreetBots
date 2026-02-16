@@ -266,7 +266,9 @@ class AlpacaManager:
             symbol: Stock symbol
 
         Returns:
-            Tuple of (success: bool, price: float)
+            Tuple of (success: bool, price: float).
+            On failure, returns (False, 0.0) instead of a string to ensure
+            the second element is always a float.
         """
         try:
             # Get latest trade data
@@ -277,10 +279,51 @@ class AlpacaManager:
                 price = float(trades[symbol].price)
                 return True, price
             else:
-                return False, "No trade data available"
+                return False, 0.0
 
         except Exception as e:
-            return False, f"Failed to get price: {e!s}"
+            print(f"Failed to get price for {symbol}: {e}")
+            return False, 0.0
+
+    def get_last_trade(self, symbol: str) -> dict:
+        """Get the latest trade for a symbol.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            Dictionary with 'price' and 'timestamp' keys, or empty dict on failure.
+        """
+        try:
+            request = StockLatestTradeRequest(symbol_or_symbols=[symbol])
+            trades = self.data_client.get_stock_latest_trade(request)
+
+            if trades.get(symbol):
+                trade = trades[symbol]
+                return {
+                    "price": float(trade.price),
+                    "size": int(trade.size) if hasattr(trade, "size") else 0,
+                    "timestamp": trade.timestamp if hasattr(trade, "timestamp") else None,
+                }
+            return {}
+
+        except Exception as e:
+            print(f"Failed to get last trade for {symbol}: {e}")
+            return {}
+
+    def get_account(self):
+        """Get the account object from Alpaca.
+
+        Returns:
+            Account object, or None if unavailable.
+        """
+        try:
+            if not self.trading_client:
+                return None
+            return self.trading_client.get_account()
+        except Exception as e:
+            print(f"Failed to get account: {e}")
+            return None
 
     def get_balance(self) -> float | None:
         """Get account buying power.
@@ -848,13 +891,13 @@ class AlpacaManager:
 
             # Parse expiry date
             exp_date = datetime.strptime(expiry, "%Y-%m-%d")
-            exp_str = exp_date.strftime("%y % m % d")
+            exp_str = exp_date.strftime("%y%m%d")
 
             # Option type
             opt_type = "C" if option_type.lower() == "call" else "P"
 
             # Strike price (multiply by 1000 and format as 8 digits)
-            strike_str = f"{int(strike * 1000): 08d}"
+            strike_str = f"{int(strike * 1000):08d}"
 
             return f"{underlying}{exp_str}{opt_type}{strike_str}"
 

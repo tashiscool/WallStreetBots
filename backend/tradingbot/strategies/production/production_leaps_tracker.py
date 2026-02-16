@@ -273,7 +273,7 @@ class ProductionLEAPSTracker(StrategySignalMixin):
             days_since_cross = None
             cross_strength = 0.0
 
-            lookback_days = min(120, len(sma_50_series) - 1)
+            lookback_days = min(120, len(sma_50_series) - 1, len(sma_200_series) - 1)
             recent_50 = sma_50_series[-lookback_days:]
             recent_200 = sma_200_series[-lookback_days:]
 

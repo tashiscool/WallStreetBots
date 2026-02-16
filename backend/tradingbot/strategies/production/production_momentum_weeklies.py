@@ -167,7 +167,10 @@ class ProductionMomentumWeeklies(StrategySignalMixin):
             current_vol = volume_data["volume"].tail(5).mean()
 
             # Average volume (excluding current spike)
-            avg_vol = volume_data["volume"].iloc[:-10].mean()
+            historical_vol = volume_data["volume"].iloc[:-10]
+            if len(historical_vol) == 0:
+                return False, 0.0
+            avg_vol = historical_vol.mean()
 
             if avg_vol <= 0:
                 return False, 0.0

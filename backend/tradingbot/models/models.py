@@ -104,29 +104,58 @@ class Order(models.Model):
     SIDE = [("buy", "Buy"), ("sell", "Sell")]
     STATUS = [
         ("pending", "Pending"),
+        ("accepted", "Accepted"),
+        ("new", "New"),
         ("filled", "Filled"),
         ("cancelled", "Cancelled"),
     ]
+    ORDER_TYPE = [
+        ("market", "Market"),
+        ("limit", "Limit"),
+        ("stop", "Stop"),
+        ("stop_limit", "Stop Limit"),
+        ("trailing_stop", "Trailing Stop"),
+    ]
 
+    user = models.ForeignKey(
+        User, help_text="Associated user", on_delete=models.CASCADE, null=True, blank=True
+    )
     bot = models.ForeignKey(Bot, help_text="Associated bot", on_delete=models.CASCADE, null=True, blank=True)
     stock = models.ForeignKey(
         Stock, help_text="Associated stock", on_delete=models.CASCADE, null=True, blank=True
     )
+    symbol = models.CharField(max_length=20, help_text="Trading symbol", default="", blank=True)
     side = models.CharField(max_length=10, choices=SIDE, help_text="Order side", default="buy")
+    order_type = models.CharField(max_length=20, choices=ORDER_TYPE, default="market", help_text="Order type")
     quantity = models.IntegerField(help_text="Order quantity", default=0)
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Order price", default=0)
+    limit_price = models.DecimalField(
+        max_digits=10, decimal_places=2, help_text="Limit price", null=True, blank=True
+    )
+    stop_price = models.DecimalField(
+        max_digits=10, decimal_places=2, help_text="Stop price", null=True, blank=True
+    )
+    filled_avg_price = models.DecimalField(
+        max_digits=10, decimal_places=2, help_text="Filled average price", null=True, blank=True
+    )
     status = models.CharField(
         max_length=20, choices=STATUS, default="pending", help_text="Order status"
     )
+    alpaca_order_id = models.CharField(
+        max_length=100, help_text="Alpaca order ID", default="", blank=True
+    )
     date = models.DateField(default=date.today)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    filled_at = models.DateTimeField(null=True, blank=True)
 
     # Metadata
     class Meta:
-        ordering = ["date"]
+        ordering = ["-date", "-created_at"]
 
     # Methods
     def __str__(self):
-        return f"Order: {self.side} {self.quantity} {self.stock.company.ticker} @ {self.price} \n Status: {self.status} \n Date: {self.date}"
+        symbol = self.symbol or (self.stock.company.ticker if self.stock else "Unknown")
+        return f"Order: {self.side} {self.quantity} {symbol} @ {self.price} - Status: {self.status}"
 
 
 class ValidationRun(models.Model):

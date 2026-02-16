@@ -8,7 +8,10 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 
+import logging
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 class RiskLevel(Enum):
@@ -169,16 +172,17 @@ class KellyCalculator:
         Returns:
             Optimal Kelly fraction (can be negative if negative edge)
         """
-        if avg_loss_pct <= 0:
+        if avg_loss_pct <= 0 or avg_win_pct <= 0:
             return 0.0
 
-        # Kelly formula: f*=(bp - q) / b
-        # where b=avg_win_pct / avg_loss_pct, p=win_prob, q = loss_prob
-        b = avg_win_pct / avg_loss_pct
+        # Generalized Kelly formula for partial losses: f* = p/a - q/b
+        # where a = avg_loss_pct, b = avg_win_pct, p = win_prob, q = loss_prob
+        a = avg_loss_pct
+        b = avg_win_pct
         p = win_probability
         q = 1 - p
 
-        kelly_fraction = (b * p - q) / b
+        kelly_fraction = (p / a) - (q / b)
         return max(0.0, kelly_fraction)  # Don't go negative
 
     @staticmethod
@@ -430,6 +434,12 @@ class PositionSizer:
             'C': 0.70,  # 70% for C grade
             'D': 0.50,  # 50% for D grade
             'F': 0.0,   # No position for F grade
+            # SignalQuality enum string values (from signal_strength_validator)
+            'excellent': 1.0,
+            'good': 0.85,
+            'fair': 0.70,
+            'poor': 0.50,
+            'very_poor': 0.0,
         }
         grade_multiplier = grade_multipliers.get(quality_grade, 0.5)
         grade_adjusted = int(validation_adjusted * grade_multiplier)
@@ -521,11 +531,23 @@ class RiskManager:
         ticker_exposure = self._calculate_ticker_exposure(position.ticker)
         return not ticker_exposure > self.risk_params.max_concentration_per_ticker
 
-    def calculate_portfolio_risk(self, additional_risk: float = 0) -> PortfolioRisk:
-        """Calculate current portfolio risk metrics."""
+    def calculate_portfolio_risk(self, additional_risk: float = 0, account_value: float = None) -> PortfolioRisk:
+        """Calculate current portfolio risk metrics.
+
+        Args:
+            additional_risk: Additional risk amount to include in calculations.
+            account_value: Account value to use. If None, falls back to a
+                placeholder value of 500000.0 and logs a warning.
+        """
+        if account_value is None:
+            logger.warning(
+                "No account_value provided to calculate_portfolio_risk; "
+                "using placeholder value of 500000.0. Pass an explicit "
+                "account_value to avoid this."
+            )
+            account_value = 500000.0
+
         if not self.positions:
-            # Assume some baseline account value for empty portfolio
-            account_value = 500000.0  # This should come from account data
             return PortfolioRisk(
                 account_value=account_value,
                 total_cash=account_value,
@@ -549,9 +571,6 @@ class RiskManager:
             for pos in self.positions
             if pos.status == PositionStatus.OPEN
         )
-
-        # Calculate account value (this should come from broker API)
-        account_value = 500000.0  # Placeholder
         total_cash = account_value - total_positions_value
 
         # Calculate concentrations

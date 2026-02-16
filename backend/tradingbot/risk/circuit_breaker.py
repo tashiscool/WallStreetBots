@@ -125,6 +125,18 @@ class CircuitBreaker:
         with self._lock:
             return self._state.consecutive_errors
 
+    def can_trade(self) -> bool:
+        """Check if trading is allowed (compatibility with monitoring circuit breaker).
+
+        Returns:
+            True if trading is allowed, False if halted.
+        """
+        if not self._config.enabled:
+            return True
+        with self._lock:
+            self._check_auto_reset()
+            return not self._state.is_halted
+
     def can_execute(self, symbol: str, quantity: int,
                    value: Optional[float] = None) -> tuple:
         """

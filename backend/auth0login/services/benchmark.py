@@ -8,7 +8,7 @@ Includes caching to reduce API calls since benchmark data is the same for all us
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import ClassVar, Optional
 from functools import lru_cache
 import time
 
@@ -77,7 +77,7 @@ class BenchmarkService:
     """Service for benchmark comparison calculations."""
 
     DEFAULT_BENCHMARK = 'SPY'
-    SUPPORTED_BENCHMARKS = ['SPY', 'QQQ', 'IWM', 'DIA', 'VTI']
+    SUPPORTED_BENCHMARKS: ClassVar[list] = ['SPY', 'QQQ', 'IWM', 'DIA', 'VTI']
 
     def __init__(self):
         pass

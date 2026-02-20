@@ -7,7 +7,7 @@ Supports technical indicators, condition operators, and signal generation.
 import logging
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Dict, List, Optional, Any, Tuple, Callable
+from typing import ClassVar, Dict, List, Optional, Any, Tuple, Callable
 
 import numpy as np
 import pandas as pd
@@ -24,7 +24,7 @@ class CustomStrategyRunner:
     """
 
     # Available technical indicators with their calculation functions
-    INDICATORS = {
+    INDICATORS: ClassVar[dict] = {
         'rsi': {
             'name': 'Relative Strength Index',
             'description': 'Momentum oscillator measuring speed and change of price movements',
@@ -162,7 +162,7 @@ class CustomStrategyRunner:
     }
 
     # Available comparison operators
-    OPERATORS = {
+    OPERATORS: ClassVar[dict] = {
         'less_than': {
             'name': 'Less Than',
             'symbol': '<',
@@ -214,7 +214,7 @@ class CustomStrategyRunner:
     }
 
     # Exit condition types
-    EXIT_TYPES = {
+    EXIT_TYPES: ClassVar[dict] = {
         'take_profit': {
             'name': 'Take Profit',
             'description': 'Exit when profit reaches target percentage',
@@ -256,7 +256,7 @@ class CustomStrategyRunner:
         self,
         df: pd.DataFrame,
         indicator: str,
-        period: int = None,
+        period: int | None = None,
         **kwargs
     ) -> pd.Series:
         """
@@ -712,7 +712,7 @@ class CustomStrategyRunner:
         entry_price: float,
         entry_date: datetime,
         idx: int = -1,
-        highest_since_entry: float = None
+        highest_since_entry: float | None = None
     ) -> Tuple[bool, str, Dict]:
         """
         Check if exit conditions are met for a position.
@@ -942,7 +942,7 @@ class CustomStrategyRunner:
 
         return errors, warnings
 
-    def validate_definition(self, definition: Dict = None) -> Dict[str, Any]:
+    def validate_definition(self, definition: Dict | None = None) -> Dict[str, Any]:
         """
         Validate strategy definition for errors and warnings.
 

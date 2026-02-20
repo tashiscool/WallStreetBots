@@ -421,7 +421,7 @@ class CryptoDipBot:
         positions = await self.client.get_positions()
 
         for position in positions:
-            if position.symbol not in [s for s in self.config.watch_list]:
+            if position.symbol not in list(self.config.watch_list):
                 continue
 
             # Check take profit

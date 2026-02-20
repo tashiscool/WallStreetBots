@@ -103,16 +103,22 @@ class StrategyForm(forms.Form):
         (
             "hmm_sharp_ratio_monte_carlo",
             "HMM model prediction + Sharpe ratio Monte Carlo simulation",
-        ),  # TODO
+        ),
     ]
     strategy = forms.ChoiceField(
         choices=STRATEGY, help_text="Portfolio Rebalancing Strategy"
     )
 
     def clean(self):
-        # print('inside: ', type(self.cleaned_data), self.cleaned_data)
-        strategy = self.cleaned_data["strategy"]
-        return strategy
+        """Validate and return normalized strategy form data."""
+        cleaned_data = super().clean()
+        strategy = cleaned_data.get("strategy")
+
+        valid_strategies = {choice[0] for choice in self.STRATEGY}
+        if strategy and strategy not in valid_strategies:
+            raise forms.ValidationError("Invalid strategy selected")
+
+        return cleaned_data
 
 
 class WatchListForm(forms.Form):

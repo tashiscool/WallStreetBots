@@ -1,35 +1,35 @@
 """Tests for system health monitoring module."""
 
 import asyncio
+import importlib
+import sys
 from unittest import mock
 
 
 def test_system_health_init_without_psutil():
     """SystemHealthMonitor should initialize even when psutil is not installed."""
-    import sys
+    from backend.tradingbot.monitoring import system_health
 
-    saved = sys.modules.get("psutil")
+    saved_psutil = sys.modules.get("psutil")
+    saved_avail = system_health.PSUTIL_AVAILABLE
+    saved_obj = system_health.psutil
     try:
-        sys.modules["psutil"] = None  # Block psutil import
+        # Simulate psutil not being available by blocking its import and
+        # reloading the module so the top-level try/except re-executes.
+        sys.modules["psutil"] = None
+        importlib.reload(system_health)
 
-        # Force reimport
-        mod_name = "backend.tradingbot.monitoring.system_health"
-        if mod_name in sys.modules:
-            del sys.modules[mod_name]
-
-        try:
-            from backend.tradingbot.monitoring import system_health
-
-            assert hasattr(system_health, "PSUTIL_AVAILABLE")
-            assert system_health.PSUTIL_AVAILABLE is False
-        except ImportError:
-            # Module may not be importable in test environment
-            pass
+        assert hasattr(system_health, "PSUTIL_AVAILABLE")
+        assert system_health.PSUTIL_AVAILABLE is False
     finally:
-        if saved is not None:
-            sys.modules["psutil"] = saved
+        # Restore original state so other tests aren't affected
+        if saved_psutil is not None:
+            sys.modules["psutil"] = saved_psutil
         elif "psutil" in sys.modules:
             del sys.modules["psutil"]
+        system_health.PSUTIL_AVAILABLE = saved_avail
+        system_health.psutil = saved_obj
+        importlib.reload(system_health)
 
 
 def test_system_health_init_with_config_none():

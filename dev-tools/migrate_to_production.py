@@ -168,7 +168,7 @@ class ProductionMigration:
         """Migrate portfolio data from JSON files."""
         # Migrate LEAPS portfolio
         leaps_file = "leaps_portfolio.json"
-        if os.path.exists(leaps_file):
+        if os.path.exists(leaps_file):  # noqa: ASYNC240
             try:
                 DatabaseMigration.migrate_leaps_portfolio(leaps_file)
                 self.logger.info("Migrated LEAPS portfolio")
@@ -178,7 +178,7 @@ class ProductionMigration:
 
         # Migrate Wheel portfolio
         wheel_file = "wheel_portfolio.json"
-        if os.path.exists(wheel_file):
+        if os.path.exists(wheel_file):  # noqa: ASYNC240
             try:
                 DatabaseMigration.migrate_wheel_portfolio(wheel_file)
                 self.logger.info("Migrated Wheel portfolio")

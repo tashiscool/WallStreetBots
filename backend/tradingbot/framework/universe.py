@@ -381,7 +381,7 @@ class SectorUniverseModel(UniverseSelectionModel):
             by_sector[s.sector].append(s)
 
         selected = []
-        for sector, sector_securities in by_sector.items():
+        for sector_securities in by_sector.values():
             # Sort by market cap or dollar volume
             sector_securities.sort(
                 key=lambda s: s.market_cap if s.market_cap else s.dollar_volume_calc,

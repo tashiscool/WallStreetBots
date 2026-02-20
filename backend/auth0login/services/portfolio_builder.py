@@ -317,7 +317,7 @@ class PortfolioBuilderService:
             },
         }
 
-    def create_from_template(self, template_id: str, name: str = None) -> StrategyPortfolio:
+    def create_from_template(self, template_id: str, name: str | None = None) -> StrategyPortfolio:
         """Create a portfolio from a template.
 
         Args:
@@ -731,7 +731,7 @@ class PortfolioBuilderService:
             weights = {k: v / total_weight * 100 for k, v in weights.items()}
         else:
             equal_weight = 100 / len(strategies)
-            weights = {sid: equal_weight for sid in strategies}
+            weights = dict.fromkeys(strategies, equal_weight)
 
         # Apply min/max constraints
         for sid, weight in weights.items():
@@ -775,16 +775,16 @@ class PortfolioBuilderService:
         suggestions = []
 
         # Get current correlation groups
-        current_groups = set(
+        current_groups = {
             AVAILABLE_STRATEGIES.get(sid, {}).get('correlation_group')
             for sid in current_strategies
-        )
+        }
 
         # Find missing groups
-        all_groups = set(
+        all_groups = {
             meta.get('correlation_group')
             for meta in AVAILABLE_STRATEGIES.values()
-        )
+        }
         missing_groups = all_groups - current_groups
 
         # Suggest strategies from missing groups

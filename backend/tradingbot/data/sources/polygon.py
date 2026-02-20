@@ -286,7 +286,7 @@ class PolygonDataSource(IDataSource):
         if not self._connected:
             raise ConnectionError("Not connected to Polygon")
 
-        endpoint = f"/v3/reference/options/contracts"
+        endpoint = "/v3/reference/options/contracts"
 
         params = {
             "underlying_ticker": symbol,
@@ -336,7 +336,7 @@ class PolygonDataSource(IDataSource):
         if not self._connected:
             raise ConnectionError("Not connected to Polygon")
 
-        endpoint = f"/v3/reference/options/contracts"
+        endpoint = "/v3/reference/options/contracts"
         params = {
             "underlying_ticker": symbol,
             "expired": "false",
@@ -354,7 +354,7 @@ class PolygonDataSource(IDataSource):
             if exp_str:
                 expirations.add(datetime.strptime(exp_str, "%Y-%m-%d").date())
 
-        return sorted(list(expirations))
+        return sorted(expirations)
 
     async def get_fundamentals(self, symbol: str) -> Optional[FundamentalData]:
         """Get fundamental data from Polygon."""

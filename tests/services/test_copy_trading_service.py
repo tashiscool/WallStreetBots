@@ -12,6 +12,7 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 from django.utils import timezone
 
 from backend.auth0login.services.copy_trading_service import CopyTradingService
@@ -95,7 +96,7 @@ class TestCopyTradingServiceProviders:
             display_name="Provider 1",
         )
 
-        with pytest.raises(Exception):
+        with pytest.raises((IntegrityError, ValueError)):
             self.service.create_provider(
                 user=self.user,
                 strategy_name="unique_strategy",

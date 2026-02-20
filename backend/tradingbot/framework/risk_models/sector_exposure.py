@@ -21,7 +21,7 @@ class SectorExposureRiskModel(RiskManagementModel):
     def __init__(
         self,
         max_sector_weight: float = 0.30,  # Max 30% in any sector
-        sector_mapping: Dict[str, str] = None,  # symbol -> sector
+        sector_mapping: Dict[str, str] | None = None,  # symbol -> sector
         name: str = "SectorExposureRisk",
     ):
         super().__init__(name)

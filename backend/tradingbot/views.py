@@ -1,9 +1,13 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from rest_framework import status
+import json
+import re
 
 from .apimanagers import AlpacaManager
 from .models import Order, Stock, Company
+
+_TICKER_PATTERN = re.compile(r"^[A-Z][A-Z0-9.\-]{0,19}$")
 
 
 def index(request):
@@ -18,6 +22,20 @@ def _get_or_create_stock(ticker):
     )
     stock, _ = Stock.objects.get_or_create(company=company)
     return stock
+
+
+def _get_request_payload(request):
+    """Parse JSON payloads for API requests, falling back to form data."""
+    if request.content_type and "application/json" in request.content_type:
+        try:
+            body = request.body.decode("utf-8") if request.body else "{}"
+            payload = json.loads(body)
+            if isinstance(payload, dict):
+                return payload, None
+            return None, "JSON payload must be an object"
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            return None, "Invalid JSON payload"
+    return request.POST.dict(), None
 
 
 @login_required
@@ -140,6 +158,85 @@ def stock_trade(request):
     order.save()
 
     return HttpResponse(status=status.HTTP_201_CREATED)
+
+
+@login_required
+def create_company(request):
+    """Create a new Company via API."""
+    if request.method != "POST":
+        return HttpResponse(
+            "Method not allowed", status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+
+    payload, error = _get_request_payload(request)
+    if error:
+        return HttpResponse(error, status=status.HTTP_400_BAD_REQUEST)
+
+    ticker = str(payload.get("ticker", "")).strip().upper()
+    name = str(payload.get("name", "")).strip()
+
+    if not ticker:
+        return HttpResponse(
+            "ticker is required", status=status.HTTP_400_BAD_REQUEST
+        )
+    if not _TICKER_PATTERN.fullmatch(ticker):
+        return HttpResponse(
+            "Invalid ticker format", status=status.HTTP_400_BAD_REQUEST
+        )
+
+    company, created = Company.objects.get_or_create(
+        ticker=ticker, defaults={"name": name or ticker}
+    )
+    Stock.objects.get_or_create(company=company)
+
+    response_status = (
+        status.HTTP_201_CREATED if created else status.HTTP_200_OK
+    )
+    return JsonResponse(
+        {
+            "ticker": company.ticker,
+            "name": company.name,
+            "created": created,
+        },
+        status=response_status,
+    )
+
+
+@login_required
+def patch_company(request, ticker):
+    """Patch an existing Company record."""
+    if request.method != "PATCH":
+        return HttpResponse(
+            "Method not allowed", status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+
+    payload, error = _get_request_payload(request)
+    if error:
+        return HttpResponse(error, status=status.HTTP_400_BAD_REQUEST)
+
+    company = Company.objects.filter(ticker=ticker.upper()).first()
+    if company is None:
+        return HttpResponse(
+            f"Company not found: {ticker}", status=status.HTTP_404_NOT_FOUND
+        )
+
+    name = payload.get("name")
+    if name is None or not str(name).strip():
+        return HttpResponse(
+            "name is required for patch", status=status.HTTP_400_BAD_REQUEST
+        )
+
+    company.name = str(name).strip()
+    company.save(update_fields=["name"])
+
+    return JsonResponse(
+        {
+            "ticker": company.ticker,
+            "name": company.name,
+            "updated": True,
+        },
+        status=status.HTTP_200_OK,
+    )
 
 
 @login_required

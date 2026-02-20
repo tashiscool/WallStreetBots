@@ -308,7 +308,7 @@ class TestEnsemblePricePredictorTraining:
         assert np.isclose(ensemble.model_weights['cnn'], 0.2)
 
 
-class TestEnsemblePrediction:
+class TestEnsemblePredictions:
     """Tests for ensemble predictions."""
 
     @pytest.fixture
@@ -614,7 +614,7 @@ class TestEnsembleModelContributions:
         assert 'lstm' in contributions
         assert 'transformer' in contributions
 
-        for name, contrib in contributions.items():
+        for contrib in contributions.values():
             if 'error' not in contrib:
                 assert 'prediction' in contrib
                 assert 'trend' in contrib

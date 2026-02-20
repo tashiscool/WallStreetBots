@@ -172,7 +172,7 @@ class TestToxicFlowDetector:
         det.update_post_fill_prices("AAPL", current_mid=149.95)
 
         # Check that post-fill prices were populated
-        trade = list(det._trades["AAPL"])[0]
+        trade = next(iter(det._trades["AAPL"]))
         assert trade.mid_price_1s is not None
         assert trade.mid_price_5s is not None
         assert trade.mid_price_30s is not None
@@ -228,7 +228,7 @@ class TestBufferedMidPriceResolution:
         # 1s horizon: target = fill_ts + 1s
         # Buffer: [(fill_ts, 150.00), (fill_ts+3s, 150.30)]
         # Interpolation: 150.00 + (1/3)*(150.30 - 150.00) = 150.10
-        trade = list(det._trades["AAPL"])[0]
+        trade = next(iter(det._trades["AAPL"]))
         assert trade.mid_price_1s == pytest.approx(150.10, abs=0.001)
         assert trade.mid_price_1s_ts == fill_ts + timedelta(seconds=1)
 
@@ -245,7 +245,7 @@ class TestBufferedMidPriceResolution:
                 current_time=fill_ts + timedelta(seconds=sec),
             )
 
-        trade = list(det._trades["AAPL"])[0]
+        trade = next(iter(det._trades["AAPL"]))
         # 5s horizon: target = fill_ts + 5s
         # Bracketing samples: (fill_ts+4s, 104.0) and (fill_ts+6s, 106.0)
         # Interpolation: 104.0 + (1/2)*(106.0 - 104.0) = 105.0
@@ -293,7 +293,7 @@ class TestBufferedMidPriceResolution:
             current_time=fill_ts + timedelta(seconds=400),
         )
 
-        trade = list(det._trades["AAPL"])[0]
+        trade = next(iter(det._trades["AAPL"]))
         assert trade.mid_price_1s_ts is not None
         assert trade.mid_price_5s_ts is not None
         assert trade.mid_price_30s_ts is not None
@@ -306,7 +306,7 @@ class TestBufferedMidPriceResolution:
         fill_ts = datetime(2025, 1, 1, 12, 0, 0)
         det.record_fill("AAPL", "buy", 100, 150.05, mid_price=150.00, timestamp=fill_ts)
 
-        trade = list(det._trades["AAPL"])[0]
+        trade = next(iter(det._trades["AAPL"]))
 
         # At t+2s: only 1s horizon should resolve
         det.update_post_fill_prices("AAPL", 150.10, fill_ts + timedelta(seconds=2))
@@ -339,7 +339,7 @@ class TestBufferedMidPriceResolution:
         fill_ts = datetime(2025, 1, 1, 12, 0, 0)
         det.record_fill("AAPL", "buy", 100, 150.05, mid_price=150.00, timestamp=fill_ts)
 
-        trade = list(det._trades["AAPL"])[0]
+        trade = next(iter(det._trades["AAPL"]))
         trade_id = id(trade)
 
         det.update_post_fill_prices("AAPL", 149.50, fill_ts + timedelta(seconds=400))
@@ -359,7 +359,7 @@ class TestBufferedMidPriceResolution:
                 current_time=fill_ts + timedelta(seconds=sec),
             )
 
-        trade = list(det._trades["AAPL"])[0]
+        trade = next(iter(det._trades["AAPL"]))
         # 1s: expect 100.1 (exact sample at t=1)
         assert trade.mid_price_1s == pytest.approx(100.1, abs=0.01)
         # 5s: expect 100.5

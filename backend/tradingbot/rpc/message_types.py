@@ -94,7 +94,7 @@ class RPCMessage:
         pnl_pct: float,
     ) -> 'RPCMessage':
         """Create trade exit message."""
-        emoji = "" if pnl >= 0 else ""
+        emoji = ""
         return cls(
             msg_type=RPCMessageType.EXIT,
             message=f"{emoji} Closed {symbol}: PnL ${pnl:.2f} ({pnl_pct:.1f}%)",

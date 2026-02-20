@@ -214,7 +214,7 @@ class TradingApiClient:
                 if attempt < self.config.max_retries - 1:
                     await asyncio.sleep(self.config.retry_delay)
                     continue
-                raise ApiError(f"Request failed: {e}")
+                raise ApiError(f"Request failed: {e}") from e
 
         return ApiResponse.from_error("Max retries exceeded")
 

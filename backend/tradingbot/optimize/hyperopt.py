@@ -11,7 +11,7 @@ import os
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Type
 import numpy as np
 
 try:
@@ -89,7 +89,7 @@ class HyperoptEngine:
         best_params, best_result = engine.optimize()
     """
 
-    LOSS_FUNCTIONS: Dict[str, Type[IHyperoptLoss]] = {
+    LOSS_FUNCTIONS: ClassVar[Dict[str, Type[IHyperoptLoss]]] = {
         'sharpe': SharpeHyperoptLoss,
         'sortino': SortinoHyperoptLoss,
         'max_drawdown': MaxDrawdownHyperoptLoss,
@@ -254,7 +254,7 @@ class HyperoptEngine:
         )
 
         # Log results
-        logger.info(f"Optimization complete!")
+        logger.info("Optimization complete!")
         logger.info(f"Best loss: {self.best_loss:.4f}")
         logger.info(f"Best parameters: {self.best_params}")
         if self.best_result:

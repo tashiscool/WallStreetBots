@@ -467,7 +467,7 @@ class TestRegimeValidator:
 
     def test_regime_detection_functions(self, validator, sample_market_data):
         """Test that regime detection functions work."""
-        for regime_name, regime_func in validator.regimes.items():
+        for regime_func in validator.regimes.values():
             mask = regime_func(sample_market_data)
 
             assert isinstance(mask, pd.Series)

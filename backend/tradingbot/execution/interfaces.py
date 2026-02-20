@@ -49,6 +49,13 @@ class ExecutionClient:
         self._client_to_broker: Dict[str, str] = {}  # client_order_id -> broker_order_id
         self._order_counter: int = 0
 
+    def _raise_if_base_client(self, method_name: str) -> None:
+        """Enforce abstract contract for direct ExecutionClient usage."""
+        if self.__class__ is ExecutionClient:
+            raise NotImplementedError(
+                f"ExecutionClient.{method_name}() must be implemented by a concrete client"
+            )
+
     def validate_connection(self) -> bool:
         """Validate broker connection.
 
@@ -56,6 +63,7 @@ class ExecutionClient:
             True if connection is valid, False otherwise.
             Default implementation returns True (stub mode).
         """
+        self._raise_if_base_client("validate_connection")
         return True
 
     def place_order(self, req: OrderRequest) -> OrderAck:
@@ -68,6 +76,7 @@ class ExecutionClient:
             OrderAck with acceptance status and broker order ID.
             Default implementation accepts all orders (stub mode).
         """
+        self._raise_if_base_client("place_order")
         self._order_counter += 1
         broker_order_id = f"stub_{self._order_counter}"
 
@@ -102,6 +111,7 @@ class ExecutionClient:
         Returns:
             Order data dictionary, or empty dict if not found.
         """
+        self._raise_if_base_client("get_order")
         return self._orders.get(broker_order_id, {})
 
     def list_open_orders(self) -> Dict[str, Dict]:
@@ -110,6 +120,7 @@ class ExecutionClient:
         Returns:
             Dictionary mapping broker order IDs to order data.
         """
+        self._raise_if_base_client("list_open_orders")
         return {
             oid: data for oid, data in self._orders.items()
             if data.get("status") in ("accepted", "pending", "partially_filled")
@@ -124,6 +135,7 @@ class ExecutionClient:
         Returns:
             True if cancelled successfully, False otherwise.
         """
+        self._raise_if_base_client("cancel_order")
         if broker_order_id in self._orders:
             self._orders[broker_order_id]["status"] = "canceled"
             return True
@@ -138,6 +150,7 @@ class ExecutionClient:
         Returns:
             OrderFill with fill details, or None if order not found.
         """
+        self._raise_if_base_client("reconcile")
         broker_order_id = self._client_to_broker.get(client_order_id)
         if not broker_order_id:
             return None
@@ -169,3 +182,9 @@ class ExecutionClient:
             filled_qty=filled_qty,
             status=fill_status,
         )
+
+
+class InMemoryExecutionClient(ExecutionClient):
+    """Concrete in-memory execution client for tests and non-broker environments."""
+
+    pass

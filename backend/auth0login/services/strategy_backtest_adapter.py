@@ -8,7 +8,7 @@ import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, ClassVar, Dict, List, Optional, Tuple
 import uuid
 
 import pandas as pd
@@ -57,7 +57,7 @@ class CustomStrategyBacktestAdapter:
     """
 
     # Universe symbol mappings
-    UNIVERSE_SYMBOLS = {
+    UNIVERSE_SYMBOLS: ClassVar[dict] = {
         'sp500': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'BRK-B', 'JPM', 'V'],
         'nasdaq100': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'AVGO', 'ADBE', 'COST'],
         'dow30': ['AAPL', 'MSFT', 'JPM', 'V', 'UNH', 'HD', 'PG', 'JNJ', 'WMT', 'CVX'],
@@ -204,7 +204,7 @@ class CustomStrategyBacktestAdapter:
 
         # Fetch price data
         price_data = await self.fetch_price_data(
-            symbols + [config.benchmark],
+            [*symbols, config.benchmark],
             config.start_date,
             config.end_date
         )

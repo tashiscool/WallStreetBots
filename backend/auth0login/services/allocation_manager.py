@@ -16,7 +16,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Optional, Dict, List, Any
+from typing import ClassVar, Optional, Dict, List, Any
 
 from django.db import transaction
 from django.db.models import Sum
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class AllocationExceededError(Exception):
     """Raised when a trade would exceed strategy allocation limits."""
 
-    def __init__(self, strategy_name: str, available: float, requested: float, message: str = None):
+    def __init__(self, strategy_name: str, available: float, requested: float, message: str | None = None):
         self.strategy_name = strategy_name
         self.available = available
         self.requested = requested
@@ -81,7 +81,7 @@ class AllocationManagerService:
     """
 
     # Default allocation percentages by risk profile
-    DEFAULT_ALLOCATIONS = {
+    DEFAULT_ALLOCATIONS: ClassVar[dict] = {
         'conservative': {
             'index-baseline': 40,
             'wheel': 30,
@@ -244,7 +244,7 @@ class AllocationManagerService:
         user,
         strategy_name: str,
         amount: float,
-        order_id: str = None
+        order_id: str | None = None
     ):
         """
         Release a reservation (order cancelled or failed).
@@ -289,7 +289,7 @@ class AllocationManagerService:
         user,
         strategy_name: str,
         amount: float,
-        order_id: str = None
+        order_id: str | None = None
     ):
         """
         Confirm allocation when order is filled (convert reservation to exposure).
@@ -502,7 +502,7 @@ class AllocationManagerService:
         user,
         profile: str,
         portfolio_value: float,
-        enabled_strategies: List[str] = None
+        enabled_strategies: List[str] | None = None
     ):
         """
         Initialize allocation limits based on risk profile.
@@ -539,7 +539,7 @@ class AllocationManagerService:
         user,
         strategy_name: str,
         allocated_pct: float,
-        portfolio_value: float = None
+        portfolio_value: float | None = None
     ):
         """
         Update allocation percentage for a strategy.
@@ -571,7 +571,7 @@ class AllocationManagerService:
         self,
         user,
         portfolio_value: float,
-        target_profile: str = None
+        target_profile: str | None = None
     ) -> List[RebalanceRecommendation]:
         """
         Generate rebalancing recommendations.
@@ -651,8 +651,8 @@ class AllocationManagerService:
         user,
         strategy_name: str,
         proposed_amount: float,
-        order_id: str = None,
-        symbol: str = None
+        order_id: str | None = None,
+        symbol: str | None = None
     ) -> Dict[str, Any]:
         """
         Enforce allocation limit before order submission.

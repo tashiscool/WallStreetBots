@@ -513,7 +513,7 @@ class TestKnownHTBStocks:
 
     def test_known_htb_stocks_structure(self):
         """Test known HTB stocks have correct structure."""
-        for symbol, data in KNOWN_HTB_STOCKS.items():
+        for data in KNOWN_HTB_STOCKS.values():
             assert "base_rate" in data
             assert "volatility" in data
             assert data["base_rate"] > 0

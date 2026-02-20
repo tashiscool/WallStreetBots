@@ -6,7 +6,7 @@ try:
     import plotly.express as px
     import plotly.graph_objects as go
     PLOTLY_AVAILABLE = True
-except ImportError:
+except Exception:
     px = None
     go = None
     PLOTLY_AVAILABLE = False
@@ -26,6 +26,14 @@ def login(request):
         return redirect(dashboard)
     else:
         return render(request, "accounts / login.html")
+
+
+def _get_strategy_from_form(strategy_form):
+    """Support both dict and legacy scalar cleaned_data payloads."""
+    cleaned = strategy_form.cleaned_data
+    if isinstance(cleaned, dict):
+        return cleaned.get("strategy")
+    return cleaned
 
 
 @login_required()
@@ -123,12 +131,10 @@ def dashboard(request):
             )
 
         if "submit_strategy" in request.POST and strategy_form.is_valid():
-            # here for some reason form.cleaned_data changed from type dict to
-            # type tuple. I tried to find the reason but it didn't seem to caused by
-            # our code. Might be and django bug
-            strategy = strategy_form.cleaned_data
-            user.portfolio.strategy = strategy
-            user.portfolio.save()
+            strategy = _get_strategy_from_form(strategy_form)
+            if hasattr(user, "portfolio"):
+                user.portfolio.strategy = strategy
+                user.portfolio.save()
             return HttpResponseRedirect("/")
 
     graph = get_portfolio_chart(request)
@@ -253,14 +259,10 @@ def orders(request):
             )
 
         if "submit_strategy" in request.POST and strategy_form.is_valid():
-            # here for some reason form.cleaned_data changed from type dict to
-            # type tuple. I tried to find the reason but it didn't seem to caused by
-            # our code. Might be and django bug
-            rebalance_strategy = strategy_form.cleaned_data[0]
-            optimization_strategy = strategy_form.cleaned_data[1]
-            user.portfolio.rebalancing_strategy = rebalance_strategy
-            user.portfolio.optimization_strategy = optimization_strategy
-            user.portfolio.save()
+            strategy = _get_strategy_from_form(strategy_form)
+            if hasattr(user, "portfolio"):
+                user.portfolio.strategy = strategy
+                user.portfolio.save()
             return HttpResponseRedirect("/")
     return render(
         request,
@@ -298,12 +300,10 @@ def positions(request):
             )
 
         if "submit_strategy" in request.POST and strategy_form.is_valid():
-            # here for some reason form.cleaned_data changed from type dict to
-            # type tuple. I tried to find the reason but it didn't seem to caused by
-            # our code. Might be and django bug
-            strategy = strategy_form.cleaned_data
-            user.portfolio.strategy = strategy
-            user.portfolio.save()
+            strategy = _get_strategy_from_form(strategy_form)
+            if hasattr(user, "portfolio"):
+                user.portfolio.strategy = strategy
+                user.portfolio.save()
             return HttpResponseRedirect("positions")
 
     return render(

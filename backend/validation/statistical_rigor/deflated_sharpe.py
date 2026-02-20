@@ -99,9 +99,9 @@ class DeflatedSharpeRatio:
         Uses the approximation for the expected maximum of *num_trials*
         i.i.d. standard normal draws:
 
-            E[max] ≈ σ * { (1 − γ) * Φ⁻¹(1 − 1/N) + γ * Φ⁻¹(1 − 1/(N*e)) }
+            E[max] ~ std * { (1 - gamma) * invnorm(1 - 1/N) + gamma * invnorm(1 - 1/(N*e)) }
 
-        where γ is the Euler-Mascheroni constant and Φ⁻¹ is the normal
+        where gamma is the Euler-Mascheroni constant and invnorm is the normal
         quantile function.
         """
         if num_trials <= 1:
@@ -130,13 +130,13 @@ class DeflatedSharpeRatio:
     ) -> float:
         r"""Probabilistic Sharpe Ratio with non-normal correction.
 
-        PSR = Φ( (SR − SR*) / σ(SR) )
+        PSR = Phi( (SR - SR*) / se(SR) )
 
-        where σ(SR) adjusts for skewness and kurtosis:
+        where se(SR) adjusts for skewness and kurtosis:
 
-            σ(SR) = sqrt( (1 − γ₃·SR + (γ₄−1)/4 · SR²) / (n−1) )
+            se(SR) = sqrt( (1 - g3*SR + (g4-1)/4 * SR^2) / (n-1) )
 
-        γ₃ = skewness, γ₄ = excess kurtosis.
+        g3 = skewness, g4 = excess kurtosis.
         """
         if n <= 1:
             return 0.5

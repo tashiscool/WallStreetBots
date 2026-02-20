@@ -618,7 +618,7 @@ class ProductionIntegrationManager:
         try:
             positions_dict = {}
             # First check active_positions
-            for key, position in self.active_positions.items():
+            for position in self.active_positions.values():
                 ticker = position.ticker
                 current_price = await self.get_current_price(ticker)
                 positions_dict[ticker] = {

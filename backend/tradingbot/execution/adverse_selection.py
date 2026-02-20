@@ -19,7 +19,7 @@ import math
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Deque, Dict, List, Optional, Tuple
+from typing import Any, ClassVar, Deque, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -279,7 +279,7 @@ class ToxicFlowDetector:
     """
 
     # (price_attr, horizon_seconds, timestamp_attr)
-    _HORIZONS = [
+    _HORIZONS: ClassVar[list] = [
         ('mid_price_1s', 1, 'mid_price_1s_ts'),
         ('mid_price_5s', 5, 'mid_price_5s_ts'),
         ('mid_price_30s', 30, 'mid_price_30s_ts'),

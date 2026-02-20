@@ -218,7 +218,7 @@ class ArbitrageDetector:
                     return self._register_opportunity(opp)
 
         # Check same-platform arbitrage (if spread < 1)
-        for platform, quote in quotes.items():
+        for quote in quotes.values():
             opp = self._check_same_platform(market_id, quote)
             if opp and opp.is_profitable:
                 return self._register_opportunity(opp)

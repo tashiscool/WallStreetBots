@@ -41,23 +41,23 @@ from .hyperopt_loss import (
 )
 
 __all__ = [
-    # Parameters
-    'IntParameter',
-    'RealParameter',
-    'DecimalParameter',
-    'CategoricalParameter',
     'BooleanParameter',
-    'HyperoptSpace',
+    'CalmarHyperoptLoss',
+    'CategoricalParameter',
+    'DecimalParameter',
+    'HyperoptConfig',
     # Engine
     'HyperoptEngine',
-    'HyperoptConfig',
+    'HyperoptSpace',
     # Loss Functions
     'IHyperoptLoss',
+    # Parameters
+    'IntParameter',
+    'MaxDrawdownHyperoptLoss',
+    'MultiMetricHyperoptLoss',
+    'ProfitHyperoptLoss',
+    'RealParameter',
     'SharpeHyperoptLoss',
     'SortinoHyperoptLoss',
-    'MaxDrawdownHyperoptLoss',
-    'CalmarHyperoptLoss',
-    'ProfitHyperoptLoss',
     'WinRateHyperoptLoss',
-    'MultiMetricHyperoptLoss',
 ]

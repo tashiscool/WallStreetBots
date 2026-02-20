@@ -558,9 +558,9 @@ class TradeSignalSnapshot(models.Model):
     def record_exit(
         self,
         exit_price: float,
-        pnl_amount: float = None,
-        pnl_percent: float = None,
-        exit_reasoning: dict = None
+        pnl_amount: float | None = None,
+        pnl_percent: float | None = None,
+        exit_reasoning: dict | None = None
     ):
         """Record trade exit and calculate outcome.
 
@@ -598,7 +598,7 @@ class TradeSignalSnapshot(models.Model):
         summary: str,
         signals: dict,
         confidence: int,
-        market_context: dict = None
+        market_context: dict | None = None
     ):
         """Set structured entry reasoning.
 
@@ -622,7 +622,7 @@ class TradeSignalSnapshot(models.Model):
         self,
         summary: str,
         trigger: str,
-        signals_at_exit: dict = None
+        signals_at_exit: dict | None = None
     ):
         """Set structured exit reasoning.
 
@@ -857,7 +857,7 @@ class SignalValidationHistory(models.Model):
             f"Action: {self.recommended_action}"
         )
 
-    def record_execution(self, actual_size: float = None):
+    def record_execution(self, actual_size: float | None = None):
         """Record that this signal was executed."""
         self.was_executed = True
         self.execution_timestamp = timezone.now()
@@ -865,7 +865,7 @@ class SignalValidationHistory(models.Model):
             self.actual_position_size = actual_size
         self.save()
 
-    def record_outcome(self, outcome: str, pnl: float = None, pnl_percent: float = None):
+    def record_outcome(self, outcome: str, pnl: float | None = None, pnl_percent: float | None = None):
         """Record the trade outcome for accuracy tracking.
 
         Args:
@@ -880,7 +880,7 @@ class SignalValidationHistory(models.Model):
         self.save()
 
     @classmethod
-    def calculate_validation_accuracy(cls, strategy_name: str = None, days: int = 30):
+    def calculate_validation_accuracy(cls, strategy_name: str | None = None, days: int = 30):
         """Calculate validation accuracy based on trade outcomes.
 
         This method helps close the performance feedback loop by analyzing
@@ -1783,7 +1783,7 @@ class CircuitBreakerState(models.Model):
         self.save()
         return True
 
-    def daily_reset(self, new_equity: float = None):
+    def daily_reset(self, new_equity: float | None = None):
         """Perform daily reset of breaker state.
 
         Args:
@@ -2003,9 +2003,9 @@ class CircuitBreakerHistory(models.Model):
 
     @classmethod
     def log_action(cls, state: CircuitBreakerState, action: str, reason: str = '',
-                   value: float = None, threshold: float = None,
+                   value: float | None = None, threshold: float | None = None,
                    previous_status: str = '', new_status: str = '',
-                   metadata: dict = None):
+                   metadata: dict | None = None):
         """Create a history entry for a state change.
 
         Args:
@@ -2192,7 +2192,7 @@ class StrategyPortfolio(models.Model):
         strategy_id: str,
         allocation_pct: float,
         enabled: bool = True,
-        params: dict = None
+        params: dict | None = None
     ):
         """Set or update allocation for a strategy.
 
@@ -2254,7 +2254,7 @@ class StrategyPortfolio(models.Model):
         self,
         correlation_matrix: dict,
         diversification_score: float,
-        expected_sharpe: float = None
+        expected_sharpe: float | None = None
     ):
         """Update correlation and diversification analysis.
 
@@ -4123,7 +4123,7 @@ class CustomStrategy(models.Model):
             'activated_at': self.activated_at.isoformat() if self.activated_at else None,
         }
 
-    def clone(self, new_user: User = None, new_name: str = None) -> 'CustomStrategy':
+    def clone(self, new_user: User = None, new_name: str | None = None) -> 'CustomStrategy':
         """
         Clone this strategy for another user.
 

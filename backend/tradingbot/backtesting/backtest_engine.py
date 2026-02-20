@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from enum import Enum
-from typing import Dict, List, Optional, Any, Tuple
+from typing import ClassVar, Dict, List, Optional, Any, Tuple
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -191,7 +191,7 @@ class BacktestEngine:
     """
 
     # Strategy watchlists (simplified for backtesting)
-    STRATEGY_WATCHLISTS = {
+    STRATEGY_WATCHLISTS: ClassVar[dict] = {
         "wsb-dip-bot": ["AAPL", "MSFT", "NVDA", "AMD", "TSLA", "GOOGL", "AMZN", "META"],
         "momentum-weeklies": ["SPY", "QQQ", "NVDA", "AMD", "TSLA"],
         "wheel-strategy": ["AAPL", "MSFT", "JPM", "BAC", "WFC"],
@@ -235,7 +235,7 @@ class BacktestEngine:
             progress_callback(5, "Fetching historical data...")
 
         price_data = await self._fetch_price_data(
-            symbols + [config.benchmark],
+            [*symbols, config.benchmark],
             config.start_date,
             config.end_date,
         )
@@ -257,7 +257,7 @@ class BacktestEngine:
         if not trading_days:
             # Generate synthetic trading days if no real data
             trading_days = self._generate_trading_days(config.start_date, config.end_date)
-            price_data = self._generate_synthetic_prices(symbols + [config.benchmark], trading_days)
+            price_data = self._generate_synthetic_prices([*symbols, config.benchmark], trading_days)
             benchmark_prices = price_data.get(config.benchmark, {})
 
         peak_equity = config.initial_capital
@@ -632,6 +632,7 @@ class BacktestEngine:
         # Monthly returns
         current_month = None
         month_start_equity = config.initial_capital
+        prev_equity = config.initial_capital
 
         for snapshot in daily_snapshots:
             month_key = snapshot.date.strftime("%Y-%m")

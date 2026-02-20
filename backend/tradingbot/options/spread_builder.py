@@ -73,7 +73,7 @@ class SpreadBuilder:
         """Get available strikes for a ticker and expiry."""
         try:
             chain = await self.pricing_engine.get_options_chain_yahoo(ticker, expiry)
-            strikes = sorted(set(c.strike for c in chain))
+            strikes = sorted({c.strike for c in chain})
             return strikes
         except Exception as e:
             logger.error(f"Error getting strike ladder: {e}")

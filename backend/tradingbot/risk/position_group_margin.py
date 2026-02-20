@@ -261,12 +261,12 @@ class PositionGroupMarginModel:
 
         if len(legs) == 4:
             # Iron condor / Iron butterfly
-            calls = [l for l in legs if l.is_call]
-            puts = [l for l in legs if l.is_put]
+            calls = [leg for leg in legs if leg.is_call]
+            puts = [leg for leg in legs if leg.is_put]
 
             if len(calls) == 2 and len(puts) == 2:
                 # Check if iron condor (4 different strikes)
-                strikes = {l.strike for l in legs}
+                strikes = {leg.strike for leg in legs}
                 if len(strikes) == 4:
                     return SpreadType.IRON_CONDOR
 
@@ -312,13 +312,13 @@ class PositionGroupMarginModel:
 
         elif spread_type in (SpreadType.VERTICAL_CALL, SpreadType.VERTICAL_PUT):
             # Max loss is width of strikes minus net credit/plus net debit
-            legs = sorted(group.option_legs, key=lambda l: l.strike)
+            legs = sorted(group.option_legs, key=lambda leg: leg.strike)
             width = (legs[1].strike - legs[0].strike) * self.MULTIPLIER
 
             # Net premium (positive = credit, negative = debit)
             net_premium = sum(
-                l.premium * self.MULTIPLIER * l.quantity
-                for l in legs
+                leg.premium * self.MULTIPLIER * leg.quantity
+                for leg in legs
             )
 
             if net_premium > 0:
@@ -330,8 +330,8 @@ class PositionGroupMarginModel:
 
         elif spread_type == SpreadType.IRON_CONDOR:
             # Max loss is width of wider spread minus net credit
-            calls = sorted([l for l in group.option_legs if l.is_call], key=lambda l: l.strike)
-            puts = sorted([l for l in group.option_legs if l.is_put], key=lambda l: l.strike)
+            calls = sorted([leg for leg in group.option_legs if leg.is_call], key=lambda leg: leg.strike)
+            puts = sorted([leg for leg in group.option_legs if leg.is_put], key=lambda leg: leg.strike)
 
             call_width = (calls[1].strike - calls[0].strike) * self.MULTIPLIER
             put_width = (puts[1].strike - puts[0].strike) * self.MULTIPLIER
@@ -340,16 +340,16 @@ class PositionGroupMarginModel:
 
             # Net credit received
             net_premium = sum(
-                l.premium * self.MULTIPLIER * l.quantity
-                for l in group.option_legs
+                leg.premium * self.MULTIPLIER * leg.quantity
+                for leg in group.option_legs
             )
 
             return (max_width - net_premium) * abs(calls[0].quantity)
 
         elif spread_type == SpreadType.IRON_BUTTERFLY:
             # Similar to iron condor
-            calls = sorted([l for l in group.option_legs if l.is_call], key=lambda l: l.strike)
-            puts = sorted([l for l in group.option_legs if l.is_put], key=lambda l: l.strike)
+            calls = sorted([leg for leg in group.option_legs if leg.is_call], key=lambda leg: leg.strike)
+            puts = sorted([leg for leg in group.option_legs if leg.is_put], key=lambda leg: leg.strike)
 
             # Width from center to wing
             if len(calls) >= 2 and len(puts) >= 2:
@@ -358,8 +358,8 @@ class PositionGroupMarginModel:
                 max_width = max(call_width, put_width)
 
                 net_premium = sum(
-                    l.premium * self.MULTIPLIER * l.quantity
-                    for l in group.option_legs
+                    leg.premium * self.MULTIPLIER * leg.quantity
+                    for leg in group.option_legs
                 )
 
                 return (max_width - net_premium) * abs(calls[0].quantity)

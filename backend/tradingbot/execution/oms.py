@@ -14,7 +14,13 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
 
-from .interfaces import ExecutionClient, OrderAck, OrderFill, OrderRequest
+from .interfaces import (
+    ExecutionClient,
+    InMemoryExecutionClient,
+    OrderAck,
+    OrderFill,
+    OrderRequest,
+)
 from .order_state_machine import OrderStatus
 from .pre_trade_compliance import ComplianceResult, PreTradeComplianceService
 from .maker_checker import ApprovalRequest, ApprovalStatus, MakerCheckerService
@@ -56,7 +62,10 @@ class OrderManagementSystem:
         maker_checker: Optional[MakerCheckerService] = None,
         replay_guard: Optional[ReplayGuard] = None,
     ) -> None:
-        self.execution_client = execution_client or ExecutionClient()
+        if execution_client is None or execution_client.__class__ is ExecutionClient:
+            self.execution_client = InMemoryExecutionClient()
+        else:
+            self.execution_client = execution_client
         self.compliance = compliance or PreTradeComplianceService()
         self.maker_checker = maker_checker
         self.replay_guard = replay_guard

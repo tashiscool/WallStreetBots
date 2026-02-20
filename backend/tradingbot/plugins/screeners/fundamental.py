@@ -6,7 +6,7 @@ Screen stocks based on fundamental metrics and company data.
 
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import List, Optional, Set
+from typing import ClassVar, List, Optional, Set
 
 from .base import IScreener, StockData
 
@@ -111,7 +111,7 @@ class MarketCapScreener(IScreener):
     """
 
     # Market cap tiers (USD)
-    TIERS = {
+    TIERS: ClassVar[dict] = {
         "mega": (Decimal("200_000_000_000"), None),      # $200B+
         "large": (Decimal("10_000_000_000"), Decimal("200_000_000_000")),   # $10B-$200B
         "mid": (Decimal("2_000_000_000"), Decimal("10_000_000_000")),       # $2B-$10B
@@ -302,7 +302,7 @@ class SectorScreener(IScreener):
     """
 
     # GICS Sectors
-    GICS_SECTORS = {
+    GICS_SECTORS: ClassVar[dict] = {
         "technology": "Information Technology",
         "healthcare": "Health Care",
         "financials": "Financials",

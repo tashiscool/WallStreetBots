@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
@@ -50,7 +52,7 @@ class CustomUserAdmin(BaseUserAdmin):
     inlines = (UserProfileInline,)
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'get_trading_mode', 'get_platform_roles')
     list_select_related = ('profile',)
-    list_filter = BaseUserAdmin.list_filter + ('groups',)
+    list_filter = (*BaseUserAdmin.list_filter, 'groups')
 
     def get_trading_mode(self, obj):
         if hasattr(obj, 'profile'):
@@ -66,7 +68,7 @@ class CustomUserAdmin(BaseUserAdmin):
 
     def get_inline_instances(self, request, obj=None):
         if not obj:
-            return list()
+            return []
         return super().get_inline_instances(request, obj)
 
 
@@ -540,7 +542,7 @@ class AuditLogAdmin(admin.ModelAdmin):
     list_display = ('timestamp', 'event_type', 'severity', 'username', 'description_short', 'ip_address')
     list_filter = ('severity', 'event_type')
     search_fields = ('username', 'description', 'event_type', 'correlation_id')
-    readonly_fields = [f.name for f in AuditLog._meta.get_fields() if hasattr(f, 'name')]
+    readonly_fields: ClassVar[list] = [f.name for f in AuditLog._meta.get_fields() if hasattr(f, 'name')]
     ordering = ('-timestamp',)
     date_hierarchy = 'timestamp'
 

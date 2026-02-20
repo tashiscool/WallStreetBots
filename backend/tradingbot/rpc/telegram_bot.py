@@ -324,7 +324,7 @@ class TradingTelegramBot:
                 message += "_No open positions_"
             else:
                 for pos in positions:
-                    emoji = "" if pos.get('unrealized_pnl', 0) >= 0 else ""
+                    emoji = ""
                     message += (
                         f"{emoji} *{pos['symbol']}*\n"
                         f"  Qty: {pos['quantity']} @ ${pos['avg_price']:.2f}\n"
@@ -414,7 +414,7 @@ class TradingTelegramBot:
                 message += "_No recent trades_"
             else:
                 for trade in trades:
-                    emoji = "" if trade.get('pnl', 0) >= 0 else ""
+                    emoji = ""
                     message += (
                         f"{emoji} {trade['symbol']} "
                         f"({trade['side']}) "
@@ -808,7 +808,7 @@ class ExtendedTelegramRPC(TradingTelegramBot):
             message = "*Monthly Performance*\n\n"
             for month, data in monthly.items():
                 profit = data.get('profit', 0)
-                emoji = "" if profit >= 0 else ""
+                emoji = ""
                 message += f"{emoji} {month}: ${profit:+,.2f}\n"
 
             await update.message.reply_text(message, parse_mode='Markdown')
@@ -953,7 +953,7 @@ class ExtendedTelegramRPC(TradingTelegramBot):
             ) else {'status': 'unknown'}
 
             status = health.get('status', 'unknown')
-            emoji = "" if status == 'healthy' else "" if status == 'warning' else ""
+            emoji = ""
 
             message = (
                 f"{emoji} *System Health*\n\n"
@@ -1060,7 +1060,7 @@ class ExtendedTelegramRPC(TradingTelegramBot):
             message = "*Open Option Spreads*\n\n"
             for spread in spreads:
                 pnl = spread.get('unrealized_pnl', 0)
-                emoji = "" if pnl >= 0 else ""
+                emoji = ""
                 message += (
                     f"{emoji} *{spread['underlying']}* - {spread['type']}\n"
                     f"  Expiry: {spread['expiry']}\n"

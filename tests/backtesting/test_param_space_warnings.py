@@ -11,13 +11,13 @@ from datetime import date
 
 
 def _make_config(**kwargs):
-    defaults = dict(
-        strategy_name='test',
-        start_date=date(2020, 1, 1),
-        end_date=date(2021, 1, 1),
-        n_trials=50,
-        parameter_ranges=[],
-    )
+    defaults = {
+        'strategy_name': 'test',
+        'start_date': date(2020, 1, 1),
+        'end_date': date(2021, 1, 1),
+        'n_trials': 50,
+        'parameter_ranges': [],
+    }
     defaults.update(kwargs)
     return OptimizationConfig(**defaults)
 

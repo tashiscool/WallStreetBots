@@ -286,4 +286,4 @@ def validate_request(model_class: type[BaseModel], data: dict) -> BaseModel:
         return model_class.model_validate(data)
     except Exception as e:
         # Re-raise with cleaner error message for API response
-        raise ValueError(f"Validation failed: {e}")
+        raise ValueError(f"Validation failed: {e}") from e

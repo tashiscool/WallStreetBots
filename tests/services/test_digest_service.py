@@ -116,9 +116,9 @@ def create_trade_snapshot(
     entry_price: Decimal,
     quantity: Decimal,
     strategy_name: str = 'test_strategy',
-    exit_price: Decimal = None,
-    pnl_amount: Decimal = None,
-    created_at: datetime = None,
+    exit_price: Decimal | None = None,
+    pnl_amount: Decimal | None = None,
+    created_at: datetime | None = None,
 ) -> TradeSignalSnapshot:
     """Helper to create TradeSignalSnapshot records for testing."""
     trade_id = f"trade_{uuid.uuid4().hex[:12]}"
@@ -143,8 +143,8 @@ def create_trade_snapshot(
 def create_circuit_breaker_event(
     state: CircuitBreakerState,
     action: str,
-    reason: str = None,
-    timestamp: datetime = None,
+    reason: str | None = None,
+    timestamp: datetime | None = None,
 ) -> CircuitBreakerHistory:
     """Helper to create CircuitBreakerHistory records for testing."""
     event = CircuitBreakerHistory.objects.create(

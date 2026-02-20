@@ -8,11 +8,13 @@ License: Apache 2.0
 """
 
 from collections import deque
-from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from .base import Indicator, IndicatorDataPoint, TradeBar
 from .moving_averages import ExponentialMovingAverage
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class OnBalanceVolume(Indicator):

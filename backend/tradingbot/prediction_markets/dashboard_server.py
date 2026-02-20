@@ -169,7 +169,7 @@ class ConnectionManager:
 
 def create_dashboard_app(
     arbitrage_engine=None,
-    cors_origins: List[str] = None,
+    cors_origins: List[str] | None = None,
 ) -> "FastAPI":
     """
     Create FastAPI dashboard application.
@@ -296,7 +296,7 @@ def create_dashboard_app(
             app.state.dashboard_state.started_at = datetime.now()
             return {"status": "started"}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
     @app.post("/stop")
     async def stop_engine():
@@ -310,7 +310,7 @@ def create_dashboard_app(
             app.state.dashboard_state.is_running = False
             return {"status": "stopped"}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
     @app.post("/reset")
     async def reset_stats():
@@ -487,7 +487,7 @@ class DashboardIntegration:
 
 
 async def run_dashboard_server(
-    host: str = "0.0.0.0",
+    host: str = "0.0.0.0",  # noqa: S104
     port: int = 8000,
     arbitrage_engine=None,
 ) -> None:

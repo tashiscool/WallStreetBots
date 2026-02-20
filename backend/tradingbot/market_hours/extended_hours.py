@@ -453,8 +453,8 @@ class ExtendedHoursManager:
         if session.session in (TradingSession.PRE_MARKET, TradingSession.AFTER_HOURS):
             if order_type == "market" and limit_price is None:
                 logger.warning(
-                    f"Market orders not recommended in extended hours. "
-                    f"Consider using limit orders."
+                    "Market orders not recommended in extended hours. "
+                    "Consider using limit orders."
                 )
 
         return ExtendedHoursOrder(

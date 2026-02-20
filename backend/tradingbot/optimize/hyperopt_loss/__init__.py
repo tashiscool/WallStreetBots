@@ -8,7 +8,7 @@ Lower values are better (minimization).
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 import numpy as np
 from decimal import Decimal
 
@@ -268,7 +268,7 @@ class MultiMetricHyperoptLoss(IHyperoptLoss):
     - Win Rate: 10%
     """
 
-    WEIGHTS = {
+    WEIGHTS: ClassVar[dict] = {
         'sharpe': 0.30,
         'sortino': 0.20,
         'max_drawdown': 0.20,
@@ -351,15 +351,15 @@ class ExpectancyHyperoptLoss(IHyperoptLoss):
 
 # Export all loss functions
 __all__ = [
-    'IHyperoptLoss',
     'BacktestResult',
-    'SharpeHyperoptLoss',
-    'SortinoHyperoptLoss',
-    'MaxDrawdownHyperoptLoss',
     'CalmarHyperoptLoss',
-    'ProfitHyperoptLoss',
-    'WinRateHyperoptLoss',
-    'ShortTradeDurationHyperoptLoss',
-    'MultiMetricHyperoptLoss',
     'ExpectancyHyperoptLoss',
+    'IHyperoptLoss',
+    'MaxDrawdownHyperoptLoss',
+    'MultiMetricHyperoptLoss',
+    'ProfitHyperoptLoss',
+    'SharpeHyperoptLoss',
+    'ShortTradeDurationHyperoptLoss',
+    'SortinoHyperoptLoss',
+    'WinRateHyperoptLoss',
 ]

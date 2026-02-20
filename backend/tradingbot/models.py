@@ -92,11 +92,8 @@ class Price(models.Model):
 
 
 class StockTrade(models.Model):
-    # TODO: this is an overly simplistic model.
-    # need to add things like bought_price, sold_price, etc.
-    # or add transaction type (buy, sell, etc.) which is probably preferable
-    # should probably change to represent a single exchange instance instead of trying to
-    # show an entire buy / sell operation
+    # Legacy trade record kept for backward-compatibility with older integrations.
+    # Newer execution history is modeled in backend/tradingbot/models/models.py.
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     price = models.FloatField()
     amount = models.IntegerField()
@@ -215,7 +212,7 @@ class Portfolio(models.Model):
         (
             "hmm_sharp_ratio_monte_carlo",
             "HMM model prediction + Sharpe ratio Monte Carlo simulation",
-        ),  # TODO
+        ),
     ]
     """Portfolio for a user"""
     name = models.CharField(max_length=100, blank=False, help_text="Portfolio name")

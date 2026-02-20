@@ -125,8 +125,8 @@ class RenkoConsolidator(IDataConsolidator[Bar, RenkoBrick]):
         self._input_count += 1
         self._pending_volume += data.volume
 
-        # Get reference price
-        price = data.close if self.use_close_price else data.close
+        # Get reference price (use_close_price toggle — TODO: implement HL/2 alternative)
+        price = data.close
 
         # First bar - establish starting point
         if self._last_brick is None:

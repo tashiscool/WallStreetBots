@@ -182,7 +182,7 @@ class ConsolidatorManager:
 
     def reset_all(self) -> None:
         """Reset all consolidators."""
-        for symbol, consolidators in self._consolidators.items():
+        for consolidators in self._consolidators.values():
             for consolidator in consolidators:
                 consolidator.reset()
 

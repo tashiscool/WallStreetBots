@@ -297,7 +297,7 @@ class TradingGate(models.Model):
             self.paper_trading_started_at = timezone.now()
             self.save()
 
-    def request_live_trading(self, performance_snapshot: dict = None):
+    def request_live_trading(self, performance_snapshot: dict | None = None):
         """User requests transition to live trading."""
         self.live_trading_requested_at = timezone.now()
         if performance_snapshot:
@@ -321,7 +321,7 @@ class TradingGate(models.Model):
         self.live_trading_requested_at = None  # Clear request
         self.save()
 
-    def revoke_live_trading(self, reason: str = None):
+    def revoke_live_trading(self, reason: str | None = None):
         """Revoke previously approved live trading (e.g., for violations)."""
         self.live_trading_approved = False
         self.live_trading_approved_at = None
@@ -698,10 +698,10 @@ class OnboardingSession(models.Model):
         stale_threshold = timezone.now() - timedelta(days=7)
         return self.last_activity_at > stale_threshold
 
-    def complete_step(self, step: int, data: dict = None):
+    def complete_step(self, step: int, data: dict | None = None):
         """Mark a step as completed and store its data."""
         if step not in self.steps_completed:
-            self.steps_completed = self.steps_completed + [step]
+            self.steps_completed = [*self.steps_completed, step]
         if data:
             self.step_data[str(step)] = data
         self.current_step = max(self.current_step, step + 1)

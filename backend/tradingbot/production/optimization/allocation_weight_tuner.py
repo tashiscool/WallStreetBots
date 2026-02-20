@@ -238,7 +238,7 @@ class AllocationWeightTuner:
         # Simplified: equal allocation
         # In full implementation, would use actual allocation logic
         n = len(strategy_returns)
-        return {name: 1.0 / n for name in strategy_returns.keys()}
+        return dict.fromkeys(strategy_returns.keys(), 1.0 / n)
     
     def _find_optimal_weights(
         self,

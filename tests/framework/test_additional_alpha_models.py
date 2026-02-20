@@ -145,7 +145,7 @@ class TestBollingerAlphaModel:
     def test_no_signal_within_bands(self):
         # Use data with some variance so bands are wide
         np.random.seed(99)
-        closes = (100 + np.random.normal(0, 2, 20)).tolist() + [100.5]
+        closes = [*(100 + np.random.normal(0, 2, 20)).tolist(), 100.5]
         data = {"SPY": {"close": closes}}
         model = BollingerAlphaModel(period=20, num_std=2.0)
         insights = model.generate_insights(data, ["SPY"])

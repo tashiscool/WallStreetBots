@@ -5,7 +5,7 @@ from .correlation import CorrelationIdMiddleware
 from .rate_limit import RateLimitMiddleware
 
 __all__ = [
-    "SecurityHeadersMiddleware",
     "CorrelationIdMiddleware",
     "RateLimitMiddleware",
+    "SecurityHeadersMiddleware",
 ]

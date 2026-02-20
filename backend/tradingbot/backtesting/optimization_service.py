@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple
 
 from django.utils import timezone
 
@@ -173,7 +173,7 @@ class OptimizationService:
     """
 
     # Default parameter ranges for common strategy parameters
-    DEFAULT_PARAMETER_RANGES = {
+    DEFAULT_PARAMETER_RANGES: ClassVar[dict] = {
         'position_size_pct': ParameterRange(
             name='position_size_pct',
             min_value=1.0,
@@ -540,7 +540,7 @@ class OptimizationService:
                 metrics = self._run_backtest_sync(config, params)
             except Exception as e:
                 logger.warning(f"Trial {trial.number} failed: {e}")
-                raise optuna.TrialPruned()
+                raise optuna.TrialPruned() from e
 
             # Check constraints
             if config.min_trades and metrics.get('total_trades', 0) < config.min_trades:

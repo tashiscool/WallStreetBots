@@ -1,6 +1,6 @@
 """Composite Risk Model"""
 
-from typing import List
+from typing import ClassVar, List
 
 from ..risk_model import (
     RiskManagementModel,
@@ -18,7 +18,7 @@ class CompositeRiskModel(RiskManagementModel):
     Uses the most restrictive action from all models.
     """
 
-    ACTION_PRIORITY = {
+    ACTION_PRIORITY: ClassVar[dict] = {
         RiskAction.HALT: 5,
         RiskAction.LIQUIDATE: 4,
         RiskAction.REJECT: 3,

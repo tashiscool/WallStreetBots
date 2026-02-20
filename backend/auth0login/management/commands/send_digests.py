@@ -85,10 +85,10 @@ class Command(BaseCommand):
                 user = User.objects.get(
                     Q(email=user_identifier) | Q(username=user_identifier)
                 )
-            except User.DoesNotExist:
-                raise CommandError(f"User not found: {user_identifier}")
-            except User.MultipleObjectsReturned:
-                raise CommandError(f"Multiple users match: {user_identifier}")
+            except User.DoesNotExist as e:
+                raise CommandError(f"User not found: {user_identifier}") from e
+            except User.MultipleObjectsReturned as e:
+                raise CommandError(f"Multiple users match: {user_identifier}") from e
 
             self.stdout.write(f"Sending {digest_type} digest to {user.email}...")
 

@@ -279,7 +279,7 @@ class PortfolioCapitalAllocator:
         else:
             # Equal weights fallback
             n = len(strategy_metrics)
-            return {name: 1.0 / n for name in strategy_metrics.keys()}
+            return dict.fromkeys(strategy_metrics.keys(), 1.0 / n)
     
     def _calculate_sharpe_weighted_weights(
         self,
@@ -297,7 +297,7 @@ class PortfolioCapitalAllocator:
         else:
             # Equal weights fallback
             n = len(strategy_metrics)
-            return {name: 1.0 / n for name in strategy_metrics.keys()}
+            return dict.fromkeys(strategy_metrics.keys(), 1.0 / n)
     
     def _calculate_priority_weighted_weights(
         self,
@@ -315,7 +315,7 @@ class PortfolioCapitalAllocator:
         else:
             # Equal weights fallback
             n = len(strategy_metrics)
-            return {name: 1.0 / n for name in strategy_metrics.keys()}
+            return dict.fromkeys(strategy_metrics.keys(), 1.0 / n)
     
     def _apply_allocation_constraints(
         self,

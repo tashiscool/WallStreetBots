@@ -99,19 +99,12 @@ class TradeSignal:
             self.metadata.setdefault("signal_type", signal_type)
 
     @property
-    def action(self) -> str:
+    def action(self) -> str:  # noqa: F811
         return self.metadata.get("legacy_action", self.side.value)
 
     @property
-    def strategy(self) -> str:
+    def strategy(self) -> str:  # noqa: F811
         return self.strategy_name
-
-    @classmethod
-    def from_legacy(cls, **kwargs) -> "TradeSignal":
-        """Construct from legacy kwargs while keeping the main dataclass init clean."""
-        return cls(**kwargs)
-
-
 
     @classmethod
     def from_legacy(cls, **kwargs) -> "TradeSignal":

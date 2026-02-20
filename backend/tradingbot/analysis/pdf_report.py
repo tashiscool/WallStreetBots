@@ -322,10 +322,10 @@ class PDFReportGenerator:
     def _equity_curve_section(self, returns: pd.Series, benchmark: Optional[pd.Series] = None) -> str:
         cumulative = (1 + returns).cumprod()
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=cumulative.index, y=cumulative.values, name='Strategy', line=dict(color='#1f77b4')))
+        fig.add_trace(go.Scatter(x=cumulative.index, y=cumulative.values, name='Strategy', line={"color": '#1f77b4'}))
         if benchmark is not None:
             bench_cum = (1 + benchmark).cumprod()
-            fig.add_trace(go.Scatter(x=bench_cum.index, y=bench_cum.values, name='Benchmark', line=dict(color='#ff7f0e', dash='dash')))
+            fig.add_trace(go.Scatter(x=bench_cum.index, y=bench_cum.values, name='Benchmark', line={"color": '#ff7f0e', "dash": 'dash'}))
         fig.update_layout(title='Equity Curve', xaxis_title='Date', yaxis_title='Growth of $1', template='plotly_white', height=400)
         img = self._fig_to_base64(fig)
         if img:
@@ -337,7 +337,7 @@ class PDFReportGenerator:
         rolling_max = cumulative.cummax()
         drawdown = (cumulative - rolling_max) / rolling_max
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=drawdown.index, y=drawdown.values, fill='tozeroy', fillcolor='rgba(255,0,0,0.2)', line=dict(color='red')))
+        fig.add_trace(go.Scatter(x=drawdown.index, y=drawdown.values, fill='tozeroy', fillcolor='rgba(255,0,0,0.2)', line={"color": 'red'}))
         fig.update_layout(title='Drawdown', xaxis_title='Date', yaxis_title='Drawdown', template='plotly_white', height=300)
         img = self._fig_to_base64(fig)
         if img:
@@ -387,7 +387,7 @@ class PDFReportGenerator:
             return '<div class="section"><h2>Rolling Sharpe Ratio</h2><p>Insufficient data (need 63+ days)</p></div>'
         rolling_sharpe = returns.rolling(63).mean() / returns.rolling(63).std() * np.sqrt(252)
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=rolling_sharpe.index, y=rolling_sharpe.values, line=dict(color='#1f77b4')))
+        fig.add_trace(go.Scatter(x=rolling_sharpe.index, y=rolling_sharpe.values, line={"color": '#1f77b4'}))
         fig.add_hline(y=0, line_dash="dash", line_color="gray")
         fig.add_hline(y=1, line_dash="dot", line_color="green", annotation_text="Target")
         fig.update_layout(title='Rolling Sharpe Ratio (63-day)', xaxis_title='Date', yaxis_title='Sharpe Ratio', template='plotly_white', height=300)

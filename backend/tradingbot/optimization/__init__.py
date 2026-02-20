@@ -19,20 +19,20 @@ from .hyperopt import (
 )
 
 __all__ = [
+    "BacktestObjective",
+    "HyperParameter",
     # Engine
     "HyperoptEngine",
-    "create_hyperopt_engine",
-    # Space definition
-    "HyperoptSpace",
-    "HyperParameter",
-    "ParameterType",
-    "HyperoptSpaceBuilder",
     # Results
     "HyperoptResult",
+    # Space definition
+    "HyperoptSpace",
+    "HyperoptSpaceBuilder",
     "HyperoptSummary",
     # Objectives
     "ObjectiveFunction",
-    "BacktestObjective",
     # Methods
     "OptimizationMethod",
+    "ParameterType",
+    "create_hyperopt_engine",
 ]

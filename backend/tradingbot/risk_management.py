@@ -175,14 +175,16 @@ class KellyCalculator:
         if avg_loss_pct <= 0 or avg_win_pct <= 0:
             return 0.0
 
-        # Generalized Kelly formula for partial losses: f* = p/a - q/b
-        # where a = avg_loss_pct, b = avg_win_pct, p = win_prob, q = loss_prob
-        a = avg_loss_pct
-        b = avg_win_pct
+        # Kelly formula: f* = (b*p - q) / b
+        # where b is the win/loss payoff ratio.
+        b = avg_win_pct / avg_loss_pct
+        if b <= 0:
+            return 0.0
+
         p = win_probability
         q = 1 - p
 
-        kelly_fraction = (p / a) - (q / b)
+        kelly_fraction = (b * p - q) / b
         return max(0.0, kelly_fraction)  # Don't go negative
 
     @staticmethod
@@ -370,7 +372,7 @@ class PositionSizer:
         account_value: float,
         setup_confidence: float,
         premium_per_contract: float,
-        validation_result: dict = None,
+        validation_result: dict | None = None,
         expected_win_rate: float = 0.60,
         expected_avg_win: float = 1.50,
         expected_avg_loss: float = 0.45,
@@ -531,7 +533,7 @@ class RiskManager:
         ticker_exposure = self._calculate_ticker_exposure(position.ticker)
         return not ticker_exposure > self.risk_params.max_concentration_per_ticker
 
-    def calculate_portfolio_risk(self, additional_risk: float = 0, account_value: float = None) -> PortfolioRisk:
+    def calculate_portfolio_risk(self, additional_risk: float = 0, account_value: float | None = None) -> PortfolioRisk:
         """Calculate current portfolio risk metrics.
 
         Args:

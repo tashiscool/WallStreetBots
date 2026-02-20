@@ -140,14 +140,14 @@ class TestAlpacaManagerDataFetching:
         assert len(result) == 2
 
     def test_get_price_success(self):
-        """Test price retrieval."""
+        """Test price retrieval with invalid credentials returns failure."""
         manager = AlpacaManager("invalid_key", "invalid_secret")
 
         success, price = manager.get_price("AAPL")
 
-        # Should fail with invalid credentials
+        # Should fail with invalid credentials — returns (False, 0.0)
         assert success is False
-        assert "Failed to get price" in str(price)
+        assert price == 0.0
 
     def test_get_price_failure(self):
         """Test price retrieval failure."""
@@ -156,15 +156,15 @@ class TestAlpacaManagerDataFetching:
         success, price = manager.get_price("AAPL")
 
         assert success is False
-        assert "Failed to get price" in str(price)
+        assert price == 0.0
 
     def test_get_price_sdk_unavailable(self):
         """Test get_price when SDK is unavailable."""
         manager = AlpacaManager("invalid_key", "invalid_secret")
-        
+
         success, price = manager.get_price("AAPL")
         assert success is False
-        assert "Failed to get price" in str(price)
+        assert price == 0.0
 
 
 class TestAlpacaManagerAccountInfo:

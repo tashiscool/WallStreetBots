@@ -8,10 +8,10 @@ from .insider_source import InsiderTransactionSource
 from .earnings_source import EarningsCalendarSource
 
 __all__ = [
-    'RedditSource',
-    'TwitterSource',
-    'SECEdgarSource',
-    'NewsAggregator',
-    'InsiderTransactionSource',
     'EarningsCalendarSource',
+    'InsiderTransactionSource',
+    'NewsAggregator',
+    'RedditSource',
+    'SECEdgarSource',
+    'TwitterSource',
 ]

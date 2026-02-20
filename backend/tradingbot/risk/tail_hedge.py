@@ -94,7 +94,7 @@ class TailHedgeManager:
         notional = portfolio_value * self.config.hedge_ratio
 
         # Approximate put premium using simplified BS relationship
-        # Premium ≈ S * N(-d1) * σ * √T  (at-the-money approximation scaled by delta)
+        # Premium ~ S * N(-d1) * sigma * sqrt(T)  (at-the-money approximation scaled by delta)
         dte_years = self.config.dte_target / 365.0
         implied_vol = vix / 100.0  # VIX is annualised vol in %
         premium_pct = implied_vol * math.sqrt(dte_years) * abs(self.config.put_delta)

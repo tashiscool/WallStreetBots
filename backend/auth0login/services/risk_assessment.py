@@ -197,7 +197,7 @@ class RiskAssessmentService:
                     break
 
         # Round to integer for simplicity
-        final_score = int(round(total_weighted_score))
+        final_score = round(total_weighted_score)
 
         # Determine profile
         recommended_profile = 'moderate'  # default
@@ -208,7 +208,7 @@ class RiskAssessmentService:
 
         return QuestionnaireResult(
             total_score=final_score,
-            max_possible_score=int(round(max_weighted_score)),
+            max_possible_score=round(max_weighted_score),
             recommended_profile=recommended_profile,
             profile_explanation=PROFILE_EXPLANATIONS[recommended_profile],
             score_breakdown=score_breakdown,

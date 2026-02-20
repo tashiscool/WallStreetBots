@@ -103,6 +103,20 @@ class DataManager:
         self.unnormalized_close = None
 
     def get_data(self, adjustment, open):
+        def _normalize_bars(raw_df, target_col):
+            """Normalize Alpaca bars frame to the requested column."""
+            if raw_df is None or raw_df.empty:
+                return pd.DataFrame(columns=[target_col, "timestamp", "datetime", "date"])
+
+            df_local = raw_df.copy()
+            if target_col not in df_local.columns:
+                fallback_cols = [c for c in ("open", "close", "high", "low") if c in df_local.columns]
+                if not fallback_cols:
+                    return pd.DataFrame(columns=[target_col, "timestamp", "datetime", "date"])
+                df_local[target_col] = df_local[fallback_cols[0]]
+
+            return df_local[[target_col]]
+
         if open:
             start_date_open = datetime.strptime(
                 self.start_date, "%Y-%m-%d"
@@ -117,8 +131,9 @@ class DataManager:
                 TimeFrame.Day,
                 str_start_date_open,
                 str_end_date_open,
-                adjustment,
-            ).df[["open"]]  # get data
+                adjustment=adjustment,
+            ).df
+            df = _normalize_bars(df, "open")  # get data
 
             df["timestamp"] = df.index
             df["datetime"] = pd.to_datetime(df["timestamp"])
@@ -143,8 +158,9 @@ class DataManager:
                 TimeFrame.Minute,
                 self.start_date,
                 self.end_date,
-                adjustment,
-            ).df[["close"]]  # get data
+                adjustment=adjustment,
+            ).df
+            df = _normalize_bars(df, "close")  # get data
 
             df["timestamp"] = df.index
             df["datetime"] = pd.to_datetime(df["timestamp"])
@@ -176,13 +192,13 @@ class DataManager:
         new_open = open[~open["date"].isin(common_date)]
         new_close = close[~close["date"].isin(common_date)]
 
-        if new_open["date"][0] == new_close["date"][0]:
-            new_open = new_open.iloc[1:]
-        if (
-            new_open["date"][new_open.shape[0] - 1]
-            == new_close["date"][new_close.shape[0] - 1]
-        ):
-            new_close = new_close.iloc[:-1]
+        if not new_open.empty and not new_close.empty:
+            if new_open["date"].iloc[0] == new_close["date"].iloc[0]:
+                new_open = new_open.iloc[1:]
+
+        if not new_open.empty and not new_close.empty:
+            if new_open["date"].iloc[-1] == new_close["date"].iloc[-1]:
+                new_close = new_close.iloc[:-1]
 
         self.open = new_open
         self.close = new_close
@@ -190,9 +206,7 @@ class DataManager:
 
     def normalize_helper(self, seq):
         first_price = seq[0]
-        for i in range(len(seq)):
-            seq[i] = seq[i] - first_price
-        return seq
+        return [value - first_price for value in seq]
 
     def normalize(self):
         normalized_seq = []
@@ -245,7 +259,14 @@ class HMM:
             lengths=temp_list,
         )
         self.model = model
-        self.transit = model.transmat_
+        transit = np.array(model.transmat_, dtype=float)
+        row_sums = transit.sum(axis=1, keepdims=True)
+        zero_rows = row_sums.squeeze() <= 0
+        if np.any(zero_rows):
+            transit[zero_rows, :] = 1.0 / self.num_hidden_states
+            row_sums = transit.sum(axis=1, keepdims=True)
+        self.transit = transit / row_sums
+        self.model.transmat_ = self.transit
         self.mean = model.means_
         self.var = model.covars_
 
@@ -253,29 +274,52 @@ class HMM:
         hidden_states = self.model.predict(
             np.array(self.data.normalized_close["close"].to_numpy()).reshape(-1, 1)
         )
+        observed = np.array(self.data.normalized_close["close"].to_numpy(), dtype=float)
+        lower_bound = float(np.min(observed) - 50) if observed.size else float("-inf")
+        upper_bound = float(np.max(observed) + 50) if observed.size else float("inf")
+
         pred = []
         j = -1
-        for i in range(len(list(self.data.close["date"].value_counts()))):
-            j += list(self.data.close["date"].value_counts())[i]
+        counts = list(self.data.close["date"].value_counts())
+        for i in range(len(counts)):
+            j += counts[i]
             hid = hidden_states[j]
             next_hid = np.argmax(self.transit[hid])
-            # pred.append(float(model.means_[next_hid]))
-            pred.append(
+            mean_value = float(np.ravel(self.mean[next_hid])[0])
+            var_value = float(np.ravel(self.var[next_hid])[0])
+            var_value = max(var_value, 1e-8)
+            base_price = (
                 self.data.first_day[i]
-                + float(
-                    np.random.normal(self.mean[next_hid], self.var[next_hid][0][0], 1)
-                )
+                if i < len(self.data.first_day)
+                else (self.data.first_day[-1] if self.data.first_day else 0.0)
             )
+
+            prediction = base_price + float(np.random.normal(mean_value, var_value, 1)[0])
+            prediction = min(max(prediction, lower_bound), upper_bound)
+            pred.append(prediction)
 
         self.pred = pred
 
     def inference(self):
         c = 0
         u = 0
+        compared = 0
         j = -1
+        counts = list(self.data.close["date"].value_counts())
         for i in range(1, len(self.pred)):
-            j += list(self.data.close["date"].value_counts())[i]
-            last_data = self.data.close["close"][j] + self.data.first_day[i]
+            if i >= len(counts):
+                break
+            j += counts[i]
+
+            if i >= len(self.data.open):
+                break
+
+            base_price = (
+                self.data.first_day[i]
+                if i < len(self.data.first_day)
+                else (self.data.first_day[-1] if self.data.first_day else 0.0)
+            )
+            last_data = self.data.close["close"][j] + base_price
             pred_trend = self.pred[i] > last_data  # new_open['open'][i - 1]
             true_trend = (
                 self.data.open["open"][i] > last_data
@@ -284,5 +328,8 @@ class HMM:
                 c += 1
             if true_trend:
                 u += 1
-        self.num_uptrend = u / (len(self.pred) - 1)
-        self.num_pred_acc = c / (len(self.pred) - 1)
+            compared += 1
+
+        denom = compared if compared > 0 else 1
+        self.num_uptrend = u / denom
+        self.num_pred_acc = c / denom

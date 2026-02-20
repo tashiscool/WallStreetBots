@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 import numpy as np
 
@@ -61,11 +61,11 @@ class AlmgrenChrissConfig:
     def validate(self) -> List[str]:
         """Validate config for unit consistency. Returns list of warnings."""
         warnings = []
-        # Volatility sanity: daily vol should be 0.001–0.20 for equities
+        # Volatility sanity: daily vol should be 0.001-0.20 for equities
         if self.volatility > 1.0:
             warnings.append(
                 f"volatility={self.volatility} looks like percentage, not decimal "
-                f"(expected daily vol ~0.01–0.05 for equities)"
+                f"(expected daily vol ~0.01-0.05 for equities)"
             )
         if self.volatility < 0:
             warnings.append("volatility must be non-negative")
@@ -90,7 +90,7 @@ class AlmgrenChrissConfig:
 class AlmgrenChrissModel:
     """Almgren-Chriss optimal trajectory calculator.
 
-    Given risk aversion λ, volatility σ, and impact parameters (γ, η),
+    Given risk aversion lambda, volatility sigma, and impact parameters (gamma, eta),
     the optimal trajectory minimises:
 
         E[cost] + λ · Var[cost]
@@ -397,7 +397,7 @@ class ImpactCalibrator:
     IMPACT_HORIZON_SECONDS = 300.0  # 5-minute target horizon
 
     # ADV thresholds (shares/day) for bucket classification
-    _ADV_THRESHOLDS = [
+    _ADV_THRESHOLDS: ClassVar[list] = [
         (50_000_000, LiquidityBucket.MEGA_CAP),
         (10_000_000, LiquidityBucket.LARGE_CAP),
         (2_000_000,  LiquidityBucket.MID_CAP),

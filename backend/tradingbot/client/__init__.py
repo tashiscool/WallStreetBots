@@ -21,17 +21,17 @@ from .api_client import (
 __all__ = [
     # Exceptions
     "ApiError",
-    "AuthenticationError",
-    "RateLimitError",
-    "NotFoundError",
-    "ValidationError",
     # Response
     "ApiResponse",
+    "AuthenticationError",
     # Config
     "ClientConfig",
     "HttpMethod",
+    "NotFoundError",
+    "RateLimitError",
+    "SyncTradingApiClient",
     # Clients
     "TradingApiClient",
-    "SyncTradingApiClient",
+    "ValidationError",
     "create_client",
 ]

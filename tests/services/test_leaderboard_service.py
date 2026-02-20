@@ -190,7 +190,7 @@ class TestLeaderboardServiceIntegration:
         assert 'index_baseline' in LeaderboardService.STRATEGY_REGISTRY
 
         # Validate structure
-        for strategy_name, info in LeaderboardService.STRATEGY_REGISTRY.items():
+        for info in LeaderboardService.STRATEGY_REGISTRY.values():
             assert 'name' in info
             assert 'description' in info
             assert 'risk_level' in info
@@ -198,7 +198,7 @@ class TestLeaderboardServiceIntegration:
 
     def test_ranking_metrics_structure(self):
         """Test RANKING_METRICS structure."""
-        for metric_name, info in LeaderboardService.RANKING_METRICS.items():
+        for info in LeaderboardService.RANKING_METRICS.values():
             assert 'name' in info
             assert 'higher_better' in info
             assert isinstance(info['higher_better'], bool)
@@ -397,7 +397,7 @@ class TestLeaderboardServiceIntegration:
         )
 
         assert len(result['comparison']) == 1
-        assert result['comparison'][0].get('no_data') == True
+        assert result['comparison'][0].get('no_data')
 
     def test_get_strategy_rank_history_insufficient_data(self):
         """Test rank history with insufficient data (only one snapshot)."""
@@ -465,7 +465,7 @@ class TestLeaderboardServiceIntegration:
 
         benchmark = result['benchmark_comparison']
         assert benchmark['spy_return_pct'] == 12.0  # From index_baseline
-        assert benchmark['beat_benchmark'] == True  # 25.50 > 12.00
+        assert benchmark['beat_benchmark']  # 25.50 > 12.00
 
     def test_calculate_hypothetical_portfolio_with_no_data_strategy(self):
         """Test portfolio calculation handles strategies with no data."""
@@ -485,7 +485,7 @@ class TestLeaderboardServiceIntegration:
             b for b in result['strategy_breakdown']
             if b['strategy_name'] == 'nonexistent_strategy'
         )
-        assert no_data_entry.get('no_data') == True
+        assert no_data_entry.get('no_data')
 
     def test_calculate_diversification_score_empty(self):
         """Test diversification score with empty breakdown."""

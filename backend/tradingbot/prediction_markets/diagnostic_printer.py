@@ -411,9 +411,9 @@ def print_arbitrage_summary(
     print("=" * 50)
     print(f"\nPolymarket YES: ${poly_yes:.4f}  NO: ${poly_no:.4f}")
     print(f"Kalshi     YES: ${kalshi_yes:.4f}  NO: ${kalshi_no:.4f}")
-    print(f"\nStrategy 1 (Poly YES + Kalshi NO):")
+    print("\nStrategy 1 (Poly YES + Kalshi NO):")
     print(f"  Cost: ${strat1_cost:.4f}  Edge: ${strat1_edge:.4f}")
-    print(f"\nStrategy 2 (Kalshi YES + Poly NO):")
+    print("\nStrategy 2 (Kalshi YES + Poly NO):")
     print(f"  Cost: ${strat2_cost:.4f}  Edge: ${strat2_edge:.4f}")
 
     best = "Strategy 1" if strat1_edge > strat2_edge else "Strategy 2"
@@ -422,5 +422,5 @@ def print_arbitrage_summary(
     if best_edge > 0:
         print(f"\n*** BEST: {best} with ${best_edge:.4f} edge ***")
     else:
-        print(f"\n(No arbitrage opportunity)")
+        print("\n(No arbitrage opportunity)")
     print("=" * 50 + "\n")

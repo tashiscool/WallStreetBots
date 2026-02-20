@@ -256,12 +256,12 @@ class OptionsSpread:
     @property
     def expiration_dates(self) -> List[date]:
         """All expiration dates in the spread."""
-        return sorted(set(leg.expiration for leg in self.legs))
+        return sorted({leg.expiration for leg in self.legs})
 
     @property
     def strikes(self) -> List[Decimal]:
         """All strikes in the spread, sorted."""
-        return sorted(set(leg.strike for leg in self.legs))
+        return sorted({leg.strike for leg in self.legs})
 
     @property
     def width(self) -> Optional[Decimal]:

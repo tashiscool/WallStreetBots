@@ -394,7 +394,7 @@ class AlpacaDataSource(IDataSource):
             raise ConnectionError("Not connected to Alpaca")
 
         # Get option contracts to extract expirations
-        endpoint = f"/v1beta1/options/contracts"
+        endpoint = "/v1beta1/options/contracts"
         params = {
             "underlying_symbol": symbol,
             "status": "active",
@@ -411,7 +411,7 @@ class AlpacaDataSource(IDataSource):
             if exp_str:
                 expirations.add(datetime.strptime(exp_str, "%Y-%m-%d").date())
 
-        return sorted(list(expirations))
+        return sorted(expirations)
 
     async def get_fundamentals(self, symbol: str) -> Optional[FundamentalData]:
         """Get asset info from Alpaca."""

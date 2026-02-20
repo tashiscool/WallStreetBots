@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 import io
 import base64
 
@@ -193,7 +193,7 @@ class DiscordNotifier(NotificationProvider):
     """Discord webhook notification provider."""
 
     # Color mapping for notification types
-    COLORS = {
+    COLORS: ClassVar[dict] = {
         NotificationType.TRADE_ENTRY: 0x4CAF50,  # Green
         NotificationType.TRADE_EXIT: 0x2196F3,  # Blue
         NotificationType.RISK_WARNING: 0xFF9800,  # Orange
@@ -558,7 +558,7 @@ class TradingNotificationService:
 
         embed = NotificationEmbed(
             title=f"{emoji} Daily Summary - {date.strftime('%Y-%m-%d')}",
-            description=f"End of day trading report",
+            description="End of day trading report",
             color=DiscordNotifier.COLORS[NotificationType.DAILY_SUMMARY],
             timestamp=datetime.now(),
         )

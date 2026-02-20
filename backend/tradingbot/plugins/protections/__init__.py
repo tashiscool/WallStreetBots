@@ -12,10 +12,10 @@ from .max_drawdown import MaxDrawdownProtection
 from .low_profit_pairs import LowProfitPairsProtection
 
 __all__ = [
-    'IProtection',
-    'ProtectionConfig',
     'CooldownProtection',
-    'StoplossGuardProtection',
-    'MaxDrawdownProtection',
+    'IProtection',
     'LowProfitPairsProtection',
+    'MaxDrawdownProtection',
+    'ProtectionConfig',
+    'StoplossGuardProtection',
 ]

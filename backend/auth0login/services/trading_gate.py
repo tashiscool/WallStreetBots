@@ -121,7 +121,7 @@ class TradingGateService:
             return False, f"Paper trading incomplete: {remaining} more days required."
 
     def check_minimum_trades(
-        self, user: User, min_trades: int = None
+        self, user: User, min_trades: int | None = None
     ) -> tuple[bool, int, str]:
         """Check if user has executed minimum number of paper trades.
 
@@ -140,7 +140,7 @@ class TradingGateService:
             return False, trade_count, f"Need {remaining} more trades (have {trade_count}/{min_trades})."
 
     def check_no_catastrophic_loss(
-        self, user: User, max_loss_pct: float = None
+        self, user: User, max_loss_pct: float | None = None
     ) -> tuple[bool, float, str]:
         """Check if user hasn't suffered catastrophic loss in paper trading.
 

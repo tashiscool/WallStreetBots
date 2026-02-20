@@ -89,8 +89,8 @@ class TradeReasoningService:
         self,
         signals: Dict[str, Dict[str, Any]],
         confidence: int,
-        summary: str = None,
-        market_context: Dict[str, Any] = None,
+        summary: str | None = None,
+        market_context: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
         """Capture structured entry reasoning.
 
@@ -121,9 +121,9 @@ class TradeReasoningService:
     def capture_exit_reasoning(
         self,
         trigger: str,
-        entry_timestamp: datetime = None,
-        signals_at_exit: Dict[str, Any] = None,
-        summary: str = None,
+        entry_timestamp: datetime | None = None,
+        signals_at_exit: Dict[str, Any] | None = None,
+        summary: str | None = None,
     ) -> Dict[str, Any]:
         """Capture structured exit reasoning.
 
@@ -169,8 +169,8 @@ class TradeReasoningService:
         strategy_name: str,
         signals: Dict[str, Dict[str, Any]],
         confidence: int,
-        market_context: Dict[str, Any] = None,
-        explanation: str = None,
+        market_context: Dict[str, Any] | None = None,
+        explanation: str | None = None,
         order=None,
     ) -> Any:
         """Create a TradeSignalSnapshot with full reasoning.
@@ -239,10 +239,10 @@ class TradeReasoningService:
         trade_id: str,
         exit_price: float,
         trigger: str,
-        pnl_amount: float = None,
-        pnl_percent: float = None,
-        signals_at_exit: Dict[str, Any] = None,
-        summary: str = None,
+        pnl_amount: float | None = None,
+        pnl_percent: float | None = None,
+        signals_at_exit: Dict[str, Any] | None = None,
+        summary: str | None = None,
     ) -> Optional[Any]:
         """Record trade exit with structured reasoning.
 
@@ -291,7 +291,7 @@ class TradeReasoningService:
     def analyze_closed_trade(
         self,
         trade_id: str,
-        historical_prices: Dict[str, float] = None,
+        historical_prices: Dict[str, float] | None = None,
     ) -> Optional[Dict[str, Any]]:
         """Perform post-trade outcome analysis.
 
@@ -400,7 +400,7 @@ class TradeReasoningService:
 
     def get_reasoning_stats(
         self,
-        strategy_name: str = None,
+        strategy_name: str | None = None,
         days: int = 30,
     ) -> Dict[str, Any]:
         """Get reasoning statistics.
@@ -491,9 +491,11 @@ class TradeReasoningService:
         for name, data in signals.items():
             # Normalize 'triggered' to 'met'
             if 'triggered' in data and 'met' not in data:
-                data = dict(data)
-                data['met'] = data['triggered']
-            formatted[name] = data
+                entry = dict(data)
+                entry['met'] = entry['triggered']
+            else:
+                entry = data
+            formatted[name] = entry
         return formatted
 
     def _generate_explanation(
@@ -611,7 +613,7 @@ class TradeReasoningService:
     def _analyze_timing(
         self,
         snapshot,
-        historical_prices: Dict[str, float] = None,
+        historical_prices: Dict[str, float] | None = None,
     ) -> Dict[str, Any]:
         """Analyze entry and exit timing quality."""
         result = {'score': 'unknown', 'entry': {}, 'exit': {}}

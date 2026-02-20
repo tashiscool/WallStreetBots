@@ -245,7 +245,7 @@ class DriftRebalancer:
         drifts = self.calculate_drift(current_weights)
 
         # Check if any position exceeds threshold
-        for symbol, drift in drifts.items():
+        for drift in drifts.values():
             if abs(drift) >= self.config.drift_threshold:
                 return True, drifts
 

@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 from decimal import Decimal
-from typing import Dict, List, Optional
+from typing import ClassVar, Dict, List, Optional
 
 from ..portfolio_model import PortfolioConstructionModel, PortfolioState
 from ..portfolio_target import PortfolioTarget
@@ -16,7 +16,7 @@ class SectorWeightedPortfolioModel(PortfolioConstructionModel):
     Ensures diversification across sectors with configurable limits.
     """
 
-    DEFAULT_SECTOR_WEIGHTS = {
+    DEFAULT_SECTOR_WEIGHTS: ClassVar[dict] = {
         'Technology': 0.20,
         'Healthcare': 0.15,
         'Financials': 0.15,

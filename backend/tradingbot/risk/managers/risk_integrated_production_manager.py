@@ -17,6 +17,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+import numpy as np
+import pandas as pd
+
 from ...production.core.production_strategy_manager import (
     ProductionStrategyManager,
     ProductionStrategyManagerConfig,
@@ -81,6 +84,7 @@ class RiskIntegratedProductionManager:
 
         # Risk monitoring state
         self.risk_monitoring_active = False
+        self.tasks: list[asyncio.Task] = []
         self.last_risk_calculation = None
         self.risk_alerts_sent = set()
 
@@ -172,7 +176,7 @@ class RiskIntegratedProductionManager:
             positions = await self._get_current_positions()
 
             # Get market data
-            market_data = await self._get_market_data()
+            market_data = await self._get_market_data(list(positions.keys()))
 
             # Get portfolio value
             portfolio_value = await self._get_portfolio_value()
@@ -257,47 +261,64 @@ class RiskIntegratedProductionManager:
     async def _get_current_positions(self) -> dict[str, dict]:
         """Get current portfolio positions."""
         try:
-            # This would get actual positions from the broker
-            # For now, return simulated positions
+            integration_manager = getattr(self.base_manager, "integration_manager", None)
+            if integration_manager and hasattr(integration_manager, "get_all_positions"):
+                raw_positions = await integration_manager.get_all_positions()
+                if isinstance(raw_positions, dict) and raw_positions:
+                    normalized_positions = {}
+                    for symbol, position in raw_positions.items():
+                        quantity = float(position.get("quantity", position.get("qty", 0)))
+                        current_price = float(position.get("current_price", 0))
+                        market_value = position.get("market_value")
+                        if market_value is None:
+                            market_value = quantity * current_price
+                        normalized_positions[symbol] = {
+                            "qty": quantity,
+                            "value": float(market_value),
+                            "delta": float(position.get("delta", 0.5)),
+                            "gamma": float(position.get("gamma", 0.01)),
+                            "vega": float(position.get("vega", 0.3)),
+                        }
+                    return normalized_positions
+
+            # Fallback sample positions for offline development / dry-run mode.
             return {
-                "AAPL": {
-                    "qty": 100,
-                    "value": 15000,
-                    "delta": 0.6,
-                    "gamma": 0.01,
-                    "vega": 0.5,
-                },
-                "SPY": {
-                    "qty": 50,
-                    "value": 20000,
-                    "delta": 0.5,
-                    "gamma": 0.005,
-                    "vega": 0.3,
-                },
-                "TSLA": {
-                    "qty": 25,
-                    "value": 5000,
-                    "delta": 0.8,
-                    "gamma": 0.02,
-                    "vega": 0.8,
-                },
+                "AAPL": {"qty": 100, "value": 15000, "delta": 0.6, "gamma": 0.01, "vega": 0.5},
+                "SPY": {"qty": 50, "value": 20000, "delta": 0.5, "gamma": 0.005, "vega": 0.3},
+                "TSLA": {"qty": 25, "value": 5000, "delta": 0.8, "gamma": 0.02, "vega": 0.8},
             }
         except Exception as e:
             self.logger.error(f"Error getting current positions: {e}")
             return {}
 
-    async def _get_market_data(self) -> dict[str, Any]:
+    async def _get_market_data(self, symbols: list[str] | None = None) -> dict[str, Any]:
         """Get current market data."""
         try:
-            # This would get actual market data
-            # For now, return simulated data
-            import numpy as np
-            import pandas as pd
+            if symbols:
+                data_provider = getattr(self.base_manager, "data_provider", None)
+                if data_provider and hasattr(data_provider, "get_historical_data"):
+                    historical_data = {}
+                    for symbol in symbols:
+                        bars = await data_provider.get_historical_data(symbol, days=252)
+                        if not bars:
+                            continue
+                        historical_data[symbol] = pd.DataFrame(
+                            {
+                                "Open": [float(bar.open) for bar in bars],
+                                "High": [float(bar.high) for bar in bars],
+                                "Low": [float(bar.low) for bar in bars],
+                                "Close": [float(bar.close) for bar in bars],
+                                "Volume": [int(bar.volume) for bar in bars],
+                            },
+                            index=[bar.timestamp for bar in bars],
+                        )
+                    if historical_data:
+                        return historical_data
 
+            # Fallback simulated market data for offline development / dry-run mode.
             dates = pd.date_range(end=datetime.now(), periods=252, freq="D")
             returns = np.random.normal(0, 0.02, 252)
             prices = 100 * np.cumprod(1 + returns)
-
             return {
                 "AAPL": pd.DataFrame(
                     {
@@ -337,9 +358,12 @@ class RiskIntegratedProductionManager:
     async def _get_portfolio_value(self) -> float:
         """Get current portfolio value."""
         try:
-            # This would get actual portfolio value from the broker
-            # For now, return simulated value
-            return 100000.0  # $100k simulated portfolio
+            integration_manager = getattr(self.base_manager, "integration_manager", None)
+            if integration_manager and hasattr(integration_manager, "get_portfolio_value"):
+                portfolio_value = await integration_manager.get_portfolio_value()
+                if portfolio_value:
+                    return float(portfolio_value)
+            return 100000.0  # Fallback for offline development / dry-run mode.
         except Exception as e:
             self.logger.error(f"Error getting portfolio value: {e}")
             return 100000.0
@@ -457,6 +481,10 @@ class RiskIntegratedProductionManager:
         try:
             # Stop risk monitoring
             self.risk_monitoring_active = False
+            for task in self.tasks:
+                if not task.done():
+                    task.cancel()
+            self.tasks.clear()
 
             # Stop base strategies
             await self.base_manager.stop_all_strategies()

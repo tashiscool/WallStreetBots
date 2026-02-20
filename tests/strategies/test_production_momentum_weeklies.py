@@ -14,6 +14,7 @@ Tests all strategy methods to achieve maximum coverage including:
 
 import pytest
 import asyncio
+import pandas as pd
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 from unittest.mock import AsyncMock, Mock, patch
@@ -42,7 +43,7 @@ def mock_data_provider():
     import numpy as np
 
     # Create intraday price data with volume spike
-    timestamps = pd.date_range(start='2024-01-01 09:30', periods=78, freq='5T')
+    timestamps = pd.date_range(start='2024-01-01 09:30', periods=78, freq='5min')
     prices = np.linspace(145, 150, 78) + np.random.normal(0, 0.5, 78)
     volumes = [100000] * 60 + [300000] * 18  # Volume spike at end
 

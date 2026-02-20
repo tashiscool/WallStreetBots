@@ -163,20 +163,18 @@ class ProductionMomentumWeeklies(StrategySignalMixin):
             if volume_data.empty:
                 return False, 0.0
 
-            # Current volume (last 5 bars average)
-            current_vol = volume_data["volume"].tail(5).mean()
+            # Current volume (latest bar)
+            current_vol = volume_data["volume"].tail(1).mean()
 
-            # Average volume (excluding current spike)
-            historical_vol = volume_data["volume"].iloc[:-10]
-            if len(historical_vol) == 0:
-                return False, 0.0
-            avg_vol = historical_vol.mean()
+            # Baseline from earlier session bars to avoid contamination by current spike
+            baseline_end = max(1, int(len(volume_data) * 0.7))
+            avg_vol = volume_data["volume"].iloc[:baseline_end].mean()
 
             if avg_vol <= 0:
                 return False, 0.0
 
             vol_multiple = float(current_vol / avg_vol)
-            return vol_multiple >= self.min_volume_spike, vol_multiple
+            return bool(vol_multiple >= self.min_volume_spike), vol_multiple
 
         except Exception as e:
             self.logger.error(f"Error detecting volume spike for {ticker}: {e}")
@@ -217,7 +215,7 @@ class ProductionMomentumWeeklies(StrategySignalMixin):
                 and current_price > recent_avg
             )
 
-            return is_reversal, "bullish_reversal", bounce_pct
+            return bool(is_reversal), "bullish_reversal", float(bounce_pct)
 
         except Exception as e:
             self.logger.error(f"Error detecting reversal for {ticker}: {e}")

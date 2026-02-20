@@ -68,6 +68,7 @@ def swing_config():
         "profit_targets": [25, 50, 100],
         "stop_loss_pct": 30,
         "max_hold_hours": 8,
+        "enforce_close_cutoff": False,
         "end_of_day_exit_hour": 15,
         "watchlist": ["AAPL", "MSFT", "GOOGL", "TSLA"],
     }
@@ -661,6 +662,7 @@ class TestManagePositions:
             "contracts": 1,
             "cost_basis": 250.0,
             "max_hold_hours": 8,
+        "enforce_close_cutoff": False,
             "profit_targets": [3.125, 3.75, 5.0],
             "stop_loss": 1.75,
             "hit_profit_target": 0,

@@ -63,6 +63,16 @@ class ProductionTradeSignal(TradeSignal):
         if action is not None:
             kwargs['side'] = OrderSide.BUY if action.lower() == 'buy' else OrderSide.SELL
 
+        # Legacy alias normalization
+        if 'position_size' in kwargs and 'quantity' not in kwargs:
+            kwargs['quantity'] = kwargs.pop('position_size')
+        if 'entry_price' in kwargs and 'price' not in kwargs:
+            kwargs['price'] = kwargs.pop('entry_price')
+        if 'expiry_date' in kwargs and 'expiration_date' not in kwargs:
+            kwargs['expiration_date'] = kwargs.pop('expiry_date')
+        if 'reasoning' in kwargs and 'reason' not in kwargs:
+            kwargs['reason'] = kwargs.pop('reasoning')
+
         # Set defaults for required fields
         kwargs.setdefault('strategy_name', 'manual_trade')
         kwargs.setdefault('ticker', 'UNKNOWN')
@@ -85,7 +95,11 @@ class ProductionTradeSignal(TradeSignal):
 
         # Extract signal-related parameters
         signal_strength = kwargs.pop('signal_strength', 0.0)
-        confidence = kwargs.pop('confidence', 0.0)
+        confidence = kwargs.pop('confidence', kwargs.pop('confidence_score', 0.0))
+
+        # Consume additional legacy fields to avoid base-class constructor errors
+        stop_loss = kwargs.pop('stop_loss', None)
+        take_profit = kwargs.pop('take_profit', None)
 
         # Initialize base class
         super().__init__(**kwargs)
@@ -96,6 +110,10 @@ class ProductionTradeSignal(TradeSignal):
         self.risk_amount = risk_amount
         self.expected_return = expected_return
         self.metadata = metadata
+        if stop_loss is not None:
+            self.metadata['stop_loss'] = stop_loss
+        if take_profit is not None:
+            self.metadata['take_profit'] = take_profit
 
         # Set option-specific attributes
         self.option_type = option_type

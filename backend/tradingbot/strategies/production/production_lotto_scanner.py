@@ -5,6 +5,7 @@
 import asyncio
 import logging
 from dataclasses import dataclass
+from decimal import Decimal
 from datetime import date, datetime, timedelta
 from typing import Any
 
@@ -157,7 +158,7 @@ class ProductionLottoScanner:
                 return False
 
             # Check portfolio risk
-            portfolio_value = float(await self.integration_manager.get_portfolio_value())
+            portfolio_value = await self.integration_manager.get_portfolio_value()
             if portfolio_value < 10000:  # Minimum account size for lotto plays
                 self.logger.warning("Account too small for lotto plays")
                 return False
@@ -493,9 +494,9 @@ class ProductionLottoScanner:
             mid_price = (bid + ask) / 2
 
             # Position sizing
-            portfolio_value = float(await self.integration_manager.get_portfolio_value())
-            max_dollar_risk = portfolio_value * self.max_risk_pct
-            max_contracts = int(max_dollar_risk / (mid_price * 100))
+            portfolio_value = await self.integration_manager.get_portfolio_value()
+            max_dollar_risk = portfolio_value * Decimal(str(self.max_risk_pct))
+            max_contracts = int(max_dollar_risk / (Decimal(str(mid_price)) * Decimal("100")))
             max_contracts = min(max_contracts, 10)  # Hard cap
 
             if max_contracts <= 0:
@@ -528,7 +529,7 @@ class ProductionLottoScanner:
             # Potential return (target 5x)
             potential_return = 5.0
             profit_target_price = mid_price * (1 + potential_return)
-            stop_loss_price = mid_price * (1 - self.stop_loss_pct)
+            stop_loss_price = float(mid_price) * (1 - self.stop_loss_pct)
 
             return LottoOpportunity(
                 ticker=ticker,
@@ -688,7 +689,7 @@ class ProductionLottoScanner:
             # Get recent price data
             prices = await self.data_provider.get_recent_prices(ticker, periods=20)
             if not prices or len(prices) < 10:
-                return 0
+                return 0.0
 
             # Calculate various momentum indicators
             current = prices[-1]
@@ -709,10 +710,10 @@ class ProductionLottoScanner:
             # Volume momentum (simplified)
             volume_score = 30  # Placeholder - would use actual volume data
 
-            return min(100, ma_score + change_score + volume_score)
+            return float(min(100, ma_score + change_score + volume_score))
 
         except Exception:
-            return 0
+            return 0.0
 
     async def _estimate_intraday_move(self, ticker: str) -> float:
         """Estimate expected intraday move."""
@@ -786,11 +787,11 @@ class ProductionLottoScanner:
         try:
             prices = await self.data_provider.get_recent_prices(ticker, periods=2)
             if not prices or len(prices) < 2:
-                return 0
+                return 0.0
 
             return (prices[-1] - prices[-2]) / prices[-2]
         except Exception:
-            return 0
+            return 0.0
 
     async def _get_option_price(
         self, ticker: str, expiry: str, strike: float, option_type: str

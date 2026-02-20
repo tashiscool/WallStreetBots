@@ -2,8 +2,14 @@ from urllib.parse import urlencode
 
 # from datetime import date
 import alpaca_trade_api as api
-import plotly.express as px
-import plotly.graph_objects as go
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    px = None
+    go = None
+    PLOTLY_AVAILABLE = False
 from django.conf import settings
 from django.contrib.auth import logout as log_out
 from django.contrib.auth.decorators import login_required
@@ -153,6 +159,9 @@ def get_portfolio_chart(request):
     )
     portfolio_hist = alpaca.get_portfolio_history().df
     portfolio_hist = portfolio_hist.reset_index()
+    if not PLOTLY_AVAILABLE:
+        return ""
+
     line_plot = px.line(portfolio_hist, "timestamp", "equity")
     line_plot.update_layout(xaxis_title="", yaxis_title="Equity")
     line_plot = line_plot.to_html()
@@ -173,6 +182,9 @@ def get_stock_chart(request, symbol):
     end = "2021 - 02 - 01"
     # Retrieve daily bars for SPY in a dataframe and printing the first 5 rows
     spy_bars = alpaca.get_bars(symbol, timeframe, start, end).df
+    if not PLOTLY_AVAILABLE:
+        return ""
+
     candlestick_fig = go.Figure(
         data=[
             go.Candlestick(

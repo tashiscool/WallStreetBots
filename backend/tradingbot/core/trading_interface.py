@@ -5,7 +5,7 @@ Connects the disconnected Strategy and Broker systems for production use.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
@@ -38,19 +38,80 @@ class OrderSide(Enum):
 
 @dataclass
 class TradeSignal:
-    """Signal from a trading strategy."""
+    """Signal from a trading strategy.
 
-    strategy_name: str
-    ticker: str
-    side: OrderSide
-    order_type: OrderType
-    quantity: int
+    Supports canonical fields plus legacy aliases used by older strategy code.
+    """
+
+    strategy_name: str = "unknown_strategy"
+    ticker: str = "UNKNOWN"
+    side: OrderSide = OrderSide.BUY
+    order_type: OrderType = OrderType.MARKET
+    quantity: int = 0
     limit_price: float | None = None
     stop_price: float | None = None
     time_in_force: str = "gtc"
     reason: str = ""
     confidence: float = 0.0
     timestamp: datetime = field(default_factory=datetime.now)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    # Legacy alias inputs (accepted at init, not stored as dataclass fields)
+    symbol: InitVar[str | None] = None
+    action: InitVar[str | None] = None
+    strategy: InitVar[str | None] = None
+    price: InitVar[float | None] = None
+    signal_type: InitVar[str | None] = None
+
+    def __post_init__(
+        self,
+        symbol: str | None,
+        action: str | None,
+        strategy: str | None,
+        price: float | None,
+        signal_type: str | None,
+    ):
+        if symbol and self.ticker == "UNKNOWN":
+            self.ticker = symbol
+        if strategy and self.strategy_name == "unknown_strategy":
+            self.strategy_name = strategy
+
+        if isinstance(self.side, str):
+            self.side = OrderSide(self.side.lower())
+        if isinstance(self.order_type, str):
+            self.order_type = OrderType(self.order_type.lower())
+
+        if action:
+            action_map = {
+                "buy": OrderSide.BUY,
+                "sell": OrderSide.SELL,
+                "buy_to_close": OrderSide.BUY,
+                "sell_to_open": OrderSide.SELL,
+                "sell_to_close": OrderSide.SELL,
+                "buy_to_open": OrderSide.BUY,
+            }
+            self.side = action_map.get(str(action).lower(), self.side)
+            self.metadata.setdefault("legacy_action", action)
+
+        if price is not None:
+            self.metadata.setdefault("price", price)
+        if signal_type is not None:
+            self.metadata.setdefault("signal_type", signal_type)
+
+    @property
+    def action(self) -> str:
+        return self.metadata.get("legacy_action", self.side.value)
+
+    @property
+    def strategy(self) -> str:
+        return self.strategy_name
+
+    @classmethod
+    def from_legacy(cls, **kwargs) -> "TradeSignal":
+        """Construct from legacy kwargs while keeping the main dataclass init clean."""
+        return cls(**kwargs)
+
+
 
     @classmethod
     def from_legacy(cls, **kwargs) -> "TradeSignal":

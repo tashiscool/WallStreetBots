@@ -10,15 +10,29 @@ import logging
 import time
 from typing import Any, Dict
 
-import psutil
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    psutil = None
+    PSUTIL_AVAILABLE = False
 from django.conf import settings
 from django.db import connection
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+try:
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    CONTENT_TYPE_LATEST = "text/plain; version=0.0.4; charset=utf-8"
+    generate_latest = None
+    PROMETHEUS_AVAILABLE = False
 
-from backend.tradingbot.metrics.collectors import trading_registry
+try:
+    from backend.tradingbot.metrics.collectors import trading_registry
+except ModuleNotFoundError:
+    trading_registry = None
 from backend.tradingbot.monitoring.health_check import health_checker
 
 log = logging.getLogger(__name__)
@@ -70,6 +84,12 @@ def check_redis() -> Dict[str, Any]:
 
 def check_system_resources() -> Dict[str, Any]:
     """Check system resource usage."""
+    if not PSUTIL_AVAILABLE:
+        return {
+            "status": "not_configured",
+            "error": "psutil is not installed",
+        }
+
     try:
         memory = psutil.virtual_memory()
         cpu_percent = psutil.cpu_percent(interval=0.1)
@@ -122,9 +142,12 @@ def health_check(request):
         # Determine overall status
         statuses = [
             db_health.get("status"),
-            system_health.get("status"),
             trading_health.get("status"),
         ]
+
+        # Include system status only when configured
+        if system_health.get("status") != "not_configured":
+            statuses.append(system_health.get("status"))
         # Don't include Redis if not configured
         if redis_health.get("status") != "not_configured":
             statuses.append(redis_health.get("status"))
@@ -192,6 +215,9 @@ def liveness_check(request):
 def metrics_endpoint(request):
     """Prometheus metrics endpoint."""
     try:
+        if generate_latest is None:
+            return HttpResponse("Prometheus client not installed", status=503)
+
         metrics_data = generate_latest(trading_registry)
         return HttpResponse(
             metrics_data,

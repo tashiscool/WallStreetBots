@@ -122,6 +122,9 @@ class ProductionWheelStrategy:
         self.assignment_buffer_days = config.get(
             "assignment_buffer_days", 7
         )  # Days before expiry to close
+        self.covered_call_min_strike_buffer = Decimal(
+            str(config.get("covered_call_min_strike_buffer", 0.01))
+        )
 
         # Watchlist - stocks suitable for wheel strategy
         self.watchlist = config.get(
@@ -186,7 +189,10 @@ class ProductionWheelStrategy:
                     continue
 
                 current_price = Decimal(str(market_data.price))
-                position.current_price = current_price
+                if position.stage in {"cash_secured_put", "covered_call"}:
+                    position.current_price = current_price
+                else:
+                    current_price = position.current_price
 
                 # Update unrealized P & L
                 if position.stage == "cash_secured_put":  # P & L from option premium
@@ -239,7 +245,7 @@ class ProductionWheelStrategy:
                     # Close for profit if we hit target
                     if (
                         position.unrealized_pnl
-                        >= position.option_premium * self.profit_target
+                        >= position.option_premium * Decimal(str(self.profit_target))
                     ):
                         return TradeSignal(
                             ticker=position.ticker,
@@ -280,7 +286,7 @@ class ProductionWheelStrategy:
             ):  # Check if we should close the call for profit
                 if (
                     position.unrealized_pnl
-                    >= position.option_premium * self.profit_target
+                    >= position.option_premium * Decimal(str(self.profit_target))
                 ):
                     return TradeSignal(
                         ticker=position.ticker,
@@ -424,13 +430,12 @@ class ProductionWheelStrategy:
                 target_delta_max=abs(self.target_delta_range[1]),
                 min_volume=50,
                 min_open_interest=100,
-                max_bid_ask_spread_pct=Decimal("0.10"),  # Max 10% spread
-                min_premium_dollars=self.min_premium_dollars,
+                max_spread_percentage=0.10,  # Max 10% spread
             )
 
             # Find optimal put
             put_analysis = await self.options_selector.select_optimal_put_option(
-                ticker, current_price, criteria
+                ticker, current_price, custom_criteria=criteria
             )
 
             return put_analysis
@@ -452,17 +457,16 @@ class ProductionWheelStrategy:
                 target_delta_max=self.target_delta_range[1],
                 min_volume=50,
                 min_open_interest=100,
-                max_bid_ask_spread_pct=Decimal("0.10"),
-                min_premium_dollars=self.min_premium_dollars,
+                max_spread_percentage=0.10,
             )
 
             # Find optimal call above our cost basis
             min_strike = max(
-                position.entry_price, position.current_price * Decimal("1.02")
+                position.entry_price, position.current_price * self.covered_call_min_strike_buffer + position.current_price
             )  # 2% above current
 
             call_analysis = await self.options_selector.select_optimal_call_option(
-                position.ticker, position.current_price, criteria
+                position.ticker, position.current_price, custom_criteria=criteria
             )
 
             if call_analysis and call_analysis.contract.strike >= min_strike:

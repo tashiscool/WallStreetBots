@@ -228,6 +228,9 @@ class ProductionDebitSpreads:
                 return 50.0
 
             rank = (current_iv - iv_min) / (iv_max - iv_min) * 100
+            # Bound unrealistic extremes; very low absolute IV should not score as high IV-rank.
+            if current_iv <= 0.10:
+                rank = min(rank, 50.0)
             return max(0, min(100, rank))
 
         except Exception as e:

@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
-from asgiref.sync import sync_to_async
+from asgiref.sync import async_to_sync, sync_to_async
 import pandas as pd
 import numpy as np
 from decimal import Decimal
@@ -3420,15 +3420,16 @@ class ProductionStrategyManager:
     def get_signal_validation_performance_report(self) -> dict:
         """Get detailed signal validation performance report."""
         try:
-            # Use asyncio to get the summary
-            loop = asyncio.get_event_loop()
-            validation_summary = loop.run_until_complete(self._get_signal_validation_summary())
+            validation_summary = async_to_sync(self._get_signal_validation_summary)()
 
+            timestamp = datetime.now()
             return {
-                'timestamp': datetime.now(),
+                'timestamp': timestamp,
+                'timestamp_iso': timestamp.isoformat(),
                 'validation_summary': validation_summary,
                 'strategy_configs': {name: {
-                    'allocation': config.allocation,
+                    'allocation': config.max_position_size,  # legacy compatibility
+                    'max_position_size': config.max_position_size,
                     'enabled': config.enabled,
                     'pause_reason': getattr(config, 'pause_reason', None),
                     'paused_at': getattr(config, 'paused_at', None)

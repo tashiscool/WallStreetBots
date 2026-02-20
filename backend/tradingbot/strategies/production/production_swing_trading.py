@@ -6,7 +6,8 @@ Fast profit - taking swing trades with same-day exit discipline.
 import asyncio
 import logging
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 from typing import Any
 
@@ -132,6 +133,7 @@ class ProductionSwingTrading(StrategySignalMixin):
         # Exit criteria
         self.profit_targets = config.get("profit_targets", [25, 50, 100])  # % gains
         self.stop_loss_pct = config.get("stop_loss_pct", 30)  # 30% loss
+        self.enforce_close_cutoff = config.get("enforce_close_cutoff", True)
         self.max_hold_hours = config.get("max_hold_hours", 8)
         self.end_of_day_exit_hour = config.get("end_of_day_exit_hour", 15)  # 3pm ET
 
@@ -583,11 +585,11 @@ class ProductionSwingTrading(StrategySignalMixin):
                 return False
 
             # Calculate position size
-            portfolio_value = float(await self.integration_manager.get_portfolio_value())
-            max_risk = portfolio_value * self.max_position_size
+            portfolio_value = await self.integration_manager.get_portfolio_value()
+            max_risk = portfolio_value * Decimal(str(self.max_position_size))
 
             # Size based on premium cost
-            contracts = max(1, int(max_risk / (signal.option_premium * 100)))
+            contracts = max(1, int(max_risk / (Decimal(str(signal.option_premium)) * Decimal("100"))))
             contracts = min(contracts, 3)  # Max 3 contracts for swing trades
 
             # Create trade signal
@@ -837,8 +839,8 @@ class ProductionSwingTrading(StrategySignalMixin):
                 return []
 
             # Don't initiate new swings near market close
-            current_hour = datetime.now().hour
-            if current_hour >= 15:  # After 3pm ET
+            current_hour = datetime.now(timezone.utc).astimezone(ZoneInfo("America/New_York")).hour
+            if self.enforce_close_cutoff and current_hour >= 15:  # After 3pm ET
                 return []
 
             # Scan for swing opportunities

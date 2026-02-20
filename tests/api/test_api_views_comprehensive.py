@@ -32,7 +32,9 @@ class TestBacktestAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -153,7 +155,9 @@ class TestBuildSpreadAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -213,7 +217,9 @@ class TestTradingGateAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -380,7 +386,9 @@ class TestRiskAssessmentAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -587,7 +595,9 @@ class TestStrategyRecommendationsAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -744,7 +754,9 @@ class TestAllocationManagementAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -987,7 +999,9 @@ class TestVIXMonitoringAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -1052,7 +1066,9 @@ class TestCircuitBreakerAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -1197,7 +1213,9 @@ class TestPortfolioAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -1337,16 +1355,17 @@ class TestPortfolioAPI(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-    @patch('backend.tradingbot.models.models.StrategyPortfolio.objects.get')
-    def test_portfolio_activate_success(self, mock_get_portfolio):
+    def test_portfolio_activate_success(self):
         """Test activating a portfolio."""
-        mock_portfolio = MagicMock()
-        mock_portfolio.user = self.user
-        mock_portfolio.id = 1
-        mock_portfolio.to_dict.return_value = {'id': 1, 'is_active': True}
-        mock_get_portfolio.return_value = mock_portfolio
+        from backend.tradingbot.models.models import StrategyPortfolio
 
-        response = self.client.post('/api/portfolios/1/activate')
+        portfolio = StrategyPortfolio.objects.create(
+            user=self.user,
+            name='Activation Test',
+            strategies={'wsb-dip-bot': {'allocation_pct': 100, 'enabled': True}},
+        )
+
+        response = self.client.post(f'/api/portfolios/{portfolio.id}/activate')
 
         self.assertEqual(response.status_code, 200)
 
@@ -1373,7 +1392,9 @@ class TestLeaderboardAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -1474,7 +1495,9 @@ class TestCustomStrategyAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -1618,8 +1641,9 @@ class TestCustomStrategyAPI(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    @patch('backend.tradingbot.models.models.CustomStrategy.objects.filter')
     @patch('backend.tradingbot.models.models.CustomStrategy.objects.get')
-    def test_custom_strategy_clone_success(self, mock_get):
+    def test_custom_strategy_clone_success(self, mock_get, mock_filter):
         """Test cloning custom strategy."""
         mock_strategy = MagicMock()
         mock_strategy.user = self.user
@@ -1655,7 +1679,9 @@ class TestMarketContextAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -1724,7 +1750,9 @@ class TestTaxOptimizationAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -1827,7 +1855,9 @@ class TestUserProfileAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -1922,7 +1952,9 @@ class TestDigestAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2004,7 +2036,9 @@ class TestTradeExplanationAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2067,7 +2101,9 @@ class TestBenchmarkComparisonAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2115,7 +2151,9 @@ class TestAlpacaConnectionAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2227,7 +2265,9 @@ class TestWizardConfigAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2281,7 +2321,9 @@ class TestEmailAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2391,7 +2433,9 @@ class TestSaveSettingsAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2433,7 +2477,9 @@ class TestFeatureAvailabilityAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2464,7 +2510,9 @@ class TestSuggestSpreadsAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2507,7 +2555,9 @@ class TestGetLocateQuoteAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2545,7 +2595,9 @@ class TestPortfolioHistoryAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2575,7 +2627,9 @@ class TestTradeListAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2606,7 +2660,9 @@ class TestHoldingsEventsAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2638,7 +2694,9 @@ class TestEconomicCalendarAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2670,7 +2728,9 @@ class TestPortfolioTemplatesAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2734,7 +2794,9 @@ class TestAnalyzeOptimizePortfolioAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2799,7 +2861,9 @@ class TestAvailableStrategiesAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 
@@ -2828,7 +2892,9 @@ class TestCustomStrategyIndicatorsTemplatesAPI(TestCase):
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
         )
         self.client.login(username='testuser', password='testpass123')
 

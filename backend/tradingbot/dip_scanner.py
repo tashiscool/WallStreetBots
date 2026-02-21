@@ -1,14 +1,16 @@
-"""Real - time Dip Scanner
-Continuously scans for hard dip opportunities across mega - cap universe.
+"""Real-time Dip Scanner.
+
+Continuously scans for hard dip opportunities across mega-cap universe.
 """
 
 import asyncio
 import json
 import logging
-import random
 from dataclasses import dataclass
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
+from typing import Optional
 
+from .data.sources.base import DataResolution, IDataSource, Quote
 from .exact_clone import DipDetector, DipSignal, ExactCloneSystem
 
 
@@ -25,21 +27,29 @@ class MarketHours:
 class LiveDipScanner:
     """Live scanner for dip opportunities."""
 
-    def __init__(self, system: ExactCloneSystem):
+    def __init__(
+        self,
+        system: ExactCloneSystem,
+        data_source: Optional[IDataSource] = None,
+    ):
         self.system = system
         self.dip_detector = DipDetector()
         self.market_hours = MarketHours()
         self.is_scanning = False
         self.scan_interval = 60  # Scan every 60 seconds
+        self._data_source = data_source
+
+        # Cache for previous-close and average volume (refreshed daily)
+        self._prev_close_cache: dict[str, float] = {}
+        self._avg_volume_cache: dict[str, int] = {}
+        self._cache_date: Optional[datetime] = None
 
         # Tracking
-        self.last_scan_time: datetime | None = None
-        self.last_reset_date: datetime | None = None
+        self.last_scan_time: Optional[datetime] = None
+        self.last_reset_date: Optional[datetime] = None
         self.opportunities_found_today = 0
         self.trades_executed_today = 0
 
-        # Setup logging
-        logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
     def is_market_open(self) -> bool:
@@ -108,49 +118,97 @@ class LiveDipScanner:
         except Exception as e:
             self.logger.error(f"Error in scan cycle: {e}")
 
-    async def _fetch_current_market_data(self) -> dict[str, dict]:
-        """Fetch current market data for all tickers
-        THIS IS A PLACEHOLDER - integrate with your data source.
-        """
-        # Placeholder data structure
-        # In production, replace with real data from:
-        # - Alpaca API
-        # - TD Ameritrade
-        # - Interactive Brokers
-        # - etc.
+    async def _refresh_daily_cache(self) -> None:
+        """Refresh previous-close and average-volume caches once per trading day."""
+        today = datetime.now().date()
+        if self._cache_date and self._cache_date == today:
+            return
 
-        market_data = {}
+        if self._data_source is None:
+            return
+
+        yesterday = datetime.combine(today - timedelta(days=1), datetime.min.time())
+        lookback_start = datetime.combine(today - timedelta(days=30), datetime.min.time())
 
         for ticker in self.dip_detector.universe:
-            # Generate sample data for testing
-            # Replace with actual API calls
-            base_price = {"GOOGL": 207.0, "AAPL": 175.0, "MSFT": 285.0}.get(
-                ticker, 200.0
+            try:
+                # Fetch last daily bar for previous close
+                daily_bars = await self._data_source.get_bars(
+                    ticker, DataResolution.DAILY, yesterday, limit=1,
+                )
+                if daily_bars:
+                    self._prev_close_cache[ticker] = float(daily_bars[-1].close)
+
+                # Fetch ~20 daily bars for average volume
+                hist_bars = await self._data_source.get_bars(
+                    ticker, DataResolution.DAILY, lookback_start, limit=20,
+                )
+                if hist_bars:
+                    volumes = [b.volume for b in hist_bars]
+                    self._avg_volume_cache[ticker] = int(sum(volumes) / len(volumes))
+            except Exception as exc:
+                self.logger.warning("Failed to cache daily data for %s: %s", ticker, exc)
+
+        self._cache_date = today
+
+    async def _fetch_current_market_data(self) -> dict[str, dict]:
+        """Fetch current market data for all tickers from the configured data source."""
+        if self._data_source is None:
+            self.logger.error(
+                "No data source configured — pass an IDataSource to LiveDipScanner"
             )
+            return {}
 
-            # Simulate dip conditions occasionally
-            import secrets  # More secure random
+        await self._refresh_daily_cache()
 
-            is_dip_day = secrets.randbelow(1000) / 1000.0 < 0.1  # 10% chance of dip
+        symbols = list(self.dip_detector.universe)
+        quotes: dict[str, Quote] = await self._data_source.get_quotes(symbols)
 
-            if is_dip_day:
-                dip_factor = random.uniform(0.95, 0.98)  # 2 - 5% dip
-                current_price = base_price * dip_factor
-                high_of_day = base_price * 1.005  # Slightly higher high
-                volume_multiplier = random.uniform(1.5, 3.0)  # Higher volume on dip
+        # Fetch today's intraday bars for open and high-of-day
+        today_open = datetime.combine(datetime.now().date(), time(9, 30))
+        intraday_bars: dict[str, list] = {}
+        for ticker in symbols:
+            try:
+                bars = await self._data_source.get_bars(
+                    ticker, DataResolution.MINUTE_5, today_open,
+                )
+                if bars:
+                    intraday_bars[ticker] = bars
+            except Exception as exc:
+                self.logger.debug("Intraday bars unavailable for %s: %s", ticker, exc)
+
+        market_data: dict[str, dict] = {}
+        for ticker in symbols:
+            quote = quotes.get(ticker)
+            if quote is None:
+                continue
+
+            current_price = float(quote.last or quote.mid)
+            if current_price <= 0:
+                continue
+
+            # Derive open and high-of-day from intraday bars
+            bars = intraday_bars.get(ticker, [])
+            if bars:
+                open_price = float(bars[0].open)
+                high_of_day = float(max(b.high for b in bars))
+                intraday_volume = sum(b.volume for b in bars)
             else:
-                current_price = base_price * random.uniform(0.995, 1.005)  # Normal day
-                high_of_day = current_price * random.uniform(1.0, 1.01)
-                volume_multiplier = 1.0
+                open_price = current_price
+                high_of_day = current_price
+                intraday_volume = quote.volume
+
+            previous_close = self._prev_close_cache.get(ticker, open_price)
+            avg_volume = self._avg_volume_cache.get(ticker, max(intraday_volume, 1))
 
             market_data[ticker] = {
                 "current_price": round(current_price, 2),
-                "open_price": round(base_price * random.uniform(0.995, 1.005), 2),
+                "open_price": round(open_price, 2),
                 "high_of_day": round(high_of_day, 2),
-                "previous_close": base_price,
-                "volume": int(2000000 * volume_multiplier),  # Base 2M volume
-                "avg_volume": 2000000,
-                "timestamp": datetime.now(),
+                "previous_close": round(previous_close, 2),
+                "volume": intraday_volume,
+                "avg_volume": avg_volume,
+                "timestamp": quote.timestamp,
             }
 
         return market_data

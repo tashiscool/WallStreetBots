@@ -1,3 +1,4 @@
+<<<<<<< ours
 """Test that the analysis module handles optional dependencies gracefully."""
 
 import importlib
@@ -41,3 +42,17 @@ def test_analysis_init_with_plotly_available():
     except ImportError:
         # Module may not be importable in test environment
         pass
+=======
+"""Regression tests for optional imports in backend.tradingbot.analysis."""
+
+import backend.tradingbot.analysis as analysis
+
+
+def test_analysis_init_exports_consistent_with_plot_configurator_availability():
+    if analysis.PLOT_CONFIGURATOR_AVAILABLE:
+        assert "PlotType" in analysis.__all__
+        assert hasattr(analysis, "PlotType")
+    else:
+        assert "PlotType" not in analysis.__all__
+        assert not hasattr(analysis, "PlotType")
+>>>>>>> theirs

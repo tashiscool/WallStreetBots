@@ -6,7 +6,11 @@ try:
     import plotly.express as px
     import plotly.graph_objects as go
     PLOTLY_AVAILABLE = True
+<<<<<<< ours
 except Exception:
+=======
+except ImportError:
+>>>>>>> theirs
     px = None
     go = None
     PLOTLY_AVAILABLE = False

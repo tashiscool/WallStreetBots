@@ -8,8 +8,11 @@ import asyncio
 import json
 import logging
 import threading
+<<<<<<< ours
 from datetime import datetime
 
+=======
+>>>>>>> theirs
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -275,10 +278,7 @@ def test_alpaca_connection(request):
         JSON response with connection status and account info
     """
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         api_key = data.get('api_key', '')
         secret_key = data.get('secret_key', '')
@@ -371,10 +371,7 @@ def save_wizard_config(request):
         JSON response with status
     """
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         api_key = data.get('api_key', '')
         secret_key = data.get('secret_key', '')
@@ -471,10 +468,7 @@ def test_email(request):
     from datetime import datetime
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         smtp_host = data.get('smtp_host', '')
         smtp_port = int(data.get('smtp_port', 587))
@@ -595,10 +589,7 @@ def save_settings(request):
     import os
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         user = request.user
 
@@ -915,10 +906,7 @@ def risk_assessment_submit(request):
     from .services.risk_assessment import risk_assessment_service
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         responses = data.get('responses', {})
         selected_profile = data.get('selected_profile')
@@ -1005,10 +993,7 @@ def risk_assessment_calculate(request):
     from .services.risk_assessment import risk_assessment_service
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         responses = data.get('responses', {})
 
@@ -1187,6 +1172,7 @@ def performance_vs_benchmark(request):
         # In a real implementation, this would come from actual portfolio history
         portfolio_values = _get_portfolio_history(request.user, start_date, end_date)
 
+<<<<<<< ours
         comparison_payload: dict[str, object] | None = None
         compare_performance = getattr(benchmark_service, 'compare_performance', None)
         if callable(compare_performance):
@@ -1199,18 +1185,41 @@ def performance_vs_benchmark(request):
                 comparison_payload = legacy_payload
 
         if comparison_payload is None:
+=======
+        # Get comparison data
+        compare_method = getattr(benchmark_service, 'compare_performance', None)
+        if callable(compare_method):
+            comparison_data = compare_method(
+                user=request.user,
+                benchmark=benchmark,
+                period=period,
+            )
+        else:
+>>>>>>> theirs
             comparison_data = benchmark_service.get_comparison_data(
                 portfolio_values=portfolio_values,
                 start_date=start_date,
                 end_date=end_date,
                 benchmark=benchmark,
             )
+<<<<<<< ours
             comparison_payload = _to_json_compatible(comparison_data)
 
         if not isinstance(comparison_payload, dict):
             comparison_payload = {'comparison': comparison_payload}
 
         return JsonResponse(comparison_payload)
+=======
+
+        if isinstance(comparison_data, dict):
+            payload = comparison_data
+        elif hasattr(comparison_data, 'to_dict') and callable(comparison_data.to_dict):
+            payload = comparison_data.to_dict()
+        else:
+            payload = {'comparison': comparison_data}
+
+        return JsonResponse(payload)
+>>>>>>> theirs
 
     except Exception as e:
         logger.error(f"Error getting benchmark comparison: {e}")
@@ -1507,6 +1516,7 @@ def trade_explanation(request, trade_id: str):
                 'message': f'Trade not found: {trade_id}'
             }, status=404)
 
+<<<<<<< ours
         if hasattr(explanation, 'to_dict') and callable(explanation.to_dict):
             explanation_dict = _to_json_compatible(explanation.to_dict())
         else:
@@ -1539,6 +1549,37 @@ def trade_explanation(request, trade_id: str):
                 'risk_assessment': _to_json_compatible(getattr(explanation, 'risk_assessment', {})),
                 'similar_trades_summary': _to_json_compatible(getattr(explanation, 'similar_trades_summary', {})),
                 'timestamp': timestamp.isoformat() if hasattr(timestamp, 'isoformat') else timestamp,
+=======
+        if isinstance(explanation, dict):
+            explanation_dict = explanation
+        elif hasattr(explanation, 'to_dict') and callable(explanation.to_dict):
+            explanation_dict = explanation.to_dict()
+        else:
+            signal_explanations = []
+            for se in getattr(explanation, 'signal_explanations', []) or []:
+                signal_explanations.append({
+                    'signal_name': getattr(se, 'signal_name', ''),
+                    'triggered': bool(getattr(se, 'triggered', False)),
+                    'value': getattr(se, 'value', None),
+                    'threshold': getattr(se, 'threshold', None),
+                    'description': getattr(se, 'description', ''),
+                    'impact': getattr(se, 'impact', ''),
+                })
+            explanation_dict = {
+                'trade_id': getattr(explanation, 'trade_id', trade_id),
+                'symbol': getattr(explanation, 'symbol', ''),
+                'direction': getattr(explanation, 'direction', ''),
+                'strategy_name': getattr(explanation, 'strategy_name', ''),
+                'entry_price': getattr(explanation, 'entry_price', None),
+                'quantity': getattr(explanation, 'quantity', None),
+                'confidence_score': getattr(explanation, 'confidence_score', None),
+                'summary': getattr(explanation, 'summary', getattr(explanation, 'reason', '')),
+                'signal_explanations': signal_explanations,
+                'key_factors': getattr(explanation, 'key_factors', []),
+                'risk_assessment': getattr(explanation, 'risk_assessment', {}),
+                'similar_trades_summary': getattr(explanation, 'similar_trades_summary', {}),
+                'timestamp': getattr(explanation, 'timestamp', None),
+>>>>>>> theirs
             }
 
         return JsonResponse({
@@ -1568,6 +1609,7 @@ def trade_signals(request, trade_id: str):
     from .services.trade_explainer import trade_explainer_service
 
     try:
+<<<<<<< ours
         get_signal_snapshot = getattr(trade_explainer_service, 'get_signal_snapshot', None)
         if callable(get_signal_snapshot):
             snapshot = get_signal_snapshot(trade_id)
@@ -1582,6 +1624,14 @@ def trade_signals(request, trade_id: str):
                 })
 
         viz_data = trade_explainer_service.get_signal_visualization_data(trade_id)
+=======
+        get_snapshot = getattr(trade_explainer_service, 'get_signal_snapshot', None)
+        if callable(get_snapshot):
+            viz_data = get_snapshot(trade_id)
+        else:
+            get_viz = getattr(trade_explainer_service, 'get_signal_visualization_data', None)
+            viz_data = get_viz(trade_id) if callable(get_viz) else None
+>>>>>>> theirs
 
         if viz_data is None:
             return JsonResponse({
@@ -1604,14 +1654,18 @@ def trade_signals(request, trade_id: str):
             'trade_id': trade_id,
             'confidence_score': confidence,
             'raw_signals': raw_signals,
-            'visualization': {
-                'rsi_gauge': viz_data.rsi_gauge,
-                'macd_chart': viz_data.macd_chart,
-                'volume_bar': viz_data.volume_bar,
-                'price_chart': viz_data.price_chart,
-                'confidence_meter': viz_data.confidence_meter,
-                'signal_timeline': viz_data.signal_timeline,
-            }
+            'visualization': (
+                viz_data.to_dict()
+                if hasattr(viz_data, 'to_dict') and callable(viz_data.to_dict)
+                else {
+                    'rsi_gauge': getattr(viz_data, 'rsi_gauge', None),
+                    'macd_chart': getattr(viz_data, 'macd_chart', None),
+                    'volume_bar': getattr(viz_data, 'volume_bar', None),
+                    'price_chart': getattr(viz_data, 'price_chart', None),
+                    'confidence_meter': getattr(viz_data, 'confidence_meter', None),
+                    'signal_timeline': getattr(viz_data, 'signal_timeline', None),
+                }
+            )
         })
 
     except Exception as e:
@@ -1649,6 +1703,7 @@ def trade_similar(request, trade_id: str):
             min_similarity=min_similarity
         )
 
+<<<<<<< ours
         serialized_trades = []
         for trade in similar_trades:
             if hasattr(trade, 'to_dict') and callable(trade.to_dict):
@@ -1673,11 +1728,60 @@ def trade_similar(request, trade_id: str):
         pnl_values = [float(t.get('pnl_percent', 0) or 0) for t in serialized_trades]
         avg_pnl = sum(pnl_values) / total if total else 0
         win_rate = (profits / total * 100) if total else 0
+=======
+        # Calculate aggregate stats
+        pnl_values = []
+        profits = 0
+        losses = 0
+        for t in similar_trades or []:
+            if hasattr(t, 'to_dict') and callable(t.to_dict):
+                item = t.to_dict() or {}
+                if not isinstance(item, dict):
+                    item = {}
+                outcome = item.get('outcome')
+                pnl = item.get('pnl_percent')
+            else:
+                outcome = getattr(t, 'outcome', None)
+                pnl = getattr(t, 'pnl_percent', None)
+
+            if outcome == 'profit':
+                profits += 1
+            elif outcome == 'loss':
+                losses += 1
+
+            if isinstance(pnl, (int, float)):
+                pnl_values.append(float(pnl))
+
+        total = len(similar_trades or [])
+        avg_pnl = (sum(pnl_values) / len(pnl_values)) if pnl_values else 0
+        win_rate = (profits / total * 100) if total else 0
+
+        serialized_similar = []
+        for t in similar_trades:
+            if hasattr(t, 'to_dict') and callable(t.to_dict):
+                item = t.to_dict()
+                if isinstance(item, dict):
+                    serialized_similar.append(item)
+                    continue
+            serialized_similar.append({
+                'trade_id': getattr(t, 'trade_id', None),
+                'symbol': getattr(t, 'symbol', None),
+                'similarity_score': getattr(t, 'similarity_score', None),
+                'outcome': getattr(t, 'outcome', None),
+                'pnl_percent': getattr(t, 'pnl_percent', None),
+                'entry_date': getattr(t, 'entry_date', None),
+                'key_signals_matched': getattr(t, 'key_signals_matched', []),
+            })
+>>>>>>> theirs
 
         return JsonResponse({
             'status': 'success',
             'trade_id': trade_id,
+<<<<<<< ours
             'similar_trades': serialized_trades,
+=======
+            'similar_trades': serialized_similar,
+>>>>>>> theirs
             'aggregate_stats': {
                 'total_similar': total,
                 'profitable': profits,
@@ -1974,10 +2078,7 @@ def allocation_update(request, strategy_name: str):
     from .services.allocation_manager import get_allocation_manager
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         # Keep backward compatibility with legacy clients/tests that send target_pct.
         allocation_value = data.get('allocated_pct', data.get('target_pct', 0))
@@ -2049,10 +2150,7 @@ def strategy_config_save(request, strategy_name: str):
     from .services.allocation_manager import get_allocation_manager
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         config = data.get('config', {})
         allocation_pct = data.get('allocation_pct')
@@ -2173,10 +2271,7 @@ def allocation_initialize(request):
     from .services.allocation_manager import get_allocation_manager
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         profile = data.get('profile', 'moderate')
         portfolio_value = float(data.get('portfolio_value', 100000))
@@ -2232,10 +2327,7 @@ def allocation_rebalance(request):
     from .services.allocation_manager import get_allocation_manager
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         portfolio_value = float(data.get('portfolio_value', 100000))
         target_profile = data.get('target_profile')
@@ -2290,10 +2382,7 @@ def allocation_reconcile(request):
     from .services.allocation_manager import get_allocation_manager
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         positions = data.get('positions', [])
 
@@ -2333,10 +2422,7 @@ def allocation_recalculate(request):
     from .services.allocation_manager import get_allocation_manager
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         portfolio_value = float(data.get('portfolio_value', 0))
 
@@ -2442,10 +2528,7 @@ def circuit_breaker_advance(request, event_id):
     from .services.recovery_manager import get_recovery_manager
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         force = data.get('force', False)
         notes = data.get('notes', '')
@@ -2478,6 +2561,58 @@ def circuit_breaker_advance(request, event_id):
 
 @login_required
 @require_http_methods(["POST"])
+<<<<<<< ours
+=======
+def circuit_breaker_reset(request, event_id):
+    """
+    Fully reset a circuit breaker event.
+
+    POST /api/circuit-breakers/{event_id}/reset/
+
+    Body:
+        confirmation: Must be "CONFIRM" to proceed
+        notes: Notes for the reset (optional)
+
+    Returns:
+        JSON with reset result
+    """
+    from .services.recovery_manager import get_recovery_manager
+
+    try:
+        data = _parse_request_data(request)
+
+        confirmation = data.get('confirmation', '')
+        notes = data.get('notes', '')
+
+        recovery_mgr = get_recovery_manager(request.user)
+        result = recovery_mgr.reset_breaker(
+            event_id=int(event_id),
+            confirmation=str(confirmation),
+            notes=str(notes),
+        )
+
+        if result['success']:
+            return JsonResponse({
+                'status': 'success',
+                **result,
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                **result,
+            }, status=400)
+
+    except Exception as e:
+        logger.error(f"Error resetting circuit breaker: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e),
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+>>>>>>> theirs
 def circuit_breaker_early_recovery(request, event_id):
     """
     Request early recovery with justification.
@@ -2493,10 +2628,7 @@ def circuit_breaker_early_recovery(request, event_id):
     from .services.recovery_manager import get_recovery_manager
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         justification = data.get('justification', '')
 
@@ -2596,6 +2728,7 @@ def market_context(request):
         except Exception as e:
             logger.debug(f"Could not fetch holdings for market context: {e}")
 
+<<<<<<< ours
         # Primary market regime signal used by the UI/tests.
         overview = service.get_market_overview()
         context: dict[str, object] = {}
@@ -2614,6 +2747,21 @@ def market_context(request):
             context.update(overview)
         else:
             context['overview'] = overview
+=======
+        # Compose context from explicit service calls so failures surface
+        # consistently and tests can target individual provider methods.
+        overview = service.get_market_overview()
+        sectors = service.get_sector_performance()
+        holdings_events = service.get_holdings_events(holding_symbols)
+        economic_calendar = service.get_economic_calendar()
+
+        context = {
+            'overview': overview if isinstance(overview, dict) else {},
+            'sectors': sectors if isinstance(sectors, (dict, list)) else {},
+            'holdings_events': holdings_events if isinstance(holdings_events, (dict, list)) else [],
+            'economic_calendar': economic_calendar if isinstance(economic_calendar, (dict, list)) else {},
+        }
+>>>>>>> theirs
 
         return JsonResponse({
             'status': 'success',
@@ -2949,7 +3097,7 @@ def portfolio_create(request):
 
 
 @login_required
-@require_http_methods(["PUT", "PATCH"])
+@require_http_methods(["POST", "PUT", "PATCH"])
 def portfolio_update(request, portfolio_id):
     """
     Update an existing portfolio.
@@ -3424,6 +3572,7 @@ def user_profile(request):
 
     try:
         service = get_user_profile_service(request.user)
+<<<<<<< ours
         if hasattr(service, 'get_profile'):
             profile = service.get_profile()
         else:
@@ -3432,6 +3581,24 @@ def user_profile(request):
         return JsonResponse({
             'status': 'success',
             'profile': _to_json_compatible(profile),
+=======
+        get_profile = getattr(service, 'get_profile', None)
+        if callable(get_profile):
+            profile = get_profile()
+        else:
+            profile = service.get_or_create_profile()
+
+        if isinstance(profile, dict):
+            profile_payload = profile
+        elif hasattr(profile, 'to_dict') and callable(profile.to_dict):
+            profile_payload = profile.to_dict()
+        else:
+            profile_payload = {}
+
+        return JsonResponse({
+            'status': 'success',
+            'profile': profile_payload,
+>>>>>>> theirs
         })
 
     except Exception as e:
@@ -3464,6 +3631,7 @@ def update_user_profile(request):
         service = get_user_profile_service(request.user)
         update_result = service.update_profile(data)
 
+<<<<<<< ours
         if isinstance(update_result, tuple) and len(update_result) == 2:
             success, message = update_result
             profile = service.get_profile() if success else None
@@ -3478,12 +3646,44 @@ def update_user_profile(request):
                 'status': 'success',
                 'message': message,
                 'profile': _to_json_compatible(profile),
-            })
-        else:
+=======
+        if isinstance(update_result, tuple):
+            success, message = update_result
+            profile_data = None
+            if success:
+                profile = service.get_profile()
+                if hasattr(profile, 'to_dict') and callable(profile.to_dict):
+                    profile_data = profile.to_dict()
+                elif isinstance(profile, dict):
+                    profile_data = profile
+            if success:
+                return JsonResponse({
+                    'status': 'success',
+                    'message': message,
+                    'profile': profile_data or {},
+                })
             return JsonResponse({
                 'status': 'error',
                 'message': message,
             }, status=400)
+
+        if isinstance(update_result, dict):
+            return JsonResponse({
+                'status': 'success',
+                'profile': update_result,
+>>>>>>> theirs
+            })
+
+        if hasattr(update_result, 'to_dict') and callable(update_result.to_dict):
+            return JsonResponse({
+                'status': 'success',
+                'profile': update_result.to_dict(),
+            })
+
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Profile update failed',
+        }, status=400)
 
     except Exception as e:
         logger.error(f"Error updating user profile: {e}")
@@ -3509,10 +3709,20 @@ def profile_onboarding_status(request):
     try:
         service = get_user_profile_service(request.user)
         status = service.get_onboarding_status()
+        if isinstance(status, dict):
+            onboarding = status
+        elif hasattr(status, 'to_dict') and callable(status.to_dict):
+            onboarding = status.to_dict()
+        else:
+            onboarding = {}
 
         return JsonResponse({
             'status': 'success',
+<<<<<<< ours
             'onboarding': _to_json_compatible(status),
+=======
+            'onboarding': onboarding,
+>>>>>>> theirs
         })
 
     except Exception as e:
@@ -4191,6 +4401,7 @@ def digest_preview(request):
 
     try:
         service = DigestService(user=request.user)
+<<<<<<< ours
         if hasattr(service, 'preview_digest'):
             preview = service.preview_digest(request.user, digest_type)
         else:
@@ -4198,13 +4409,30 @@ def digest_preview(request):
         preview_payload = _to_json_compatible(preview)
         if not isinstance(preview_payload, dict):
             preview_payload = {'content': preview_payload}
+=======
+        preview_method = getattr(service, 'preview_digest', None)
+        if callable(preview_method):
+            preview = preview_method(request.user, digest_type)
+        else:
+            generate_method = getattr(service, 'generate_digest', None)
+            preview = generate_method(request.user, digest_type) if callable(generate_method) else {}
+
+        if not isinstance(preview, dict):
+            preview = {}
+>>>>>>> theirs
 
         return JsonResponse({
             'status': 'success',
             'digest_type': digest_type,
+<<<<<<< ours
             'subject': preview_payload.get('subject', f'{digest_type.title()} Digest'),
             'data': preview_payload.get('data', {}),
             'html': preview_payload.get('html', preview_payload.get('html_content', '')),
+=======
+            'subject': preview.get('subject', ''),
+            'data': preview.get('data', preview.get('text_content', '')),
+            'html': preview.get('html', preview.get('html_content', '')),
+>>>>>>> theirs
         })
 
     except Exception as e:
@@ -4243,6 +4471,7 @@ def digest_send_test(request):
 
     try:
         service = DigestService(user=request.user)
+<<<<<<< ours
         send_email = getattr(service, 'send_digest_email', None)
         digest_data = {}
         if callable(send_email):
@@ -4263,6 +4492,36 @@ def digest_send_test(request):
         digest_payload = _to_json_compatible(digest_data)
         if not isinstance(digest_payload, dict):
             digest_payload = {'summary': digest_payload}
+=======
+        send_method = getattr(service, 'send_digest_email', None)
+        send_result = None
+        if callable(send_method):
+            send_result = send_method(request.user, digest_type)
+        else:
+            generate_method = getattr(service, 'generate_digest', None)
+            digest_data = generate_method(request.user, digest_type) if callable(generate_method) else {}
+            fallback_send = getattr(service, 'send_digest', None)
+            sent = fallback_send(request.user, digest_data) if callable(fallback_send) else False
+            send_result = (bool(sent), None, digest_data)
+
+        if isinstance(send_result, tuple):
+            if len(send_result) == 3:
+                success, error, digest_data = send_result
+            elif len(send_result) == 2:
+                success, error = send_result
+                digest_data = {}
+            else:
+                success = bool(send_result[0]) if send_result else False
+                error = None
+                digest_data = {}
+        else:
+            success = bool(send_result)
+            error = None
+            digest_data = {}
+
+        if not isinstance(digest_data, dict):
+            digest_data = {}
+>>>>>>> theirs
 
         if success:
             return JsonResponse({
@@ -4331,10 +4590,35 @@ def digest_history(request):
                     ),
                 })
 
+        digest_payload = []
+        for digest in digests:
+            if hasattr(digest, 'to_dict') and callable(digest.to_dict):
+                data = digest.to_dict()
+                if isinstance(data, dict):
+                    digest_payload.append(data)
+                    continue
+            digest_payload.append({
+                'id': getattr(digest, 'id', None),
+                'digest_type': getattr(digest, 'digest_type', None),
+                'subject': getattr(digest, 'subject', ''),
+                'was_opened': bool(getattr(digest, 'was_opened', False)),
+                'open_count': int(getattr(digest, 'open_count', 0) or 0),
+                'click_count': int(getattr(digest, 'click_count', 0) or 0),
+            })
+
+        total = queryset.count() if hasattr(queryset, 'count') else len(digest_payload)
+        if not isinstance(total, int):
+            total = len(digest_payload)
+
         return JsonResponse({
             'status': 'success',
+<<<<<<< ours
             'digests': digest_entries,
             'total': len(digest_entries),
+=======
+            'digests': digest_payload,
+            'total': total,
+>>>>>>> theirs
         })
 
     except Exception as e:
@@ -4402,7 +4686,11 @@ def digest_update_preferences(request):
         data = {}
 
     email_frequency = data.get('email_frequency', data.get('frequency'))
+<<<<<<< ours
     digest_enabled = data.get('digest_enabled', data.get('enabled'))
+=======
+    digest_enabled = data.get('enabled')
+>>>>>>> theirs
 
     valid_frequencies = ['realtime', 'hourly', 'daily', 'weekly', 'none']
     if email_frequency and email_frequency not in valid_frequencies:
@@ -4414,6 +4702,7 @@ def digest_update_preferences(request):
     try:
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
+<<<<<<< ours
         update_fields = []
         if email_frequency:
             profile.email_frequency = email_frequency
@@ -4433,6 +4722,33 @@ def digest_update_preferences(request):
             'email_frequency': resolved_frequency,
             'digest_enabled': bool(getattr(profile, 'digest_enabled', True)),
             'message': f'Digest frequency set to {resolved_frequency}',
+=======
+        updated_fields = []
+        if email_frequency:
+            if hasattr(profile, 'email_frequency'):
+                profile.email_frequency = email_frequency
+                updated_fields.append('email_frequency')
+            elif hasattr(profile, 'digest_frequency'):
+                profile.digest_frequency = email_frequency
+                updated_fields.append('digest_frequency')
+
+        if digest_enabled is not None and hasattr(profile, 'digest_enabled'):
+            profile.digest_enabled = bool(digest_enabled)
+            updated_fields.append('digest_enabled')
+
+        if updated_fields:
+            profile.save(update_fields=updated_fields)
+
+        current_frequency = (
+            getattr(profile, 'email_frequency', None)
+            or getattr(profile, 'digest_frequency', 'none')
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'email_frequency': current_frequency,
+            'message': f'Digest frequency set to {current_frequency}',
+>>>>>>> theirs
         })
 
     except Exception as e:
@@ -4674,10 +4990,22 @@ def tax_lots_list(request):
         lots = service.get_all_lots(symbol=symbol, include_closed=include_closed)
         lots_payload = _to_json_compatible(lots)
 
+        normalized_lots = []
+        for item in lots if isinstance(lots, list) else []:
+            if isinstance(item, dict):
+                normalized_lots.append(item)
+            elif hasattr(item, 'to_dict') and callable(item.to_dict):
+                normalized_lots.append(item.to_dict())
+
         return JsonResponse({
             'status': 'success',
+<<<<<<< ours
             'lots': lots_payload,
             'count': len(lots_payload),
+=======
+            'lots': normalized_lots,
+            'count': len(normalized_lots),
+>>>>>>> theirs
             'disclaimer': TAX_DISCLAIMER,
         })
 
@@ -4712,9 +5040,24 @@ def tax_lots_by_symbol(request, symbol):
                 'lots': result_payload,
             }
 
+        if isinstance(result, dict):
+            payload = result
+        else:
+            lots = []
+            for item in result if isinstance(result, list) else []:
+                if isinstance(item, dict):
+                    lots.append(item)
+                elif hasattr(item, 'to_dict') and callable(item.to_dict):
+                    lots.append(item.to_dict())
+            payload = {'lots': lots, 'count': len(lots)}
+
         return JsonResponse({
             'status': 'success',
+<<<<<<< ours
             **result_payload,
+=======
+            **payload,
+>>>>>>> theirs
             'disclaimer': TAX_DISCLAIMER,
         })
 
@@ -4745,6 +5088,7 @@ def tax_harvesting_opportunities(request):
 
     try:
         service = get_tax_optimizer_service(request.user)
+<<<<<<< ours
         if hasattr(service, 'get_harvesting_opportunities'):
             opportunities = service.get_harvesting_opportunities(
                 min_loss=min_loss,
@@ -4761,6 +5105,27 @@ def tax_harvesting_opportunities(request):
             'status': 'success',
             'opportunities': opportunities_payload,
             'count': len(opportunities_payload),
+=======
+        get_opportunities = getattr(service, 'get_harvesting_opportunities', None)
+        if not callable(get_opportunities):
+            get_opportunities = getattr(service, 'find_harvesting_opportunities', None)
+
+        opportunities = []
+        if callable(get_opportunities):
+            opportunities = get_opportunities(min_loss=min_loss, limit=limit) or []
+
+        normalized_opportunities = []
+        for item in opportunities if isinstance(opportunities, list) else []:
+            if isinstance(item, dict):
+                normalized_opportunities.append(item)
+            elif hasattr(item, 'to_dict') and callable(item.to_dict):
+                normalized_opportunities.append(item.to_dict())
+
+        return JsonResponse({
+            'status': 'success',
+            'opportunities': normalized_opportunities,
+            'count': len(normalized_opportunities),
+>>>>>>> theirs
             'disclaimer': TAX_DISCLAIMER,
         })
 
@@ -4807,13 +5172,24 @@ def tax_preview_sale(request):
 
     try:
         service = get_tax_optimizer_service(request.user)
+<<<<<<< ours
         if hasattr(service, 'preview_sale_tax_impact'):
             preview = service.preview_sale_tax_impact(
+=======
+        preview_sale = getattr(service, 'preview_sale_tax_impact', None)
+        if not callable(preview_sale):
+            preview_sale = getattr(service, 'preview_sale', None)
+
+        preview = {}
+        if callable(preview_sale):
+            result = preview_sale(
+>>>>>>> theirs
                 symbol=symbol,
                 quantity=float(quantity),
                 sale_price=float(sale_price),
                 lot_selection=lot_selection
             )
+<<<<<<< ours
         else:
             preview = service.preview_sale(
                 symbol=symbol,
@@ -4825,6 +5201,12 @@ def tax_preview_sale(request):
         preview_payload = _to_json_compatible(preview)
         if not isinstance(preview_payload, dict):
             preview_payload = {'preview': preview_payload}
+=======
+            if isinstance(result, dict):
+                preview = result
+            elif hasattr(result, 'to_dict') and callable(result.to_dict):
+                preview = result.to_dict()
+>>>>>>> theirs
 
         preview_payload['disclaimer'] = TAX_DISCLAIMER
 
@@ -4931,7 +5313,7 @@ def tax_suggest_lot_selection(request):
         data = {}
 
     symbol = data.get('symbol')
-    quantity = data.get('quantity')
+    quantity = data.get('quantity', data.get('shares'))
     goal = data.get('goal', 'minimize_tax')
 
     if not all([symbol, quantity]):
@@ -4986,7 +5368,7 @@ def tax_create_lot(request):
         data = {}
 
     symbol = data.get('symbol')
-    quantity = data.get('quantity')
+    quantity = data.get('quantity', data.get('shares'))
     cost_basis = data.get('cost_basis_per_share')
     acquired_at = data.get('acquired_at')
 
@@ -6023,12 +6405,19 @@ def custom_strategy_preview_signals(request, strategy_id):
     try:
         strategy = CustomStrategy.objects.get(id=strategy_id, user=request.user)
     except (CustomStrategy.DoesNotExist, ObjectDoesNotExist):
+<<<<<<< ours
         strategy = CustomStrategy.objects.filter(id=strategy_id, user=request.user).first()
         if strategy is None:
             return JsonResponse({
                 'status': 'error',
                 'message': 'Strategy not found',
             }, status=404)
+=======
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Strategy not found',
+        }, status=404)
+>>>>>>> theirs
 
     try:
         data = json.loads(request.body) if request.body else {}
@@ -8589,10 +8978,7 @@ def generate_pdf_report(request):
     import base64
 
     try:
-        if request.content_type == 'application/json':
-            data = json.loads(request.body)
-        else:
-            data = request.POST
+        data = _parse_request_data(request)
 
         report_type = data.get('report_type', 'weekly')
         strategy_name = data.get('strategy_name', None)

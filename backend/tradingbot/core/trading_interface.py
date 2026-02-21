@@ -99,15 +99,24 @@ class TradeSignal:
             self.metadata.setdefault("signal_type", signal_type)
 
     @property
+<<<<<<< ours
     def action(self) -> str:  # noqa: F811
         return self.metadata.get("legacy_action", self.side.value)
 
     @property
     def strategy(self) -> str:  # noqa: F811
+=======
+    def action(self) -> str:
+        return self.metadata.get("legacy_action", self.side.value)
+
+    @property
+    def strategy(self) -> str:
+>>>>>>> theirs
         return self.strategy_name
 
     @classmethod
     def from_legacy(cls, **kwargs) -> "TradeSignal":
+<<<<<<< ours
         """Create TradeSignal from legacy field names.
 
         Maps common alternative field names:
@@ -140,6 +149,12 @@ class TradeSignal:
         filtered = {k: v for k, v in kwargs.items() if k in known_fields}
 
         return cls(**filtered)
+=======
+        """Construct from legacy kwargs while keeping the main dataclass init clean."""
+        return cls(**kwargs)
+
+
+>>>>>>> theirs
 
 
 @dataclass

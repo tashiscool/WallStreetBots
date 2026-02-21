@@ -1,3 +1,4 @@
+<<<<<<< ours
 """Tests for system health monitoring module."""
 
 import asyncio
@@ -55,3 +56,32 @@ def test_system_health_config_stored_correctly():
         assert monitor.config == test_config
     except ImportError:
         pass
+=======
+import pytest
+
+from backend.tradingbot.monitoring.system_health import (
+    HealthStatus,
+    SystemHealthMonitor,
+)
+
+
+@pytest.mark.asyncio
+async def test_system_health_monitor_accepts_none_config():
+    monitor = SystemHealthMonitor(config=None)
+
+    assert monitor.alert_thresholds["data_feed_latency"] == 5.0
+    assert monitor.alert_thresholds["memory_usage"] == 0.80
+
+
+@pytest.mark.asyncio
+async def test_system_resource_check_degrades_gracefully_without_psutil(monkeypatch):
+    monitor = SystemHealthMonitor(config={})
+    monkeypatch.setattr(
+        "backend.tradingbot.monitoring.system_health.PSUTIL_AVAILABLE", False
+    )
+
+    resources = await monitor._check_system_resources()
+
+    assert resources.status == HealthStatus.UNKNOWN
+    assert resources.details["error"] == "psutil is not installed"
+>>>>>>> theirs

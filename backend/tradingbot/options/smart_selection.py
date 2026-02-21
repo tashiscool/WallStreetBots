@@ -82,8 +82,18 @@ class SelectionCriteria:
     target_delta_min: float = 0.15  # Minimum delta
     target_delta_max: float = 0.45  # Maximum delta
     max_premium_to_stock_ratio: float = 0.05  # Max 5% of stock price
+<<<<<<< ours
     max_bid_ask_spread_pct: float | None = None  # Optional override for max spread
     min_premium_dollars: float | None = None  # Minimum premium in dollars
+=======
+    # Backward-compatible aliases used by production strategies
+    max_bid_ask_spread_pct: Decimal | None = None
+    min_premium_dollars: Decimal | float = 0
+
+    def __post_init__(self):
+        if self.max_bid_ask_spread_pct is not None:
+            self.max_spread_percentage = float(self.max_bid_ask_spread_pct)
+>>>>>>> theirs
 
 
 class SmartOptionsSelector:
@@ -190,12 +200,17 @@ class SmartOptionsSelector:
             self.logger.error(f"Error selecting optimal call option for {ticker}: {e}")
             return None
 
+<<<<<<< ours
+=======
+
+>>>>>>> theirs
     async def select_optimal_put_option(
         self,
         ticker: str,
         spot_price: Decimal,
         custom_criteria: SelectionCriteria | None = None,
     ) -> OptionsAnalysis | None:
+<<<<<<< ours
         """Select optimal put option for cash-secured put strategy.
 
         Args:
@@ -256,11 +271,39 @@ class SmartOptionsSelector:
             )
 
             return best_option
+=======
+        """Backward-compatible put selector used by wheel strategies."""
+        try:
+            criteria = custom_criteria or self.default_criteria
+
+            expiry_dates = await self._get_available_expiries(ticker, criteria)
+            if not expiry_dates:
+                return None
+
+            all_options = []
+            for expiry_date in expiry_dates:
+                options_chain = await self.data_provider.get_options_chain(ticker, expiry_date)
+                puts = [opt for opt in options_chain if opt.option_type.lower() == "put"]
+                all_options.extend(puts)
+
+            analyzed_options = []
+            for option in all_options:
+                analysis = await self._analyze_option(option, spot_price, criteria)
+                if analysis and self._meets_criteria(analysis, criteria):
+                    analyzed_options.append(analysis)
+
+            if not analyzed_options:
+                return None
+
+            analyzed_options.sort(key=lambda x: x.overall_score, reverse=True)
+            return analyzed_options[0]
+>>>>>>> theirs
 
         except Exception as e:
             self.logger.error(f"Error selecting optimal put option for {ticker}: {e}")
             return None
 
+<<<<<<< ours
     def _meets_put_criteria(
         self, analysis: OptionsAnalysis, criteria: SelectionCriteria
     ) -> bool:
@@ -297,6 +340,8 @@ class SmartOptionsSelector:
             self.logger.error(f"Error checking put criteria: {e}")
             return False
 
+=======
+>>>>>>> theirs
     def _get_dynamic_criteria(self, signal_strength: int) -> SelectionCriteria:
         """Get dynamic selection criteria based on signal strength."""
         criteria = SelectionCriteria()

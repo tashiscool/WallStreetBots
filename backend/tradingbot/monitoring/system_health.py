@@ -12,6 +12,7 @@ from enum import Enum
 from typing import Any
 
 try:
+<<<<<<< ours
     import psutil as _psutil
     if _psutil is None:
         raise ImportError("psutil module placeholder is None")
@@ -20,6 +21,14 @@ try:
 except (ImportError, AttributeError):
     psutil = None
     PSUTIL_AVAILABLE = False
+=======
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    psutil = None
+    PSUTIL_AVAILABLE = False
+
+>>>>>>> theirs
 
 
 class HealthStatus(Enum):
@@ -385,6 +394,16 @@ class SystemHealthMonitor:
 
     async def _check_system_resources(self) -> ComponentHealth:
         """Check system resource usage."""
+        if not PSUTIL_AVAILABLE:
+            return ComponentHealth(
+                component_name="resources",
+                status=HealthStatus.UNKNOWN,
+                last_check=datetime.now(),
+                response_time_ms=0,
+                details={"error": "psutil is not installed"},
+                recommendations=["Install psutil to enable resource monitoring"],
+            )
+
         try:
             if not PSUTIL_AVAILABLE:
                 return ComponentHealth(

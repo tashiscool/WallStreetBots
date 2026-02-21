@@ -108,9 +108,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 # Credential Encryption Settings
+# SECURITY: Set CREDENTIAL_ENCRYPTION_SALT in production environment
 CREDENTIAL_ENCRYPTION_SALT = os.getenv(
     "CREDENTIAL_ENCRYPTION_SALT",
-    b'default_salt_change_in_production_v1'
+    b'default_salt_change_in_production_v1'  # noqa: S105
 )
 
 # Alpaca API settings - accept both APCA_* (Alpaca SDK convention) and ALPACA_* names

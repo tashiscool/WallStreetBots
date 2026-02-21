@@ -298,10 +298,11 @@ class TestGetPortfolioChart:
     """Test get_portfolio_chart view."""
 
     @patch('backend.auth0login.views.get_user_information')
-    @patch('backend.auth0login.views.api')
+    @patch('backend.auth0login.views.ALPACA_AVAILABLE', True)
+    @patch('backend.auth0login.views.TradingClient', create=True)
     def test_get_portfolio_chart_success(
         self,
-        mock_api,
+        mock_trading_client_cls,
         mock_get_info,
         request_factory,
         mock_authenticated_user,
@@ -317,16 +318,13 @@ class TestGetPortfolioChart:
             {"equity": "100000"},
         )
 
-        # Mock Alpaca API
-        mock_rest = Mock()
-        mock_df = pd.DataFrame({
-            'timestamp': pd.date_range('2024-01-01', periods=10),
-            'equity': [100000 + i * 100 for i in range(10)],
-        })
+        # Mock Alpaca v2 TradingClient
+        mock_client = Mock()
         mock_portfolio_history = Mock()
-        mock_portfolio_history.df = mock_df
-        mock_rest.get_portfolio_history.return_value = mock_portfolio_history
-        mock_api.REST.return_value = mock_rest
+        mock_portfolio_history.timestamp = pd.date_range('2024-01-01', periods=10).tolist()
+        mock_portfolio_history.equity = [100000 + i * 100 for i in range(10)]
+        mock_client.get_portfolio_history.return_value = mock_portfolio_history
+        mock_trading_client_cls.return_value = mock_client
 
         request = request_factory.get('/chart')
         request.user = mock_authenticated_user

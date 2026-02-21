@@ -280,23 +280,24 @@ def mock_get_user_information():
 
 @pytest.fixture(autouse=True)
 def mock_alpaca_api():
-    """Mock Alpaca API calls for dashboard views."""
-    with patch('backend.auth0login.views.api') as mock_api:
-        # Mock REST client
-        mock_rest = Mock()
-        mock_api.REST.return_value = mock_rest
+    """Mock Alpaca API calls for dashboard views (v2 SDK)."""
+    import pandas as pd
 
-        # Mock portfolio history
-        import pandas as pd
-        mock_df = pd.DataFrame({
-            'equity': [10000, 10100, 10200],
-            'timestamp': pd.date_range('2024-01-01', periods=3)
-        })
-        mock_portfolio_history = Mock()
-        mock_portfolio_history.df = mock_df
-        mock_rest.get_portfolio_history.return_value = mock_portfolio_history
+    mock_df = pd.DataFrame({
+        'equity': [10000, 10100, 10200],
+        'timestamp': pd.date_range('2024-01-01', periods=3),
+    })
+    mock_portfolio_history = Mock()
+    mock_portfolio_history.timestamp = mock_df['timestamp'].tolist()
+    mock_portfolio_history.equity = mock_df['equity'].tolist()
 
-        yield mock_api
+    mock_trading_client = Mock()
+    mock_trading_client.get_portfolio_history.return_value = mock_portfolio_history
+
+    with patch('backend.auth0login.views.TradingClient', create=True, return_value=mock_trading_client) as mock_tc, \
+         patch('backend.auth0login.views.StockHistoricalDataClient', create=True) as mock_dc, \
+         patch('backend.auth0login.views.ALPACA_AVAILABLE', True):
+        yield mock_tc
 
 
 @pytest.fixture

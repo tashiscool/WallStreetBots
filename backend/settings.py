@@ -1,4 +1,8 @@
-"""Django settings for WallStreetBots testing."""
+"""Django settings for WallStreetBots.
+
+Default profile is safe for local development. Production runtime should use
+``backend.production_settings``.
+"""
 
 import os
 from pathlib import Path
@@ -7,13 +11,34 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "test-secret-key-for-testing-only")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").strip().lower()
+IS_PRODUCTION = ENVIRONMENT in {"prod", "production"}
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() in ('true', '1', 'yes')
+_secret_key = os.getenv("SECRET_KEY", "")
+if not _secret_key and IS_PRODUCTION:
+    raise RuntimeError("SECRET_KEY must be set when ENVIRONMENT=production")
+SECRET_KEY = _secret_key or "development-only-secret-key-change-me"
 
-ALLOWED_HOSTS = ["*"]
+# SECURITY WARNING: don't run with debug turned on in production.
+DEBUG = os.getenv("DJANGO_DEBUG", os.getenv("DEBUG", "False")).lower() in (
+    "true",
+    "1",
+    "yes",
+)
+if DEBUG and IS_PRODUCTION:
+    raise RuntimeError("DEBUG must be disabled when ENVIRONMENT=production")
+
+_allowed_hosts = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1")
+ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(",") if h.strip()]
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+if "*" in ALLOWED_HOSTS and not DEBUG:
+    raise RuntimeError("ALLOWED_HOSTS cannot contain '*' unless DEBUG=true")
+
+_csrf_trusted_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in _csrf_trusted_origins.split(",") if origin.strip()
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -107,12 +132,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Email backend for testing
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
-# Credential Encryption Settings
-# SECURITY: Set CREDENTIAL_ENCRYPTION_SALT in production environment
-CREDENTIAL_ENCRYPTION_SALT = os.getenv(
-    "CREDENTIAL_ENCRYPTION_SALT",
-    b'default_salt_change_in_production_v1'  # noqa: S105
-)
+# Credential Encryption Settings.
+_salt_value = os.getenv("CREDENTIAL_ENCRYPTION_SALT")
+if _salt_value:
+    CREDENTIAL_ENCRYPTION_SALT = _salt_value.encode("utf-8")
+elif IS_PRODUCTION:
+    raise RuntimeError(
+        "CREDENTIAL_ENCRYPTION_SALT must be set when ENVIRONMENT=production"
+    )
+else:
+    CREDENTIAL_ENCRYPTION_SALT = b"development_credential_salt_v1"
 
 # Alpaca API settings - accept both APCA_* (Alpaca SDK convention) and ALPACA_* names
 BACKEND_ALPACA_ID = os.getenv("APCA_API_KEY_ID") or os.getenv("ALPACA_API_KEY", "")

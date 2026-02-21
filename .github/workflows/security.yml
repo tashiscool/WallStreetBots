@@ -129,11 +129,11 @@ jobs:
 
       - name: Run Safety check
         run: |
-          safety check --json --output safety-results.json || true
+          safety check --json --output safety-results.json
 
       - name: Run Bandit security linter
         run: |
-          bandit -r backend/ -f json -o bandit-results.json || true
+          bandit -r backend/ -f json -o bandit-results.json
 
       - name: Upload security results
         uses: actions/upload-artifact@v4
@@ -219,4 +219,3 @@ jobs:
               repo: context.repo.repo,
               body: summary
             });
-

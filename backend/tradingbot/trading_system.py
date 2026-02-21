@@ -6,8 +6,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from dataclasses import asdict, dataclass
 from datetime import datetime
+from typing import Any, Awaitable, Callable, Optional
 
 from .alert_system import (
     AlertPriority,
@@ -36,17 +38,21 @@ class TradingConfig:
     max_total_risk_pct: float = 0.30  # 30% total portfolio risk
 
     # Universe settings
-    target_tickers: list[str] = None
+    target_tickers: Optional[list[str]] = None
 
     # Market data settings
     data_refresh_interval: int = 300  # 5 minutes
+    market_data_provider: (
+        Callable[[list[str]], Awaitable[dict[str, dict[str, Any]]]] | None
+    ) = None
+    allow_synthetic_market_data: bool | None = None
 
     # Risk settings
-    risk_params: RiskParameters = None
+    risk_params: Optional[RiskParameters] = None
 
     # Alert settings
     enable_alerts: bool = True
-    alert_channels: list[str] = None
+    alert_channels: Optional[list[str]] = None
 
     def __post_init__(self):
         if self.target_tickers is None:
@@ -68,6 +74,10 @@ class TradingConfig:
         if self.alert_channels is None:
             self.alert_channels = ["desktop", "webhook"]
 
+        if self.allow_synthetic_market_data is None:
+            environment = os.getenv("ENVIRONMENT", "development").strip().lower()
+            self.allow_synthetic_market_data = environment not in {"prod", "production"}
+
 
 @dataclass
 class SystemState:
@@ -87,7 +97,7 @@ class IntegratedTradingSystem:
     Implements the complete 240% options trading playbook.
     """
 
-    def __init__(self, config: TradingConfig = None):
+    def __init__(self, config: Optional[TradingConfig] = None):
         self.config = config or TradingConfig()
         self.state = SystemState()
 
@@ -158,24 +168,27 @@ class IntegratedTradingSystem:
             self.state.errors_today += 1
 
     async def _fetch_market_data(self) -> dict:
-        """Fetch market data for all target tickers
-        This is a placeholder - integrate with your preferred data source.
-        """
-        # Placeholder implementation
-        # In production, integrate with:
-        # - Alpaca API
-        # - Yahoo Finance
-        # - Alpha Vantage
-        # - IEX Cloud
-        # etc.
+        """Fetch market data for all target tickers."""
+        target_tickers = self.config.target_tickers or []
+        if self.config.market_data_provider is not None:
+            return await self.config.market_data_provider(target_tickers)
 
+        if not self.config.allow_synthetic_market_data:
+            self.logger.error(
+                "No market_data_provider configured and synthetic market data is disabled"
+            )
+            return {}
+
+        self.logger.warning(
+            "Using synthetic market data fallback; configure market_data_provider "
+            "for non-development environments"
+        )
         market_data = {}
 
-        for ticker in self.config.target_tickers:
-            # Placeholder data structure
+        for ticker in target_tickers:
             market_data[ticker] = {
                 "current": {
-                    "close": 200.0,  # Replace with real data
+                    "close": 200.0,
                     "high": 202.0,
                     "low": 198.0,
                     "volume": 1000000,
@@ -204,7 +217,7 @@ class IntegratedTradingSystem:
 
     async def _scan_for_opportunities(self, market_data: dict):
         """Scan market data for new trading opportunities."""
-        for ticker in self.config.target_tickers:
+        for ticker in self.config.target_tickers or []:
             if ticker not in market_data:
                 continue
 

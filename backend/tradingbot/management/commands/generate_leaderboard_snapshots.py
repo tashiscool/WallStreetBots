@@ -242,8 +242,8 @@ class Command(BaseCommand):
             avg_position = 10000
             total_return_pct = (total_pnl / (avg_position * max(trades_count, 1))) * 100
         else:
-            # Use simulated metrics based on strategy type
-            return self._get_simulated_metrics(strategy_name, period)
+            # No observed trades in the period: return conservative zero metrics.
+            return self._get_zero_metrics()
 
         # Calculate Sharpe ratio approximation
         # In production, use actual daily returns std dev
@@ -307,90 +307,42 @@ class Command(BaseCommand):
             'total_strategies_ranked': len(self.STRATEGIES),
         }
 
-    def _get_simulated_metrics(
-        self,
-        strategy_name: str,
-        period: str
-    ) -> Dict[str, Any]:
-        """
-        Generate simulated metrics based on strategy characteristics.
-        Used when no real trade data exists.
-        """
-        import random
-
-        # Strategy profiles with expected characteristics
-        profiles = {
-            'wsb_dip_bot': {'return_range': (5, 25), 'sharpe_range': (0.8, 2.0), 'win_rate': (45, 60)},
-            'wheel_strategy': {'return_range': (2, 8), 'sharpe_range': (1.0, 1.8), 'win_rate': (70, 85)},
-            'momentum_weeklies': {'return_range': (10, 40), 'sharpe_range': (0.5, 1.5), 'win_rate': (40, 55)},
-            'earnings_protection': {'return_range': (-2, 5), 'sharpe_range': (0.3, 1.2), 'win_rate': (55, 70)},
-            'debit_spreads': {'return_range': (3, 15), 'sharpe_range': (0.8, 1.6), 'win_rate': (50, 65)},
-            'leaps_tracker': {'return_range': (5, 20), 'sharpe_range': (0.6, 1.4), 'win_rate': (55, 70)},
-            'lotto_scanner': {'return_range': (-20, 100), 'sharpe_range': (0.2, 1.0), 'win_rate': (20, 40)},
-            'swing_trading': {'return_range': (3, 12), 'sharpe_range': (0.7, 1.5), 'win_rate': (50, 65)},
-            'spx_credit_spreads': {'return_range': (2, 6), 'sharpe_range': (1.2, 2.2), 'win_rate': (75, 90)},
-            'index_baseline': {'return_range': (0, 2), 'sharpe_range': (0.4, 0.8), 'win_rate': (50, 55)},
-            'crypto_dip_bot': {'return_range': (-15, 50), 'sharpe_range': (0.3, 1.2), 'win_rate': (40, 55)},
-            'exotic_spreads': {'return_range': (3, 10), 'sharpe_range': (1.0, 1.8), 'win_rate': (65, 80)},
-        }
-
-        profile = profiles.get(strategy_name, {'return_range': (0, 10), 'sharpe_range': (0.5, 1.5), 'win_rate': (50, 60)})
-
-        # Scale by period
-        period_multiplier = {'daily': 0.1, 'weekly': 0.5, 'monthly': 1.0}[period]
-
-        base_return = random.uniform(*profile['return_range'])
-        total_return_pct = base_return * period_multiplier
-
-        sharpe = random.uniform(*profile['sharpe_range'])
-        win_rate = random.uniform(*profile['win_rate'])
-        trades_count = random.randint(5, 50) if period == 'monthly' else random.randint(1, 15)
-
-        winning = int(trades_count * (win_rate / 100))
-        losing = trades_count - winning
-
-        volatility = abs(total_return_pct) * random.uniform(0.3, 0.7)
-        max_drawdown = volatility * random.uniform(1.0, 2.5)
-
-        benchmark_return = random.uniform(-2, 4) * period_multiplier
-
-        gross_profit = abs(total_return_pct) * 1.3 if total_return_pct > 0 else abs(total_return_pct) * 0.3
-        gross_loss = abs(total_return_pct) * 0.3 if total_return_pct > 0 else abs(total_return_pct) * 1.3
-        profit_factor = gross_profit / gross_loss if gross_loss > 0 else 2.0
-
+    def _get_zero_metrics(self) -> Dict[str, Any]:
+        """Return conservative metrics when no real trades exist for the period."""
         return {
-            'total_return_pct': Decimal(str(round(total_return_pct, 4))),
-            'sharpe_ratio': Decimal(str(round(sharpe, 4))),
-            'sortino_ratio': Decimal(str(round(sharpe * 1.1, 4))),
-            'max_drawdown_pct': Decimal(str(round(max_drawdown, 4))),
-            'win_rate': Decimal(str(round(win_rate, 2))),
-            'profit_factor': Decimal(str(round(min(profit_factor, 10), 4))),
-            'trades_count': trades_count,
-            'winning_trades': winning,
-            'losing_trades': losing,
-            'avg_trade_pnl': Decimal(str(round(total_return_pct * 100 / max(trades_count, 1), 2))),
-            'best_trade_pnl': Decimal(str(round(total_return_pct * 50, 2))),
-            'worst_trade_pnl': Decimal(str(round(-max_drawdown * 30, 2))),
-            'avg_hold_duration_hours': Decimal(str(round(random.uniform(4, 72), 1))),
-            'volatility': Decimal(str(round(volatility, 4))),
-            'var_95': Decimal(str(round(volatility * 1.65, 4))),
-            'calmar_ratio': Decimal(str(round(total_return_pct / max_drawdown if max_drawdown > 0 else 0, 4))),
-            'benchmark_return_pct': Decimal(str(round(benchmark_return, 4))),
-            'vs_spy_return': Decimal(str(round(total_return_pct - benchmark_return, 4))),
-            'beta': Decimal(str(round(random.uniform(0.5, 1.5), 2))),
-            'alpha': Decimal(str(round(total_return_pct - benchmark_return * 1.0, 4))),
-            'correlation_spy': Decimal(str(round(random.uniform(0.3, 0.9), 2))),
+            'total_return_pct': Decimal('0'),
+            'sharpe_ratio': Decimal('0'),
+            'sortino_ratio': Decimal('0'),
+            'max_drawdown_pct': Decimal('0'),
+            'win_rate': Decimal('0'),
+            'profit_factor': Decimal('0'),
+            'trades_count': 0,
+            'winning_trades': 0,
+            'losing_trades': 0,
+            'avg_trade_pnl': Decimal('0'),
+            'best_trade_pnl': Decimal('0'),
+            'worst_trade_pnl': Decimal('0'),
+            'avg_hold_duration_hours': Decimal('0'),
+            'volatility': Decimal('0'),
+            'var_95': Decimal('0'),
+            'calmar_ratio': Decimal('0'),
+            'benchmark_return_pct': Decimal('0'),
+            'vs_spy_return': Decimal('0'),
+            'beta': Decimal('0'),
+            'alpha': Decimal('0'),
+            'correlation_spy': Decimal('0'),
             'total_strategies_ranked': len(self.STRATEGIES),
         }
 
     def _get_benchmark_return(self, start_date: date, end_date: date) -> float:
         """Get SPY benchmark return for period."""
-        # In production, fetch actual SPY returns
-        # For now, use reasonable approximation
-        import random
-        days = (end_date - start_date).days
-        daily_return = 0.05  # ~13% annual average
-        return daily_return * days + random.uniform(-1, 1)
+        # Benchmark integration is not yet implemented: avoid synthetic returns.
+        self.stdout.write(
+            self.style.WARNING(
+                "Benchmark return unavailable; using 0.0 until live benchmark feed is integrated"
+            )
+        )
+        return 0.0
 
     def _update_rankings(self, snapshot_date: date, period: str):
         """Update rank fields for all snapshots on this date."""

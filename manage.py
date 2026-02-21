@@ -5,9 +5,16 @@ import os
 import sys
 
 
+def _default_settings_module() -> str:
+    environment = os.getenv("ENVIRONMENT", "development").strip().lower()
+    if environment in {"prod", "production"}:
+        return "backend.production_settings"
+    return "backend.settings"
+
+
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", _default_settings_module())
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

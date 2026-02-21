@@ -163,6 +163,17 @@ class ReliableDataProvider:
         validation_state_adapter: ValidationStateAdapter | None = None,
     ):
         self.logger = logging.getLogger(__name__)
+        environment = os.getenv("ENVIRONMENT", "development").strip().lower()
+        default_allow_synthetic = environment not in {"prod", "production"}
+        self.allow_synthetic_data = (
+            os.getenv("ALLOW_SYNTHETIC_MARKET_DATA", str(default_allow_synthetic)).strip().lower()
+            in {"true", "1", "yes"}
+        )
+        default_allow_iv_proxy = environment not in {"prod", "production"}
+        self.allow_historical_iv_proxy = (
+            os.getenv("ALLOW_HISTORICAL_IV_PROXY", str(default_allow_iv_proxy)).strip().lower()
+            in {"true", "1", "yes"}
+        )
 
         # Initialize data sources
         self.alpaca_manager = AlpacaManager(alpaca_api_key, alpaca_secret_key)
@@ -179,7 +190,9 @@ class ReliableDataProvider:
             DataSource.YAHOO: DataSourceHealth(DataSource.YAHOO, True),
             DataSource.IEX: DataSourceHealth(DataSource.IEX, True),
             DataSource.ALPHA_VANTAGE: DataSourceHealth(DataSource.ALPHA_VANTAGE, True),
-            DataSource.SYNTHETIC: DataSourceHealth(DataSource.SYNTHETIC, True),
+            DataSource.SYNTHETIC: DataSourceHealth(
+                DataSource.SYNTHETIC, self.allow_synthetic_data
+            ),
         }
 
         # Data source preferences (ordered by reliability)
@@ -189,17 +202,15 @@ class ReliableDataProvider:
             DataSource.YAHOO,
             DataSource.IEX,
         ]
-        self.options_source_order = [
-            DataSource.POLYGON,
-            DataSource.YAHOO,
-            DataSource.SYNTHETIC,
-        ]
+        self.options_source_order = [DataSource.POLYGON, DataSource.YAHOO]
         self.earnings_source_order = [
             DataSource.ALPHA_VANTAGE,
             DataSource.POLYGON,
             DataSource.YAHOO,
-            DataSource.SYNTHETIC,
         ]
+        if self.allow_synthetic_data:
+            self.options_source_order.append(DataSource.SYNTHETIC)
+            self.earnings_source_order.append(DataSource.SYNTHETIC)
 
         # Data cache
         self.price_cache: dict[str, MarketData] = {}
@@ -217,7 +228,10 @@ class ReliableDataProvider:
         self.recovery_time = 300  # 5 minutes before retrying failed source
 
         self.logger.info(
-            "ReliableDataProvider initialized with multi - source failover"
+            "ReliableDataProvider initialized with multi-source failover "
+            "(allow_synthetic_data=%s, allow_historical_iv_proxy=%s)",
+            self.allow_synthetic_data,
+            self.allow_historical_iv_proxy,
         )
 
     async def get_current_price(self, ticker: str) -> MarketData | None:
@@ -472,13 +486,12 @@ class ReliableDataProvider:
                     f"Yahoo Finance options failed for {ticker}: {yf_error}"
                 )
 
-            # If Yahoo Finance fails, try to generate synthetic options data for testing
-            # This is still better than empty data for development / testing
-            if not options_data and expiry_date:
-                current_price = await self.get_current_price(ticker)
-                if current_price and current_price > 0:
+            # Optional synthetic fallback for non-production development.
+            if self.allow_synthetic_data and not options_data and expiry_date:
+                current_market_data = await self.get_current_price(ticker)
+                if current_market_data and current_market_data.price > 0:
                     synthetic_options = await self._generate_synthetic_options_data(
-                        ticker, current_price, expiry_date
+                        ticker, current_market_data.price, expiry_date
                     )
                     if synthetic_options:
                         self.logger.warning(
@@ -651,8 +664,8 @@ class ReliableDataProvider:
             except Exception as yf_error:
                 self.logger.warning(f"Yahoo Finance earnings lookup failed: {yf_error}")
 
-            # If no real data available, generate some synthetic earnings for development / testing
-            if not earnings_events:
+            # Optional synthetic fallback for non-production development.
+            if self.allow_synthetic_data and not earnings_events:
                 synthetic_earnings = self._generate_synthetic_earnings_calendar(
                     days_ahead
                 )
@@ -870,14 +883,19 @@ class ReliableDataProvider:
     ) -> Decimal | None:
         """Get implied volatility for options - returns historical volatility as approximation."""
         try:
-            # For now, return historical volatility as proxy for implied volatility
-            # In production, this would query actual options IV from data provider
+            # Use historical volatility proxy only when explicitly allowed.
+            if not self.allow_historical_iv_proxy:
+                self.logger.warning(
+                    "Implied volatility unavailable for %s and IV proxy disabled",
+                    ticker,
+                )
+                return None
+
             historical_vol = await self.get_volatility(ticker, days=20)
             if historical_vol:
-                # Apply slight adjustment to approximate implied volatility
                 return historical_vol * Decimal(
                     "1.2"
-                )  # IV typically higher than historical
+                )  # IV is typically higher than historical vol.
             return None
         except Exception as e:
             self.logger.error(f"Error getting implied volatility for {ticker}: {e}")

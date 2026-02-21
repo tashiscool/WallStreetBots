@@ -50,7 +50,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install ruff
+          pip install ruff mypy
           pip install -e .  # Install package in development mode
       - name: Wait for PostgreSQL
         run: |
@@ -83,3 +83,10 @@ jobs:
           python integration_examples.py
       - name: Lint with ruff
         run: ruff check . --statistics
+      - name: Run targeted type checks
+        run: |
+          mypy --config-file=/dev/null --ignore-missing-imports --follow-imports=skip \
+            backend/tradingbot/dip_scanner.py \
+            backend/tradingbot/views.py \
+            backend/tradingbot/validation/request_validators.py \
+            backend/tradingbot/trading_system.py

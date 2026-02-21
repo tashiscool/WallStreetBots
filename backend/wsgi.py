@@ -10,6 +10,14 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
+
+def _default_settings_module() -> str:
+    environment = os.getenv("ENVIRONMENT", "development").strip().lower()
+    if environment in {"prod", "production"}:
+        return "backend.production_settings"
+    return "backend.settings"
+
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", _default_settings_module())
 
 application = get_wsgi_application()

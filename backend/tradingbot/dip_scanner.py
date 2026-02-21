@@ -4,11 +4,13 @@ Continuously scans for hard dip opportunities across mega-cap universe.
 """
 
 import asyncio
+import datetime as dt_module
 import json
 import logging
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 from .data.sources.base import DataResolution, IDataSource, Quote
 from .exact_clone import DipDetector, DipSignal, ExactCloneSystem
@@ -38,6 +40,7 @@ class LiveDipScanner:
         self.is_scanning = False
         self.scan_interval = 60  # Scan every 60 seconds
         self._data_source = data_source
+        self._market_tz = ZoneInfo("America/New_York")
 
         # Cache for previous-close and average volume (refreshed daily)
         self._prev_close_cache: dict[str, float] = {}
@@ -52,14 +55,30 @@ class LiveDipScanner:
 
         self.logger = logging.getLogger(__name__)
 
+    def _now_et(self) -> datetime:
+        """Return current New York time as naive datetime for internal comparisons."""
+        current = datetime.now(self._market_tz)
+        if isinstance(current, dt_module.datetime):
+            if current.tzinfo is not None:
+                return current.astimezone(self._market_tz).replace(tzinfo=None)
+            return current
+
+        current_time = getattr(current, "time", None)
+        if callable(current_time):
+            time_value = current_time()
+            if isinstance(time_value, time):
+                return dt_module.datetime.combine(dt_module.date.today(), time_value)
+
+        return dt_module.datetime.now(self._market_tz).replace(tzinfo=None)
+
     def is_market_open(self) -> bool:
         """Check if market is currently open."""
-        now = datetime.now().time()
+        now = self._now_et().time()
         return self.market_hours.market_open <= now <= self.market_hours.market_close
 
     def is_optimal_entry_time(self) -> bool:
         """Check if it's optimal time for entries."""
-        now = datetime.now().time()
+        now = self._now_et().time()
         return (
             self.market_hours.optimal_entry_start
             <= now
@@ -113,14 +132,14 @@ class LiveDipScanner:
             if self.system.active_position:
                 await self._monitor_active_position(market_data)
 
-            self.last_scan_time = datetime.now()
+            self.last_scan_time = self._now_et()
 
         except Exception as e:
             self.logger.error(f"Error in scan cycle: {e}")
 
     async def _refresh_daily_cache(self) -> None:
         """Refresh previous-close and average-volume caches once per trading day."""
-        today = datetime.now().date()
+        today = self._now_et().date()
         if self._cache_date and self._cache_date == today:
             return
 
@@ -165,7 +184,7 @@ class LiveDipScanner:
         quotes: dict[str, Quote] = await self._data_source.get_quotes(symbols)
 
         # Fetch today's intraday bars for open and high-of-day
-        today_open = datetime.combine(datetime.now().date(), time(9, 30))
+        today_open = datetime.combine(self._now_et().date(), time(9, 30))
         intraday_bars: dict[str, list] = {}
         for ticker in symbols:
             try:
@@ -306,9 +325,9 @@ class LiveDipScanner:
             "confidence": f"{signal.confidence:.1%}",
             "contracts": setup.contracts,
             "cost": setup.total_cost,
-            "ruin_risk": f"{setup.ruin_risk_pct:.1f}%",
-            "leverage": f"{setup.effective_leverage:.1f}x",
-            "timestamp": datetime.now().isoformat(),
+                "ruin_risk": f"{setup.ruin_risk_pct:.1f}%",
+                "leverage": f"{setup.effective_leverage:.1f}x",
+                "timestamp": self._now_et().isoformat(),
         }
 
         # In production, send to Discord / Slack webhook, email, etc.
@@ -318,6 +337,7 @@ class LiveDipScanner:
         """Send alert when position is exited."""
         pnl = (exit_premium - position.entry_premium) * position.contracts
         roi = (exit_premium - position.entry_premium) / position.entry_premium
+        entry_time = self.system.position_entry_date or self._now_et()
 
         alert_data = {
             "type": "POSITION_EXITED",
@@ -327,8 +347,8 @@ class LiveDipScanner:
             "exit_premium": exit_premium,
             "pnl": pnl,
             "roi": f"{roi:+.1%}",
-            "hold_time": f"{(datetime.now() - self.system.position_entry_date).total_seconds() / 3600:.1f} hours",
-            "timestamp": datetime.now().isoformat(),
+            "hold_time": f"{(self._now_et() - entry_time).total_seconds() / 3600:.1f} hours",
+            "timestamp": self._now_et().isoformat(),
         }
 
         # In production, send to Discord / Slack webhook, email, etc.
@@ -346,7 +366,7 @@ class LiveDipScanner:
             return True
 
         # Check if enough time has passed since last scan
-        time_since_last_scan = (datetime.now() - self.last_scan_time).total_seconds()
+        time_since_last_scan = (self._now_et() - self.last_scan_time).total_seconds()
         return time_since_last_scan >= self.scan_interval
 
     def process_dip_signals(self, signals: list[DipSignal]) -> list[DipSignal]:
@@ -374,7 +394,7 @@ class LiveDipScanner:
         """Reset daily statistics (typically called at market open)."""
         self.opportunities_found_today = 0
         self.trades_executed_today = 0
-        self.last_reset_date = datetime.now()
+        self.last_reset_date = self._now_et()
 
     async def scan_universe(self) -> list[DipSignal]:
         """Scan the entire universe for dip opportunities."""
@@ -415,6 +435,7 @@ class DipTradingBot:
     def __init__(self, initial_capital: float = 500000):
         self.system = ExactCloneSystem(initial_capital)
         self.scanner = LiveDipScanner(self.system)
+        self.tasks: list[asyncio.Task] = []
         self.logger = logging.getLogger(__name__)
 
     async def start_bot(self):
@@ -431,6 +452,10 @@ class DipTradingBot:
     def stop_bot(self):
         """Stop the trading bot."""
         self.scanner.stop_scanning()
+        for task in self.tasks:
+            if not task.done():
+                task.cancel()
+        self.tasks.clear()
         self.logger.info("🤖 Dip Trading Bot stopped")
 
     def get_full_status(self) -> dict:

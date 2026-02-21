@@ -24,11 +24,13 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from decimal import Decimal
 from enum import Enum
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from django.contrib.auth.models import User
 from django.db.models import Q
 from django.utils import timezone
+
+if TYPE_CHECKING:
+    from django.contrib.auth.models import User
 
 logger = logging.getLogger("wsb.recovery_manager")
 
@@ -209,7 +211,7 @@ class RecoveryManagerService:
         breaker_type: str,
         trigger_value: float,
         trigger_threshold: float,
-        context: dict = None,
+        context: dict | None = None,
         notes: str = "",
     ) -> Any:
         """Create a new circuit breaker event with recovery schedule.
@@ -592,7 +594,7 @@ class RecoveryManagerService:
             **result,
         }
 
-    def get_recovery_timeline(self, event_id: int = None) -> dict:
+    def get_recovery_timeline(self, event_id: int | None = None) -> dict:
         """Get recovery timeline for display.
 
         Args:

@@ -126,7 +126,7 @@ class OnlineHMM:
     def _forward_step(self, obs: np.ndarray, alpha_prev: np.ndarray) -> np.ndarray:
         """Single forward pass with log-space scaling to prevent underflow.
 
-        α_t(j) = P(o_t|j) * Σ_i α_{t-1}(i) * A(i,j)
+        a_t(j) = P(o_t|j) * sum_i a_{t-1}(i) * A(i,j)
         """
         predicted = alpha_prev @ self.A          # shape (k,)
         emission = self._emission_prob(obs)      # shape (k,)
@@ -161,7 +161,7 @@ class OnlineHMM:
 
         # Update transition matrix from successive gammas
         if self._alpha is not None and self._step > 0:
-            # Approximate: A(i,j) ← ff * A(i,j) + lr * α_prev(i) * γ_curr(j)
+            # Approximate: A(i,j) <- ff * A(i,j) + lr * alpha_prev(i) * gamma_curr(j)
             outer = np.outer(self._alpha, gamma)
             self.A = ff * self.A + lr * outer
             # Re-normalise rows
@@ -179,7 +179,7 @@ class OnlineHMM:
         """Deterministic hash of config for compatibility checking."""
         import hashlib
         config_str = f"{self.config.n_states}:{self.config.n_features}:{self.config.learning_rate}:{self.config.forgetting_factor}"
-        return int(hashlib.md5(config_str.encode()).hexdigest()[:8], 16)
+        return int(hashlib.md5(config_str.encode()).hexdigest()[:8], 16)  # noqa: S324
 
     def save(self, path: str) -> None:
         """Save model parameters to .npz file with version and checksum."""

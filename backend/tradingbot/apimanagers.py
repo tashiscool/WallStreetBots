@@ -185,8 +185,7 @@ class AlpacaManager:
                 if self.paper_trading:
                     try:
                         import yfinance as yf
-                        from datetime import timedelta
-                        
+
                         # Calculate period for yfinance
                         days_diff = (end - start).days
                         if days_diff <= 5:
@@ -985,8 +984,7 @@ class AlpacaManager:
                 if self.paper_trading:
                     try:
                         import yfinance as yf
-                        from datetime import timedelta
-                        
+
                         # Calculate period for yfinance
                         if not start:
                             days = limit if timeframe == "1Day" else 30

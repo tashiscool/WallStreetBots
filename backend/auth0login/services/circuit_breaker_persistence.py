@@ -32,11 +32,11 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
-from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils import timezone
 
 if TYPE_CHECKING:
+    from django.contrib.auth.models import User
     from backend.tradingbot.risk.monitoring.circuit_breaker import CircuitBreaker
 
 logger = logging.getLogger("wsb.circuit_breaker_persistence")
@@ -161,10 +161,10 @@ class CircuitBreakerPersistence:
         self,
         breaker_type: str,
         reason: str,
-        value: float = None,
-        threshold: float = None,
+        value: float | None = None,
+        threshold: float | None = None,
         cooldown_seconds: int = 1800,
-        metadata: Dict = None,
+        metadata: Dict | None = None,
     ) -> Any:
         """Trip a circuit breaker and log the action.
 
@@ -286,7 +286,7 @@ class CircuitBreakerPersistence:
         self,
         breaker_type: str,
         current_equity: float,
-        start_of_day_equity: float = None,
+        start_of_day_equity: float | None = None,
     ) -> Dict[str, Any]:
         """Update equity tracking for drawdown calculation.
 
@@ -400,7 +400,7 @@ class CircuitBreakerPersistence:
         state.mark_data_fresh()
 
     @transaction.atomic
-    def daily_reset_all(self, new_equity: float = None) -> List[Dict[str, Any]]:
+    def daily_reset_all(self, new_equity: float | None = None) -> List[Dict[str, Any]]:
         """Perform daily reset on all breaker states.
 
         Args:
@@ -579,10 +579,10 @@ class CircuitBreakerPersistence:
 
     def get_history(
         self,
-        breaker_type: str = None,
+        breaker_type: str | None = None,
         days: int = 7,
         limit: int = 100,
-        actions: List[str] = None,
+        actions: List[str] | None = None,
     ) -> List[Dict[str, Any]]:
         """Get circuit breaker history.
 
@@ -721,7 +721,7 @@ def sync_circuit_breaker_to_db(breaker: 'CircuitBreaker', user: Optional[User] =
     return persistence.sync_from_memory(breaker)
 
 
-def perform_daily_reset(user: Optional[User] = None, new_equity: float = None) -> List[Dict[str, Any]]:
+def perform_daily_reset(user: Optional[User] = None, new_equity: float | None = None) -> List[Dict[str, Any]]:
     """Perform daily reset on all circuit breaker states.
 
     Args:

@@ -153,10 +153,10 @@ class TestDetectBreakout:
         """Test successful breakout detection."""
         # Create uptrending data with volume increase
         data = pd.DataFrame({
-            'close': [100] + list(range(101, 121)),  # Clear uptrend
+            'close': [100, *list(range(101, 121))],  # Clear uptrend
             'volume': [1000000] * 10 + [3000000] * 11,  # Volume spike
-            'high': [101] + list(range(102, 122)),
-            'low': [99] + list(range(100, 120)),
+            'high': [101, *list(range(102, 122))],
+            'low': [99, *list(range(100, 120))],
         })
         mock_data_provider.get_intraday_data = AsyncMock(return_value=data)
 
@@ -256,8 +256,8 @@ class TestDetectReversalSetup:
         """Test successful reversal detection."""
         # Create oversold bounce pattern
         data = pd.DataFrame({
-            'close': [110, 108, 106, 104, 102, 100, 98] + [100, 102, 104],  # Drop then bounce
-            'low': [109, 107, 105, 103, 101, 99, 97] + [99, 101, 103],
+            'close': [110, 108, 106, 104, 102, 100, 98, 100, 102, 104],  # Drop then bounce
+            'low': [109, 107, 105, 103, 101, 99, 97, 99, 101, 103],
             'volume': [1000000] * 7 + [3000000, 3500000, 4000000],  # Volume spike on bounce
         })
         mock_data_provider.get_intraday_data = AsyncMock(return_value=data)

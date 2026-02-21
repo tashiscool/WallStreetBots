@@ -236,7 +236,7 @@ class PortfolioAllocator:
         investable_pct = 1.0 - self.cash_buffer
         weight_per_symbol = investable_pct / len(symbols)
 
-        allocations = {symbol: weight_per_symbol for symbol in symbols}
+        allocations = dict.fromkeys(symbols, weight_per_symbol)
 
         return AllocationResult(
             allocations=allocations,

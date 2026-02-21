@@ -6,6 +6,7 @@ Provides type-safe validation for all trading API requests with:
 - Serialization/deserialization support
 """
 
+import logging
 import re
 from datetime import datetime
 from decimal import Decimal
@@ -13,6 +14,8 @@ from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
+
+logger = logging.getLogger(__name__)
 
 
 class OrderSide(str, Enum):
@@ -125,8 +128,11 @@ class OptionOrderRequest(BaseModel):
     def validate_option_order(self):
         """Options should generally use limit orders."""
         if self.order_type == OrderType.MARKET:
-            # Market orders on options can be dangerous
-            pass  # Allow but log warning
+            logger.warning(
+                "Market order on option %s — wide spreads may cause poor fills. "
+                "Consider using a limit order.",
+                self.symbol,
+            )
         elif self.order_type in (OrderType.LIMIT, OrderType.STOP_LIMIT):
             if self.limit_price is None:
                 raise ValueError(
@@ -286,4 +292,4 @@ def validate_request(model_class: type[BaseModel], data: dict) -> BaseModel:
         return model_class.model_validate(data)
     except Exception as e:
         # Re-raise with cleaner error message for API response
-        raise ValueError(f"Validation failed: {e}")
+        raise ValueError(f"Validation failed: {e}") from e

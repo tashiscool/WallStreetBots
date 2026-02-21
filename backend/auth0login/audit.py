@@ -20,6 +20,7 @@ Usage:
 import json
 import logging
 from enum import Enum
+from typing import ClassVar
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -148,7 +149,7 @@ class AuditLog(models.Model):
         help_text="Structured payload with event-specific data",
     )
 
-    # Target (optional – the object being acted upon)
+    # Target (optional - the object being acted upon)
     target_user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -209,10 +210,10 @@ class AuditLog(models.Model):
 
     class Meta:
         app_label = "auth0login"
-        ordering = ["-timestamp"]
+        ordering: ClassVar[list] = ["-timestamp"]
         verbose_name = "Audit Log"
         verbose_name_plural = "Audit Logs"
-        indexes = [
+        indexes: ClassVar[list] = [
             models.Index(fields=["user", "-timestamp"]),
             models.Index(fields=["event_type", "-timestamp"]),
             models.Index(fields=["severity", "-timestamp"]),
@@ -242,7 +243,7 @@ class AuditLog(models.Model):
 
 
 # ---------------------------------------------------------------------------
-# Helper – the main API for creating audit entries
+# Helper - the main API for creating audit entries
 # ---------------------------------------------------------------------------
 
 def log_event(
@@ -285,10 +286,13 @@ def log_event(
 
     if request is not None:
         ip_address = _get_client_ip(request)
-        user_agent = request.headers.get("User-Agent", "")[:500]
+        headers = getattr(request, "headers", {}) or {}
+        if not hasattr(headers, "get"):
+            headers = {}
+        user_agent = str(headers.get("User-Agent", ""))[:500]
         correlation_id = getattr(request, "correlation_id", "")
-        method = request.method or ""
-        path = request.path or ""
+        method = getattr(request, "method", "") or ""
+        path = getattr(request, "path", "") or ""
         if user is None and hasattr(request, "user") and request.user.is_authenticated:
             user = request.user
 
@@ -296,23 +300,29 @@ def log_event(
     if user is not None and hasattr(user, "username"):
         username = user.username
 
-    entry = AuditLog.objects.create(
-        user=user if user and hasattr(user, "pk") and user.pk else None,
-        username=username,
-        event_type=event_str,
-        severity=severity,
-        description=description,
-        detail=detail or {},
-        target_user=target_user,
-        target_type=target_type,
-        target_id=str(target_id) if target_id else "",
-        ip_address=ip_address,
-        user_agent=user_agent,
-        correlation_id=correlation_id,
-        request_method=method,
-        request_path=path,
-        timestamp=timezone.now(),
-    )
+    user_for_fk = user if isinstance(user, User) and getattr(user, "pk", None) else None
+
+    try:
+        entry = AuditLog.objects.create(
+            user=user_for_fk,
+            username=username,
+            event_type=event_str,
+            severity=severity,
+            description=description,
+            detail=detail or {},
+            target_user=target_user,
+            target_type=target_type,
+            target_id=str(target_id) if target_id else "",
+            ip_address=ip_address,
+            user_agent=user_agent,
+            correlation_id=correlation_id,
+            request_method=method,
+            request_path=path,
+            timestamp=timezone.now(),
+        )
+    except Exception as exc:
+        logger.warning("Audit DB write skipped for %s: %s", event_str, exc)
+        entry = None
 
     # Also log to standard Python logger for log aggregation
     logger.info(
@@ -331,7 +341,7 @@ def log_event(
 
 
 # ---------------------------------------------------------------------------
-# Middleware – captures auth events automatically
+# Middleware - captures auth events automatically
 # ---------------------------------------------------------------------------
 
 class AuditMiddleware:
@@ -419,8 +429,12 @@ def get_audit_log(
 
 def _get_client_ip(request: HttpRequest) -> str | None:
     """Extract client IP, respecting X-Forwarded-For."""
-    xff = request.META.get("HTTP_X_FORWARDED_FOR")
+    meta = getattr(request, "META", {}) or {}
+    if not hasattr(meta, "get"):
+        return None
+
+    xff = meta.get("HTTP_X_FORWARDED_FOR")
     if xff:
         return xff.split(",")[0].strip()
-    addr = request.META.get("REMOTE_ADDR")
+    addr = meta.get("REMOTE_ADDR")
     return addr if addr else None

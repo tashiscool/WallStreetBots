@@ -156,7 +156,7 @@ class FindatapyDataProvider:
         fields = fields or self.config.yahoo_fields
 
         # Build fallback chain
-        sources = [self.config.primary] + self.config.fallbacks
+        sources = [self.config.primary, *self.config.fallbacks]
 
         last_error = None
         for source in sources:

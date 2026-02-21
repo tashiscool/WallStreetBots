@@ -253,7 +253,7 @@ class CircuitBreaker:
         if self.lim.vix_config.enabled:
             self.check_vix()
 
-    def trip(self, reason: str, user=None, trigger_value: float = None) -> None:
+    def trip(self, reason: str, user=None, trigger_value: float | None = None) -> None:
         """Trip the circuit breaker.
 
         Args:
@@ -338,7 +338,7 @@ class CircuitBreaker:
             }
         }
 
-    def _create_breaker_event(self, reason: str, user, trigger_value: float = None):
+    def _create_breaker_event(self, reason: str, user, trigger_value: float | None = None):
         """Create a CircuitBreakerEvent for tracking and recovery.
 
         Args:

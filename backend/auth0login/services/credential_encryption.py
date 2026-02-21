@@ -123,12 +123,12 @@ class CredentialEncryptionService:
             encrypted_bytes = base64.urlsafe_b64decode(ciphertext.encode('utf-8'))
             decrypted_bytes = self._fernet.decrypt(encrypted_bytes)
             return decrypted_bytes.decode('utf-8')
-        except InvalidToken:
+        except InvalidToken as e:
             logger.error("Decryption failed: Invalid token (key mismatch or corruption)")
             raise ValueError(
                 "Failed to decrypt credential - invalid key or corrupted data. "
                 "This may happen if SECRET_KEY has changed."
-            )
+            ) from e
         except Exception as e:
             logger.error(f"Decryption failed: {e}")
             raise ValueError("Failed to decrypt credential") from e

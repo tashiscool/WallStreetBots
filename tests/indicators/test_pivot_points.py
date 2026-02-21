@@ -8,14 +8,14 @@ from backend.tradingbot.indicators.pivot_points import (
 )
 
 
-def make_bar(h=110, l=90, c=100):
-    return TradeBar(time=datetime.now(), open=95, high=h, low=l, close=c, volume=1000)
+def make_bar(h=110, low=90, c=100):
+    return TradeBar(time=datetime.now(), open=95, high=h, low=low, close=c, volume=1000)
 
 
 class TestClassicPivotPoints:
     def test_pivot_calculation(self):
         pp = ClassicPivotPoints()
-        bar = make_bar(h=110, l=90, c=100)
+        bar = make_bar(h=110, low=90, c=100)
         pp.update_bar(bar)
         assert pp.levels is not None
         expected_pivot = (110 + 90 + 100) / 3
@@ -48,7 +48,7 @@ class TestWoodiePivotPoints:
     def test_close_weighting(self):
         pp_classic = ClassicPivotPoints()
         pp_woodie = WoodiePivotPoints()
-        bar = make_bar(h=110, l=90, c=105)
+        bar = make_bar(h=110, low=90, c=105)
         pp_classic.update_bar(bar)
         pp_woodie.update_bar(bar)
         # Woodie weights close more, so with close > median, Woodie pivot > Classic

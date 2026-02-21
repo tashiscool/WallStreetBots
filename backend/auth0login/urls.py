@@ -119,7 +119,7 @@ urlpatterns = [
     path("api/circuit-breakers/current/", api_views.circuit_breaker_current, name="api-circuit-breaker-current"),
     path("api/circuit-breakers/timeline/", api_views.circuit_breaker_timeline, name="api-circuit-breaker-timeline"),
     path("api/circuit-breakers/<int:event_id>/advance-recovery/", api_views.circuit_breaker_advance, name="api-circuit-breaker-advance"),
-    path("api/circuit-breakers/<int:event_id>/reset/", api_views.circuit_breaker_reset, name="api-circuit-breaker-reset"),
+    path("api/circuit-breakers/<int:event_id>/reset/", api_views.circuit_breaker_event_reset, name="api-circuit-breaker-event-reset"),
     path("api/circuit-breakers/<int:event_id>/early-recovery/", api_views.circuit_breaker_early_recovery, name="api-circuit-breaker-early-recovery"),
     path("api/circuit-breakers/<int:event_id>/timeline/", api_views.circuit_breaker_timeline, name="api-circuit-breaker-timeline-detail"),
 

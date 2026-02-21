@@ -742,7 +742,7 @@ class DashboardService:
             logger.error(f"Error saving strategy config: {e}")
             return {
                 "status": "error",
-                "message": f"Failed to save configuration: {str(e)}",
+                "message": f"Failed to save configuration: {e!s}",
             }
 
     # -------------------------------------------------------------------------
@@ -1311,7 +1311,7 @@ class DashboardService:
             logger.error(f"Error starting training: {e}")
             return {
                 "status": "error",
-                "message": f"Failed to start training: {str(e)}",
+                "message": f"Failed to start training: {e!s}",
             }
 
     def fetch_training_data(self, symbols: str, period: str) -> dict:
@@ -1352,7 +1352,7 @@ class DashboardService:
             logger.error(f"Error fetching data: {e}")
             return {
                 "status": "error",
-                "message": f"Failed to fetch data: {str(e)}",
+                "message": f"Failed to fetch data: {e!s}",
             }
 
     # -------------------------------------------------------------------------
@@ -1508,7 +1508,7 @@ class DashboardService:
 
         try:
             # Start in background (non-blocking)
-            asyncio.create_task(dip_bot.start())
+            self._dip_bot_task = asyncio.create_task(dip_bot.start())
             return {
                 "status": "success",
                 "message": "Crypto dip bot started. Monitoring for dips 24/7.",
@@ -1517,7 +1517,7 @@ class DashboardService:
             logger.error(f"Error starting dip bot: {e}")
             return {
                 "status": "error",
-                "message": f"Failed to start dip bot: {str(e)}",
+                "message": f"Failed to start dip bot: {e!s}",
             }
 
     async def stop_crypto_dip_bot(self) -> dict:
@@ -1549,7 +1549,7 @@ class DashboardService:
             logger.error(f"Error stopping dip bot: {e}")
             return {
                 "status": "error",
-                "message": f"Failed to stop dip bot: {str(e)}",
+                "message": f"Failed to stop dip bot: {e!s}",
             }
 
     # -------------------------------------------------------------------------
@@ -1636,7 +1636,7 @@ class DashboardService:
             logger.error(f"Error updating extended hours settings: {e}")
             return {
                 "status": "error",
-                "message": f"Failed to update settings: {str(e)}",
+                "message": f"Failed to update settings: {e!s}",
             }
 
     # -------------------------------------------------------------------------
@@ -1854,7 +1854,7 @@ class DashboardService:
             logger.error(f"Error getting locate quote: {e}")
             return {
                 "status": "error",
-                "message": f"Failed to get locate quote: {str(e)}",
+                "message": f"Failed to get locate quote: {e!s}",
             }
 
     # -------------------------------------------------------------------------
@@ -2049,7 +2049,7 @@ class DashboardService:
             logger.error(f"Error building spread: {e}")
             return {
                 "status": "error",
-                "message": f"Failed to build spread: {str(e)}",
+                "message": f"Failed to build spread: {e!s}",
             }
 
     async def suggest_spreads(
@@ -2168,7 +2168,7 @@ class DashboardService:
             logger.error(f"Error suggesting spreads: {e}")
             return {
                 "status": "error",
-                "message": f"Failed to suggest spreads: {str(e)}",
+                "message": f"Failed to suggest spreads: {e!s}",
             }
 
     # -------------------------------------------------------------------------
@@ -2322,7 +2322,7 @@ class DashboardService:
         position_size_pct: float = 3.0,
         stop_loss_pct: float = 5.0,
         take_profit_pct: float = 15.0,
-        progress_callback: callable = None,
+        progress_callback: object | None = None,
     ) -> dict:
         """Run a backtest with the given parameters.
 
@@ -2368,7 +2368,7 @@ class DashboardService:
             logger.error(f"Error running backtest: {e}")
             return {
                 "status": "error",
-                "message": f"Failed to run backtest: {str(e)}",
+                "message": f"Failed to run backtest: {e!s}",
             }
 
 

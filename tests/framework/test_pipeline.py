@@ -113,17 +113,17 @@ class TestScreenFilter:
         assert isinstance(filt, ScreenFilter)
         values = pd.Series({"A": 600000, "B": 400000, "C": 700000})
         mask = filt.apply(values)
-        assert mask["A"] == True
-        assert mask["B"] == False
-        assert mask["C"] == True
+        assert mask["A"]
+        assert not mask["B"]
+        assert mask["C"]
 
     def test_less_than(self):
         factor = Returns(window=20)
         filt = factor < 0.1
         values = pd.Series({"A": 0.05, "B": 0.2})
         mask = filt.apply(values)
-        assert mask["A"] == True
-        assert mask["B"] == False
+        assert mask["A"]
+        assert not mask["B"]
 
 
 class TestTopFilter:
@@ -132,8 +132,8 @@ class TestTopFilter:
         filt = factor.top(2)
         values = pd.Series({"A": 0.1, "B": 0.3, "C": 0.2, "D": 0.05})
         mask = filt.apply(values)
-        assert mask["B"] == True
-        assert mask["C"] == True
+        assert mask["B"]
+        assert mask["C"]
         assert mask.sum() == 2
 
 
@@ -143,8 +143,8 @@ class TestBottomFilter:
         filt = factor.bottom(2)
         values = pd.Series({"A": 0.1, "B": 0.3, "C": 0.05, "D": 0.2})
         mask = filt.apply(values)
-        assert mask["C"] == True
-        assert mask["A"] == True
+        assert mask["C"]
+        assert mask["A"]
         assert mask.sum() == 2
 
 

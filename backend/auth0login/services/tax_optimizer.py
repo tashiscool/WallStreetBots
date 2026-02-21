@@ -96,25 +96,25 @@ class TaxOptimizer:
         lot_list = [lot.to_dict() for lot in lots]
 
         # Aggregate stats
-        total_quantity = sum(Decimal(str(l['remaining_quantity'])) for l in lot_list)
+        total_quantity = sum(Decimal(str(lot['remaining_quantity'])) for lot in lot_list)
         total_cost = sum(
-            Decimal(str(l['remaining_quantity'])) * Decimal(str(l['cost_basis_per_share']))
-            for l in lot_list
+            Decimal(str(lot['remaining_quantity'])) * Decimal(str(lot['cost_basis_per_share']))
+            for lot in lot_list
         )
         total_market_value = sum(
-            Decimal(str(l['market_value'])) for l in lot_list
-            if l['market_value'] is not None
+            Decimal(str(lot['market_value'])) for lot in lot_list
+            if lot['market_value'] is not None
         )
         total_unrealized = sum(
-            Decimal(str(l['unrealized_gain'])) for l in lot_list
-            if l['unrealized_gain'] is not None
+            Decimal(str(lot['unrealized_gain'])) for lot in lot_list
+            if lot['unrealized_gain'] is not None
         )
 
         avg_cost_basis = total_cost / total_quantity if total_quantity > 0 else Decimal('0')
 
         long_term_qty = sum(
-            Decimal(str(l['remaining_quantity'])) for l in lot_list
-            if l['is_long_term']
+            Decimal(str(lot['remaining_quantity'])) for lot in lot_list
+            if lot['is_long_term']
         )
         short_term_qty = total_quantity - long_term_qty
 

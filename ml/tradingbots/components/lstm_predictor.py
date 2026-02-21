@@ -285,7 +285,7 @@ class LSTMPricePredictor:
         for _ in range(n):
             next_price = self.predict(np.array(current_sequence))
             predictions.append(next_price)
-            current_sequence = current_sequence[1:] + [next_price]
+            current_sequence = [*current_sequence[1:], next_price]
 
         return predictions
 

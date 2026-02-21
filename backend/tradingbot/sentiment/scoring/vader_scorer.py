@@ -7,7 +7,7 @@ Falls back to a simple keyword-based approach if vaderSentiment is not installed
 
 import logging
 import re
-from typing import Dict, Optional
+from typing import ClassVar, Dict, Optional
 
 from .base import SentimentScore, SentimentScorer
 from .financial_lexicon import FINANCIAL_LEXICON
@@ -31,7 +31,7 @@ class _KeywordFallbackScorer:
     normalised compound score in [-1, 1].
     """
 
-    _GENERAL_LEXICON: Dict[str, float] = {
+    _GENERAL_LEXICON: ClassVar[Dict[str, float]] = {
         "good": 1.5,
         "great": 2.0,
         "excellent": 2.5,

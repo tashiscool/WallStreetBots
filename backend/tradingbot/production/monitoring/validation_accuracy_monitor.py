@@ -369,7 +369,7 @@ class ValidationAccuracyMonitor:
 
     def generate_threshold_adjustments(
         self,
-        strategy_name: str = None
+        strategy_name: str | None = None
     ) -> Dict[str, Dict[str, Any]]:
         """Generate automatic threshold adjustments based on validation accuracy.
 
@@ -471,7 +471,7 @@ class ValidationAccuracyMonitor:
     async def apply_threshold_adjustments(
         self,
         strategy_manager,
-        adjustments: Dict[str, Dict[str, Any]] = None,
+        adjustments: Dict[str, Dict[str, Any]] | None = None,
         auto_mode: bool = False
     ) -> Dict[str, Any]:
         """Apply threshold adjustments to strategies.

@@ -578,7 +578,7 @@ class TradingAlertSystem:
             alert_type=AlertType.VIX_SPIKE,
             priority=AlertPriority.HIGH,
             ticker="VIX",
-            title=f"🚨 VIX SPIKE DETECTED",
+            title="🚨 VIX SPIKE DETECTED",
             message=f"VIX spiked +{change_1d:.1f} points to {vix_value:.1f}.\n"
                     f"This indicates sudden increase in market fear.\n"
                     f"Exercise caution with new positions.",
@@ -937,7 +937,7 @@ class TradingAlertSystem:
             alert_type=AlertType.RECOVERY_COMPLETED,
             priority=AlertPriority.HIGH,
             ticker="SYSTEM",
-            title=f"✅ Full Trading Resumed",
+            title="✅ Full Trading Resumed",
             message=f"Circuit breaker recovery complete!\n"
                     f"Breaker type: {breaker_type.replace('_', ' ').title()}\n"
                     f"Total duration: {total_duration_hours:.1f} hours\n"
@@ -1240,7 +1240,7 @@ class SignalValidationMonitor:
     def __init__(
         self,
         alert_system: TradingAlertSystem,
-        thresholds: dict = None,
+        thresholds: dict | None = None,
     ):
         """Initialize signal validation monitor.
 

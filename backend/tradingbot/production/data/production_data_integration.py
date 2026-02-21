@@ -130,7 +130,7 @@ class DataQualityError(Exception):
     providing clear error handling when data quality is insufficient for trading signals.
     """
 
-    def __init__(self, message: str, quality_score: float = 0.0, warnings: list = None):
+    def __init__(self, message: str, quality_score: float = 0.0, warnings: list | None = None):
         super().__init__(message)
         self.quality_score = quality_score
         self.warnings = warnings or []
@@ -1283,7 +1283,7 @@ class ReliableDataProvider:
             raise  # Re-raise quality errors
         except Exception as e:
             self.logger.error(f"Error getting validated market data for {symbol}: {e}")
-            raise DataQualityError(f"Failed to get validated data for {symbol}: {e}")
+            raise DataQualityError(f"Failed to get validated data for {symbol}: {e}") from e
 
     async def _update_source_health(
         self, source: DataSource, success: bool, response_time: float | None = None

@@ -118,7 +118,7 @@ class DarkPoolDataSource:
             exchange_volume: Total exchange volume for comparison.
 
         Returns:
-            Ratio (0.0–1.0) or None if data unavailable.
+            Ratio (0.0-1.0) or None if data unavailable.
         """
         if exchange_volume <= 0:
             return None

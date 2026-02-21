@@ -6,10 +6,10 @@ from .transformer_scorer import TransformerSentimentScorer
 from .ensemble_scorer import EnsembleSentimentScorer, ScoringMode
 
 __all__ = [
-    'SentimentScorer',
-    'SentimentScore',
-    'VaderSentimentScorer',
-    'TransformerSentimentScorer',
     'EnsembleSentimentScorer',
     'ScoringMode',
+    'SentimentScore',
+    'SentimentScorer',
+    'TransformerSentimentScorer',
+    'VaderSentimentScorer',
 ]

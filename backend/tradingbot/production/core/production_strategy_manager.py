@@ -70,6 +70,15 @@ class StrategyConfig:
     risk_tolerance: str = "medium"  # "low", "medium", "high"
     parameters: dict[str, Any] = field(default_factory=dict)
 
+    @property
+    def allocation(self) -> float:
+        """Backward-compatible alias for legacy allocation references."""
+        return self.max_position_size
+
+    @allocation.setter
+    def allocation(self, value: float) -> None:
+        self.max_position_size = value
+
 
 @dataclass
 class ProductionStrategyManagerConfig:
@@ -1665,14 +1674,15 @@ class ProductionStrategyManager:
                 return
                 
             state = self.validation_state_adapter.get_state()
+            state_value = state.value if hasattr(state, "value") else str(state)
             
             # Adjust position sizes for all strategies based on validation state
             for strategy_name, strategy in self.strategies.items():
                 if hasattr(strategy, 'adjust_position_sizing'):
-                    sizing_multiplier = self._get_position_sizing_multiplier(state.value)
+                    sizing_multiplier = self._get_position_sizing_multiplier(state_value)
                     await strategy.adjust_position_sizing(sizing_multiplier)
                     
-                    self.logger.info(f"Adjusted {strategy_name} position sizing by {sizing_multiplier:.2f}x due to validation state: {state.value}")
+                    self.logger.info(f"Adjusted {strategy_name} position sizing by {sizing_multiplier:.2f}x due to validation state: {state_value}")
                     
         except Exception as e:
             self.logger.error(f"Error applying validation-based position sizing: {e}")
@@ -2403,7 +2413,7 @@ class ProductionStrategyManager:
     async def record_signal_execution(
         self,
         history_id: int,
-        actual_position_size: float = None,
+        actual_position_size: float | None = None,
     ):
         """Record that a validated signal was executed.
 
@@ -2434,8 +2444,8 @@ class ProductionStrategyManager:
         self,
         history_id: int,
         outcome: str,
-        pnl: float = None,
-        pnl_percent: float = None,
+        pnl: float | None = None,
+        pnl_percent: float | None = None,
     ):
         """Record the trade outcome for a previously executed signal.
 
@@ -2472,7 +2482,7 @@ class ProductionStrategyManager:
 
     async def get_validation_accuracy_report(
         self,
-        strategy_name: str = None,
+        strategy_name: str | None = None,
         days: int = 30,
     ) -> dict:
         """Get validation accuracy report based on trade outcomes.
@@ -3024,8 +3034,8 @@ class ProductionStrategyManager:
             self.logger.error(f"Error generating performance feedback: {e}")
             return {'error': str(e)}
 
-    async def _apply_performance_feedback(self, strategy_name: str, feedback: dict):
-        """Apply performance feedback to improve validation."""
+    async def _apply_performance_feedback_legacy(self, strategy_name: str, feedback: dict):
+        """Deprecated legacy implementation kept for backwards compatibility."""
         try:
             action_items = feedback.get('action_items', [])
             warnings = feedback.get('warnings', [])
@@ -3618,11 +3628,25 @@ class ProductionStrategyManager:
             self.logger.error(f"Error adjusting validation thresholds: {e}")
 
     async def _apply_performance_feedback(self, strategy_name: str, feedback: dict):
-        """Apply performance feedback to strategy."""
+        """Apply performance feedback to strategy and validation controls."""
         try:
+            # Log recommendations and warnings for operator visibility
+            self.logger.info(f"Performance feedback for {strategy_name}:")
+            for recommendation in feedback.get('recommendations', []):
+                self.logger.info(f"  Recommendation: {recommendation}")
+            for warning in feedback.get('warnings', []):
+                self.logger.warning(f"  Warning: {warning}")
+            for action in feedback.get('action_items', []):
+                self.logger.info(f"  Action: {action}")
+
             if strategy_name in self.strategies:
                 strategy = self.strategies[strategy_name]
                 
+                # Tighten validation criteria when performance is poor.
+                performance_score = feedback.get('performance_score', 0.0)
+                if performance_score < 0.6 and hasattr(strategy, 'adjust_validation_thresholds'):
+                    await strategy.adjust_validation_thresholds({'tighten': True})
+
                 # Adjust strategy parameters based on feedback
                 if hasattr(strategy, 'adjust_parameters'):
                     await strategy.adjust_parameters(feedback)

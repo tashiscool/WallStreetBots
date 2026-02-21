@@ -269,7 +269,7 @@ class TestSyntheticDataGeneration(unittest.TestCase):
         self.assertIn('AAPL', data)
         self.assertIn('MSFT', data)
 
-        for symbol, df in data.items():
+        for df in data.values():
             self.assertIsInstance(df, pd.DataFrame)
             self.assertIn('open', df.columns)
             self.assertIn('high', df.columns)

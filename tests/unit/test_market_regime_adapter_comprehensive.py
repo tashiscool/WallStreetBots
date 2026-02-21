@@ -388,8 +388,8 @@ class TestMarketRegimeAdapter:
 
         assert isinstance(indicators, TechnicalIndicators)
         assert indicators.price == 180.0
-        # Should use calculated defaults
-        assert indicators.ema_20 == 180.0 * 0.98
+        # Fallback uses neutral defaults (EMAs = price) to avoid regime bias
+        assert indicators.ema_20 == 180.0
 
     def test_extract_indicators_no_data(self):
         """Test indicator extraction with no valid data."""

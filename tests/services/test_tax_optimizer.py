@@ -59,7 +59,7 @@ class TestTaxOptimizerIntegration(TestCase):
         quantity: Decimal,
         cost_basis: Decimal,
         days_ago: int = 0,
-        current_price: Decimal = None,
+        current_price: Decimal | None = None,
         is_closed: bool = False,
         acquisition_type: str = 'purchase',
     ) -> TaxLot:

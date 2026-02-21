@@ -15,7 +15,7 @@ from .profilers import (
 __all__ = [
     "CProfiler",
     "YappiProfiler",
+    "profile_function",
     "run_cprofile_session",
     "run_yappi_session",
-    "profile_function",
 ]

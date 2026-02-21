@@ -564,7 +564,7 @@ class CorporateActionsHandler:
             "processed_count": len(self._processed_actions),
             "pending_by_symbol": {
                 symbol: len([a for a in self._pending_actions if a.symbol == symbol])
-                for symbol in set(a.symbol for a in self._pending_actions)
+                for symbol in {a.symbol for a in self._pending_actions}
             },
             "reinvest_dividends": self.reinvest_dividends,
             "fractional_handling": self.handle_fractional,

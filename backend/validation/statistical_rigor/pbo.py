@@ -114,6 +114,6 @@ class CombinatorialPBO:
             pbo=pbo,
             num_combinations=num_combos,
             logit_distribution=logits,
-            mean_oos_rank=float(np.mean([l for l in logits])),
+            mean_oos_rank=float(np.mean(list(logits))),
             degradation_ratio=pbo,
         )

@@ -11,7 +11,7 @@ Tests the HMM trading strategy including:
 import os
 import sys
 from datetime import datetime, timedelta
-from unittest.mock import Mock, MagicMock, patch, PropertyMock
+from unittest.mock import Mock, patch
 import numpy as np
 import pandas as pd
 import pytest
@@ -30,7 +30,8 @@ class TestAPImanager:
     @pytest.fixture
     def api_manager(self):
         """Create API manager with mock credentials."""
-        return APImanager("test_key", "test_secret")
+        with patch.object(APImanager, "_create_api_client", return_value=Mock()):
+            return APImanager("test_key", "test_secret")
 
     def test_initialization(self, api_manager):
         """Test API manager initializes correctly."""
@@ -44,12 +45,12 @@ class TestAPImanager:
         """Test BASE_URL is properly formatted."""
         assert api_manager.BASE_URL.startswith("https:")
 
-    @patch('ml.tradingbots.components.hiddenmarkov.tradeapi.REST')
-    def test_get_bar_success(self, mock_rest):
+    @patch.object(APImanager, "_create_api_client")
+    def test_get_bar_success(self, mock_create_api_client):
         """Test successful bar retrieval."""
         # Mock the API response
         mock_api = Mock()
-        mock_rest.return_value = mock_api
+        mock_create_api_client.return_value = mock_api
 
         # Create mock DataFrame
         dates = pd.date_range('2023-01-01', periods=5, freq='D')
@@ -77,11 +78,11 @@ class TestAPImanager:
         assert prices[0] == 104  # Reversed order
         assert prices[-1] == 100
 
-    @patch('ml.tradingbots.components.hiddenmarkov.tradeapi.REST')
-    def test_get_bar_empty_dataframe(self, mock_rest):
+    @patch.object(APImanager, "_create_api_client")
+    def test_get_bar_empty_dataframe(self, mock_create_api_client):
         """Test handling of empty DataFrame."""
         mock_api = Mock()
-        mock_rest.return_value = mock_api
+        mock_create_api_client.return_value = mock_api
 
         mock_bars = Mock()
         mock_bars.df = pd.DataFrame()
@@ -98,11 +99,11 @@ class TestAPImanager:
         assert prices == []
         assert timestamps == []
 
-    @patch('ml.tradingbots.components.hiddenmarkov.tradeapi.REST')
-    def test_get_bar_exception_handling(self, mock_rest):
+    @patch.object(APImanager, "_create_api_client")
+    def test_get_bar_exception_handling(self, mock_create_api_client):
         """Test exception handling in get_bar."""
         mock_api = Mock()
-        mock_rest.return_value = mock_api
+        mock_create_api_client.return_value = mock_api
         mock_api.get_bars.side_effect = Exception("API Error")
 
         api_manager = APImanager("test_key", "test_secret")
@@ -111,11 +112,11 @@ class TestAPImanager:
         assert isinstance(result, str)
         assert "Failed to get bars" in result
 
-    @patch('ml.tradingbots.components.hiddenmarkov.tradeapi.REST')
-    def test_get_bar_different_price_types(self, mock_rest):
+    @patch.object(APImanager, "_create_api_client")
+    def test_get_bar_different_price_types(self, mock_create_api_client):
         """Test get_bar with different price types."""
         mock_api = Mock()
-        mock_rest.return_value = mock_api
+        mock_create_api_client.return_value = mock_api
 
         dates = pd.date_range('2023-01-01', periods=3, freq='D')
         mock_df = pd.DataFrame({
@@ -143,11 +144,11 @@ class TestAPImanager:
         )
         assert prices[0] == 103
 
-    @patch('ml.tradingbots.components.hiddenmarkov.tradeapi.REST')
-    def test_get_price_success(self, mock_rest):
+    @patch.object(APImanager, "_create_api_client")
+    def test_get_price_success(self, mock_create_api_client):
         """Test successful price retrieval."""
         mock_api = Mock()
-        mock_rest.return_value = mock_api
+        mock_create_api_client.return_value = mock_api
 
         mock_trade = Mock()
         mock_trade._raw = {"price": 150.50}
@@ -158,11 +159,11 @@ class TestAPImanager:
 
         assert price == 150.50
 
-    @patch('ml.tradingbots.components.hiddenmarkov.tradeapi.REST')
-    def test_get_price_exception(self, mock_rest):
+    @patch.object(APImanager, "_create_api_client")
+    def test_get_price_exception(self, mock_create_api_client):
         """Test exception handling in get_price."""
         mock_api = Mock()
-        mock_rest.return_value = mock_api
+        mock_create_api_client.return_value = mock_api
         mock_api.get_last_trade.side_effect = Exception("Price Error")
 
         api_manager = APImanager("test_key", "test_secret")
@@ -171,11 +172,11 @@ class TestAPImanager:
         assert isinstance(result, str)
         assert "Failed to get price" in result
 
-    @patch('ml.tradingbots.components.hiddenmarkov.tradeapi.REST')
-    def test_market_close(self, mock_rest):
+    @patch.object(APImanager, "_create_api_client")
+    def test_market_close(self, mock_create_api_client):
         """Test market close check."""
         mock_api = Mock()
-        mock_rest.return_value = mock_api
+        mock_create_api_client.return_value = mock_api
 
         mock_clock = Mock()
         mock_clock.is_open = True
@@ -220,8 +221,7 @@ class TestDataManager:
         assert data_manager.close is None
         assert data_manager.normalized_close is None
 
-    @patch('ml.tradingbots.components.hiddenmarkov.tradeapi')
-    def test_get_data_close(self, mock_tradeapi, data_manager):
+    def test_get_data_close(self, data_manager):
         """Test get_data for close prices."""
         # Mock the API
         mock_api = Mock()
@@ -242,8 +242,7 @@ class TestDataManager:
         assert 'close' in result.columns
         assert 'date' in result.columns
 
-    @patch('ml.tradingbots.components.hiddenmarkov.tradeapi')
-    def test_get_data_open(self, mock_tradeapi, data_manager):
+    def test_get_data_open(self, data_manager):
         """Test get_data for open prices."""
         mock_api = Mock()
         data_manager.api.api = mock_api
@@ -272,8 +271,7 @@ class TestDataManager:
         assert normalized[1] == 5
         assert normalized[4] == 20
 
-    @patch('ml.tradingbots.components.hiddenmarkov.tradeapi')
-    def test_align_data(self, mock_tradeapi, data_manager):
+    def test_align_data(self, data_manager):
         """Test data alignment."""
         mock_api = Mock()
         data_manager.api.api = mock_api
@@ -535,8 +533,7 @@ class TestHMM:
 class TestIntegration:
     """Integration tests for the complete HMM workflow."""
 
-    @patch('ml.tradingbots.components.hiddenmarkov.tradeapi')
-    def test_end_to_end_workflow(self, mock_tradeapi):
+    def test_end_to_end_workflow(self):
         """Test complete workflow from data fetch to inference."""
         # This would require extensive mocking of Alpaca API
         # Skipping for now but structure is here

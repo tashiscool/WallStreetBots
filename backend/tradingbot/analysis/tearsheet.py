@@ -28,7 +28,7 @@ try:
     from plotly.subplots import make_subplots
     import plotly.express as px
     PLOTLY_AVAILABLE = True
-except ImportError:
+except Exception:
     PLOTLY_AVAILABLE = False
     logger.warning("Plotly not available. Install with: pip install plotly")
 
@@ -313,7 +313,7 @@ class TearsheetGenerator:
             x=cumulative.index,
             y=cumulative.values,
             name="Strategy",
-            line=dict(color=self.theme.primary, width=2),
+            line={"color": self.theme.primary, "width": 2},
             hovertemplate="Date: %{x}<br>Value: $%{y:.2f}<extra></extra>",
         ))
 
@@ -324,7 +324,7 @@ class TearsheetGenerator:
                 x=bench_cumulative.index,
                 y=bench_cumulative.values,
                 name=self.config.benchmark_symbol,
-                line=dict(color=self.theme.neutral, width=1, dash="dash"),
+                line={"color": self.theme.neutral, "width": 1, "dash": "dash"},
                 hovertemplate="Date: %{x}<br>Value: $%{y:.2f}<extra></extra>",
             ))
 
@@ -334,19 +334,19 @@ class TearsheetGenerator:
             yaxis_title="Portfolio Value ($)",
             template=self.config.theme.value,
             hovermode="x unified",
-            legend=dict(orientation="h", yanchor="bottom", y=1.02),
-            xaxis=dict(
-                rangeselector=dict(
-                    buttons=[
-                        dict(count=1, label="1M", step="month"),
-                        dict(count=6, label="6M", step="month"),
-                        dict(count=1, label="YTD", step="year", stepmode="todate"),
-                        dict(count=1, label="1Y", step="year"),
-                        dict(step="all", label="ALL"),
+            legend={"orientation": "h", "yanchor": "bottom", "y": 1.02},
+            xaxis={
+                "rangeselector": {
+                    "buttons": [
+                        {"count": 1, "label": "1M", "step": "month"},
+                        {"count": 6, "label": "6M", "step": "month"},
+                        {"count": 1, "label": "YTD", "step": "year", "stepmode": "todate"},
+                        {"count": 1, "label": "1Y", "step": "year"},
+                        {"step": "all", "label": "ALL"},
                     ]
-                ),
-                rangeslider=dict(visible=True),
-            ),
+                },
+                "rangeslider": {"visible": True},
+            },
         )
 
         return fig
@@ -367,7 +367,7 @@ class TearsheetGenerator:
             y=drawdown.values,
             fill="tozeroy",
             name="Drawdown",
-            line=dict(color=self.theme.negative, width=1),
+            line={"color": self.theme.negative, "width": 1},
             fillcolor=f"rgba({int(self.theme.negative[1:3], 16)}, "
                       f"{int(self.theme.negative[3:5], 16)}, "
                       f"{int(self.theme.negative[5:7], 16)}, 0.3)",
@@ -473,7 +473,7 @@ class TearsheetGenerator:
             yaxis_title="Frequency",
             template=self.config.theme.value,
             barmode="overlay",
-            legend=dict(orientation="h", yanchor="bottom", y=1.02),
+            legend={"orientation": "h", "yanchor": "bottom", "y": 1.02},
         )
 
         return fig
@@ -496,7 +496,7 @@ class TearsheetGenerator:
             x=rolling_sharpe.index,
             y=rolling_sharpe.values,
             name=f"{window}-Day Rolling Sharpe",
-            line=dict(color=self.theme.primary, width=2),
+            line={"color": self.theme.primary, "width": 2},
             hovertemplate="Date: %{x}<br>Sharpe: %{y:.2f}<extra></extra>",
         ))
 
@@ -557,7 +557,7 @@ class TearsheetGenerator:
             yaxis_title="Return (%)",
             template=self.config.theme.value,
             barmode="group",
-            legend=dict(orientation="h", yanchor="bottom", y=1.02),
+            legend={"orientation": "h", "yanchor": "bottom", "y": 1.02},
         )
 
         return fig
@@ -601,7 +601,7 @@ class TearsheetGenerator:
             y=cumulative_pnl,
             mode="lines",
             name="Cumulative P&L",
-            line=dict(color=self.theme.primary),
+            line={"color": self.theme.primary},
         ), row=1, col=2)
 
         # Win/Loss pie
@@ -696,7 +696,7 @@ class TearsheetGenerator:
 
         # Convert charts to HTML divs
         chart_divs = []
-        for name, fig in charts.items():
+        for fig in charts.values():
             chart_html = fig.to_html(full_html=False, include_plotlyjs=False)
             chart_divs.append(f'<div class="chart-container">{chart_html}</div>')
 

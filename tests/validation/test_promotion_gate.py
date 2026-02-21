@@ -47,7 +47,7 @@ def _make_strategy_returns(alpha: float, n: int = 252, seed: int = 42):
 def _promotion_decision(
     strategy_returns: pd.Series,
     benchmark_returns: pd.Series,
-    strategy_source: str = None,
+    strategy_source: str | None = None,
     enforcement_mode: EnforcementMode = EnforcementMode.STRICT,
 ) -> dict:
     """Simulate a promotion gate: DSR + RC + leakage STRICT.

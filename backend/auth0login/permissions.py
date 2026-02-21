@@ -21,7 +21,7 @@ Usage:
 
 import functools
 import logging
-from typing import List, Optional, Tuple
+from typing import ClassVar, List, Optional, Tuple
 
 from django.contrib.auth.models import Group, Permission, User
 from django.contrib.contenttypes.models import ContentType
@@ -42,10 +42,10 @@ class PlatformRoles:
     RISK_MANAGER = "risk_manager"
     ADMIN = "admin"
 
-    ALL = [VIEWER, TRADER, RISK_MANAGER, ADMIN]
+    ALL: ClassVar[list] = [VIEWER, TRADER, RISK_MANAGER, ADMIN]
 
     # Human-readable descriptions
-    DESCRIPTIONS = {
+    DESCRIPTIONS: ClassVar[dict] = {
         VIEWER: "Read-only access to dashboards, positions, and analytics",
         TRADER: "Can place orders, manage strategies, and run backtests",
         RISK_MANAGER: "Can manage circuit breakers, approve live trading, and view risk reports",
@@ -302,7 +302,7 @@ class RoleRequiredMixin:
             ...
     """
 
-    required_roles: List[str] = []
+    required_roles: ClassVar[List[str]] = []
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:

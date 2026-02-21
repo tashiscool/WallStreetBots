@@ -12,7 +12,7 @@ Accurate fee modeling is critical for profitable arbitrage.
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_CEILING, ROUND_HALF_UP
 from enum import Enum
-from typing import Dict, List, Tuple, Optional
+from typing import ClassVar, Dict, List, Tuple, Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ class FeeCalculator:
 
     # Polymarket tiered fee schedule (percentage, by price range)
     # From dexorynLabs: fees highest at 50 cents, lowest at extremes
-    POLYMARKET_FEE_SCHEDULE: List[Tuple[Tuple[int, int], Decimal]] = [
+    POLYMARKET_FEE_SCHEDULE: ClassVar[List[Tuple[Tuple[int, int], Decimal]]] = [
         ((0, 5), Decimal("0.01")),      # 1% at extremes
         ((5, 10), Decimal("0.015")),
         ((10, 20), Decimal("0.02")),
@@ -133,7 +133,7 @@ class FeeCalculator:
         Calculate Kalshi fee using quadratic formula.
 
         From RichardFeynmanEnthusiast:
-        Fee = rate × quantity × price × (1 - price)
+        Fee = rate * quantity * price * (1 - price)
 
         This formula means:
         - Fees are highest at price = 0.50 (max uncertainty)
@@ -297,7 +297,7 @@ class GasCostEstimator:
 
     def __init__(
         self,
-        gas_per_order: Decimal = None,
+        gas_per_order: Decimal | None = None,
     ):
         self._gas_per_order = gas_per_order or self.DEFAULT_GAS_PER_ORDER
 

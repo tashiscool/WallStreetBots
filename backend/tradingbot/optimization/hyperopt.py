@@ -66,7 +66,7 @@ class HyperParameter:
                 import math
                 log_low = math.log(max(1, self.low))
                 log_high = math.log(max(1, self.high))
-                return int(round(math.exp(random.uniform(log_low, log_high))))
+                return round(math.exp(random.uniform(log_low, log_high)))
             return random.randint(int(self.low or 0), int(self.high or 100))
 
         elif self.param_type == ParameterType.FLOAT:
@@ -350,7 +350,7 @@ def _worker_evaluate(args: Tuple) -> HyperoptResult:
     start_time = time.time()
     try:
         # Unpickle the objective function
-        objective = pickle.loads(objective_func_pickle)
+        objective = pickle.loads(objective_func_pickle)  # noqa: S301
 
         # Evaluate
         objective_value, metrics = objective.evaluate(params)
@@ -507,7 +507,7 @@ class HyperoptEngine:
     def _get_param_hash(self, params: Dict[str, Any]) -> str:
         """Generate hash for parameter set (for caching)."""
         param_str = json.dumps(params, sort_keys=True)
-        return hashlib.md5(param_str.encode()).hexdigest()[:16]
+        return hashlib.md5(param_str.encode()).hexdigest()[:16]  # noqa: S324
 
     def _save_checkpoint(self) -> None:
         """Save current results to checkpoint."""

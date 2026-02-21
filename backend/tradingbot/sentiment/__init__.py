@@ -10,10 +10,10 @@ from .sources.aggregator import NewsAggregator
 from .pipeline import SentimentPipeline
 
 __all__ = [
-    'SentimentScorer',
-    'SentimentScore',
     'EnsembleSentimentScorer',
-    'ScoringMode',
     'NewsAggregator',
+    'ScoringMode',
     'SentimentPipeline',
+    'SentimentScore',
+    'SentimentScorer',
 ]

@@ -523,6 +523,9 @@ class WheelStrategy:
         """Update all wheel positions."""
         print("📊 Updating wheel positions...")
 
+        positions_to_add: list[WheelPosition] = []
+        positions_to_remove: set[int] = set()
+
         for pos in self.positions:
             try:
                 stock = yf.Ticker(pos.ticker)
@@ -566,16 +569,83 @@ class WheelStrategy:
                             pos.total_premium_collected / (pos.avg_cost * pos.shares)
                         ) * 100
 
-                # TODO: State transition handling between wheel phases.
-                # When a cash_secured_put expires ITM (assignment_risk ~1.0),
-                # transition to assigned_shares with avg_cost = strike - premium.
-                # When assigned_shares exist without an active covered_call,
-                # prompt to sell a covered_call above cost basis.
-                # When a covered_call expires ITM (call-away risk ~1.0),
-                # transition back to cash (close the wheel cycle).
+                # State machine: cash-secured put -> assigned shares -> covered call -> call-away.
+                if pos.position_type == "cash_secured_put" and pos.strike:
+                    option_expired = bool(pos.days_to_expiry is not None and pos.days_to_expiry <= 0)
+                    put_itm = current_price <= pos.strike
+                    if option_expired and (put_itm or pos.assignment_risk >= 0.99):
+                        assigned_shares = pos.shares if pos.shares > 0 else 100
+                        cost_basis = pos.strike - (pos.premium_collected / assigned_shares)
+                        pos.position_type = "assigned_shares"
+                        pos.shares = assigned_shares
+                        pos.avg_cost = max(0.01, cost_basis)
+                        pos.strike = None
+                        pos.expiry = None
+                        pos.days_to_expiry = None
+                        pos.assignment_risk = 0.0
+                        pos.status = "assigned"
+
+                elif pos.position_type == "assigned_shares" and pos.shares > 0:
+                    has_covered_call = any(
+                        candidate.ticker == pos.ticker
+                        and candidate.position_type == "covered_call"
+                        and candidate.status == "active"
+                        and id(candidate) not in positions_to_remove
+                        for candidate in self.positions
+                    )
+                    if not has_covered_call:
+                        call_strike = round(max(pos.avg_cost * 1.05, current_price * 1.03))
+                        call_premium = max(0.5, call_strike * 0.01)
+                        call_days = 30
+                        call_expiry = (date.today() + timedelta(days=call_days)).isoformat()
+                        positions_to_add.append(
+                            WheelPosition(
+                                ticker=pos.ticker,
+                                position_type="covered_call",
+                                shares=pos.shares,
+                                avg_cost=pos.avg_cost,
+                                strike=call_strike,
+                                expiry=call_expiry,
+                                premium_collected=call_premium,
+                                days_to_expiry=call_days,
+                                current_price=current_price,
+                                unrealized_pnl=0.0,
+                                total_premium_collected=pos.total_premium_collected + call_premium,
+                                assignment_risk=0.0,
+                                annualized_return=0.0,
+                                status="active",
+                            )
+                        )
+
+                elif pos.position_type == "covered_call" and pos.strike:
+                    option_expired = bool(pos.days_to_expiry is not None and pos.days_to_expiry <= 0)
+                    call_itm = current_price >= pos.strike
+                    if option_expired and (call_itm or pos.assignment_risk >= 0.99):
+                        pos.status = "called_away"
+                        positions_to_remove.add(id(pos))
+                        for candidate in self.positions:
+                            if (
+                                candidate.ticker == pos.ticker
+                                and candidate.position_type == "assigned_shares"
+                                and id(candidate) not in positions_to_remove
+                            ):
+                                candidate.status = "called_away"
+                                positions_to_remove.add(id(candidate))
+                                break
+                    elif option_expired:
+                        # Call expired worthless, keep shares and restart CC phase next cycle.
+                        pos.status = "expired"
+                        positions_to_remove.add(id(pos))
 
             except Exception as e:
                 print(f"Error updating {pos.ticker}: {e}")
+
+        if positions_to_remove:
+            self.positions = [
+                position for position in self.positions if id(position) not in positions_to_remove
+            ]
+        if positions_to_add:
+            self.positions.extend(positions_to_add)
 
         self.save_portfolio()
 
@@ -587,7 +657,7 @@ class WheelStrategy:
             return "🔍 No suitable wheel candidates found."
 
         output = f"\n🎡 TOP WHEEL CANDIDATES ({min(limit, len(candidates))} shown)\n"
-        output += " = " * 80 + "\n"
+        output += "=" * 80 + "\n"
 
         for i, cand in enumerate(candidates[:limit], 1):
             assignment_risk = f"{abs(cand.put_delta): .0%}"
@@ -597,7 +667,7 @@ class WheelStrategy:
                 f"   Current: ${cand.current_price:.2f} | IV Rank: {cand.iv_rank:.0f}\n"
             )
             output += f"   SELL ${cand.put_strike} PUT: ${cand.put_premium:.2f} premium (Δ{cand.put_delta: .2f})\n"
-            output += f"   IF ASSIGNED, SELL ${cand.call_strike} CALL: ${cand.call_premium:.2f} premium + n"
+            output += f"   IF ASSIGNED, SELL ${cand.call_strike} CALL: ${cand.call_premium:.2f} premium\n"
             output += f"   Estimated Annual Return: {cand.wheel_annual_return:.1f}%\n"
             output += f"   Dividend Yield: {cand.dividend_yield:.1f}% | Assignment Risk: {assignment_risk}\n"
             output += f"   Quality: {cand.quality_score:.0f} | Liquidity: {cand.liquidity_score:.0f}\n"
@@ -606,17 +676,17 @@ class WheelStrategy:
                 output += f"   ⚠️  Risks: {', '.join(cand.risk_factors)}\n"
 
         output += "\n💡 WHEEL STRATEGY PROCESS: \n"
-        output += "1. Sell cash - secured puts on quality names + n"
-        output += "2. If assigned → own shares at discount + n"
-        output += "3. Sell covered calls above your cost basis + n"
-        output += "4. If called away → profit + start over + n"
-        output += "5. Collect dividends while holding shares + n"
+        output += "1. Sell cash - secured puts on quality names\n"
+        output += "2. If assigned → own shares at discount\n"
+        output += "3. Sell covered calls above your cost basis\n"
+        output += "4. If called away → profit + start over\n"
+        output += "5. Collect dividends while holding shares\n"
 
         output += "\n✅ WHEEL ADVANTAGES: \n"
-        output += "• Positive expected value over time+n"
-        output += "• Lower risk than naked options + n"
-        output += "• Generates income in sideways markets + n"
-        output += "• Forces buying low, selling high + n"
+        output += "• Positive expected value over time\n"
+        output += "• Lower risk than naked options\n"
+        output += "• Generates income in sideways markets\n"
+        output += "• Forces buying low, selling high\n"
 
         return output
 
@@ -632,15 +702,15 @@ class WheelStrategy:
         calls = [p for p in self.positions if p.position_type == "covered_call"]
         shares = [p for p in self.positions if p.position_type == "assigned_shares"]
 
-        output = "\n🎡 WHEEL PORTFOLIO SUMMARY + n"
-        output += " = " * 60 + "\n"
+        output = "\n🎡 WHEEL PORTFOLIO SUMMARY\n"
+        output += "=" * 60 + "\n"
 
         total_premium = sum(p.total_premium_collected for p in self.positions)
         total_unrealized = sum(p.unrealized_pnl for p in self.positions)
 
         output += f"Total Premium Collected: ${total_premium:,.0f}\n"
         output += f"Unrealized P & L: ${total_unrealized:,.0f}\n"
-        output += f"Active Positions: {len(self.positions)}\n + n"
+        output += f"Active Positions: {len(self.positions)}\n\n"
 
         if puts:
             output += "CASH - SECURED PUTS: \n"
@@ -657,9 +727,9 @@ class WheelStrategy:
 
                 output += f"{put.ticker} ${put.strike} PUT exp {put.expiry} {risk_indicator}\n"
                 output += (
-                    f"  Premium: ${put.premium_collected:.2f} | {days_left}d left + n"
+                    f"  Premium: ${put.premium_collected:.2f} | {days_left}d left\n"
                 )
-                output += f"  Assignment risk: {put.assignment_risk:.1%}\n + n"
+                output += f"  Assignment risk: {put.assignment_risk:.1%}\n\n"
 
         if shares:
             output += "ASSIGNED SHARES: \n"
@@ -670,7 +740,7 @@ class WheelStrategy:
                 output += f"{share_pos.ticker}: {share_pos.shares} shares @ ${share_pos.avg_cost: .2f} {pnl_indicator}\n"
                 output += f"  Current: ${share_pos.current_price:.2f} | P & L: ${share_pos.unrealized_pnl:.0f}\n"
                 output += (
-                    f"  Total premium: ${share_pos.total_premium_collected:.2f}\n + n"
+                    f"  Total premium: ${share_pos.total_premium_collected:.2f}\n\n"
                 )
 
         if calls:
@@ -688,9 +758,9 @@ class WheelStrategy:
 
                 output += f"{call.ticker} ${call.strike} CALL exp {call.expiry} {risk_indicator}\n"
                 output += (
-                    f"  Premium: ${call.premium_collected:.2f} | {days_left}d left + n"
+                    f"  Premium: ${call.premium_collected:.2f} | {days_left}d left\n"
                 )
-                output += f"  Call - away risk: {call.assignment_risk:.1%}\n + n"
+                output += f"  Call - away risk: {call.assignment_risk:.1%}\n\n"
 
         return output
 
@@ -705,7 +775,11 @@ def main():
     )
     parser.add_argument("--limit", type=int, default=15, help="Maximum results to show")
     parser.add_argument(
-        "--min - return", type=float, default=8.0, help="Minimum annual return %%"
+        "--min-return",
+        dest="min_return",
+        type=float,
+        default=8.0,
+        help="Minimum annual return %%"
     )
     parser.add_argument("--save-csv", type=str, help="Save results to CSV file")
 

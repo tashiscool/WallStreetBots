@@ -86,8 +86,8 @@ TRADING_CONFIG = {
 
 # API Configuration
 API_CONFIG = {
-    "ALPACA_API_KEY": os.getenv("ALPACA_API_KEY", "test_api_key"),
-    "ALPACA_SECRET_KEY": os.getenv("ALPACA_SECRET_KEY", "test_secret_key"),
+    "ALPACA_API_KEY": os.getenv("ALPACA_API_KEY", ""),
+    "ALPACA_SECRET_KEY": os.getenv("ALPACA_SECRET_KEY", ""),
     "ALPACA_BASE_URL": os.getenv("ALPACA_BASE_URL", "https://paper-api.alpaca.markets"),
 }
 

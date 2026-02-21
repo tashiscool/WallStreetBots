@@ -170,7 +170,7 @@ class TestValidationReporter:
         empty_data = pd.Series(dtype=float)
 
         # Should handle gracefully
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             reporter.write_equity_curve('empty_equity', empty_data)
 
     def test_write_factor_table(self, reporter):
@@ -569,5 +569,5 @@ class TestReportingEdgeCases:
         # Non-numeric data
         invalid_equity = pd.Series(['a', 'b', 'c'], index=pd.date_range('2023-01-01', periods=3))
 
-        with pytest.raises(Exception):
+        with pytest.raises(TypeError):
             reporter.write_equity_curve('invalid_equity', invalid_equity)

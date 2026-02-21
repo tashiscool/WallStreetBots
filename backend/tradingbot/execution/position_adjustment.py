@@ -363,7 +363,7 @@ class PositionAdjuster:
                         trigger=AdjustmentTrigger.TIME_BASED,
                         current_price=position.current_price,
                         estimated_value=position.current_price * order_size,
-                        reason=f"Scheduled DCA purchase",
+                        reason="Scheduled DCA purchase",
                     )
 
         return None

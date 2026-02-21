@@ -1,6 +1,15 @@
+"""Deprecated legacy model module.
+
+Canonical Django models live in ``backend.tradingbot.models.models``.
+This file is retained only as a compatibility shim for old direct imports.
+Do not add new models here.
+"""
+
 from django.contrib.auth.models import User
 from django.db import models
 from rest_framework import serializers
+
+from backend.tradingbot.models.models import TradeTransaction
 
 
 class News(models.Model):
@@ -91,23 +100,27 @@ class Price(models.Model):
         )
 
 
-class StockTrade(models.Model):
-    # TODO: this is an overly simplistic model.
-    # need to add things like bought_price, sold_price, etc.
-    # or add transaction type (buy, sell, etc.) which is probably preferable
-    # should probably change to represent a single exchange instance instead of trying to
-    # show an entire buy / sell operation
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    price = models.FloatField()
-    amount = models.IntegerField()
-    bought_timestamp = models.DateTimeField(auto_now_add=True)
-    sold_timestamp = models.DateTimeField(null=True)
+# Backwards-compatible alias. Use TradeTransaction from canonical models module.
+StockTrade = TradeTransaction
 
 
 class StockTradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = StockTrade
-        fields = ("company_id", "price", "amount", "bought_timestamp", "sold_timestamp")
+        fields = (
+            "id",
+            "user_id",
+            "company_id",
+            "symbol",
+            "transaction_type",
+            "quantity",
+            "price",
+            "gross_amount",
+            "fees",
+            "status",
+            "executed_at",
+            "legacy_reference",
+        )
 
 
 class Order(models.Model):
@@ -215,7 +228,7 @@ class Portfolio(models.Model):
         (
             "hmm_sharp_ratio_monte_carlo",
             "HMM model prediction + Sharpe ratio Monte Carlo simulation",
-        ),  # TODO
+        ),
     ]
     """Portfolio for a user"""
     name = models.CharField(max_length=100, blank=False, help_text="Portfolio name")

@@ -7,9 +7,9 @@ from .sector_exposure import SectorExposureRiskModel
 from .composite import CompositeRiskModel
 
 __all__ = [
+    'CompositeRiskModel',
+    'GreekExposureRiskModel',
     'MaxDrawdownRiskModel',
     'PositionLimitRiskModel',
-    'GreekExposureRiskModel',
     'SectorExposureRiskModel',
-    'CompositeRiskModel',
 ]

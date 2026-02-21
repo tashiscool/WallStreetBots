@@ -48,11 +48,11 @@ class ProfileResult:
     def __str__(self) -> str:
         """Format results as string."""
         lines = [
-            f"Profile Results:",
+            "Profile Results:",
             f"  Duration: {self.duration_seconds:.2f}s",
             f"  Total Calls: {self.num_calls}",
             f"  Total Time: {self.total_time:.4f}s",
-            f"\nTop Functions:",
+            "\nTop Functions:",
         ]
         for i, func in enumerate(self.top_functions[:20], 1):
             lines.append(

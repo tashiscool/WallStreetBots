@@ -8,7 +8,7 @@ import math
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import ClassVar, Dict, List, Optional
 
 import numpy as np
 
@@ -98,12 +98,12 @@ class RegimeAccuracyTracker:
     transition probabilities.
     """
 
-    REGIMES = [MarketRegime.BULL, MarketRegime.BEAR, MarketRegime.SIDEWAYS]
+    REGIMES: ClassVar[list] = [MarketRegime.BULL, MarketRegime.BEAR, MarketRegime.SIDEWAYS]
 
     # Mapping from OnlineHMM integer states to MarketRegime.
     # OnlineHMM (ml/tradingbots/) returns int (0, 1, 2); this bridge keeps
     # the ML package free of backend imports.
-    _HMM_STATE_MAP = {
+    _HMM_STATE_MAP: ClassVar[dict] = {
         0: MarketRegime.BULL,
         1: MarketRegime.BEAR,
         2: MarketRegime.SIDEWAYS,
@@ -184,7 +184,7 @@ class RegimeAccuracyTracker:
             Maximum allowed time difference between *timestamp* and the
             closest prediction.  If the closest prediction is further away
             than this, the update is **refused** and ``False`` is returned.
-            Set to e.g. ``timedelta(hours=2)`` or ``2× expected cadence``
+            Set to e.g. ``timedelta(hours=2)`` or ``2x expected cadence``
             to avoid silent mislabelling when predictions are not on a
             fixed cadence or when actuals are backfilled late.
 
@@ -265,7 +265,7 @@ class RegimeAccuracyTracker:
     def get_regime_transition_matrix(self) -> np.ndarray:
         """Compute empirical transition probability matrix from actual regimes.
 
-        Returns a 3×3 matrix where entry (i, j) is P(next = j | current = i)
+        Returns a 3x3 matrix where entry (i, j) is P(next = j | current = i)
         for regimes ordered as [BULL, BEAR, SIDEWAYS].
         """
         evaluated = [p for p in self._predictions if p.actual_regime is not None]

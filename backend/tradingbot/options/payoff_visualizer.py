@@ -183,7 +183,7 @@ class PayoffDiagramGenerator:
         fig.add_trace(go.Scatter(
             x=prices, y=expiry_pnl,
             name='At Expiry',
-            line=dict(color='#1f77b4', width=3),
+            line={"color": '#1f77b4', "width": 3},
         ))
 
         # Pre-expiry curves
@@ -203,7 +203,7 @@ class PayoffDiagramGenerator:
             fig.add_trace(go.Scatter(
                 x=prices, y=pre_pnl,
                 name=f'{dte} DTE',
-                line=dict(color=color, width=1.5, dash='dash'),
+                line={"color": color, "width": 1.5, "dash": 'dash'},
             ))
 
         # Zero line
@@ -239,7 +239,7 @@ class PayoffDiagramGenerator:
                     xref="paper", yref="paper",
                     x=0.02, y=0.98,
                     showarrow=False,
-                    font=dict(size=12),
+                    font={"size": 12},
                     bgcolor="rgba(255,255,255,0.8)",
                     bordercolor="gray",
                     borderwidth=1,
@@ -252,12 +252,12 @@ class PayoffDiagramGenerator:
         fig.add_trace(go.Scatter(
             x=prices[profit_mask], y=expiry_pnl[profit_mask],
             fill='tozeroy', fillcolor='rgba(0,200,5,0.1)',
-            line=dict(width=0), showlegend=False, hoverinfo='skip',
+            line={"width": 0}, showlegend=False, hoverinfo='skip',
         ))
         fig.add_trace(go.Scatter(
             x=prices[loss_mask], y=expiry_pnl[loss_mask],
             fill='tozeroy', fillcolor='rgba(255,45,33,0.1)',
-            line=dict(width=0), showlegend=False, hoverinfo='skip',
+            line={"width": 0}, showlegend=False, hoverinfo='skip',
         ))
 
         # Layout
@@ -269,7 +269,7 @@ class PayoffDiagramGenerator:
             height=self.config.chart_height,
             width=self.config.chart_width,
             hovermode='x unified',
-            legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99),
+            legend={"yanchor": "top", "y": 0.99, "xanchor": "right", "x": 0.99},
         )
 
         if output_format == 'png_base64' and KALEIDO_AVAILABLE:
@@ -355,21 +355,21 @@ class GreeksDashboard:
         )
 
         # Delta
-        fig.add_trace(go.Scatter(x=prices, y=deltas, name='Delta', line=dict(color='#1f77b4')), row=1, col=1)
+        fig.add_trace(go.Scatter(x=prices, y=deltas, name='Delta', line={"color": '#1f77b4'}), row=1, col=1)
         fig.add_vline(x=current_price, line_dash="dot", line_color="gray", row=1, col=1)
         fig.add_hline(y=0, line_dash="solid", line_color="lightgray", row=1, col=1)
 
         # Gamma
-        fig.add_trace(go.Scatter(x=prices, y=gammas, name='Gamma', line=dict(color='#ff7f0e')), row=1, col=2)
+        fig.add_trace(go.Scatter(x=prices, y=gammas, name='Gamma', line={"color": '#ff7f0e'}), row=1, col=2)
         fig.add_vline(x=current_price, line_dash="dot", line_color="gray", row=1, col=2)
 
         # Theta
-        fig.add_trace(go.Scatter(x=prices, y=thetas, name='Theta', line=dict(color='#2ca02c')), row=2, col=1)
+        fig.add_trace(go.Scatter(x=prices, y=thetas, name='Theta', line={"color": '#2ca02c'}), row=2, col=1)
         fig.add_vline(x=current_price, line_dash="dot", line_color="gray", row=2, col=1)
         fig.add_hline(y=0, line_dash="solid", line_color="lightgray", row=2, col=1)
 
         # Vega
-        fig.add_trace(go.Scatter(x=prices, y=vegas, name='Vega', line=dict(color='#d62728')), row=2, col=2)
+        fig.add_trace(go.Scatter(x=prices, y=vegas, name='Vega', line={"color": '#d62728'}), row=2, col=2)
         fig.add_vline(x=current_price, line_dash="dot", line_color="gray", row=2, col=2)
 
         fig.update_layout(
@@ -472,7 +472,7 @@ def generate_pnl_heatmap(
         x=[f'${p:.0f}' for p in prices],
         y=[f'{iv:.0%}' for iv in ivs],
         colorscale='RdYlGn',
-        colorbar=dict(title='P&L ($)'),
+        colorbar={"title": 'P&L ($)'},
     ))
 
     fig.update_layout(

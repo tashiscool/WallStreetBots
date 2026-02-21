@@ -133,12 +133,12 @@ __all__ = [
 # Add circuit breaker if available (from Polymarket-Kalshi arbitrage bot)
 if CIRCUIT_BREAKER_AVAILABLE:
     __all__.extend([
-        "TripReason",
+        "CircuitBreaker",
         "CircuitBreakerConfig",
         "CircuitBreakerState",
-        "CircuitBreaker",
-        "get_circuit_breaker",
+        "TripReason",
         "configure_circuit_breaker",
+        "get_circuit_breaker",
     ])
 
 # Add advanced features if available

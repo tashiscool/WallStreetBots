@@ -209,7 +209,7 @@ class OnboardingFlowService:
 
             # Merge all step data
             all_data = {}
-            for step_num, step_data in session.step_data.items():
+            for step_data in session.step_data.values():
                 if isinstance(step_data, dict):
                     all_data.update(step_data)
             all_data.update(final_data)
@@ -263,7 +263,7 @@ class OnboardingFlowService:
             self.logger.error(f"Error completing wizard: {e}", exc_info=True)
             return StepResult(
                 success=False,
-                message=f"Failed to complete wizard: {str(e)}",
+                message=f"Failed to complete wizard: {e!s}",
                 errors=[str(e)]
             )
 
@@ -439,7 +439,7 @@ class OnboardingFlowService:
             self.logger.error(f"Broker connection error: {e}")
             return StepResult(
                 success=False,
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 errors=[str(e)]
             )
 

@@ -51,22 +51,22 @@ from .fred import FREDDataSource
 from .dark_pool import DarkPoolDataSource
 
 __all__ = [
+    "OHLCV",
+    "AlpacaDataSource",
+    "AssetType",
+    "CachedDataSource",
+    "DarkPoolDataSource",
     # Types
     "DataResolution",
-    "AssetType",
-    "OHLCV",
-    "Quote",
-    "Trade",
-    "OptionChain",
+    # Alternative data
+    "FREDDataSource",
     "FundamentalData",
     # Base
     "IDataSource",
-    "CachedDataSource",
+    "OptionChain",
+    "PolygonDataSource",
+    "Quote",
+    "Trade",
     # Providers
     "YahooDataSource",
-    "PolygonDataSource",
-    "AlpacaDataSource",
-    # Alternative data
-    "FREDDataSource",
-    "DarkPoolDataSource",
 ]

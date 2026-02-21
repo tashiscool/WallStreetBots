@@ -191,7 +191,7 @@ class EnsemblePricePredictor:
         """Calculate model weights based on validation loss."""
         if self.config.ensemble_method == EnsembleMethod.SIMPLE_AVERAGE:
             n_models = len(self.models)
-            self.model_weights = {name: 1.0 / n_models for name in self.models}
+            self.model_weights = dict.fromkeys(self.models, 1.0 / n_models)
             return
 
         # Check if weights are manually specified
@@ -239,7 +239,7 @@ class EnsemblePricePredictor:
             actual = val_prices[i]
 
             preds = []
-            for name, model in self.models.items():
+            for model in self.models.values():
                 try:
                     pred = model.predict(input_seq)
                     preds.append(pred)
@@ -353,7 +353,7 @@ class EnsemblePricePredictor:
         for _ in range(n):
             pred = self.predict(np.array(current_sequence))
             predictions.append(pred)
-            current_sequence = current_sequence[1:] + [pred.predicted_price]
+            current_sequence = [*current_sequence[1:], pred.predicted_price]
 
         return predictions
 
@@ -434,7 +434,7 @@ class EnsemblePricePredictor:
         if meta_path.exists():
             import pickle
             with open(meta_path, "rb") as f:
-                meta_data = pickle.load(f)
+                meta_data = pickle.load(f)  # noqa: S301
                 self.meta_learner = meta_data['meta_learner']
                 self.meta_scaler = meta_data['meta_scaler']
 
@@ -615,7 +615,7 @@ class EnsembleHyperparameterTuner:
                 pred = ensemble.predict(np.array(context))
                 error = (pred.predicted_price - actual) ** 2
                 errors.append(error)
-                context = context[1:] + [actual]
+                context = [*context[1:], actual]
             except Exception:
                 continue
 

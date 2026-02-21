@@ -12,7 +12,7 @@ This module provides machine learning components for trading analysis:
 - Meta-learning for regime-adaptive trading
 """
 
-# Optional imports that depend on alpaca_trade_api
+# Optional imports that depend on Alpaca SDK support
 try:
     from .hiddenmarkov import HMM, DataManager
     _HAS_HMM = True
@@ -96,62 +96,62 @@ from .meta_learning import (
 )
 
 __all__ = [
-    # LSTM
-    "LSTMConfig",
-    "LSTMModel",
-    "LSTMDataManager",
-    "LSTMPricePredictor",
-    "LSTMEnsemble",
-    "LSTMSignalCalculator",
-    # Transformer
-    "TransformerConfig",
-    "TransformerModel",
-    "TransformerDataManager",
-    "TransformerPricePredictor",
+    "AGENT_REGISTRY",
+    "A2CAgent",
+    "A2CConfig",
+    "ActionSpace",
     # CNN
     "CNNConfig",
-    "CNNModel",
     "CNNDataManager",
+    "CNNModel",
     "CNNPricePredictor",
+    "DDPGAgent",
+    "DDPGConfig",
+    "DQNAgent",
+    "DQNConfig",
     # Ensemble
     "EnsembleConfig",
+    "EnsembleHyperparameterTuner",
     "EnsembleMethod",
     "EnsemblePrediction",
     "EnsemblePricePredictor",
-    "EnsembleHyperparameterTuner",
-    # RL Environment
-    "TradingEnvConfig",
     "EnvState",
-    "TradingEnvironment",
+    # LSTM
+    "LSTMConfig",
+    "LSTMDataManager",
+    "LSTMEnsemble",
+    "LSTMModel",
+    "LSTMPricePredictor",
+    "LSTMSignalCalculator",
     "MultiAssetTradingEnvironment",
-    "ActionSpace",
-    "RewardFunction",
-    # RL Agents
-    "PPOConfig",
-    "DQNConfig",
-    "PPOAgent",
-    "DQNAgent",
-    "create_ppo_trading_agent",
-    "create_dqn_trading_agent",
-    "AGENT_REGISTRY",
-    "list_available_agents",
-    "create_rl_agent",
-    # Additional RL Agents
-    "SACConfig",
-    "SACAgent",
-    "TD3Config",
-    "TD3Agent",
-    "DDPGConfig",
-    "DDPGAgent",
-    "A2CConfig",
-    "A2CAgent",
-    # Meta-learning
-    "RegimeDetector",
-    "RegimeAwareConfig",
-    "RegimeAwareAgent",
-    "TransferLearningTrainer",
     "MultiTaskRLAgent",
     # Portfolio
     "NaiveHMMPortfolioUpdate",
+    "PPOAgent",
+    # RL Agents
+    "PPOConfig",
     "PortfolioManager",
+    "RegimeAwareAgent",
+    "RegimeAwareConfig",
+    # Meta-learning
+    "RegimeDetector",
+    "RewardFunction",
+    "SACAgent",
+    # Additional RL Agents
+    "SACConfig",
+    "TD3Agent",
+    "TD3Config",
+    # RL Environment
+    "TradingEnvConfig",
+    "TradingEnvironment",
+    "TransferLearningTrainer",
+    # Transformer
+    "TransformerConfig",
+    "TransformerDataManager",
+    "TransformerModel",
+    "TransformerPricePredictor",
+    "create_dqn_trading_agent",
+    "create_ppo_trading_agent",
+    "create_rl_agent",
+    "list_available_agents",
 ]

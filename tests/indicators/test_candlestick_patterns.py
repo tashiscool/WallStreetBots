@@ -9,8 +9,8 @@ from backend.tradingbot.indicators.candlestick import (
 )
 
 
-def make_bar(o, h, l, c, t=None):
-    return TradeBar(time=t or datetime.now(), open=o, high=h, low=l, close=c, volume=1000)
+def make_bar(o, h, low, c, t=None):
+    return TradeBar(time=t or datetime.now(), open=o, high=h, low=low, close=c, volume=1000)
 
 
 class TestDoji:

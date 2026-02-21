@@ -62,7 +62,7 @@ class TestCustomStrategyRunner(TestCase):
 
     def test_indicators_registry_completeness(self):
         """Test that all indicators are registered with proper structure."""
-        for indicator_name, info in CustomStrategyRunner.INDICATORS.items():
+        for info in CustomStrategyRunner.INDICATORS.values():
             self.assertIn('name', info)
             self.assertIn('description', info)
             self.assertIn('default_period', info)

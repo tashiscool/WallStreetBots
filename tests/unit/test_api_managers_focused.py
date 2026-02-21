@@ -39,10 +39,10 @@ class TestAlpacaManagerMockMode:
         assert isinstance(result[1], list)  # timestamps
 
     def test_get_price_mock_mode(self):
-        """Test get_price in mock mode."""
+        """Test get_price in mock mode returns (False, 0.0)."""
         success, price = self.manager.get_price("AAPL")
         assert success is False
-        assert "Failed to get price" in str(price)
+        assert price == 0.0
 
     def test_get_balance_mock_mode(self):
         """Test get_balance in mock mode."""
@@ -325,14 +325,13 @@ class TestAlpacaManagerWithRealClients:
         assert qty == 100
 
     def test_get_price_with_real_client(self):
-        """Test get_price with real data client."""
-        # Test with invalid credentials to verify realistic behavior
+        """Test get_price with invalid credentials returns (False, 0.0)."""
         manager = AlpacaManager("invalid_key", "invalid_secret", paper_trading=True)
         success, price = manager.get_price("AAPL")
 
-        # Should fail with invalid credentials
+        # Should fail with invalid credentials — returns float 0.0
         assert success is False
-        assert "Failed to get price" in str(price)
+        assert price == 0.0
 
 
 class TestCreateAlpacaManagerFactory:

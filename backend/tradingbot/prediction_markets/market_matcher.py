@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, date
 from decimal import Decimal
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
+from typing import ClassVar, Dict, List, Optional, Set, Tuple
 import re
 import logging
 from difflib import SequenceMatcher
@@ -70,7 +70,7 @@ class EntityExtractor:
     """
 
     # Common sports teams (NFL, NBA, etc.)
-    NFL_TEAMS = {
+    NFL_TEAMS: ClassVar[set] = {
         "chiefs", "eagles", "bills", "49ers", "cowboys", "ravens",
         "bengals", "dolphins", "lions", "jaguars", "chargers", "jets",
         "saints", "packers", "vikings", "seahawks", "rams", "cardinals",
@@ -78,7 +78,7 @@ class EntityExtractor:
         "browns", "steelers", "raiders", "broncos", "colts", "texans", "titans"
     }
 
-    NBA_TEAMS = {
+    NBA_TEAMS: ClassVar[set] = {
         "lakers", "celtics", "warriors", "bucks", "nets", "heat",
         "suns", "76ers", "nuggets", "grizzlies", "mavericks", "clippers",
         "hawks", "bulls", "cavaliers", "knicks", "pelicans", "raptors",
@@ -87,13 +87,13 @@ class EntityExtractor:
     }
 
     # Politicians and public figures
-    POLITICIANS = {
+    POLITICIANS: ClassVar[set] = {
         "biden", "trump", "harris", "desantis", "newsom", "pence",
         "obama", "clinton", "sanders", "warren", "buttigieg", "haley"
     }
 
     # Cryptocurrencies
-    CRYPTO_COINS = {
+    CRYPTO_COINS: ClassVar[set] = {
         "bitcoin", "btc", "ethereum", "eth", "solana", "sol",
         "cardano", "ada", "dogecoin", "doge", "xrp", "ripple"
     }
@@ -172,22 +172,22 @@ class MarketCategorizer:
     From ImMike: Category-based pre-filtering reduces comparisons.
     """
 
-    POLITICS_KEYWORDS = {
+    POLITICS_KEYWORDS: ClassVar[set] = {
         "election", "president", "congress", "senate", "vote",
         "republican", "democrat", "biden", "trump", "poll"
     }
 
-    SPORTS_KEYWORDS = {
+    SPORTS_KEYWORDS: ClassVar[set] = {
         "nfl", "nba", "mlb", "nhl", "game", "match", "win",
         "championship", "playoffs", "super bowl", "world series"
     }
 
-    CRYPTO_KEYWORDS = {
+    CRYPTO_KEYWORDS: ClassVar[set] = {
         "bitcoin", "btc", "ethereum", "eth", "crypto", "price",
         "above", "below", "reach"
     }
 
-    ECONOMICS_KEYWORDS = {
+    ECONOMICS_KEYWORDS: ClassVar[set] = {
         "fed", "interest rate", "inflation", "gdp", "unemployment",
         "recession", "stock", "market"
     }

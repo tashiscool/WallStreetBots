@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 # Try to import python-json-logger
 try:
@@ -136,7 +136,7 @@ class ColoredFormatter(logging.Formatter):
     """
 
     # ANSI color codes
-    COLORS = {
+    COLORS: ClassVar[dict] = {
         "DEBUG": "\033[36m",     # Cyan
         "INFO": "\033[32m",      # Green
         "TRADE": "\033[34m",     # Blue

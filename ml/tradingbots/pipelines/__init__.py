@@ -14,9 +14,9 @@ from .lstm_pipeline import (
 )
 
 __all__ = [
-    "Pipeline",
     "HMMPipline",
     "LSTMPipeline",
     "LSTMPortfolioManager",
     "LSTMSignalGenerator",
+    "Pipeline",
 ]

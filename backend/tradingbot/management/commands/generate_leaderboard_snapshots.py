@@ -30,7 +30,7 @@ Recommended scheduling:
 import logging
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Dict, List, Optional, Any
+from typing import ClassVar, Dict, List, Optional, Any
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -43,7 +43,7 @@ class Command(BaseCommand):
     help = 'Generate strategy performance snapshots for leaderboard rankings'
 
     # Strategy registry - mirrors LeaderboardService
-    STRATEGIES = [
+    STRATEGIES: ClassVar[list] = [
         'wsb_dip_bot',
         'wheel_strategy',
         'momentum_weeklies',
@@ -106,8 +106,8 @@ class Command(BaseCommand):
         if options['date']:
             try:
                 snapshot_date = datetime.strptime(options['date'], '%Y-%m-%d').date()
-            except ValueError:
-                raise CommandError('Invalid date format. Use YYYY-MM-DD')
+            except ValueError as e:
+                raise CommandError('Invalid date format. Use YYYY-MM-DD') from e
         else:
             snapshot_date = date.today()
 

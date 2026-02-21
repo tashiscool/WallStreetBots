@@ -401,7 +401,7 @@ class ProductionIndexBaseline:
                 return None
 
             # Create signal
-            signal_type = "buy_and_hold" if trade_amount > 0 else "rebalance"
+            signal_type = "buy_and_hold" if trade_amount > 0 and current_allocation < self.target_allocation else "rebalance"
             risk_amount = abs(trade_amount)
             confidence = min(1.0, abs(current_allocation - self.target_allocation) * 10)
 
@@ -504,7 +504,15 @@ class ProductionIndexBaseline:
             # Execute trade
             result = await self.integration.execute_trade(trade_signal)
 
-            if result.status == TradeStatus.FILLED:  # Store active signal
+            status_value = getattr(getattr(result, "status", None), "value", getattr(result, "status", None))
+            status_value = str(status_value).lower() if status_value is not None else ""
+            is_filled = (
+                getattr(result, "status", None) == TradeStatus.FILLED
+                or status_value in {"filled", "success"}
+                or (isinstance(result, dict) and str(result.get("status", "")).lower() == "success")
+            )
+
+            if is_filled:  # Store active signal
                 self.active_signals[signal.ticker] = signal
 
                 # Send alert

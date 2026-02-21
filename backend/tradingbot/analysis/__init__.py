@@ -52,20 +52,20 @@ except ImportError:
     PLOT_CONFIGURATOR_AVAILABLE = False
 
 __all__ = [
-    "TEARSHEET_AVAILABLE",
     "PDF_REPORT_AVAILABLE",
-    "REPORT_TEMPLATES_AVAILABLE",
     "PLOT_CONFIGURATOR_AVAILABLE",
+    "REPORT_TEMPLATES_AVAILABLE",
+    "TEARSHEET_AVAILABLE",
 ]
 
 if TEARSHEET_AVAILABLE:
     __all__.extend([
-        "ThemeType",
-        "ThemeColors",
         "THEMES",
-        "TearsheetConfig",
         "PerformanceMetrics",
+        "TearsheetConfig",
         "TearsheetGenerator",
+        "ThemeColors",
+        "ThemeType",
         "create_tearsheet_generator",
     ])
 
@@ -80,17 +80,17 @@ if REPORT_TEMPLATES_AVAILABLE:
 
 if PLOT_CONFIGURATOR_AVAILABLE:
     __all__.extend([
-        "PlotType",
-        "PlotLocation",
-        "IndicatorCategory",
-        "PlotIndicator",
-        "TradeMarker",
-        "PlotConfig",
         "BUILTIN_INDICATORS",
+        "IndicatorCategory",
+        "PlotConfig",
         "PlotConfigurator",
+        "PlotIndicator",
+        "PlotLocation",
+        "PlotType",
+        "TradeMarker",
         "create_plot_configurator",
+        "get_mean_reversion_preset",
         "get_momentum_preset",
         "get_trend_following_preset",
-        "get_mean_reversion_preset",
         "get_volume_analysis_preset",
     ])

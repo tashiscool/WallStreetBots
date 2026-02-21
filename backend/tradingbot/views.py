@@ -1,9 +1,56 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from rest_framework import status
+from decimal import Decimal, InvalidOperation
+import json
+import re
 
 from .apimanagers import AlpacaManager
-from .models import Order, Stock, Company
+from .models import Order, Stock, Company, TradeTransaction
+
+_TICKER_PATTERN = re.compile(r"^[A-Z][A-Z0-9.\-]{0,19}$")
+
+
+def _normalize_order_status(raw_status):
+    """Map broker statuses to supported local Order/TradeTransaction statuses."""
+    normalized = str(raw_status or "").strip().lower()
+    status_map = {
+        "accepted_for_bidding": "accepted",
+        "partially_filled": "partially_filled",
+        "partially-filled": "partially_filled",
+        "canceled": "cancelled",
+    }
+    normalized = status_map.get(normalized, normalized)
+    allowed = {
+        "pending",
+        "accepted",
+        "new",
+        "partially_filled",
+        "filled",
+        "cancelled",
+        "rejected",
+    }
+    return normalized if normalized in allowed else "accepted"
+
+
+def _extract_transaction_price(result, limit_price, stop_price):
+    """Resolve the best available transaction price from broker payload and request."""
+    candidates = [
+        result.get("filled_price"),
+        result.get("limit_price"),
+        limit_price,
+        stop_price,
+    ]
+    for candidate in candidates:
+        if candidate is None:
+            continue
+        try:
+            value = Decimal(str(candidate))
+        except (InvalidOperation, TypeError, ValueError):
+            continue
+        if value > 0:
+            return value
+    return Decimal("0")
 
 
 def index(request):
@@ -18,6 +65,20 @@ def _get_or_create_stock(ticker):
     )
     stock, _ = Stock.objects.get_or_create(company=company)
     return stock
+
+
+def _get_request_payload(request):
+    """Parse JSON payloads for API requests, falling back to form data."""
+    if request.content_type and "application/json" in request.content_type:
+        try:
+            body = request.body.decode("utf-8") if request.body else "{}"
+            payload = json.loads(body)
+            if isinstance(payload, dict):
+                return payload, None
+            return None, "JSON payload must be an object"
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            return None, "Invalid JSON payload"
+    return request.POST.dict(), None
 
 
 @login_required
@@ -124,6 +185,8 @@ def stock_trade(request):
         error_msg = result.get("error", "Unknown error") if result else "Order failed"
         return HttpResponse(error_msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    broker_status = _normalize_order_status(result.get("status"))
+
     # Save order to database with correct field names
     order = Order(
         user=user,
@@ -132,14 +195,112 @@ def stock_trade(request):
         quantity=quantity,
         side=transaction_side,
         order_type=order_type,
-        status="accepted",
+        status=broker_status if broker_status in dict(Order.STATUS) else "accepted",
         alpaca_order_id=str(result.get("id", "")),
         limit_price=limit_price,
         stop_price=stop_price,
+        filled_avg_price=result.get("filled_price"),
     )
     order.save()
 
+    # Persist canonical transaction-side ledger record.
+    TradeTransaction.objects.create(
+        user=user,
+        company=stock.company,
+        order=order,
+        symbol=ticker.upper(),
+        transaction_type=transaction_side.upper(),
+        quantity=Decimal(str(quantity)),
+        price=_extract_transaction_price(result, limit_price, stop_price),
+        status=broker_status,
+        metadata={
+            "order_type": order_type,
+            "alpaca_order_id": str(result.get("id", "")),
+            "raw_status": str(result.get("status", "")),
+        },
+        legacy_reference=str(result.get("id", "")),
+    )
+
     return HttpResponse(status=status.HTTP_201_CREATED)
+
+
+@login_required
+def create_company(request):
+    """Create a new Company via API."""
+    if request.method != "POST":
+        return HttpResponse(
+            "Method not allowed", status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+
+    payload, error = _get_request_payload(request)
+    if error:
+        return HttpResponse(error, status=status.HTTP_400_BAD_REQUEST)
+
+    ticker = str(payload.get("ticker", "")).strip().upper()
+    name = str(payload.get("name", "")).strip()
+
+    if not ticker:
+        return HttpResponse(
+            "ticker is required", status=status.HTTP_400_BAD_REQUEST
+        )
+    if not _TICKER_PATTERN.fullmatch(ticker):
+        return HttpResponse(
+            "Invalid ticker format", status=status.HTTP_400_BAD_REQUEST
+        )
+
+    company, created = Company.objects.get_or_create(
+        ticker=ticker, defaults={"name": name or ticker}
+    )
+    Stock.objects.get_or_create(company=company)
+
+    response_status = (
+        status.HTTP_201_CREATED if created else status.HTTP_200_OK
+    )
+    return JsonResponse(
+        {
+            "ticker": company.ticker,
+            "name": company.name,
+            "created": created,
+        },
+        status=response_status,
+    )
+
+
+@login_required
+def patch_company(request, ticker):
+    """Patch an existing Company record."""
+    if request.method != "PATCH":
+        return HttpResponse(
+            "Method not allowed", status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+
+    payload, error = _get_request_payload(request)
+    if error:
+        return HttpResponse(error, status=status.HTTP_400_BAD_REQUEST)
+
+    company = Company.objects.filter(ticker=ticker.upper()).first()
+    if company is None:
+        return HttpResponse(
+            f"Company not found: {ticker}", status=status.HTTP_404_NOT_FOUND
+        )
+
+    name = payload.get("name")
+    if name is None or not str(name).strip():
+        return HttpResponse(
+            "name is required for patch", status=status.HTTP_400_BAD_REQUEST
+        )
+
+    company.name = str(name).strip()
+    company.save(update_fields=["name"])
+
+    return JsonResponse(
+        {
+            "ticker": company.ticker,
+            "name": company.name,
+            "updated": True,
+        },
+        status=status.HTTP_200_OK,
+    )
 
 
 @login_required

@@ -7,7 +7,7 @@ the CustomStrategyRunner's INDICATORS, OPERATORS, and EXIT_TYPES registries
 as the single source of truth.
 """
 import logging
-from typing import Any, Dict, List
+from typing import Any, ClassVar, Dict, List
 
 from .custom_strategy_runner import CustomStrategyRunner
 
@@ -102,10 +102,10 @@ class StrategyBuilderService:
     """
 
     # The canonical set of valid operator keys.
-    VALID_OPERATORS = set(CustomStrategyRunner.OPERATORS.keys())
+    VALID_OPERATORS: ClassVar[set] = set(CustomStrategyRunner.OPERATORS.keys())
 
     # The canonical set of valid exit condition types.
-    VALID_EXIT_TYPES = set(CustomStrategyRunner.EXIT_TYPES.keys())
+    VALID_EXIT_TYPES: ClassVar[set] = set(CustomStrategyRunner.EXIT_TYPES.keys())
 
     # The canonical set of valid indicator keys (runner + builder aliases).
     VALID_INDICATORS = set(CustomStrategyRunner.INDICATORS.keys()) | set(BUILDER_INDICATOR_ALIASES.keys())

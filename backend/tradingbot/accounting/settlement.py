@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, date
 from decimal import Decimal
 from enum import Enum
-from typing import Dict, List, Optional, Set
+from typing import ClassVar, Dict, List, Optional, Set
 import logging
 
 logger = logging.getLogger(__name__)
@@ -160,7 +160,7 @@ class DelayedSettlementModel(ISettlementModel):
     """
 
     # US Market holidays (simplified - should use proper calendar)
-    US_HOLIDAYS: Set[date] = set()
+    US_HOLIDAYS: ClassVar[Set[date]] = set()
 
     def __init__(
         self,

@@ -8,7 +8,7 @@ coarse filters have narrowed down the universe.
 
 from datetime import date
 from decimal import Decimal
-from typing import List, Optional, Set
+from typing import ClassVar, List, Optional, Set
 import logging
 
 from .base import IUniverseSelectionModel, SecurityData
@@ -37,8 +37,8 @@ class FineSelectionFilter(IUniverseSelectionModel):
         super().__init__(name)
         self.min_market_cap = min_market_cap
         self.max_market_cap = max_market_cap
-        self.sectors = set(s.lower() for s in sectors) if sectors else None
-        self.exclude_sectors = set(s.lower() for s in exclude_sectors) if exclude_sectors else None
+        self.sectors = {s.lower() for s in sectors} if sectors else None
+        self.exclude_sectors = {s.lower() for s in exclude_sectors} if exclude_sectors else None
         self.min_pe = min_pe
         self.max_pe = max_pe
         self.min_dividend_yield = min_dividend_yield
@@ -194,7 +194,7 @@ class SectorUniverseSelection(IUniverseSelectionModel):
     """
 
     # Standard GICS sectors
-    GICS_SECTORS = {
+    GICS_SECTORS: ClassVar[dict] = {
         "technology": ["Information Technology", "Technology"],
         "healthcare": ["Health Care", "Healthcare"],
         "financials": ["Financials", "Financial Services"],
@@ -224,8 +224,8 @@ class SectorUniverseSelection(IUniverseSelectionModel):
             max_per_sector: Maximum securities per sector
         """
         super().__init__(name)
-        self.include_sectors = set(s.lower() for s in include_sectors) if include_sectors else None
-        self.exclude_sectors = set(s.lower() for s in exclude_sectors) if exclude_sectors else None
+        self.include_sectors = {s.lower() for s in include_sectors} if include_sectors else None
+        self.exclude_sectors = {s.lower() for s in exclude_sectors} if exclude_sectors else None
         self.max_per_sector = max_per_sector
 
     def _normalize_sector(self, sector: str) -> str:
@@ -344,7 +344,7 @@ class DividendAristocratsSelection(IUniverseSelectionModel):
     """
 
     # Well-known dividend aristocrats (sample list)
-    DIVIDEND_ARISTOCRATS = {
+    DIVIDEND_ARISTOCRATS: ClassVar[set] = {
         "JNJ", "PG", "KO", "PEP", "MCD", "MMM", "ABT", "ADP", "AFL",
         "APD", "BDX", "BEN", "CAH", "CINF", "CLX", "CTAS", "CVX",
         "DOV", "ECL", "ED", "EMR", "ESS", "FRT", "GD", "GPC", "GWW",
@@ -378,7 +378,7 @@ class SP500UniverseSelection(IUniverseSelectionModel):
     """
 
     # Sample S&P 500 list (top holdings by weight)
-    SP500_SAMPLE = {
+    SP500_SAMPLE: ClassVar[set] = {
         "AAPL", "MSFT", "AMZN", "NVDA", "GOOGL", "GOOG", "META", "BRK.B",
         "TSLA", "UNH", "XOM", "JNJ", "JPM", "V", "PG", "MA", "HD", "CVX",
         "MRK", "ABBV", "LLY", "PEP", "KO", "COST", "AVGO", "MCD", "TMO",

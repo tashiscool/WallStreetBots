@@ -34,6 +34,15 @@ def sync_database_company_stock(ticker):
     return stock, company
 
 
+def sync_stock_instance(*_args, **_kwargs):
+    """Legacy no-op compatibility shim.
+
+    StockInstance was removed from active models. This function is kept so
+    older imports/tests do not fail during module import.
+    """
+    return None
+
+
 def sync_alpaca(user):
     """Sync user related database data with Alpaca.
 
@@ -42,7 +51,7 @@ def sync_alpaca(user):
     user_details = {}
 
     if not hasattr(user, "credential"):
-        return user_details
+        return None
 
     from backend.tradingbot.apimanagers import AlpacaManager
 
@@ -50,13 +59,13 @@ def sync_alpaca(user):
 
     if not api.validate_api()[0]:
         print(api.validate_api()[1])
-        return user_details
+        return None
 
     # Get account information via AlpacaManager
     account = api.get_account()
     if not account:
         print("Failed to get account information")
-        return user_details
+        return None
 
     user_details["equity"] = str(round(float(account.equity), 2))
     user_details["buy_power"] = str(round(float(account.buying_power), 2))

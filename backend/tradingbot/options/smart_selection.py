@@ -82,8 +82,13 @@ class SelectionCriteria:
     target_delta_min: float = 0.15  # Minimum delta
     target_delta_max: float = 0.45  # Maximum delta
     max_premium_to_stock_ratio: float = 0.05  # Max 5% of stock price
-    max_bid_ask_spread_pct: float | None = None  # Optional override for max spread
-    min_premium_dollars: float | None = None  # Minimum premium in dollars
+    # Backward-compatible aliases used by production strategies
+    max_bid_ask_spread_pct: Decimal | None = None  # Optional override for max spread
+    min_premium_dollars: Decimal | float = 0  # Minimum premium in dollars
+
+    def __post_init__(self):
+        if self.max_bid_ask_spread_pct is not None:
+            self.max_spread_percentage = float(self.max_bid_ask_spread_pct)
 
 
 class SmartOptionsSelector:

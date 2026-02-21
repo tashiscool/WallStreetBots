@@ -7,7 +7,7 @@ Allows users to configure indicators, overlays, and chart layouts.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 import json
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -310,7 +310,7 @@ class PlotConfigurator:
     """
 
     # Theme configurations
-    THEMES = {
+    THEMES: ClassVar[dict] = {
         "dark": {
             "bg_color": "#1e1e1e",
             "paper_color": "#252525",
@@ -465,20 +465,20 @@ class PlotConfigurator:
             width=self.config.width,
             paper_bgcolor=theme["paper_color"],
             plot_bgcolor=theme["bg_color"],
-            font=dict(color=theme["text_color"]),
+            font={"color": theme["text_color"]},
             showlegend=True,
-            legend=dict(
-                bgcolor=theme["paper_color"],
-                bordercolor=theme["grid_color"],
-            ),
-            xaxis=dict(
-                gridcolor=theme["grid_color"],
-                zerolinecolor=theme["grid_color"],
-            ),
-            yaxis=dict(
-                gridcolor=theme["grid_color"],
-                zerolinecolor=theme["grid_color"],
-            ),
+            legend={
+                "bgcolor": theme["paper_color"],
+                "bordercolor": theme["grid_color"],
+            },
+            xaxis={
+                "gridcolor": theme["grid_color"],
+                "zerolinecolor": theme["grid_color"],
+            },
+            yaxis={
+                "gridcolor": theme["grid_color"],
+                "zerolinecolor": theme["grid_color"],
+            },
         )
 
         return fig
@@ -560,7 +560,7 @@ class PlotConfigurator:
                     y=self._data[ind.column],
                     name=ind.name,
                     mode="lines",
-                    line=dict(color=ind.color, width=ind.line_width),
+                    line={"color": ind.color, "width": ind.line_width},
                     opacity=ind.opacity,
                     fill=ind.fill,
                 )
@@ -570,7 +570,7 @@ class PlotConfigurator:
                     y=self._data[ind.column],
                     name=ind.name,
                     mode="markers",
-                    marker=dict(color=ind.color, size=5),
+                    marker={"color": ind.color, "size": 5},
                     opacity=ind.opacity,
                 )
             elif ind.plot_type == PlotType.BAR:
@@ -593,7 +593,7 @@ class PlotConfigurator:
                     name=ind.name,
                     mode="lines",
                     fill="tozeroy",
-                    line=dict(color=ind.color, width=ind.line_width),
+                    line={"color": ind.color, "width": ind.line_width},
                     opacity=ind.opacity,
                 )
             elif ind.plot_type == PlotType.HISTOGRAM:
@@ -623,11 +623,11 @@ class PlotConfigurator:
                     y=self._trades["entry_price"],
                     mode="markers",
                     name="Entry",
-                    marker=dict(
-                        symbol="triangle-up",
-                        size=markers.marker_size,
-                        color=markers.entry_color,
-                    ),
+                    marker={
+                        "symbol": "triangle-up",
+                        "size": markers.marker_size,
+                        "color": markers.entry_color,
+                    },
                     text=self._trades.get("symbol", ""),
                     hovertemplate="Entry<br>Price: %{y:.2f}<br>%{text}",
                 ),
@@ -651,11 +651,11 @@ class PlotConfigurator:
                     y=self._trades["exit_price"],
                     mode="markers",
                     name="Exit",
-                    marker=dict(
-                        symbol="triangle-down",
-                        size=markers.marker_size,
-                        color=colors,
-                    ),
+                    marker={
+                        "symbol": "triangle-down",
+                        "size": markers.marker_size,
+                        "color": colors,
+                    },
                     text=[
                         f"P/L: ${p:.2f}" if "profit" in self._trades.columns else ""
                         for p in self._trades.get("profit", [0] * len(self._trades))

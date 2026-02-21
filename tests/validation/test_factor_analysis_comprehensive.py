@@ -298,7 +298,7 @@ class TestAlphaFactorAnalyzer:
 
     def test_create_synthetic_factors_invalid_dates(self, analyzer):
         """Test synthetic factors with invalid dates."""
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             analyzer.create_synthetic_factors('invalid', '2023-12-31')
 
     def test_analyze_factor_loadings(self, analyzer):

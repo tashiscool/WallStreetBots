@@ -1,12 +1,20 @@
 from urllib.parse import urlencode
 
 # from datetime import date
-import alpaca_trade_api as api
+try:
+    from alpaca.trading.client import TradingClient
+    from alpaca.data.historical import StockHistoricalDataClient
+    from alpaca.data.requests import StockBarsRequest
+    from alpaca.data.timeframe import TimeFrame
+    ALPACA_AVAILABLE = True
+except ImportError:
+    ALPACA_AVAILABLE = False
 try:
     import plotly.express as px
     import plotly.graph_objects as go
     PLOTLY_AVAILABLE = True
-except ImportError:
+except Exception:
+    # Optional dependency tree (e.g., xarray) can fail at import-time.
     px = None
     go = None
     PLOTLY_AVAILABLE = False
@@ -26,6 +34,14 @@ def login(request):
         return redirect(dashboard)
     else:
         return render(request, "accounts / login.html")
+
+
+def _get_strategy_from_form(strategy_form):
+    """Support both dict and legacy scalar cleaned_data payloads."""
+    cleaned = strategy_form.cleaned_data
+    if isinstance(cleaned, dict):
+        return cleaned.get("strategy")
+    return cleaned
 
 
 @login_required()
@@ -123,12 +139,10 @@ def dashboard(request):
             )
 
         if "submit_strategy" in request.POST and strategy_form.is_valid():
-            # here for some reason form.cleaned_data changed from type dict to
-            # type tuple. I tried to find the reason but it didn't seem to caused by
-            # our code. Might be and django bug
-            strategy = strategy_form.cleaned_data
-            user.portfolio.strategy = strategy
-            user.portfolio.save()
+            strategy = _get_strategy_from_form(strategy_form)
+            if hasattr(user, "portfolio"):
+                user.portfolio.strategy = strategy
+                user.portfolio.save()
             return HttpResponseRedirect("/")
 
     graph = get_portfolio_chart(request)
@@ -153,12 +167,16 @@ def get_portfolio_chart(request):
         return
     API_KEY = user.credential.alpaca_id
     API_SECRET = user.credential.alpaca_key
-    BASE_URL = "https://paper-api.alpaca.markets"
-    alpaca = api.REST(
-        key_id=API_KEY, secret_key=API_SECRET, base_url=BASE_URL, api_version="v2"
-    )
-    portfolio_hist = alpaca.get_portfolio_history().df
-    portfolio_hist = portfolio_hist.reset_index()
+    if not ALPACA_AVAILABLE:
+        return ""
+    client = TradingClient(api_key=API_KEY, secret_key=API_SECRET, paper=True)
+    portfolio_hist = client.get_portfolio_history()
+    # Convert to DataFrame for plotting
+    import pandas as pd
+    portfolio_hist = pd.DataFrame({
+        'timestamp': portfolio_hist.timestamp,
+        'equity': portfolio_hist.equity,
+    })
     if not PLOTLY_AVAILABLE:
         return ""
 
@@ -174,14 +192,18 @@ def get_stock_chart(request, symbol):
 
     API_KEY = user.credential.alpaca_id
     API_SECRET = user.credential.alpaca_key
-    alpaca = api.REST(API_KEY, API_SECRET)
-    # Setting parameters before calling method
-    timeframe = "1Day"
-    start = "2021 - 01 - 01"
-    # today=date.today()
-    end = "2021 - 02 - 01"
-    # Retrieve daily bars for SPY in a dataframe and printing the first 5 rows
-    spy_bars = alpaca.get_bars(symbol, timeframe, start, end).df
+    if not ALPACA_AVAILABLE:
+        return ""
+    from datetime import datetime
+    data_client = StockHistoricalDataClient(api_key=API_KEY, secret_key=API_SECRET)
+    request = StockBarsRequest(
+        symbol_or_symbols=symbol,
+        timeframe=TimeFrame.Day,
+        start=datetime(2021, 1, 1),
+        end=datetime(2021, 2, 1),
+    )
+    bars = data_client.get_stock_bars(request)
+    spy_bars = bars.df
     if not PLOTLY_AVAILABLE:
         return ""
 
@@ -253,14 +275,10 @@ def orders(request):
             )
 
         if "submit_strategy" in request.POST and strategy_form.is_valid():
-            # here for some reason form.cleaned_data changed from type dict to
-            # type tuple. I tried to find the reason but it didn't seem to caused by
-            # our code. Might be and django bug
-            rebalance_strategy = strategy_form.cleaned_data[0]
-            optimization_strategy = strategy_form.cleaned_data[1]
-            user.portfolio.rebalancing_strategy = rebalance_strategy
-            user.portfolio.optimization_strategy = optimization_strategy
-            user.portfolio.save()
+            strategy = _get_strategy_from_form(strategy_form)
+            if hasattr(user, "portfolio"):
+                user.portfolio.strategy = strategy
+                user.portfolio.save()
             return HttpResponseRedirect("/")
     return render(
         request,
@@ -298,12 +316,10 @@ def positions(request):
             )
 
         if "submit_strategy" in request.POST and strategy_form.is_valid():
-            # here for some reason form.cleaned_data changed from type dict to
-            # type tuple. I tried to find the reason but it didn't seem to caused by
-            # our code. Might be and django bug
-            strategy = strategy_form.cleaned_data
-            user.portfolio.strategy = strategy
-            user.portfolio.save()
+            strategy = _get_strategy_from_form(strategy_form)
+            if hasattr(user, "portfolio"):
+                user.portfolio.strategy = strategy
+                user.portfolio.save()
             return HttpResponseRedirect("positions")
 
     return render(

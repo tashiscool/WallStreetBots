@@ -9,7 +9,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Optional
+from typing import ClassVar, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ class TradeExplainerService:
     """Service for generating trade explanations and finding similar trades."""
 
     # Signal descriptions for human-readable explanations
-    SIGNAL_DESCRIPTIONS = {
+    SIGNAL_DESCRIPTIONS: ClassVar[dict] = {
         'rsi': {
             'name': 'Relative Strength Index (RSI)',
             'oversold': 'RSI dropped to {value:.0f} (below {threshold:.0f}), indicating oversold conditions',

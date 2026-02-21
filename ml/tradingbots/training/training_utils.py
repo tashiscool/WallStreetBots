@@ -379,7 +379,7 @@ class ModelCheckpointer:
 
         try:
             import torch
-            return torch.load(path)
+            return torch.load(path, weights_only=False)
         except ImportError:
             return None
 

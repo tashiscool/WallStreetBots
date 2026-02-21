@@ -102,17 +102,17 @@ class Command(BaseCommand):
         if options['start_date']:
             try:
                 start_date = datetime.strptime(options['start_date'], '%Y-%m-%d').date()
-            except ValueError:
-                raise CommandError('Invalid start date format. Use YYYY-MM-DD.')
+            except ValueError as e:
+                raise CommandError('Invalid start date format. Use YYYY-MM-DD.') from e
         if options['end_date']:
             try:
                 end_date = datetime.strptime(options['end_date'], '%Y-%m-%d').date()
-            except ValueError:
-                raise CommandError('Invalid end date format. Use YYYY-MM-DD.')
+            except ValueError as e:
+                raise CommandError('Invalid end date format. Use YYYY-MM-DD.') from e
 
         service = ReportDeliveryService()
 
-        self.stdout.write(f"\nPDF Report Generation")
+        self.stdout.write("\nPDF Report Generation")
         self.stdout.write(f"{'=' * 50}")
         self.stdout.write(f"Report type: {report_type}")
         self.stdout.write(f"Strategy filter: {strategy_name or 'All strategies'}")
@@ -148,8 +148,8 @@ class Command(BaseCommand):
         """Generate a report for a single user."""
         try:
             user = User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            raise CommandError(f'User with ID {user_id} not found.')
+        except User.DoesNotExist as e:
+            raise CommandError(f'User with ID {user_id} not found.') from e
 
         self.stdout.write(f"User: {user.username} ({user.email or 'no email'})")
 
@@ -285,7 +285,7 @@ class Command(BaseCommand):
                 ))
                 logger.exception(f"Report generation/send failed for {user.username}")
 
-        self.stdout.write(f"\nSummary:")
+        self.stdout.write("\nSummary:")
         self.stdout.write(f"  Reports generated: {generated}")
         self.stdout.write(f"  Emails sent: {emailed}")
         self.stdout.write(f"  Errors: {errors}")

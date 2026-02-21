@@ -478,7 +478,7 @@ class MultiAssetTradingEnvironment:
         }
 
         # Portfolio-level state
-        self.positions: Dict[str, float] = {s: 0.0 for s in self.symbols}
+        self.positions: Dict[str, float] = dict.fromkeys(self.symbols, 0.0)
         self.capital = self.config.initial_capital
 
     def reset(self) -> Dict[str, np.ndarray]:

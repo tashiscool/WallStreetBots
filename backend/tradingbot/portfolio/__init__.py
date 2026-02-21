@@ -24,12 +24,12 @@ from .allocator import (
 )
 
 __all__ = [
-    "DriftRebalancer",
+    "AllocationResult",
+    "AllocationTarget",
     "DriftConfig",
-    "RebalanceOrder",
-    "RebalanceResult",
+    "DriftRebalancer",
     "DriftType",
     "PortfolioAllocator",
-    "AllocationTarget",
-    "AllocationResult",
+    "RebalanceOrder",
+    "RebalanceResult",
 ]

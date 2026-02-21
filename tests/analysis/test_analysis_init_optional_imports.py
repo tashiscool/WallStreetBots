@@ -2,7 +2,6 @@
 
 import importlib
 import sys
-import types
 from unittest import mock
 
 
@@ -41,3 +40,15 @@ def test_analysis_init_with_plotly_available():
     except ImportError:
         # Module may not be importable in test environment
         pass
+
+
+def test_analysis_init_exports_consistent_with_plot_configurator_availability():
+    """Verify PlotType export matches PLOT_CONFIGURATOR_AVAILABLE flag."""
+    import backend.tradingbot.analysis as analysis
+
+    if analysis.PLOT_CONFIGURATOR_AVAILABLE:
+        assert "PlotType" in analysis.__all__
+        assert hasattr(analysis, "PlotType")
+    else:
+        assert "PlotType" not in analysis.__all__
+        assert not hasattr(analysis, "PlotType")

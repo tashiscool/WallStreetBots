@@ -235,7 +235,7 @@ class FrameworkStrategy(BaseStrategy):
                 price=price,
                 quantity=abs(int(qty)),
                 timestamp=datetime.now(),
-                reasoning=f"Framework pipeline signal",
+                reasoning="Framework pipeline signal",
             ))
 
         return results

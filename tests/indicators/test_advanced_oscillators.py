@@ -19,8 +19,8 @@ def make_bars(n=30, start_price=100.0, volatility=2.0):
         o = price
         c = price + change
         h = max(o, c) + abs(np.random.randn())
-        l = min(o, c) - abs(np.random.randn())
-        bars.append(TradeBar(time=t + timedelta(days=i), open=o, high=h, low=l, close=c, volume=1000 + i * 10))
+        low = min(o, c) - abs(np.random.randn())
+        bars.append(TradeBar(time=t + timedelta(days=i), open=o, high=h, low=low, close=c, volume=1000 + i * 10))
         price = c
     return bars
 

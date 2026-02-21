@@ -7,7 +7,7 @@ rank history tracking, and hypothetical portfolio calculations.
 import logging
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Dict, List, Optional, Any, Tuple
+from typing import ClassVar, Dict, List, Optional, Any, Tuple
 
 from django.db.models import Avg, Max, Min, F, Q, Count
 from django.contrib.auth.models import User
@@ -24,7 +24,7 @@ class LeaderboardService:
     """
 
     # Available strategies in the system
-    STRATEGY_REGISTRY = {
+    STRATEGY_REGISTRY: ClassVar[dict] = {
         'wsb_dip_bot': {
             'name': 'WSB Dip Bot',
             'description': 'Momentum-based dip buying on volatile stocks',
@@ -100,7 +100,7 @@ class LeaderboardService:
     }
 
     # Metrics available for ranking
-    RANKING_METRICS = {
+    RANKING_METRICS: ClassVar[dict] = {
         'sharpe_ratio': {'name': 'Sharpe Ratio', 'higher_better': True},
         'sortino_ratio': {'name': 'Sortino Ratio', 'higher_better': True},
         'total_return_pct': {'name': 'Total Return %', 'higher_better': True},
@@ -112,7 +112,7 @@ class LeaderboardService:
     }
 
     # Period mappings
-    PERIOD_DAYS = {
+    PERIOD_DAYS: ClassVar[dict] = {
         '1W': 7,
         '1M': 30,
         '3M': 90,

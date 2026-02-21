@@ -210,7 +210,7 @@ class ReportDeliveryService:
 
             except Exception as e:
                 logger.exception(f"Error generating weekly report for {user.username}")
-                results['errors'].append(f"User {user.username}: {str(e)}")
+                results['errors'].append(f"User {user.username}: {e!s}")
 
         logger.info(
             f"Weekly reports: {results['emails_sent']}/{results['total_users']} sent, "

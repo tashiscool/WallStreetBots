@@ -443,7 +443,7 @@ class SpreadExecutor:
 
     async def _rollback_partial_fill(self, spread_order: SpreadOrder) -> None:
         """Rollback partially filled spread by closing filled legs."""
-        logger.warning(f"Rolling back partial fill for spread order")
+        logger.warning("Rolling back partial fill for spread order")
 
         for leg_order in spread_order.leg_orders:
             if leg_order.status == OrderStatus.FILLED:

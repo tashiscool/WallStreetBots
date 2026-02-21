@@ -648,7 +648,7 @@ class SpreadAdjustmentEngine:
         if len(legs) < 2:
             return None
 
-        short_leg = next((l for l in legs if l.contracts < 0), None)
+        short_leg = next((leg for leg in legs if leg.contracts < 0), None)
         if not short_leg:
             return None
 

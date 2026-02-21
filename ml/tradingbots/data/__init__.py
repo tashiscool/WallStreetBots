@@ -10,8 +10,8 @@ from .market_data_fetcher import (
 )
 
 __all__ = [
+    "RECOMMENDED_HYPERPARAMETERS",
     "DataConfig",
     "MarketDataFetcher",
     "MultiAssetDataFetcher",
-    "RECOMMENDED_HYPERPARAMETERS",
 ]

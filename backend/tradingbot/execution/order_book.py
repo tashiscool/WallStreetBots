@@ -274,8 +274,8 @@ class OrderBook:
 
         # Depth within 5 levels
         n_levels = min(5, len(self._bids), len(self._asks))
-        depth_bid = sum(l.size for l in self._bids[:n_levels])
-        depth_ask = sum(l.size for l in self._asks[:n_levels])
+        depth_bid = sum(level.size for level in self._bids[:n_levels])
+        depth_ask = sum(level.size for level in self._asks[:n_levels])
         total_depth = depth_bid + depth_ask
         depth_ratio = depth_bid / total_depth if total_depth > 0 else 0.5
 
@@ -290,8 +290,8 @@ class OrderBook:
         weighted_imbalance = (w_bid - w_ask) / w_total if w_total > 0 else 0.0
 
         # VWAP of bid/ask sides (5 levels)
-        bid_value = sum(l.price * l.size for l in self._bids[:n_levels])
-        ask_value = sum(l.price * l.size for l in self._asks[:n_levels])
+        bid_value = sum(level.price * level.size for level in self._bids[:n_levels])
+        ask_value = sum(level.price * level.size for level in self._asks[:n_levels])
         vwap_bid = bid_value / depth_bid if depth_bid > 0 else (snap.best_bid or mid)
         vwap_ask = ask_value / depth_ask if depth_ask > 0 else (snap.best_ask or mid)
 
@@ -414,12 +414,12 @@ class OrderBook:
         threshold = mid * (bps_from_mid / 10000.0)
 
         bid_liq = sum(
-            l.size for l in self._bids
-            if mid - l.price <= threshold
+            level.size for level in self._bids
+            if mid - level.price <= threshold
         )
         ask_liq = sum(
-            l.size for l in self._asks
-            if l.price - mid <= threshold
+            level.size for level in self._asks
+            if level.price - mid <= threshold
         )
 
         return {
@@ -441,8 +441,8 @@ class OrderBook:
         # Compare depth changes over recent snapshots
         depths = []
         for snap in list(self._snapshots)[-10:]:
-            bid_depth = sum(l.size for l in snap.bids[:5])
-            ask_depth = sum(l.size for l in snap.asks[:5])
+            bid_depth = sum(level.size for level in snap.bids[:5])
+            ask_depth = sum(level.size for level in snap.asks[:5])
             depths.append(bid_depth + ask_depth)
 
         if not depths or max(depths) == 0:

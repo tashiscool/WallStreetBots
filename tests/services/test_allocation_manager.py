@@ -487,7 +487,7 @@ class TestInitializeAllocations:
 
         allocations = StrategyAllocationLimit.objects.filter(user=user)
         assert allocations.count() == 2
-        strategy_names = set(a.strategy_name for a in allocations)
+        strategy_names = {a.strategy_name for a in allocations}
         assert strategy_names == {'index-baseline', 'wheel'}
 
     def test_initialize_allocations_updates_existing(self, service, allocation_limit, user):

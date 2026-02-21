@@ -688,7 +688,7 @@ class SignalCaptureMixin:
     def capture_entry_reasoning(
         self,
         symbol: str,
-        custom_summary: str = None,
+        custom_summary: str | None = None,
     ) -> Dict[str, Any]:
         """Capture structured entry reasoning from current signals.
 
@@ -734,7 +734,7 @@ class SignalCaptureMixin:
         self,
         trigger: str,
         entry_timestamp=None,
-        custom_summary: str = None,
+        custom_summary: str | None = None,
     ) -> Dict[str, Any]:
         """Capture structured exit reasoning.
 
@@ -930,8 +930,8 @@ class SignalCaptureMixin:
         trade_id: str,
         exit_price: float,
         trigger: str,
-        pnl_amount: float = None,
-        pnl_percent: float = None,
+        pnl_amount: float | None = None,
+        pnl_percent: float | None = None,
     ) -> Optional[Any]:
         """Record trade exit with reasoning.
 

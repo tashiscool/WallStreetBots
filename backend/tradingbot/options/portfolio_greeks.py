@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Callable
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Callable
 import logging
 import math
 
@@ -209,7 +209,7 @@ class PortfolioGreeksCalculator:
     """
 
     # Default beta values for common underlyings
-    DEFAULT_BETAS = {
+    DEFAULT_BETAS: ClassVar[dict] = {
         "SPY": 1.0,
         "QQQ": 1.1,
         "IWM": 1.2,

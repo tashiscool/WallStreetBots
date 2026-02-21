@@ -30,10 +30,9 @@ def mock_integration_manager():
     manager.get_portfolio_value = AsyncMock(return_value=Decimal("100000"))
     manager.get_position_value = AsyncMock(return_value=Decimal("40000"))
 
-    # Mock execute_trade to return proper result
+    # Mock execute_trade to return proper result with actual enum
     mock_result = Mock()
-    mock_result.status = Mock()
-    mock_result.status.value = "FILLED"
+    mock_result.status = OrderStatus.FILLED
     mock_result.error_message = None
     manager.execute_trade = AsyncMock(return_value=mock_result)
 
@@ -439,6 +438,8 @@ class TestCreateRebalanceSignal:
     async def test_create_sell_signal(self, strategy, mock_integration_manager):
         """Test creating sell signal for rebalancing."""
         current_allocation = 0.90  # Above target
+        # Override position value so trade_amount = target(80000) - current(90000) < 0
+        mock_integration_manager.get_position_value = AsyncMock(return_value=Decimal("90000"))
 
         signal = await strategy._create_rebalance_signal(current_allocation)
 

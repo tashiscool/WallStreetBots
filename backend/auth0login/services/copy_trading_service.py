@@ -47,8 +47,8 @@ class CopyTradingService:
         """Lazy-load the execution client."""
         if self._execution_client is None:
             try:
-                from backend.tradingbot.execution.interfaces import ExecutionClient
-                self._execution_client = ExecutionClient()
+                from backend.tradingbot.execution.interfaces import InMemoryExecutionClient
+                self._execution_client = InMemoryExecutionClient()
             except Exception as e:
                 logger.warning(f"Could not initialize execution client: {e}")
         return self._execution_client
@@ -179,8 +179,8 @@ class CopyTradingService:
         # Get provider
         try:
             provider = SignalProvider.objects.get(id=provider_id)
-        except SignalProvider.DoesNotExist:
-            raise ValueError(f"Signal provider {provider_id} not found")
+        except SignalProvider.DoesNotExist as e:
+            raise ValueError(f"Signal provider {provider_id} not found") from e
 
         # Validate: provider must be active
         if provider.status != 'active':

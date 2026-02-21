@@ -623,14 +623,12 @@ class TestGlobalServiceInstance:
 
     def test_global_service_exists(self):
         """Test that global service instance exists."""
-        from backend.auth0login.dashboard_service import dashboard_service
 
         assert dashboard_service is not None
         assert isinstance(dashboard_service, DashboardService)
 
     def test_global_service_is_singleton(self):
         """Test that global service is the same as new instance."""
-        from backend.auth0login.dashboard_service import dashboard_service
 
         new_instance = DashboardService()
 

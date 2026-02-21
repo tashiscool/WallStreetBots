@@ -60,18 +60,18 @@ def list_portfolio_models() -> Dict[str, str]:
 
 
 __all__ = [
+    'PORTFOLIO_MODELS',
+    'BlackLittermanPortfolioModel',
     'EqualWeightPortfolioModel',
-    'InsightWeightedPortfolioModel',
-    'RiskParityPortfolioModel',
-    'KellyPortfolioModel',
-    'SectorWeightedPortfolioModel',
-    'MinVariancePortfolioModel',
-    'MaxDiversificationPortfolioModel',
     'HierarchicalRiskParityModel',
+    'InsightWeightedPortfolioModel',
+    'KellyPortfolioModel',
+    'MaxDiversificationPortfolioModel',
     'MaxSharpePortfolioModel',
     'MeanVariancePortfolioModel',
-    'BlackLittermanPortfolioModel',
-    'PORTFOLIO_MODELS',
+    'MinVariancePortfolioModel',
+    'RiskParityPortfolioModel',
+    'SectorWeightedPortfolioModel',
     'get_portfolio_model',
     'list_portfolio_models',
 ]

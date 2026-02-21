@@ -218,7 +218,7 @@ class MarketContextService:
         if day >= 5:  # Saturday or Sunday
             status = MarketStatus.CLOSED
             days_until_monday = 7 - day
-            next_event = f"Market opens Monday at 9:30 AM ET"
+            next_event = "Market opens Monday at 9:30 AM ET"
         # Pre-market
         elif pre_market_start <= total_minutes < market_open:
             status = MarketStatus.PRE_MARKET
@@ -283,7 +283,7 @@ class MarketContextService:
             import yfinance as yf
 
             # Fetch indices
-            symbols = list(INDEX_SYMBOLS.keys()) + ['^VIX']
+            symbols = [*list(INDEX_SYMBOLS.keys()), '^VIX']
             tickers = yf.Tickers(' '.join(symbols))
 
             for symbol in INDEX_SYMBOLS.keys():
@@ -569,7 +569,7 @@ class MarketContextService:
         self.cache.set(cache_key, events)
         return events
 
-    def get_full_context(self, holding_symbols: list[str] = None) -> dict:
+    def get_full_context(self, holding_symbols: list[str] | None = None) -> dict:
         """
         Get complete market context for dashboard.
 

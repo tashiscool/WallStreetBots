@@ -1,16 +1,20 @@
 from urllib.parse import urlencode
 
 # from datetime import date
-import alpaca_trade_api as api
+try:
+    from alpaca.trading.client import TradingClient
+    from alpaca.data.historical import StockHistoricalDataClient
+    from alpaca.data.requests import StockBarsRequest
+    from alpaca.data.timeframe import TimeFrame
+    ALPACA_AVAILABLE = True
+except ImportError:
+    ALPACA_AVAILABLE = False
 try:
     import plotly.express as px
     import plotly.graph_objects as go
     PLOTLY_AVAILABLE = True
-<<<<<<< ours
 except Exception:
-=======
-except ImportError:
->>>>>>> theirs
+    # Optional dependency tree (e.g., xarray) can fail at import-time.
     px = None
     go = None
     PLOTLY_AVAILABLE = False
@@ -163,12 +167,16 @@ def get_portfolio_chart(request):
         return
     API_KEY = user.credential.alpaca_id
     API_SECRET = user.credential.alpaca_key
-    BASE_URL = "https://paper-api.alpaca.markets"
-    alpaca = api.REST(
-        key_id=API_KEY, secret_key=API_SECRET, base_url=BASE_URL, api_version="v2"
-    )
-    portfolio_hist = alpaca.get_portfolio_history().df
-    portfolio_hist = portfolio_hist.reset_index()
+    if not ALPACA_AVAILABLE:
+        return ""
+    client = TradingClient(api_key=API_KEY, secret_key=API_SECRET, paper=True)
+    portfolio_hist = client.get_portfolio_history()
+    # Convert to DataFrame for plotting
+    import pandas as pd
+    portfolio_hist = pd.DataFrame({
+        'timestamp': portfolio_hist.timestamp,
+        'equity': portfolio_hist.equity,
+    })
     if not PLOTLY_AVAILABLE:
         return ""
 
@@ -184,14 +192,18 @@ def get_stock_chart(request, symbol):
 
     API_KEY = user.credential.alpaca_id
     API_SECRET = user.credential.alpaca_key
-    alpaca = api.REST(API_KEY, API_SECRET)
-    # Setting parameters before calling method
-    timeframe = "1Day"
-    start = "2021 - 01 - 01"
-    # today=date.today()
-    end = "2021 - 02 - 01"
-    # Retrieve daily bars for SPY in a dataframe and printing the first 5 rows
-    spy_bars = alpaca.get_bars(symbol, timeframe, start, end).df
+    if not ALPACA_AVAILABLE:
+        return ""
+    from datetime import datetime
+    data_client = StockHistoricalDataClient(api_key=API_KEY, secret_key=API_SECRET)
+    request = StockBarsRequest(
+        symbol_or_symbols=symbol,
+        timeframe=TimeFrame.Day,
+        start=datetime(2021, 1, 1),
+        end=datetime(2021, 2, 1),
+    )
+    bars = data_client.get_stock_bars(request)
+    spy_bars = bars.df
     if not PLOTLY_AVAILABLE:
         return ""
 

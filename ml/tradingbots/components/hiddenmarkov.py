@@ -1,10 +1,92 @@
 from datetime import datetime, timedelta
 
-import alpaca_trade_api as tradeapi
 import numpy as np
 import pandas as pd
-from alpaca_trade_api.rest import TimeFrame
+
+try:
+    import alpaca_trade_api as tradeapi
+except ImportError:
+    class _TradeApiPlaceholder:
+        REST = None
+
+    tradeapi = _TradeApiPlaceholder()
+
+try:
+    from alpaca.data.historical import StockHistoricalDataClient
+    from alpaca.data.requests import StockBarsRequest, StockLatestTradeRequest
+    from alpaca.data.timeframe import TimeFrame
+    from alpaca.trading.client import TradingClient
+    ALPACA_AVAILABLE = True
+except ImportError:
+    ALPACA_AVAILABLE = False
+
+    class TimeFrame:
+        Minute = "1Min"
+        Hour = "1Hour"
+        Day = "1Day"
 from hmmlearn import hmm
+
+
+class _BarsCompatResult:
+    def __init__(self, df):
+        self.df = df
+
+
+class _TradeCompatResult:
+    def __init__(self, price):
+        self._raw = {"price": price}
+        self.price = price
+
+
+class _AlpacaPyRESTCompat:
+    """Small compatibility adapter that mimics alpaca_trade_api.REST methods."""
+
+    def __init__(self, trading_client, data_client):
+        self._trading_client = trading_client
+        self._data_client = data_client
+
+    @staticmethod
+    def _normalize_timeframe(timestep):
+        if timestep in (TimeFrame.Day, "Day", "1Day"):
+            return TimeFrame.Day
+        if timestep in (TimeFrame.Hour, "Hour", "1Hour"):
+            return TimeFrame.Hour
+        return TimeFrame.Minute
+
+    @staticmethod
+    def _normalize_datetime(value):
+        if isinstance(value, datetime):
+            return value
+        if isinstance(value, str):
+            try:
+                return datetime.fromisoformat(value.replace("Z", "+00:00"))
+            except ValueError:
+                return datetime.strptime(value, "%Y-%m-%d")
+        return value
+
+    def get_bars(self, symbol, timestep, start, end, adjustment="all"):
+        request = StockBarsRequest(
+            symbol_or_symbols=symbol,
+            timeframe=self._normalize_timeframe(timestep),
+            start=self._normalize_datetime(start),
+            end=self._normalize_datetime(end),
+            adjustment=adjustment,
+        )
+        bars = self._data_client.get_stock_bars(request)
+        return _BarsCompatResult(bars.df)
+
+    def get_last_trade(self, symbol):
+        request = StockLatestTradeRequest(symbol_or_symbols=symbol)
+        trade = self._data_client.get_stock_latest_trade(request)
+        if isinstance(trade, dict):
+            item = trade.get(symbol)
+            if item is None and trade:
+                item = next(iter(trade.values()))
+            return _TradeCompatResult(getattr(item, "price", None))
+        return _TradeCompatResult(getattr(trade, "price", None))
+
+    def get_clock(self):
+        return self._trading_client.get_clock()
 
 
 class APImanager:  # API manager for Alpaca
@@ -13,7 +95,29 @@ class APImanager:  # API manager for Alpaca
         self.ACCOUNT_URL = f"{self.BASE_URL}/v2/account"
         self.API_KEY = API_KEY
         self.SECRET_KEY = SECRET_KEY
-        self.api = tradeapi.REST(API_KEY, SECRET_KEY, self.BASE_URL, api_version="v2")
+        self.api = None
+        self.trading_client = None
+        self.data_client = None
+
+        legacy_rest = getattr(tradeapi, "REST", None)
+        if callable(legacy_rest):
+            self.api = legacy_rest(
+                API_KEY,
+                SECRET_KEY,
+                self.BASE_URL,
+                api_version="v2",
+            )
+        elif ALPACA_AVAILABLE:
+            self.trading_client = TradingClient(
+                api_key=API_KEY, secret_key=SECRET_KEY, paper=True
+            )
+            self.data_client = StockHistoricalDataClient(
+                api_key=API_KEY, secret_key=SECRET_KEY
+            )
+            self.api = _AlpacaPyRESTCompat(
+                trading_client=self.trading_client,
+                data_client=self.data_client,
+            )
 
     def get_bar(
         self, symbol, timestep, start, end, price_type="close", adjustment="all"
@@ -32,19 +136,38 @@ class APImanager:  # API manager for Alpaca
           - a list of time associated with each price
         """
         try:
+            if self.api is None:
+                raise RuntimeError("No Alpaca client available")
             bars = self.api.get_bars(
                 symbol, timestep, start, end, adjustment=adjustment
             ).df
             if bars.empty:
                 return [], []
-            # print(bars)
             bar_t = list(bars.index)[::-1]
             bar_prices = bars[price_type].tolist()[
                 ::-1
             ]  # bars is price data in time step from latest to oldest
-            return bar_prices, [t.to_pydatetime() for t in bar_t]
+            return bar_prices, [
+                t.to_pydatetime() if hasattr(t, "to_pydatetime") else t
+                for t in bar_t
+            ]
         except Exception as e:
             return "Failed to get bars from Alpaca: " + str(e)
+
+    def get_bars_df(self, symbol, timestep, start, end, adjustment="all"):
+        """Get bars as a DataFrame (used by DataManager)."""
+        try:
+            if self.api is None:
+                raise RuntimeError("No Alpaca client available")
+            return self.api.get_bars(
+                symbol,
+                timestep,
+                start,
+                end,
+                adjustment=adjustment,
+            ).df
+        except Exception:
+            return pd.DataFrame()
 
     def get_price(self, symbol):
         """Get get the current price of a stock.
@@ -58,27 +181,24 @@ class APImanager:  # API manager for Alpaca
         Note now the current price is based on last trade
         """
         try:
-            bar = self.api.get_last_trade(symbol)
-            price = bar._raw["price"]
-            return price
+            if self.api is None:
+                raise RuntimeError("No Alpaca client available")
+            trade = self.api.get_last_trade(symbol)
+            if hasattr(trade, "_raw") and isinstance(trade._raw, dict):
+                return trade._raw.get("price")
+            return getattr(trade, "price", None)
         except Exception as e:
             return "Failed to get price from Alpaca: " + str(e)
 
     def market_close(self):
         """Checks if market closes.
 
-        Args:
-          t: the time to check if the market is closed
-          if no argument is passed, check if the market is currently open or closed
-
         Returns:
           True / False
-
-        To be completed
         """
-        api = tradeapi.REST()
-        clock = api.get_clock()
-
+        if self.api is None:
+            return False
+        clock = self.api.get_clock()
         return bool(clock.is_open)
 
 
@@ -126,18 +246,20 @@ class DataManager:
             ).date() + timedelta(days=1)
             str_start_date_open = start_date_open.strftime("%Y-%m-%d")
             str_end_date_open = end_date_open.strftime("%Y-%m-%d")
-            df = self.api.api.get_bars(
+            df = self.api.get_bars_df(
                 self.ticker,
                 TimeFrame.Day,
                 str_start_date_open,
                 str_end_date_open,
                 adjustment=adjustment,
-            ).df
+            )
             df = _normalize_bars(df, "open")  # get data
 
-            df["timestamp"] = df.index
-            df["datetime"] = pd.to_datetime(df["timestamp"])
+            df["timestamp"] = pd.to_datetime(df.index, errors="coerce")
+            df["datetime"] = pd.to_datetime(df["timestamp"], errors="coerce")
             df["date"] = df["timestamp"].dt.date  # get date column
+            if df.empty:
+                return df
 
             true_start_date = max(
                 datetime.strptime(str_start_date_open, "%Y-%m-%d").date(),
@@ -153,18 +275,20 @@ class DataManager:
             ]
             return true_df
         else:
-            df = self.api.api.get_bars(
+            df = self.api.get_bars_df(
                 self.ticker,
                 TimeFrame.Minute,
                 self.start_date,
                 self.end_date,
                 adjustment=adjustment,
-            ).df
+            )
             df = _normalize_bars(df, "close")  # get data
 
-            df["timestamp"] = df.index
-            df["datetime"] = pd.to_datetime(df["timestamp"])
+            df["timestamp"] = pd.to_datetime(df.index, errors="coerce")
+            df["datetime"] = pd.to_datetime(df["timestamp"], errors="coerce")
             df["date"] = df["timestamp"].dt.date  # get date column
+            if df.empty:
+                return df
 
             true_start_date = max(
                 datetime.strptime(self.start_date, "%Y-%m-%d").date(),

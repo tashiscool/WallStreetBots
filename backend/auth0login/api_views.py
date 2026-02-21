@@ -8,11 +8,8 @@ import asyncio
 import json
 import logging
 import threading
-<<<<<<< ours
 from datetime import datetime
 
-=======
->>>>>>> theirs
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -1172,7 +1169,6 @@ def performance_vs_benchmark(request):
         # In a real implementation, this would come from actual portfolio history
         portfolio_values = _get_portfolio_history(request.user, start_date, end_date)
 
-<<<<<<< ours
         comparison_payload: dict[str, object] | None = None
         compare_performance = getattr(benchmark_service, 'compare_performance', None)
         if callable(compare_performance):
@@ -1185,41 +1181,18 @@ def performance_vs_benchmark(request):
                 comparison_payload = legacy_payload
 
         if comparison_payload is None:
-=======
-        # Get comparison data
-        compare_method = getattr(benchmark_service, 'compare_performance', None)
-        if callable(compare_method):
-            comparison_data = compare_method(
-                user=request.user,
-                benchmark=benchmark,
-                period=period,
-            )
-        else:
->>>>>>> theirs
             comparison_data = benchmark_service.get_comparison_data(
                 portfolio_values=portfolio_values,
                 start_date=start_date,
                 end_date=end_date,
                 benchmark=benchmark,
             )
-<<<<<<< ours
             comparison_payload = _to_json_compatible(comparison_data)
 
         if not isinstance(comparison_payload, dict):
             comparison_payload = {'comparison': comparison_payload}
 
         return JsonResponse(comparison_payload)
-=======
-
-        if isinstance(comparison_data, dict):
-            payload = comparison_data
-        elif hasattr(comparison_data, 'to_dict') and callable(comparison_data.to_dict):
-            payload = comparison_data.to_dict()
-        else:
-            payload = {'comparison': comparison_data}
-
-        return JsonResponse(payload)
->>>>>>> theirs
 
     except Exception as e:
         logger.error(f"Error getting benchmark comparison: {e}")
@@ -1516,7 +1489,6 @@ def trade_explanation(request, trade_id: str):
                 'message': f'Trade not found: {trade_id}'
             }, status=404)
 
-<<<<<<< ours
         if hasattr(explanation, 'to_dict') and callable(explanation.to_dict):
             explanation_dict = _to_json_compatible(explanation.to_dict())
         else:
@@ -1549,37 +1521,6 @@ def trade_explanation(request, trade_id: str):
                 'risk_assessment': _to_json_compatible(getattr(explanation, 'risk_assessment', {})),
                 'similar_trades_summary': _to_json_compatible(getattr(explanation, 'similar_trades_summary', {})),
                 'timestamp': timestamp.isoformat() if hasattr(timestamp, 'isoformat') else timestamp,
-=======
-        if isinstance(explanation, dict):
-            explanation_dict = explanation
-        elif hasattr(explanation, 'to_dict') and callable(explanation.to_dict):
-            explanation_dict = explanation.to_dict()
-        else:
-            signal_explanations = []
-            for se in getattr(explanation, 'signal_explanations', []) or []:
-                signal_explanations.append({
-                    'signal_name': getattr(se, 'signal_name', ''),
-                    'triggered': bool(getattr(se, 'triggered', False)),
-                    'value': getattr(se, 'value', None),
-                    'threshold': getattr(se, 'threshold', None),
-                    'description': getattr(se, 'description', ''),
-                    'impact': getattr(se, 'impact', ''),
-                })
-            explanation_dict = {
-                'trade_id': getattr(explanation, 'trade_id', trade_id),
-                'symbol': getattr(explanation, 'symbol', ''),
-                'direction': getattr(explanation, 'direction', ''),
-                'strategy_name': getattr(explanation, 'strategy_name', ''),
-                'entry_price': getattr(explanation, 'entry_price', None),
-                'quantity': getattr(explanation, 'quantity', None),
-                'confidence_score': getattr(explanation, 'confidence_score', None),
-                'summary': getattr(explanation, 'summary', getattr(explanation, 'reason', '')),
-                'signal_explanations': signal_explanations,
-                'key_factors': getattr(explanation, 'key_factors', []),
-                'risk_assessment': getattr(explanation, 'risk_assessment', {}),
-                'similar_trades_summary': getattr(explanation, 'similar_trades_summary', {}),
-                'timestamp': getattr(explanation, 'timestamp', None),
->>>>>>> theirs
             }
 
         return JsonResponse({
@@ -1609,7 +1550,6 @@ def trade_signals(request, trade_id: str):
     from .services.trade_explainer import trade_explainer_service
 
     try:
-<<<<<<< ours
         get_signal_snapshot = getattr(trade_explainer_service, 'get_signal_snapshot', None)
         if callable(get_signal_snapshot):
             snapshot = get_signal_snapshot(trade_id)
@@ -1624,14 +1564,6 @@ def trade_signals(request, trade_id: str):
                 })
 
         viz_data = trade_explainer_service.get_signal_visualization_data(trade_id)
-=======
-        get_snapshot = getattr(trade_explainer_service, 'get_signal_snapshot', None)
-        if callable(get_snapshot):
-            viz_data = get_snapshot(trade_id)
-        else:
-            get_viz = getattr(trade_explainer_service, 'get_signal_visualization_data', None)
-            viz_data = get_viz(trade_id) if callable(get_viz) else None
->>>>>>> theirs
 
         if viz_data is None:
             return JsonResponse({
@@ -1703,7 +1635,6 @@ def trade_similar(request, trade_id: str):
             min_similarity=min_similarity
         )
 
-<<<<<<< ours
         serialized_trades = []
         for trade in similar_trades:
             if hasattr(trade, 'to_dict') and callable(trade.to_dict):
@@ -1728,60 +1659,11 @@ def trade_similar(request, trade_id: str):
         pnl_values = [float(t.get('pnl_percent', 0) or 0) for t in serialized_trades]
         avg_pnl = sum(pnl_values) / total if total else 0
         win_rate = (profits / total * 100) if total else 0
-=======
-        # Calculate aggregate stats
-        pnl_values = []
-        profits = 0
-        losses = 0
-        for t in similar_trades or []:
-            if hasattr(t, 'to_dict') and callable(t.to_dict):
-                item = t.to_dict() or {}
-                if not isinstance(item, dict):
-                    item = {}
-                outcome = item.get('outcome')
-                pnl = item.get('pnl_percent')
-            else:
-                outcome = getattr(t, 'outcome', None)
-                pnl = getattr(t, 'pnl_percent', None)
-
-            if outcome == 'profit':
-                profits += 1
-            elif outcome == 'loss':
-                losses += 1
-
-            if isinstance(pnl, (int, float)):
-                pnl_values.append(float(pnl))
-
-        total = len(similar_trades or [])
-        avg_pnl = (sum(pnl_values) / len(pnl_values)) if pnl_values else 0
-        win_rate = (profits / total * 100) if total else 0
-
-        serialized_similar = []
-        for t in similar_trades:
-            if hasattr(t, 'to_dict') and callable(t.to_dict):
-                item = t.to_dict()
-                if isinstance(item, dict):
-                    serialized_similar.append(item)
-                    continue
-            serialized_similar.append({
-                'trade_id': getattr(t, 'trade_id', None),
-                'symbol': getattr(t, 'symbol', None),
-                'similarity_score': getattr(t, 'similarity_score', None),
-                'outcome': getattr(t, 'outcome', None),
-                'pnl_percent': getattr(t, 'pnl_percent', None),
-                'entry_date': getattr(t, 'entry_date', None),
-                'key_signals_matched': getattr(t, 'key_signals_matched', []),
-            })
->>>>>>> theirs
 
         return JsonResponse({
             'status': 'success',
             'trade_id': trade_id,
-<<<<<<< ours
             'similar_trades': serialized_trades,
-=======
-            'similar_trades': serialized_similar,
->>>>>>> theirs
             'aggregate_stats': {
                 'total_similar': total,
                 'profitable': profits,
@@ -2561,9 +2443,7 @@ def circuit_breaker_advance(request, event_id):
 
 @login_required
 @require_http_methods(["POST"])
-<<<<<<< ours
-=======
-def circuit_breaker_reset(request, event_id):
+def circuit_breaker_event_reset(request, event_id):
     """
     Fully reset a circuit breaker event.
 
@@ -2612,7 +2492,6 @@ def circuit_breaker_reset(request, event_id):
 
 @login_required
 @require_http_methods(["POST"])
->>>>>>> theirs
 def circuit_breaker_early_recovery(request, event_id):
     """
     Request early recovery with justification.
@@ -2728,7 +2607,6 @@ def market_context(request):
         except Exception as e:
             logger.debug(f"Could not fetch holdings for market context: {e}")
 
-<<<<<<< ours
         # Primary market regime signal used by the UI/tests.
         overview = service.get_market_overview()
         context: dict[str, object] = {}
@@ -2747,21 +2625,6 @@ def market_context(request):
             context.update(overview)
         else:
             context['overview'] = overview
-=======
-        # Compose context from explicit service calls so failures surface
-        # consistently and tests can target individual provider methods.
-        overview = service.get_market_overview()
-        sectors = service.get_sector_performance()
-        holdings_events = service.get_holdings_events(holding_symbols)
-        economic_calendar = service.get_economic_calendar()
-
-        context = {
-            'overview': overview if isinstance(overview, dict) else {},
-            'sectors': sectors if isinstance(sectors, (dict, list)) else {},
-            'holdings_events': holdings_events if isinstance(holdings_events, (dict, list)) else [],
-            'economic_calendar': economic_calendar if isinstance(economic_calendar, (dict, list)) else {},
-        }
->>>>>>> theirs
 
         return JsonResponse({
             'status': 'success',
@@ -3572,7 +3435,6 @@ def user_profile(request):
 
     try:
         service = get_user_profile_service(request.user)
-<<<<<<< ours
         if hasattr(service, 'get_profile'):
             profile = service.get_profile()
         else:
@@ -3581,24 +3443,6 @@ def user_profile(request):
         return JsonResponse({
             'status': 'success',
             'profile': _to_json_compatible(profile),
-=======
-        get_profile = getattr(service, 'get_profile', None)
-        if callable(get_profile):
-            profile = get_profile()
-        else:
-            profile = service.get_or_create_profile()
-
-        if isinstance(profile, dict):
-            profile_payload = profile
-        elif hasattr(profile, 'to_dict') and callable(profile.to_dict):
-            profile_payload = profile.to_dict()
-        else:
-            profile_payload = {}
-
-        return JsonResponse({
-            'status': 'success',
-            'profile': profile_payload,
->>>>>>> theirs
         })
 
     except Exception as e:
@@ -3631,48 +3475,20 @@ def update_user_profile(request):
         service = get_user_profile_service(request.user)
         update_result = service.update_profile(data)
 
-<<<<<<< ours
         if isinstance(update_result, tuple) and len(update_result) == 2:
             success, message = update_result
             profile = service.get_profile() if success else None
-        else:
-            # Backward compatibility: some implementations return profile/result directly.
-            success = True
-            message = 'Profile updated successfully'
-            profile = update_result
 
-        if success:
-            return JsonResponse({
-                'status': 'success',
-                'message': message,
-                'profile': _to_json_compatible(profile),
-=======
-        if isinstance(update_result, tuple):
-            success, message = update_result
-            profile_data = None
-            if success:
-                profile = service.get_profile()
-                if hasattr(profile, 'to_dict') and callable(profile.to_dict):
-                    profile_data = profile.to_dict()
-                elif isinstance(profile, dict):
-                    profile_data = profile
             if success:
                 return JsonResponse({
                     'status': 'success',
                     'message': message,
-                    'profile': profile_data or {},
+                    'profile': _to_json_compatible(profile),
                 })
             return JsonResponse({
                 'status': 'error',
                 'message': message,
             }, status=400)
-
-        if isinstance(update_result, dict):
-            return JsonResponse({
-                'status': 'success',
-                'profile': update_result,
->>>>>>> theirs
-            })
 
         if hasattr(update_result, 'to_dict') and callable(update_result.to_dict):
             return JsonResponse({
@@ -3718,11 +3534,7 @@ def profile_onboarding_status(request):
 
         return JsonResponse({
             'status': 'success',
-<<<<<<< ours
             'onboarding': _to_json_compatible(status),
-=======
-            'onboarding': onboarding,
->>>>>>> theirs
         })
 
     except Exception as e:
@@ -4401,7 +4213,6 @@ def digest_preview(request):
 
     try:
         service = DigestService(user=request.user)
-<<<<<<< ours
         if hasattr(service, 'preview_digest'):
             preview = service.preview_digest(request.user, digest_type)
         else:
@@ -4409,30 +4220,13 @@ def digest_preview(request):
         preview_payload = _to_json_compatible(preview)
         if not isinstance(preview_payload, dict):
             preview_payload = {'content': preview_payload}
-=======
-        preview_method = getattr(service, 'preview_digest', None)
-        if callable(preview_method):
-            preview = preview_method(request.user, digest_type)
-        else:
-            generate_method = getattr(service, 'generate_digest', None)
-            preview = generate_method(request.user, digest_type) if callable(generate_method) else {}
-
-        if not isinstance(preview, dict):
-            preview = {}
->>>>>>> theirs
 
         return JsonResponse({
             'status': 'success',
             'digest_type': digest_type,
-<<<<<<< ours
             'subject': preview_payload.get('subject', f'{digest_type.title()} Digest'),
             'data': preview_payload.get('data', {}),
             'html': preview_payload.get('html', preview_payload.get('html_content', '')),
-=======
-            'subject': preview.get('subject', ''),
-            'data': preview.get('data', preview.get('text_content', '')),
-            'html': preview.get('html', preview.get('html_content', '')),
->>>>>>> theirs
         })
 
     except Exception as e:
@@ -4471,7 +4265,6 @@ def digest_send_test(request):
 
     try:
         service = DigestService(user=request.user)
-<<<<<<< ours
         send_email = getattr(service, 'send_digest_email', None)
         digest_data = {}
         if callable(send_email):
@@ -4492,36 +4285,6 @@ def digest_send_test(request):
         digest_payload = _to_json_compatible(digest_data)
         if not isinstance(digest_payload, dict):
             digest_payload = {'summary': digest_payload}
-=======
-        send_method = getattr(service, 'send_digest_email', None)
-        send_result = None
-        if callable(send_method):
-            send_result = send_method(request.user, digest_type)
-        else:
-            generate_method = getattr(service, 'generate_digest', None)
-            digest_data = generate_method(request.user, digest_type) if callable(generate_method) else {}
-            fallback_send = getattr(service, 'send_digest', None)
-            sent = fallback_send(request.user, digest_data) if callable(fallback_send) else False
-            send_result = (bool(sent), None, digest_data)
-
-        if isinstance(send_result, tuple):
-            if len(send_result) == 3:
-                success, error, digest_data = send_result
-            elif len(send_result) == 2:
-                success, error = send_result
-                digest_data = {}
-            else:
-                success = bool(send_result[0]) if send_result else False
-                error = None
-                digest_data = {}
-        else:
-            success = bool(send_result)
-            error = None
-            digest_data = {}
-
-        if not isinstance(digest_data, dict):
-            digest_data = {}
->>>>>>> theirs
 
         if success:
             return JsonResponse({
@@ -4612,13 +4375,8 @@ def digest_history(request):
 
         return JsonResponse({
             'status': 'success',
-<<<<<<< ours
             'digests': digest_entries,
             'total': len(digest_entries),
-=======
-            'digests': digest_payload,
-            'total': total,
->>>>>>> theirs
         })
 
     except Exception as e:
@@ -4686,11 +4444,7 @@ def digest_update_preferences(request):
         data = {}
 
     email_frequency = data.get('email_frequency', data.get('frequency'))
-<<<<<<< ours
     digest_enabled = data.get('digest_enabled', data.get('enabled'))
-=======
-    digest_enabled = data.get('enabled')
->>>>>>> theirs
 
     valid_frequencies = ['realtime', 'hourly', 'daily', 'weekly', 'none']
     if email_frequency and email_frequency not in valid_frequencies:
@@ -4702,7 +4456,6 @@ def digest_update_preferences(request):
     try:
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
-<<<<<<< ours
         update_fields = []
         if email_frequency:
             profile.email_frequency = email_frequency
@@ -4722,33 +4475,6 @@ def digest_update_preferences(request):
             'email_frequency': resolved_frequency,
             'digest_enabled': bool(getattr(profile, 'digest_enabled', True)),
             'message': f'Digest frequency set to {resolved_frequency}',
-=======
-        updated_fields = []
-        if email_frequency:
-            if hasattr(profile, 'email_frequency'):
-                profile.email_frequency = email_frequency
-                updated_fields.append('email_frequency')
-            elif hasattr(profile, 'digest_frequency'):
-                profile.digest_frequency = email_frequency
-                updated_fields.append('digest_frequency')
-
-        if digest_enabled is not None and hasattr(profile, 'digest_enabled'):
-            profile.digest_enabled = bool(digest_enabled)
-            updated_fields.append('digest_enabled')
-
-        if updated_fields:
-            profile.save(update_fields=updated_fields)
-
-        current_frequency = (
-            getattr(profile, 'email_frequency', None)
-            or getattr(profile, 'digest_frequency', 'none')
-        )
-
-        return JsonResponse({
-            'status': 'success',
-            'email_frequency': current_frequency,
-            'message': f'Digest frequency set to {current_frequency}',
->>>>>>> theirs
         })
 
     except Exception as e:
@@ -4999,13 +4725,8 @@ def tax_lots_list(request):
 
         return JsonResponse({
             'status': 'success',
-<<<<<<< ours
             'lots': lots_payload,
             'count': len(lots_payload),
-=======
-            'lots': normalized_lots,
-            'count': len(normalized_lots),
->>>>>>> theirs
             'disclaimer': TAX_DISCLAIMER,
         })
 
@@ -5053,11 +4774,7 @@ def tax_lots_by_symbol(request, symbol):
 
         return JsonResponse({
             'status': 'success',
-<<<<<<< ours
             **result_payload,
-=======
-            **payload,
->>>>>>> theirs
             'disclaimer': TAX_DISCLAIMER,
         })
 
@@ -5088,7 +4805,6 @@ def tax_harvesting_opportunities(request):
 
     try:
         service = get_tax_optimizer_service(request.user)
-<<<<<<< ours
         if hasattr(service, 'get_harvesting_opportunities'):
             opportunities = service.get_harvesting_opportunities(
                 min_loss=min_loss,
@@ -5105,27 +4821,6 @@ def tax_harvesting_opportunities(request):
             'status': 'success',
             'opportunities': opportunities_payload,
             'count': len(opportunities_payload),
-=======
-        get_opportunities = getattr(service, 'get_harvesting_opportunities', None)
-        if not callable(get_opportunities):
-            get_opportunities = getattr(service, 'find_harvesting_opportunities', None)
-
-        opportunities = []
-        if callable(get_opportunities):
-            opportunities = get_opportunities(min_loss=min_loss, limit=limit) or []
-
-        normalized_opportunities = []
-        for item in opportunities if isinstance(opportunities, list) else []:
-            if isinstance(item, dict):
-                normalized_opportunities.append(item)
-            elif hasattr(item, 'to_dict') and callable(item.to_dict):
-                normalized_opportunities.append(item.to_dict())
-
-        return JsonResponse({
-            'status': 'success',
-            'opportunities': normalized_opportunities,
-            'count': len(normalized_opportunities),
->>>>>>> theirs
             'disclaimer': TAX_DISCLAIMER,
         })
 
@@ -5172,24 +4867,13 @@ def tax_preview_sale(request):
 
     try:
         service = get_tax_optimizer_service(request.user)
-<<<<<<< ours
         if hasattr(service, 'preview_sale_tax_impact'):
             preview = service.preview_sale_tax_impact(
-=======
-        preview_sale = getattr(service, 'preview_sale_tax_impact', None)
-        if not callable(preview_sale):
-            preview_sale = getattr(service, 'preview_sale', None)
-
-        preview = {}
-        if callable(preview_sale):
-            result = preview_sale(
->>>>>>> theirs
                 symbol=symbol,
                 quantity=float(quantity),
                 sale_price=float(sale_price),
                 lot_selection=lot_selection
             )
-<<<<<<< ours
         else:
             preview = service.preview_sale(
                 symbol=symbol,
@@ -5201,12 +4885,6 @@ def tax_preview_sale(request):
         preview_payload = _to_json_compatible(preview)
         if not isinstance(preview_payload, dict):
             preview_payload = {'preview': preview_payload}
-=======
-            if isinstance(result, dict):
-                preview = result
-            elif hasattr(result, 'to_dict') and callable(result.to_dict):
-                preview = result.to_dict()
->>>>>>> theirs
 
         preview_payload['disclaimer'] = TAX_DISCLAIMER
 
@@ -6405,19 +6083,10 @@ def custom_strategy_preview_signals(request, strategy_id):
     try:
         strategy = CustomStrategy.objects.get(id=strategy_id, user=request.user)
     except (CustomStrategy.DoesNotExist, ObjectDoesNotExist):
-<<<<<<< ours
-        strategy = CustomStrategy.objects.filter(id=strategy_id, user=request.user).first()
-        if strategy is None:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Strategy not found',
-            }, status=404)
-=======
         return JsonResponse({
             'status': 'error',
             'message': 'Strategy not found',
         }, status=404)
->>>>>>> theirs
 
     try:
         data = json.loads(request.body) if request.body else {}

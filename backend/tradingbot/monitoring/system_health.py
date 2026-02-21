@@ -12,7 +12,6 @@ from enum import Enum
 from typing import Any
 
 try:
-<<<<<<< ours
     import psutil as _psutil
     if _psutil is None:
         raise ImportError("psutil module placeholder is None")
@@ -21,14 +20,6 @@ try:
 except (ImportError, AttributeError):
     psutil = None
     PSUTIL_AVAILABLE = False
-=======
-    import psutil
-    PSUTIL_AVAILABLE = True
-except ImportError:
-    psutil = None
-    PSUTIL_AVAILABLE = False
-
->>>>>>> theirs
 
 
 class HealthStatus(Enum):

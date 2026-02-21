@@ -31,11 +31,6 @@ try:
 except ImportError:
     REPORT_TEMPLATES_AVAILABLE = False
 
-<<<<<<< ours
-=======
-PLOT_CONFIGURATOR_AVAILABLE = False
-
->>>>>>> theirs
 try:
     from .plot_configurator import (
         PlotType,
@@ -53,7 +48,6 @@ try:
         get_volume_analysis_preset,
     )
     PLOT_CONFIGURATOR_AVAILABLE = True
-<<<<<<< ours
 except ImportError:
     PLOT_CONFIGURATOR_AVAILABLE = False
 
@@ -98,42 +92,5 @@ if PLOT_CONFIGURATOR_AVAILABLE:
         "get_mean_reversion_preset",
         "get_momentum_preset",
         "get_trend_following_preset",
-=======
-except ModuleNotFoundError:
-    # Optional dependency (plotly) is not available.
-    pass
-
-__all__ = [
-    # Tearsheet
-    "ThemeType",
-    "ThemeColors",
-    "THEMES",
-    "TearsheetConfig",
-    "PerformanceMetrics",
-    "TearsheetGenerator",
-    "create_tearsheet_generator",
-    # PDF Report
-    "PDFReportConfig",
-    "PDFReportGenerator",
-    "ReportTemplates",
-    "PLOT_CONFIGURATOR_AVAILABLE",
-]
-
-if PLOT_CONFIGURATOR_AVAILABLE:
-    __all__.extend([
-        # Plot Configurator
-        "PlotType",
-        "PlotLocation",
-        "IndicatorCategory",
-        "PlotIndicator",
-        "TradeMarker",
-        "PlotConfig",
-        "BUILTIN_INDICATORS",
-        "PlotConfigurator",
-        "create_plot_configurator",
-        "get_momentum_preset",
-        "get_trend_following_preset",
-        "get_mean_reversion_preset",
->>>>>>> theirs
         "get_volume_analysis_preset",
     ])

@@ -367,13 +367,9 @@ class ProductionIndexBaseline:
                 baseline_value += position_value
 
             if portfolio_value > 0:
-<<<<<<< ours
                 current_allocation = float(baseline_value / portfolio_value)
                 current_allocation = max(0.0, min(1.0, current_allocation))
                 return current_allocation
-=======
-                return max(0.0, min(1.0, float(baseline_value / portfolio_value)))
->>>>>>> theirs
             else:
                 return 0.0
 

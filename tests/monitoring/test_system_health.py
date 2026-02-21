@@ -1,10 +1,16 @@
-<<<<<<< ours
 """Tests for system health monitoring module."""
 
 import asyncio
 import importlib
 import sys
 from unittest import mock
+
+import pytest
+
+from backend.tradingbot.monitoring.system_health import (
+    HealthStatus,
+    SystemHealthMonitor,
+)
 
 
 def test_system_health_init_without_psutil():
@@ -35,40 +41,20 @@ def test_system_health_init_without_psutil():
 
 def test_system_health_init_with_config_none():
     """SystemHealthMonitor should handle config=None without crashing."""
-    try:
-        from backend.tradingbot.monitoring.system_health import SystemHealthMonitor
-
-        # This should NOT raise AttributeError: 'NoneType' object has no attribute 'get'
-        monitor = SystemHealthMonitor(config=None)
-        assert monitor.config == {}
-    except ImportError:
-        # Module may not be importable in test environment
-        pass
+    monitor = SystemHealthMonitor(config=None)
+    assert monitor.config == {}
 
 
 def test_system_health_config_stored_correctly():
     """SystemHealthMonitor should store config properly."""
-    try:
-        from backend.tradingbot.monitoring.system_health import SystemHealthMonitor
-
-        test_config = {"check_interval": 120, "enable_alerts": True}
-        monitor = SystemHealthMonitor(config=test_config)
-        assert monitor.config == test_config
-    except ImportError:
-        pass
-=======
-import pytest
-
-from backend.tradingbot.monitoring.system_health import (
-    HealthStatus,
-    SystemHealthMonitor,
-)
+    test_config = {"check_interval": 120, "enable_alerts": True}
+    monitor = SystemHealthMonitor(config=test_config)
+    assert monitor.config == test_config
 
 
 @pytest.mark.asyncio
 async def test_system_health_monitor_accepts_none_config():
     monitor = SystemHealthMonitor(config=None)
-
     assert monitor.alert_thresholds["data_feed_latency"] == 5.0
     assert monitor.alert_thresholds["memory_usage"] == 0.80
 
@@ -82,6 +68,5 @@ async def test_system_resource_check_degrades_gracefully_without_psutil(monkeypa
 
     resources = await monitor._check_system_resources()
 
-    assert resources.status == HealthStatus.UNKNOWN
+    assert resources.status.value == HealthStatus.UNKNOWN.value
     assert resources.details["error"] == "psutil is not installed"
->>>>>>> theirs

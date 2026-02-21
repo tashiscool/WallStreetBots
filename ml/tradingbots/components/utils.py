@@ -2,9 +2,9 @@ import datetime
 from datetime import timedelta
 
 try:
-    from alpaca_trade_api.rest import TimeFrame
+    from alpaca.data.timeframe import TimeFrame
 except ImportError:
-    # Fallback for when alpaca_trade_api is not available
+    # Fallback for when alpaca-py is not available
     class TimeFrame:
         Minute = "1Min"
         Hour = "1Hour"

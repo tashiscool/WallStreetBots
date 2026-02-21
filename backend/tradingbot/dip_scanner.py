@@ -7,7 +7,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 from typing import Optional
 
 from .data.sources.base import DataResolution, IDataSource, Quote
@@ -42,7 +42,7 @@ class LiveDipScanner:
         # Cache for previous-close and average volume (refreshed daily)
         self._prev_close_cache: dict[str, float] = {}
         self._avg_volume_cache: dict[str, int] = {}
-        self._cache_date: Optional[datetime] = None
+        self._cache_date: Optional[date] = None
 
         # Tracking
         self.last_scan_time: Optional[datetime] = None
@@ -96,7 +96,7 @@ class LiveDipScanner:
         try:
             self.logger.info("🔍 Scanning for dip opportunities...")
 
-            # Get market data (placeholder - replace with real data source)
+            # Get market data from configured source.
             market_data = await self._fetch_current_market_data()
 
             # Scan for opportunities

@@ -1386,58 +1386,257 @@ def benchmark_chart_data(request):
 # Helper functions for portfolio data
 # =============================================================================
 
-def _get_portfolio_history(user, start_date, end_date) -> list[dict]:
-    """
-    Get portfolio value history.
+def _is_user_paper_trading(user) -> bool:
+    """Resolve trading mode for API-side data fetches."""
+    try:
+        from backend.tradingbot.models.models import UserProfile
 
-    In production, this would query actual portfolio history from database.
-    For now, returns mock data that simulates realistic portfolio values.
-    """
+        profile = UserProfile.objects.filter(user=user).only("is_paper_trading").first()
+        if profile is not None:
+            return bool(profile.is_paper_trading)
+    except Exception:
+        pass
+
+    try:
+        from backend.auth0login.models import WizardConfiguration
+
+        config = WizardConfiguration.objects.filter(user=user).only("trading_mode").first()
+        if config is not None:
+            return config.trading_mode != "live"
+    except Exception:
+        pass
+
+    return True
+
+
+def _get_user_alpaca_credentials(user) -> tuple[str, str] | None:
+    """Return decrypted Alpaca API credentials for a user when available."""
+    try:
+        from backend.auth0login.models import Credential
+
+        cred = Credential.objects.filter(user=user).first()
+        if cred is None:
+            return None
+
+        api_key = getattr(cred, "alpaca_api_key", "") or getattr(cred, "alpaca_id", "")
+        secret_key = getattr(cred, "alpaca_secret_key", "") or getattr(cred, "alpaca_key", "")
+        if not api_key or not secret_key:
+            return None
+        return str(api_key), str(secret_key)
+    except Exception:
+        return None
+
+
+def _fetch_alpaca_portfolio_history(user, start_date, end_date) -> list[dict]:
+    """Fetch real portfolio history from Alpaca account history endpoint."""
+    creds = _get_user_alpaca_credentials(user)
+    if creds is None:
+        return []
+
+    try:
+        import requests
+    except Exception:
+        return []
+
+    api_key, secret_key = creds
+    base_url = "https://paper-api.alpaca.markets" if _is_user_paper_trading(user) else "https://api.alpaca.markets"
+
+    try:
+        response = requests.get(
+            f"{base_url}/v2/account/portfolio/history",
+            params={
+                "timeframe": "1D",
+                "date_start": start_date.date().isoformat(),
+                "date_end": end_date.date().isoformat(),
+                "intraday_reporting": "market_hours",
+                "pnl_reset": "no_reset",
+            },
+            headers={
+                "APCA-API-KEY-ID": api_key,
+                "APCA-API-SECRET-KEY": secret_key,
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except Exception as e:
+        logger.debug("Alpaca portfolio history unavailable: %s", e)
+        return []
+
+    timestamps = payload.get("timestamp") or payload.get("timestamps") or []
+    equities = payload.get("equity") or payload.get("equities") or []
+    if not timestamps or not equities:
+        return []
+
+    from datetime import timezone as dt_timezone
+
+    daily_values: dict[str, float] = {}
+    for raw_ts, raw_equity in zip(timestamps, equities):
+        if raw_equity is None:
+            continue
+        try:
+            if isinstance(raw_ts, (int, float)):
+                dt = datetime.fromtimestamp(raw_ts, tz=dt_timezone.utc)
+            else:
+                text = str(raw_ts).replace("Z", "+00:00")
+                dt = datetime.fromisoformat(text)
+            daily_values[dt.date().isoformat()] = float(raw_equity)
+        except Exception:
+            continue
+
+    return [
+        {"date": day, "value": round(value, 2)}
+        for day, value in sorted(daily_values.items())
+    ]
+
+
+def _build_ledger_portfolio_history(user, start_date, end_date) -> list[dict]:
+    """Build deterministic portfolio history from persisted trade transactions."""
+    from collections import defaultdict
     from datetime import timedelta
-    import random
 
-    # Seed random with user id for consistent mock data per user
-    random.seed(user.id if hasattr(user, 'id') else 42)
+    try:
+        from backend.tradingbot.models.models import TradeTransaction
+    except Exception:
+        return []
 
+    transactions = list(
+        TradeTransaction.objects.filter(
+            user=user,
+            executed_at__lte=end_date,
+        ).order_by("executed_at")
+    )
+    if not transactions:
+        return []
+
+    # Dynamically choose a baseline cash level that can absorb historical buy flows.
+    running_cash = 0.0
+    min_running_cash = 0.0
+    for txn in transactions:
+        try:
+            notional = float(txn.quantity) * float(txn.price)
+        except Exception:
+            continue
+        if str(txn.transaction_type).upper() == "BUY":
+            running_cash -= notional
+        elif str(txn.transaction_type).upper() == "SELL":
+            running_cash += notional
+        min_running_cash = min(min_running_cash, running_cash)
+    initial_cash = max(100000.0, abs(min_running_cash) + 10000.0)
+
+    tx_by_date: dict = defaultdict(list)
+    for txn in transactions:
+        tx_by_date[txn.executed_at.date()].append(txn)
+
+    holdings: dict[str, float] = {}
+    last_prices: dict[str, float] = {}
+    cash = initial_cash
+
+    def _apply_txn(txn):
+        nonlocal cash
+        side = str(txn.transaction_type).upper()
+        symbol = str(txn.symbol).upper()
+        try:
+            qty = float(txn.quantity)
+            price = float(txn.price)
+        except Exception:
+            return
+        if qty <= 0 or price <= 0:
+            return
+
+        last_prices[symbol] = price
+        notional = qty * price
+        if side == "BUY":
+            holdings[symbol] = holdings.get(symbol, 0.0) + qty
+            cash -= notional
+        elif side == "SELL":
+            holdings[symbol] = holdings.get(symbol, 0.0) - qty
+            cash += notional
+
+    # Prime position state with trades before requested range.
+    start_day = start_date.date()
+    for txn in transactions:
+        if txn.executed_at.date() >= start_day:
+            break
+        _apply_txn(txn)
+
+    history = []
+    current_day = start_day
+    end_day = end_date.date()
+    while current_day <= end_day:
+        for txn in tx_by_date.get(current_day, []):
+            _apply_txn(txn)
+
+        if current_day.weekday() < 5:
+            holdings_value = sum(
+                qty * last_prices.get(symbol, 0.0)
+                for symbol, qty in holdings.items()
+            )
+            history.append(
+                {
+                    "date": current_day.isoformat(),
+                    "value": round(cash + holdings_value, 2),
+                }
+            )
+        current_day += timedelta(days=1)
+
+    return history
+
+
+def _get_portfolio_history(user, start_date, end_date) -> list[dict]:
+    """Get portfolio history from live sources with deterministic fallback."""
+    from datetime import timedelta
+
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+
+    # 1) Prefer broker-native account history.
+    alpaca_history = _fetch_alpaca_portfolio_history(user, start_date, end_date)
+    if alpaca_history:
+        return alpaca_history
+
+    # 2) Fallback to transaction-ledger derived history.
+    ledger_history = _build_ledger_portfolio_history(user, start_date, end_date)
+    if ledger_history:
+        return ledger_history
+
+    # 3) Last-resort deterministic flat line (no randomness).
     values = []
     current = start_date
-    value = 100000  # Start with $100k
-
     while current <= end_date:
-        if current.weekday() < 5:  # Skip weekends
-            # Random daily change between -2% and +2.5%
-            daily_change = (random.random() - 0.4) * 0.025
-            value *= (1 + daily_change)
-            values.append({
-                'date': current.strftime('%Y-%m-%d'),
-                'value': round(value, 2),
-            })
+        if current.weekday() < 5:
+            values.append({"date": current.strftime("%Y-%m-%d"), "value": 100000.0})
         current += timedelta(days=1)
+
+    if not values:
+        values = [{"date": start_date.strftime("%Y-%m-%d"), "value": 100000.0}]
 
     return values
 
 
 def _get_portfolio_value_at_date(user, date) -> float:
     """Get portfolio value at a specific date."""
-    # In production, query actual portfolio value
-    # Mock implementation
-    import random
-    random.seed(user.id if hasattr(user, 'id') else 42)
+    from datetime import timedelta
 
-    base_value = 100000
-    days_from_start = (date - date.replace(month=1, day=1)).days
-    growth = 1 + (days_from_start * 0.0003)  # ~10% annual growth
-    noise = 1 + (random.random() - 0.5) * 0.1
-    return base_value * growth * noise
+    history = _get_portfolio_history(
+        user,
+        date - timedelta(days=10),
+        date,
+    )
+    if not history:
+        return 100000.0
+    return float(history[-1]["value"])
 
 
 def _get_daily_pnl(user) -> float:
     """Get today's P&L."""
-    # In production, calculate from actual positions
-    # Mock implementation
-    import random
-    random.seed(hash(str(user.id) + str(datetime.now().date())) if hasattr(user, 'id') else 42)
-    return round((random.random() - 0.4) * 2000, 2)  # -$800 to +$1200
+    from datetime import timedelta
+
+    end_date = datetime.now()
+    history = _get_portfolio_history(user, end_date - timedelta(days=5), end_date)
+    if len(history) < 2:
+        return 0.0
+    return round(float(history[-1]["value"]) - float(history[-2]["value"]), 2)
 
 
 def _get_portfolio_series(user, start_date, end_date) -> list[dict]:
@@ -7214,20 +7413,71 @@ def circuit_breaker_history(request):
 
         queryset = CircuitBreakerHistory.objects.all()
         if breaker_type:
-            queryset = queryset.filter(breaker_type=breaker_type)
+            try:
+                queryset = queryset.filter(state__breaker_type=breaker_type)
+            except Exception:
+                queryset = queryset.filter(breaker_type=breaker_type)
 
-        history = queryset.order_by('-triggered_at')[:limit]
+        history = queryset.order_by('-timestamp')[:limit]
+
+        def _safe_float(value):
+            try:
+                if value is None:
+                    return None
+                return float(value)
+            except (TypeError, ValueError):
+                return None
+
+        def _safe_json_primitive(value):
+            if value is None or isinstance(value, (str, int, float, bool)):
+                return value
+            return None
+
+        def _safe_iso_datetime(value):
+            if isinstance(value, datetime):
+                return value.isoformat()
+            return None
 
         return JsonResponse({
             'history': [
                 {
                     'id': h.id,
-                    'breaker_type': h.breaker_type,
-                    'trigger_reason': h.trigger_reason,
-                    'triggered_at': h.triggered_at.isoformat(),
-                    'recovered_at': h.recovered_at.isoformat() if h.recovered_at else None,
-                    'duration_seconds': h.duration_seconds,
-                    'metadata': h.metadata,
+                    'breaker_type': (
+                        _safe_json_primitive(getattr(getattr(h, 'state', None), 'breaker_type', None))
+                        or _safe_json_primitive(getattr(h, 'breaker_type', None))
+                    ),
+                    'action': _safe_json_primitive(getattr(h, 'action', None)) or 'triggered',
+                    'timestamp': _safe_iso_datetime(getattr(h, 'timestamp', None)),
+                    'previous_status': _safe_json_primitive(getattr(h, 'previous_status', None)),
+                    'new_status': _safe_json_primitive(getattr(h, 'new_status', None)),
+                    'value_at_action': _safe_float(getattr(h, 'value_at_action', None)),
+                    'threshold_at_action': _safe_float(getattr(h, 'threshold_at_action', None)),
+                    'reason': (
+                        _safe_json_primitive(getattr(h, 'reason', None))
+                        or _safe_json_primitive(getattr(h, 'trigger_reason', None))
+                    ),
+                    'metadata': getattr(h, 'metadata', {}) if isinstance(getattr(h, 'metadata', {}), dict) else {},
+                    # Backward-compatibility aliases used by older UI code
+                    'trigger_reason': (
+                        _safe_json_primitive(getattr(h, 'reason', None))
+                        or _safe_json_primitive(getattr(h, 'trigger_reason', None))
+                    ),
+                    'triggered_at': (
+                        _safe_iso_datetime(getattr(h, 'timestamp', None))
+                        or _safe_iso_datetime(getattr(h, 'triggered_at', None))
+                    ),
+                    'recovered_at': (
+                        getattr(h, 'metadata', {}).get('recovered_at')
+                        if isinstance(getattr(h, 'metadata', {}), dict)
+                        else (
+                            _safe_iso_datetime(getattr(h, 'recovered_at', None))
+                        )
+                    ),
+                    'duration_seconds': (
+                        getattr(h, 'metadata', {}).get('duration_seconds')
+                        if isinstance(getattr(h, 'metadata', {}), dict)
+                        else _safe_json_primitive(getattr(h, 'duration_seconds', None))
+                    ),
                 }
                 for h in history
             ]

@@ -6,6 +6,7 @@ for reliable real - money trading operations.
 """
 
 from datetime import datetime, timedelta
+import logging
 from typing import Any
 
 # Optional imports with fallbacks
@@ -51,6 +52,7 @@ class AlpacaManager:
         self.SECRET_KEY = SECRET_KEY
         self.paper_trading = paper_trading
         self.alpaca_available = ALPACA_AVAILABLE
+        self.logger = logging.getLogger(__name__)
 
         # Check if we should use real API (not test keys)
         is_test_key = (
@@ -72,7 +74,10 @@ class AlpacaManager:
                 )
             except Exception as e:
                 # If authentication fails, fall back to mock mode
-                print(f"Alpaca authentication failed, using mock mode: {e}")
+                self.logger.warning(
+                    "Alpaca authentication failed, falling back to mock mode: %s",
+                    e,
+                )
                 self.alpaca_available = False
                 self.trading_client = None
                 self.data_client = None
@@ -109,6 +114,28 @@ class AlpacaManager:
             return False, "Failed to get account info"
         except Exception as e:
             return False, f"API validation failed: {e!s}"
+
+    def _check_live_trading_gate(self, user=None) -> dict[str, Any] | None:
+        """Block live orders when the paper-to-live gate is not approved."""
+        if self.paper_trading or user is None:
+            return None
+
+        try:
+            from backend.auth0login.services.trading_gate import trading_gate_service
+
+            is_allowed, reason = trading_gate_service.is_live_trading_allowed(user)
+            if is_allowed:
+                return None
+
+            return {
+                "error": reason or "Live trading is not approved for this account.",
+                "live_trading_blocked": True,
+                "requires_live_approval": True,
+            }
+        except Exception as e:
+            # Don't hard-fail trading if gating service is unavailable.
+            self.logger.warning("Live trading gate check failed: %s", e)
+            return None
 
     def get_bar(
         self,
@@ -421,6 +448,10 @@ class AlpacaManager:
         Returns:
             Order response dictionary
         """
+        gate_error = self._check_live_trading_gate(user)
+        if gate_error:
+            return gate_error
+
         # Check recovery mode and apply position size multiplier
         recovery_multiplier = 1.0
         original_quantity = quantity
@@ -443,10 +474,23 @@ class AlpacaManager:
                 recovery_multiplier = recovery_status.position_multiplier
                 if recovery_multiplier < 1.0:
                     quantity = max(1, int(quantity * recovery_multiplier))
-                    print(f"Recovery mode: Position size reduced from {original_quantity} to {quantity} ({recovery_multiplier * 100:.0f}%)")
+                    self.logger.info(
+                        "Recovery mode position size reduced from %s to %s (%.0f%%)",
+                        original_quantity,
+                        quantity,
+                        recovery_multiplier * 100,
+                    )
 
             except Exception as e:
-                print(f"Recovery check failed (allowing order): {e}")
+                self.logger.error(
+                    "Recovery check failed; rejecting order for %s: %s",
+                    symbol,
+                    e,
+                )
+                return {
+                    "error": "Recovery checks unavailable - order rejected",
+                    "recovery_check_failed": True,
+                }
 
         # Calculate estimated order value for allocation check
         estimated_value = None
@@ -478,7 +522,16 @@ class AlpacaManager:
             except AllocationExceededError as e:
                 return {"error": str(e), "allocation_exceeded": True}
             except Exception as e:
-                print(f"Allocation check failed (allowing order): {e}")
+                self.logger.error(
+                    "Allocation check failed; rejecting order for %s: %s",
+                    symbol,
+                    e,
+                )
+                return {
+                    "error": "Allocation checks unavailable - order rejected",
+                    "allocation_check_failed": True,
+                    "allocation_exceeded": True,
+                }
 
         try:
             if order_type.lower() == "limit" and limit_price:
@@ -524,6 +577,16 @@ class AlpacaManager:
                         order_id=str(order.id),
                         symbol=symbol
                     )
+                    status_value = str(order.status).lower()
+                    if status_value in {"filled", "partially_filled"}:
+                        fill_price = float(order.filled_avg_price) if order.filled_avg_price else 0.0
+                        filled_amount = fill_price * int(order.qty) if fill_price > 0 else estimated_value
+                        manager.confirm_allocation(
+                            user=user,
+                            strategy_name=strategy_name,
+                            amount=filled_amount,
+                            order_id=str(order.id),
+                        )
                 except Exception as e:
                     print(f"Failed to reserve allocation: {e}")
 
@@ -546,6 +609,9 @@ class AlpacaManager:
         quantity: int,
         order_type: str = "market",
         limit_price: float | None = None,
+        strategy_name: str | None = None,
+        user=None,
+        enforce_allocation: bool = True,
     ) -> dict[str, Any]:
         """Place a market sell order.
 
@@ -558,6 +624,10 @@ class AlpacaManager:
         Returns:
             Order response dictionary
         """
+        gate_error = self._check_live_trading_gate(user)
+        if gate_error:
+            return gate_error
+
         try:
             if order_type.lower() == "limit" and limit_price:
                 order_data = LimitOrderRequest(
@@ -577,7 +647,7 @@ class AlpacaManager:
 
             order = self.trading_client.submit_order(order_data=order_data)
 
-            return {
+            result = {
                 "id": order.id,
                 "status": order.status,
                 "symbol": order.symbol,
@@ -590,6 +660,27 @@ class AlpacaManager:
                 else None,
             }
 
+            if strategy_name and user and enforce_allocation:
+                try:
+                    from backend.auth0login.services.allocation_manager import get_allocation_manager
+
+                    manager = get_allocation_manager()
+                    notional_price = result["filled_price"] or limit_price
+                    if notional_price is None:
+                        _, market_price = self.get_price(symbol)
+                        notional_price = market_price if market_price > 0 else 0.0
+
+                    if notional_price > 0:
+                        manager.reduce_exposure(
+                            user=user,
+                            strategy_name=strategy_name,
+                            amount=float(notional_price) * int(order.qty),
+                        )
+                except Exception as e:
+                    print(f"Failed to reduce allocation exposure: {e}")
+
+            return result
+
         except Exception as e:
             return {"error": f"Failed to place sell order: {e!s}"}
 
@@ -601,6 +692,7 @@ class AlpacaManager:
         strike: float | None = None,
         expiry: str | None = None,
         limit_price: float | None = None,
+        user=None,
     ) -> dict[str, Any]:
         """Buy options contract.
 
@@ -615,6 +707,10 @@ class AlpacaManager:
         Returns:
             Order response dictionary
         """
+        gate_error = self._check_live_trading_gate(user)
+        if gate_error:
+            return gate_error
+
         try:
             # Construct option symbol
             option_symbol = self._construct_option_symbol(
@@ -662,6 +758,7 @@ class AlpacaManager:
         strike: float | None = None,
         expiry: str | None = None,
         limit_price: float | None = None,
+        user=None,
     ) -> dict[str, Any]:
         """Sell options contract.
 
@@ -676,6 +773,10 @@ class AlpacaManager:
         Returns:
             Order response dictionary
         """
+        gate_error = self._check_live_trading_gate(user)
+        if gate_error:
+            return gate_error
+
         try:
             option_symbol = self._construct_option_symbol(
                 symbol, expiry, option_type, strike
@@ -715,7 +816,7 @@ class AlpacaManager:
             return {"error": f"Failed to sell option: {e!s}"}
 
     def place_stop_loss(
-        self, symbol: str, quantity: int, stop_price: float
+        self, symbol: str, quantity: int, stop_price: float, user=None
     ) -> dict[str, Any]:
         """Place stop loss order.
 
@@ -727,6 +828,10 @@ class AlpacaManager:
         Returns:
             Order response dictionary
         """
+        gate_error = self._check_live_trading_gate(user)
+        if gate_error:
+            return gate_error
+
         try:
             order_data = StopOrderRequest(
                 symbol=symbol,
@@ -825,7 +930,7 @@ class AlpacaManager:
             print(f"Error getting orders: {e}")
             return []
 
-    def close_position(self, symbol: str, percentage: float = 1.0) -> bool:
+    def close_position(self, symbol: str, percentage: float = 1.0, user=None) -> bool:
         """Close position (partial or full).
 
         Args:
@@ -835,6 +940,10 @@ class AlpacaManager:
         Returns:
             True if successful, False otherwise
         """
+        gate_error = self._check_live_trading_gate(user)
+        if gate_error:
+            return False
+
         try:
             if percentage >= 1.0:
                 # Close full position

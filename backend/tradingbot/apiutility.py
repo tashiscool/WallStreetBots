@@ -70,6 +70,29 @@ def create_local_order(
     return order
 
 
+def _is_user_paper_trading(user) -> bool:
+    """Resolve whether this user should trade in paper mode."""
+    try:
+        from backend.tradingbot.models.models import UserProfile
+
+        profile = UserProfile.objects.filter(user=user).only("is_paper_trading").first()
+        if profile is not None:
+            return bool(profile.is_paper_trading)
+    except Exception:
+        pass
+
+    try:
+        from backend.auth0login.models import WizardConfiguration
+
+        config = WizardConfiguration.objects.filter(user=user).only("trading_mode").first()
+        if config is not None:
+            return config.trading_mode != "live"
+    except Exception:
+        pass
+
+    return True
+
+
 def place_general_order(
     user, user_details, ticker, quantity, transaction_type, order_type, time_in_force,
     limit_price=None, stop_price=None
@@ -88,7 +111,11 @@ def place_general_order(
         stop_price: Required for stop orders
     """
     backend_api = validate_backend()
-    user_api = AlpacaManager(user.credential.alpaca_id, user.credential.alpaca_key)
+    user_api = AlpacaManager(
+        user.credential.alpaca_id,
+        user.credential.alpaca_key,
+        paper_trading=_is_user_paper_trading(user),
+    )
 
     # 1. Check if ticker exists and validate price
     check, price = backend_api.get_price(ticker)
@@ -129,30 +156,38 @@ def place_general_order(
         result = None
         if transaction_type == "buy":
             if order_type == "market":
-                result = user_api.market_buy(ticker, int(quantity))
+                result = user_api.market_buy(ticker, int(quantity), user=user)
             elif order_type == "limit":
                 if not limit_price:
                     raise ValidationError("Limit price required for limit orders")
                 result = user_api.market_buy(
-                    ticker, int(quantity), order_type="limit", limit_price=float(limit_price)
+                    ticker,
+                    int(quantity),
+                    order_type="limit",
+                    limit_price=float(limit_price),
+                    user=user,
                 )
             elif order_type == "stop":
                 if not stop_price:
                     raise ValidationError("Stop price required for stop orders")
-                result = user_api.place_stop_loss(ticker, int(quantity), float(stop_price))
+                result = user_api.place_stop_loss(ticker, int(quantity), float(stop_price), user=user)
         elif transaction_type == "sell":
             if order_type == "market":
-                result = user_api.market_sell(ticker, int(quantity))
+                result = user_api.market_sell(ticker, int(quantity), user=user)
             elif order_type == "limit":
                 if not limit_price:
                     raise ValidationError("Limit price required for limit orders")
                 result = user_api.market_sell(
-                    ticker, int(quantity), order_type="limit", limit_price=float(limit_price)
+                    ticker,
+                    int(quantity),
+                    order_type="limit",
+                    limit_price=float(limit_price),
+                    user=user,
                 )
             elif order_type == "stop":
                 if not stop_price:
                     raise ValidationError("Stop price required for stop orders")
-                result = user_api.place_stop_loss(ticker, int(quantity), float(stop_price))
+                result = user_api.place_stop_loss(ticker, int(quantity), float(stop_price), user=user)
 
         if not result or "error" in result:
             error_msg = result.get("error", "Unknown error") if result else "Order failed"

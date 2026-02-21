@@ -120,6 +120,8 @@ urlpatterns = [
     path("api/circuit-breakers/timeline/", api_views.circuit_breaker_timeline, name="api-circuit-breaker-timeline"),
     path("api/circuit-breakers/<int:event_id>/advance-recovery/", api_views.circuit_breaker_advance, name="api-circuit-breaker-advance"),
     path("api/circuit-breakers/<int:event_id>/reset/", api_views.circuit_breaker_event_reset, name="api-circuit-breaker-event-reset"),
+    # Backward-compatible breaker reset path by breaker type
+    path("api/circuit-breakers/<str:breaker_type>/reset/", api_views.circuit_breaker_reset, name="api-circuit-breaker-reset-legacy"),
     path("api/circuit-breakers/<int:event_id>/early-recovery/", api_views.circuit_breaker_early_recovery, name="api-circuit-breaker-early-recovery"),
     path("api/circuit-breakers/<int:event_id>/timeline/", api_views.circuit_breaker_timeline, name="api-circuit-breaker-timeline-detail"),
 
@@ -242,20 +244,6 @@ urlpatterns = [
     path("api/wizard/skip/", api_views.wizard_skip, name="api-wizard-skip"),
     path("api/wizard/config/", api_views.wizard_config, name="api-wizard-config"),
     path("api/wizard/needs-setup/", api_views.wizard_needs_setup, name="api-wizard-needs-setup"),
-
-    # Market Context API
-    path("api/market-context/", api_views.market_context_overview, name="api-market-context"),
-    path("api/market-context/sectors/", api_views.market_context_sectors, name="api-market-context-sectors"),
-
-    # Allocation Management API
-    path("api/allocations/", api_views.allocations_list, name="api-allocations-list"),
-    path("api/allocations/rebalance/", api_views.allocations_rebalance, name="api-allocations-rebalance"),
-    path("api/allocations/<str:strategy_name>/", api_views.allocation_update, name="api-allocation-update"),
-
-    # Circuit Breaker API
-    path("api/circuit-breakers/", api_views.circuit_breaker_states, name="api-circuit-breaker-states"),
-    path("api/circuit-breakers/<str:breaker_type>/reset/", api_views.circuit_breaker_reset, name="api-circuit-breaker-reset"),
-    path("api/circuit-breakers/history/", api_views.circuit_breaker_history, name="api-circuit-breaker-history"),
 
     # ML/RL Agent API
     path("api/ml-agents/models/", api_views.ml_models_list, name="api-ml-models-list"),

@@ -53,6 +53,29 @@ def _extract_transaction_price(result, limit_price, stop_price):
     return Decimal("0")
 
 
+def _is_user_paper_trading(user) -> bool:
+    """Resolve whether this user should trade in paper mode."""
+    try:
+        from backend.tradingbot.models.models import UserProfile
+
+        profile = UserProfile.objects.filter(user=user).only("is_paper_trading").first()
+        if profile is not None:
+            return bool(profile.is_paper_trading)
+    except Exception:
+        pass
+
+    try:
+        from backend.auth0login.models import WizardConfiguration
+
+        config = WizardConfiguration.objects.filter(user=user).only("trading_mode").first()
+        if config is not None:
+            return config.trading_mode != "live"
+    except Exception:
+        pass
+
+    return True
+
+
 def index(request):
     return HttpResponse("Hello World, welcome to tradingbot!")
 
@@ -129,7 +152,11 @@ def stock_trade(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    alpaca_api = AlpacaManager(user.credential.alpaca_id, user.credential.alpaca_key)
+    alpaca_api = AlpacaManager(
+        user.credential.alpaca_id,
+        user.credential.alpaca_key,
+        paper_trading=_is_user_paper_trading(user),
+    )
 
     # Get or create stock record
     stock = _get_or_create_stock(ticker)
@@ -138,7 +165,7 @@ def stock_trade(request):
     result = None
     if transaction_side == "buy":
         if order_type == "market":
-            result = alpaca_api.market_buy(ticker, quantity)
+            result = alpaca_api.market_buy(ticker, quantity, user=user)
         elif order_type == "limit":
             if not limit_price:
                 return HttpResponse(
@@ -146,7 +173,7 @@ def stock_trade(request):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             result = alpaca_api.market_buy(
-                ticker, quantity, order_type="limit", limit_price=limit_price
+                ticker, quantity, order_type="limit", limit_price=limit_price, user=user
             )
         elif order_type == "stop":
             if not stop_price:
@@ -154,13 +181,13 @@ def stock_trade(request):
                     "Stop price required for stop orders",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            result = alpaca_api.place_stop_loss(ticker, quantity, stop_price)
+            result = alpaca_api.place_stop_loss(ticker, quantity, stop_price, user=user)
         else:
             return HttpResponse(status=status.HTTP_501_NOT_IMPLEMENTED)
 
     elif transaction_side == "sell":
         if order_type == "market":
-            result = alpaca_api.market_sell(ticker, quantity)
+            result = alpaca_api.market_sell(ticker, quantity, user=user)
         elif order_type == "limit":
             if not limit_price:
                 return HttpResponse(
@@ -168,7 +195,7 @@ def stock_trade(request):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             result = alpaca_api.market_sell(
-                ticker, quantity, order_type="limit", limit_price=limit_price
+                ticker, quantity, order_type="limit", limit_price=limit_price, user=user
             )
         elif order_type == "stop":
             if not stop_price:
@@ -176,14 +203,23 @@ def stock_trade(request):
                     "Stop price required for stop orders",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            result = alpaca_api.place_stop_loss(ticker, quantity, stop_price)
+            result = alpaca_api.place_stop_loss(ticker, quantity, stop_price, user=user)
         else:
             return HttpResponse(status=status.HTTP_501_NOT_IMPLEMENTED)
 
     # Check result
     if not result or "error" in result:
         error_msg = result.get("error", "Unknown error") if result else "Order failed"
-        return HttpResponse(error_msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        if result and result.get("live_trading_blocked"):
+            status_code = status.HTTP_403_FORBIDDEN
+        elif result and result.get("allocation_exceeded"):
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif result and (
+            result.get("recovery_check_failed") or result.get("allocation_check_failed")
+        ):
+            status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return HttpResponse(error_msg, status=status_code)
 
     broker_status = _normalize_order_status(result.get("status"))
 
@@ -341,10 +377,14 @@ def close_position(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    alpaca_api = AlpacaManager(user.credential.alpaca_id, user.credential.alpaca_key)
+    alpaca_api = AlpacaManager(
+        user.credential.alpaca_id,
+        user.credential.alpaca_key,
+        paper_trading=_is_user_paper_trading(user),
+    )
 
     # Close the position
-    success = alpaca_api.close_position(symbol.upper(), percentage)
+    success = alpaca_api.close_position(symbol.upper(), percentage, user=user)
 
     if success:
         return HttpResponse(status=status.HTTP_200_OK)
@@ -359,7 +399,11 @@ def close_position(request):
 def get_position_details(request, symbol):
     """Get details for a specific position."""
     user = request.user
-    alpaca_api = AlpacaManager(user.credential.alpaca_id, user.credential.alpaca_key)
+    alpaca_api = AlpacaManager(
+        user.credential.alpaca_id,
+        user.credential.alpaca_key,
+        paper_trading=_is_user_paper_trading(user),
+    )
 
     positions = alpaca_api.get_positions()
 

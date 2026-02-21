@@ -27,14 +27,14 @@ def get_django_models():
     """Import Django models when needed."""
     global DJANGO_MODELS_AVAILABLE
     try:
-        from .models import Portfolio, Bot, Company, Stock, Order
+        from .models import Portfolio, Bot, Company, Stock, Order, TradeTransaction
         DJANGO_MODELS_AVAILABLE = True
-        return Portfolio, Bot, Company, Stock, Order
+        return Portfolio, Bot, Company, Stock, Order, TradeTransaction
     except ImportError:
-        return None, None, None, None, None
+        return None, None, None, None, None, None
 
 # Django models - only import when explicitly requested
-Portfolio = Bot = Company = Stock = Order = None
+Portfolio = Bot = Company = Stock = Order = TradeTransaction = None
 DJANGO_MODELS_AVAILABLE = False
 
 # Check if Django is available and configured
@@ -45,6 +45,7 @@ try:
         try:
             from .models import (
                 Portfolio, Bot, Company, Stock, Order,
+                TradeTransaction,
                 ValidationRun, SignalValidationMetrics, DataQualityMetrics,
                 ValidationParameterRegistry, TradeSignalSnapshot,
                 SignalValidationHistory, StrategyAllocationLimit,
@@ -94,6 +95,7 @@ __all__ = [
     "TaxLotSale",
     "TradeSignalSnapshot",
     "TradeStatus",
+    "TradeTransaction",
     "UserProfile",
     "ValidationParameterRegistry",
     "ValidationRun",

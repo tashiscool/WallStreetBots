@@ -29,8 +29,6 @@ xarray>=2024.6.0
 # Financial Data
 yfinance>=0.2.65
 alpaca-py>=0.42.0
-# Temporary legacy support for modules not yet migrated to alpaca-py
-alpaca-trade-api>=3.0.0
 
 # Machine Learning
 scikit-learn>=1.4.0

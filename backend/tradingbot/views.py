@@ -1,13 +1,56 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from rest_framework import status
+from decimal import Decimal, InvalidOperation
 import json
 import re
 
 from .apimanagers import AlpacaManager
-from .models import Order, Stock, Company
+from .models import Order, Stock, Company, TradeTransaction
 
 _TICKER_PATTERN = re.compile(r"^[A-Z][A-Z0-9.\-]{0,19}$")
+
+
+def _normalize_order_status(raw_status):
+    """Map broker statuses to supported local Order/TradeTransaction statuses."""
+    normalized = str(raw_status or "").strip().lower()
+    status_map = {
+        "accepted_for_bidding": "accepted",
+        "partially_filled": "partially_filled",
+        "partially-filled": "partially_filled",
+        "canceled": "cancelled",
+    }
+    normalized = status_map.get(normalized, normalized)
+    allowed = {
+        "pending",
+        "accepted",
+        "new",
+        "partially_filled",
+        "filled",
+        "cancelled",
+        "rejected",
+    }
+    return normalized if normalized in allowed else "accepted"
+
+
+def _extract_transaction_price(result, limit_price, stop_price):
+    """Resolve the best available transaction price from broker payload and request."""
+    candidates = [
+        result.get("filled_price"),
+        result.get("limit_price"),
+        limit_price,
+        stop_price,
+    ]
+    for candidate in candidates:
+        if candidate is None:
+            continue
+        try:
+            value = Decimal(str(candidate))
+        except (InvalidOperation, TypeError, ValueError):
+            continue
+        if value > 0:
+            return value
+    return Decimal("0")
 
 
 def index(request):
@@ -142,6 +185,8 @@ def stock_trade(request):
         error_msg = result.get("error", "Unknown error") if result else "Order failed"
         return HttpResponse(error_msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    broker_status = _normalize_order_status(result.get("status"))
+
     # Save order to database with correct field names
     order = Order(
         user=user,
@@ -150,12 +195,31 @@ def stock_trade(request):
         quantity=quantity,
         side=transaction_side,
         order_type=order_type,
-        status="accepted",
+        status=broker_status if broker_status in dict(Order.STATUS) else "accepted",
         alpaca_order_id=str(result.get("id", "")),
         limit_price=limit_price,
         stop_price=stop_price,
+        filled_avg_price=result.get("filled_price"),
     )
     order.save()
+
+    # Persist canonical transaction-side ledger record.
+    TradeTransaction.objects.create(
+        user=user,
+        company=stock.company,
+        order=order,
+        symbol=ticker.upper(),
+        transaction_type=transaction_side.upper(),
+        quantity=Decimal(str(quantity)),
+        price=_extract_transaction_price(result, limit_price, stop_price),
+        status=broker_status,
+        metadata={
+            "order_type": order_type,
+            "alpaca_order_id": str(result.get("id", "")),
+            "raw_status": str(result.get("status", "")),
+        },
+        legacy_reference=str(result.get("id", "")),
+    )
 
     return HttpResponse(status=status.HTTP_201_CREATED)
 

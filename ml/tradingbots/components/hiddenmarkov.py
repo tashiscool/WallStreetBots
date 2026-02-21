@@ -4,14 +4,6 @@ import numpy as np
 import pandas as pd
 
 try:
-    import alpaca_trade_api as tradeapi
-except ImportError:
-    class _TradeApiPlaceholder:
-        REST = None
-
-    tradeapi = _TradeApiPlaceholder()
-
-try:
     from alpaca.data.historical import StockHistoricalDataClient
     from alpaca.data.requests import StockBarsRequest, StockLatestTradeRequest
     from alpaca.data.timeframe import TimeFrame
@@ -39,7 +31,7 @@ class _TradeCompatResult:
 
 
 class _AlpacaPyRESTCompat:
-    """Small compatibility adapter that mimics alpaca_trade_api.REST methods."""
+    """Small compatibility adapter for the legacy REST-style interface used here."""
 
     def __init__(self, trading_client, data_client):
         self._trading_client = trading_client
@@ -95,29 +87,26 @@ class APImanager:  # API manager for Alpaca
         self.ACCOUNT_URL = f"{self.BASE_URL}/v2/account"
         self.API_KEY = API_KEY
         self.SECRET_KEY = SECRET_KEY
-        self.api = None
         self.trading_client = None
         self.data_client = None
+        self.api = self._create_api_client()
 
-        legacy_rest = getattr(tradeapi, "REST", None)
-        if callable(legacy_rest):
-            self.api = legacy_rest(
-                API_KEY,
-                SECRET_KEY,
-                self.BASE_URL,
-                api_version="v2",
-            )
-        elif ALPACA_AVAILABLE:
-            self.trading_client = TradingClient(
-                api_key=API_KEY, secret_key=SECRET_KEY, paper=True
-            )
-            self.data_client = StockHistoricalDataClient(
-                api_key=API_KEY, secret_key=SECRET_KEY
-            )
-            self.api = _AlpacaPyRESTCompat(
-                trading_client=self.trading_client,
-                data_client=self.data_client,
-            )
+    def _create_api_client(self):
+        if not ALPACA_AVAILABLE:
+            return None
+        self.trading_client = TradingClient(
+            api_key=self.API_KEY,
+            secret_key=self.SECRET_KEY,
+            paper=True,
+        )
+        self.data_client = StockHistoricalDataClient(
+            api_key=self.API_KEY,
+            secret_key=self.SECRET_KEY,
+        )
+        return _AlpacaPyRESTCompat(
+            trading_client=self.trading_client,
+            data_client=self.data_client,
+        )
 
     def get_bar(
         self, symbol, timestep, start, end, price_type="close", adjustment="all"

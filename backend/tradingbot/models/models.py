@@ -158,6 +158,124 @@ class Order(models.Model):
         return f"Order: {self.side} {self.quantity} {symbol} @ {self.price} - Status: {self.status}"
 
 
+class TradeTransaction(models.Model):
+    """Canonical transaction ledger entry for executed or accepted trades.
+
+    This model replaces the legacy `StockTrade` representation and records one
+    side per row (BUY or SELL) with explicit transaction metadata.
+    """
+
+    TRANSACTION_TYPES = [
+        ("BUY", "Buy"),
+        ("SELL", "Sell"),
+    ]
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("accepted", "Accepted"),
+        ("new", "New"),
+        ("partially_filled", "Partially Filled"),
+        ("filled", "Filled"),
+        ("cancelled", "Cancelled"),
+        ("rejected", "Rejected"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        help_text="Owner of the transaction",
+        on_delete=models.CASCADE,
+    )
+    company = models.ForeignKey(
+        Company,
+        help_text="Company traded",
+        on_delete=models.PROTECT,
+    )
+    order = models.ForeignKey(
+        Order,
+        help_text="Associated order record",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="transactions",
+    )
+    symbol = models.CharField(max_length=20, help_text="Trading symbol", db_index=True)
+    transaction_type = models.CharField(
+        max_length=4,
+        choices=TRANSACTION_TYPES,
+        help_text="BUY or SELL transaction side",
+    )
+    quantity = models.DecimalField(
+        max_digits=18,
+        decimal_places=6,
+        help_text="Executed quantity",
+    )
+    price = models.DecimalField(
+        max_digits=18,
+        decimal_places=6,
+        help_text="Executed or accepted price per unit",
+    )
+    gross_amount = models.DecimalField(
+        max_digits=24,
+        decimal_places=6,
+        default=Decimal("0"),
+        help_text="Absolute notional value (quantity * price)",
+    )
+    fees = models.DecimalField(
+        max_digits=12,
+        decimal_places=6,
+        default=Decimal("0"),
+        help_text="Execution fees",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="accepted",
+        help_text="Transaction lifecycle status",
+    )
+    executed_at = models.DateTimeField(
+        default=timezone.now,
+        help_text="Execution/acceptance timestamp",
+        db_index=True,
+    )
+    source = models.CharField(
+        max_length=32,
+        default="stock_trade_api",
+        help_text="Source subsystem that created the entry",
+    )
+    metadata = models.JSONField(default=dict, blank=True)
+    legacy_reference = models.CharField(
+        max_length=128,
+        blank=True,
+        default="",
+        help_text="Reference to legacy identifiers when available",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-executed_at", "-id"]
+        indexes = [
+            models.Index(fields=["user", "executed_at"]),
+            models.Index(fields=["company", "executed_at"]),
+            models.Index(fields=["transaction_type", "executed_at"]),
+            models.Index(fields=["status", "executed_at"]),
+        ]
+
+    def save(self, *args, **kwargs):
+        self.symbol = (self.symbol or "").upper()
+        self.transaction_type = str(self.transaction_type).upper()
+        quantity = abs(Decimal(str(self.quantity or 0)))
+        price = abs(Decimal(str(self.price or 0)))
+        self.gross_amount = quantity * price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return (
+            f"{self.transaction_type} {self.quantity} {self.symbol} @ "
+            f"{self.price} ({self.status})"
+        )
+
+
 class ValidationRun(models.Model):
     """Validation run record for tracking validation history."""
     
@@ -5235,4 +5353,3 @@ def save_user_profile(sender, instance, **kwargs):
     """Ensure UserProfile is saved when User is saved."""
     if hasattr(instance, 'profile'):
         instance.profile.save()
-

@@ -12,7 +12,7 @@ This module provides machine learning components for trading analysis:
 - Meta-learning for regime-adaptive trading
 """
 
-# Optional imports that depend on alpaca_trade_api
+# Optional imports that depend on Alpaca SDK support
 try:
     from .hiddenmarkov import HMM, DataManager
     _HAS_HMM = True

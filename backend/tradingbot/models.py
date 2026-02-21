@@ -1,6 +1,15 @@
+"""Deprecated legacy model module.
+
+Canonical Django models live in ``backend.tradingbot.models.models``.
+This file is retained only as a compatibility shim for old direct imports.
+Do not add new models here.
+"""
+
 from django.contrib.auth.models import User
 from django.db import models
 from rest_framework import serializers
+
+from backend.tradingbot.models.models import TradeTransaction
 
 
 class News(models.Model):
@@ -91,20 +100,27 @@ class Price(models.Model):
         )
 
 
-class StockTrade(models.Model):
-    # Legacy trade record kept for backward-compatibility with older integrations.
-    # Newer execution history is modeled in backend/tradingbot/models/models.py.
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    price = models.FloatField()
-    amount = models.IntegerField()
-    bought_timestamp = models.DateTimeField(auto_now_add=True)
-    sold_timestamp = models.DateTimeField(null=True)
+# Backwards-compatible alias. Use TradeTransaction from canonical models module.
+StockTrade = TradeTransaction
 
 
 class StockTradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = StockTrade
-        fields = ("company_id", "price", "amount", "bought_timestamp", "sold_timestamp")
+        fields = (
+            "id",
+            "user_id",
+            "company_id",
+            "symbol",
+            "transaction_type",
+            "quantity",
+            "price",
+            "gross_amount",
+            "fees",
+            "status",
+            "executed_at",
+            "legacy_reference",
+        )
 
 
 class Order(models.Model):

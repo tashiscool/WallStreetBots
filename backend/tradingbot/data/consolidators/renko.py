@@ -98,15 +98,23 @@ class RenkoConsolidator(IDataConsolidator[Bar, RenkoBrick]):
         self._last_brick: Optional[RenkoBrick] = None
         self._pending_volume = 0
 
+    def _reference_price(self, data: Bar) -> Decimal:
+        """Get the reference price for brick calculation.
+
+        When ``use_close_price`` is True (default), uses the bar's close.
+        Otherwise uses the HL/2 midpoint ``(high + low) / 2``, which smooths
+        out intrabar wicks and reduces noise-driven bricks.
+        """
+        if self.use_close_price:
+            return data.close
+        return (data.high + data.low) / 2
+
     def should_consolidate(self, data: Bar) -> bool:
         """Check if price moved enough for new brick."""
         if self._last_brick is None:
             return True
 
-        price = data.close if self.use_close_price else (
-            data.high if self._last_brick.is_up else data.low
-        )
-
+        price = self._reference_price(data)
         move = abs(price - self._last_brick.close)
         return move >= self.brick_size
 
@@ -125,8 +133,7 @@ class RenkoConsolidator(IDataConsolidator[Bar, RenkoBrick]):
         self._input_count += 1
         self._pending_volume += data.volume
 
-        # Get reference price (use_close_price toggle — TODO: implement HL/2 alternative)
-        price = data.close
+        price = self._reference_price(data)
 
         # First bar - establish starting point
         if self._last_brick is None:
@@ -483,4 +490,3 @@ class TickRangeConsolidator(IDataConsolidator[Tick, Bar]):
             self._bar_volume += data.quantity
 
         return result
-

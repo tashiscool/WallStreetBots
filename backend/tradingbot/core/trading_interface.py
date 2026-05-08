@@ -99,47 +99,17 @@ class TradeSignal:
             self.metadata.setdefault("signal_type", signal_type)
 
     @property
-    def action(self) -> str:  # noqa: F811
+    def action(self) -> str:
         return self.metadata.get("legacy_action", self.side.value)
 
     @property
-    def strategy(self) -> str:  # noqa: F811
+    def strategy(self) -> str:
         return self.strategy_name
 
     @classmethod
     def from_legacy(cls, **kwargs) -> "TradeSignal":
-        """Create TradeSignal from legacy field names.
-
-        Maps common alternative field names:
-        - symbol -> ticker
-        - action -> side (mapped to OrderSide)
-        - strategy -> strategy_name
-        - price -> limit_price
-        """
-        # Map field names
-        if "symbol" in kwargs and "ticker" not in kwargs:
-            kwargs["ticker"] = kwargs.pop("symbol")
-        if "strategy" in kwargs and "strategy_name" not in kwargs:
-            kwargs["strategy_name"] = kwargs.pop("strategy")
-        if "action" in kwargs and "side" not in kwargs:
-            action = kwargs.pop("action")
-            action_map = {
-                "BUY": OrderSide.BUY,
-                "SELL": OrderSide.SELL,
-                "BUY_TO_OPEN": OrderSide.BUY,
-                "BUY_TO_CLOSE": OrderSide.BUY,
-                "SELL_TO_OPEN": OrderSide.SELL,
-                "SELL_TO_CLOSE": OrderSide.SELL,
-            }
-            kwargs["side"] = action_map.get(action.upper(), OrderSide.BUY)
-        if "price" in kwargs and "limit_price" not in kwargs:
-            kwargs["limit_price"] = kwargs.pop("price")
-
-        # Remove unknown fields
-        known_fields = {f.name for f in cls.__dataclass_fields__.values()}
-        filtered = {k: v for k, v in kwargs.items() if k in known_fields}
-
-        return cls(**filtered)
+        """Construct from legacy kwargs while keeping the main dataclass init clean."""
+        return cls(**kwargs)
 
 
 @dataclass

@@ -16,16 +16,6 @@ from .core.production_strategy_manager import (
     ProductionStrategyManager,
     ProductionStrategyManagerConfig,
 )
-# Import strategies with fallbacks
-try:
-    from .strategies import (
-        ProductionEarningsProtection,
-        ProductionIndexBaseline,
-        ProductionWSBDipBot,
-    )
-except ImportError:
-    ProductionEarningsProtection = ProductionIndexBaseline = ProductionWSBDipBot = None
-
 __all__ = [
     "ProductionEarningsProtection",
     "ProductionIndexBaseline",
@@ -34,3 +24,17 @@ __all__ = [
     "ProductionStrategyManagerConfig",
     "ProductionWSBDipBot",
 ]
+
+
+def __getattr__(name):
+    if name in {
+        "ProductionEarningsProtection",
+        "ProductionIndexBaseline",
+        "ProductionWSBDipBot",
+    }:
+        from . import strategies
+
+        value = getattr(strategies, name)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
